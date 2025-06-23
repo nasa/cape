@@ -267,22 +267,22 @@ def svd(C):
     return U, s, V
 
 
-# DBFM options
-class _DBLLOpts(dbfm._DBFMOpts):
+# FMDataKit options
+class _LineLoadDataKitOpts(dbfm._FMDataKitOpts):
     pass
 
 
-# DBFM definition
-class _DBLLDefn(dbfm._DBFMDefn):
+# FMDataKit definition
+class _LineLoadDataKitDefn(dbfm._FMDataKitDefn):
     pass
 
 
 # Create class
-class DBLL(dbfm.DBFM):
+class LineLoadDataKit(dbfm.FMDataKit):
     r"""Database class for launch vehicle line loads
 
     :Call:
-        >>> db = dbll.DBLL(fname=None, **kw)
+        >>> db = dbll.LineLoadDataKit(fname=None, **kw)
     :Inputs:
         *fname*: {``None``} | :class:`str`
             File name; extension is used to guess data format
@@ -297,7 +297,7 @@ class DBLL(dbfm.DBFM):
         *mat*: {``None``} | :class:`str`
             File name for :class:`MATFile`
     :Outputs:
-        *db*: :class:`cape.dkit.dbfm.DBFM`
+        *db*: :class:`cape.dkit.dbfm.FMDataKit`
             LV force & moment database
     :Versions:
         * 2020-05-19 ``@ddalle``: First version
@@ -308,9 +308,9 @@ class DBLL(dbfm.DBFM):
   # <
    # --- Options ---
     # Class for options
-    _optscls = _DBLLOpts
+    _optscls = _LineLoadDataKitOpts
     # Class for definitions
-    _defncls = _DBLLDefn
+    _defncls = _LineLoadDataKitDefn
 
    # --- Tags ---
     # Additional tags
@@ -3909,7 +3909,12 @@ class DBLL(dbfm.DBFM):
 
 
 # Combine options
-kwutils._combine_val(DBLL._tagmap, dbfm.DBFM._tagmap)
+kwutils._combine_val(LineLoadDataKit._tagmap, dbfm.FMDataKit._tagmap)
 
 # Invert the _tagmap
-DBLL.create_tagcols()
+LineLoadDataKit.create_tagcols()
+
+
+# Alias
+class DBLL(LineLoadDataKit):
+    pass

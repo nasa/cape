@@ -2682,7 +2682,7 @@ def _spine(spine, opt, vmin, vmax):
         elif opt == "off":
             # Same as ``False``
             spine.set_visible(False)
-        elif opt in ["clip", "clipped", "truncate", "truncated"]:
+        elif opt in ["clip", "clipped", "data", "truncate", "truncated"]:
             # Set limits
             spine.set_bounds(vmin, vmax)
         else:

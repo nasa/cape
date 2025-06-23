@@ -1497,16 +1497,18 @@ class CaseArchivist(object):
 
    # --- File search ---
     @run_rootdir
-    def search(self, pat: str) -> dict:
+    def search(self, pat: str, links: bool = False) -> dict:
         r"""Search case folder for files matching a given pattern
 
         :Call:
-            >>> matchdict = a.search(pat)
+            >>> matchdict = a.search(pat, links=False)
         :Inputs:
             *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *pat*: :class:`str`
                 Regular expression pattern
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *matchdict*: :class:`dict`\ [:class:`list`]
                 Mapping of files matching *pat* keyed by identifier for
@@ -1516,6 +1518,7 @@ class CaseArchivist(object):
                 in  *lbl*, sorted by ascending modification time
         :Versions:
             * 2024-09-11 ``@ddalle``: v1.0
+            * 2025-04-04 ``@ddalle``: v1.1; add *links*
         """
         # Get search method
         method = self.opts.get_opt("SearchMethod", vdef="glob")
@@ -1527,14 +1530,15 @@ class CaseArchivist(object):
             # Search by regular expression, and separate by grp vals
             matchdict = rematch(pat)
         # Sort each value by *mtime*
-        for grp, matches in matchdict.items():
-            # Sort by ascending modification time
-            matchdict[grp] = sorted(matches, key=_safe_mtime)
+        if not links:
+            for grp, matches in matchdict.items():
+                # Sort by ascending modification time
+                matchdict[grp] = sort_by_mtime(matches)
         # Output
         return matchdict
 
     @use_regex
-    def search_regex(self, pat: str) -> dict:
+    def search_regex(self, pat: str, links: bool = False) -> dict:
         r"""Search case folder for files, using ``regex`` *SearchMethod*
 
         :Call:
@@ -1544,6 +1548,8 @@ class CaseArchivist(object):
                 Archive controller for one case
             *pat*: :class:`str`
                 Regular expression pattern
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *matchdict*: :class:`dict`\ [:class:`list`]
                 Mapping of files matching *pat* keyed by identifier for
@@ -1554,19 +1560,21 @@ class CaseArchivist(object):
         :Versions:
             * 2024-09-25 ``@ddalle``: v1.0
         """
-        return self.search(pat)
+        return self.search(pat, links=links)
 
     @use_glob
-    def search_glob(self, pat: str) -> dict:
+    def search_glob(self, pat: str, links: bool = False) -> dict:
         r"""Search case folder for files, using ``glob`` *SearchMethod*
 
         :Call:
-            >>> matchdict = a.search_glob(pat)
+            >>> matchdict = a.search_glob(pat, links=False)
         :Inputs:
             *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *pat*: :class:`str`
                 Regular expression pattern
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *matchdict*: :class:`dict`\ [:class:`list`]
                 Mapping of files matching *pat* keyed by identifier for
@@ -1577,7 +1585,7 @@ class CaseArchivist(object):
         :Versions:
             * 2024-09-25 ``@ddalle``: v1.0
         """
-        return self.search(pat)
+        return self.search(pat, links=links)
 
     @run_rootdir
     def _search_targroups(self, searchopt: dict) -> list:
@@ -2098,6 +2106,24 @@ def getsize(file_or_folder: str) -> int:
         total_size += getsize(fabs)
     # Output
     return total_size
+
+
+# Sort files by mtime
+def sort_by_mtime(file_list: list) -> list:
+    r"""Sort a list of files by modification time
+
+    :Call:
+        >>> sorted_list = sort_by_mtime(file_list)
+    :Inputs:
+        *file_list*: :class:`list`\ [:class:`str`]
+            Original list of files
+    :Outputs:
+        *sorted_list*: :class:`list`\ [:class:`str`]
+            List of files sorted by ascending modification time
+    :Versions:
+        * 2025-01-23 ``@ddalle``: v1.0
+    """
+    return sorted(file_list, key=_safe_mtime)
 
 
 # Get latest mod time of a file or folder

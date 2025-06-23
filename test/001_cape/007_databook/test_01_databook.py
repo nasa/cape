@@ -16,7 +16,7 @@ def test_01_databook():
     # Read data book
     db = databook.DataBook(cntl)
     # Check the __repr__
-    assert str(db) == "<DataBook nComp=10, nCase=30>"
+    assert str(db) == "<cfdx.DataBook, ncomp=10>"
     # Check the ocmponents
     assert db.Components == [
         "cap", "body", "fins",
@@ -28,7 +28,7 @@ def test_01_databook():
     # Test that we read a databook str with a comma in it
     assert ',' in db["fuselage"]["config"][0]
     # Display that
-    assert str(dbc) == "<DBComp fin1, nCase=30>"
+    assert str(dbc) == "<FMDataBook fin1, nCase=30>"
     # Match the trajectory to the actual data
     dbc.UpdateRunMatrix()
     # Filter cases at alpha=2

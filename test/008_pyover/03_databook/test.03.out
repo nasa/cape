@@ -1,0 +1,9 @@
+# Reference Area = 3.141590E+00
+# Reference Length = 2.000000E+00
+# Nominal moment reference point:
+# XMRP = 2.500000E+00
+# YMRP = 0.000000E+00
+# ZMRP = 0.000000E+00
+#
+# mach,alpha,beta,q,Re,config,XMRP,YMRP,ZMRP,nIter,nStats
+0.8,4.0,0.0,1250.0,250.0,poweroff,2.5,0.0,0.0,1500,1

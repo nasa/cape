@@ -1565,7 +1565,8 @@ class DataKit(BaseData):
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
-        self.clone_defns(dbf.defns)
+        if hasattr(dbf, "defns"):
+            self.clone_defns(dbf.defns)
         # Apply default
         self.finish_defns(dbf.cols)
         # Link other attributes

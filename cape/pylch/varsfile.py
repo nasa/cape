@@ -30,6 +30,223 @@ RE_INT = re.compile(r"[+-]?[0-9]+")
 RE_WORD = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
 
 
+# Class for <> subsections
+class VFileSubsec(dict):
+    r"""Section for reading subsections marked by angle-brackets
+
+    :Call:
+        >>> sec = VFileSubsec(a=None)
+        >>> sec = VFileSubsec(fp)
+    :Inputs:
+        *a*: {``None``} | :class:`dict`
+            Dictionary to inherit information from
+        *fp*: :class:`IOBase`
+            File to read subsection from
+    :Outputs:
+        *sec*: :class:`VFileSubsec`
+            Vars file subsection instance
+    """
+    # Attributes
+    __slots__ = (
+        "_terminated"
+    )
+
+    def __init__(self, a: Optional[Union[str, dict]] = None):
+        # Set flag that the section was properly terminated
+        self._terminated = True
+        # Check type
+        if isinstance(a, dict):
+            # Just save the entities
+            self.update(a)
+        elif isinstance(a, IOBase):
+            # Read it
+            self._read(a)
+
+    # Read
+    def _read(self, fp: IOBase):
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # This should be '<'
+        assert_nextstr(chunk, '<')
+        # Begin reading values
+        while True:
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Check for end of section
+            if chunk == '>':
+                # End of section
+                return
+            elif chunk == '':
+                # Reached EOF in middle of section
+                self._terminated = False
+                return
+            # Otherwise we should have a "word"
+            assert_regex(chunk, RE_WORD)
+            # Got name of next value
+            name = chunk
+            # Now search for '='
+            chunk = _next_chunk(fp)
+            assert_nextstr(chunk, '=', f"delim after subsec param '{name}'")
+            # Now get the next value (can be recursive)
+            val = _next_value(fp, name)
+            # Save
+            self[name] = val
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Test it
+            if chunk == ',':
+                # Move on to next section
+                continue
+            elif chunk == '>':
+                # End of subsection
+                self._terminated = True
+                return
+            # Run-on
+            raise ValueError(
+                f"After subsection param '{name}', " +
+                f"expected ',' or '>'; got '{chunk}'")
+
+
+# Class for [] lists
+class VFileList(list):
+    r"""Section for reading subsections marked by angle-brackets
+    """
+    # Attributes
+    __slots__ = (
+        "_terminated"
+    )
+
+    def __init__(self, a=None):
+        # Set flag that the section was properly terminated
+        self._terminated = True
+        # Check type
+        if isinstance(a, list):
+            # Just save the entities
+            self.extend(a)
+        elif isinstance(a, IOBase):
+            # Read it
+            self._read(a)
+
+    # Read
+    def _read(self, fp: IOBase):
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # This should be '['
+        assert_nextstr(chunk, '[')
+        # Initialize "unterminated"
+        self._terminated = False
+        # Begin reading values
+        while True:
+            # Check current list
+            name = f"list entry {len(self) + 1}"
+            # Get the next value (could be recursive)
+            val = _next_value(fp, name)
+            # Save
+            self.append(val)
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Test it
+            if chunk == ',':
+                # Move on to next section
+                continue
+            elif chunk == ']':
+                # End of list
+                self._terminated = True
+                return
+            # Run-on
+            raise ValueError(
+                f"After list entry {len(self)}; " +
+                f"expected ',' or ']'; got '{chunk}'")
+
+
+# Class for <> subsections
+class VFileFunction(dict):
+    r"""Section for reading "functions" marked by regular parentheses
+    """
+    # Attributes
+    __slots__ = (
+        "_terminated"
+    )
+
+    def __init__(self, a, name: str):
+        # Set flag that the section was properly terminated
+        self._terminated = True
+        # Initialize name
+        self["@function"] = name
+        self["args"] = []
+        self["kwargs"] = {}
+        # Check type
+        if isinstance(a, dict):
+            # Just save the entities
+            self.update(a)
+        elif isinstance(a, IOBase):
+            # Read it
+            self._read(a)
+
+    # Read
+    def _read(self, fp: IOBase):
+        # Get handle to data portion
+        args = self["args"]
+        kwargs = self["kwargs"]
+        # Function name
+        funcname = self["@function"]
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # This should be '('
+        assert_nextstr(chunk, '(')
+        # Begin reading values
+        while True:
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Check for end of section
+            if chunk == ')':
+                # End of section
+                return
+            elif chunk == '':
+                # Reached EOF in middle of section
+                self._terminated = False
+                return
+            # Read next char to check for , or =
+            delim = _next_chunk(fp)
+            # Check if it's a comma
+            if delim == ',':
+                # Found an arg
+                args.append(to_val(chunk))
+                continue
+            elif delim == ")":
+                # Found an arg and end of func
+                args.append(to_val(chunk))
+                self._terminated = True
+                return
+            elif delim != '=':
+                # Should be one of these three
+                raise ValueError(
+                    f"After '{chunk}' in function {funcname}(), " +
+                    f"expected ',', '=', or ')'; got '{delim}'")
+            # Otherwise we should have a "keyword"
+            assert_regex(chunk, RE_WORD)
+            # Got name of next value
+            name = chunk
+            # Now get the next value (can be recursive)
+            val = _next_value(fp, name)
+            # Save
+            kwargs[name] = val
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Test it
+            if chunk == ',':
+                # Move on to next section
+                continue
+            elif chunk == ')':
+                # End of subsection
+                self._terminated = True
+                return
+            # Run-on
+            raise ValueError(
+                f"After kwarg '{name}' in function {funcname}(), " +
+                f"expected ',' or ')'; got '{chunk}'")
+
+
 # Class for overall file
 class VarsFile(dict):
     # Attributes
@@ -518,6 +735,14 @@ class VarsFile(dict):
             machfunc = set_polar_arg(machval, 0, m, np.zeros(3))
             # Save function
             kwargs["M"] = machfunc
+        # Check for initial conditions
+        kwargs = self.get("initialConditions", {})
+        # Get value of Mach number
+        machval = kwargs.get("M", kwargs.pop("m", None))
+        # Set parameter
+        machfunc = set_polar_arg(machval, 0, m, np.zeros(3))
+        # Save function
+        kwargs["M"] = machfunc
 
     # Set angle of attack for farfield
     def set_alpha(
@@ -554,6 +779,14 @@ class VarsFile(dict):
             machfunc = set_polar_arg(machval, 1, a*DEG, np.zeros(3))
             # Save function
             kwargs["M"] = machfunc
+        # Check for initial conditions
+        kwargs = self.get("initialConditions", {})
+        # Get value of Mach number
+        machval = kwargs.get("M", kwargs.pop("m", None))
+        # Set parameter
+        machfunc = set_polar_arg(machval, 1, a*DEG, np.zeros(3))
+        # Save function
+        kwargs["M"] = machfunc
 
     # Set angle of sideslip for farfield
     def set_beta(
@@ -589,8 +822,63 @@ class VarsFile(dict):
             machfunc = set_polar_arg(machval, 2, b*DEG, np.zeros(3))
             # Save function
             kwargs["M"] = machfunc
+        # Check for initial conditions
+        kwargs = self.get("initialConditions", {})
+        # Get value of Mach number
+        machval = kwargs.get("M", kwargs.pop("m", None))
+        # Set parameter
+        machfunc = set_polar_arg(machval, 2, b*DEG, np.zeros(3))
+        # Save function
+        kwargs["M"] = machfunc
+
+   # --- Boundary conditions ---
+    def set_comp_farfield(self, comp: str, kwargs: Optional[dict] = None):
+        # Get BCs section
+        sec = self.get_section("boundary_conditions")
+        # Default kwargs
+        kw = {} if kwargs is None else dict(kwargs)
+        # Create function
+        fn = VFileFunction({"kwargs": kw}, "farfield")
+        # Save it
+        sec[comp] = fn
+
+    def set_comp_wall(
+            self, comp: str,
+            args: Optional[list] = None,
+            kwargs: Optional[dict] = None):
+        # Get BCs section
+        sec = self.get_section("boundary_conditions")
+        # Default args and kwargs
+        a = [] if args is None else list(args)
+        kw = {} if kwargs is None else dict(kwargs)
+        # Default is adiabatic wall
+        if len(a) + len(kw) == 0:
+            a = ["adiabatic"]
+        # Create function
+        fn = VFileFunction({"args": a, "kwargs": kw}, "viscousWall")
+        # Save it
+        sec[comp] = fn
 
    # --- General Data ---
+    # Get section
+    def get_section(self, secname: str) -> Optional[VFileSubsec]:
+        r"""Get or create a section in ``.vars`` file
+
+        :Call:
+            >>> opts.get_section(secname)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *secname*: :class:`str`
+                Name of section
+        :Outputs:
+            *subsec*: :class:`VFileSubsec` | ``None``
+                Contents of *secname* section
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get(secname)
+
     # Apply multiple settings
     def apply_dict(self, d: dict):
         r"""Apply a :class:`dict` of settings simultaneously
@@ -666,223 +954,6 @@ class VarsFile(dict):
         """
         # Pass to module-level functions
         return _find_function(self, name, nmax=nmax)
-
-
-# Class for <> subsections
-class VFileSubsec(dict):
-    r"""Section for reading subsections marked by angle-brackets
-
-    :Call:
-        >>> sec = VFileSubsec(a=None)
-        >>> sec = VFileSubsec(fp)
-    :Inputs:
-        *a*: {``None``} | :class:`dict`
-            Dictionary to inherit information from
-        *fp*: :class:`IOBase`
-            File to read subsection from
-    :Outputs:
-        *sec*: :class:`VFileSubsec`
-            Vars file subsection instance
-    """
-    # Attributes
-    __slots__ = (
-        "_terminated"
-    )
-
-    def __init__(self, a: Optional[Union[str, dict]] = None):
-        # Set flag that the section was properly terminated
-        self._terminated = True
-        # Check type
-        if isinstance(a, dict):
-            # Just save the entities
-            self.update(a)
-        elif isinstance(a, IOBase):
-            # Read it
-            self._read(a)
-
-    # Read
-    def _read(self, fp: IOBase):
-        # Read next chunk
-        chunk = _next_chunk(fp)
-        # This should be '<'
-        assert_nextstr(chunk, '<')
-        # Begin reading values
-        while True:
-            # Read next chunk
-            chunk = _next_chunk(fp)
-            # Check for end of section
-            if chunk == '>':
-                # End of section
-                return
-            elif chunk == '':
-                # Reached EOF in middle of section
-                self._terminated = False
-                return
-            # Otherwise we should have a "word"
-            assert_regex(chunk, RE_WORD)
-            # Got name of next value
-            name = chunk
-            # Now search for '='
-            chunk = _next_chunk(fp)
-            assert_nextstr(chunk, '=', f"delim after subsec param '{name}'")
-            # Now get the next value (can be recursive)
-            val = _next_value(fp, name)
-            # Save
-            self[name] = val
-            # Read next chunk
-            chunk = _next_chunk(fp)
-            # Test it
-            if chunk == ',':
-                # Move on to next section
-                continue
-            elif chunk == '>':
-                # End of subsection
-                self._terminated = True
-                return
-            # Run-on
-            raise ValueError(
-                f"After subsection param '{name}', " +
-                f"expected ',' or '>'; got '{chunk}'")
-
-
-# Class for [] lists
-class VFileList(list):
-    r"""Section for reading subsections marked by angle-brackets
-    """
-    # Attributes
-    __slots__ = (
-        "_terminated"
-    )
-
-    def __init__(self, a=None):
-        # Set flag that the section was properly terminated
-        self._terminated = True
-        # Check type
-        if isinstance(a, list):
-            # Just save the entities
-            self.extend(a)
-        elif isinstance(a, IOBase):
-            # Read it
-            self._read(a)
-
-    # Read
-    def _read(self, fp: IOBase):
-        # Read next chunk
-        chunk = _next_chunk(fp)
-        # This should be '['
-        assert_nextstr(chunk, '[')
-        # Initialize "unterminated"
-        self._terminated = False
-        # Begin reading values
-        while True:
-            # Check current list
-            name = f"list entry {len(self) + 1}"
-            # Get the next value (could be recursive)
-            val = _next_value(fp, name)
-            # Save
-            self.append(val)
-            # Read next chunk
-            chunk = _next_chunk(fp)
-            # Test it
-            if chunk == ',':
-                # Move on to next section
-                continue
-            elif chunk == ']':
-                # End of list
-                self._terminated = True
-                return
-            # Run-on
-            raise ValueError(
-                f"After list entry {len(self)}; " +
-                f"expected ',' or ']'; got '{chunk}'")
-
-
-# Class for <> subsections
-class VFileFunction(dict):
-    r"""Section for reading "functions" marked by regular parentheses
-    """
-    # Attributes
-    __slots__ = (
-        "_terminated"
-    )
-
-    def __init__(self, a, name: str):
-        # Set flag that the section was properly terminated
-        self._terminated = True
-        # Initialize name
-        self["@function"] = name
-        self["args"] = []
-        self["kwargs"] = {}
-        # Check type
-        if isinstance(a, dict):
-            # Just save the entities
-            self["data"].update(a)
-        elif isinstance(a, IOBase):
-            # Read it
-            self._read(a)
-
-    # Read
-    def _read(self, fp: IOBase):
-        # Get handle to data portion
-        args = self["args"]
-        kwargs = self["kwargs"]
-        # Function name
-        funcname = self["@function"]
-        # Read next chunk
-        chunk = _next_chunk(fp)
-        # This should be '('
-        assert_nextstr(chunk, '(')
-        # Begin reading values
-        while True:
-            # Read next chunk
-            chunk = _next_chunk(fp)
-            # Check for end of section
-            if chunk == ')':
-                # End of section
-                return
-            elif chunk == '':
-                # Reached EOF in middle of section
-                self._terminated = False
-                return
-            # Read next char to check for , or =
-            delim = _next_chunk(fp)
-            # Check if it's a comma
-            if delim == ',':
-                # Found an arg
-                args.append(to_val(chunk))
-                continue
-            elif delim == ")":
-                # Found an arg and end of func
-                args.append(to_val(chunk))
-                self._terminated = True
-                return
-            elif delim != '=':
-                # Should be one of these three
-                raise ValueError(
-                    f"After '{chunk}' in function {funcname}(), " +
-                    f"expected ',', '=', or ')'; got '{delim}'")
-            # Otherwise we should have a "keyword"
-            assert_regex(chunk, RE_WORD)
-            # Got name of next value
-            name = chunk
-            # Now get the next value (can be recursive)
-            val = _next_value(fp, name)
-            # Save
-            kwargs[name] = val
-            # Read next chunk
-            chunk = _next_chunk(fp)
-            # Test it
-            if chunk == ',':
-                # Move on to next section
-                continue
-            elif chunk == ')':
-                # End of subsection
-                self._terminated = True
-                return
-            # Run-on
-            raise ValueError(
-                f"After kwarg '{name}' in function {funcname}(), " +
-                f"expected ',' or ')'; got '{chunk}'")
 
 
 # Check a character against an exact target
@@ -1000,9 +1071,9 @@ def to_text(val: object) -> str:
             return txt + ")"
         else:
             # Loop through values of "subsection" <angle brackets>
-            lines = [f"    {k}: {to_text(v)}" for k, v in val.items()]
+            lines = [f"    {k} = {to_text(v)}" for k, v in val.items()]
             # Combine lines
-            return '<\n' + '\n'.join(lines) + '\n>\n'
+            return '<\n' + ',\n'.join(lines) + '\n>\n'
     # Otherwise convert to string directly (no quotes on strings)
     return str(val)
 
@@ -1116,13 +1187,14 @@ def _next_value(fp: IOBase, opt: str):
             File open for reading
         *opt*: :class:`str`
             Name of option being read; for error messages
-        *role*: :class:`int`
-            Role of current value:
-
-            * ``0``: top-level option
-            * ``1``: subsection, e.g. <p1=1, p2=air>
-            * ``2``: list, e.g. [0, 0, 1.2]
-            * ``3``: function, e.g. viscousWall(Twall=300)
+    :Outputs:
+        *val*: :class:`object`, see below
+            * :class:`VFileSubsect`
+            * :class:`VFileList`
+            * :class:`VFileFunction`
+            * :class:`int`
+            * :class:`float`
+            * :class:`str`
     """
     # Read next chunk
     chunk = _next_chunk(fp)

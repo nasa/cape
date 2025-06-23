@@ -22,10 +22,12 @@ histories, this section also specifies the moment reference points
 from os.path import join
 
 # Local imports
+from ...optdict import INT_TYPES
+from ...optdict.optitem import getel
 from ...cfdx.options import configopts
 
 
-# Class for PBS settings
+# Class for "Config" section
 class ConfigOpts(configopts.ConfigOpts):
     # Additional attributes
     __slots__ = ()
@@ -36,6 +38,7 @@ class ConfigOpts(configopts.ConfigOpts):
         "KeepTemplateComponents",
         "KineticDataFile",
         "MovingBodyInputFile",
+        "MovingBodyDefns",
         "RubberDataFile",
         "SpeciesThermoDataFile",
         "TDataFile",
@@ -46,6 +49,8 @@ class ConfigOpts(configopts.ConfigOpts):
         "KeepComponents": "KeepTemplateComponents",
         "KeepInputs": "KeepTemplateComponents",
         "KineticData": "KineticDataFile",
+        "MovingBodyBodies": "MovingBodyDefns",
+        "MovingBodyDefinitions": "MovingBodyDefns",
         "MovingBodyInput": "MovingBodyInputFile",
         "RubberData": "RubberDataFile",
         "SpeciesThermoData": "SpeciesThermoDataFile",
@@ -61,10 +66,16 @@ class ConfigOpts(configopts.ConfigOpts):
     _opttypes = {
         "Inputs": dict,
         "KineticDataFile": str,
+        "MovingBodyDefns": INT_TYPES + (str,),
         "MovingBodyInputFile": str,
         "RubberDataFile": str,
         "SpeciesThermoDataFile": str,
         "TDataFile": str,
+    }
+
+    # Items required to be a list
+    _optlistdepth = {
+        "MovingBodyDefns": 1,
     }
 
     # Defaults
@@ -82,16 +93,14 @@ class ConfigOpts(configopts.ConfigOpts):
         "Inputs": "dictionary of component indices for named comps",
         "KeepTemplateComponents": "add to template ``component_parameters``",
         "KineticDataFile": "template ``kinetic_data`` file",
+        "MovingBodyDefns": "definitions for components in each moving body",
         "MovingBodyInputFile": "template ``moving_body.input`` file",
         "RubberDataFile": "template for ``rubber.data`` file",
         "SpeciesThermoDataFile": "template ``species_thermo_data`` file",
         "TDataFile": "template for ``tdata`` file",
     }
 
-   # ------------------
-   # Component Mapping
-   # ------------------
-   # [
+   # --- Component Mapping ---
     # Get inputs for a particular component
     def get_ConfigInput(self, comp):
         r"""Return the input for a particular component
@@ -130,7 +139,51 @@ class ConfigOpts(configopts.ConfigOpts):
         self.setdefault("Inputs", {})
         # Set the value.
         self["Inputs"][comp] = inp
-   # ]
+
+   # --- MovingBodys ---
+    def get_ConfigNBody(self) -> int:
+        r"""Get a number of moving bodies defined in "Config" section
+
+        :Call:
+            >>> n = opts.get_ConfigNBody()
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+        :Outputs:
+            *n*: :class:`int`
+                Number of moving bodies
+        :Versions:
+            * 2025-05-15 ``@ddalle``: v1.0
+        """
+        # Get MovingBodyDefns opt
+        defns = self.get_opt("MovingBodyDefns", j=None)
+        # Return length
+        return 0 if defns is None else len(defns)
+
+    def get_ConfigMovingBody(self, k: int) -> list:
+        r"""Get a list of component names or indices for a moving body
+
+        :Call:
+            >>> comps = opts.get_ConfigMovingBody(k)
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+            *k*: :class:`int`
+                Body number (0-based)
+        :Outputs:
+            *comps*: :class:`list`\ [:class:`str` | :class:`int`]
+                List of components
+        :Versions:
+            * 2025-05-15 ``@ddalle``: v1.0
+        """
+        # Get option
+        defns = self.get_opt("MovingBodyDefns", vdef=[])
+        # Ensure list
+        defns = defns if isinstance(defns, list) else [defns]
+        # Subset to entry *k*
+        comps = getel(defns, j=k)
+        # Ensure list again
+        return comps if isinstance(comps, list) else [comps]
 
 
 # Add properties

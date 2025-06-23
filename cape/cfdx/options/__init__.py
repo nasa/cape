@@ -178,6 +178,7 @@ file that are not part of any section.
         "DataBook",
         "InitFunction",
         "Mesh",
+        "ModuleNames",
         "Modules",
         "PBS",
         "PBS_map",
@@ -190,7 +191,6 @@ file that are not part of any section.
         "RunMatrix",
         "ShellCmds",
         "Slurm",
-        "ZombieFiles",
         "NSubmit",
         "umask",
     }
@@ -206,13 +206,13 @@ file that are not part of any section.
         "BatchShellCmds": str,
         "CaseFunction": str,
         "InitFunction": str,
+        "ModuleNames": dict,
         "Modules": str,
         "PBS_map": dict,
         "PythonExec": str,
         "PythonPath": str,
         "RunMatrix": dict,
         "ShellCmds": str,
-        "ZombieFiles": str,
         "nSubmit": INT_TYPES,
         "umask": INT_TYPES + (str,),
     }
@@ -225,15 +225,11 @@ file that are not part of any section.
         "PythonPath": 1,
         "Modules": 1,
         "ShellCmds": 1,
-        "ZombieFiles": 1,
     }
 
     # Defaults
     _rc = {
         "NSubmit": 10,
-        "ZombieFiles": [
-            "*.out"
-        ],
     }
 
     # Descriptions for methods
@@ -241,11 +237,11 @@ file that are not part of any section.
         "CaseFunction": "function(s) to execute in case right before starting",
         "BatchShellCmds": "additional shell commands for batch jobs",
         "InitFunction": "function(s) to run immediately after parsing JSON",
+        "ModuleNames": "dict of short names for imported modules",
         "Modules": "list of Python modules to import",
         "NSubmit": "maximum number of jobs to submit at one time",
         "PythonExec": "specific Python executable to use for jobs",
         "PythonPath": "folder(s) to add to Python path for custom modules",
-        "ZombieFiles": "file name flobs to check mod time for zombie status",
     }
 
     # Section classes
@@ -471,11 +467,15 @@ file that are not part of any section.
         # Write it.
         if PBS_p is not None:
             f.write('#PBS -p %s\n' % PBS_p)
-        # Check for a group list.
+        # Check for a group list
         PBS_W = opts.get_opt("W", j=j)
-        # Write if specified.
+        # Write if specified
         if PBS_W:
             f.write('#PBS -W %s\n' % PBS_W)
+        # Write account
+        PBS_A = opts.get_opt("A", j=j)
+        if PBS_A:
+            f.write('#PBS -A %s\n' % PBS_A)
         # Write site-needed if appropriate
         if site is not None and len(site):
             f.write("#PBS -l site=needed=%s\n" % ("+".join(site)))

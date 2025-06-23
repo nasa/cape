@@ -17,8 +17,8 @@ resulting setup will be what you intended.)
 
     .. code-block:: python
 
-        import cape
-        cntl = cape.Cntl()
+        from cape.cfdx.cntl import Cntl
+        cntl = Cntl()
 
 Most of the pyCart submodules essentially contain a single class
 definition, and many of these classes are accessible directly from the

@@ -442,6 +442,9 @@ class Cntl(capecntl.Cntl):
         # ----------
         # Copy files
         # ----------
+        # Generic copy files
+        self.copy_files(i)
+        self.link_files(i)
         # Get the name of the configuration file.
         fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
         fpre = os.path.join(self.RootDir, self.opts.get_preSpecCntl())

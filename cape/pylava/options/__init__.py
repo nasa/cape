@@ -41,23 +41,24 @@ class Options(options.Options):
 
     # Additional options
     _optlist = (
+        "CartInputFile",
         "YAML",
         "RunYAMLFile",
     )
 
     # Aliases
     _optmap = {
-        "YAMLFile": "RunYAMLFile",
+        "CartesianInputFile": "CartInputFile",
+        "RunInputFile": "CartInputFile",
         "RunYAML": "YAML",
+        "YAMLFile": "RunYAMLFile",
     }
 
     # Types
     _opttypes = {
+        "CartInputFile": str,
         "RunYAMLFile": str,
     }
-
-    # Defaults
-    _rc = {}
 
     # Descriptions
     _rst_descriptions = {
@@ -99,6 +100,7 @@ class Options(options.Options):
 # Add properties
 Options.add_properties(
     (
+        "CartInputFile",
         "RunYAMLFile",
     ))
 # Add methods from subsections

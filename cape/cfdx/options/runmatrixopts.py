@@ -282,6 +282,36 @@ class BetaKeyDefnOpts(KeyDefnOpts):
     }
 
 
+# Definitions for CaseFunction
+class CaseFunctionKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "CompID",
+        "Data",
+        "Function",
+        "Grids",
+    )
+
+    # Types
+    _opttypes = {
+        "CompID": (str,) + INT_TYPES,
+        "Function": str,
+    }
+
+    # Option list depth
+    _optlistdepth = {
+        "CompID": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "Label": False,
+    }
+
+
 # Definitions for missile-axis roll
 class PhiPKeyDefnOpts(KeyDefnOpts):
     # Attributes
@@ -783,6 +813,7 @@ class KeyDefnCollectionOpts(OptionsDict):
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
         "_default_": KeyDefnOpts,
+        "CaseFunction": CaseFunctionKeyDefnOpts,
         "ConfigFunction": ConfigFunctionDefnOpts,
         "ConfigRotate": ConfigRotationDefnKeyOpts,
         "ConfigTranslate": ConfigTranslationDefnKeyOpts,

@@ -27,17 +27,21 @@ class _TecArgParser(ArgReader):
         "h": "help",
         "lay": "layout",
         "output": "o",
+        "s": "supersample",
+        "sample": "supersample",
         "v": "verbose",
         "w": "width",
     }
 
     # Converters
     _optconverters = {
-        "w": int,
+        "supersample": int,
+        "width": int,
     }
 
     # No-value options
     _optlist_noval = (
+        "antialias",
         "clean",
         "help",
         "verbose",
@@ -50,12 +54,14 @@ class _TecArgParser(ArgReader):
 
     # Descriptions
     _help_opt = {
-        "clean": "Delete macro after export (use ``--no-clean`` to suppress)",
+        "antialias": "Don't anti-alias image (useful for very large images)",
+        "clean": "Don't delete macro after export",
         "ext": "Export format",
         "help": "Display this help message and exit",
         "layout": "Name of Tecplot(R) layout file to use",
         "o": "Output file (default based on *layout* with changed extension)",
         "plt": "Name of Tecplot(R) PLT file to write",
+        "supersample": "Number of supersamples to make while anti-aliasing",
         "szplt": "Name of Tecplot(R) SZPLT file to convert",
         "verbose": "Increase verbosity during process",
         "width": "Image width, in pixels",
@@ -67,9 +73,16 @@ class _TecArgParser(ArgReader):
         "layout": "LAY",
         "o": "FNAME",
         "plt": "PLTFILE",
+        "supersample": "S",
         "szplt": "SZPLTFILE",
         "width": "WIDTH",
     }
+
+    # List of options that should be shown in the negative
+    _help_opt_negative = (
+        "antialias",
+        "clean",
+    )
 
 
 # Arguments for ``cape-tec``
@@ -79,11 +92,13 @@ class CapeTecArgParser(_TecArgParser):
 
     # Allowed options
     _optlist = (
+        "antialias",
         "clean",
         "ext",
         "help",
         "layout",
         "o",
+        "supersample",
         "verbose",
         "width",
     )
@@ -93,6 +108,11 @@ class CapeTecArgParser(_TecArgParser):
         "layout",
         "o",
     )
+
+    # Defaults
+    _rc = {
+        "supersample": 3,
+    }
 
     # Required options/args
     _nargmin = 1
@@ -109,6 +129,7 @@ class CapeSzplt2PltArgParser(_TecArgParser):
 
     # Allowed options
     _optlist = (
+        "antialias",
         "clean",
         "help",
         "o",

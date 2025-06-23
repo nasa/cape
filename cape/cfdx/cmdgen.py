@@ -214,7 +214,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     r"""Create command [prefix] to run MPI, e.g. ``mpiexec -np 10``
 
     :Call:
-        >>> cmdi = aflr3(opts=None, j=0, **kw)
+        >>> cmdi = mpiexec(opts=None, j=0, **kw)
     :Inputs:
         *opts*: {``None``} | :class:`OptionsDict`
             Options interface, either global or "RunControl" section
@@ -243,6 +243,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     # Check if MPI is called for this command
     q_mpi = rc.get_MPI(j)
     # Name of MPI executable
+    mpipre = rc.get_mpi_prefix(j=j)
     mpicmd = rc.get_mpicmd(j)
     mpicmd = rc.get_mpi_executable(j=j, vdef=mpicmd)
     # Exit if either criterion not met
@@ -251,10 +252,99 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     # Get number of MPI procs
     nproc = get_nproc(rc, j)
     perhost = rc.get_mpi_perhost(j)
-    # Initialize command
-    cmdi = [mpicmd]
+    # Initialize command with prefix(es)
+    mpipre = [] if mpipre is None else mpipre
+    cmdi = mpipre if isinstance(mpipre, list) else [mpipre]
+    # Add executable
+    cmdi.append(mpicmd)
+    # Check for hostfile
+    host = rc.get_mpi_hostfile(j)
+    if host:
+        # If environment variable, get it explicitly
+        if host.startswith("$"):
+            host = os.environ.get(host.strip("$"))
+    # Add hostfile if given
+    append_cmd_if(cmdi, host, ['--hostfile', host])
+    # If using mpt executable use special perhost arg
+    if "mpt" in mpicmd:
+        append_cmd_if(cmdi, perhost, ['-perhost', str(perhost)])
+    # Else use similar npernode arg
+    else:
+        append_cmd_if(cmdi, perhost, ['-npernode', str(perhost)])
     # Check for gpu number per host, number of MPI ranks, threads
-    append_cmd_if(cmdi, perhost, ['-perhost', str(perhost)])
+    append_cmd_if(cmdi, nproc and (not perhost), ['-np', str(nproc)])
+    # Add any generic options
+    for k, v in flags.items():
+        # Check type
+        if isinstance(v, bool):
+            # Check Boolean value
+            if v:
+                # Add '-$k' to command
+                cmdi += ['-%s' % k]
+        elif v is not None:
+            # Convert to string, '-$k $v'
+            cmdi += ['-%s' % k, '%s' % v]
+    # Additional args (raw)
+    append_cmd_if(cmdi, len(args), args)
+    # Output
+    return cmdi
+
+
+def mpiexec_nogpu(
+        opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
+    r"""Create cmd to run MPI, ignoring "perhost" GPU settings
+
+    :Call:
+        >>> cmdi = mpiexec_nogpu(opts=None, j=0, **kw)
+    :Inputs:
+        *opts*: {``None``} | :class:`OptionsDict`
+            Options interface, either global or "RunControl" section
+        *j*: {``0``} | :class:`int`
+            Phase number
+    :Outputs:
+        *cmdi*: :class:`list`\ [:class:`str`]
+            System command created as list of strings
+    :Versions:
+        * 2025-04-04 ``@ddalle``: v1.0 (fork ``mpiexec()``)
+    """
+    # Isolate opts for "RunControl" section
+    rc = isolate_subsection(opts, Options, ("RunControl",))
+    # Get mpi options section
+    mpi_opts = rc["mpi"]
+    mpi_opts = mpi_opts.__class__(mpi_opts)
+    # Apply other options
+    mpi_opts.set_opts(kw)
+    # Extra options
+    flags = mpi_opts.get_mpi_flags()
+    flags = {} if flags is None else flags
+    # Additional raw args
+    rawargs = mpi_opts.get_mpi_args()
+    args = [] if rawargs is None else [str(arg) for arg in rawargs]
+    # Check if MPI is called for this command
+    q_mpi = rc.get_MPI(j)
+    # Name of MPI executable
+    mpipre = rc.get_mpi_prefix(j=j)
+    mpicmd = rc.get_mpicmd(j)
+    mpicmd = rc.get_mpi_executable(j=j, vdef=mpicmd)
+    # Exit if either criterion not met
+    if (not q_mpi) or (not mpicmd):
+        return []
+    # Get number of MPI procs
+    nproc = get_nproc(rc, j)
+    # Initialize command with prefix(es)
+    mpipre = [] if mpipre is None else mpipre
+    cmdi = mpipre if isinstance(mpipre, list) else [mpipre]
+    # Add executable
+    cmdi.append(mpicmd)
+    # Check for hostfile
+    host = rc.get_mpi_hostfile(j)
+    if host:
+        # If environment variable, get it explicitly
+        if host.startswith("$"):
+            host = os.environ.get(host.strip("$"))
+    # Add hostfile if given
+    append_cmd_if(cmdi, host, ["--hostfile", host])
+    # Check for gpu number per host, number of MPI ranks, threads
     append_cmd_if(cmdi, nproc, ['-np', str(nproc)])
     # Add any generic options
     for k, v in flags.items():
@@ -412,6 +502,63 @@ def intersect(opts=None, j=0, **kw):
     return cmdi
 
 
+# Function to call comp2tri
+def comp2tri(opts=None, j=0, **kw):
+    r"""Interface to Cart3D binary ``intersect``
+
+    :Call:
+        >>> cmd = cape.cmd.intesect(opts=None, **kw)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *i*: :class:`str`
+            Name of input ``tri`` file
+        *o*: :class:`str`
+            Name of output ``tri`` file
+    :Outputs:
+        *cmd*: :class:`list` (:class:`str`)
+            Command split into a list of strings
+    :Versions:
+        * 2015-02-13 ``@ddalle``: v1.0
+        * 2023-08-18 ``@ddalle``: v1.1; use isolate_subsection()
+    """
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl", "comp2tri"))
+    # Apply other options
+    opts.set_opts(kw)
+    # Get file names, in and out
+    ifiles = opts.get_opt('i', j)
+    ofile = opts.get_opt('o', j)
+    # Get other options
+    ascii = opts.get_opt("ascii", j)
+    inflate = opts.get_opt("inflate", j)
+    trix = opts.get_opt("trix", j)
+    keepcomps = opts.get_opt("keepComps", j)
+    maketags = opts.get_opt("makeGMPtags", j)
+    tagoffset = opts.get_opt("gmpTagOffset", j)
+    gmp2comp = opts.get_opt("gmp2comp", j)
+    config = opts.get_opt("config", j)
+    dp = opts.get_opt("dp", j)
+    v = opts.get_opt('v', j)
+    # Build the command.
+    cmdi = ['comp2tri', '-o', ofile]
+    # Type options
+    append_cmd_if(cmdi, ascii, ['-ascii'])
+    append_cmd_if(cmdi, trix, ['-trix'])
+    append_cmd_if(cmdi, v, ['-v'])
+    append_cmd_if(cmdi, inflate, ['-inflate'])
+    append_cmd_if(cmdi, keepcomps, ['-keepComps'])
+    append_cmd_if(cmdi, maketags, ['-makeGMPtags'])
+    append_cmd_if(cmdi, tagoffset, ['-gmpTagOffset', str(tagoffset)])
+    append_cmd_if(cmdi, gmp2comp, ['-gmp2comp'])
+    append_cmd_if(cmdi, config, ['-config'])
+    append_cmd_if(cmdi, dp, ['-dp'])
+    # Add list of input files
+    cmdi.extend(ifiles)
+    # Output
+    return cmdi
+
+
 # Function to call verify
 def verify(opts=None, **kw):
     r"""Generate command for Cart3D executable ``verify``
@@ -498,8 +645,15 @@ def get_nproc(rc: Options, j: int = 0) -> int:
     # Check for explicit number of processes
     nproc = rc.get_nProc(j)
     nproc = rc.get_mpi_np(j, vdef=nproc)
+    # Check type of user-specified *nProc*
+    if isinstance(nproc, float):
+        # User specifies a fraction of procs to use
+        nproc = int(nproc * nprocdef)
+    elif isinstance(nproc, int) and nproc < 0:
+        # User specified number to *omit*
+        nproc = nprocdef + nproc
     # Override any explicit "null" (None) values
-    nproc = nprocdef if nproc == -1 else nproc
+    nproc = nprocdef if nproc is None else nproc
     # Output with overrides
     return nproc
 

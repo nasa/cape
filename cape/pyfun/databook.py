@@ -64,6 +64,7 @@ from . import casecntl
 from . import lineload
 from . import pointsensor
 from . import pltfile
+from ..cfdx import casedata
 from ..cfdx import databook
 from ..dkit import tsvfile
 
@@ -160,212 +161,62 @@ COLNAMES_SUBHIST = {
 }
 
 
-# Aerodynamic history class
-class DataBook(databook.DataBook):
-    r"""This class provides an interface to the data book for a given
-    CFD run matrix.
-
-    :Call:
-        >>> DB = pyFun.databook.DataBook(x, opts)
-    :Inputs:
-        *x*: :class:`cape.pyfun.runmatrix.RunMatrix`
-            The current pyFun trajectory (i.e. run matrix)
-        *opts*: :class:`cape.pyfun.options.Options`
-            Global pyFun options instance
-    :Outputs:
-        *DB*: :class:`cape.pyfun.databook.DataBook`
-            Instance of the pyFun data book class
-    """
-  # ===========
-  # Readers
-  # ===========
-    # Initialize a DBComp object
-    def ReadDBComp(self, comp, check=False, lock=False):
-        r"""Initialize data book for one component
-
-        :Call:
-            >>> DB.ReadDBComp(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.pyfun.databook.DataBook`
-                Instance of the pyCart data book class
-            *comp*: :class:`str`
-                Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2015-11-10 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: v1.1; add *targ* keyword
-            * 2017-04-13 ``@ddalle``: v1.2; self-contained
-        """
-        # Read the data book
-        self[comp] = DBComp(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock)
-
-    # Local version of data book
-    def _DataBook(self, targ):
-        self.Targets[targ] = DataBook(
-            self.x, self.opts, RootDir=self.RootDir, targ=targ)
-
-    # Local version of target
-    def _DBTarget(self, targ):
-        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
-
-    # Local line load data book read
-    def _DBLineLoad(self, comp, conf=None, targ=None):
-        r"""Version-specific line load reader
+# Component data book
+class FMDataBook(databook.FMDataBook):
+    # Initialization method
+    def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
+        """Initialization method
 
         :Versions:
-            * 2017-04-18 ``@ddalle``: v1.0
+            * 2014-12-21 ``@ddalle``: v1.0
+            * 2022-04-13 ``@ddalle``: verison 2.0; use *cntl*
         """
-        # Check for target
+        # Unpack *cntl*
+        x = cntl.x
+        opts = cntl.opts
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.cntl = cntl
+        self.comp = comp
+        self.name = comp
+        self.proj = cntl.GetProjectRootName(j=None)
+        self.sources = {}
+        # Root directory
+        self.RootDir = kw.get("RootDir", os.getcwd())
+
+        # Get the directory.
         if targ is None:
-            self.LineLoads[comp] = lineload.DBLineLoad(
-                comp, self.cntl,
-                conf=conf, RootDir=self.RootDir, targ=self.targ)
+            # Primary data book directory
+            fdir = opts.get_DataBookFolder()
         else:
-            # Read as a specified target.
-            ttl = '%s\\%s' % (targ, comp)
-            # Get the keys
-            topts = self.opts.get_DataBookTargetByName(targ)
-            keys = topts.get("Keys", self.x.cols)
-            # Read the file.
-            self.LineLoads[ttl] = lineload.DBLineLoad(
-                comp, self.cntl, keys=keys,
-                conf=conf, RootDir=self.RootDir, targ=targ)
+            # Secondary data book directory
+            fdir = opts.get_TargetDataBookDir(targ)
 
-    # Read TriqFM components
-    def ReadTriqFM(self, comp, check=False, lock=False):
-        r"""Read a TriqFM data book if not already present
+        # Construct the file name.
+        fcomp = 'aero_%s.csv' % comp
+        # Folder name for compatibility.
+        fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
+        # Construct the full file name.
+        fname = os.path.join(fdir, fcomp)
+        # Save the file name.
+        self.fname = fname
+        self.fdir = fdir
 
-        :Call:
-            >>> DB.ReadTriqFM(comp)
-        :Inputs:
-            *DB*: :class:`cape.pyfun.databook.DataBook`
-                Instance of pyFun data book class
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary
-        try:
-            self.TriqFM
-        except Exception:
-            self.TriqFM = {}
-        # Try to access the TriqFM database
-        try:
-            self.TriqFM[comp]
-            # Confirm lock if necessary.
-            if lock:
-                self.TriqFM[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqFM[comp] = DBTriqFM(
-                self.x, self.opts, comp,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
+        # Process columns
+        self.ProcessColumns()
 
-    # Read TriqPoint components
-    def ReadTriqPoint(self, comp, check=False, lock=False, **kw):
-        r"""Read a TriqPoint data book if not already present
+        # Read the file or initialize empty arrays.
+        self.Read(self.fname, check=check, lock=lock)
 
-        :Call:
-            >>> DB.ReadTriqPoint(comp, check=False, lock=False, **kw)
-        :Inputs:
-            *DB*: :class:`cape.pyfun.databook.DataBook`
-                Instance of pyFun data book class
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-            *pts*: {``None``} | :class:`list`\ [:class:`str`]
-                List of points to read (default is read from *DB.opts*)
-            *pt*: {``None``} | :class:`str`
-                Individual point to read
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-            * 2017-10-11 ``@ddalle``: From :func:`ReadTriqFM`
-        """
-        # Initialize if necessary
-        try:
-            self.TriqPoint
-        except Exception:
-            self.TriqPoint = {}
-        # Get point list
-        pts = kw.get("pts", kw.get("pt"))
-        # Check type
-        if pts is None:
-            # Default list
-            pts = self.opts.get_DataBookPoints(comp)
-        elif type(pts).__name__ not in ["list", "ndarray"]:
-            # One point; convert to list
-            pts = [pts]
-        # Try to access the TriqPoint database
-        try:
-            # Check if present
-            DBPG = self.TriqPoint[comp]
-            # Loop through points to check if they're present
-            for pt in pts:
-                # Check if present
-                if pt in DBPG:
-                    continue
-                # Otherwise/read it
-                DBPG.ReadPointSensor(pt)
-                # Add to the list
-                DBPG.pts.append(pt)
-            # Confirm lock if necessary.
-            if lock:
-                self.TriqPoint[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqPoint[comp] = pointsensor.DBTriqPointGroup(
-                self.cntl, self.opts, comp, pts=pts,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
-
-  # >
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid(self.proj)
+        # Save the target translations
+        self.targs = opts.get_CompTargets(comp)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(comp)
 
     # Read case FM history
-    def ReadCaseFM(self, comp):
+    def ReadCase(self, comp):
         r"""Read a :class:`CaseFM` object
 
         :Call:
@@ -384,23 +235,60 @@ class DataBook(databook.DataBook):
         # Read CaseResid object from PWD
         return CaseFM(self.proj, comp)
 
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
 
-# Component data book
-class DBComp(databook.DBComp):
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
+
+
+class PropDataBook(databook.PropDataBook):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
+
+
+class PyFuncDataBook(databook.PyFuncDataBook):
     pass
 
 
 # Data book target instance
-class DBTarget(databook.DBTarget):
+class TargetDataBook(databook.TargetDataBook):
     pass
 
 
 # TriqFM data book
-class DBTriqFM(databook.DBTriqFM):
+class TriqFMDataBook(databook.TriqFMDataBook):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
-        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
+        >>> DBF = TriqFMDataBook(x, opts, comp, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -411,7 +299,7 @@ class DBTriqFM(databook.DBTriqFM):
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
     :Outputs:
-        *DBF*: :class:`cape.pyfun.databook.DBTriqFM`
+        *DBF*: :class:`cape.pyfun.databook.TriqFMDataBook`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
@@ -424,7 +312,7 @@ class DBTriqFM(databook.DBTriqFM):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`cape.pyfun.databook.DBTriqFM`
+            *DBF*: :class:`cape.pyfun.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -453,7 +341,7 @@ class DBTriqFM(databook.DBTriqFM):
         :Call:
             >>> DBL.PreprocessTriq(ftriq, i=None)
         :Inputs:
-            *DBF*: :class:`cape.pyfun.databook.DBTriqFM`
+            *DBF*: :class:`cape.pyfun.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -477,6 +365,114 @@ class DBTriqFM(databook.DBTriqFM):
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Read the plt information
         pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+
+
+class TriqFMFaceDataBook(databook.TriqFMFaceDataBook):
+    pass
+
+
+class TimeSeriesDataBook(databook.TimeSeriesDataBook):
+    def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
+        """Initialization method
+
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: Started
+        """
+        # Unpack *cntl*
+        x = cntl.x
+        opts = cntl.opts
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.cntl = cntl
+        self.comp = comp
+        self.name = comp
+        self.proj = cntl.GetProjectRootName()
+        self.sources = {}
+        # Root directory
+        self.RootDir = kw.get("RootDir", os.getcwd())
+
+        # Get the directory.
+        if targ is None:
+            # Primary data book directory
+            fdir = opts.get_DataBookFolder()
+        else:
+            # Secondary data book directory
+            fdir = opts.get_TargetDataBookDir(targ)
+
+        # Construct the file name.
+        fcomp = 'ts_%s.csv' % comp
+        # Folder name for compatibility.
+        fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
+        # Construct the full file name.
+        fname = os.path.join(fdir, fcomp)
+        # Save the file name.
+        self.fname = fname
+        self.fdir = fdir
+
+        # Safely change to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Create directories if necessary
+        if not os.path.isdir(fdir):
+            # Create data book folder (should not occur)
+            os.mkdir(fdir)
+        # Check for lineload folder
+        if not os.path.isdir(os.path.join(fdir, 'timeseries')):
+            # Create line load folder
+            os.mkdir(os.path.join(fdir, 'timeseries'))
+        # Return to original location
+        os.chdir(fpwd)
+
+        # Process columns
+        self.ProcessColumns()
+
+        # Read the file or initialize empty arrays.
+        self.Read(self.fname, check=check, lock=lock)
+
+        # Save the target translations
+        self.targs = opts.get_CompTargets(comp)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(comp)
+
+    # Read case FM history
+    def ReadCase(self, comp):
+        r"""Read a :class:`CaseTS` object
+
+        :Call:
+            >>> FM = DB.ReadCaseTS(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *FM*: :class:`cape.pyfun.databook.CaseTS`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseTS(self.proj, comp)
+
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
 
 
 # Force/moment history
@@ -505,6 +501,17 @@ class CaseFM(databook.CaseFM):
         * 2016-05-05 ``@ddalle``: v1.1; handle adaptive cases
         * 2016-10-28 ``@ddalle``: v1.2; catch iteration resets
     """
+    # Class attributes
+    _base_coeffs = (
+        "CA",
+        "CY",
+        "CN",
+        "CLL",
+        "CLM",
+        "CLN",
+        "mdot",
+    )
+
     # Initialization method
     def __init__(self, proj: str, comp: str, **kw):
         r"""Initialization method
@@ -517,6 +524,175 @@ class CaseFM(databook.CaseFM):
         self.proj = proj
         # Use parent initializer
         databook.CaseFM.__init__(self, comp, **kw)
+
+    # Get working folder for flow
+    def get_flow_folder(self) -> str:
+        r"""Get the working folder for primal solutions
+
+        This will be either ``""`` (base dir) or ``"Flow"``
+
+        :Call:
+            >>> workdir = fm.get_flow_folder()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *workdir*: ``""`` | ``"Flow"``
+                Current working folder for primal (flow) solutions
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Check for ``Flow/`` folder
+        return "Flow" if os.path.isdir("Flow") else ""
+
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = fm.get_filelist()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0; from old __init__()
+        """
+        # Check for ``Flow`` folder
+        workdir = self.get_flow_folder()
+        # Quick function to join workdir and file name
+        fw = lambda fname: os.path.join(workdir, fname)
+        # Get project and component name
+        proj = self.proj
+        comp = self.comp
+        compl = comp.lower()
+        # Expected name of the component history file(s)
+        fname = fw(f"{proj}_fm_{comp}.dat")
+        fnamel = fw(f"{proj}_fm_{compl}.dat")
+        # Patters for multiple-file scenarios
+        fglob1 = fw(f"{proj}_fm_{comp}.[0-9][0-9].dat")
+        fglob2 = fw(f"{proj}[0-9][0-9]_fm_{comp}.dat")
+        fglob3 = fw(f"{proj}[0-9][0-9]_fm_{comp}.[0-9][0-9].dat")
+        # Lower-case versions
+        fglob1l = fw(f"{proj}_fm_{compl}.[0-9][0-9].dat")
+        fglob2l = fw(f"{proj}[0-9][0-9]_fm_{compl}.dat")
+        fglob3l = fw(f"{proj}[0-9][0-9]_fm_{compl}.[0-9][0-9].dat")
+        # List of files
+        filelist = []
+        # Check which scenario we're in
+        if os.path.isfile(fname):
+            # Single project + original case; check for history resets
+            glob1 = glob.glob(fglob1)
+            glob1.sort()
+            # Add in main file name
+            filelist = glob1 + [fname]
+        elif os.path.isfile(fnamel):
+            # Single project + original case; check for history resets
+            glob1 = glob.glob(fglob1l)
+            glob1.sort()
+            # Add in main file name
+            filelist = glob1 + [fnamel]
+        else:
+            # Multiple projects; try original case first
+            glob2 = glob.glob(fglob2)
+            glob3 = glob.glob(fglob3)
+            # Check for at least one match
+            if len(glob2 + glob3) > 0:
+                # Save original case
+                filelist = glob2 + glob3
+            else:
+                # Find lower-case matches
+                glob2 = glob.glob(fglob2l)
+                glob3 = glob.glob(fglob3l)
+                # Save lower-case versions
+                filelist = glob2 + glob3
+        # Sort whatever list we've god
+        filelist.sort()
+        # Output
+        return filelist
+
+    # Read a data file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a Tecplot iterative history file
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Read the Tecplot file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
+        # Modify iteration & time histories
+        self._fix_iter(db)
+        # Output
+        return db
+
+    # Function to fix iteration histories of one file
+    def _fix_iter(self, db: tsvfile.TSVTecDatFile):
+        r"""Fix iteration and time histories for FUN3D resets
+
+        :Call:
+            >>> _fix_iter(h, db)
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Get iterations and time
+        i_solver = db.get(databook.CASE_COL_ITRAW)
+        t_solver = db.get(databook.CASE_COL_TRAW)
+        # Get current last iter
+        i_last = self.get_lastiter()
+        # Copy to actual
+        i_cape = i_solver.copy()
+        # Required delta for iteration counter
+        di = max(0, i_last - i_solver[0] + 1)
+        # Modify history
+        i_cape += di
+        # Save iterations
+        db.save_col(databook.CASE_COL_ITERS, i_cape)
+        # Modify time history
+        if (t_solver is None) or (t_solver[0] < 0):
+            # No time histories
+            t_raw = np.full(i_solver.size, np.nan)
+            t_cape = np.full(i_solver.shape, np.nan)
+            # Save placeholders for raw time
+            db.save_col(databook.CASE_COL_TRAW, t_raw)
+        else:
+            # Get last time value
+            t_last = self.get_maxtime()
+            # Copy to actual
+            t_cape = t_solver.copy()
+            # Required delta for times to be ascending
+            dt = max(0.0, np.floor(t_last - 2*t_solver[0] + t_solver[1]))
+            # Modify time histories
+            t_cape += dt
+        # Save time histories
+        db.save_col(databook.CASE_COL_TIME, t_cape)
+        # Output
+        return db
+
+
+class CaseTS(databook.CaseTS):
+    def __init__(self, proj: str, comp: str, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2025-10-16 ``@ddalle``: v1.0
+            * 2024-01-23 ``@ddalle``: v2.0; DataKit
+        """
+        # Get the project rootname
+        self.proj = proj
+        # Use parent initializer
+        databook.CaseTS.__init__(self, comp, **kw)
 
     # Get working folder for flow
     def get_flow_folder(self) -> str:
@@ -1102,8 +1278,180 @@ class CaseResid(databook.CaseResid):
         return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
 
 
+# Aerodynamic history class
+class DataBook(databook.DataBook):
+    r"""This class provides an interface to the data book for a given
+    CFD run matrix.
+
+    :Call:
+        >>> DB = pyFun.databook.DataBook(x, opts)
+    :Inputs:
+        *x*: :class:`cape.pyfun.runmatrix.RunMatrix`
+            The current pyFun trajectory (i.e. run matrix)
+        *opts*: :class:`cape.pyfun.options.Options`
+            Global pyFun options instance
+    :Outputs:
+        *DB*: :class:`cape.pyfun.databook.DataBook`
+            Instance of the pyFun data book class
+    """
+    _fm_cls = FMDataBook
+    _triqfm_cls = TriqFMFaceDataBook
+    _triqpt_cls = pointsensor.TriqPointGroupDataBook
+    _ts_cls = TimeSeriesDataBook
+    _prop_cls = PropDataBook
+    _pyfunc_cls = PyFuncDataBook
+  # ===========
+  # Readers
+  # ===========
+
+    # Local version of data book
+    def _DataBook(self, targ):
+        self.Targets[targ] = DataBook(
+            self.x, self.opts, RootDir=self.RootDir, targ=targ)
+
+    # Local version of target
+    def _TargetDataBook(self, targ):
+        self.Targets[targ] = TargetDataBook(
+            targ, self.x, self.opts, self.RootDir)
+
+    # Local line load data book read
+    def _LineLoadDataBook(self, comp, conf=None, targ=None):
+        r"""Version-specific line load reader
+
+        :Versions:
+            * 2017-04-18 ``@ddalle``: v1.0
+        """
+        # Check for target
+        if targ is None:
+            self.LineLoads[comp] = lineload.LineLoadDataBook(
+                comp, self.cntl,
+                conf=conf, RootDir=self.RootDir, targ=self.targ)
+        else:
+            # Read as a specified target.
+            ttl = '%s\\%s' % (targ, comp)
+            # Get the keys
+            topts = self.opts.get_TargetDataBookByName(targ)
+            keys = topts.get("Keys", self.x.cols)
+            # Read the file.
+            self.LineLoads[ttl] = lineload.LineLoadDataBook(
+                comp, self.cntl, keys=keys,
+                conf=conf, RootDir=self.RootDir, targ=targ)
+
+    # Read TriqPoint components
+    def ReadTriqPoint(self, comp, check=False, lock=False, **kw):
+        r"""Read a TriqPoint data book if not already present
+
+        :Call:
+            >>> DB.ReadTriqPoint(comp, check=False, lock=False, **kw)
+        :Inputs:
+            *DB*: :class:`cape.pyfun.databook.DataBook`
+                Instance of pyFun data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+            *pts*: {``None``} | :class:`list`\ [:class:`str`]
+                List of points to read (default is read from *DB.opts*)
+            *pt*: {``None``} | :class:`str`
+                Individual point to read
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+            * 2017-10-11 ``@ddalle``: From :func:`ReadTriqFM`
+        """
+        # Initialize if necessary
+        try:
+            self.TriqPoint
+        except Exception:
+            self.TriqPoint = {}
+        # Get point list
+        pts = kw.get("pts", kw.get("pt"))
+        # Check type
+        if pts is None:
+            # Default list
+            pts = self.opts.get_DataBookPoints(comp)
+        elif type(pts).__name__ not in ["list", "ndarray"]:
+            # One point; convert to list
+            pts = [pts]
+        # Try to access the TriqPoint database
+        try:
+            # Check if present
+            DBPG = self.TriqPoint[comp]
+            # Loop through points to check if they're present
+            for pt in pts:
+                # Check if present
+                if pt in DBPG:
+                    continue
+                # Otherwise/read it
+                DBPG.ReadPointSensor(pt)
+                # Add to the list
+                DBPG.pts.append(pt)
+            # Confirm lock if necessary.
+            if lock:
+                self.TriqPoint[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqPoint[comp] = self._triqpt_cls(
+                self.cntl, self.opts, comp, pts=pts,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
+            os.chdir(fpwd)
+
+    # Read TriqFM components
+    def ReadTriqFM(self, comp, check=False, lock=False):
+        r"""Read a TriqFM data book if not already present
+
+        :Call:
+            >>> DB.ReadTriqFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.pyfun.databook.DataBook`
+                Instance of pyFun data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+            # Confirm lock if necessary.
+            if lock:
+                self.TriqFM[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = TriqFMDataBook(
+                self.x, self.opts, comp,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
+            os.chdir(fpwd)
+
+  # >
+
+  # ========
+  # Case I/O
+  # ========
+  # <
+  # >
+
+
 # Function to fix iteration histories of one file
-def _fix_iter(h: databook.CaseData, db: dict):
+def _fix_iter(h: casedata.CaseData, db: dict):
     r"""Fix iteration and time histories for FUN3D resets
 
     :Call:

@@ -3,6 +3,306 @@
 Changelog
 ********************
 
+
+Release 2.1.0
+=============================
+
+New Features
+-----------------
+
+*   CAPE now includes an unstructured mesh module called ``cape.gruvoc``. It
+    contains a mesh conversion capability, for example to convert a UGRID
+    volume mesh to a Tecplot volume PLT file, you could run
+
+    .. code-block:: console
+
+        $ python3 -m cape.gruvoc pyfun.lb8.ugrid pyfun.plt --mapbc pyfun.mapbc
+    
+    It also creates a ``gruvoc`` executable so that you could just run
+
+    .. code-block:: console
+
+        $ gruvoc pyfun.lb8.ugrid pyfun.plt --mapbc pyfun.mapbc
+    
+    Another useful tool is ``gruvoc report``, which summarizes the number of
+    nodes, surface tris, tets, etc. in a grid.
+
+    .. code-block:: console
+
+        $ gruvoc report pyfun.lb8.ugrid -h
+    
+    You can call ``gruvoc report`` without the ``-h`` to see the raw numbers.
+    The ``-h`` flag means "human-readable", so for example it will abbreviate
+    1234567 to "1.2M".
+
+*   The ``pyfun`` module now contains the ability to directly read FUN3D
+    solutions directly, both instantaneous restart files (``.flow``) and
+    time-averaged solutions (``_TAVG.1``). An example usage is to convert a
+    time-averaged solution to a volume Tecplot PLT file:
+
+    .. code-block:: console
+
+        $ gruvoc convert pyfun.lb8.ugrid pyfun_volume_tavg_timestep1000.plt \
+            --tavg pyfun_TAVG.1 --add-mach --add-cp --mapbc pyfun.mapbc
+    
+    The ``cape.pyfun.casecntl`` module conveniently provides some built-in
+    "workers" (See the notes on the CAPE 2.0.3 release) to make these
+    conversions while FUN3D is running. A common use case is to add the
+    following to the ``"RunControl"`` section for a ``pyfun`` JSON file:
+
+    .. code-block:: javascript
+
+        "WorkerPythonFuncs": [
+            {
+                "name": "flow2plt",
+                "type": "runner"
+            },
+            {
+                "name": "tavg2plt",
+                "type": "runner"
+            },
+            {
+                "name": "clean",
+                "type": "runner"
+            }
+        ],
+        "PostPythonFuncs": [
+            {
+                "name": "flow2plt",
+                "type": "runner"
+            },
+            {
+                "name": "tavg2plt",
+                "type": "runner"
+            }
+        ]
+    
+    This code will automatically convert each new ``pyfun.flow`` file to
+    ``pyfun_volume_timestep{n}.plt`` and each new ``pyfun_TAVG.1`` file to
+    ``pyfun_volume_tavg_timestep{n}.plt`` without requiring FUN3D to do any of
+    the output except for writing its usual restart files.
+
+*   The ``cape.gruvoc`` module also contains tools for creating cut planes and
+    performing other data sampling routines by using PyVista
+    (https://pyvista.org/). The ``tavg2x`` runner for ``pyfun`` can be used for
+    more data sampling routines; see the documentation of that function for
+    more information.
+
+*   Checking PBS status is now more efficient and effective. CAPE can now
+    automatically detect which user's queue to check based on the owner of a
+    job (useful if you care calling ``cape -c`` from another user's folder) and
+    call to multiple PBS servers if appropriate. (This last example has become
+    quite usefule on NASA HPC systems, for example, where the CPU and GPU jobs
+    are controlled by distinct and separate PBS servers.)
+
+*   Several upgrades have been made to the MPI interface in
+    ``cape.cfdx.cmdgen``. These changes allow support for mixed GPU/CPU
+    workflows (for example when running ``refine/three`` on a GPU job with
+    FUN3D) and support additional environments that require more command-line
+    arguments (for example the new Grace Hopper systems on the NASA Advanced
+    Supercomputing facility).
+
+*   Fun3D namelist control in the ``pyfun`` JSON file now supports setting
+    multiple indices of the same option in an efficient manner. Here's an
+    example setting the boundary conditions for a variety of surfaces:
+
+    .. code-block:: javascript
+
+        "Fun3D": {
+            "boundary_conditions": {
+                "wall_temp_flag": {
+                    "1-38": true
+                },
+                "wall_temperature": {
+                    "1-38": -1
+                },
+                "static_pressure_ratio": {
+                    "8": 0.5,
+                    "15": 0.75,
+                    "18": 0.52
+                }
+        }
+
+    It will lead to a namelist such as this:
+
+    .. code-block:: none
+
+        &boundary_conditions
+            wall_temp_flag(1:38) = .true.
+            wall_temperature(1:38) = -1
+            static_pressure_ratio(8) = 0.5
+            static_pressure_ratio(15) = 0.75
+            static_pressure_ratio(18) = 0.52
+        /
+    
+    This is generally much more practical than making a list of 38 ``true``
+    values for *wall_temp_flag* and is especially convenient for the
+    *static_pressure_ratio* in this example.
+
+Behavior Changes
+-----------------------
+
+*   Many of the "DataBook" classes in ``cape.cfdx.databook`` have been renamed.
+    These may cause issues for advanced users who have custom "hooks" or other
+    Python modules.
+
+*   The default data type in ``cape.dkit.textdata`` has been changed to
+    ``int32``. This minor change makes it much easier to read CAPE run matrix
+    files as DataKits without the need for extra keyword arguments.
+
+*   Job status (e.g. when running ``pyover -c``) is now computed by
+    ``CaseRunner`` instead of ``Cntl``. This is generally more efficient (users
+    may notice the difference) and allows stand-alone cases to be aware of
+    their status without being part of a run matrix.
+
+Bug Fixes
+-----------------
+
+*   The CAPE 2.0.3 ``pycart`` modules contained several bugs that prevented
+    adaptive runs (even the published CAPE examples) from running properly. All
+    CAPE test cases run properly now.
+
+
+Release 2.0.3
+=============================
+
+New Features
+------------------
+
+*   CAPE now includes *PreShellCmds* to go alongise *PostShellCmds*. This is an
+    option in the ``"RunControl"`` section that allows the user to run one or
+    more BASH (or whatever your shell of choice is) commands prior to running
+    the primary CFD solver executables.
+
+*   There is an exciting new feature called *WorkerShellCmds* in the
+    ``"RunControl"`` section. It allows you to specify 0 or more BASH commands
+    that you run every *WorkerSleepTime* seconds (default=``10.0``) while your
+    case is running. It has working clean-up after the main executable is
+    finished, allowing up to ``"WorkerTimeout"`` (default=``600.0``) seconds
+    for the last instance of the worker to complete.
+
+*   These run hooks also have Python function versions, in the form of options
+    *PrePythonFuncs*, *PostPythonFuncs*, and *WorkerPythonFuncs*. If these are
+    defined as a simple string, CAPE will import any modules implied by the
+    function name and then call that function with no arguments. However, users
+    may also specify more details for Python functions by defining the function
+    in a ``dict``.
+
+    .. code-block:: javascript
+
+        "RunControl": {
+            "WorkerPythonFuncs": [
+                "mymod.mufunc",
+                {
+                    "name": "clean",
+                    "type": "runner"
+                },
+                {
+                    "name": "mymod.otherfunc",
+                    "args": [
+                        "$runner",
+                        "$mach"
+                    ]
+                }
+            ]
+        }
+
+*   Users of FUN3D and Kestrel can now link the mesh file into folders instead
+    of copying it. Set ``"LinkMesh"`` to ``true`` in the ``"Mesh"`` section.
+
+*   ``cape.pyfun`` in particular changes how it uses XML or JSON configuration
+    files (which is specified in the ``"Config"`` > ``"File"`` setting). In
+    previous versions of CAPE, the face labels or component ID numbers in that
+    file had to match your actual grid, which had to match your ``.mapbc``
+    file. Now CAPE only uses the text names in the *ConfigFile*, and it's ok to
+    include components that aren't actually present in your grid. If your case
+    worked as expected before, it will still work now, but for new cases it
+    might be much easier to set up. The (new) recommended process is to use a
+    ConfigJSON file and only specify a ``"Tree"`` section. See
+    :ref:`cofnigjson-syntax`.
+
+Behavior Changes
+------------------------
+
+*   Binary files storing iterative histories are no longer saved automatically
+*   Calculation of job status, especially for FUN3D, is much faster. This
+    change should not cause any functional changes for users.
+*   Python modules used to define hooks are no longer universally imported
+    during ``Cntl`` instantiation. Modules are imported dynamically if needed
+    to execute a hook. The ``"Modules"`` setting is still present in the JSON
+    file but has no effect.
+
+Bugs Fixed
+------------------------
+
+*   Fix bug in area-weighted node normal calculation,
+    :func:`cape.trifile.TriBase.GetNodeNormals`.
+*   The ``refine/three`` capability with FUN3D now works more reliably.
+
+Release 2.0.2
+=============================
+
+New Features
+-----------------
+
+*   New capabilities in *nProc*, the number of MPI processes to use. Instead of
+    requiring a positive integer, there are now four ways to interpret this
+    setting:
+
+    -   **positive integer**: `"nProc": 128` will continue to work in the
+        obvious way that it always has
+    -   **negative integer**: `"nProc": -2` on a node with 128 cores will mean
+        using 126 cores
+    -   **fraction**: `"nProc": 0.5` will mean using 50% (rounded down), so
+        `mpiexec -np 64` on a 128-core node
+    -   **blank**: `"nProc": null` (or leaving out entirely) means use all the
+        MPI procs available
+
+Behavior Changes
+------------------
+
+*   Don't write *Archive* settings to each case folder
+
+
+Bugs Fixed
+--------------
+
+All of the tutorials at
+
+https://github.com/nasa-ddalle/
+
+now work properly with this version. Most of the updates were to the tutorials
+themselves, but some CAPE bugs were fixed, too.
+
+
+Release 2.0.1
+=============================
+
+New Features
+---------------
+
+*   GPU options in *RunControl* section of options
+*   ``CaseRunner`` system calls now allow piping lines of a file to STDIN
+
+
+Behavior Changes
+------------------
+
+*   Archiving uses ``tar -u`` if using the standard ``.tar`` archive format
+*   Fix ``-e`` option to execute commands in case folders, and allow it to run
+    regular system commands (not just local scripts)
+
+
+Bugs Fixed
+--------------
+
+*   Add several missing options to *RunMatrix* definitions
+*   Fix zone type when reading Tecplot file from Cart3D ``.tri[q]`` format
+*   Improve handling of different-sized iterative histories in ``CaseFM``
+*   Add PyYAML and colorama to install requirements
+
+
+
 Release 2.0.0
 =============================
 

@@ -20,7 +20,7 @@ LONG_DESCRIPTION = open(DESCRIPTION_FILE).read()
 # Compile and link
 SETUP_SETTINGS = dict(
     name="cape",
-    version="2.0.0",
+    version="2.1.0",
     description="CAPE computational aerosciences package",
     long_description=LONG_DESCRIPTION,
     url="https://www.github.com/nasa/cape",
@@ -35,6 +35,7 @@ SETUP_SETTINGS = dict(
         "cape.cfdx",
         "cape.cfdx.options",
         "cape.filecntl",
+        "cape.gruvoc",
         "cape.nmlfile",
         "cape.optdict",
         "cape.plot_mpl",
@@ -50,6 +51,8 @@ SETUP_SETTINGS = dict(
         "cape.tnakit.textutils"
     ],
     install_requires=[
+        "PyYAML",
+        "colorama",
         "defusedxml",
         "numpy>=1.4.1",
         "matplotlib>=2",
@@ -88,6 +91,7 @@ SETUP_SETTINGS = dict(
             "dkit-quickstart=cape.dkit.quickstart:main",
             "dkit-vendorize=cape.dkit.vendorutils:main",
             "dkit-writedb=cape.dkit.writedb:main",
+            "gruvoc=cape.gruvoc.cli:main",
             "cape-step2crv=cape.tricli:main_step2crv",
             "cape-steptri2crv=cape.tricli:main_steptri2crv",
             "cape-tec=cape.teccli:export_layout",

@@ -50,7 +50,7 @@ format used in the built-in module :mod:`subprocess` and also with
 
 # Local imports
 from .options import Options
-from ..cfdx.cmdgen import isolate_subsection, append_cmd_if
+from ..cfdx.cmdgen import append_cmd_if, get_nproc, isolate_subsection
 
 
 # Function to create ``nodet`` or ``nodet_mpi`` command
@@ -82,7 +82,7 @@ def overrun(opts=None, j=0, **kw):
     opts = isolate_subsection(opts, Options, ("RunControl",))
     # Get values for run configuration
     n_mpi = opts.get_MPI(j)
-    nProc = opts.get_nProc(j)
+    nProc = get_nproc(opts, j)
     mpicmd = opts.get_opt("mpicmd", j=j)
     # OVERFLOW flags
     ofcmd = opts.get_overrun_cmd(j)

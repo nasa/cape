@@ -93,7 +93,8 @@ import os
 import re
 import sys
 
-# CAPE modules
+# Local imports
+from .rdb import DataKit
 from ..cfdx.options.util import loadJSONFile
 
 # Version-dependent standard library
@@ -352,7 +353,7 @@ class DataKitHub(dict):
 
    # --- Read DB ---
     # Get datakit by name
-    def read_db(self, dbname, **kw):
+    def read_db(self, dbname, **kw) -> DataKit:
         r"""Read a datakit based on DB name
 
         :Call:
@@ -383,7 +384,7 @@ class DataKitHub(dict):
         return self.read_dbname(dbname, **kw)
 
     # Read a database by name
-    def read_dbname(self, dbname, **kw):
+    def read_dbname(self, dbname, **kw) -> DataKit:
         r"""Read a datakit based on DB name
 
         :Call:

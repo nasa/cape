@@ -15,7 +15,7 @@ the special parameters *__file__*, *__name__*, and of course *__doc__*.
     .. code-block:: python
 
         import %(pymod)s as modutils
-        
+
         __doc__ = modutils.rst_docstring(__name__, __file__, __doc__)
 
 See :func:`rst_docstring` for more details on how this works and all of
@@ -114,12 +114,10 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
         * :mod:`cape.tnakit.modutils`
         * :func:`cape.tnakit.rstutils.py2rst`
     :Versions:
-        * 2019-12-27 ``@ddalle``: First version
+        * 2019-12-27 ``@ddalle``: v1.0
     """
     # Initialize text
     lines_out = []
-    # Global replacements
-    opts = {}
     # Base of module name
     modbasename = modname.split(".")[-1]
     # Name of parent module
@@ -312,7 +310,7 @@ def rst_docstring(modname, modfile, doc, meta=None, **kw):
 # List modules
 def rst_submodules(modname, modfile, indent=4, maxdepth=2, **kw):
     r"""Create a bullet list of submodules from folder of *fname*
-    
+
     :Call:
         >>> txt = rst_submodules(modname, modfile, **kw)
     :Inputs:
@@ -334,8 +332,8 @@ def rst_submodules(modname, modfile, indent=4, maxdepth=2, **kw):
         *txt*: :class:`str`
             RST-formatted outline
     :Versions:
-        * 2018-07-03 ``@ddalle``: First version
-        * 2019-12-27 ``@ddalle``: Split part to :func:`list_modules`
+        * 2018-07-03 ``@ddalle``: v1.0
+        * 2019-12-27 ``@ddalle``: v1.1; split -> :func:`list_modules`
     """
     # Text conversion function for recursion
     def modlist_bullets(modlist, idepth, prefix):
@@ -396,7 +394,7 @@ def list_modules(fname, maxdepth=2, depth=0):
         *modlist*: :class:`list`\ [:class:`str` | :class:`list`]
             Recursive list of module names
     :Versions:
-        * 2019-12-27 ``@ddalle``: First version
+        * 2019-12-27 ``@ddalle``: v1.0
     """
     # Initialize list
     modlist = []
@@ -466,9 +464,9 @@ def list_modules(fname, maxdepth=2, depth=0):
         # Add if there's anything there
         if len(modlist) > 0:
             modlist.append(modlisti)
-
     # Output
     return modlist
+
 
 # Find modules as a list of names
 def list_modnames(fname, basename="", maxdepth=2, depth=0):
@@ -489,7 +487,7 @@ def list_modnames(fname, basename="", maxdepth=2, depth=0):
         *modnamelist*: :class:`list`\ [:class:`str`]
             List of module names, with ``"."``
     :Versions:
-        * 2020-01-14 ``@ddalle``: First version
+        * 2020-01-14 ``@ddalle``: v1.0
     """
     # Function to recursively git mod name
     def getmodnames(modnamelist, curmod, modlist):
@@ -500,6 +498,8 @@ def list_modnames(fname, basename="", maxdepth=2, depth=0):
         else:
             # No prefix
             prefix = ""
+        # Initialize
+        last = ""
         # Loop through modules
         for modspec in modlist:
             # Check if it's a list

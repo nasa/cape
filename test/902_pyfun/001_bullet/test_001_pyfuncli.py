@@ -7,7 +7,8 @@ import sys
 import testutils
 
 # Local imports
-import cape.pyfun.cntl
+from cape.pyfun.cntl import Cntl
+from cape.pyfun import cli
 
 
 # List of file globs to copy into sandbox
@@ -26,7 +27,7 @@ TEST_FILES = (
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_01_run():
     # Instantiate
-    cntl = cape.pyfun.cntl.Cntl()
+    cntl = Cntl()
     # Run first case
     cntl.SubmitJobs(I="8")
 
@@ -47,9 +48,9 @@ def test_02_c():
 @testutils.run_sandbox(__file__, fresh=False)
 def test_03_fm():
     # Instantiate
-    cntl = cape.pyfun.cntl.Cntl()
+    cntl = Cntl()
     # Collect aero
-    cntl.cli(fm=True, I="8")
+    cli.main(["pyfun", "--fm", "-I", "8"])
     # Read databook
     cntl.ReadDataBook()
     # Get value
@@ -62,9 +63,9 @@ def test_03_fm():
 @testutils.run_sandbox(__file__, fresh=False)
 def test_04_pt():
     # Instantiate
-    cntl = cape.pyfun.cntl.Cntl()
+    cntl = Cntl()
     # Run --pt
-    cntl.cli(pt=True, I="8")
+    cli.main(["pyfun", "--pt", "-I", "8"])
     # DataBook folder
     fdir = cntl.opts.get_DataBookFolder()
     # Get list of points

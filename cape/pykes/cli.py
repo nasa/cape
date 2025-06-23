@@ -12,8 +12,6 @@ executed whenever ``pykes`` is used.
 from typing import Optional
 
 # Local imports
-from .casecntl import CaseRunner
-from .cntl import Cntl
 from ..cfdx import cli
 
 
@@ -27,8 +25,8 @@ class PykesFrontDesk(cli.CfdxFrontDesk):
     _help_title = "Interact with Kestrel run matrix using CAPE"
 
     # Custom classes
-    _cntl_cls = Cntl
-    _runner_cls = CaseRunner
+    _cntl_mod = "cape.pykes.cntl"
+    _casecntl_mod = "cape.pykes.casecntl"
 
 
 # New-style CLI

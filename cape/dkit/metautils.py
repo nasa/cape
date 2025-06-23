@@ -34,6 +34,7 @@ def merge_dict(opts1: dict, opts2: dict):
             Second dictionary
     :Versions:
         * 2019-04-07 ``@ddalle``: v1.0
+        * 2025-06-18 ``@ddalle``: v1.1; bug fix
     """
     # Loop through options of input dict
     for k, v in opts2.items():
@@ -44,8 +45,7 @@ def merge_dict(opts1: dict, opts2: dict):
             continue
         # Otherwise check type of input value
         if not isinstance(v, dict):
-            # Save non-dict value
-            opts1[k] = v
+            # Keep non-dict value
             continue
         # Get current value
         u = opts1[k]

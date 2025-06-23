@@ -56,9 +56,9 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
 
 :See also:
     * :mod:`cape.cfdx.options.reportopts`
-    * :class:`cape.cfdx.databook.DBComp`
+    * :class:`cape.cfdx.databook.FMDataBook`
     * :class:`cape.cfdx.databook.CaseFM`
-    * :class:`cape.cfdx.lineload.DBLineLoad`
+    * :class:`cape.cfdx.lineload.LineLoadDataBook`
 
 """
 
@@ -122,6 +122,7 @@ class Report(object):
         r"""Initialization method"""
         # Save the interface
         self.cntl = cntl
+        self.i = None
         # Check for this report.
         if rep not in cntl.opts.get_ReportList():
             # Raise an exception
@@ -912,7 +913,9 @@ class Report(object):
         # -------------
         # Initial setup
         # -------------
-        # Check for the file.
+        # Save case number
+        self.i = i
+        # Check for the file
         if not os.path.isfile(self.fname):
             # Make the skeleton file.
             self.WriteCaseSkeleton(i)
@@ -1324,7 +1327,7 @@ class Report(object):
             *sfig*: :class:`str`
                 Name of subfigure
         :Outputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Component data book
         :Versions:
             * 2017-04-23 ``@ddalle``: v1.0
@@ -1337,10 +1340,10 @@ class Report(object):
             return self.cntl.DataBook.GetRefComponent()
         elif type(comp).__name__ in ["list", "ndarray"]:
             # List... use the first component in list
-            return self.ReadDBComp(comp[0])
+            return self.ReadFM(comp[0])
         else:
             # Use single component
-            return self.ReadDBComp(comp)
+            return self.ReadFM(comp)
 
     # Point to the correct subfigure updater
     def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
@@ -3541,7 +3544,7 @@ class Report(object):
                 compo = comp
                 patch = None
             # Read the component
-            DBc = self.ReadDBComp(comp)
+            DBc = self.ReadFM(comp)
             # Get matches
             Jj = DBc.FindCoSweep(x, J[j][0], EqCons, TolCons, GlobCons)
             # Plot label (for legend)
@@ -3590,7 +3593,7 @@ class Report(object):
             kw_p = opts.get_SubfigOpt(sfig, "PlotOptions", i)
             kw_s = opts.get_SubfigOpt(sfig, "StDevOptions", i)
             kw_m = opts.get_SubfigOpt(sfig, "MinMaxOptions", i)
-            # Draw the plot.
+            # Draw the plot
             h = DBc.PlotCoeff(
                 coeff, Jj, x=xk,
                 XMRP=xmrp, DXMRP=dxmrp,
@@ -3603,18 +3606,18 @@ class Report(object):
             # Loop through targets
             for targ in targs:
                 # Get the target handle.
-                DBTc = self.ReadDBComp(comp, targ=targ)
+                DBTc = self.ReadFM(comp, targ=targ)
                 # Exit if not found
                 if DBTc is None:
                     print(
                         ("    Skipping target '%s': " % targ) +
                         (" failed to read"))
                 # Target type
-                typt = opts.get_DataBookTargetType(targ).lower()
+                typt = opts.get_TargetDataBookType(targ).lower()
                 # Process type
                 qdup = (typt in ['duplicate', 'cape']) or typt.startswith("py")
                 # Target options
-                topts = opts.get_DataBookTargetByName(targ)
+                topts = opts.get_TargetDataBookByName(targ)
                 # Check if the *comp*/*coeff* combination is available.
                 if qdup:
                     # Check if we have the data
@@ -3632,7 +3635,7 @@ class Report(object):
                     else:
                         # Format the key lookup as pt.coeff
                         ccoeff = "%s.%s" % (patch, coeff)
-                    # Check *DBT* as a DBTarget
+                    # Check *DBT* as a TargetDataBook
                     if compo not in DBTc.ckeys:
                         print(
                             ("    Skipping target '%s': " % targ) +
@@ -3916,7 +3919,7 @@ class Report(object):
        # Plotting
        # --------
         # Read the component
-        DBc = self.ReadDBComp(comp)
+        DBc = self.ReadFM(comp)
         # Get the targets
         targs = self.SubfigTargets(sfig)
         # Number of targets
@@ -3935,7 +3938,7 @@ class Report(object):
                 # Select the target
                 targ = targs[i]
                 # Get the target handle.
-                DBT = self.ReadDBComp(comp, targ=targ)
+                DBT = self.ReadFM(comp, targ=targ)
                 # Get the target co-sweep
                 jt = DBc.FindTargetMatch(DBT, I[0], {}, keylist="tol")
                 # Check for match
@@ -3953,7 +3956,7 @@ class Report(object):
                 ("without one or more target (received %s)" % ntarg))
         else:
             # Read the target
-            DBT = [self.ReadDBComp(comp, targ=targ) for targ in targs]
+            DBT = [self.ReadFM(comp, targ=targ) for targ in targs]
         # Form and set universal options for histogram
         kw_h = {
             # Reference values
@@ -4116,7 +4119,7 @@ class Report(object):
        # Plotting
        # --------
         # Read the data book component
-        DBc = self.ReadDBComp(comp)
+        DBc = self.ReadFM(comp)
         # Sweep constraints
         EqCons = opts.get_SweepOpt(fswp, 'EqCons')
         TolCons = opts.get_SweepOpt(fswp, 'TolCons')
@@ -4638,6 +4641,7 @@ class Report(object):
             # Read the Mach number option
             omach = opts.get_SubfigOpt(sfig, "Mach")
             # Read the zone numbers for each FIELDMAP command
+            fmap = opts.get_SubfigOpt(sfig, "ActiveFieldMaps")
             grps = opts.get_SubfigOpt(sfig, "FieldMap")
             # Read the Tecplot layout
             tec = self.ReadTecscript(fsrc)
@@ -4696,6 +4700,9 @@ class Report(object):
                 except Exception:
                     print("  Warning: FieldMap update '%s' failed" % fieldmaps)
                     pass
+            # Custom turning on/off fields
+            if fmap is not None:
+                tec.SetPar("ActiveFieldMaps", f" = [{fmap}]", 0)
             # Layout
             self.PrepTecplotLayoutVars(tec, sfig, i)
             self.PrepTecplotSlicePosition(tec, sfig, i)
@@ -5106,11 +5113,11 @@ class Report(object):
         return None
 
     # Function to read generic data book component
-    def ReadDBComp(self, comp, targ=None):
+    def ReadFM(self, comp, targ=None):
         r"""Read a data book component and return it
 
         :Call:
-            >>> DBc = R.ReadDBComp(comp, targ=None)
+            >>> DBc = R.ReadFM(comp, targ=None)
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
@@ -5119,7 +5126,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target, if any
         :Outputs:
-            *DBc*: ``None`` | :class:`cape.cfdx.databook.DBBase`
+            *DBc*: ``None`` | :class:`cape.cfdx.databook.DataBookComp`
                 Individual component data book or ``None`` if not found
         :Versions:
             * 2017-04-20 ``@ddalle``: v1.0
@@ -5144,7 +5151,7 @@ class Report(object):
             # Read the target if necessary
             self.cntl.DataBook.ReadTarget(targ)
             # Get the target type
-            ttype = self.cntl.opts.get_DataBookTargetType(targ)
+            ttype = self.cntl.opts.get_TargetDataBookType(targ)
             # Check if this is a duplicate type
             qdup = (ttype in ['cape', 'duplicate']) or ttype.startswith("py")
             # Check for duplicate
@@ -5161,7 +5168,7 @@ class Report(object):
             if tcomp in ["Force", "FM", "Moment", "DataFM"]:
                 # Read if necessary
                 if comp not in DB:
-                    DB.ReadDBComp(comp)
+                    DB.ReadFM(comp)
                 # Output component
                 return DB[comp]
             elif tcomp in ["LineLoad"]:
@@ -5265,7 +5272,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.cfdx.pointsensor.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.pointsensor.TriqFMDataBook`
                 Patch loads data book
         :Versions:
             * 2017-04-05 ``@ddalle``: v1.0
@@ -5337,7 +5344,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.cfdx.pointsensor.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.pointsensor.TriqFMDataBook`
                 Point sensor group data book
         :Versions:
             * 2018-02-09 ``@ddalle``: v1.0
@@ -5356,7 +5363,7 @@ class Report(object):
             # Get target
             DB = self.cntl.DataBook.Targets[targ]
             # Get the target type
-            ttype = self.cntl.opts.get_DataBookTargetType(targ)
+            ttype = self.cntl.opts.get_TargetDataBookType(targ)
             # Check if this is a duplicate type
             qdup = (ttype in ['cape', 'duplicate']) or ttype.startswith("py")
             # Check for duplicate
@@ -5415,7 +5422,7 @@ class Report(object):
             # Target data book
             DBT = DB.Targets[targ]
             # Get target options
-            topts = self.cntl.opts.get_DataBookTargetByName(targ)
+            topts = self.cntl.opts.get_TargetDataBookByName(targ)
             # Read Line load
             DBT.ReadLineLoad(comp, targ=targ, conf=self.cntl.config)
             # Get title

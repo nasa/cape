@@ -84,8 +84,8 @@ def test_dbopts1():
     # Initialize options
     opts = databookopts.DataBookOpts(OPTS1)
     # Check types
-    assert isinstance(opts["comp2"], databookopts.DBPyFuncOpts)
-    assert isinstance(opts["comp3"], databookopts.DBTriqFMOpts)
+    assert isinstance(opts["comp2"], databookopts.PyFuncDataBookOpts)
+    assert isinstance(opts["comp3"], databookopts.TriqFMDataBookOpts)
     # Test getter function
     assert opts.get_DataBookConfigFile("comp3") == OPTS1["comp3"]["ConfigFile"]
     assert opts.get_DataBookConfigFile("comp2") is None
@@ -144,32 +144,38 @@ def test_dbopts3_targets():
     # Initialize options
     opts = databookopts.DataBookOpts(OPTS2)
     # Test types
-    assert isinstance(opts["Targets"], databookopts.DBTargetCollectionOpts)
-    assert isinstance(opts["Targets"]["targ1"], databookopts.DBTargetOpts)
+    assert isinstance(
+        opts["Targets"],
+        databookopts.TargetDataBookCollectionOpts
+    )
+    assert isinstance(
+        opts["Targets"]["targ1"],
+        databookopts.TargetDataBookOpts
+    )
     # Get targets
     targopts = opts.get_DataBookTargets()
-    assert isinstance(targopts, databookopts.DBTargetCollectionOpts)
+    assert isinstance(targopts, databookopts.TargetDataBookCollectionOpts)
     # Test properties
-    assert opts.get_DataBookTargetLabel("targ1") == "Target #1"
-    assert opts.get_DataBookTargetLabel("targ2") == "Target #2"
-    assert opts.get_DataBookTargetName("targ1") == "targ1"
-    assert opts.get_DataBookTargetName("targ2") == "Target #2"
-    assert opts.get_DataBookTargetCommentChar("targ2") == "#"
+    assert opts.get_TargetDataBookLabel("targ1") == "Target #1"
+    assert opts.get_TargetDataBookLabel("targ2") == "Target #2"
+    assert opts.get_TargetDataBookName("targ1") == "targ1"
+    assert opts.get_TargetDataBookName("targ2") == "Target #2"
+    assert opts.get_TargetDataBookCommentChar("targ2") == "#"
     # Failed properties
     with pytest.raises(ValueError):
-        opts.get_DataBookTargetCommentChar("targ2a")
+        opts.get_TargetDataBookCommentChar("targ2a")
     # Search
     topts1 = opts["Targets"]["targ2"]
-    topts2 = opts.get_DataBookTargetByName("Target #2")
+    topts2 = opts.get_TargetDataBookByName("Target #2")
     assert topts1 == topts2
     # Failed search
     with pytest.raises(KeyError):
-        opts.get_DataBookTargetByName("Target 3")
+        opts.get_TargetDataBookByName("Target 3")
 
 
 def test_dbopts4_dbtargetopts():
     # Initialize options
-    opts = databookopts.DBTargetOpts(OPTS3)
+    opts = databookopts.TargetDataBookOpts(OPTS3)
     # Test tolerance key
     assert opts.get_Tol("alpha") == OPTS3["tol"]["alpha"]
-    assert opts.get_Tol("beta") == databookopts.DBTargetOpts._rc["tol"]
+    assert opts.get_Tol("beta") == databookopts.TargetDataBookOpts._rc["tol"]

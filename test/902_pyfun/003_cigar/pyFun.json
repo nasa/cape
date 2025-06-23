@@ -18,13 +18,15 @@
 
     "RunControl": {
         // Iteration control
-        "nIter": [50, 50],
-        "PhaseIters": [0, 100],
-        "PhaseSequence": [0, 1],
+        "nIter": [10, 20],
+        "PhaseIters": [20, 0, 80],
+        "PhaseSequence": [0, 1, 2],
         // Mode control
         "qsub":false,
         "MPI": true,
         "nProc": 128,
+        "Adaptive": false,
+        "AdaptMethod": "refine/three",
         // FUN3D command-line options
         "nodet": {
             "animation_freq": -1
@@ -34,9 +36,9 @@
 
     "Fun3D": {
         "nonlinear_solver_parameters": {
-            "schedule_cfl": [[0.1, 100.0], [100.0, 100.0]],
-            "schedule_cflturb": [[0.1, 100.0], [100.0, 100.0]],
-            "schedule_iteration": [[1, 50]]
+            "schedule_cfl": [[10.0, 200.0], [100.0, 100.0]],
+            "schedule_cflturb": [[2.0, 100.0], [100.0, 100.0]],
+            "schedule_iteration": [[1, 10]]
         },
         "code_run_control": {
             "restart_read": ["off", "on"]
@@ -99,10 +101,10 @@
 
     "Report": {
         "Reports": [
-            "body"
+            "cigar001"
         ],
-        "body": {
-            "Archive": true,
+        "cigar001": {
+            "Archive": false,
             "ShowCaseNumber": true,
             "Title": "Cigar-shaped body CAPE report",
             "Subtitle": "CAPE \\texttt{902\\_pyfun/003\\_cigar} test run",
@@ -122,7 +124,8 @@
             "Body": {
                 "Subfigures": [
                     "body_CA",
-                    "body_CN"
+                    "body_CN",
+                    "mach-y0"
                 ]
             }
         },
@@ -150,6 +153,13 @@
                     "CA",
                     "CN"
                 ]
+            },
+            "mach-y0": {
+                "Type": "Tecplot",
+                "Layout": "mach-y0.lay",
+                "FigWidth": 1024,
+                "Width": 0.45,
+                "Caption": "Mach number, $y{=}0$, surface $c_p$"
             },
             "body": {
                 "Type": "PlotCoeff",

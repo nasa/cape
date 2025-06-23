@@ -312,6 +312,7 @@ class BaseDataDefn(kwutils.KwargHandler):
     _optvals = {
         "Type": {
             "bool",
+            "boolmap",
             "complex64",
             "complex128",
             "complex256",
@@ -435,10 +436,7 @@ class BaseData(dict):
         * 2019-11-26 ``@ddalle``: Version 1.0
         * 2020-02-02 ``@ddalle``: Second version
     """
-  # ==================
-  # Class Attributes
-  # ==================
-  # <
+  # === Class Attributes ===
    # --- Tags ---
     # Map for "tag" based on column name
     _tagmap = {}
@@ -475,12 +473,8 @@ class BaseData(dict):
             cols.add(col)
         # Set the attribute
         cls._tagcols = _tagcols
-  # >
 
-  # ==========
-  # Config
-  # ==========
-  # <
+  # === Config ===
     # Template initialization method
     def __init__(self, **kw):
         r"""Initialization method
@@ -563,12 +557,8 @@ class BaseData(dict):
             lbl += "ncol=%i)>" % len(cols)
         # Output
         return lbl
-  # >
 
-  # =================
-  # Inputs & Kwargs
-  # =================
-  # <
+  # === Inputs & Kwargs ===
    # --- Options ---
     # Convert *kw* to options
     def process_kw(self, **kw):
@@ -643,12 +633,8 @@ class BaseData(dict):
             self.save_col(col, V)
             # Save length
             self.n = n
-  # >
 
-  # =================
-  # Options
-  # =================
-  # <
+  # === Options ===
    # --- Options ---
     # Single option
     def get_option(self, key, vdef=None):
@@ -887,6 +873,9 @@ class BaseData(dict):
         elif isinstance(V, dict):
             # Recursive
             dtype = "dict"
+        elif isinstance(V, (str, np.str_)):
+            # Single string
+            dtype = "str"
         else:
             # Unrecognized
             raise TypeError(
@@ -1221,12 +1210,8 @@ class BaseData(dict):
         defn = self.get_defn(col)
         # Process *DType* from definition
         return defn.get_dtype()
-  # >
 
-  # ===============
-  # Data
-  # ===============
-  # <
+  # === Data ===
    # --- Save Data ---
     # Save a column
     def save_col(self, col, v):
@@ -1600,5 +1585,3 @@ class BaseData(dict):
             dbcol = dbcol[:-lval]
         # Check for alternate name
         return transr.get(dbcol, dbcol)
-  # >
-# class BaseData

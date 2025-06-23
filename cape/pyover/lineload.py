@@ -6,8 +6,8 @@ This module contains functions for reading and processing sectional
 loads. It is a version of :mod:`cape.cfdx.lineload` that is closely
 tied to :mod:`cape.pyover.dataBook`.
 
-It provides the primary class :class:`DBLineLoad`, which is a subclass
-of :class:`cape.cfdx.databook.DBBase`.  This class is an interface to
+It provides the primary class :class:`LineLoadDataBook`, which is a subclass
+of :class:`cape.cfdx.databook.DataBookComp`.  This class is an interface to
 all line load data for a specific surface component.
 
 For reading the sectional load for a single solution on one component
@@ -40,7 +40,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     :Call:
         >>> PreprocessTriqOverflow(DB, fq)
     :Inputs:
-        *DB*: :class:`DBLineLoad`
+        *DB*: :class:`LineLoadDataBook`
             TriqFM or line load data book
         *q*: :class:`str`
             Name of q file
@@ -70,8 +70,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     qfusurp  = (fusurp is not None) and os.path.isfile(fusurp)
     qfmixsur = (fmixsur is not None) and os.path.isfile(fmixsur)
     qfsplitm = (fsplitmq is not None) and os.path.isfile(fsplitmq)
-    # Check for a folder we can copy MIXSUR/USURP files from 
-    qfomo = (ffomo!=None) and os.path.isdir(ffomo)
+    # Check for a folder we can copy MIXSUR/USURP files from
+    qfomo = (ffomo is not None) and os.path.isdir(ffomo)
     # Get Q/X files
     fqi = DB.opts.get_DataBook_QIn(DB.comp)
     fxi = DB.opts.get_DataBook_XIn(DB.comp)
@@ -156,7 +156,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         # Source file option(s)
         fqo = DB.opts.get_DataBook_QSurf(DB.comp)
         fxo = DB.opts.get_DataBook_XSurf(DB.comp)
-        
+
         # Get absolute path
         if fqo is None:
             # No source file
@@ -316,13 +316,12 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
 # def PreprocessTriq
 
 
-
 # Data book of line loads
-class DBLineLoad(lineload.DBLineLoad):
+class LineLoadDataBook(lineload.LineLoadDataBook):
     """Line load (sectional load) data book for one group
-    
+
     :Call:
-        >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None)
+        >>> DBL = LineLoadDataBook(cntl, comp, conf=None, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -335,7 +334,7 @@ class DBLineLoad(lineload.DBLineLoad):
         *RootDir*: {``"None"``} | :class:`str`
             Root directory for the configuration
     :Outputs:
-        *DBL*: :class:`pyOver.lineload.DBLineLoad`
+        *DBL*: :class:`LineLoadDataBook`
             Instance of line load data book
         *DBL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -350,15 +349,15 @@ class DBLineLoad(lineload.DBLineLoad):
     :Versions:
         * 2015-09-16 ``@ddalle``: First version
     """
-    
+
     # Get component ID numbers
     def GetCompID(self):
         """Create list of component IDs
-        
+
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Instance of line load data book
         :Versions:
             * 2016-12-22 ``@ddalle``: First version, extracted from __init__
@@ -412,15 +411,15 @@ class DBLineLoad(lineload.DBLineLoad):
             self.CompID = self.conf.GetCompID(self.CompID)
         except Exception:
             pass
-    
+
     # Get file
     def GetTriqFile(self):
         """Get most recent ``triq`` file and its associated iterations
-        
+
         :Call:
             >>> qpre, fq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyCart.lineload.DBLineLoad`
+            *DBL*: :class:`LineLoadDataBook`
                 Instance of line load data book
         :Outputs:
             *qpre*: {``False``}
@@ -481,21 +480,21 @@ class DBLineLoad(lineload.DBLineLoad):
                     # "grid.i.triq" missing (single) comp  we need
                     qpre = True
             else:
-                # No knowledge of components; must run overint 
+                # No knowledge of components; must run overint
                 qpre = True
         # Output
         return qpre, fq, n, i0, i1
-        
+
     # Write triload.i input file
     def WriteTriloadInput(self, ftriq, i, **kw):
         """Write ``triload.i`` input file for ``triloadCmd``
-        
+
         This versions uses a fixed input solution/grid file, ``"grid.i.triq"``
-        
+
         :Call:
             >>> DBL.WriteTriloadInput(ftriq, i, **kw)
         :Inputs:
-            *DBL*: :class:`pyOver.lineload.DBLineLoad`
+            *DBL*: :class:`LineLoadDataBook`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of the ``triq`` file to analyze
@@ -515,15 +514,15 @@ class DBLineLoad(lineload.DBLineLoad):
         """
         # Point to a fixed "grid.i.triq" file
         self.WriteTriloadInputBase("grid.i.triq", i, **kw)
-    
+
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, fq, **kw):
         """Perform any necessary preprocessing to create ``triq`` file
-        
+
         :Call:
             >>> ftriq = DBL.PreprocessTriq(fq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`pyFun.lineload.DBLineLoad`
+            *DBL*: :class:`LineLoadDataBook`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of q file
@@ -538,14 +537,14 @@ class DBLineLoad(lineload.DBLineLoad):
         PreprocessTriqOverflow(self, fq)
         # Go back into line load folder
         os.chdir('lineload')
-        
-# class DBLineLoad
-    
+
+# class LineLoadDataBook
+
 
 # Line loads
 class CaseLL(lineload.CaseLL):
     """Individual class line load class
-    
+
     :Call:
         >>> LL = CaseLL(cart3d, i, comp)
     :Inputs:
@@ -556,7 +555,7 @@ class CaseLL(lineload.CaseLL):
         *comp*: :class:`str`
             Name of line load group
     :Outputs:
-        *LL*: :class:`pyCart.lineload.CaseLL`
+        *LL*: :class:`CaseLL`
             Instance of individual case line load interface
         *LL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -577,12 +576,12 @@ class CaseLL(lineload.CaseLL):
         * 2016-06-07 ``@ddalle``: Subclassed
     """
     pass
-# class CaseLL
+
 
 # Class for seam curves
 class CaseSeam(lineload.CaseSeam):
     """Seam curve interface
-    
+
     :Call:
         >>> S = CaseSeam(fname, comp='entire', proj='LineLoad')
     :Inputs:
@@ -605,5 +604,4 @@ class CaseSeam(lineload.CaseSeam):
         * 2016-06-09 ``@ddalle``: First version
     """
     pass
-# class CaseSeam
-            
+

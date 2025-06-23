@@ -14,12 +14,13 @@ import importlib
 import os
 import setuptools
 import sys
+from typing import Optional
 
 # Local modules
-from . import datakitloader
-from . import pkgutils
+from . import datakitrepo
 from .. import argread
-from .. import text as textutils
+from .. import textutils
+from .datakitast import DataKitAssistant
 
 
 # Docstring for CLI
@@ -68,12 +69,12 @@ Folder names, e.g. ``sls10afa/c008/f3d/db001``, are also allowed.
 
 :Versions:
 
-    * 2017-07-13 ``@ddalle``: Version 1.0
-    * 2020-07-06 ``@ddalle``: Version 1.1; update docstring
-    * 2021-07-17 ``@ddalle``: Version 2.0; process dependencies
-    * 2021-07-19 ``@ddalle``: Version 2.1; add ``--no-write``
-    * 2021-08-20 ``@ddalle``: Version 3.0; generalize for ``cape``
-    * 2021-09-15 ``@ddalle``: Version 3.1; more DVC support
+    * 2017-07-13 ``@ddalle``: v1.0
+    * 2020-07-06 ``@ddalle``: v1.1; update docstring
+    * 2021-07-17 ``@ddalle``: v2.0; process dependencies
+    * 2021-07-19 ``@ddalle``: v2.1; add ``--no-write``
+    * 2021-08-20 ``@ddalle``: v3.0; generalize for ``cape``
+    * 2021-09-15 ``@ddalle``: v3.1; more DVC support
 """
 
 
@@ -84,13 +85,13 @@ def main():
     :Call:
         >>> main()
     :Versions:
-        * 2021-07-15 ``@ddalle``: Version 1.0
-        * 2021-07-17 ``@ddalle``: Version 2.0
+        * 2021-07-15 ``@ddalle``: v1.0
+        * 2021-07-17 ``@ddalle``: v2.0
             - Move to :func:`write_dbs`
             - Add dependency tracking
             - Add ``-F`` option
 
-        * 2021-08-20 ``@ddalle``: Version 3.0
+        * 2021-08-20 ``@ddalle``: v3.0
             - Generalize for :mod:`cape`
             - Add *write_func* option
     """
@@ -123,33 +124,17 @@ def write_dbs(*a, **kw):
         *write_func*, *func*: {``"write_db"``} | :class:`str`
             Name of function to use to write formatted files
     :Versions:
-        * 2021-07-17 ``@ddalle``: Version 1.0
-        * 2021-07-19 ``@ddalle``: Version 1.1; add *write* option
-        * 2021-08-20 ``@ddalle``: Version 1.2; generalize *prefix*
+        * 2021-07-17 ``@ddalle``: v1.0
+        * 2021-07-19 ``@ddalle``: v1.1; add *write* option
+        * 2021-08-20 ``@ddalle``: v1.2; generalize *prefix*
     """
     # Check for help flag
     if (len(a) == 0) or kw.get('h') or kw.get('help'):
         # Display help message and quit
         print(textutils.markdown(HELP_WRITEDB))
         return
-    # Change '/' to '.'
-    a_normalized = tuple(ai.replace(os.sep, '.') for ai in a)
-    # Initialize packages
-    pkgs = []
-    # Check inputs against list
-    for j, aj in enumerate(a_normalized):
-        # Find matching packages
-        pkgsj = pkgutils.find_packages(regex=aj)
-        # Check for errors
-        if len(pkgsj) == 0:
-            print("Found no packages for name %i, '%s'" % (j+1, aj))
-            continue
-        # Avoid duplicates
-        for pkg in pkgsj:
-            if pkg in pkgs:
-                continue
-            # Add to global list
-            pkgs.append(pkg)
+    # Find packages
+    pkgs = datakitrepo.find_packages(*a)
     # Process other options
     force_all = kw.pop("force-all", kw.pop("force_all", kw.pop("F", False)))
     force_last = kw.pop("force", kw.pop("f", False))
@@ -192,7 +177,7 @@ def write_dbs(*a, **kw):
 
 
 # Write the DB file(s) for one or more DBs
-def write_db(modname, **kw):
+def write_db(modname: str, **kw):
     r"""Convert source data to formatted datakit files
 
     :Call:
@@ -207,10 +192,10 @@ def write_db(modname, **kw):
         *write_func*, *func*: {``"write_db"``} | :class:`str`
             Name of function to use to write formatted files
     :Versions:
-        * 2017-07-13 ``@ddalle``: Version 1.0
-        * 2018-12-27 ``@ddalle``: Version 2.0; using :mod:`importlib`
-        * 2021-07-15 ``@ddalle``: Version 2.1; Generalize for TNA/S-53
-        * 2021-08-20 ``@ddalle``: Version 3.0
+        * 2017-07-13 ``@ddalle``: v1.0
+        * 2018-12-27 ``@ddalle``: v2.0; using :mod:`importlib`
+        * 2021-07-15 ``@ddalle``: v2.1; Generalize for TNA/S-53
+        * 2021-08-20 ``@ddalle``: v3.0
             - move to :mod:`cape` from ``ATT-VM-CLVTOPS-003``
             - generalize prefix using :func:`setuptools.find_packages`
             - add *prefix*, *write_func* kwargs
@@ -235,7 +220,7 @@ def write_db(modname, **kw):
 
 
 # Read each module and process *REQUIREMENTS*
-def genr8_modsequence(modnames, **kw):
+def genr8_modsequence(modnames: list, **kw):
     r"""Create a sequence of modules that satisfy all requirements
 
     :Call:
@@ -254,8 +239,8 @@ def genr8_modsequence(modnames, **kw):
         *modnames*: :class:`list`\ [:class:`str`]
             Modules in order that satisfies all dependencies
     :Versions:
-        * 2021-07-17 ``@ddalle``: Version 1.0
-        * 2021-08-20 ``@ddalle``: Version 1.1; *prefix* option
+        * 2021-07-17 ``@ddalle``: v1.0
+        * 2021-08-20 ``@ddalle``: v1.1; *prefix* option
     """
     # Check for --no-dependencies
     qreq = kw.get("requirements", kw.get("dependencies", kw.get("reqs", True)))
@@ -302,7 +287,7 @@ def genr8_modsequence(modnames, **kw):
         # Get index
         i = dbnames.index(dbname)
         # Get requirements
-        reqdbnames = mod.__dict__.get("REQUIREMENTS")
+        reqdbnames = datakitrepo.get_requirements(mod)
         # Check if no requirements
         if not reqdbnames:
             continue
@@ -336,7 +321,7 @@ def genr8_modsequence(modnames, **kw):
 
 
 # Import a child
-def import_dbname(mod, dbname, **kw):
+def import_dbname(mod, dbname: str, **kw):
     r"""Import a module by *DB_NAME* instead of module spec
 
     :Call:
@@ -352,22 +337,25 @@ def import_dbname(mod, dbname, **kw):
         *mod2*: :class:`module`
             Second module, having DB name matching *dbname*
     :Versions:
-        * 2021-07-16 ``@ddalle``: Version 1.0
-        * 2021-08-20 ``@ddalle``: Version 1.1; *prefix* option
+        * 2021-07-16 ``@ddalle``: v1.0
+        * 2021-08-20 ``@ddalle``: v1.1; *prefix* option
+        * 2025-06-13 ``@ddalle``: v1.2; upgrade for DataKitAssistant
     """
     # Get DataKitLoader
-    dkl = mod.__dict__.get("DATAKIT_LOADER")
+    ast = get_assistant(mod)
     # Check for valid loader
-    if isinstance(dkl, datakitloader.DataKitLoader):
+    if isinstance(ast, DataKitAssistant):
         # Import child
-        return dkl.import_db_name(dbname)
+        return ast.import_db_name(dbname)
     else:
         # Try to use the name directly
         return import_module(dbname, prefix=kw.get("prefix"))
 
 
 # Read a single module
-def import_module(modname=None, prefix=None, **kw):
+def import_module(
+        modname: Optional[str] = None,
+        prefix: Optional[str] = None, **kw):
     r"""Import module from (possibly abbrev.) name
 
     :Call:
@@ -381,8 +369,8 @@ def import_module(modname=None, prefix=None, **kw):
         *mod*: :class:`module`
             Module with (possibly prefixed) name *rev*
     :Versions:
-        * 2021-07-16 ``@ddalle``: Version 1.0 (``ATT-VM-CLVTOPS-003``)
-        * 2021-08-20 ``@ddalle``: Version 1.1
+        * 2021-07-16 ``@ddalle``: v1.0 (``ATT-VM-CLVTOPS-003``)
+        * 2021-08-20 ``@ddalle``: v1.1
             - automated default *PREFIX*
             - support empty *modname*
     """
@@ -406,7 +394,9 @@ def import_module(modname=None, prefix=None, **kw):
 
 
 # Prefix module name
-def get_fullmodname(modname, prefix=None, **kw):
+def get_fullmodname(
+        modname: str,
+        prefix: Optional[str] = None, **kw) -> str:
     r"""Append prefix to module name if necessary
 
     For example ``"v004"`` might become ``"sls10afa.v004"``
@@ -422,8 +412,8 @@ def get_fullmodname(modname, prefix=None, **kw):
         *modname*: :class:`str`
             Full module name for import, possibly prepended
     :Versions:
-        * 2021-08-20 ``@ddalle``: Version 1.0
-        * 2021-09-15 ``@ddalle``: Version 1.1; better *prefix* check
+        * 2021-08-20 ``@ddalle``: v1.0
+        * 2021-09-15 ``@ddalle``: v1.1; better *prefix* check
     """
     # Get prefix
     prefix = get_prefix(prefix=prefix)
@@ -442,7 +432,7 @@ def get_fullmodname(modname, prefix=None, **kw):
 
 
 # Get prefix
-def get_prefix(prefix=None, **kw):
+def get_prefix(prefix: Optional[str] = None, **kw) -> str:
     r"""Determine module name prefix based on current folder
 
     :Call:
@@ -455,7 +445,7 @@ def get_prefix(prefix=None, **kw):
             User-specified prefix or package from
             :func:`setuptools.find_packages`
     :Versions:
-        * 2021-08-20 ``@ddalle``: Version 1.0
+        * 2021-08-20 ``@ddalle``: v1.0
     """
     # Check for input
     if prefix is not None:
@@ -467,7 +457,7 @@ def get_prefix(prefix=None, **kw):
 
 
 # Create a name for a module
-def get_dbname(mod):
+def get_dbname(mod) -> str:
     r"""Get database name from a module
 
     :Call:
@@ -477,17 +467,37 @@ def get_dbname(mod):
             DataKit module
     :Outputs:
         *dbname*: :class:`str`
-            Database name, from *mod.DATAKIT_LOADER* or *mod.__name__*
+            Database name, from *mod.AST* or *mod.__name__*
     :Versions:
-        * 2021-08-20 ``@ddalle``: Version 1.0
+        * 2021-08-20 ``@ddalle``: v1.0
     """
     # Get DataKitLoader
-    dkl = mod.__dict__.get("DATAKIT_LOADER")
+    ast = get_assistant(mod)
     # Get name if possible
-    if isinstance(dkl, datakitloader.DataKitLoader):
+    if isinstance(ast, DataKitAssistant):
         # Get name like "ATT-VM-CLVTOPS-003-0101"
-        return dkl.get_option("DB_NAME")
+        return ast.get_opt("DB_NAME")
     else:
         # Use full module name like "att_vm_clvtops3.db0101.datakit"
         return mod.__name__
 
+
+# Get assistant from module
+def get_assistant(mod) -> DataKitAssistant:
+    r"""Get DataKitAssistant from a datakit module
+
+    :Call:
+        >>> ast = get_assistant(mod)
+    :Inputs:
+        *mod*: :class:`module`
+            DataKit module
+    :Outputs:
+        *ast*: :class:`DataKitAssistant`
+            DataKit assistant from *mod*
+    :Versions:
+        * 2025-06-13 ``@ddalle``: v1.0
+    """
+    # Get DataKitLoader
+    ast = mod.__dict__.get("DATAKIT_LOADER")
+    ast = mod.__dict__.get("AST", ast)
+    return ast

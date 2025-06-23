@@ -24,6 +24,7 @@ import glob
 import os
 import re
 import shutil
+import time
 from typing import Optional
 
 # Third-party modules
@@ -38,6 +39,7 @@ from .databook import CaseResid
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 from ..cfdx import casecntl
+from ..gruvoc import umesh
 from ..filecntl.tecfile import convert_szplt
 
 
@@ -48,7 +50,7 @@ _regex_dict = {
 }
 # Combine them; different format for steady and time-accurate modes
 REGEX_F3DOUT = re.compile(
-    rb"\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
+    rb"\s*(%(time)s\s+)?%(iter)s\s{2,}[-0-9]" % _regex_dict)
 
 # Help message for CLI
 HELP_RUN_FUN3D = r"""
@@ -172,6 +174,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2024-08-23 ``@ddalle``: v1.0
+            * 2024-04-07 ``@ddalle``: v1.1; fork `run_nodet_primal()`
         """
         # Working folder
         fdir = self.get_working_folder()
@@ -185,6 +188,7 @@ class CaseRunner(casecntl.CaseRunner):
         fproj = self.get_project_rootname(j)
         # Get the last iteration number
         n = self.get_iter()
+        n0 = 0 if n is None else n
         # Number of requested iters for the end of this phase
         nj = rc.get_PhaseIters(j)
         # Number of iterations to run this phase
@@ -206,45 +210,23 @@ class CaseRunner(casecntl.CaseRunner):
             if rc.get_Dual():
                 os.chdir('..')
             # Create an output file to make phase number programs work
-            self.touch_file("run.%02i.%i" % (j, n))
+            self.finalize_stdoutfile(j)
             return
         # Prepare for restart if that's appropriate
-        self.set_restart_iter()
+        self.set_restart_read()
         # Prepare for adapt
         self.prep_adapt(j)
-        # Get *n* but ``0`` instead of ``None``
-        n0 = 0 if (n is None) else n
-        # Count number of times this phase has been run previously.
-        nprev = len(glob.glob('run.%02i.*' % j))
-        # Check if the primal solution has already been run
-        if nprev == 0 or n0 < nj:
-            # Get the `nodet` or `nodet_mpi` command
-            cmdi = cmdgen.nodet(rc, j=j)
-            # Call the command
-            self.callf(cmdi, f='fun3d.out', e='fun3d.err')
-            # Get new iteration number
-            n1 = self.get_iter()
-            n1 = 0 if (n1 is None) else n1
-            # Check for lack of progress
-            if n1 <= n0:
-                # Mark failure
-                self.mark_failure(f"No advance from iter {n0} in phase {j}")
-                # Raise an exception for run()
-                raise SystemError(
-                    f"Cycle of phase {j} did not advance iteration count.")
-            # Check for NaNs found
-            if len(glob.glob("nan_locations*.dat")):
-                # Mark failure
-                self.mark_failure("Found NaN location files")
-                raise SystemError("Found NaN location files")
-        else:
-            # No new iterations
-            n1 = n
+        # Run primal solver
+        self.run_nodet_primal(j)
+        # Get new iteration number
+        n1 = self.get_iter()
+        n1 = 0 if (n1 is None) else n1
         # Go back up a folder if we're in the "Flow" folder
-        if rc.get_Dual():
-            os.chdir('..')
-        # Check current iteration count.
-        if (j >= rc.get_PhaseSequence(-1)) and (n0 >= rc.get_LastIter()):
+        os.chdir(self.root_dir)
+        # Check current iteration/phase count
+        jmax = self.get_last_phase()
+        nmax = self.get_last_iter()
+        if (j >= jmax) and (n0 >= nmax):
             return
         # Check for adaptive solves
         if n1 < nj:
@@ -252,12 +234,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for adjoint solver
         if rc.get_Dual() and rc.get_DualPhase(j):
             # Copy the correct namelist
-            os.chdir('Flow')
-            # Delete ``fun3d.nml`` if appropriate
-            if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-                os.remove('fun3d.nml')
+            os.chdir(fdir)
             # Copy the correct one into place
-            os.symlink('fun3d.dual.%02i.nml' % j, 'fun3d.nml')
+            self.link_file(f'fun3d.dual.{j:02d}.nml' 'fun3d.nml', f=True)
             # Enter the 'Adjoint/' folder
             os.chdir('..')
             os.chdir('Adjoint')
@@ -275,17 +254,71 @@ class CaseRunner(casecntl.CaseRunner):
             os.chdir('..')
         elif rc.get_Adaptive() and rc.get_AdaptPhase(j):
             # Check if this is a weird mixed case with Dual and Adaptive
-            if rc.get_Dual():
-                os.chdir('Flow')
+            os.chdir(fdir)
             # Check the adapataion method
             self.run_nodet_adapt(j)
             # Run refine translate
             self.run_refine_translate(j)
             # Run refine loop
             self.run_refine_loop(j)
-            # Return home if appropriate
-            if rc.get_Dual():
-                os.chdir('..')
+            # Run post adapt procedures
+            self.run_post_adapt(j)
+
+    # Run ``nodet``
+    def run_nodet_primal(self, j: int):
+        r"""Run ``nodet`` (the primal solver)
+
+        :Call:
+            >>> runner.run_nodet_primal(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
+        # Check recently run phase
+        jprev = self.get_phase_recent()
+        # Get the last iteration number
+        n = self.get_iter()
+        n0 = 0 if n is None else n
+        # Read case settings
+        rc = self.read_case_json()
+        # Number of requested iters for the end of this phase
+        nj = rc.get_PhaseIters(j)
+        # Number of iterations to run ``nodet`` for this phase
+        nrun = rc.get_nIter(j)
+        # Check if run is necessary
+        if (not nrun) or (jprev == j and n0 >= nj):
+            # Created "run.{j}.{n}
+            self.finalize_stdoutfile(j)
+            # Exit
+            return
+        # Get the `nodet` or `nodet_mpi` command
+        cmdi = cmdgen.nodet(rc, j=j)
+        # STDOUT/STDERR file names
+        stdout = self.get_stdout_filename()
+        stderr = self.get_stderr_filename()
+        # Call the command
+        self.callf(cmdi, f=stdout, e=stderr)
+        # Get new iteration number
+        n1 = self.get_iter()
+        n1 = 0 if (n1 is None) else n1
+        # Check for NaNs found
+        if len(glob.glob("nan_locations*.dat")):
+            # Mark failure
+            self.mark_failure("Found NaN location files")
+            raise SystemError("Found NaN location files")
+        # Check for lack of progress
+        if n1 <= n0:
+            # Mark failure
+            self.mark_failure(f"No advance from iter {n0} in phase {j}")
+            # Raise an exception for run()
+            raise SystemError(
+                f"Cycle of phase {j} did not advance iteration count.")
+        # Rename "fun3d.out"
+        self.finalize_stdoutfile(j)
 
     # Prepare for adapt (with refine/three)
     def prep_adapt(self, j: int):
@@ -303,7 +336,7 @@ class CaseRunner(casecntl.CaseRunner):
         """
         rc = self.read_case_json()
         nml = self.read_namelist()
-        adpt_opt = rc.get_AdaptPhase(j)
+        adpt_opt = rc.get_AdaptPhase(j) and rc.get_Adaptive()
         # Only needed for "refine/three"
         if rc.get_AdaptMethod() != 'refine/three':
             return
@@ -321,7 +354,7 @@ class CaseRunner(casecntl.CaseRunner):
             "turb2": True
         }
         # Overwrite volume output variables
-        _ = nml.pop("volume_output_variables")
+        nml.pop("volume_output_variables", None)
         # Save vol output options to nml
         nml.set_sec("volume_output_variables", vov_req)
         # Ensure volume freq is set
@@ -333,6 +366,7 @@ class CaseRunner(casecntl.CaseRunner):
         nml.write()
 
     # Run refine translate if needed
+    @casecntl.run_rootdir
     def run_refine_translate(self, j: int):
         r"""Run refine transalte to create input meshb file for
         adaptation
@@ -346,6 +380,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2023-07-17 ``@jmeeroff``: v1.0; from ``run_phase``
+            * 2025-04-08 ``@ddalle``: v1.1; less hard-code
         """
         # Read settings
         rc = self.read_case_json()
@@ -355,60 +390,29 @@ class CaseRunner(casecntl.CaseRunner):
         # Check the adaption method
         if rc.get_AdaptMethod() != "refine/three":
             return
-        # Check if meshb file already exists for this phase
-        if os.path.isfile('pyfun%02i.meshb' % j):
-            return
+        # Enter working dir
+        os.chdir(self.get_working_folder())
         # Get project name
-        fproj = self.get_project_rootname(j)
-        # TODO: determine grid format
+        proj = self.get_project_rootname(j)
+        # Get grid file
+        ifile = self.get_grid_file(j, check=True)
+        # Output file
+        ofile = f"{proj}.meshb"
+        # Check if meshb file already exists for this phase
+        if os.path.isfile(ofile):
+            self.log_verbose(f"mesh file {ofile} already exists")
+            return
         # Set command line default required args & kws
-        rc.set_RefineTranslateOpt("input_grid", f'{fproj}.lb8.ugrid')
-        rc.set_RefineTranslateOpt("output_grid", f'{fproj}.meshb')
+        rc.set_RefineTranslateOpt("input_grid", ifile)
+        rc.set_RefineTranslateOpt("output_grid", ofile)
         rc.set_RefineTranslateOpt("run", True)
         # Run the refine translate command
-        cmdi = cmdgen.refine(rc, i=j, function="translate")
+        cmdi = cmdgen.refine(rc, j=j, function="translate")
         # Call the command
-        self.callf(cmdi, f="refine-translate.out")
+        self.callf(cmdi, f="refine-translate.%02i.out" % j)
 
     # Run refine distance if needed
-    def run_refine_distance(self, j: int):
-        r"""Run refine distance to create distances reqd for adaptation
-
-        :Call:
-            >>> runner.prepare_files(j)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: :class:`int`
-                Phase number
-        :Versions:
-            * 2024-06-07 ``@aburkhea``: v1.0; from ``run_phase``
-        """
-        # Read settings
-        rc = self.read_case_json()
-        # Check if adaptive
-        if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
-            return
-        # Check the adaption method
-        if rc.get_AdaptMethod() != "refine/three":
-            return
-        # Check if meshb file already exists for this phase
-        if os.path.isfile('pyfun%02i-distance.solb' % j):
-            return
-        # Formulate kw inputs for command line
-        # Get project name
-        fproj = self.get_project_rootname(j)
-        # Set command line default required args & kws
-        rc.set_RefineDistanceOpt("input_grid", f'{fproj}.lb8.ugrid')
-        rc.set_RefineDistanceOpt("dist_solb", f'{fproj}-distance.solb')
-        rc.set_RefineDistanceOpt("mapbc", f'{fproj}.mapbc')
-        rc.set_RefineDistanceOpt("run", True)
-        # Run the refine distance command
-        cmdi = cmdgen.refine(rc, i=j, function="distance")
-        # Call the command
-        cmdrun.callf(cmdi, f="refine-distance.out")
-
-    # Run refine distance if needed
+    @casecntl.run_rootdir
     def run_refine_loop(self, j: int):
         r"""Run refine loop to adapt grid to target complexity
 
@@ -421,6 +425,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2024-06-07 ``@aburkhea``: v1.0; from ``run_phase``
+            * 2025-04-08 ``@ddalle``: v1.1; check for output file
         """
         # Read settings
         rc = self.read_case_json()
@@ -430,25 +435,65 @@ class CaseRunner(casecntl.CaseRunner):
         # Check the adaption method
         if rc.get_AdaptMethod() != "refine/three":
             return
-        if os.path.isfile("refine-loop.%02i.out" % j):
-            return
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get next phase
+        jb = self.get_next_phase(j)
         # Get project name
-        fproj = self.get_project_rootname(j)
-        fproj1 = self.get_project_rootname(j+1)
+        proj = self.get_project_rootname(j)
+        projb = self.get_project_rootname(jb)
+        # Output file names
+        solfile = f"{projb}-restart.solb"
+        # Check for it
+        if os.path.isfile(solfile):
+            self.log_verbose(f"refined solution '{solfile}` already exists")
+            return
         # Set command line default required args & kws
-        rc.set_RefineOpt("input", f"{fproj}")
-        rc.set_RefineOpt("output", f"{fproj1}")
+        rc.set_RefineOpt("input", f"{proj}")
+        rc.set_RefineOpt("output", f"{projb}")
         rc.set_RefineOpt("interpolant", "mach")
-        rc.set_RefineOpt("mapbc", f'{fproj}.mapbc')
+        rc.set_RefineOpt("mapbc", f'{proj}.mapbc')
         rc.set_RefineOpt("run", True)
         # Run the refine loop command
-        cmdi = cmdgen.refine(rc, i=j)
+        cmdi = cmdgen.refine(rc, j=j, function="loop")
         # Call the command
-        cmdrun.callf(cmdi, f="adapt.%02i.out" % j)
+        self.callf(cmdi, f="adapt.%02i.out" % j)
+
+    # Run post adaptation procedures
+    def run_post_adapt(self, j: int):
+        r"""Prepare namelist and mapbc for phase after ref3 adapt
+
+        :Call:
+            >>> runner.run_post_adapt(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-01-17 ``@aburkhea``: v1.0
+            * 2025-03-31 ``@ddalle``: v1.1; test refine/three
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check if adaptive
+        if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
+            return
+        # Check the adaption method
+        if rc.get_AdaptMethod() != "refine/three":
+            return
+        if not os.path.isfile("adapt.%02i.out" % j):
+            return
         # Set next phase to initialize from the output
         nml = self.read_namelist(j+1)
+        # Get project name
+        fproj = self.get_project_rootname(j)
+        # Get project name for next phase
+        fproj1 = self.get_project_rootname(j+1)
         # Set import_from opt
-        nml["flow_initialization"]["import_from"] = f"{fproj1}-restart.solb"
+        nml.set_opt("code_run_control", "restart_read", "off")
+        nml.set_opt(
+            "flow_initialization", 'import_from', f"{fproj1}-restart.solb")
         nml.write(nml.fname)
         # Copy over previous mapbc
         fproj1 = self.get_project_rootname(j+1)
@@ -516,6 +561,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Run intersect
         self.run_intersect(j, fproj)
 
+    # Run ``verify`` on triangulation for FUN3D+AFLR3 workflow
     def run_verify_fun3d(self, j: int):
         r"""Run ``verify`` to check triangulation if appropriate
 
@@ -537,6 +583,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Run verify
         self.run_verify(j, fproj)
 
+    # Run AFLR3 if necessary, specialized for FUN3D
     def run_aflr3_fun3d(self, j: int):
         r"""Create volume mesh using ``aflr3``
 
@@ -559,6 +606,473 @@ class CaseRunner(casecntl.CaseRunner):
         fproj = self.get_project_rootname(j)
         # Create volume mesh if necessary
         self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
+
+   # --- Workers ---
+    def flow2plt(self, **kw):
+        r"""Convert most recent ``.flow`` file to Tecplot volume file
+
+        :Call:
+            >>> runner.flow2plt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: {``True``} | ``False``
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2025-04-04 ``@ddalle``: v1.0
+            * 2025-05-20 ``@ddalle``: v1.1; use temp file
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of flow file
+        fname_flow = f"{proj}.flow"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_flow)
+            # Log result
+            self.log_verbose(
+                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        bcopt = fname_bc if os.path.isfile(fname_bc) else None
+        # Name of output file
+        fname_vplt = f"{proj}_volume_timestep{n}.plt"
+        fname_tmp = f"_{fname_vplt}"
+        # Exit if that file already exists
+        if os.path.isfile(fname_vplt) or os.path.isfile(fname_tmp):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {fname_mesh} + {fname_flow} -> {fname_vplt}")
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=bcopt)
+        # Read flow file
+        mesh.read_fun3d_flow(fname_flow)
+        # Add additional parameters
+        if kw.get("add-mach", True):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        # Write it
+        mesh.write(fname_tmp)
+        # Rename file
+        os.rename(fname_tmp, fname_vplt)
+
+    def flow2surfplt(self, **kw):
+        r"""Write surface PLT file from most recent ``.flow`` file
+
+        :Call:
+            >>> runner.flow2surfplt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: ``True`` | {``False``}
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2025-06-09 ``@ddalle``: v1.0
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of flow file
+        fname_flow = f"{proj}.flow"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_flow)
+            # Log result
+            self.log_verbose(
+                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        bcopt = fname_bc if os.path.isfile(fname_bc) else None
+        # Name of output file
+        fname_splt = f"{proj}_boundary_timestep{n}.plt"
+        fname_tmp = f"_{fname_splt}"
+        # Exit if that file already exists
+        if os.path.isfile(fname_splt) or os.path.isfile(fname_tmp):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {fname_mesh} + {fname_flow} -> {fname_splt}")
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=bcopt)
+        # Read flow file
+        mesh.read_fun3d_flow(fname_flow)
+        # Remove volume
+        mesh.remove_volume()
+        # Add additional parameters
+        if kw.get("add-mach", False):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        # Write it
+        mesh.write(fname_tmp)
+        # Rename file
+        os.rename(fname_tmp, fname_splt)
+
+    def tavg2plt(self, **kw):
+        r"""Convert most recent ``TAVG.1`` file to Tecplot volume file
+
+        :Call:
+            >>> runner.tavg2plt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: {``True``} | ``False``
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2025-04-14 ``@ddalle``: v1.0
+            * 2025-05-20 ``@ddalle``: v1.1; use temp file
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of tavg file
+        fname_flow = f"{proj}_TAVG.1"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_flow)
+            # Log result
+            self.log_verbose(
+                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
+        # Name of output file
+        fname_vplt = f"{proj}_volume_tavg_timestep{n}.plt"
+        fname_tmp = f"_{fname_vplt}"
+        # Exit if that file already exists
+        if os.path.isfile(fname_vplt) or os.path.isfile(fname_tmp):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {fname_mesh} + {fname_flow} -> {fname_vplt}")
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
+        # Read flow file
+        mesh.read_fun3d_tavg(fname_flow)
+        # Add additional parameters
+        if kw.get("add-mach", True):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        # Write it
+        mesh.write(fname_tmp)
+        os.rename(fname_tmp, fname_vplt)
+
+    def tavg2surfplt(self, **kw):
+        r"""Convert most recent ``TAVG.1`` file to Tecplot surface file
+
+        :Call:
+            >>> runner.tavg2surfplt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: ``True`` | {``False``}
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2025-06-09 ``@ddalle``: v1.0
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of tavg file
+        fname_flow = f"{proj}_TAVG.1"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_flow)
+            # Log result
+            self.log_verbose(
+                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
+        # Name of output file
+        fname_splt = f"{proj}_boundary_tavg_timestep{n}.plt"
+        fname_tmp = f"_{fname_splt}"
+        # Exit if that file already exists
+        if os.path.isfile(fname_splt) or os.path.isfile(fname_tmp):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {fname_mesh} + {fname_flow} -> {fname_splt}")
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
+        # Read flow file
+        mesh.read_fun3d_tavg(fname_flow)
+        # Delete volume
+        mesh.remove_volume()
+        # Add additional parameters
+        if kw.get("add-mach", False):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        # Write it
+        mesh.write(fname_tmp)
+        os.rename(fname_tmp, fname_splt)
+
+    def tavg2x(
+            self,
+            volume_plt: bool = True,
+            surface_plt: bool = False,
+            volume_ufunc: bool = False,
+            surface_ufunc: bool = False,
+            slices: Optional[dict] = None,
+            **kw):
+        r"""Convert most recent ``TAVG.1`` file to Tecplot surface file
+
+        :Call:
+            >>> runner.tavg2surfplt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: ``True`` | {``False``}
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2025-06-09 ``@ddalle``: v1.0
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of tavg file
+        fname_flow = f"{proj}_TAVG.1"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_flow)
+            # Log result
+            self.log_verbose(
+                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
+        # Common suffix for output files
+        suf = f"tavg_timestep{n}"
+        # Update
+        self.log_verbose(f"Read {fname_mesh} + {fname_flow} for convert+save")
+        tag = f"{fname_mesh} + {fname_flow}"
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
+        # Read flow file
+        mesh.read_fun3d_tavg(fname_flow)
+        # Add additional parameters
+        if kw.get("add-mach", False):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        # Write volume files
+        if volume_plt:
+            self._write_vizfile(mesh, f"{proj}_volume_{suf}.plt", tag)
+        if volume_ufunc:
+            self._write_vizfile(mesh, f"{proj}_volume_{suf}.ufunc", tag)
+        # Loop through slices
+        slices = slices if isinstance(slices, dict) else {}
+        for name, defnj in slices.items():
+            # Get coordinates
+            if not isinstance(defnj, (list, tuple)) or len(defnj) != 2:
+                continue
+            # Unpack definition
+            xj, nj = defnj
+            # Calculate slice
+            slicej = mesh.slicevol_pvmesh(xj, nj)
+            # Write it
+            self._write_vizfile(slicej, f"{proj}_{name}_{suf}.plt")
+        # Delete volume
+        mesh.remove_volume()
+        # Write surface files
+        if surface_plt:
+            self._write_vizfile(mesh, f"{proj}_boundary_{suf}.plt", tag)
+        if surface_ufunc:
+            self._write_vizfile(mesh, f"{proj}_boundary_{suf}.ufunc", tag)
+
+    def flow2ufunc(self, **kw):
+        r"""Convert most recent ``.flow`` file to SimSys ufunc file
+
+        :Call:
+            >>> runner.flow2ufunc()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: {``True``} | ``False``
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2025-04-04 ``@aburkhea``: v1.0
+            * 2025-06-09 ``@ddalle``: v1.1; use temp file
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of flow file
+        fname_flow = f"{proj}.flow"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_flow)
+            # Log result
+            self.log_verbose(
+                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
+        # Name of output file
+        fname_vufnc = f"{proj}_volume_timestep{n}.lb8.ufunc"
+        fname_tmp = f"_{fname_vufnc}"
+        # Exit if that file already exists
+        if os.path.isfile(fname_vufnc) or os.path.isfile(fname_tmp):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {fname_mesh} + {fname_flow} -> {fname_vufnc}")
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
+        # Read flow file
+        mesh.read_fun3d_flow(fname_flow)
+        # Add additional parameters
+        if kw.get("add-mach", True):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        # Write it
+        mesh.write(fname_tmp)
+        os.rename(fname_tmp, fname_vufnc)
+
+    def _write_vizfile(self, mesh: umesh.Umesh, fname: str, tag: str):
+        # Write to temp file first
+        fname_tmp = f"_{fname}"
+        # Exit if that file already exists
+        if os.path.isfile(fname) or os.path.isfile(fname_tmp):
+            return
+        # Log
+        self.log_verbose(f"Convert {tag} -> {fname}")
+        # Write it
+        mesh.write(fname_tmp)
+        # Rename completed file
+        os.rename(fname_tmp, fname)
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
@@ -630,6 +1144,40 @@ class CaseRunner(casecntl.CaseRunner):
         # Move the file
         os.rename(fname, fcopy)
 
+    # Process the STDOUT file
+    def finalize_stdoutfile(self, j: int):
+        r"""Move the ``fun3d.out`` file to ``run.{j}.{n}``
+
+        :Call:
+            >>> runner.finalize_stdoutfile(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
+        # Get the last iteration number
+        nc = self.get_iter_completed()
+        na = self.get_iter_restart_active()
+        n = nc + na
+        # Get working folder
+        fdir = self.get_working_folder_()
+        # STDOUT file
+        fout = os.path.join(fdir, self.get_stdout_filename())
+        # History remains in present folder
+        fhist = f"{self._logprefix}.{j:02d}.{n}"
+        # Assuming that worked, move the temp output file.
+        if os.path.isfile(fout):
+            # Check if it's valid
+            if not os.path.isfile(fhist):
+                # Move the file
+                os.rename(fout, fhist)
+        else:
+            # Create an empty file
+            fileutils.touch(fhist)
+
     # Clean up immediately after running
     def finalize_files(self, j: int):
         r"""Clean up files after running one cycle of phase *j*
@@ -644,41 +1192,25 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2016-04-14 ``@ddalle``: v1.0 (``FinalizeFiles``)
             * 2023-07-06 ``@ddalle``: v1.1; instance method
+            * 2025-04-01 ``@ddalle``: v1.2; only use restart iter
         """
         # Read settings
         rc = self.read_case_json()
         # Get the project name
         fproj = self.get_project_rootname(j)
         # Get the last iteration number
-        n = self.get_iter()
-        # Don't use ``None`` for this
-        if n is None:
-            n = 0
-        # Check for dual folder setup
-        if os.path.isdir('Flow'):
-            # Enter the flow folder
-            os.chdir('Flow')
-            qdual = True
-            # History gets moved to parent
-            fhist = os.path.join('..', 'run.%02i.%i' % (j, n))
-        else:
-            # Single folder
-            qdual = False
-            # History remains in present folder
-            fhist = 'run.%02i.%i' % (j, n)
-        # Assuming that worked, move the temp output file.
-        if os.path.isfile('fun3d.out'):
-            # Move the file
-            os.rename('fun3d.out', fhist)
-        else:
-            # Create an empty file
-            fileutils.touch(fhist)
+        nc = self.get_iter_completed()
+        na = self.get_iter_restart_active()
+        n = nc + na
+        # Get working folder
+        fdir = self.get_working_folder_()
         # Rename the flow file, too.
         if rc.get_KeepRestarts(j):
-            shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj, n))
-        # Move back to parent folder if appropriate
-        if qdual:
-            os.chdir('..')
+            # File to copy
+            fflow0 = os.path.join(fdir, f"{fproj}.flow")
+            fflown = os.path.join(fdir, f"{fproj}.{n}.flow")
+            # Copy it
+            self.copy_file(fflow0, fflown)
 
     # Prepare a case for "warm start"
     def prepare_warmstart(self):
@@ -717,94 +1249,73 @@ class CaseRunner(casecntl.CaseRunner):
         return True
 
     # Function to set the most recent file as restart file.
-    def set_restart_iter(self, n=None):
+    def set_restart_read(self, n: Optional[int] = None):
         r"""Set a given check file as the restart point
 
         :Call:
-            >>> runner.set_restart_iter(n=None)
+            >>> runner.set_restart_read(n=None)
         :Inputs:
             *rc*: :class:`RunControlOpts`
                 Run control options
-            *n*: {``None``} :class:`int`
+            *n*: {``None``} | :class:`int`
                 Restart iteration number, defaults to latest available
         :Versions:
             * 2014-10-02 ``@ddalle``: v1.0 (``SetRestartIter``)
             * 2023-03-14 ``@ddalle``: v1.1; add WarmStart
             * 2023-07-06 ``@ddalle``: v1.2; instance method
         """
-        # Check the input
-        if n is None:
-            n = self.get_restart_iter()
-        # Read settings
-        rc = self.read_case_json()
-        # Read the namelist
-        nml = self.read_namelist()
-        # Flag to rewrite namelist
-        nml_write_flag = False
+        # Get last phase and next phase
+        jold = self.get_phase_recent()
+        jnew = self.get_phase_next()
+        # Read namelist
+        nml = self.read_namelist(jnew)
         # Current restart setting
         restart_opt, nohist_opt = nml.GetRestart()
-        # Check adapt method
-        adapt_opt = rc.get_AdaptMethod()
-        # Set restart flag
-        if n > 0:
-            # Get the phase
-            j = self.get_phase()
-            # Check if this is a phase restart
-            nohist = True
-            if os.path.isfile('run.%02i.%i' % (j, n)):
-                # Nominal restart
-                nohist = False
-            elif j == 0:
-                # Not sure how we could still be in phase 0
-                nohist = False
-            else:
-                # Check for preceding phases
-                f1 = glob.glob('run.%02i.*' % (j-1))
-                n1 = rc.get_PhaseIters(j-1)
-                # Read the previous namelist
-                if n is not None and n1 is not None and (n > n1):
-                    if (len(f1) > 0) and os.path.isfile("fun3d.out"):
-                        # Current phase was already run, but run.{i}.{n}
-                        # wasn't created
-                        nml0 = self.read_namelist(j)
-                    else:
-                        nml0 = self.read_namelist(j - 1)
-                else:
-                    # Read the previous phase
-                    nml0 = self.read_namelist(j - 1)
-                # Get 'time_accuracy' parameter
-                sec = 'nonlinear_solver_parameters'
-                opt = 'time_accuracy'
-                ta0 = nml0.get_opt(sec, opt)
-                ta1 = nml.get_opt(sec, opt)
-                # Check for a match
-                nohist = (ta0 != ta1)
-                # If mode switch, prevent Fun3D deleting history
-                if nohist:
-                    self.copy_hist(j - 1)
-            # Ensure restart off for ref3 adapt
-            if (adapt_opt == "refine/three"):
-                # Get previous phase number
-                jprev = max(0, j-1)
-                # Check current flag
-                if rc.get_AdaptPhase(jprev):
-                    # Set the restart flag off
-                    nml.SetRestart(False, nohist=nohist)
-                    nml_write_flag = True
-            elif (not restart_opt) or (nohist_opt != nohist):
-                # Set the restart flag on
-                nml.SetRestart(True, nohist=nohist)
-                nml_write_flag = True
-        else:
+        # Check if restarting same phase
+        if (jold is not None) and (jold == jnew):
+            # Same phase is always a true restart
+            if (not restart_opt) or nohist_opt:
+                # Turn on
+                nml.SetRestart(True)
+                nml.write()
+            return
+        # Check for first run
+        if jold is None:
             # Check for warm-start flag
             warmstart = self.prepare_warmstart()
             # Check current flag
             if restart_opt != warmstart:
                 # Set the restart flag on/off depending on warm-start config
                 nml.SetRestart(warmstart)
-                nml_write_flag = True
-        # Write the namelist
-        if nml_write_flag:
+                nml.write()
+            return
+        # Read case settings
+        rc = self.read_case_json()
+        # Check adapt method
+        adapt_opt = rc.get_AdaptMethod(jold)
+        adapt_old = rc.get_AdaptPhase(jold)
+        # Check if previous phase was a refine/three phase
+        if adapt_old and (adapt_opt == "refine/three"):
+            # No restarts (instead initialize from prev flow)
+            if restart_opt:
+                nml.SetRestart(False)
+                nml.write()
+            return
+        # Get previous namelist
+        nml0 = self.read_namelist(jold)
+        # Get 'time_accuracy' parameter
+        sec = 'nonlinear_solver_parameters'
+        opt = 'time_accuracy'
+        ta0 = nml0.get_opt(sec, opt)
+        ta1 = nml.get_opt(sec, opt)
+        # Check for a match
+        nohist = (ta0 != ta1)
+        # If mode switch, prevent Fun3D deleting history
+        if nohist:
+            self.copy_hist(jold)
+        # Final case: restart but check for "nohistorykept"
+        if (not restart_opt) or (nohist_opt != nohist):
+            nml.SetRestart(True, nohist)
             nml.write()
 
     # Copy the histories
@@ -1055,7 +1566,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Process phase number
         if j is None and rc is not None:
             # Default to most recent phase number
-            j = self.get_phase()
+            j = self.get_phase_next()
         # Get phase of namelist previously read
         nmlj = self.nml_j
         # Check if already read
@@ -1107,6 +1618,9 @@ class CaseRunner(casecntl.CaseRunner):
                 Controller to run one case of solver
             *j*: {``None``} | :class:`int`
                 Phase number
+        :Outputs:
+            *restartfile*: :class:`str`
+                Name of restart file, ending with ``.flow``
         :Versions:
             * 2024-11-05 ``@ddalle``: v1.0
         """
@@ -1114,6 +1628,43 @@ class CaseRunner(casecntl.CaseRunner):
         fproj = self.get_project_rootname(j)
         # Use the project name with ".flow"
         return f"{fproj}.flow"
+
+    # Function to find grid file
+    def get_grid_file(
+            self,
+            j: Optional[int] = None,
+            check: bool = False) -> Optional[str]:
+        r"""Get the most recent grid file for use with phase *j*
+
+        :Call:
+            >>> gridfile = runner.get_grid_file(j=None, check=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+            *check*: ``True`` | {``False``}
+                Option to raise exception if no grid file founde
+        :Outputs:
+            *gridfile* : ``None`` | :class:`str`
+                Name of most recent phase *j* grid file
+        :Versions:
+            * 2025-04-08 ``@ddalle``: v1.0
+        """
+        # Get project name
+        fproj = self.get_project_rootname(j)
+        # Search for grid format
+        ext = self.get_grid_extension()
+        gridfiles = self.search_workdir(f"{fproj}.*{ext}", links=True)
+        # Check for a hit
+        if len(gridfiles) == 0:
+            if check:
+                raise FileNotFoundError(
+                    f"No grid file '{fproj}.*{ext}' for phase {j}")
+            else:
+                return
+        # Name of most recent grid file
+        return gridfiles[-1]
 
     # Get list of files needed for restart
     @casecntl.run_rootdir
@@ -1145,6 +1696,111 @@ class CaseRunner(casecntl.CaseRunner):
         restartfiles.extend(glob.glob(f"{proj}.*ugrid"))
         # Output
         return restartfiles
+
+    # Get mesh format
+    def get_grid_format(self, j: Optional[int] = None) -> str:
+        r"""Get the grid format option in use for this case
+
+        :Call:
+            >>> grid_format = runner.get_grid_format(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase index (or current)
+        :Outputs:
+            *grid_format*: :class:`str`
+                Grid format, ``"fast"``, ``"vgrid"``, ``"aflr3"``
+        :Versions:
+            * 2025-04-04 ``@ddalle``: v1.0
+        """
+        # Read namelist
+        nml = self.read_namelist(j=j)
+        # Get option
+        grid_format = nml.get_opt("raw_grid", "grid_format", vdef="vgrid")
+        # Lower-case
+        return grid_format.lower()
+
+    # Get mesh file extension
+    def get_grid_extension(self, j: Optional[int] = None) -> str:
+        r"""Get the file extension for the selected grid format
+
+        File extensions taken from the FUN3D manual:
+
+        ===============  ==================  ===============
+        Format           Grid files          BC File
+        ===============  ==================  ===============
+        ``"aflr3"``      ``.ugrid``          ``.mapbc``
+        ``"fast"``       ``.fgrid``          ``.mapbc``
+        ``"fieldview"``  ``.fvgrid_fmt``     ``.mapbc``
+        ``"fieldview"``  ``.fvgrid_unf``     ``.mapbc``
+        ``"vgrid"``      ``.cogsg, .bc``     ``.mapbc``
+        ``"felisa"``     ``.gri, .fro``      ``.bco``
+        ===============  ==================  ===============
+
+        :Call:
+            >>> ext = runner.get_grid_extension(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase index (or current)
+        :Outputs:
+            *ext*: :class:`str`
+                Grid file extension, ``"ugrid"``, ``"fgrid"``, etc.
+        :Versions:
+            * 2025-04-04 ``@ddalle``: v1.0
+        """
+        # Get option for grid format
+        grid_format = self.get_grid_format(j)
+        # Filter extension
+        if grid_format == "aflr3":
+            return "ugrid"
+        elif grid_format == "fast":
+            return "fgrid"
+        elif grid_format == "vgrid":
+            return "cogsg"
+        else:
+            return grid_format
+
+    # Get mesh file extension
+    def get_bc_extension(self, j: Optional[int] = None) -> str:
+        r"""Get the file extension for the boundary condition files
+
+        File extensions taken from the FUN3D manual:
+
+        ===============  ==================  ===============
+        Format           Grid files          BC File
+        ===============  ==================  ===============
+        ``"aflr3"``      ``.ugrid``          ``.mapbc``
+        ``"fast"``       ``.fgrid``          ``.mapbc``
+        ``"fieldview"``  ``.fvgrid_fmt``     ``.mapbc``
+        ``"fieldview"``  ``.fvgrid_unf``     ``.mapbc``
+        ``"vgrid"``      ``.cogsg, .bc``     ``.mapbc``
+        ``"felisa"``     ``.gri, .fro``      ``.bco``
+        ===============  ==================  ===============
+
+        :Call:
+            >>> ext = runner.get_grid_extension(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase index (or current)
+        :Outputs:
+            *ext*: :class:`str`
+                Grid file extension, ``"mapbc"``, ``".bco"``
+        :Versions:
+            * 2025-04-04 ``@ddalle``: v1.0
+            * 2025-05-16 ``@ddalle``: v1.1; typo: ma{bp->pb}c
+        """
+        # Get option for grid format
+        grid_format = self.get_grid_format()
+        # Filter extension
+        if grid_format == "felisa":
+            return "bco"
+        else:
+            return "mapbc"
 
     # Get list of files needed for reports
     def get_reportfiles(self) -> list:
@@ -1236,6 +1892,153 @@ class CaseRunner(casecntl.CaseRunner):
         pltfile.Plt2Triq(ftec, ftriq, mach=mach)
         # Output
         return ftriq, n, i0, i1
+
+    # Get averaging window for triq file
+    def get_triq_filestats(self) -> casecntl.IterWindow:
+        r"""Get start and end of averagine window for ``.triq`` file
+
+        :Call:
+            >>> window = runner.get_triq_filestats(ftriq)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ftriq*: :class:`str`
+                Name of latest ``.triq`` annotated triangulation file
+        :Outputs:
+            *window.ia*: :class:`int`
+                Iteration at start of window
+            *window.ib*: :class:`int`
+                Iteration at end of window
+        :Versions:
+            * 2025-02-12 ``@ddalle``: v1.0
+        """
+        # Working here on surface
+        stem = "tec_boundary"
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Glob for initial filter of files
+        baseglob = f"{basename}*_{stem}*"
+        # Form pattern for all possible output files
+        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
+        # Part 2 matches "_timestep2500" or ""
+        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
+        pat = (
+            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
+            "(_timestep(?P<t>[1-9][0-9]*))?" +
+            r"\.(?P<ext>dat|plt|szplt|tec)")
+        # Find appropriate PLT file (or SZPLT ...)
+        fplt, fmatch = fileutils.get_latest_regex(pat, baseglob)
+        # Check for match
+        if fplt is None:
+            return casecntl.IterWindow(None, None)
+        # Get the timestep number, if any
+        t = fmatch.group("t")
+        # Either way, we're going to need the run log phases and iters
+        runlog = self.get_runlog()
+        # Convert to list for iterative backward search
+        runlist = list(runlog)
+        # Get most recent
+        if len(runlist):
+            # Get last CAPE exit
+            jlast, nlast = runlist.pop(-1)
+        else:
+            # No run logs yet
+            jlast, nlast = 0, 0
+        # Check if we found a timestep in the file name
+        if t is None:
+            # The iteration is from the last CAPE exit
+            jplt, nplt = jlast, nlast
+        else:
+            # Got an iteration from timestep
+            # We need to read iter history to check for FUN3D iteration
+            # resets, e.g. at transition from RANS -> uRANS
+            hist = CaseResid(basename)
+            # In this case, default to the current phase
+            jplt = self.get_phase()
+            # Find the most recent time FUN3D reported *t*
+            mask, = np.where(hist["solver_iter"] == int(t))
+            # Use the last hit
+            if mask.size == 0:
+                # No matches? Cannot correct FUN3D's iter
+                nplt = int(t)
+            else:
+                # Read CAPE iter from last time FUN3D reported *t*
+                nplt = int(hist["i"][mask[-1]])
+                # Check if we're *after* the last output
+                if nplt <= nlast:
+                    # This file came from a completed run; find which
+                    mask1, = np.where(nplt <= runlog[:, 1])
+                    # The last phase before *nplt* is the source
+                    jplt = runlog[mask1[-1], 0]
+                else:
+                    # Add the most recent exit back to the runlist
+                    runlist.append((jlast, nlast))
+        # Until we find otherwise, assume there's no averaging
+        nstrt = nplt
+        # Track current phase
+        jcur = jplt
+        # Go backwards through runlog to see where averaging started
+        while True:
+            # Read the most appropriate namelist
+            nmlj = self.read_namelist(jcur)
+            # Check for time averaging
+            tavg = nmlj.get_opt("time_avg_params", "itime_avg", vdef=0)
+            # Process time-averaging
+            if not tavg:
+                # No time-averaging; do not update *nstrt*
+                break
+            # Need the preceding exit to see where averaging started
+            if len(runlist):
+                # Get last exit
+                jcur, nlast = runlist.pop(-1)
+                nstrt = nlast + 1
+            else:
+                # Started from zero
+                nstrt = 1
+                # No previous runs to check
+                break
+            # Check if we kept stats from *previous* run
+            tprev = nmlj.get_opt(
+                "time_avg_params", "user_prior_time_avg", vdef=1)
+            # If we didn't keep prior stats; search is done
+            if not tprev:
+                break
+        # Output
+        return casecntl.IterWindow(nstrt, nlast)
+
+    # Find boundary PLT file
+    def find_plt_file(self, stem: str = "tec_boundary") -> Optional[str]:
+        r"""Get most recent ``plt`` for one surface/volume/slice
+
+        :Call:
+            >>> fplt = runner.get_plt_file(stem="tec_boundary")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *stem*: {``"tec_boundary"``} | :class:`str`
+                Tecplot file surface/volume name to search for
+        :Outputs:
+            *fplt*: :class:`str`
+                Name of ``plt`` file
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Glob for initial filter of files
+        baseglob = f"{basename}*_{stem}*"
+        # Form pattern for all possible output files
+        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
+        # Part 2 matches "_timestep2500" or ""
+        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
+        pat = (
+            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
+            "(_timestep(?P<t>[1-9][0-9]*))?" +
+            r"\.(?P<ext>dat|plt|szplt|tec)")
+        # Find appropriate PLT file (or SZPLT ...)
+        fplt, _ = fileutils.get_latest_regex(pat, baseglob)
+        # Output
+        return fplt
 
     # Find boundary PLT file
     def get_plt_file(self, stem: str = "tec_boundary"):
@@ -1360,6 +2163,57 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return fplt, nstats, nstrt, nplt
 
+    # Search pattern for surface output files
+    def get_flowviz_regex(self, stem: str) -> str:
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Constant stem
+        stem = "tec_boundary"
+        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
+        # Part 2 matches "_timestep2500" or ""
+        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
+        pat = (
+            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
+            "(_timestep(?P<t>[1-9][0-9]*))?" +
+            r"\.(?P<ext>dat|plt|szplt|tec)")
+        # Return it
+        return pat
+
+    # Search pattern for surface output files
+    def get_surf_regex(self) -> str:
+        # Constant stem
+        stem = "tec_boundary"
+        # Use general method
+        return self.get_flowviz_regex(stem)
+
+    def get_surf_pat(self) -> str:
+        r"""Get glob pattern for candidate surface data files
+
+        These can have false-positive matches because the actual search
+        will be done by regular expression. Restricting this pattern can
+        have the benefit of reducing how many files are searched by
+        regex.
+
+        :Call:
+            >>> pat = runner.get_surf_pat()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Glob file name pattern for candidate surface sol'n files
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Constant stem
+        stem = "tec_boundary"
+        # Glob for initial filter of files
+        baseglob = f"{basename}*_{stem}*"
+        # Return it
+        return baseglob
+
    # --- Status ---
     # Function to chose the correct input to use from the sequence.
     def getx_phase(self, n: int):
@@ -1425,6 +2279,60 @@ class CaseRunner(casecntl.CaseRunner):
         # Case completed; just return the last phae
         return j
 
+    # Solver-specifc phase
+    def checkx_phase(self, j: int) -> bool:
+        r"""Apply solver-specific checks for phase *j*
+
+        This generic version always returns ``True``
+
+        :Call:
+            >>> q = runner.checkx_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* looks complete
+        :Versions:
+            * 2025-04-05 ``@ddalle``: v1.0
+            * 2025-04-08 ``@ddalle``: v1.1; add refine/three version
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check if phase *j* is adaptive
+        if not rc.get_opt("AdaptPhase", j):
+            # No additional tests
+            return True
+        # Get option for which type of adaptation
+        adapt_opt = rc.get_AdaptMethod()
+        # Get index of next phase
+        jb = self.get_next_phase(j)
+        # Project of post-adaptation phase
+        proj = self.get_project_rootname(jb)
+        # Grid extsion
+        gridext = self.get_grid_extension(j)
+        # Get grid extension\
+        if adapt_opt == "refine/three":
+            # Look for mesh, mesh, and solb files
+            exts = (
+                ".meshb",
+                "-restart.solb",
+                f".*{gridext}")
+        else:
+            # Look for adapted grid and solution file
+            exts = (
+                f".*{gridext}",
+                ".flow")
+        # Check for both matches
+        for ext in exts:
+            if len(self.search_workdir(f"{proj}{ext}")) == 0:
+                # No matches
+                return False
+        # Found both
+        return True
+
     # Check success
     def get_returncode(self):
         r"""Check for errors before continuing
@@ -1467,41 +2375,12 @@ class CaseRunner(casecntl.CaseRunner):
         # Otherwise no errors detected
         return getattr(self, "returncode", casecntl.IERR_OK)
 
-    # Get current iteration
-    def getx_iter(self):
-        r"""Calculate most recent FUN3D iteration
-
-        :Call:
-            >>> n = runner.getx_iter()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *n*: :class:`int`
-                Iteration number
-        :Versions:
-            * 2015-10-19 ``@ddalle``: v1.0
-            * 2016-04-28 ``@ddalle``: v1.1; ``Flow/`` folder
-            * 2023-06-27 ``@ddalle``: v2.0; instance method
-            * 2024-08-10 ``@ddalle``: v2.1; mostly getx_iter_running()
-        """
-        # Read the two sources
-        _, ns = self.getx_iter_history()
-        nr = self.getx_iter_running()
-        # Process
-        if nr in (0, None):
-            # No running iterations; check history
-            return ns
-        else:
-            # Some iterations saved and some running
-            return nr
-
     # Get iteration if restart
     def getx_restart_iter(self):
         r"""Calculate number of iteration if case should restart
 
         :Call:
-            >>> nr = runner.gets_restart_iter()
+            >>> nr = runner.getx_restart_iter()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -1513,79 +2392,14 @@ class CaseRunner(casecntl.CaseRunner):
             * 2016-04-19 ``@ddalle``: v1.1; check STDIO
             * 2020-01-15 ``@ddalle``: v1.2; sort globs better
             * 2023-07-05 ``@ddalle``: v1.3; moved to instance method
+            * 2025-04-01 ``@ddalle``: v2.0; use simple run log methods
         """
-        # Can just new, more robust getx_iter_running() here?
-        n = self.getx_iter_running()
-        return 0 if n is None else n
-        # List of saved run files
-        frun_glob = glob.glob('run.[0-9]*.[0-9]*')
-        # More exact pattern check
-        frun_pattern = []
-        # Loop through glob finds
-        for fi in frun_glob:
-            # Above doesn't guarantee exact pattern
-            try:
-                # Split into parts
-                _, s_phase, s_iter = fi.split(".")
-                # Compute phase and iteration
-                int(s_phase)
-                int(s_iter)
-            except Exception:
-                continue
-            # Append to filterted list
-            frun_pattern.append(fi)
-        # Sort by iteration number
-        frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
-        # List the output files
-        if os.path.isfile('fun3d.out'):
-            # Only use the current file
-            fflow = frun + ['fun3d.out']
-        elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
-            # Use the current file from the ``Flow/`` folder
-            fflow = frun + [os.path.join('Flow', 'fun3d.out')]
-        else:
-            # Use the run output files
-            fflow = frun
-        # Initialize iteration number until informed otherwise.
-        n = 0
-        # Cumulative restart iteration number
-        n0 = 0
-        # Loop through the matches.
-        for fname in fflow:
-            # Check for restart of iteration counter
-            lines = fileutils.grep('on_nohistorykept', fname)
-            if len(lines) > 1:
-                # Reset iteration counter
-                n0 = n
-                n = 0
-            # Get the output report lines
-            lines = fileutils.grep('current history iterations', fname)
-            # Be safe
-            try:
-                # Split up line
-                V = lines[-1].split()
-                # Attempt to get existing iterations
-                try:
-                    # Format: "3000 + 2000 = 5000"
-                    i0 = int(V[-5])
-                except Exception:
-                    # No restart...
-                    # restart_read is 'off' or 'on_nohistorykept'
-                    i0 = 0
-                # Get the last write iteration number
-                i = int(V[-1])
-                # Update iteration number
-                if i0 < n:
-                    # Somewhere we missed an on_nohistorykept
-                    n0 = n
-                    n = i
-                else:
-                    # Normal situation
-                    n = max(i, n)
-            except Exception:
-                pass
+        # Get completed iter
+        nc = self.get_iter_completed()
+        # Additional iterations from which restart would occur
+        nr = self.get_iter_restart_active()
         # Output
-        return n0 + n
+        return nc + nr
 
     # Get iteration number from "history"
     @casecntl.run_rootdir
@@ -1716,49 +2530,132 @@ class CaseRunner(casecntl.CaseRunner):
         except Exception:
             return None
 
-    # Get iteration from STDTOUT
+    # Get the number of iterations from active history file
     @casecntl.run_rootdir
-    def getx_iter_running(self) -> Optional[int]:
-        r"""Get the most recent iteration number for a running file
+    def get_iter_active(self) -> int:
+        r"""Detect number of iters since last completed run
 
         :Call:
-            >>> n = runner.getx_iter_running()
-        :Outputs:
+            >>> n = runner.get_iter_active()
+        :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *n*: :class:`int` | ``None``
-                Most recent iteration number
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
         :Versions:
-            * 2015-10-19 ``@ddalle``: v1.0
-            * 2016-04-28 ``@ddalle``: v1.1; handle ``Flow/`` folder
-            * 2023-05-27 ``@ddalle``: v2.0; instance method
-            * 2024-07-29 ``@ddalle``: v3.0
-                - use :func:`fileutils.readline_reverse`
-                - eliminate ``on_nohistorykept`` check
-                - check for multiple files (was just ``fun3d.out``)
-
-            * 2024-08-09 ``@ddalle``: v3.1; fix run.??.* sorting
-            * 2024-08-10 ``@ddalle``: v3.2; check all run.??.* for rstrt
-            * 2024-08-21 ``@ddalle``: v3.3; read prev file for 'off'
+            * 2025-04-01 ``@ddalle``: v1.0
         """
-        # Get all STDOUT files, in order
-        runfiles = self.get_stdoutfiles()
-        # Initialize discarded iteration count
-        n_discard = 0
-        # Loop through all the files
-        for j, stdoutfile in enumerate(runfiles):
-            # Get previous file (to use for 'off')
-            prevfile = None if j == 0 else runfiles[j-1]
-            # Check for discarded iter (restart is 'off' or 'on_nohist')
-            n_discard += self._getx_i_stdout_discarded(stdoutfile, prevfile)
-        # Loop through the files in reverse
-        for stdoutfile in reversed(runfiles):
-            # Read the file
-            n = self._getx_iter_stdoutfile(stdoutfile)
-            # Check for any find
-            if n is not None:
-                return n + n_discard
-        # If no matches found, use ``None`` as the iter
+        # Get working folder
+        fdir = self.get_working_folder_()
+        # STDOUT file
+        fname = os.path.join(fdir, "fun3d.out")
+        # Check for it
+        if not os.path.isfile(fname):
+            return 0
+        # Initialize running iter
+        n = None
+        # Open file
+        with open(fname, 'rb') as fp:
+            # Move to EOF
+            fp.seek(0, 2)
+            # Loop through lines of file
+            while True:
+                # Read preceding line
+                rawline = fileutils.readline_reverse(fp)
+                line = rawline.strip()
+                # Check for exit criteria
+                if rawline == b'':
+                    # Reached start of file w/o match
+                    break
+                elif line.startswith(b"inserting current history iter"):
+                    # Iterations reported out w/o restart
+                    n = int(line.split()[-1])
+                    break
+                elif line.startswith(b"inserting previous and current"):
+                    # Iterations report w/ resart
+                    n = int(line.split()[-3])
+                    break
+                # Check line against regex
+                re_match = REGEX_F3DOUT.match(line)
+                if re_match:
+                    # Convert string to integer
+                    n = int(re_match.group('iter'))
+                    break
+        # Output
+        n = 0 if n is None else n
+        return n
+
+    # Check if "fun3d.out" is completed
+    @casecntl.run_rootdir
+    def get_iter_restart_active(self) -> int:
+        r"""Get number of completed iterations from ``fun3d.out``
+
+        :Call:
+            >>> n = runner.get_iter_restart_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-04-01 ``@ddalle``: v1.0
+            * 2025-04-07 ``@ddalle``: v1.1; move parser to separate meth
+        """
+        # Get working folder
+        fdir = self.get_working_folder_()
+        # STDOUT file
+        fname = os.path.join(fdir, self.get_stdout_filename())
+        # Call STDOUT parser
+        return self.get_iter_restart_stdout(fname)
+
+    @casecntl.run_rootdir
+    def get_iter_restart_stdout(self, fname: str) -> int:
+        r"""Get iteration number of most recent restart write in STDOUT
+
+        :Call:
+            >>> n = runner.get_iter_restart_stdout(fname)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of STDOUT file to read
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
+        # Check for it
+        if not os.path.isfile(fname):
+            return 0
+        # Initialize running iter
+        n = None
+        # Open file
+        with open(fname, 'rb') as fp:
+            # Move to EOF
+            fp.seek(0, 2)
+            # Loop through lines of file
+            for _ in range(2000):
+                # Read preceding line
+                rawline = fileutils.readline_reverse(fp)
+                line = rawline.strip()
+                # Check for exit criteria
+                if rawline == b'':
+                    # Reached start of file w/o match
+                    break
+                elif line.startswith(b"inserting current history iterations"):
+                    # Iterations reported out w/o restart
+                    n = int(line.split()[-1])
+                    break
+                elif line.startswith(b"inserting previous and current"):
+                    # Iterations report w/ resart
+                    n = int(line.split()[-3])
+                    break
+        # Output
+        n = 0 if n is None else n
+        return n
 
     # Get list of STDOUT files
     def get_stdoutfiles(self) -> list:
@@ -1790,161 +2687,6 @@ class CaseRunner(casecntl.CaseRunner):
                 runfiles.append(runfile)
         # Output
         return runfiles
-
-    # Read a single STDOUT file
-    def _getx_iter_stdoutfile(self, fname: str) -> Optional[int]:
-        r"""Determine current iteration from FUN3D STDOUT
-
-        :Call:
-            >>> n = runner._getx_iter_stdoutfile(fname)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *fname*: :class:`str`
-                Name of file with STDOUT from ``nodet``
-        :Outputs:
-            *n*: ``None`` | :class:`int`
-                Most recent iteration number
-        :Versions:
-            * 2024-07-29 ``@ddalle``: v1.0
-            * 2024-07-30 ``@ddalle``: v2.0; revive *restart_read* check
-            * 2024-08-10 ``@ddalle``: v2.1; use smaller functions
-        """
-        # Get restart setting
-        restart_read = self._read_stdout_restart(fname)
-        # If restart_read is "on", need to get restart iters
-        if restart_read == "on":
-            # Get number of iters in restart file
-            nr = self._read_stdout_restart_iter(fname, restart_read)
-        else:
-            # Fresh history (according to FUN3D)
-            nr = None
-        # Initialize running iter
-        n = None
-        # Open file
-        with open(fname, 'rb') as fp:
-            # Move to EOF
-            fp.seek(0, 2)
-            # Loop through lines of file
-            while True:
-                # Read preceding line
-                line = fileutils.readline_reverse(fp)
-                # Check line against regex
-                re_match = REGEX_F3DOUT.match(line)
-                # Check for exit criteria
-                if line == b'':
-                    # Reached start of file w/o match
-                    break
-                elif re_match:
-                    # Convert string to integer
-                    n = int(re_match.group('iter'))
-                    break
-                elif b'current history iterations' in line:
-                    # Directly specified
-                    nr = None
-                    n = int(line.split()[-1])
-                    break
-        # Output
-        if n is not None:
-            if nr is not None:
-                # Return the sum
-                return n + nr
-            else:
-                # Just the line-by-line count
-                return n
-        else:
-            # Restart iter
-            return nr
-
-    # Get discareded restart read setting
-    def _getx_i_stdout_discarded(
-            self,
-            fname: str,
-            fprev: Optional[str] = None) -> int:
-        r"""Get number of iterations discarded during restart
-
-        If the ``restart_read`` setting is anything other than ``"on"``,
-        the history iterations will be reported, but FUN3D will start
-        over at ``0``.
-
-        If ``restart_read`` is ``"on"``, this will return ``0``.
-
-        :Call:
-            >>> n = runner._getx_i_stdout_discarded(fname)
-        :Outputs:
-            *n*: :class:`int`
-                Number of restart iterations not used
-        """
-        # Get restart setting
-        restart_read = self._read_stdout_restart(fname)
-        # Check flag
-        if restart_read == "on":
-            # No iterations discarded
-            return 0
-        elif restart_read == "off":
-            # Check for previous file iters
-            if fprev and os.path.getsize(fname) > 200:
-                # Read iters from previous file
-                nr = self._getx_iter_stdoutfile(fprev)
-                return 0 if nr is None else nr
-            # No previous file
-            return 0
-        else:
-            # FUN3D reports iters in restart file but discards them
-            nr = self._read_stdout_restart_iter(fname, restart_read)
-            # Convert None -> 0
-            return 0 if nr is None else nr
-
-    # Get restart iter from stdout
-    def _read_stdout_restart_iter(self, fname: str, rr: str) -> Optional[int]:
-        r"""Get the reported number of iterations in the restart file
-
-        :Call:
-            >>> nr = runner._read_stdout_restart_iter(fname)
-        :Outputs:
-            *nr*: ``None`` | :class:`int`
-                Number of iterations in restart file
-        """
-        # Search for text describing how many restart iters were
-        try:
-            lines = fileutils.grep("the restart files contains", fname, nmax=1)
-        except UnicodeDecodeError:
-            print(f"File {fname} in case {self.root_dir} is unreadable")
-            nr = None
-        # Try to convert it
-        try:
-            # Try to convert first match
-            nr = int(lines[0].split('=')[-1])
-        except Exception:
-            # No iters found
-            nr = None
-        # Output
-        return nr
-
-    # Get restart setting
-    def _read_stdout_restart(self, fname: str) -> Optional[str]:
-        r"""Get the ``restart_read`` setting from FUN3D STDOUT
-
-        :Call:
-            >>> restart = runner._read_stdout_restart(fname)
-        :Inputs:
-            *fname*: :class:`str`
-                Name of file
-        :Outputs:
-            *restart*: ``"off"`` | ``"on"`` | ``"on_nohistorykept"``
-                Restart setting
-        """
-        # Find the "restart_read" setting
-        lines = fileutils.grep(r"^\s*restart_read\s*=", fname, nmax=1)
-        # Default (in case no match)
-        restart_read = "off"
-        # Check for match
-        if len(lines) > 0:
-            # Get setting
-            restart_read = lines[0].split('=')[1].strip()
-            restart_read = restart_read.strip('"').strip("'")
-        # Output
-        return restart_read
 
    # --- Conditions ---
     # Read Mach number from namelist

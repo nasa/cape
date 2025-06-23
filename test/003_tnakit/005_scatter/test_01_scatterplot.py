@@ -21,7 +21,7 @@ MATFILE = "bullet-fm.mat"
 @testutils.run_sandbox(__file__, MATFILE)
 def test_01_scatterplot():
     # Read data file
-    db = dbfm.DBFM(MATFILE)
+    db = dbfm.FMDataKit(MATFILE)
     # Creat random CA offset
     np.random.seed(100)
     dCA = 0.1 * np.random.rand(len(db["bullet.CA"]))

@@ -22,12 +22,14 @@ command-line options to solver commands such as ``flowCart`` for Cart3D.
 # Local imports
 from .aflr3opts import AFLR3Opts
 from .archiveopts import ArchiveOpts
+from .comp2triopts import Comp2TriOpts
 from .environopts import EnvironOpts
 from .isectopts import IntersectOpts, VerifyOpts
 from .mpiopts import MPIOpts
 from .ulimitopts import ULimitOpts
 from ...optdict import (
     BOOL_TYPES,
+    FLOAT_TYPES,
     INT_TYPES,
     OptionsDict)
 
@@ -47,10 +49,7 @@ class RunControlOpts(OptionsDict):
     :Versions:
         * 2014-12-01 ``@ddalle``: v1.0
     """
-   # ================
-   # Class attributes
-   # ================
-   # <
+   # === Class attributes ===
     # Attributes
     __slots__ = ()
 
@@ -68,8 +67,13 @@ class RunControlOpts(OptionsDict):
         "NJob",
         "PhaseSequence",
         "PhaseIters",
+        "PostPythonFuncs",
         "PostShellCmds",
         "PreMesh",
+        "PrePythonFuncs",
+        "PreShellCmds",
+        "PhaseWatcherCmds",
+        "PhaseWatcherFuncs",
         "RestartSamePhase",
         "ResubmitNextPhase",
         "ResubmitSamePhase",
@@ -79,6 +83,12 @@ class RunControlOpts(OptionsDict):
         "WarmStart",
         "WarmStartFolder",
         "WarmStartPhase",
+        "WorkerPythonFuncs",
+        "WorkerShellCmds",
+        "WorkerSleepTime",
+        "WorkerTimeout",
+        "ZombieFiles",
+        "ZombieTimeout",
         "aflr3",
         "intersect",
         "mpi",
@@ -100,7 +110,10 @@ class RunControlOpts(OptionsDict):
         "PreMesh": BOOL_TYPES,
         "PhaseIters": INT_TYPES,
         "PhaseSequence": INT_TYPES,
-        "PostShellCmds": str,
+        "PostPythonFuncs": (str, dict),
+        "PostShellCmds": (str, dict),
+        "PrePythonFuncs": (str, dict),
+        "PreShellCmds": (str, dict),
         "RestartSamePhase": BOOL_TYPES,
         "ResubmitNextPhase": BOOL_TYPES,
         "ResubmitSamePhase": BOOL_TYPES,
@@ -110,9 +123,17 @@ class RunControlOpts(OptionsDict):
         "WarmStart": BOOL_TYPES,
         "WarmStartFolder": str,
         "WarmStartPhase": INT_TYPES,
+        "WatcherCmds": "WorkerShellCmds",
+        "WatcherFuncs": "WorkerPythonFuncs",
+        "WorkerPythonFuncs": (str, dict),
+        "WorkerShellCmds": str,
+        "WorkerSleepTime": INT_TYPES + FLOAT_TYPES,
+        "WorkerTimeout": INT_TYPES + FLOAT_TYPES,
+        "ZombieFiles": str,
+        "ZombieTimeout": INT_TYPES + FLOAT_TYPES,
         "mpicmd": str,
         "nIter": INT_TYPES,
-        "nProc": INT_TYPES,
+        "nProc": INT_TYPES + FLOAT_TYPES,
         "qsub": BOOL_TYPES,
         "slurm": BOOL_TYPES,
     }
@@ -120,9 +141,23 @@ class RunControlOpts(OptionsDict):
     # Aliases
     _optmap = {
         "CAPEFile": "JSONFile",
+        "ConcurrentPythonFuncs": "WorkerPythonFuncs",
+        "ConcurrentShellCmds": "WorkerShellCmds",
         "Continue": "ContinuePhase",
         "PostCmds": "PostShellCmds",
+        "PostFuncs": "PostPythonFuncs",
+        "PostPyFuncs": "PostPythonFuncs",
+        "PreCmds": "PreShellCmds",
+        "PreFuncs": "PrePythonFuncs",
+        "PrePyFuncs": "PrePythonFuncs",
         "Resubmit": "ResubmitNextPhase",
+        "WatcherCmds": "WorkerShellCmds",
+        "WatcherFuncs": "WorkerPythonFuncs",
+        "WatherTimeout": "WorkerTimeout",
+        "WorkerCmds": "WorkerShellCmds",
+        "WorkerFuncs": "WorkerPythonFuncs",
+        "WorkerMaxWaitTime": "WorkerTimeout",
+        "WorkerTimeOut": "WorkerTimeout",
         "nJob": "NJob",
         "sbatch": "slurm",
     }
@@ -142,14 +177,23 @@ class RunControlOpts(OptionsDict):
         "StartNextPhase": True,
         "Verbose": False,
         "WarmStart": False,
+        "WorkerTimeout": 600.0,
+        "WorkerSleepTime": 10.0,
         "qsub": False,
         "slurm": False,
         "NJob": 0,
+        "ZombieTimeout": 45.0
     }
 
     # List depth
     _optlistdepth = {
         "PostShellCmds": 1,
+        "PostPythonFuncs": 1,
+        "PrePythonFuncs": 1,
+        "PreShellCmds": 1,
+        "WorkerPythonFuncs": 1,
+        "WorkerShellCmds": 1,
+        "ZombieFiles": 1,
     }
 
     # Local parameter descriptions
@@ -160,8 +204,11 @@ class RunControlOpts(OptionsDict):
         "NJob": "number of jobs to run concurrently",
         "PhaseIters": "check-point iterations for phase *j*",
         "PhaseSequence": "list of phase indices to run",
+        "PostPythonFuncs": "Python functions to run after each cycle",
         "PostShellCmds": "list of commands to run after each cycle",
         "PreMesh": "whether or not to generate volume mesh before submitting",
+        "PrePythonFuncs": "Python functions to run before each cycle",
+        "PreShellCmds": "list of commands to run before each cycle",
         "RootDir": "(absolute) base folder from which CAPE settings were read",
         "RestartSamePhase": "whether to restart same phase if needed",
         "ResubmitSamePhase": "whether same-phase repeats need new job",
@@ -170,10 +217,15 @@ class RunControlOpts(OptionsDict):
         "WarmStart": "whether to warm start a case",
         "WarmStartFolder": "folder from which to get warm-start file",
         "WarmStartPhase": "phase from which to warm-start a case",
+        "WorkerPythonFuncs": "functions to run concurrently during phase",
+        "WorkerShellCmds": "shell commands to run concurrently during phase",
+        "WorkerTimeout": "max time to wait for workers after CFD phase",
         "Verbose": '"RunControl" verbosity flag',
+        "ZombieFiles": "file name flobs to check mod time for zombie status",
+        "ZombieTimeout": "minutes to wait before considering a case a zombie",
         "mpicmd": "MPI executable name",
         "nIter": "number of iterations to run in phase *j*",
-        "nProc": "number of cores/threads to use per case",
+        "nProc": "number (or fraction) of cores to use (or omit if negative)",
         "qsub": "whether or not to submit jobs with PBS",
         "slurm": "whether or not to submit jobs with Slurm",
     }
@@ -183,17 +235,14 @@ class RunControlOpts(OptionsDict):
         "Archive": ArchiveOpts,
         "Environ": EnvironOpts,
         "aflr3": AFLR3Opts,
+        "comp2tri": Comp2TriOpts,
         "intersect": IntersectOpts,
         "mpi": MPIOpts,
         "ulimit": ULimitOpts,
         "verify": VerifyOpts,
     }
-   # >
 
-   # ==========
-   # Prep
-   # ==========
-   # <
+   # === Prep ===
     # Replace "Continue" with something else
     def init_post(self):
         # Get *Continue* and *ResubmitSamePhase*
@@ -211,12 +260,8 @@ class RunControlOpts(OptionsDict):
             q_resub = not q_cont
         # Set it
         self.set_RunControlOpt("ResubmitSamePhase", q_resub)
-   # >
 
-   # =======
-   # General
-   # =======
-   # <
+   # === General ===
     # Get general RunControl option
     def get_RunControlOpt(self, opt: str, j=None, **kw):
         r"""Get a general option from the "RunControl" section
@@ -257,12 +302,8 @@ class RunControlOpts(OptionsDict):
             * 2023-07-17 ``@ddalle``: v1.0
         """
         return self.set_opt(opt, val, j, **kw)
-   # >
 
-   # =====
-   # AFLR3
-   # =====
-   # <
+   # === AFLR3 ===
     # Whether or not to use AFLR3
     def get_aflr3(self):
         r"""Return whether or not to run AFLR3 to create mesh
@@ -285,12 +326,8 @@ class RunControlOpts(OptionsDict):
         v = self.get('aflr3')
         # Get the flag and convert to True or False
         return bool(v.get('run'))
-   # >
 
-   # =========
-   # intersect
-   # =========
-   # <
+   # === intersect ===
     # Whether or not to use intersect
     def get_intersect(self):
         r"""Return whether or not to run ``intersect`` on triangulations
@@ -313,12 +350,8 @@ class RunControlOpts(OptionsDict):
         v = self.get("intersect")
         # Get the flag and convert to True or False
         return bool(v.get('run'))
-   # >
 
-   # ======
-   # verify
-   # ======
-   # <
+   # === verify ===
     # Whether or not to use verify
     def get_verify(self):
         r"""Return whether or not to run ``verify`` on triangulations
@@ -341,12 +374,8 @@ class RunControlOpts(OptionsDict):
         v = self.get("verify")
         # Get the flag and convert to True or False
         return bool(v.get('run'))
-   # >
 
-   # ===============
-   # Local Functions
-   # ===============
-   # <
+   # === Local Functions ===
     # Number of phases
     def get_nSeq(self, i=None):
         r"""Return the number of phases in the sequence
@@ -394,7 +423,6 @@ class RunControlOpts(OptionsDict):
         phase = self.get_PhaseSequence(j=-1, i=i)
         # Get cutoff for that phase
         return self.get_PhaseIters(j=phase, i=i)
-   # >
 
 
 # Create properties

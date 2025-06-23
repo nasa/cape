@@ -19,7 +19,7 @@ import numpy as np
 
 # CAPE modules
 from . import argread
-from . import text as textutils
+from . import textutils
 from .dkit import rdb as rdb
 from .dkit import dbll as dbll
 from .cfdx.cntl import Cntl
@@ -172,7 +172,7 @@ def genr8_ll_datakit(cntl, comp):
     # Run matrix interface
     x = cntl.x
     # Initialize datakit with whole run matrix
-    db = dbll.DBLL(Values=x)
+    db = dbll.LineLoadDataKit(Values=x)
     # Indices of matches
     matches = []
     # Get entire list of (candidate) runs

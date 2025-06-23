@@ -20,6 +20,7 @@ The :mod:`cape` module
     config
     convert
     geom
+    gruvoc/index
     fileutils
     msh
     nmlfile/index
@@ -30,7 +31,7 @@ The :mod:`cape` module
     step
     tar
     teccli
-    text
+    textutils
     tri
     tricli
     units

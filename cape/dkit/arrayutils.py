@@ -54,6 +54,9 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
         maxlen = max([len(u) for u in U])
         # Create string format
         return "%%-%is" % maxlen
+    elif dt.startswith("bool"):
+        # Boolean
+        return "%-5s"
     # Don't consider "NaN" entries
     mask = np.logical_not(np.isnan(U))
     # Get min and max values (with padding)
@@ -79,7 +82,7 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
         # Round down to nearest power of 10
         uexp = int(np.floor(np.log10(uabs))) + 1
     # Check format
-    if dt.startswith("int"):
+    if dt.startswith("int") or dt.startswith("uint"):
         # Check sign
         if umin < 0:
             # Give appropriate number of integer digits

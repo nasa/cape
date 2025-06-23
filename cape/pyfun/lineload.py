@@ -6,8 +6,8 @@ This module contains functions for reading and processing sectional
 loads. It is a version of :mod:`cape.cfdx.lineload` that is closely
 tied to :mod:`cape.pyfun.dataBook`.
 
-It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.databook.DBBase`.  This class is an
+It provides the primary class :class:`LineLoadDataBook`, which
+is a subclass of :class:`cape.cfdx.databook.DataBookComp`.  This class is an
 interface to all line load data for a specific surface component.
 
 For reading the sectional load for a single solution on one component
@@ -40,11 +40,11 @@ from ..cfdx import lineload
 
 
 # Data book of line loads
-class DBLineLoad(lineload.DBLineLoad):
+class LineLoadDataBook(lineload.LineLoadDataBook):
     r"""Line load (sectional load) data book for one group
-    
+
     :Call:
-        >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None)
+        >>> DBL = LineLoadDataBook(cntl, comp, conf=None, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -57,7 +57,7 @@ class DBLineLoad(lineload.DBLineLoad):
         *RootDir*: {``"None"``} | :class:`str`
             Root directory for the configuration
     :Outputs:
-        *DBL*: :class:`pyCart.lineload.DBLineLoad`
+        *DBL*: :class:`pyCart.lineload.LineLoadDataBook`
             Instance of line load data book
         *DBL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -78,7 +78,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> nml = db.GetNamelist()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load component databook instance
         :Outputs:
             *nml*: :class:`cape.pyfun.namelist.Namelist` | ``None``
@@ -104,7 +104,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> Aref = db.GetRefArea()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load component databook instance
         :Outputs:
             *Aref*: :class:`float` | ``None``
@@ -135,7 +135,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> Lref = db.GetRefLength()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load component databook instance
         :Outputs:
             *Lref*: :class:`float` | ``None``
@@ -166,7 +166,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> MRP = db.GetMRP()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load component databook instance
         :Outputs:
             *MRP*: :class:`np.ndarray`\ [:class:`float`] | ``None``
@@ -194,15 +194,15 @@ class DBLineLoad(lineload.DBLineLoad):
         # Save and return
         self.MRP = np.array([xmrp, ymrp, zmrp])
         return self.MRP
-    
+
     # Get component ID numbers
     def GetCompID(self):
         r"""Create list of component IDs
-        
+
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
-            *DBL*: :class:`lineload.DBLineLoad`
+            *DBL*: :class:`lineload.LineLoadDataBook`
                 Instance of line load data book
         :Versions:
             * 2016-12-22 ``@ddalle``: v1.0, extracted from __init__()
@@ -239,15 +239,15 @@ class DBLineLoad(lineload.DBLineLoad):
             ]
         except Exception:
             pass
-    
+
     # Get file
     def GetTriqFile(self):
         r"""Get most recent ``triq`` file and its associated iterations
-        
+
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyfun.lineload.DBLineLoad`
+            *DBL*: :class:`pyfun.lineload.LineLoadDataBook`
                 Instance of line load data book
         :Outputs:
             *qtriq*: {``False``}
@@ -271,13 +271,13 @@ class DBLineLoad(lineload.DBLineLoad):
         if fplt is None:
             return False, None, None, None, None
         # Check for iteration resets
-        nh, ns = runner.getx_iter_history()
+        nh, _ = runner.getx_iter_history()
         # Add in the last iteration number before restart
         if nh is not None:
             i0 += nh
             i1 += nh
         # Get the corresponding .triq file name
-        ftriq = fplt.rstrip('.plt') + '.triq'
+        ftriq = os.path.splitext(fplt)[0] + '.triq'
         # Check if the TRIQ file exists
         if os.path.isfile(ftriq):
             # Check if it's new enough
@@ -292,15 +292,15 @@ class DBLineLoad(lineload.DBLineLoad):
             qtriq = True
         # Output
         return qtriq, ftriq, n, i0, i1
-    
+
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, ftriq, **kw):
         r"""Perform any necessary preprocessing to create ``triq`` file
-        
+
         :Call:
             >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`pyfun.lineload.DBLineLoad`
+            *DBL*: :class:`pyfun.lineload.LineLoadDataBook`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -323,7 +323,6 @@ class DBLineLoad(lineload.DBLineLoad):
         # Copy them
         for fm in fmapbc:
             shutil.copy(fm, '.')
-
         # Read Mach number
         if i is None:
             # Read from :file:`conditions.json`
@@ -333,14 +332,14 @@ class DBLineLoad(lineload.DBLineLoad):
             mach = self.x.GetMach(i)
         # Convert the plt file
         pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
-        
-# class DBLineLoad
-    
+
+# class LineLoadDataBook
+
 
 # Line loads
 class CaseLL(lineload.CaseLL):
     r"""Individual class line load class
-    
+
     :Call:
         >>> LL = CaseLL(cart3d, i, comp)
     :Inputs:
@@ -378,7 +377,7 @@ class CaseLL(lineload.CaseLL):
 # Class for seam curves
 class CaseSeam(lineload.CaseSeam):
     r"""Seam curve interface
-    
+
     :Call:
         >>> S = CaseSeam(fname, comp='entire', proj='LineLoad')
     :Inputs:
@@ -407,7 +406,7 @@ class CaseSeam(lineload.CaseSeam):
 # Function to determine newest triangulation file
 def GetPltFile():
     r"""Get most recent boundary ``plt`` file and associated iterations
-    
+
     :Call:
         >>> fplt, n, i0, i1 = GetPltFile()
     :Outputs:
@@ -515,4 +514,4 @@ def GetPltFile():
     # ======
     return fplt, nStats, nstrt, nplt
 # def GetPltFile
-            
+

@@ -6,8 +6,8 @@ This module contains functions for reading and processing sectional
 loads. It is a version of :mod:`cape.cfdx.lineload` that is closely
 tied to :mod:`cape.pycart.dataBook`.
 
-It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.databook.DBBase`. This class is an
+It provides the primary class :class:`LineLoadDataBook`, which
+is a subclass of :class:`cape.cfdx.databook.DataBookComp`. This class is an
 interface to all line load data for a specific surface component.
 
 For reading the sectional load for a single solution on one component
@@ -40,11 +40,11 @@ from ..cfdx import lineload
 
 
 # Data book of line loads
-class DBLineLoad(lineload.DBLineLoad):
+class LineLoadDataBook(lineload.LineLoadDataBook):
     """Line load (sectional load) data book for one group
 
     :Call:
-        >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None)
+        >>> DBL = LineLoadDataBook(cntl, comp, conf=None, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -57,7 +57,7 @@ class DBLineLoad(lineload.DBLineLoad):
         *RootDir*: {``"None"``} | :class:`str`
             Root directory for the configuration
     :Outputs:
-        *DBL*: :class:`pyCart.lineload.DBLineLoad`
+        *DBL*: :class:`pyCart.lineload.LineLoadDataBook`
             Instance of line load data book
         *DBL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -79,7 +79,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyCart.lineload.DBLineLoad`
+            *DBL*: :class:`pyCart.lineload.LineLoadDataBook`
                 Instance of line load data book
         :Outputs:
             *qtriq*: {``False``}
@@ -100,7 +100,7 @@ class DBLineLoad(lineload.DBLineLoad):
         # Output
         return False, ftriq, n, i0, i1
 
-# class DBLineLoad
+# class LineLoadDataBook
 
 
 # Line loads

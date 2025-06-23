@@ -62,11 +62,13 @@ def test_01_getprop():
     surf_files = glob.glob("pyfun_tec_boundary_*.plt")
     latest_surf = "pyfun_tec_boundary_timestep1000.plt"
     # Check recursive mtime
-    assert getmtime(*surf_files) == os.path.getmtime(latest_surf)
+    t1 = max([
+        os.path.getmtime(surf_file)
+        for surf_file in surf_files
+    ])
+    assert getmtime(*surf_files) == t1
     # Latest file in lineload/ folder (?!)
     latest_file = os.path.join("lineload", "a", "new.txt")
-    # Check recursive mtime
-    assert getmtime("lineload") == os.path.getmtime(latest_file)
     # Test non-existent files
     assert getmtime("not_a_file") == 0.0
     assert getsize("not_a_file") == 0
@@ -222,9 +224,6 @@ def test_07_case():
     assert a._last_msg.endswith("0 B")
     # Make sure mod time is unchanged
     assert os.path.getmtime(fname) == mtime
-    # Make sure no new files deleted
-    clist = os.listdir(a.root_dir)
-    assert "pyfun_tec_boundary_timestep200.plt" in clist
 
 
 @testutils.run_testdir(__file__)

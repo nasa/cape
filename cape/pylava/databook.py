@@ -18,85 +18,27 @@ from ..cfdx import databook as cdbook
 from ..dkit import basedata
 
 
-# Aerodynamic history class
-class DataBook(cdbook.DataBook):
-    r"""Primary databook class for LAVA
-
-    :Call:
-        >>> db = DataBook(x, opts)
-    :Inputs:
-        *x*: :class:`RunMatrix`
-            Current run matrix
-        *opts*: :class:`Options`
-            Global CAPE options instance
-    :Outputs:
-        *db*: :class:`DataBook`
-            Databook instance
-    :Versions:
-        * 2024-09-30 ``@sneuhoff``: v1.0
-    """
-  # ===========
-  # Readers
-  # ===========
-  # <
-    # Initialize a DBComp object
-    def ReadDBComp(self, comp, check=False, lock=False):
-        r"""Initialize data book for one component
+# Component data book
+class FMDataBook(cdbook.FMDataBook):
+    # Read case FM history
+    def ReadCase(self, comp):
+        r"""Read a :class:`CaseFM` object
 
         :Call:
-            >>> db.ReadDBComp(comp, check=False, lock=False)
+            >>> FM = DB.ReadCaseFM(comp)
         :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
             *comp*: :class:`str`
                 Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2024-09-18 ``@sneuhoff``: v1.0
-        """
-        # Read the data book
-        self[comp] = DBComp(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock)
-
-    # Local version of data book
-    def _DataBook(self, targ):
-        self.Targets[targ] = DataBook(
-            self.cntl, RootDir=self.RootDir, targ=targ)
-
-    # Local version of target
-    def _DBTarget(self, targ):
-        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
-  # >
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Current iteration status
-    def GetCurrentIter(self):
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = db.GetCurrentIter()
-        :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
         :Outputs:
-            *n*: :class:`int` | ``None``
-                Iteration number
+            *FM*: :class:`cape.pyfun.databook.CaseFM`
+                Residual history class
         :Versions:
-            * 2024-09-18 ``@sneuhoff``: v1.0
-            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
+            * 2017-04-13 ``@ddalle``: First separate version
         """
-        try:
-            db = DataIterFile(meta=True)
-            return db.n
-        except Exception:
-            return None
+        # Read CaseResid object from PWD
+        return CaseFM(comp)
 
     # Read case residual
     def ReadCaseResid(self):
@@ -105,47 +47,65 @@ class DataBook(cdbook.DataBook):
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
         :Outputs:
-            *H*: :class:`CaseResid`
-                Residual history
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
         :Versions:
-            * 2024-09-30 ``@sneuhoff``: v1.0
+            * 2017-04-13 ``@ddalle``: First separate version
         """
         # Read CaseResid object from PWD
         return CaseResid()
 
-    # Read case FM history
-    def ReadCaseFM(self, comp: str):
-        r"""Read a :class:`CaseFM` object
+
+class PropDataBook(cdbook.PropDataBook):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
 
         :Call:
-            >>> fm = db.ReadCaseFM(comp)
+            >>> H = DB.ReadCaseResid()
         :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
-            *comp*: :class:`str`
-                Name of component
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
         :Outputs:
-            *fm*: :class:`CaseFM`
-                Force and moment history
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
         :Versions:
-            * 2024-09-30 ``@sneuhoff``: v1.0
+            * 2017-04-13 ``@ddalle``: First separate version
         """
         # Read CaseResid object from PWD
-        return CaseFM(comp)
-  # >
+        return CaseResid(self.proj)
+
+
+class PyFuncDataBook(cdbook.PyFuncDataBook):
+    pass
 
 
 # Target databook class
-class DBTarget(cdbook.DBTarget):
+class TargetDataBook(cdbook.TargetDataBook):
     pass
 
 
-# Databook for one component
-class DBComp(cdbook.DBComp):
-    pass
+class TimeSeriesDataBook(cdbook.TimeSeriesDataBook):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
 
 
 # Iterative F&M history
@@ -317,3 +277,68 @@ class CaseResid(cdbook.CaseResid):
         db.save_col("L2Resid", data["flowres"])
         # Output
         return db
+
+
+# Aerodynamic history class
+class DataBook(cdbook.DataBook):
+    r"""Primary databook class for LAVA
+
+    :Call:
+        >>> db = DataBook(x, opts)
+    :Inputs:
+        *x*: :class:`RunMatrix`
+            Current run matrix
+        *opts*: :class:`Options`
+            Global CAPE options instance
+    :Outputs:
+        *db*: :class:`DataBook`
+            Databook instance
+    :Versions:
+        * 2024-09-30 ``@sneuhoff``: v1.0
+    """
+    _fm_cls = FMDataBook
+    _ts_cls = TimeSeriesDataBook
+    _prop_cls = PropDataBook
+    _pyfunc_cls = PyFuncDataBook
+  # ===========
+  # Readers
+  # ===========
+  # <
+
+    # Local version of data book
+    def _DataBook(self, targ):
+        self.Targets[targ] = DataBook(
+            self.cntl, RootDir=self.RootDir, targ=targ)
+
+    # Local version of target
+    def _TargetDataBook(self, targ):
+        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
+  # >
+
+  # ========
+  # Case I/O
+  # ========
+  # <
+    # Current iteration status
+    def GetCurrentIter(self):
+        r"""Determine iteration number of current folder
+
+        :Call:
+            >>> n = db.GetCurrentIter()
+        :Inputs:
+            *db*: :class:`DataBook`
+                Databook for one run matrix
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Iteration number
+        :Versions:
+            * 2024-09-18 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
+        """
+        try:
+            db = DataIterFile(meta=True)
+            return db.n
+        except Exception:
+            return None
+
+  # >

@@ -348,8 +348,13 @@ class ArchiveOpts(OptionsDict):
             if opt.endswith("TarGroups"):
                 # Expand each
                 val = {}
-                for k, rawv in rawval.items():
-                    val[k] = expand_fileopt(rawv, n)
+                if isinstance(rawval, list):
+                    for _rawval in rawval:
+                        for k, rawv in _rawval.items():
+                            val[k] = expand_fileopt(rawv, n)
+                else:
+                    for k, rawv in rawval.items():
+                        val[k] = expand_fileopt(rawv, n)
             else:
                 # Expand whole
                 val = expand_fileopt(rawval, n)

@@ -14,6 +14,7 @@ PBS job number of the submitted job.
 import getpass
 import os
 import re
+import time
 from io import IOBase
 from subprocess import Popen, PIPE
 from typing import Optional, Union
@@ -28,6 +29,258 @@ JOB_ID_FILES = (
     os.path.join("cape", "jobID.dat"),
     "jobID.dat",
 )
+
+# Default time until we should call qstat/squeue again [s]
+DEFAULT_SCHEDULER = "pbs"
+DEFAULT_TIMEOUT = 180.0
+
+
+class QStat(dict):
+    r"""Collection of PBS/Slurm job statuses
+
+    :Call:
+        >>> q = QStat(active=True, scheduler="pbs", timeout=180.0)
+    :Inputs:
+        *active*: {``True``} | ``False``
+            Whether or not new ``qstat`` calls should be made
+        *scheduler*: {``"pbs"``} | ``"slurm"``
+            Name of scheduling software to use
+        *timeout*: {``180.0``} | :class:`float` | :class:`int`
+            Time [s] until ``qstat`` results are considered stale
+    :Keys:
+        *q[jobid]*: :class:`dict`
+            Status for job with name PBS/Slurm job ID *jobid*
+    :Attributes:
+        * :attr:`active`
+        * :attr:`calltimes`
+        * :attr:`defaultserver`
+        * :attr:`scheduler`
+        * :attr:`timeout`
+    """
+    __slots__ = (
+        "active",
+        "calltimes",
+        "defaultserver",
+        "scheduler",
+        "timeout",
+    )
+
+    def __init__(
+            self,
+            active: bool = True,
+            scheduler: str = DEFAULT_SCHEDULER,
+            timeout: Union[float, int] = DEFAULT_TIMEOUT):
+        #: :class:`bool`
+        #: Whether new ``qstat`` queries should be made
+        self.active = active
+        #: :class:`float`
+        #: Time until ``qstat`` results are considered stale [s]
+        self.timeout = float(timeout)
+        #: :class:`str`
+        #: Name of scheduler, ``"pbs"`` | ``"slurm"``
+        self.scheduler = scheduler
+        #: :class:`str`
+        #: Default server, filled in after first empty ``qstat`` call
+        self.defaultserver = None
+        #: :class:`dict`\ [:class:`float`]
+        #: Time at which each user/server combo was last updated
+        self.calltimes = {}
+
+    def check_job(
+            self,
+            j: Union[str, int],
+            u: Optional[str] = None) -> Optional[dict]:
+        r"""Check status of given job (owned by specific user)
+
+        :Call:
+            >>> stats = q.check_job(j, u=None)
+        :Inputs:
+            *q*: :class:`QStat`
+                PBS/Slurm job stats collection
+            *j*: :class:`str` | :class:`int`
+                PBS/Slurm job ID
+            *u*: {``None``} | :class:`str`
+                User name
+        :Versions:
+            * 2025-05-03 ``@ddalle``: v1.0
+        """
+        # Get full job name
+        uname = self._fulluser(u)
+        jobid = self._fulljob(j)
+        # Name of queue
+        server = self._jobserver(jobid)
+        jobque = f"{uname}@{server}"
+        # Get last time this user/server was called
+        tic = self.calltimes.get(jobque)
+        # Check if called
+        if tic is not None:
+            # Get current time
+            toc = time.time()
+            # Check for timeout
+            if toc - tic <= self.timeout:
+                return self.get(jobid)
+            # Otherwise clear old qstat
+            self.clear_queue(uname, server)
+        # De-string "None"
+        dest = None if server == "None" else server
+        # Update results
+        if not self.active:
+            # No updates allowed
+            pass
+        elif self.scheduler == "slurm":
+            # Use Slurm
+            self.squeue(uname, dest)
+        else:
+            # Use PBS
+            self.qstat(uname, dest)
+        # Re-forumlate job name in case default server was filled
+        jobid = self._fulljob(j)
+        # Check job
+        return self.get(jobid)
+
+    def qstat(self, u: str, server: Optional[str] = None):
+        r"""Call ``qstat`` and add results to collection
+
+        :Call:
+            >>> q.qstat(u, server=None)
+        :Inputs:
+            *q*: :class:`QStat`
+                PBS/Slurm job stats collection
+            *u*: :class:`str`
+                User name
+            *server*: {``None``} | :class:`str`
+                Name of PBS/Slurm server
+        :Versions:
+            * 2025-05-03 ``@ddalle``: v1.0
+        """
+        # Call ``qstat``
+        jobs = qstat(u=u, server=server)
+        # Get completion time
+        tic = time.time()
+        # Add jobs to collection
+        self.update(jobs)
+        # Check for default server
+        if server is None and self.defaultserver is None:
+            # Just use first job (if any)
+            for jobid in jobs:
+                self.defaultserver = jobid.rsplit('.', 1)[-1]
+                break
+        # Identifier
+        jobqueue = self._jobqueue(u, server)
+        # Note this status
+        self.calltimes[jobqueue] = tic
+
+    def squeue(self, u: str, server: Optional[str] = None):
+        r"""Call ``squeue`` and add results to collection
+
+        :Call:
+            >>> q.squeue(u, server=None)
+        :Inputs:
+            *q*: :class:`QStat`
+                PBS/Slurm job stats collection
+            *u*: :class:`str`
+                User name
+            *server*: {``None``} | :class:`str`
+                Name of PBS/Slurm server
+        :Versions:
+            * 2025-05-03 ``@ddalle``: v1.0
+        """
+        # Call ``squeue``
+        jobs = squeue(u=u, server=server)
+        # Get completion time
+        tic = time.time()
+        # Add jobs to collection
+        for jobid, stats in jobs.items():
+            self[f"{jobid}@{server}"] = stats
+        # Identifier
+        jobqueue = self._jobqueue(u, server)
+        # Note this status
+        self.calltimes[jobqueue] = tic
+
+    def clear_queue(self, u: str, server: Optional[str] = None):
+        r"""Clear old ``qstat`` results for a given user and server
+
+        :Call:
+            >>> q.clear_queue(u, server=None)
+        :Inputs:
+            *q*: :class:`QStat`
+                PBS/Slurm job stats collection
+            *u*: :class:`str`
+                User name
+            *server*: {``None``} | :class:`str`
+                Name of PBS/Slurm server
+        :Versions:
+            * 2025-05-03 ``@ddalle``: v1.0
+        """
+        # List of jobs
+        joblist = []
+        # Default server and server
+        u = self._fulluser(u)
+        dest = self._fullserver(server)
+        suffix = f".{dest}"
+        # Loop through jobs
+        for jobid, stats in self.items():
+            # Check server
+            if not jobid.endswith(suffix):
+                continue
+            # Check user
+            if stats.get("u") == u:
+                joblist.append(jobid)
+        # Clear any matching jobs
+        for jobid in joblist:
+            self.pop(jobid)
+
+    def _jobqueue(self, u: Optional[str], server: Optional[str]) -> str:
+        r"""Create string for job list, e.g. ``ddalle@pbspl4``
+
+        :Call:
+            >>> qid = q._jobqueue(u, server=None)
+        :Inputs:
+            *q*: :class:`QStat`
+                PBS/Slurm job stats collection
+            *u*: :class:`str`
+                User name
+            *server*: {``None``} | :class:`str`
+                Name of PBS/Slurm server
+        :Outputs:
+            *qid*: :class:`str`
+                Identifier for this user and server (applying defaults)
+        """
+        # Default user
+        uname = self._fulluser(u)
+        # Default server
+        dest = self._fullserver(server)
+        # Combine
+        return f"{uname}@{dest}"
+
+    def _fulljob(
+            self,
+            j: Union[str, int],
+            server: Optional[str] = None) -> str:
+        # Ensure string
+        job = str(j)
+        # Check for a server name
+        if '.' in job:
+            return job
+        # Default server
+        server = self._fullserver(server)
+        # Append
+        return f"{job}.{server}"
+
+    def _fullserver(self, server: Optional[str] = None) -> str:
+        return self.defaultserver if server is None else server
+
+    def _fulluser(self, u: Optional[str] = None) -> str:
+        return u if u is not None else getpass.getuser()
+
+    def _jobserver(self, jobid: str) -> str:
+        # Check for job
+        if "." in jobid:
+            # Read it from job name
+            return jobid.rsplit('.', 1)[-1]
+        else:
+            # Use default server
+            return self.defaultserver
 
 
 # Function to call `qsub` and get the PBS number
@@ -255,52 +508,90 @@ def read_job_ids() -> list:
 # Function to get `qstat` information
 def qstat(
         u: Optional[str] = None,
-        J: Optional[Union[str, int]] = None) -> dict:
+        j: Optional[Union[str, int]] = None,
+        server: Optional[str] = None,
+        timeout: Union[float, str] = 10.0) -> dict:
     r"""Call ``qstat`` and process information
 
     :Call:
-        >>> jobs = qstat(u=None, J=None)
+        >>> jobs = qstat(u=None, j=None, server=None)
     :Inputs:
         *u*: {``None``} | :class:`str`
             User name, defaults to current user's name
-        *J*: {``None``} | :class:`str` | :class:`int`
+        *j*: {``None``} | :class:`str` | :class:`int`
             Specific job ID for which to check
+        *server*: {``None``} | :class:`str`
+            Name of PBS server
     :Outputs:
         *jobs*: :class:`dict`
             Information on each job, ``jobs[jobID]`` for each submitted job
     :Versions:
         * 2014-10-06 ``@ddalle``: v1.0
         * 2015-06-19 ``@ddalle``: v1.1; add ``qstat -J`` option
+        * 2025-05-03 ``@ddalle``: v1.2; add *server*
     """
     # Process username
     if u is None:
         u = getpass.getuser()
+    # Base command
+    cmd = ["qstat"]
+    # Use non-default PBS server?
+    if server:
+        # Should start wtih "@"
+        destination = "@" + server.lstrip("@")
+        cmd.append(destination)
     # Form the command
-    if J is not None:
+    if j is not None:
         # Call for a specific job
-        cmd = ['qstat', '-J', str(J)]
+        cmd += ['-J', str(j)]
     else:
         # Call for a user
-        cmd = ['qstat', '-u', u]
+        cmd += ['-u', u]
     # Initialize jobs
     jobs = {}
     # Call the command with safety
     try:
-        # Call `qstat` with output.
-        txt = Popen(cmd, stdout=PIPE).communicate()[0].decode("utf-8")
+        # Call `qstat` with output
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        # Wait limited time
+        proc.wait(timeout)
+        # Read STDOUT
+        txt = proc.communicate()[0].decode("utf-8")
         # Split into lines
         lines = txt.split('\n')
+        # Loop through header lines
+        for j, line in enumerate(lines):
+            # Check for hline ---- -------, etc.
+            if re.match('-+ ', line):
+                # Split into parts
+                parts = line.split()
+                # Get length of each
+                pos = [0]
+                for part in line.split():
+                    pos.append(pos[-1] + 1 + len(part))
+                break
+        # Use previous line as headers
+        headerline = lines[j-1]
+        headers = [
+            headerline[a:b].strip()
+            for a, b in zip(pos[:-1], pos[1:])
+        ]
+        # Find index of status column
+        try:
+            k_s = headers.index("S")
+        except ValueError:
+            k_s = 7
         # Loop through lines.
-        for line in lines:
+        for line in lines[j+1:]:
             # Check for lines that don't start with PBS ID number
             if not re.match('[0-9]', line.strip()):
                 continue
             # Split into parts
             v = line.split()
             # Get the job ID
-            jobID = v[0]
+            jobID = _job(v[0])
             # Save the job info
-            jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[7])
+            jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[k_s])
         # Output
         return jobs
     except Exception:
@@ -311,34 +602,40 @@ def qstat(
 # Function to get `qstat` information
 def squeue(
         u: Optional[str] = None,
-        J: Optional[Union[str, int]] = None) -> dict:
+        j: Optional[Union[str, int]] = None,
+        server: Optional[str] = None) -> dict:
     r"""Call ``squeue`` and process information
 
     :Call:
-        >>> jobs = squeue(u=None)
-        >>> jobs = squeue(J=None)
+        >>> jobs = squeue(u=None, j=None)
     :Inputs:
         *u*: :class:`str`
             User name, defaults to ``os.environ[USER]``
-        *J*: :class:`int`
+        *j*: :class:`int`
             Specific job ID for which to check
+        *server*: {``None``} | :class:`str`
+            Name of Slurm cluster
     :Outputs:
         *jobs*: :class:`dict`
             Info on each job, ``jobs[jobID]`` for each submitted job
     :Versions:
         * 2023-06-16 ``@ddalle``: v1.0
-        * 2024-06-18 ``@ddalle``: v1.1; add
+        * 2024-06-18 ``@ddalle``: v1.1; add *J*
+        * 2025-05-03 ``@ddalle``: v1.2; switch *J* -> *j*, add *server*
     """
     # Process username
     if u is None:
         u = os.environ['USER']
     # Form the command
-    if J is not None:
+    if j is not None:
         # Call for a specific job
-        cmd = ['squeue', '-dd', str(J)]
+        cmd = ['squeue', '-dd', str(j)]
     else:
         # Call for a user
         cmd = ['squeue', '-u', u]
+    # Add cluster destination
+    if server is not None:
+        cmd += ["-M", str(server)]
     # Initialize jobs
     jobs = {}
     # Call the command with safety

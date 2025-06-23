@@ -11,6 +11,7 @@ import os
 from typing import Optional
 
 # Third-party modules
+import h5py
 
 # Local imports
 from . import cmdgen
@@ -22,6 +23,7 @@ from ..fileutils import tail
 
 # Constants
 ITER_FILE = "data.iter"
+RESTART_DIR = "restart"
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -111,6 +113,26 @@ class CaseRunner(casecntl.CaseRunner):
         # Run the command
         self.callf(cmdi, f="chem.out", e="chem.err")
 
+   # --- File prep ---
+    # Prepare files for a case
+    def prepare_files(self, j: int):
+        r"""Prepare files and links to run phase *j* of Loci/CHEM
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-05-02 ``@ddalle``: v1.0
+        """
+        # Get project name
+        proj = self.get_project_rootname()
+        # Link to pylch.vars
+        self.link_file(f"{proj}.{j:02d}.vars", f"{proj}.vars", f=True)
+
     # Clean up files afterwrad
     def finalize_files(self, j: int):
         r"""Clean up files after running one cycle of phase *j*
@@ -137,6 +159,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Create an empty file
             fileutils.touch(fhist)
 
+   # --- Status ---
     # Get current iteration
     @casecntl.run_rootdir
     def getx_iter(self) -> Optional[int]:
@@ -162,9 +185,50 @@ class CaseRunner(casecntl.CaseRunner):
         line = tail(resid_file)
         # Parse first integer
         try:
-            return int(line.split(1)[0])
+            return int(line.split(maxsplit=1)[0])
         except Exception:
             return 0
+
+    # Get restart count
+    def get_restart_number(self) -> Optional[int]:
+        r"""Get the restart number for a Loci/CHEM case folder
+
+        :Call:
+            >>> n = runner.get_restart_number()
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Restart number; no restart if ``None``
+        :Versions:
+            * 2025-05-20 ``@ddalle``: v1.0
+        """
+        # Look for files therein
+        fnames = self.search_regex(os.path.join(RESTART_DIR, '[0-9]+'))
+        # Check for matches
+        if len(fnames):
+            # Convert name of most recent restart folder to integer
+            return int(os.path.basename(fnames[-1]))
+
+   # --- Custom settings ---
+    def get_project_rootname(self, j: Optional[int] = None):
+        r"""Get the project name for a Loci/CHEM case
+
+        :Call:
+            >>> proj = runner.get_project_rootname(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *proj*: :class:`str`
+                Project name, usually ``"pylch"``
+        :Versions:
+            * 2025-05-02 ``@ddalle``: v1.0
+        """
+        # Read options
+        rc = self.read_case_json()
+        # # Get option
+        return rc.get_opt("ProjectName", j=j, vdef="pylch")
 
    # --- Special readers ---
     # Read namelist
@@ -205,3 +269,24 @@ class CaseRunner(casecntl.CaseRunner):
         self.varsfile = VarsFile(fname)
         # Return it
         return self.varsfile
+
+    def write_mapbc2vog(self, fvog: str, j: int = 0):
+        r"""Add MapBC to *fvog* VOG file and write"""
+        # Ensure cntl
+        cntl = getattr(self, "cntl", None)
+        if cntl is None:
+            # Read in cntl
+            cntl = self.read_cntl()
+        # Ensure mapbc
+        mapbc = getattr(cntl, "MapBC", None)
+        if mapbc is None:
+            # Read in MapBC
+            cntl.ReadMapBC(j)
+        # Read mesh file
+        with h5py.File(fvog, 'r+') as fp:
+            mbcg = fp["surface_info"].create_group("mapbc")
+            # Add mapbc to surface_info group
+            mbcg.create_dataset("names", data=cntl.MapBC.Names)
+            mbcg.create_dataset("surfid", data=cntl.MapBC.SurfID)
+            mbcg.create_dataset("compid", data=cntl.MapBC.CompID)
+            mbcg.create_dataset("bcs", data=cntl.MapBC.BCs)

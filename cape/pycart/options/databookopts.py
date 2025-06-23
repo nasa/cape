@@ -113,13 +113,13 @@ class DataBookOpts(databookopts.DataBookOpts):
 
     # Section map
     _sec_cls_optmap = {
-        "FM": databookopts.DBFMOpts,
+        "FM": databookopts.FMDataBookOpts,
         "PointSensor": DBIterPointOpts,
-        "LineLoad": databookopts.DBLineLoadOpts,
+        "LineLoad": databookopts.LineLoadDataBookOpts,
         "LineSensor": DBIterLineOpts,
-        "PyFunc": databookopts.DBPyFuncOpts,
-        "TriqFM": databookopts.DBTriqFMOpts,
-        "TriqPoint": databookopts.DBTriqPointOpts,
+        "PyFunc": databookopts.PyFuncDataBookOpts,
+        "TriqFM": databookopts.TriqFMDataBookOpts,
+        "TriqPoint": databookopts.TriqPointDataBookOpts,
     }
 
     # Allowed values

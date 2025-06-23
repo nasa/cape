@@ -5,5 +5,5 @@ _cape_complete() {
     COMPREPLY=( $(python3 -m cape.cfdx.autocomplete "$COMP_LINE") )
 }
 
-complete -F _cape_complete pyfun
+complete -F _cape_complete pycart pyfun pykes pylava pylch pyover pyus
 

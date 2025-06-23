@@ -76,384 +76,27 @@ COLNAMES_HIST = {
 }
 
 
-# Aerodynamic history class
-class DataBook(databook.DataBook):
-    r"""Interface to the overall Cart3D run matrix
-
-    :Call:
-        >>> DB = pyCart.databook.DataBook(x, opts)
-    :Inputs:
-        *x*: :class:`cape.pycart.runmatrix.RunMatrix`
-            The current pyCart trajectory (i.e. run matrix)
-        *opts*: :class:`cape.pycart.options.Options`
-            Global pyCart options instance
-    :Outputs:
-        *DB*: :class:`cape.pycart.databook.DataBook`
-            Instance of the pyCart data book class
-    :Versions:
-        * 2015-01-03 ``@ddalle``: v1.0
-        * 2015-10-16 ``@ddalle``: v1.1: subclass
-    """
-    # Function to read targets if necessary
-    def ReadTarget(self, targ):
-        r"""Read a data book target if it is not already present
+# Individual component data book
+class FMDataBook(databook.FMDataBook):
+    # Read case FM history
+    def ReadCase(self, comp):
+        r"""Read a :class:`CaseFM` object
 
         :Call:
-            >>> DB.ReadTarget(targ)
+            >>> FM = DB.ReadCaseFM(comp)
         :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of the Cape data book class
-            *targ*: :class:`str`
-                Target name
-        :Versions:
-            * 2015-09-16 ``@ddalle``: v1.0
-        """
-        # Initialize targets if necessary
-        try:
-            self.Targets
-        except AttributeError:
-            self.Targets = {}
-        # Try to access the target.
-        try:
-            self.Targets[targ]
-        except Exception:
-            # Get the target type
-            typ = self.opts.get_DataBookTargetType(targ).lower()
-            # Check the type
-            if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
-                # Read a duplicate data book
-                self.Targets[targ] = DataBook(
-                    self.x, self.opts, RootDir=self.RootDir, targ=targ)
-                # Update the trajectory
-                self.Targets[targ].UpdateRunMatrix()
-            else:
-                # Read the file.
-                self.Targets[targ] = DBTarget(
-                    targ, self.x, self.opts, self.RootDir)
-
-    # Initialize a DBComp object
-    def ReadDBComp(self, comp, check=False, lock=False):
-        r"""Initialize data book for one component
-
-        :Call:
-            >>> DB.ReadDBComp(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of the pyCart data book class
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
             *comp*: :class:`str`
                 Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2015-11-10 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: v1.1; add *targ* keyword
-            * 2017-04-13 ``@ddalle``: v2.0; self-contained
-        """
-        self[comp] = DBComp(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock)
-
-    # Read line load
-    def ReadLineLoad(self, comp, conf=None, targ=None):
-        r"""Read a line load data book target if not already present
-
-        :Call:
-            >>> DB.ReadLineLoad(comp)
-        :Inputs:
-            *DB*: :class:`pycart.databook.DataBook`
-                Instance of the pycart data book class
-            *comp*: :class:`str`
-                Line load component group
-            *conf*: {``"None"``} | :class:`cape.config.Config`
-                Surface configuration interface
-            *targ*: {``"None"``} | :class:`str`
-                Sets alternate directory to read from, defaults to *DB.targ*
-        :Versions:
-            * 2015-09-16 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: v1.1; add *targ*
-        """
-        # Initialize if necessary
-        try:
-            self.LineLoads
-        except Exception:
-            self.LineLoads = {}
-        # Try to access the line load
-        try:
-            if targ is None:
-                # Check for the line load data book as is
-                self.LineLoads[comp]
-            else:
-                # Check for the target
-                self.ReadTarget(targ)
-                # Check for the target line load
-                self.Targets[targ].LineLoads[comp]
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Default target name
-            if targ is None:
-                # Read the file.
-                self.LineLoads[comp] = lineload.DBLineLoad(
-                    comp, self.cntl,
-                    conf=conf, RootDir=self.RootDir, targ=self.targ)
-            else:
-                # Read as a specified target.
-                ttl = '%s\\%s' % (targ, comp)
-                # Read the file.
-                self.LineLoads[ttl] = lineload.DBLineLoad(
-                    comp, self.cntl,
-                    conf=conf, RootDir=self.RootDir, targ=targ)
-            # Return to starting location
-            os.chdir(fpwd)
-
-    # Read TrqiFM components
-    def ReadTriqFM(self, comp, check=False, lock=False):
-        r"""Read a TriqFM data book if not already present
-
-        :Call:
-            >>> DB.ReadTriqFM(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of pyCart data book class
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2017-03-29 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary
-        try:
-            self.TriqFM
-        except Exception:
-            self.TriqFM = {}
-        # Try to access the TriqFM database
-        try:
-            self.TriqFM[comp]
-            # Confirm lock
-            if lock:
-                self.TriqFM[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqFM[comp] = DBTriqFM(
-                self.x, self.opts, comp,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
-
-    # Read point sensor (group)
-    def ReadPointSensor(self, name, pts=None):
-        r"""Read a point sensor group if it is not already present
-
-        :Call:
-            >>> DB.ReadPointSensor(name)
-        :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of the pyCart data book class
-            *name*: :class:`str`
-                Name of point sensor group
-        :Versions:
-            * 2015-12-04 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary.
-        try:
-            self.PointSensors
-        except AttributeError:
-            self.PointSensors = {}
-        # Initialize the group if necessary
-        try:
-            # Check for DataBook PointGroup
-            self.PointSensors[name]
-            # Check for points
-            if pts is None:
-                pts = self.opts.get_DataBookPoints(name)
-            # Check for all the points
-            for pt in pts:
-                # Check the point
-                try:
-                    self.PointSensors[name][pt]
-                    continue
-                except Exception:
-                    # Read the new point
-                    self.PointSensors[name][pt] = self._DBPointSensor(
-                        self.x, self.opts, pt, name)
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read the point sensor.
-            self.PointSensors[name] = self._DBPointSensorGroup(
-                self.x, self.opts, name, pts=pts, RootDir=self.RootDir)
-            # Return to starting location
-            os.chdir(fpwd)
-
-    # Read point sensor (point to correct class)
-    def _DBPointSensorGroup(self, *a, **kw):
-        r"""Read pyCart data book point sensor group
-
-        :Call:
-            >>> DBP = DB._DBPointSensorGroup(*a, **kw)
-        :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of the pyCart data book class
         :Outputs:
-            *DBP*: :class:`cape.pycart.pointsensor.DBPointSensorGroup`
-                Data book point sensor group
+            *FM*: :class:`cape.pyfun.databook.CaseFM`
+                Residual history class
         :Versions:
-            * 2016-03-15 ``@ddalle``: v1.0
+            * 2017-04-13 ``@ddalle``: First separate version
         """
-        return pointsensor.DBPointSensorGroup(*a, **kw)
-
-    # Read point sensor (point to correct class)
-    def _DBPointSensor(self, *a, **kw):
-        r"""Read pyCart data book point sensor
-
-        :Call:
-            >>> DBP = DB._DBPointSensor(*a, **kw)
-        :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of the pyCart data book class
-        :Outputs:
-            *DBP*: :class:`cape.pycart.pointsensor.DBPointSensor`
-                Data book point sensor
-        :Versions:
-            * 2016-03-15 ``@ddalle``: v1.0
-        """
-        return pointsensor.DBPointSensor(*a, **kw)
-
-    # Local version of data book
-    def _DataBook(self, targ):
-        self.Targets[targ] = DataBook(
-            self.x, self.opts, RootDir=self.RootDir, targ=targ)
-
-    # Local version of target
-    def _DBTarget(self, targ):
-        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
-
-    # Local line load data book read
-    def _DBLineLoad(self, comp, conf=None, targ=None):
-        r"""Version-specific line load reader
-
-        :Versions:
-            * 2017-04-18 ``@ddalle``: v1.0
-        """
-        # Check for target
-        if targ is None:
-            self.LineLoads[comp] = lineload.DBLineLoad(
-                comp, self.cntl,
-                conf=conf, RootDir=self.RootDir, targ=self.targ)
-        else:
-            # Read as a specified target.
-            ttl = '%s\\%s' % (targ, comp)
-            # Get the keys
-            topts = self.opts.get_DataBookTargetByName(targ)
-            keys = topts.get("Keys", self.x.cols)
-            # Read the file.
-            self.LineLoads[ttl] = lineload.DBLineLoad(
-                comp, self.cntl, keys=keys,
-                conf=conf, RootDir=self.RootDir, targ=targ)
-
-    # Update point sensor group
-    def UpdatePointSensor(self, name, I=None):
-        r"""Update a point sensor group data book for a list of cases
-
-        :Call:
-            >>> DB.UpdatePointSensorGroup(name)
-            >>> DB.UpdatePointSensorGroup(name, I)
-        :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of the pyCart data book class
-            *I*: :class:`list`\ [:class:`int`] or ``None``
-                List of trajectory indices or update all cases in trajectory
-        :Versions:
-            * 2015-10-04 ``@ddalle``: v1.0
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Read the point sensors if necessary
-        self.ReadPointSensor(name)
-        # Loop through cases.
-        for i in I:
-            # Update the point sensors for that case
-            self.PointSensors[name].UpdateCase(i)
-
-    # Function to delete entries by index
-    def Delete(self, I):
-        r"""Delete list of cases from data book
-
-        :Call:
-            >>> DB.Delete(I)
-        :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of the pyCart data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices or update all cases in trajectory
-        :Versions:
-            * 2015-03-13 ``@ddalle``: v1.0
-        """
-        # Get the first data book component.
-        DBc = self[self.Components[0]]
-        # Number of cases in current data book.
-        nCase = DBc.n
-        # Initialize data book index array.
-        J = []
-        # Loop though indices to delete.
-        for i in I:
-            # Find the match.
-            j = DBc.FindMatch(i)
-            # Check if one was found.
-            if np.isnan(j):
-                continue
-            # Append to the list of data book indices.
-            J.append(j)
-        # Initialize mask of cases to keep.
-        mask = np.ones(nCase, dtype=bool)
-        # Set values equal to false for cases to be deleted.
-        mask[J] = False
-        # Loop through components.
-        for comp in self.Components:
-            # Extract data book component.
-            DBc = self[comp]
-            # Loop through data book columns.
-            for c in DBc.keys():
-                # Apply the mask
-                DBc[c] = DBc[c][mask]
-            # Update the number of entries.
-            DBc.n = len(DBc['nIter'])
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Current iteration status
-    def GetCurrentIter(self):
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = DB.GetCurrentIter()
-        :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *n*: :class:`int` | ``None``
-                Iteration number
-        :Versions:
-            * 2017-04-13 ``@ddalle``: v1.0
-        """
-        try:
-            return casecntl.GetCurrentIter()
-        except Exception:
-            return None
+        # Read CaseResid object from PWD
+        return CaseFM(comp)
 
     # Read case residual
     def ReadCaseResid(self):
@@ -462,10 +105,10 @@ class DataBook(databook.DataBook):
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
         :Outputs:
-            *H*: :class:`pyFun.databook.CaseResid`
+            *H*: :class:`cape.pyfun.databook.CaseResid`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -473,44 +116,42 @@ class DataBook(databook.DataBook):
         # Read CaseResid object from PWD
         return CaseResid()
 
-    # Read case FM history
-    def ReadCaseFM(self, comp):
-        r"""Read a :class:`CaseFM` object
+
+class PropDataBook(databook.PropDataBook):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
 
         :Call:
-            >>> FM = DB.ReadCaseFM(comp)
+            >>> H = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
-            *comp*: :class:`str`
-                Name of component
         :Outputs:
-            *FM*: :class:`pyFun.databook.CaseFM`
+            *H*: :class:`cape.pyfun.databook.CaseResid`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
         """
         # Read CaseResid object from PWD
-        return CaseFM(comp)
-  # >
+        return CaseResid()
 
 
-# Individual component data book
-class DBComp(databook.DBComp):
+class PyFuncDataBook(databook.PyFuncDataBook):
     pass
 
 
 # Data book target instance
-class DBTarget(databook.DBTarget):
+class TargetDataBook(databook.TargetDataBook):
     pass
 
 
 # TriqFM data book
-class DBTriqFM(databook.DBTriqFM):
+class TriqFMDataBook(databook.TriqFMDataBook):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
-        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
+        >>> DBF = TriqFMDataBook(x, opts, comp, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -521,7 +162,7 @@ class DBTriqFM(databook.DBTriqFM):
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
     :Outputs:
-        *DBF*: :class:`cape.pycart.databook.DBTriqFM`
+        *DBF*: :class:`cape.pycart.databook.TriqFMDataBook`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-29 ``@ddalle``: v1.0
@@ -533,7 +174,7 @@ class DBTriqFM(databook.DBTriqFM):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`cape.pycart.databook.DBTriqFM`
+            *DBF*: :class:`cape.pycart.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -553,6 +194,30 @@ class DBTriqFM(databook.DBTriqFM):
         ftriq, n, i0, i1 = casecntl.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
+
+
+class TriqFMFaceDataBook(databook.TriqFMFaceDataBook):
+    pass
+
+
+class TimeSeriesDataBook(databook.TimeSeriesDataBook):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid()
 
 
 # Individual component force and moment
@@ -694,3 +359,369 @@ class CaseResid(databook.CaseResid):
             * 2024-01-23 ``@ddalle``: v1.0
         """
         return tsvfile.TSVFile(fname, Translators=COLNAMES_HIST)
+
+
+# Aerodynamic history class
+class DataBook(databook.DataBook):
+    r"""Interface to the overall Cart3D run matrix
+
+    :Call:
+        >>> DB = pyCart.databook.DataBook(x, opts)
+    :Inputs:
+        *x*: :class:`cape.pycart.runmatrix.RunMatrix`
+            The current pyCart trajectory (i.e. run matrix)
+        *opts*: :class:`cape.pycart.options.Options`
+            Global pyCart options instance
+    :Outputs:
+        *DB*: :class:`cape.pycart.databook.DataBook`
+            Instance of the pyCart data book class
+    :Versions:
+        * 2015-01-03 ``@ddalle``: v1.0
+        * 2015-10-16 ``@ddalle``: v1.1: subclass
+    """
+    _fm_cls = FMDataBook
+    _triqfm_cls = TriqFMFaceDataBook
+    _pt_cls = pointsensor.PointSensorGroupDataBook
+    _ts_cls = TimeSeriesDataBook
+    _prop_cls = PropDataBook
+    _pyfunc_cls = PyFuncDataBook
+
+    # Function to read targets if necessary
+    def ReadTarget(self, targ):
+        r"""Read a data book target if it is not already present
+
+        :Call:
+            >>> DB.ReadTarget(targ)
+        :Inputs:
+            *DB*: :class:`cape.pycart.databook.DataBook`
+                Instance of the Cape data book class
+            *targ*: :class:`str`
+                Target name
+        :Versions:
+            * 2015-09-16 ``@ddalle``: v1.0
+        """
+        # Initialize targets if necessary
+        try:
+            self.Targets
+        except AttributeError:
+            self.Targets = {}
+        # Try to access the target.
+        try:
+            self.Targets[targ]
+        except Exception:
+            # Get the target type
+            typ = self.opts.get_TargetDataBookType(targ).lower()
+            # Check the type
+            if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
+                # Read a duplicate data book
+                self.Targets[targ] = DataBook(
+                    self.x, self.opts, RootDir=self.RootDir, targ=targ)
+                # Update the trajectory
+                self.Targets[targ].UpdateRunMatrix()
+            else:
+                # Read the file.
+                self.Targets[targ] = TargetDataBook(
+                    targ, self.x, self.opts, self.RootDir)
+
+    # Read line load
+    def ReadLineLoad(self, comp, conf=None, targ=None):
+        r"""Read a line load data book target if not already present
+
+        :Call:
+            >>> DB.ReadLineLoad(comp)
+        :Inputs:
+            *DB*: :class:`pycart.databook.DataBook`
+                Instance of the pycart data book class
+            *comp*: :class:`str`
+                Line load component group
+            *conf*: {``"None"``} | :class:`cape.config.Config`
+                Surface configuration interface
+            *targ*: {``"None"``} | :class:`str`
+                Sets alternate directory to read from, defaults to *DB.targ*
+        :Versions:
+            * 2015-09-16 ``@ddalle``: v1.0
+            * 2016-06-27 ``@ddalle``: v1.1; add *targ*
+        """
+        # Initialize if necessary
+        try:
+            self.LineLoads
+        except Exception:
+            self.LineLoads = {}
+        # Try to access the line load
+        try:
+            if targ is None:
+                # Check for the line load data book as is
+                self.LineLoads[comp]
+            else:
+                # Check for the target
+                self.ReadTarget(targ)
+                # Check for the target line load
+                self.Targets[targ].LineLoads[comp]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Default target name
+            if targ is None:
+                # Read the file.
+                self.LineLoads[comp] = lineload.LineLoadDataBook(
+                    comp, self.cntl,
+                    conf=conf, RootDir=self.RootDir, targ=self.targ)
+            else:
+                # Read as a specified target.
+                ttl = '%s\\%s' % (targ, comp)
+                # Read the file.
+                self.LineLoads[ttl] = lineload.LineLoadDataBook(
+                    comp, self.cntl,
+                    conf=conf, RootDir=self.RootDir, targ=targ)
+            # Return to starting location
+            os.chdir(fpwd)
+
+    # Read TrqiFM components
+    def ReadTriqFM(self, comp, check=False, lock=False):
+        r"""Read a TriqFM data book if not already present
+
+        :Call:
+            >>> DB.ReadTriqFM(comp, check=False, lock=False)
+        :Inputs:
+            *DB*: :class:`cape.pycart.databook.DataBook`
+                Instance of pyCart data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2017-03-29 ``@ddalle``: v1.0
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+            # Confirm lock
+            if lock:
+                self.TriqFM[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = TriqFMDataBook(
+                self.x, self.opts, comp,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
+            os.chdir(fpwd)
+
+    # Read point sensor (group)
+    def ReadPointSensor(self, name, pts=None):
+        r"""Read a point sensor group if it is not already present
+
+        :Call:
+            >>> DB.ReadPointSensor(name)
+        :Inputs:
+            *DB*: :class:`cape.pycart.databook.DataBook`
+                Instance of the pyCart data book class
+            *name*: :class:`str`
+                Name of point sensor group
+        :Versions:
+            * 2015-12-04 ``@ddalle``: v1.0
+        """
+        # Initialize if necessary.
+        try:
+            self.PointSensors
+        except AttributeError:
+            self.PointSensors = {}
+        # Initialize the group if necessary
+        try:
+            # Check for DataBook PointGroup
+            self.PointSensors[name]
+            # Check for points
+            if pts is None:
+                pts = self.opts.get_DataBookPoints(name)
+            # Check for all the points
+            for pt in pts:
+                # Check the point
+                try:
+                    self.PointSensors[name][pt]
+                    continue
+                except Exception:
+                    # Read the new point
+                    self.PointSensors[name][pt] = self._PointSensorDataBook(
+                        self.x, self.opts, pt, name)
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read the point sensor.
+            self.PointSensors[name] = self._PointSensorGroupDataBook(
+                self.x, self.opts, name, pts=pts, RootDir=self.RootDir)
+            # Return to starting location
+            os.chdir(fpwd)
+
+    # Read point sensor (point to correct class)
+    def _PointSensorGroupDataBook(self, *a, **kw):
+        r"""Read pyCart data book point sensor group
+
+        :Call:
+            >>> DBP = DB._PointSensorGroupDataBook(*a, **kw)
+        :Inputs:
+            *DB*: :class:`cape.pycart.databook.DataBook`
+                Instance of the pyCart data book class
+        :Outputs:
+            *DBP*: :class:`cape.pycart.pointsensor.PointSensorGroupDataBook`
+                Data book point sensor group
+        :Versions:
+            * 2016-03-15 ``@ddalle``: v1.0
+        """
+        return pointsensor.PointSensorGroupDataBook(*a, **kw)
+
+    # Read point sensor (point to correct class)
+    def _PointSensorDataBook(self, *a, **kw):
+        r"""Read pyCart data book point sensor
+
+        :Call:
+            >>> DBP = DB._PointSensorDataBook(*a, **kw)
+        :Inputs:
+            *DB*: :class:`cape.pycart.databook.DataBook`
+                Instance of the pyCart data book class
+        :Outputs:
+            *DBP*: :class:`cape.pycart.pointsensor.PointSensorDataBook`
+                Data book point sensor
+        :Versions:
+            * 2016-03-15 ``@ddalle``: v1.0
+        """
+        return pointsensor.PointSensorDataBook(*a, **kw)
+
+    # Local version of data book
+    def _DataBook(self, targ):
+        self.Targets[targ] = DataBook(
+            self.x, self.opts, RootDir=self.RootDir, targ=targ)
+
+    # Local version of target
+    def _TargetDataBook(self, targ):
+        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
+
+    # Local line load data book read
+    def _LineLoadDataBook(self, comp, conf=None, targ=None):
+        r"""Version-specific line load reader
+
+        :Versions:
+            * 2017-04-18 ``@ddalle``: v1.0
+        """
+        # Check for target
+        if targ is None:
+            self.LineLoads[comp] = lineload.LineLoadDataBook(
+                comp, self.cntl,
+                conf=conf, RootDir=self.RootDir, targ=self.targ)
+        else:
+            # Read as a specified target.
+            ttl = '%s\\%s' % (targ, comp)
+            # Get the keys
+            topts = self.opts.get_TargetDataBookByName(targ)
+            keys = topts.get("Keys", self.x.cols)
+            # Read the file.
+            self.LineLoads[ttl] = lineload.LineLoadDataBook(
+                comp, self.cntl, keys=keys,
+                conf=conf, RootDir=self.RootDir, targ=targ)
+
+    # Update point sensor group
+    def UpdatePointSensor(self, name, I=None):
+        r"""Update a point sensor group data book for a list of cases
+
+        :Call:
+            >>> DB.UpdatePointSensorGroup(name)
+            >>> DB.UpdatePointSensorGroup(name, I)
+        :Inputs:
+            *DB*: :class:`cape.pycart.databook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list`\ [:class:`int`] or ``None``
+                List of trajectory indices or update all cases in trajectory
+        :Versions:
+            * 2015-10-04 ``@ddalle``: v1.0
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Read the point sensors if necessary
+        self.ReadPointSensor(name)
+        # Loop through cases.
+        for i in I:
+            # Update the point sensors for that case
+            self.PointSensors[name].UpdateCase(i)
+
+    # Function to delete entries by index
+    def Delete(self, I):
+        r"""Delete list of cases from data book
+
+        :Call:
+            >>> DB.Delete(I)
+        :Inputs:
+            *DB*: :class:`cape.pycart.databook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices or update all cases in trajectory
+        :Versions:
+            * 2015-03-13 ``@ddalle``: v1.0
+        """
+        # Get the first data book component.
+        DBc = self[self.Components[0]]
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if np.isnan(j):
+                continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Initialize mask of cases to keep.
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Loop through components.
+        for comp in self.Components:
+            # Extract data book component.
+            DBc = self[comp]
+            # Loop through data book columns.
+            for c in DBc.keys():
+                # Apply the mask
+                DBc[c] = DBc[c][mask]
+            # Update the number of entries.
+            DBc.n = len(DBc['nIter'])
+
+  # ========
+  # Case I/O
+  # ========
+  # <
+    # Current iteration status
+    def GetCurrentIter(self):
+        r"""Determine iteration number of current folder
+
+        :Call:
+            >>> n = DB.GetCurrentIter()
+        :Inputs:
+            *DB*: :class:`cape.pycart.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Iteration number
+        :Versions:
+            * 2017-04-13 ``@ddalle``: v1.0
+        """
+        try:
+            return casecntl.GetCurrentIter()
+        except Exception:
+            return None
+
+  # >
+

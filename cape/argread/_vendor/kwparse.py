@@ -749,7 +749,8 @@ class KwargParser(dict, metaclass=MetaKwargParser):
             if argname in cls.get_optlist():
                 # Save it as kwarg instead of arg
                 self.set_opt(argname, rawval)
-                return
+                # Get validated value
+                rawval = self[argname]
         # Get number of currently stored args
         nargcur = len(self.argvals)
         # Append ``None`` as needed
@@ -907,7 +908,7 @@ class KwargParser(dict, metaclass=MetaKwargParser):
         # Get closest matches
         matches = difflib.get_close_matches(opt, optlist)
         # Common part of warning/error message
-        msg = f"unknown kwarg '{opt}'"
+        msg = f"unknown kwarg '{opt}' for parser '{self.__class__.__name__}'"
         # Add suggestions if able
         if len(matches):
             msg += "; nearest matches: %s" % " ".join(matches[:3])

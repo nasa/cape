@@ -53,7 +53,7 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
     * :mod:`cape.options.Report`
     * :class:`cape.cfdx.databook.DBComp`
     * :class:`cape.cfdx.databook.CaseFM`
-    * :class:`cape.cfdx.lineload.DBLineLoad`
+    * :class:`cape.cfdx.lineload.LineLoadDataBook`
 
 """
 
@@ -275,7 +275,7 @@ class Report(capereport.Report):
             # Update the trajectory
             DBL.UpdateRunMatrix()
             # Target options
-            topts = self.cntl.opts.get_DataBookTargetByName(targ)
+            topts = self.cntl.opts.get_TargetDataBookByName(targ)
             # Find a match
             J = DBL.FindTargetMatch(DB, i, topts, keylist='tol')
             # Check for a match

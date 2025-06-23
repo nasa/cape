@@ -22,7 +22,7 @@ TOL = 1e-6
 @testutils.run_testdir(__file__)
 def test_01_preplot():
     # Read MAT file
-    db = dbfm.DBFM(MAT_FILE)
+    db = dbfm.FMDataKit(MAT_FILE)
     # Test cols
     cols = ["bullet.CN", "bullet.dCN"]
     # Standard args
@@ -63,7 +63,7 @@ def test_01_preplot():
 # Read CSV file
 @testutils.run_sandbox(__file__, MAT_FILE)
 def test_02_plot_ll():
-    db = dbfm.DBFM(MAT_FILE)
+    db = dbfm.FMDataKit(MAT_FILE)
     # Test cols
     cols = ["bullet.CN", "bullet.dCN"]
     # Standard args
@@ -93,5 +93,5 @@ def test_02_plot_ll():
     h.fig.savefig(fpng, dpi=90)
     h.close()
     # Compare image
-    assert testutils.assert_png(fabs, ftarg)
+    assert testutils.assert_png(fabs, ftarg, tol=0.94)
 

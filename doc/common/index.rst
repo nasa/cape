@@ -43,6 +43,7 @@ purposes such as converting file formats.
     command-line
     file/json
     file/matrix
+    file/configjson
     freestream
     report/index
     scripting

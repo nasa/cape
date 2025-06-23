@@ -8,6 +8,7 @@ grid adaptation.
 """
 
 # Local imports
+from ...optdict import BOOL_TYPES, INT_TYPES, FLOAT_TYPES
 from ...cfdx.options.execopts import ExecOpts
 
 
@@ -74,6 +75,7 @@ class RefineTranslateOpts(ExecOpts):
 # Class for ref distance cli options
 class RefineDistanceOpts(ExecOpts):
     r"""Class for refine distance command line settings
+
      :Inputs:
         *kw*: :class:`dict`
             Dictionary of refine command-line options
@@ -92,16 +94,9 @@ class RefineDistanceOpts(ExecOpts):
         "dist_solb",
     }
 
-    # Types
-    _opttypes = {
-        "input_grid": str,
-        "mapbc": str,
-        "dist_solb": str,
-    }
-
     # Map
     _optmap = {
-        "grid": "input_grid",
+        "grid": "input",
     }
 
     # Allowed Values
@@ -144,26 +139,55 @@ class RefineOpts(ExecOpts):
 
     # Accepted options
     _optlist = {
+        "aspect-ratio",
         "complexity",
-        "sweeps",
+        "dist_solb",
+        "fixed-point",
+        "gradation",
         "initial_complexity",
-        "interpolant",
-        "ramp_complexity",
-        "target_complexity",
         "input",
-        "output",
+        "input_grid",
+        "interpolant",
         "mapbc",
+        "mixed",
+        "norm-power",
+        "output",
+        "output_grid",
+        "ramp_complexity",
+        "sweeps",
+        "target_complexity",
+        "uniform",
     }
 
     # Types
     _opttypes = {
-        "initial_complexity": str,
-        "ramp_complexity": str,
-        "target_complexity": str,
+        "axi": BOOL_TYPES,
+        "aspect-ratio": INT_TYPES + FLOAT_TYPES,
+        "buffer": BOOL_TYPES,
+        "complexity": INT_TYPES + FLOAT_TYPES,
+        "fixed-point": str,
+        "gradation": INT_TYPES,
+        "initial_complexity": INT_TYPES + FLOAT_TYPES,
+        "input": str,
+        "input_grid": str,
+        "interpolant": str,
+        "mixed": BOOL_TYPES,
+        "norm-power": INT_TYPES,
+        "output": str,
+        "output_grid": str,
+        "ramp_complexity": INT_TYPES + FLOAT_TYPES,
+    }
+
+    # Aliases
+    _optmap = {
+        "aspect_ratio": "aspect-ratio",
+        "norm_power": "norm-power",
+        "s": "sweeps",
     }
 
     # Allowed Values
     _optvals = {
+        "gradation": (2, 3, 4, 5),
     }
 
     # Defaults

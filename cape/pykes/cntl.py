@@ -206,7 +206,7 @@ class Cntl(ccntl.Cntl):
             print("---- Updating CaseProp DataBook components ----")
             self.UpdateCaseProp(**kw)
             print("---- Updating PyFunc DataBook components ----")
-            self.UpdateDBPyFunc(**kw)
+            self.UpdatePyFuncDataBook(**kw)
             # Output
             return
         # Call the common interface
@@ -419,13 +419,15 @@ class Cntl(ccntl.Cntl):
         fgrp = self.x.GetGroupFolderNames(i)
         # Create folders
         if not os.path.isdir(fgrp):
-            self.mkdir(fgrp)
+            os.mkdir(fgrp)
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         # Status update
         print("  Case name: '%s' (index %i)" % (frun, i))
         # Initialize copied/linked list
         copiedfiles = set()
+        # Generic copy files
+        self.copy_files(i)
         # Linked files
         linkfiles = self.opts.get_MeshLinkFiles()
         # Loop through phases

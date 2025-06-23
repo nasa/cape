@@ -77,7 +77,7 @@ REGEX_QUOTE = re.compile(r"([\"']).*\1")
 
 
 # Convert a PLT to TRIQ
-def Plt2Triq(fplt, ftriq=None, **kw):
+def Plt2Triq(fplt: str, ftriq=None, **kw):
     """Convert a Tecplot PLT file to a Cart3D annotated triangulation (TRIQ)
 
     :Call:
@@ -103,9 +103,9 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         # Default: strip .plt and add .triq
         ftriq = fplt.rstrip('plt').rstrip('dat') + 'triq'
     # Read the PLT file
-    plt = Plt(fplt)
+    surf = Plt(fplt)
     # Create the TRIQ interface
-    triq = pltfile.CreateTriq(**kw)
+    triq = surf.CreateTriq(**kw)
     # Write triangulation
     triq.Write(ftriq, **kw)
 
@@ -411,7 +411,7 @@ class Plt(object):
             # Number of nodes per face
             if zt == FETRIANGLE:
                 # Triangles
-                melem = 3
+                melem = 4
             elif zt == FEQUADRILATERAL:
                 # Quads (often used for tris, too, w/ repeated node)
                 melem = 4
@@ -961,7 +961,7 @@ class Plt(object):
             self.VarLocs.append([])
             self.StrandID.append(1000 + n)
             self.ParentZone.append(-1)
-            self.ZoneType.append(FETRIANGLE)
+            self.ZoneType.append(FEQUADRILATERAL)
         # Initialize zone sizes
         self.nPt = []
         self.nElem = []
@@ -1269,7 +1269,7 @@ class Plt(object):
                 if kQuad > 0:
                     # Select the elements first; cannot combine operations
                     TQ = T[iQuad, :]
-                    # Select nodes 1, 3, 4 to get second trianglex
+                    # Select nodes 1, 3, 4 to get second triangles
                     TQk = TQ[:, [0, 2, 3]] + iNode + 1
                     Tris[iTri+kTri:iTri+kTri+kQuad, :] = TQk
             # Increase the running node count

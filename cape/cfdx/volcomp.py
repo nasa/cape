@@ -4,7 +4,7 @@ r"""
 ==========================================================
 
 This module is effectively the Chimera Grid Tools code ``volcomp.F``
-converted to Python. It is used by :class:`pyOver.databook.DBTriqFMComp`
+converted to Python. It is used by :class:`pyOver.databook.TriqFMFaceDataBook`
 to calculate volumes of prism cells on the surface of a CFD solution,
 but since it simply calculates the volume of several types of polyhedra,
 it could be used for other applications.

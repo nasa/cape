@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
 :mod:`optdict`: Advanced :class:`dict`-based options interface
@@ -818,6 +817,9 @@ class OptionsDict(dict):
     # Transformations/aliases for option values
     _optvalmap = {}
 
+    # Map of options to place into subsections
+    _optsubmap = {}
+
     # Converters (before value checking)
     _optval_converters = {}
 
@@ -920,6 +922,8 @@ class OptionsDict(dict):
         self.set_opts(kw)
         # Process sections
         self.init_sections()
+        # Map into subsections
+        self.apply_optsubmap()
         # Run final hook for custom actions
         self.init_post()
 
@@ -1190,6 +1194,29 @@ class OptionsDict(dict):
             raise OptdictValueError(
                 "Unrecognized '%s' parent for section '%s'"
                 % (type(parent).__name__, sec))
+
+   # --- Subsection opts ---
+    def apply_optsubmap(self):
+        # Get options
+        optsubmap = self.__class__.getx_cls_dict("_optsubmap")
+        # Loop through opts
+        for opt, submap in optsubmap.items():
+            # Check if present
+            if opt not in self:
+                continue
+            # Check types
+            assert_isinstance(submap, tuple, f"sub-map for option '{opt}'")
+            # Check length
+            if len(submap) != 2:
+                raise OptdictValueError(
+                    f"submap for option '{opt}' has len {len(submap)}; "
+                    "expected 2")
+            # Unpack
+            sec, subopt = submap
+            # Get value if present
+            val = self.get(opt)
+            # Set it
+            self.set_subopt(sec, subopt, val)
 
    # --- Copy ---
     # Copy
@@ -2077,6 +2104,57 @@ class OptionsDict(dict):
             val = optitem.setel(self[opt], val, j=j, listdepth=listdepth)
         # If all tests passed, set the value
         self[opt] = val
+
+    # Apply option to subsection, if possible
+    def set_subopt(
+            self,
+            sec: str,
+            opt: str,
+            val: Any,
+            j: Optional[int] = None,
+            mode: Optional[int] = None):
+        r"""Set value in a subsection
+
+        This command is similar to ``opts[sec][opt] = val``, but with
+        checks and initialization performed prior to assignment.
+
+        :Call:
+            >>> opts.set_subopt(sec, opt, val, j=None, mode=None)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *sec*: :class:`str`
+                Name of section in which to set value for *opt*
+            *opt*: :class:`str`
+                Name of option to set
+            *val*: **any**
+                Value to save in *opts[opt]*
+            %(_RST_SETOPT)s
+        :Versions:
+            * 2025-01-25 ``@ddalle``: v1.0
+        """
+        # Check if section is present
+        secopts = self.get(sec)
+        # Create it if appropriate
+        if secopts is None:
+            # Get option
+            valid, secopts = self.check_opt(sec, {}, mode, out=False)
+            # Check value
+            if not valid:
+                self._process_lastwarn()
+                return
+            # Initialize section w/ empty *dict*
+            self[sec] = secopts
+        # Check type of *secopts*
+        if isinstance(secopts, OptionsDict):
+            # Use the set_opt() method
+            secopts.set_opt(opt, val, j, mode)
+        elif isinstance(secopts, dict):
+            # Set value
+            secopts[opt] = val
+        else:
+            # Invalid type
+            assert_isinstance(secopts, dict, f"'{sec}' section")
 
    # --- Extend option ---
     # Add to general key

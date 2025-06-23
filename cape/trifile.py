@@ -315,7 +315,7 @@ class TriBase(object):
         :Versions:
             * 2014-05-27 ``@ddalle``: v1.0
         """
-        return '<cape.trifile.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
+        return f'<cape.trifile.Tri(nNode={self.nNode}, nTri={self.nTri})>'
 
     # String representation is the same
     __str__ = __repr__
@@ -1167,8 +1167,9 @@ class TriBase(object):
         inputs listed below it.  For example, if ``ascii==True``, no other
         inputs have any effect.
 
-        If none of the inputs is specified, the function will try to access
-        *trifile.ext*.  If that does not exist, the default output is ``"ascii"``.
+        If none of the inputs is specified, the function will try to
+        access *tri.ext*.  If that does not exist, the default output is
+        ``"ascii"``.
 
         The default byte order is determined from *os.sys.byteorder*, but this
         is overridden if the environment variable $F_UFMTENDIAN is ``"big"`` or
@@ -4782,7 +4783,7 @@ class TriBase(object):
         trik = tric.GetSubTri(comps)
         # Perform mapping
         tri = self.Copy()
-        trifile.MapTriCompID(trik, **kw)
+        tri.MapTriCompID(trik, **kw)
         # Check for joined
         if kw.get("join", False):
             # Extract components
@@ -5108,7 +5109,7 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Attributes:
-            *trifile.Centers*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
+            *trifile.Centers*: :class:`np.ndarray`\ [:class:`float`]
                 Center of each triangle
         :Versions:
             * 2017-02-09 ``@ddalle``: v1.0
@@ -5187,6 +5188,7 @@ class TriBase(object):
         :Versions:
             * 2014-06-12 ``@ddalle``: v1.0
             * 2016-01-23 ``@ddalle``: v1.1; check before calculating
+            * 2025-04-03 ``@ddalle``: v1.2; divide cross product by 2
         """
         # Check for normals.
         try:
@@ -5204,7 +5206,7 @@ class TriBase(object):
         # Calculate the dimensioned normals
         n = np.cross(x01, x02)
         # Save the unit normals.
-        self.AreaVectors = n
+        self.AreaVectors = 0.5*n
 
     # Get right-handed coordinate system
     def GetBasisVectors(self):
@@ -5310,7 +5312,8 @@ class TriBase(object):
             *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
                 Array of *x*, *y*, and *z* coordinates of test point
             *n*: {``4``} | :class:`int`
-                Number of *tri* components to search. Sub-region accelerated processing will only apply if n=1.
+                Number of *tri* components to search. Sub-region
+                accelerated processing will only apply if n=1.
             *ztol*: {_ztol_} | positive :class:`float`
                 Maximum extra projection distance
             *rztol*: {_antol_} | positive :class:`float`
@@ -5354,8 +5357,8 @@ class TriBase(object):
                 self._splitzones = SplitZones(self)
             split = self._splitzones.get_near(x)
         else:
-            # when searching for multiple components, we need to be able to search far,
-            # so don't use a subset of triangles
+            # when searching for multiple components, we need to be able
+            # to search far, so don't use a subset of triangles
             split = np.arange(self.Tris.shape[0])
 
         # Get coordinates
@@ -5539,29 +5542,61 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.NodeNormals*: :class:`np.ndarray`, shape=(tri.nNode,3)
-                Unit normal at each node averaged from neighboring triangles
+            *trifile.NodeNormals*: :class:`np.ndarray`
+                Unit normal at each node weigthed by adj. triangles
         :Versions:
             * 2016-01-23 ``@ddalle``: v1.0
+            * 2025-04-03 ``@ddalle``: v1.1; fix indexing using add.at()
         """
         # Ensure normals are present
-        self.GetNormals()
+        self.GetAreaVectors()
+        # Get non-unit tri normals
+        tri_normals = self.AreaVectors
         # Initialize node normals
-        NN = np.zeros((self.nNode, 3))
-        # Get areas
-        TA = np.transpose([self.Areas, self.Areas, self.Areas])
-        # Add in the weighted tri areas for each column of nodes in the tris
-        NN[self.Tris[:, 0]-1, :] += (self.Normals*TA)
-        NN[self.Tris[:, 1]-1, :] += (self.Normals*TA)
-        NN[self.Tris[:, 2]-1, :] += (self.Normals*TA)
+        node_normals = np.zeros((self.nNode, 3))
+        # Add in weighted tri areas for each column of nodes in the tris
+        np.add.at(node_normals, self.Tris[:, 0]-1, tri_normals)
+        np.add.at(node_normals, self.Tris[:, 1]-1, tri_normals)
+        np.add.at(node_normals, self.Tris[:, 2]-1, tri_normals)
         # Calculate the length of each of these vectors
-        L = np.fmax(1e-10, np.sqrt(np.sum(NN**2, 1)))
+        L = np.fmax(1e-10, np.sqrt(np.sum(node_normals**2, 1)))
         # Normalize.
-        NN[:, 0] /= L
-        NN[:, 1] /= L
-        NN[:, 2] /= L
+        node_normals[:, 0] /= L
+        node_normals[:, 1] /= L
+        node_normals[:, 2] /= L
         # Save it.
-        self.NodeNormals = NN
+        self.NodeNormals = node_normals
+
+    # Get averaged normals at nodes
+    def GetSurfaceNormals(self):
+        r"""Get the area-weighted (non-uit) normals at each node
+
+        :Call:
+            >>> surf_normals = tri.GetSurfaceNormals()
+        :Inputs:
+            *tri*: :class:`cape.trifile.Tri`
+                Triangulation instance
+        :Outputs:
+            *surf_normals*: :class:`np.ndarray`
+                Area-weighted normal at each node
+        :Effects:
+            *trifile.SurfaceNormals*: *surf_normals*
+        :Versions:
+            * 2025-04-03 ``@ddalle``: v1.0
+        """
+        # Ensure normals are present
+        self.GetAreaVectors()
+        # Get non-unit tri normals
+        tri_normals = self.AreaVectors
+        # Initialize node normals
+        surf_normals = np.zeros((self.nNode, 3))
+        # Add in weighted tri areas for each column of nodes in the tris
+        np.add.at(surf_normals, self.Tris[:, 0]-1, tri_normals)
+        np.add.at(surf_normals, self.Tris[:, 1]-1, tri_normals)
+        np.add.at(surf_normals, self.Tris[:, 2]-1, tri_normals)
+        # Save it
+        self.SurfaceNormals = surf_normals
+        return surf_normals
    # }
 
    # +++++
@@ -6178,12 +6213,12 @@ class TriBase(object):
             # Reverse mask
             mask_ = np.logical_not(mask)
             # Get new figure
-            fig = pltfile.figure()
+            fig = plt.figure()
             # Draw points inside and outside of projection
-            pltfile.plot(e1grid[mask], e2grid[mask], 'ro', markersize=2)
-            pltfile.plot(e1grid[mask_], e2grid[mask_], 'bo', markersize=2)
+            plt.plot(e1grid[mask], e2grid[mask], 'ro', markersize=2)
+            plt.plot(e1grid[mask_], e2grid[mask_], 'bo', markersize=2)
             # Draw projected triangulation
-            pltfile.triplot(e1p, e2p, T, lw=0.2, color='k')
+            plt.triplot(e1p, e2p, T, lw=0.2, color='k')
             # Save figure
             fig.savefig(img)
 
@@ -6879,7 +6914,7 @@ class Tri(TriBase):
         :Versions:
             * 2014-05-27 ``@ddalle``: v1.0
         """
-        return '<cape.trifile.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
+        return f'<cape.trifile.Tri(nNode={self.nNode}, nTri={self.nTri})>'
 
 
 # Regular triangulation class

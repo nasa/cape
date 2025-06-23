@@ -5,9 +5,9 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/902_pyfun/001_bullet" \
+    "test/001_cape/" \
+    "test/000_vendor/" \
+    "test/007_pyfun/" \
     --junitxml=test/junit.xml \
     --pdb \
-    --cov=$PKG \
-    --cov-report html:test/htmlcov
 

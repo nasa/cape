@@ -92,6 +92,14 @@
         // Basic component
         "arrow_no_base": {"Type": "FM"},
         "arrow_total":  {"Type": "FM"},
+        "body":  {
+            "Type": "FM", 
+            "Cols":["CA", "CN", "CY"]
+        },
+        "cap":  {
+            "Type": "FM", 
+            "Cols":["CA", "CN", "CY"]
+        },
         "fins": {"Type": "FM"},
         "fin1": {"Type": "FM"},
         "fin2": {"Type": "FM"},

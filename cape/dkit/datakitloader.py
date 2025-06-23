@@ -12,17 +12,21 @@ DataKit parameters.
 # Standard library
 import fnmatch
 import importlib
+import inspect
 import json
 import os
 import re
 import sys
+from typing import Callable, Optional
 
-# Local modules
+# Third-party
+
+# Local imports
 from . import gitutils
+from . import metautils
 from .rdb import DataKit
-from ..tnakit import kwutils
+from ..optdict import OptionsDict
 from ..tnakit import shellutils
-from ..tnakit import typeutils
 
 
 # Utility regular expressions
@@ -30,16 +34,21 @@ REGEX_INT = re.compile("[0-9]+$")
 REGEX_HOST = re.compile(r"((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)$")
 REGEX_REMOTE = re.compile(r"((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)$")
 
-# Just string (which are unicode in Python 3.0+)
-STR_TYPE = str
-# Newer class for import errors
+# Combined class for failed imports
 IMPORT_ERROR = (ModuleNotFoundError, ImportError)
-# Error for no file
-NOFILE_ERROR = FileNotFoundError
+# List of keys to access via attribute
+ATTR_OPTS = (
+    "DATAKIT_CLS",
+    "DB_DIR",
+    "DB_NAME",
+    "MODULE_DIR",
+    "MODULE_FILE",
+    "MODULE_NAME",
+)
 
 
 # Create class
-class DataKitLoader(kwutils.KwargHandler):
+class DataKitLoader(OptionsDict):
     r"""Tool for reading datakits based on module name and file
 
     :Call:
@@ -52,13 +61,18 @@ class DataKitLoader(kwutils.KwargHandler):
     :Outputs:
         *dkl*: :class:`DataKitLoader`
             Tool for reading datakits for a specific module
-    :Versions:
-        * 2021-06-25 ``@ddalle``: Version 0.1; Started
     """
-  # ==================
-  # CLASS ATTRIBUTES
-  # ==================
-  # <
+  # === Class attributes ===
+    # Attributes
+    __slots__ = (
+        "metadata",
+        "module",
+        "rawdata_sources",
+        "rawdata_remotes",
+        "rawdata_commits",
+        "rawdata_sources_commit",
+    )
+
     # List of options
     _optlist = {
         "DATAKIT_CLS",
@@ -79,28 +93,42 @@ class DataKitLoader(kwutils.KwargHandler):
         "MODULE_NAME_REGEX_INT_GROUPS",
         "MODULE_NAME_REGEX_STR_GROUPS",
         "MODULE_NAME_TEMPLATE_LIST",
+        "RAWDATA_DIR",
     }
 
     # Types
     _opttypes = {
         "DATAKIT_CLS": type,
         "DB_DIR": str,
-        "DB_DIRS_BY_TYPE": (list, tuple),
+        "DB_DIRS_BY_TYPE": dict,
         "DB_NAME": str,
-        "DB_NAME_REGEX_LIST": (list, tuple),
+        "DB_NAME_REGEX_LIST": str,
         "DB_NAME_REGEX_GROUPS": dict,
-        "DB_NAME_REGEX_INT_GROUPS": (list, tuple, set),
-        "DB_NAME_REGEX_STR_GROUPS": (list, tuple, set),
-        "DB_NAME_TEMPLATE_LIST": (list, tuple),
+        "DB_NAME_REGEX_INT_GROUPS": str,
+        "DB_NAME_REGEX_STR_GROUPS": str,
+        "DB_NAME_TEMPLATE_LIST": str,
         "DB_SUFFIXES_BY_TYPE": dict,
         "MODULE_DIR": str,
         "MODULE_FILE": str,
         "MODULE_NAME": str,
-        "MODULE_NAME_REGEX_LIST": (list, tuple),
+        "MODULE_NAME_REGEX_LIST": str,
         "MODULE_NAME_REGEX_GROUPS": dict,
-        "MODULE_NAME_REGEX_INT_GROUPS": (list, tuple, set),
-        "MODULE_NAME_REGEX_STR_GROUPS": (list, tuple, set),
-        "MODULE_NAME_TEMPLATE_LIST": (list, tuple),
+        "MODULE_NAME_REGEX_INT_GROUPS": str,
+        "MODULE_NAME_REGEX_STR_GROUPS": str,
+        "MODULE_NAME_TEMPLATE_LIST": str,
+        "RAWDATA_DIR": str,
+    }
+
+    # Required lists
+    _optlistdepth = {
+        "DB_NAME_REGEX_LIST": 1,
+        "DB_NAME_REGEX_INT_GROUPS": 1,
+        "DB_NAME_REGEX_STR_GROUPS": 1,
+        "DB_NAME_TEMPLATE_LIST": 1,
+        "MODULE_NAME_REGEX_LIST": 1,
+        "MODULE_NAME_REGEX_INT_GROUPS": 1,
+        "MODULE_NAME_REGEX_STR_GROUPS": 1,
+        "MODULE_NAME_TEMPLATE_LIST": 1,
     }
 
     # Default values
@@ -110,151 +138,76 @@ class DataKitLoader(kwutils.KwargHandler):
         "DB_DIRS_BY_TYPE": {},
         "DB_NAME_REGEX": ".+",
         "DB_NAME_REGEX_GROUPS": {},
-        "DB_NAME_REGEX_INT_GROUPS": set(),
-        "DB_NAME_REGEX_STR_GROUPS": set(),
+        "DB_NAME_REGEX_INT_GROUPS": (),
+        "DB_NAME_REGEX_STR_GROUPS": (),
         "DB_NAME_TEMPLATE_LIST": ["datakit"],
         "DB_NAME": None,
         "MODULE_NAME_REGEX_LIST": [".+"],
         "MODULE_NAME_REGEX_GROUPS": {},
-        "MODULE_NAME_REGEX_INT_GROUPS": set(),
-        "MODULE_NAME_REGEX_STR_GROUPS": set(),
+        "MODULE_NAME_REGEX_INT_GROUPS": (),
+        "MODULE_NAME_REGEX_STR_GROUPS": (),
         "RAWDATA_DIR": "rawdata",
     }
-  # >
 
-  # ===============
-  # DUNDER METHODS
-  # ===============
-  # <
-    # Initialization method
-    def __init__(self, name=None, fname=None, **kw):
-        r"""Initialization method
-
-        :Versions:
-            * 2021-06-25 ``@ddalle``: v1.0
-        """
-        # Process keyword options
-        kwutils.KwargHandler.__init__(self, **kw)
+  # === __dunder__ ===
+    def __init__(
+            self,
+            name: Optional[str] = None,
+            fname: Optional[str] = None,
+            DATAKIT_CLS: Optional[type] = None, **kw):
         # Initialize attributes
         self.rawdata_sources = {}
         self.rawdata_remotes = {}
         self.rawdata_commits = {}
         self.rawdata_sources_commit = {}
-        # Default file name
-        if fname is None and name is not None:
-            # Transform mod1.mod2 -> mod1/mod2
-            fname = name.replace(".", os.sep)
-            # Append "__init__.py"
-            fname = os.path.join(fname, "__init__.py")
-        # Absolute fname
-        if fname:
-            # Absolutize
-            fname = os.path.abspath(fname)
-            fdir = os.path.dirname(fname)
-        else:
-            # Null
-            fname = None
-            fdir = None
-        # Use required inputs
-        self.setdefault_option("MODULE_NAME", name)
-        self.setdefault_option("MODULE_FILE", fname)
-        # Set name of folder containing data
-        self.set_option("MODULE_DIR", fdir)
+        # Get name of calling function
+        caller_frame = sys._getframe(1)
+        caller_func = caller_frame.f_code
+        # Get module file name
+        modfile = caller_func.co_filename
+        # Get module of calling function
+        mod = inspect.getmodule(caller_frame)
+        modname = mod.__name__
+        # Save the module
+        self.module = mod
+        # Apply defaults
+        name = modname if name is None else name
+        fname = modfile if fname is None else fname
+        # Calling folder
+        fdir = os.path.dirname(fname)
+        # Process options
+        OptionsDict.__init__(self, **kw)
+        # Set options
+        self.set_opt("DATAKIT_CLS", DATAKIT_CLS)
+        self.set_opt("MODULE_NAME", name)
+        self.set_opt("MODULE_FILE", fname)
+        self.set_opt("MODULE_DIR", fdir)
         # Get database (datakit) NAME
         self.create_db_name()
-  # >
+        # Save metadata
+        self.read_metadata()
 
-  # ==========================
-  # PACKAGE IMPORT/READ
-  # ==========================
-  # <
-   # --- Read datakit from a module/package ---
-    def read_db_name(self, dbname=None):
-        r"""Read datakit from first available module based on a DB name
+    def __str__(self) -> str:
+        # Name of class
+        clsname = self.__class__.__name__
+        # Get base of module name
+        name = self.get_opt("MODULE_NAME", vdef="datakit").rsplit('.', 1)[-1]
+        # Get database name
+        dbname = self.get_opt("DB_NAME")
+        # Form the string
+        return f"{clsname}({name}, '{dbname}')"
 
-        This utilizes the following parameters:
+    def __repr__(self) -> str:
+        return self.__str__()
 
-        * *DB_NAME*
-        * *DB_NAME_REGEX_LIST*
-        * *DB_NAME_REGEX_GROUPS*
-        * *MODULE_NAME_TEMPLATE_LIST*
+    def __getattribute__(self, name: str):
+        # Check for specified keys
+        if name.upper() in ATTR_OPTS:
+            return self.get(name.upper())
+        # Fall-back
+        return super().__getattribute__(name)
 
-        :Call:
-            >>> db = dkl.read_db_name(dbname=None)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *dbame*: {``None``} | :class:`str`
-                Database name parse (default: *DB_NAME*)
-        :Outputs:
-            *db*: :class:`DataKit`
-                Output of :func:`read_db` from module with *DB_NAME*
-                equal to *dbname*
-        :Versions:
-            * 2021-09-10 ``@ddalle``: v1.0
-        """
-        # Import module
-        mod = self.import_db_name(dbname)
-        # Check for success
-        if mod is None:
-            return
-        # Otherwise read and return
-        return mod.read_db()
-
-   # --- Import a module/package ---
-    def import_db_name(self, dbname=None):
-        r"""Import first available module based on a DB name
-
-        This utilizes the following parameters:
-
-        * *DB_NAME*
-        * *DB_NAME_REGEX_LIST*
-        * *DB_NAME_REGEX_GROUPS*
-        * *MODULE_NAME_TEMPLATE_LIST*
-
-        :Call:
-            >>> mod = dkl.import_db_name(dbname=None)
-        :Inputs:
-            *dkl*: :class:`DataKitLoader`
-                Tool for reading datakits for a specific module
-            *dbame*: {``None``} | :class:`str`
-                Database name parse (default: *DB_NAME*)
-        :Outputs:
-            *mod*: :class:`module`
-                Module with *DB_NAME* equal to *dbname*
-        :Versions:
-            * 2021-07-15 ``@ddalle``: v1.0
-        """
-        # Get list of candidate module names
-        modname_list = self.genr8_modnames(dbname)
-        # Loop through candidates
-        for modname in modname_list:
-            # Attempt to import that module
-            try:
-                # Import module by string
-                mod = importlib.import_module(modname)
-            except IMPORT_ERROR:
-                # Module doesn't exist; try the next one
-                continue
-            # Give the user the module
-            return mod
-        # Otherwise, note that no modules were read
-        print("Failed to import module for '%s'" % dbname)
-        # Check if any matches were found
-        if modname_list:
-            print("despite one or more pattern matches:")
-            for modname in modname_list:
-                print("    %s" % modname)
-        else:
-            print("No *modname* patterns matched *dbname*")
-        # Raise an exception
-        raise ImportError("No module found for db '%s'" % dbname)
-  # >
-
-  # ==========================
-  # MODULE_NAME --> DB_NAME
-  # ==========================
-  # <
+  # === MODULE_NAME --> DB_NAME ===
    # --- Create DB names ---
     def make_db_name(self):
         r"""Retrieve or create database name from module name
@@ -266,9 +219,9 @@ class DataKitLoader(kwutils.KwargHandler):
         * *DB_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> dbname = dkl.make_db_name()
+            >>> dbname = ast.make_db_name()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *dbname*: :class:`str`
@@ -283,7 +236,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Generate the database name
         dbname = self.genr8_db_name()
         # Save it
-        self.set_option("DB_NAME", dbname)
+        self.set_opt("DB_NAME", dbname)
 
     def create_db_name(self):
         r"""Create and save database name from module name
@@ -295,9 +248,9 @@ class DataKitLoader(kwutils.KwargHandler):
         * *DB_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> dbname = dkl.create_db_name()
+            >>> dbname = ast.create_db_name()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *dbname*: :class:`str`
@@ -308,9 +261,9 @@ class DataKitLoader(kwutils.KwargHandler):
         # Generate the database name
         dbname = self.genr8_db_name()
         # Save it
-        self.set_option("DB_NAME", dbname)
+        self.set_opt("DB_NAME", dbname)
 
-    def genr8_db_name(self, modname=None):
+    def genr8_db_name(self, modname: Optional[str] = None) -> str:
         r"""Get database name based on first matching regular expression
 
         This utilizes the following parameters:
@@ -321,9 +274,9 @@ class DataKitLoader(kwutils.KwargHandler):
         * *DB_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> dbname = dkl.genr8_db_name(modname=None)
+            >>> dbname = ast.genr8_db_name(modname=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *modname*: {``None``} | :class:`str`
                 Name of module to parse (default: *MODULE_NAME*)
@@ -332,16 +285,16 @@ class DataKitLoader(kwutils.KwargHandler):
                 Prescribed datakit name
         :Versions:
             * 2021-06-28 ``@ddalle``: v1.0
-            * 2021-07-15 ``@ddalle``: Version 1.1; add *modname* arg
+            * 2021-07-15 ``@ddalle``: v1.1; add *modname* arg
         """
         # Get list of regexes
         modname_regexes = self._genr8_modname_regexes()
         # Get format lists
-        dbname_templates = self.get_option("DB_NAME_TEMPLATE_LIST")
+        dbname_templates = self.get_opt("DB_NAME_TEMPLATE_LIST")
         # Module name
         if modname is None:
             # Use default; this module
-            modname = self.get_option("MODULE_NAME")
+            modname = self.get_opt("MODULE_NAME")
         # Check for null module
         if modname is None:
             # Global default
@@ -385,7 +338,7 @@ class DataKitLoader(kwutils.KwargHandler):
         return dbname
 
    # --- Generate module names ---
-    def genr8_modnames(self, dbname=None):
+    def genr8_modnames(self, dbname: Optional[str] = None) -> list:
         r"""Import first available module based on a DB name
 
         This utilizes the following parameters:
@@ -396,9 +349,9 @@ class DataKitLoader(kwutils.KwargHandler):
         * *MODULE_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> modnames = dkl.genr8_modnames(dbname=None)
+            >>> modnames = ast.genr8_modnames(dbname=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *dbame*: {``None``} | :class:`str`
                 Database name parse (default: *DB_NAME*)
@@ -411,7 +364,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Get list of regexes
         dbname_regexes = self._genr8_dbname_regexes()
         # Get format lists (list[list[str]])
-        modname_templates = self.get_option("MODULE_NAME_TEMPLATE_LIST")
+        modname_templates = self.get_opt("MODULE_NAME_TEMPLATE_LIST")
         # Make list of module names suggested by regexes and *dbname*
         modname_list = []
         # Module name
@@ -455,13 +408,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return modname_list
 
    # --- Supporting ---
-    def _genr8_modname_match_groups(self, regex, modname):
+    def _genr8_modname_match_groups(self, regex: str, modname: str) -> dict:
         r"""Get the match groups if *modname* fully matches *regex*
 
         :Call:
-            >>> groups = dkl._genr8_modname_match_groups(regex, modname)
+            >>> groups = ast._genr8_modname_match_groups(regex, modname)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *regex*: :class:`str`
                 Regular expression string
@@ -492,8 +445,8 @@ class DataKitLoader(kwutils.KwargHandler):
         # Get dictionary from matches
         groupdict = match.groupdict()
         # Names of groups that should always be integers or strings
-        igroups = self.get_option("MODULE_NAME_REGEX_INT_GROUPS")
-        sgroups = self.get_option("MODULE_NAME_REGEX_STR_GROUPS")
+        igroups = self.get_opt("MODULE_NAME_REGEX_INT_GROUPS")
+        sgroups = self.get_opt("MODULE_NAME_REGEX_STR_GROUPS")
         # Initialize finale groups
         groups = dict(groupdict)
         # Loop through groups that were present
@@ -525,16 +478,16 @@ class DataKitLoader(kwutils.KwargHandler):
         # Output
         return groups
 
-    def _genr8_modname_regexes(self):
+    def _genr8_modname_regexes(self) -> list:
         r"""Expand regular expression strings for module name
 
         This expands things like ``%(group1)s`` to something
         like ``(?P<group1>[1-9][0-9])`` if *group1* is ``"[1-9][0-9]"``.
 
         :Call:
-            >>> regex_list = dkl._genr8_modname_regexes()
+            >>> regex_list = ast._genr8_modname_regexes()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *regex_list*: :class:`list`\ [:class:`str`]
@@ -544,14 +497,14 @@ class DataKitLoader(kwutils.KwargHandler):
             * *MODULE_NAME_REGEX_LIST*
         """
         # Get the regular expressions for each "group"
-        grps = self.get_option("MODULE_NAME_REGEX_GROUPS")
+        grps = self.get_opt("MODULE_NAME_REGEX_GROUPS")
         # Add full formatting for regular expression group
         grps_re = {
             k: "(?P<%s>%s)" % (k, v)
             for k, v in grps.items()
         }
         # Get regular expression list
-        name_list = self.get_option("MODULE_NAME_REGEX_LIST")
+        name_list = self.get_opt("MODULE_NAME_REGEX_LIST")
         # Check if it's a list
         if not isinstance(name_list, (list, tuple)):
             # Create a singleton
@@ -564,20 +517,16 @@ class DataKitLoader(kwutils.KwargHandler):
             regex_list.append(name % grps_re)
         # Output
         return regex_list
-  # >
 
-  # ==========================
-  # DB_NAME --> MODULE_NAME
-  # ==========================
-  # <
+  # === DB_NAME --> MODULE_NAME ===
    # --- Supporting ---
-    def _genr8_dbname_match_groups(self, regex, dbname):
+    def _genr8_dbname_match_groups(self, regex: str, dbname: str) -> dict:
         r"""Get the match groups if *modname* fully matches *regex*
 
         :Call:
-            >>> groups = dkl._genr8_dbname_match_groups(regex, dbname)
+            >>> groups = ast._genr8_dbname_match_groups(regex, dbname)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *regex*: :class:`str`
                 Regular expression string
@@ -604,8 +553,8 @@ class DataKitLoader(kwutils.KwargHandler):
         # Get dictionary from matches
         groupdict = match.groupdict()
         # Names of groups that should always be integers or strings
-        igroups = self.get_option("DB_NAME_REGEX_INT_GROUPS")
-        sgroups = self.get_option("DB_NAME_REGEX_STR_GROUPS")
+        igroups = self.get_opt("DB_NAME_REGEX_INT_GROUPS")
+        sgroups = self.get_opt("DB_NAME_REGEX_STR_GROUPS")
         # Initialize finale groups
         groups = dict(groupdict)
         # Loop through groups that were present
@@ -637,16 +586,16 @@ class DataKitLoader(kwutils.KwargHandler):
         # Output
         return groups
 
-    def _genr8_dbname_regexes(self):
+    def _genr8_dbname_regexes(self) -> list:
         r"""Expand regular expression strings for database names
 
         This expands things like ``%(group1)s`` to something
         like ``(?P<group1>[1-9][0-9])`` if *group1* is ``"[1-9][0-9]"``.
 
         :Call:
-            >>> regex_list = dkl._genr8_dbname_regexes()
+            >>> regex_list = ast._genr8_dbname_regexes()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *regex_list*: :class:`list`\ [:class:`str`]
@@ -656,14 +605,14 @@ class DataKitLoader(kwutils.KwargHandler):
             * *DB_NAME_REGEX_GROUPS*
         """
         # Get the regular expressions for each "group"
-        grps = self.get_option("DB_NAME_REGEX_GROUPS")
+        grps = self.get_opt("DB_NAME_REGEX_GROUPS")
         # Add full formatting for regular expression group
         grps_re = {
             k: "(?P<%s>%s)" % (k, v)
             for k, v in grps.items()
         }
         # Get regular expression list
-        name_list = self.get_option("DB_NAME_REGEX_LIST")
+        name_list = self.get_opt("DB_NAME_REGEX_LIST")
         # Check if it's a list
         if not isinstance(name_list, (list, tuple)):
             # Create a singleton
@@ -676,20 +625,276 @@ class DataKitLoader(kwutils.KwargHandler):
             regex_list.append(name % grps_re)
         # Output
         return regex_list
-  # >
 
-  # ==================
-  # FILE/FOLDER
-  # ==================
-  # <
+  # === PACKAGE IMPORT/READ ===
+   # --- Requirements ---
+    # Read database from requirement
+    def read_requirement(self, j: int = 0) -> DataKit:
+        r"""Read database from numbered requirement
+
+        :Call:
+            >>> db = ast.read_requirement(j=0)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *j*: {``0``} | :class:`int`
+                Index of requirement to process
+        :Outputs:
+            *db*: :class:`DataKit`
+                Database from requirement *j*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get name of requirement
+        dbname = self.get_requirement(j)
+        # Import it
+        return self.read_db_name(dbname)
+
+    # Import requirement
+    def import_requirement(self, j: int = 0):
+        r"""Import module from numbered requirement
+
+        :Call:
+            >>> mod = ast.import_requirement(j=0)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *j*: {``0``} | :class:`int`
+                Index of requirement to process
+        :Outputs:
+            *mod*: :class:`module`
+                Module from requirement *j*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get name of requirement
+        dbname = self.get_requirement(j)
+        # Import it
+        return self.import_db_name(dbname)
+
+    # Resolve a requirement name from suffix
+    def resolve_dbname(self, dbname: str) -> str:
+        r"""Resolve a database name using current DKit's prefixes
+
+        Suppose the current database name is ``"CAPE-DB-T-F3D-001"``.
+
+        :Examples:
+            >>> ast.resolve_dbname("002")
+            "CAPE-DB-T-F3D-002"
+            >>> ast.resolve_dbname("RMX-001")
+            "CAPE-DB-T-RMX-001"
+            >>> ast.resolve_dbname("Q-C3D-102")
+            "CAPE-DB-Q-C3D-102"
+        :Call:
+            >>> fulldbname = ast.resolve_dbname(dbname)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *dbname*: :class:`str`
+                (Partial) database name
+        :Outputs:
+            *fulldbname*: :class:`str`
+                Full database name, using groups from *ast.DB_NAME*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get current db name
+        myname = self.get_opt("DB_NAME")
+        # Split input by parts
+        myparts = myname.split('-')
+        dbparts = dbname.split('-')
+        # Count them
+        nmy = len(myparts)
+        ndb = len(dbparts)
+        # Take from one or the other
+        n1 = max(0, nmy - ndb)
+        # Combine parts, if necessary
+        parts = myparts[:n1] + dbparts
+        return '-'.join(parts)
+
+    # Get requirement by index
+    def get_requirement(self, j: int = 0) -> str:
+        r"""Get numbered requirement, from file or local variable
+
+        :Call:
+            >>> reqs = ast.get_requirement(j=0)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *j*: {``0``} | :class:`int`
+                Index of requirement to process
+        :Outputs:
+            *req*: :class:`str`
+                Name for requirement *j*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get requirements list
+        reqs = self.get_requirements()
+        # Check list length
+        if j >= len(reqs):
+            # Get database name
+            dbname = self.get_opt("MODULE_NAME")
+            raise ValueError(
+                f"Requested requirement {j}, but " +
+                f"DataKit {dbname} has only {len(reqs)} requirements")
+        # Output
+        return reqs[j]
+
+    # Get list of requirements
+    def get_requirements(self) -> list:
+        r"""Get list of requirements, from file or local variable
+
+        :Call:
+            >>> reqs = ast.get_requirements()
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *reqs*: :class:`list`\ [:class:`str`]
+                List of required databse names
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Prioritize reading from file
+        reqs = self.get_requirements_json()
+        # Check if that worked
+        if isinstance(reqs, list):
+            return reqs
+        # Otherwise use the local *REQUIREMENTS* variable
+        return getattr(self.module, "REQUIREMENTS", [])
+
+    # Get list of requirements from file
+    def get_requirements_json(self) -> Optional[list]:
+        r"""Read list of requirements from JSON file, if applicable
+
+        :Call:
+            >>> reqs = ast.get_requirements_json()
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *reqs*: :class:`list`\ [:class:`str`] | ``None``
+                Requirements read from file, if any
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get path to file
+        fname = self.get_requirements_jsonfile()
+        # Check
+        if not os.path.isfile(fname):
+            return None
+        try:
+            with open(fname, 'r') as fp:
+                return json.load(fp)
+        except Exception:
+            return None
+
+   # --- Options ---
+    def read_metadata(self) -> dict:
+        # Get path to file
+        fname = self.get_meta_jsonfile()
+        # Check for it
+        if os.path.isfile(fname):
+            metadata = metautils.ModuleMetadata(self.module.__file__)
+        else:
+            metadata = {}
+        # Save it
+        self.metadata = metadata
+        # Output
+        return metadata
+
+   # --- Read datakit from a module/package ---
+    def read_db_name(self, dbname: Optional[str] = None) -> DataKit:
+        r"""Read datakit from first available module based on a DB name
+
+        This utilizes the following parameters:
+
+        * *DB_NAME*
+        * *DB_NAME_REGEX_LIST*
+        * *DB_NAME_REGEX_GROUPS*
+        * *MODULE_NAME_TEMPLATE_LIST*
+
+        :Call:
+            >>> db = ast.read_db_name(dbname=None)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *dbame*: {``None``} | :class:`str`
+                Database name parse (default: *DB_NAME*)
+        :Outputs:
+            *db*: :class:`DataKit`
+                Output of :func:`read_db` from module with *DB_NAME*
+                equal to *dbname*
+        :Versions:
+            * 2021-09-10 ``@ddalle``: v1.0
+        """
+        # Import module
+        mod = self.import_db_name(dbname)
+        # Check for success
+        if mod is None:
+            return
+        # Otherwise read and return
+        return mod.read_db()
+
+   # --- Import a module/package ---
+    def import_db_name(self, dbname: Optional[str] = None):
+        r"""Import first available module based on a DB name
+
+        This utilizes the following parameters:
+
+        * *DB_NAME*
+        * *DB_NAME_REGEX_LIST*
+        * *DB_NAME_REGEX_GROUPS*
+        * *MODULE_NAME_TEMPLATE_LIST*
+
+        :Call:
+            >>> mod = ast.import_db_name(dbname=None)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *dbame*: {``None``} | :class:`str`
+                Database name parse (default: *DB_NAME*)
+        :Outputs:
+            *mod*: :class:`module`
+                Module with *DB_NAME* equal to *dbname*
+        :Versions:
+            * 2021-07-15 ``@ddalle``: v1.0
+        """
+        # Get list of candidate module names
+        modname_list = self.genr8_modnames(dbname)
+        # Loop through candidates
+        for modname in modname_list:
+            # Attempt to import that module
+            try:
+                # Import module by string
+                mod = importlib.import_module(modname)
+            except IMPORT_ERROR:
+                # Module doesn't exist; try the next one
+                continue
+            # Give the user the module
+            return mod
+        # Otherwise, note that no modules were read
+        print("Failed to import module for '%s'" % dbname)
+        # Check if any matches were found
+        if modname_list:
+            print("despite one or more pattern matches:")
+            for modname in modname_list:
+                print("    %s" % modname)
+        else:
+            print("No *modname* patterns matched *dbname*")
+        # Raise an exception
+        raise ImportError("No module found for db '%s'" % dbname)
+
+  # === FILE/FOLDER ===
    # --- DataKit file names ---
     def get_dbfile(self, fname, ext):
         r"""Get a file name relative to the datakit folder
 
         :Call:
-            >>> fabs = dkl.get_dbfile(fname, ext)
+            >>> fabs = ast.get_dbfile(fname, ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: ``None`` | :class:`str`
                 Name of file relative to *DB_DIRS_BY_TYPE* for *ext*
@@ -716,8 +921,8 @@ class DataKitLoader(kwutils.KwargHandler):
         # Check for an absolute file name
         self._assert_filename_relative(fname)
         # Get top-level and relative raw-data folder
-        moddir = self.get_option("MODULE_DIR")
-        dbsdir = self.get_option("DB_DIR")
+        moddir = self.get_opt("MODULE_DIR")
+        dbsdir = self.get_opt("DB_DIR")
         # Get folder for dbs of this type
         dbtypedir = self.get_dbdir_by_type(ext)
         # Combine directories
@@ -727,9 +932,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Get list of datakit filenames for specified type
 
         :Call:
-            >>> fnames = dkl.get_dbfiles(dbname, ext)
+            >>> fnames = ast.get_dbfiles(dbname, ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *dbname*: ``None`` | :class:`str`
                 Database name (default if ``None``)
@@ -774,9 +979,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Get containing folder for specified datakit file type
 
         :Call:
-            >>> fdir = dkl.get_dbdir(ext)
+            >>> fdir = ast.get_dbdir(ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *ext*: :class:`str`
                 File type
@@ -793,21 +998,50 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-07-07 ``@ddalle``: v1.0
         """
         # Get top-level and relative raw-data folder
-        moddir = self.get_option("MODULE_DIR")
-        dbsdir = self.get_option("DB_DIR")
+        moddir = self.get_opt("MODULE_DIR")
+        dbsdir = self.get_opt("DB_DIR")
         # Get folder for dbs of this type
         dbtypedir = self.get_dbdir_by_type(ext)
         # Combine directories
         return os.path.join(moddir, dbsdir, dbtypedir)
+
+   # --- Repo ---
+    def get_rootdir(self) -> str:
+        r"""Get path to folder containing top-level module
+
+        :Call:
+            >>> rootdir = ast.get_rootdir()
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *rootdir*: :class:`str`
+                Absolute path to folder containing top-level module
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get module name and filename
+        modname = self.module.__name__
+        modfile = self.module.__file__
+        # Get just the file name
+        basefile = os.path.basename(modfile)
+        # Check for package
+        moddir = os.path.dirname(modfile)
+        moddir = moddir if basefile == "__init__.py" else modfile
+        # Go up one folder for each level of module name
+        for _ in modname.split('.'):
+            moddir = os.path.dirname(moddir)
+        # Output
+        return moddir
 
    # --- Raw data files ---
     def get_rawdatafilename(self, fname, dvc=False):
         r"""Get a file name relative to the datakit folder
 
         :Call:
-            >>> fabs = dkl.get_rawdatafilename(fname, dvc=False)
+            >>> fabs = ast.get_rawdatafilename(fname, dvc=False)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: ``None`` | :class:`str`
                 Name of file relative to *DB_DIRS_BY_TYPE* for *ext*
@@ -823,8 +1057,8 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-07-07 ``@ddalle``: v1.0
         """
         # Get top-level and relative raw-data folder
-        moddir = self.get_option("MODULE_DIR")
-        rawdir = self.get_option("RAWDATA_DIR")
+        moddir = self.get_opt("MODULE_DIR")
+        rawdir = self.get_opt("RAWDATA_DIR")
         # Full path to raw data
         fdir = os.path.join(moddir, rawdir)
         # Return absolute
@@ -847,9 +1081,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Get absolute path to module's raw data folder
 
         :Call:
-            >>> fdir = dkl.get_rawdatadir()
+            >>> fdir = ast.get_rawdatadir()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *fdir*: :class:`str`
@@ -861,10 +1095,80 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-07-08 ``@ddalle``: v1.0
         """
         # Get top-level and relative raw-data folder
-        moddir = self.get_option("MODULE_DIR")
-        rawdir = self.get_option("RAWDATA_DIR")
+        moddir = self.get_opt("MODULE_DIR")
+        rawdir = self.get_opt("RAWDATA_DIR")
         # Full path to raw data
         return os.path.join(moddir, rawdir)
+
+    def make_rawdatadir(self):
+        r"""Ensure raw data folder exists
+
+        :Call:
+            >>> ast.make_rawdatadir()
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+        :Keys:
+            * *MODULE_DIR*
+            * *RAWDATA_DIR*
+        :Versions:
+            * 2025-05-02 ``@ddalle``: v1.0
+        """
+        # Get top-level and relative raw-data folder
+        moddir = self.get_opt("MODULE_DIR")
+        rawdir = self.get_opt("RAWDATA_DIR")
+        # Initialize path
+        fdir = moddir
+        # Loop through any parts of raw data folder
+        for partj in rawdir.split(os.sep):
+            # Accumulate path
+            fdir = os.path.join(fdir, partj)
+            # Test for folder
+            if not os.path.isdir(fdir):
+                os.mkdir(fdir)
+
+   # --- Other options files ---
+    def get_requirements_jsonfile(self) -> str:
+        r"""Get absolute path to module's ``requirements.json`` file
+
+        :Call:
+            >>> fname = ast.get_requirements_jsonfile()
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *fname*: :class:`str`
+                Absolute path to ``requirements.json``, if used
+        :Keys:
+            * *MODULE_DIR*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get top-level folder
+        moddir = self.get_opt("MODULE_DIR")
+        # Path to requirements file
+        return os.path.join(moddir, "requirements.json")
+
+    def get_meta_jsonfile(self) -> str:
+        r"""Get absolute path to module's metadata file
+
+        :Call:
+            >>> fname = ast.get_meta_jsonfile()
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *fname*: :class:`str`
+                Absolute path to ``meta.json``, if used
+        :Keys:
+            * *MODULE_DIR*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get top-level folder
+        moddir = self.get_opt("MODULE_DIR")
+        # Path to requirements file
+        return os.path.join(moddir, "meta.json")
 
    # --- MAT DataKit files ---
     def get_dbfile_mat(self, fname=None):
@@ -901,9 +1205,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Add (cache) a file using DVC
 
         :Call:
-            >>> ierr = dkl.dvc_add(frel, **kw)
+            >>> ierr = ast.dvc_add(frel, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -954,9 +1258,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Pull a DVC file
 
         :Call:
-            >>> ierr = dkl.dvc_pull(frel, **kw)
+            >>> ierr = ast.dvc_pull(frel, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -1022,9 +1326,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Push a DVC file
 
         :Call:
-            >>> ierr = dkl.dvc_push(frel, **kw)
+            >>> ierr = ast.dvc_push(frel, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -1089,9 +1393,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Check status a DVC file
 
         :Call:
-            >>> ierr = dkl.dvc_status(frel, **kw)
+            >>> ierr = ast.dvc_status(frel, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -1128,11 +1432,6 @@ class DataKitLoader(kwutils.KwargHandler):
             return 512
         # Strip the *gitdir*
         fcmd = fdvc[len(gitdir):].lstrip(os.sep)
-        # Shortened file name for pretty STDOUT
-        if len(fcmd) > 43:
-            fcmdp = "..." + fcmd[-38:-4]
-        else:
-            fcmdp = fcmd[:-4]
         # Initialize command
         cmd = ["dvc", "status", fcmd]
         # (Try to) execute the pull
@@ -1184,9 +1483,9 @@ class DataKitLoader(kwutils.KwargHandler):
             }
 
         :Call:
-            >>> dkl.update_rawdata(remote=None, remotes=None)
+            >>> ast.update_rawdata(remote=None, remotes=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``None``} | :class:`str`
                 Name of single remote to update
@@ -1209,13 +1508,13 @@ class DataKitLoader(kwutils.KwargHandler):
             self.update_rawdata_remote(remote)
 
     # Update from one remote
-    def update_rawdata_remote(self, remote="origin"):
+    def update_rawdata_remote(self, remote: str = "origin"):
         r"""Update raw data for one remote
 
         :Call:
-            >>> dkl.update_rawdata_remote(remote="origin")
+            >>> ast.update_rawdata_remote(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1239,13 +1538,13 @@ class DataKitLoader(kwutils.KwargHandler):
                 "Unrecognized raw data remote type '%s'" % remote_type)
 
     # Update one remote using git-show
-    def _upd8_rawdataremote_git(self, remote="origin"):
+    def _upd8_rawdataremote_git(self, remote: str = "origin"):
         r"""Update raw data for one remote using ``git show``
 
         :Call:
-            >>> dkl._upd8_rawdataremote_git(remote="origin")
+            >>> ast._upd8_rawdataremote_git(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1321,13 +1620,13 @@ class DataKitLoader(kwutils.KwargHandler):
         self._write_rawdata_commits_json()
 
     # Update one remote using rsync
-    def _upd8_rawdataremote_rsync(self, remote="origin"):
+    def _upd8_rawdataremote_rsync(self, remote: str = "origin"):
         r"""Update raw data for one remote using ``rsync``
 
         :Call:
-            >>> dkl._upd8_rawdataremote_rsync(remote="origin")
+            >>> ast._upd8_rawdataremote_rsync(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1355,7 +1654,7 @@ class DataKitLoader(kwutils.KwargHandler):
             # Destination folder
             if dst_folder == ".":
                 # Just use the "basename"
-                dst = os.path.basename(rc)
+                dst = self.get_rawdatadir()
             elif dst_folder:
                 # For other non-empty destination folder
                 dst = os.path.join(dst_folder, os.path.basename(src))
@@ -1395,13 +1694,13 @@ class DataKitLoader(kwutils.KwargHandler):
         self._write_rawdata_commits_json()
 
     # Update one remote using lfc-show
-    def _upd8_rawdataremote_lfc(self, remote="origin"):
+    def _upd8_rawdataremote_lfc(self, remote: str = "origin"):
         r"""Update raw data for one remote using ``lfc show``
 
         :Call:
-            >>> dkl._upd8_rawdataremote_lfc(remote="origin")
+            >>> ast._upd8_rawdataremote_lfc(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1481,13 +1780,13 @@ class DataKitLoader(kwutils.KwargHandler):
         self._write_rawdata_commits_json()
 
     # Copy one file from remote repo
-    def _upd8_rawdatafile_git(self, url, src, ref, **kw):
+    def _upd8_rawdatafile_git(self, url: str, src: str, ref: str, **kw) -> int:
         r"""Copy one raw data file from remote using ``git show``
 
         :Call:
-            >>> ierr = dkl._upd8_rawdatafile_git(url, src, ref, **kw)
+            >>> ierr = ast._upd8_rawdatafile_git(url, src, ref, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *url*: :class:`str`
                 Full path to git remote
@@ -1528,13 +1827,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return ierr
 
     # Copy one file from remote repo
-    def _upd8_rawdatafile_lfc(self, url, src, ref, **kw):
+    def _upd8_rawdatafile_lfc(self, url: str, src: str, ref: str, **kw) -> int:
         r"""Copy one raw data file from remote using ``lfc show``
 
         :Call:
-            >>> ierr = dkl._upd8_rawdatafile_git(url, src, ref, **kw)
+            >>> ierr = ast._upd8_rawdatafile_git(url, src, ref, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *url*: :class:`str`
                 Full path to git remote
@@ -1575,13 +1874,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return ierr
 
     # Copy one file from remote repo
-    def _upd8_rawdatafile_rsync(self, url, src, **kw):
+    def _upd8_rawdatafile_rsync(self, url: str, src: str, **kw) -> int:
         r"""Copy one raw data file from remote using ``rsync``
 
         :Call:
-            >>> ierr = dkl._upd8_rawdatafile_rsync(url, src, **kw)
+            >>> ierr = ast._upd8_rawdatafile_rsync(url, src, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *url*: :class:`str`
                 Full path to git remote
@@ -1616,13 +1915,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return ierr
 
     # Get list of remote files matching patterns
-    def get_rawdataremote_gitfiles(self, remote="origin"):
+    def get_rawdataremote_gitfiles(self, remote: str = "origin") -> list:
         r"""List all files in candidate raw data remote source
 
         :Call:
-            >>> fnames = dkl.get_rawdataremote_gitfiles(remote="origin")
+            >>> fnames = ast.get_rawdataremote_gitfiles(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1663,13 +1962,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return list(file_set)
 
     # Get list of remote files matching patterns
-    def get_rawdataremote_rsyncfiles(self, remote="origin"):
+    def get_rawdataremote_rsyncfiles(self, remote: str = "origin") -> list:
         r"""List all files in candidate remote folder
 
         :Call:
-            >>> fnames = dkl.get_rawdataremote_rsyncfiles(remote)
+            >>> fnames = ast.get_rawdataremote_rsyncfiles(remote)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1710,13 +2009,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return list(file_set)
 
     # Get full list of files from rawdata source
-    def list_rawdataremote_git(self, remote="origin"):
+    def list_rawdataremote_git(self, remote: str = "origin") -> list:
         r"""List all files in candidate raw data remote source
 
         :Call:
-            >>> ls_files = dkl.list_rawdataremote_git(remote="origin")
+            >>> ls_files = ast.list_rawdataremote_git(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1749,13 +2048,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return stdout.strip().split("\n")
 
     # Get full list of files from rawdata source
-    def list_rawdataremote_rsync(self, remote="origin"):
+    def list_rawdataremote_rsync(self, remote: str = "origin") -> list:
         r"""List all files in candidate raw data remote folder
 
         :Call:
-            >>> ls_files = dkl.list_rawdataremote_rsync(remote="origin")
+            >>> ls_files = ast.list_rawdataremote_rsync(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1787,13 +2086,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return stdout.strip().split("\n")
 
     # Get the best rawdata source
-    def get_rawdataremote_git(self, remote="origin", f=False):
+    def get_rawdataremote_git(self, remote: str = "origin", f: bool = False):
         r"""Get full URL and SHA-1 hash for raw data source repo
 
         :Call:
-            >>> url, sha1 = dkl.get_rawdataremote_git(remote="origin")
+            >>> url, sha1 = ast.get_rawdataremote_git(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1851,13 +2150,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return None, None
 
     # Get commit of current raw data
-    def get_rawdata_sourcecommit(self, remote="origin"):
+    def get_rawdata_sourcecommit(self, remote: str = "origin") -> str:
         r"""Get the latest used SHA-1 hash for a remote
 
         :Call:
-            >>> sha1 = dkl.get_rawdata_sourcecommit(remote="origin")
+            >>> sha1 = ast.get_rawdata_sourcecommit(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote from which to read *opt*
@@ -1874,16 +2173,16 @@ class DataKitLoader(kwutils.KwargHandler):
         return self.rawdata_sources_commit.get(remote)
 
     # Get the best rawdata source (rsync)
-    def get_rawdataremote_rsync(self, remote="origin"):
+    def get_rawdataremote_rsync(self, remote: str = "origin") -> str:
         r"""Get full URL for ``rsync`` raw data source repo
 
         If several options are present, this function checks for the
         first with an extant folder.
 
         :Call:
-            >>> url = dkl.get_rawdataremote_rsync(remote="origin")
+            >>> url = ast.get_rawdataremote_rsync(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1924,13 +2223,16 @@ class DataKitLoader(kwutils.KwargHandler):
                 return url
 
     # Get raw data settings
-    def read_rawdata_json(self, fname="datakit-sources.json", f=False):
+    def read_rawdata_json(
+            self,
+            fname: str = "datakit-sources.json",
+            f: bool = False):
         r"""Read ``datakit-sources.json`` from package's raw data folder
 
         :Call:
-            >>> dkl.read_rawdata_json(fname=None, f=False)
+            >>> ast.read_rawdata_json(fname=None, f=False)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: {``"datakit-sources.json"``} | :class:`str`
                 Relative or absolute file name (rel. to ``rawdata/``)
@@ -1959,9 +2261,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Read ``datakit-sources-commit.json`` from raw data folder
 
         :Call:
-            >>> dkl._read_rawdata_commits_json()
+            >>> ast._read_rawdata_commits_json()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Effects:
             *dkl.rawdata_sources_commit*: :class:`dict`
@@ -1983,9 +2285,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Write ``datakit-sources-commit.json`` in raw data folder
 
         :Call:
-            >>> dkl._write_rawdata_commits_json()
+            >>> ast._write_rawdata_commits_json()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Effects:
             *dkl.rawdata_sources_commit*: :class:`dict`
@@ -2000,13 +2302,13 @@ class DataKitLoader(kwutils.KwargHandler):
             json.dump(self.rawdata_sources_commit, fp, indent=4)
 
     # Get git reference for a specified remote
-    def get_rawdata_ref(self, remote="origin"):
+    def get_rawdata_ref(self, remote: str = "origin") -> str:
         r"""Get optional SHA-1 hash, tag, or branch for raw data source
 
         :Call:
-            >>> ref = dkl.get_rawdata_ref(remote="origin")
+            >>> ref = ast.get_rawdata_ref(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -2024,13 +2326,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return ref
 
     # Get option from rawdata/datakit-sources.json
-    def get_rawdata_opt(self, opt, remote="origin", vdef=None):
+    def get_rawdata_opt(self, opt: str, remote: str = "origin", vdef=None):
         r"""Get a ``rawdata/datakit-sources.json`` setting
 
         :Call:
-            >>> v = dkl.get_rawdata_opt(opt, remote="origin")
+            >>> v = ast.get_rawdata_opt(opt, remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *opt*: :class:`str`
                 Name of option to read
@@ -2059,7 +2361,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Get option, using default as needed
         v = opts_remote.get(opt, vdef)
         # Perform substitutions
-        if typeutils.isstr(v):
+        if isinstance(v, str):
             # Substitute
             v = v % fmt
         elif isinstance(v, (tuple, list)):
@@ -2073,9 +2375,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Get list of remotes from ``rawdata/datakit-sources.json``
 
         :Call:
-            >>> remotes = dkl.get_rawdata_remotelist()
+            >>> remotes = ast.get_rawdata_remotelist()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *remotes*: :class:`list`\ [:class:`str`]
@@ -2094,13 +2396,13 @@ class DataKitLoader(kwutils.KwargHandler):
             return []
 
     # Get list of remote urls to try
-    def _get_rawdataremote_urls(self, remote="origin"):
+    def _get_rawdataremote_urls(self, remote: str = "origin") -> list:
         r"""Get list of candidate URLs for a given remote
 
         :Call:
-            >>> remote_urls = dkl._get_rawdataremote_urls(remote)
+            >>> remote_urls = ast._get_rawdataremote_urls(remote)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote from which to read *opt*
@@ -2136,13 +2438,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return remote_urls
 
     # Check most recent commit
-    def _get_sha1(self, fgit, ref=None):
+    def _get_sha1(self, fgit: str, ref: Optional[str] = None) -> str:
         r"""Get the SHA-1 hash of specified ref from a git repo
 
         :Call:
-            >>> commit = dkl._get_sha1(fgit, ref=None)
+            >>> commit = ast._get_sha1(fgit, ref=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fgit*: :class:`str`
                 URL to a (candidate) git repo
@@ -2165,9 +2467,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Run a command locally or remotely and capture STDOUT
 
         :Call:
-            >>> stdout = dkl._call_o(fgit, cmd, **kw)
+            >>> stdout = ast._call_o(fgit, cmd, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fgit*: :class:`str`
                 URL to a (candidate) git repo
@@ -2200,9 +2502,9 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Run a command locally or remotely and capture STDOUT
 
         :Call:
-            >>> out, err, ierr = dkl._call_o(fgit, cmd, **kw)
+            >>> out, err, ierr = ast._call_o(fgit, cmd, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fgit*: :class:`str`
                 URL to a (candidate) git repo
@@ -2230,13 +2532,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return shellutils._call(cmd, **kw)
 
     # Check if a (remote) folder exists
-    def _isdir(self, url):
+    def _isdir(self, url: str) -> bool:
         r"""Check if a local/remote folder exists
 
         :Call:
-            >>> q = dkl._isdir(url)
+            >>> q = ast._isdir(url)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *url*: :class:`str`
                 URL to a (candidate) local/remote folder
@@ -2267,14 +2569,14 @@ class DataKitLoader(kwutils.KwargHandler):
             return os.path.isdir(os.path.realpath(path))
 
    # --- Generic file names ---
-    def get_abspath(self, frel):
+    def get_abspath(self, frel: str) -> str:
         r"""Get the full filename from path relative to *MODULE_DIR*
 
         :Call:
-            >>> fabs = dkl.get_abspath(frel)
-            >>> fabs = dkl.get_abspath(fabs)
+            >>> fabs = ast.get_abspath(frel)
+            >>> fabs = ast.get_abspath(fabs)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -2295,12 +2597,12 @@ class DataKitLoader(kwutils.KwargHandler):
             # Already absolute
             return frel
         # Get top-level and relative raw-data folder
-        moddir = self.get_option("MODULE_DIR")
+        moddir = self.get_opt("MODULE_DIR")
         # Return full path to file name
         return os.path.join(moddir, frel)
 
    # --- Create folder ---
-    def prep_dirs(self, frel):
+    def prep_dirs(self, frel: str):
         r"""Prepare folders needed for file if needed
 
         Any folders in *frel* that don't exist will be created. For
@@ -2308,14 +2610,12 @@ class DataKitLoader(kwutils.KwargHandler):
         and ``db/csv/`` if they don't already exist.
 
         :Call:
-            >>> dkl.prep_dirs(frel)
+            >>> ast.prep_dirs(frel)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
-            *fabs*: :class:`str`
-                Existing absolute path
         :Keys:
             * *MODULE_DIR*
         :See also:
@@ -2351,13 +2651,13 @@ class DataKitLoader(kwutils.KwargHandler):
             # Create the folder
             os.mkdir(fdir)
 
-    def prep_dirs_rawdata(self, frel):
+    def prep_dirs_rawdata(self, frel: str):
         r"""Prepare folders relative to ``rawdata/`` folder
 
         :Call:
-            >>> dkl.prep_dirs_rawdata(frel)
+            >>> ast.prep_dirs_rawdata(frel)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to ``rawdata/`` folder
@@ -2380,7 +2680,11 @@ class DataKitLoader(kwutils.KwargHandler):
             self.prep_dirs(os.path.join("rawdata", frel))
 
    # --- File checks ---
-    def check_file(self, fname, f=False, dvc=True):
+    def check_file(
+            self,
+            fname: str,
+            f: bool = False,
+            dvc: bool = True):
         r"""Check if a file exists OR a ``.dvc`` version
 
         * If *f* is ``True``, this returns ``False`` always
@@ -2388,9 +2692,9 @@ class DataKitLoader(kwutils.KwargHandler):
         * If *fabs* plus ``.dvc`` exists, it also returns ``True``
 
         :Call:
-            >>> q = dkl.check_file(fname, f=False, dvc=True)
+            >>> q = ast.check_file(fname, f=False, dvc=True)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file [optionally relative to *MODULE_DIR*]
@@ -2424,13 +2728,13 @@ class DataKitLoader(kwutils.KwargHandler):
         # No versions of file exist
         return False
 
-    def check_modfile(self, fname):
+    def check_modfile(self, fname: str) -> bool:
         r"""Check if a file exists OR a ``.dvc`` version
 
         :Call:
-            >>> q = dkl.check_modfile(fname)
+            >>> q = ast.check_modfile(fname)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file [optionally relative to *MODULE_DIR*]
@@ -2447,13 +2751,13 @@ class DataKitLoader(kwutils.KwargHandler):
         # Check if it exists
         return self._check_modfile(fabs)
 
-    def check_dvcfile(self, fname, f=False):
+    def check_dvcfile(self, fname: str, f: bool = False) -> bool:
         r"""Check if a file exists with appended``.dvc`` extension
 
         :Call:
-            >>> q = dkl.check_dvcfile(fname)
+            >>> q = ast.check_dvcfile(fname)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file [optionally relative to *MODULE_DIR*]
@@ -2470,7 +2774,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Check if it exists
         return self._check_dvcile(fabs)
 
-    def _check_modfile(self, fabs):
+    def _check_modfile(self, fabs: str) -> bool:
         # Check if it exists
         if os.path.isfile(fabs):
             # File exists
@@ -2482,7 +2786,7 @@ class DataKitLoader(kwutils.KwargHandler):
             # File does not exist
             return False
 
-    def _check_dvcfile(self, fabs):
+    def _check_dvcfile(self, fabs: str) -> bool:
         # Add the DVC suffix
         fdvc = fabs + ".dvc"
         # Check if it exists
@@ -2497,13 +2801,13 @@ class DataKitLoader(kwutils.KwargHandler):
             return False
 
    # --- Python checks ---
-    def _assert_filename(self, fname, name=None):
+    def _assert_filename(self, fname: str, name: Optional[str] = None):
         r"""Assert type for a file name
 
         :Call:
-            >>> dkl._assert_filename(fname, name=None)
+            >>> ast._assert_filename(fname, name=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of a file
@@ -2513,7 +2817,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-07-07 ``@ddalle``: v1.0
         """
         # Check type
-        if not isinstance(fname, STR_TYPE):
+        if not isinstance(fname, str):
             # Check for a variable name
             if name:
                 raise TypeError(
@@ -2524,13 +2828,14 @@ class DataKitLoader(kwutils.KwargHandler):
                     "File name is '%s'; expected 'str'"
                     % type(fname).__name__)
 
-    def _assert_filename_relative(self, fname, name=None):
+    def _assert_filename_relative(
+            self, fname: str, name: Optional[str] = None):
         r"""Assert that a file name is not absolute
 
         :Call:
-            >>> dkl._assert_filename_relative(fname, name=None)
+            >>> ast._assert_filename_relative(fname, name=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of a file
@@ -2547,20 +2852,16 @@ class DataKitLoader(kwutils.KwargHandler):
                     "File name *%s* is absolute; expected relative" % name)
             else:
                 raise TypeError("File name is absolute; expected relative")
-  # >
 
-  # ==================
-  # DATAKIT MAIN
-  # ==================
-  # <
+  # === DATAKIT MAIN ===
    # --- Combined readers ---
-    def read_db_mat(self, cls=None, **kw):
+    def read_db_mat(self, cls: Optional[type] = None, **kw) -> DataKit:
         r"""Read a datakit using ``.mat`` file type
 
         :Call:
-            >>> db = dkl.read_db_mat(fname, cls=None)
+            >>> db = ast.read_db_mat(fname, cls=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *cls*: {``None``} | :class:`type`
                 Class to read *fname* other than *dkl["DATAKIT_CLS"]*
@@ -2588,13 +2889,13 @@ class DataKitLoader(kwutils.KwargHandler):
         # Output
         return db
 
-    def read_db_csv(self, cls=None, **kw):
+    def read_db_csv(self, cls: Optional[type] = None, **kw) -> DataKit:
         r"""Read a datakit using ``.csv`` file type
 
         :Call:
-            >>> db = dkl.read_db_csv(fname, cls=None)
+            >>> db = ast.read_db_csv(fname, cls=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *cls*: {``None``} | :class:`type`
                 Class to read *fname* other than *dkl["DATAKIT_CLS"]*
@@ -2623,15 +2924,19 @@ class DataKitLoader(kwutils.KwargHandler):
         return db
 
    # --- Combined writers ---
-    def write_db_csv(self, readfunc, f=True, db=None, **kw):
+    def write_db_csv(
+            self,
+            readfunc: Optional[Callable] = None,
+            f: bool = True,
+            db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
         r"""Write (all) canonical db CSV file(s)
 
         :Call:
-            >>> db = dkl.write_db_csv(readfunc, f=True, **kw)
+            >>> db = ast.write_db_csv(readfunc=None, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
-            *readfunc*: **callable**
+            *readfunc*: {``None``} | **callable**
                 Function to read source datakit if needed
             *f*: {``True``} | ``False``
                 Overwrite *fmat* if it exists
@@ -2662,6 +2967,8 @@ class DataKitLoader(kwutils.KwargHandler):
                     ("a list of columns to write for each CSV file"))
         else:
             cols = kw.pop("cols", None)
+        # Default read function
+        readfunc = self._get_readfunc(readfunc)
         # Loop through files
         for j, fname in enumerate(fnames):
             # Get list of cols if needed
@@ -2676,15 +2983,19 @@ class DataKitLoader(kwutils.KwargHandler):
         # Return *db* in case read during process
         return db
 
-    def write_db_mat(self, readfunc, f=True, db=None, **kw):
+    def write_db_mat(
+            self,
+            readfunc: Optional[Callable] = None,
+            f: bool = True,
+            db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
         r"""Write (all) canonical db MAT file(s)
 
         :Call:
-            >>> db = dkl.write_db_mat(readfunc, f=True, **kw)
+            >>> db = ast.write_db_mat(readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
-            *readfunc*: **callable**
+            *readfunc*: {``None``} | **callable**
                 Function to read source datakit if needed
             *f*: {``True``} | ``False``
                 Overwrite *fmat* if it exists
@@ -2715,6 +3026,8 @@ class DataKitLoader(kwutils.KwargHandler):
                     ("a list of columns to write for each MAT file"))
         else:
             cols = kw.pop("cols", None)
+        # Default read function
+        readfunc = self._get_readfunc(readfunc)
         # Loop through files
         for j, fmat in enumerate(fmats):
             # Get list of cols if needed
@@ -2729,15 +3042,19 @@ class DataKitLoader(kwutils.KwargHandler):
         # Return *db* in case read during process
         return db
 
-    def write_db_xlsx(self, readfunc, f=True, db=None, **kw):
+    def write_db_xlsx(
+            self,
+            readfunc: Optional[Callable] = None,
+            f: bool = True,
+            db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
         r"""Write (all) canonical db XLSX file(s)
 
         :Call:
-            >>> db = dkl.write_db_xlsx(readfunc, f=True, **kw)
+            >>> db = ast.write_db_xlsx(readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
-            *readfunc*: **callable**
+            *readfunc*: {``None``} | **callable**
                 Function to read source datakit if needed
             *f*: {``True``} | ``False``
                 Overwrite *fmat* if it exists
@@ -2762,19 +3079,32 @@ class DataKitLoader(kwutils.KwargHandler):
             raise ValueError("Got %i XLS file names; expected 1" % len(fxlss))
         # Unpack file name
         fxls, = fxlss
+        # Default read function
+        readfunc = self._get_readfunc(readfunc)
         # Write file
         db = self.write_dbfile_xlsx(fxls, readfunc, f=f, db=db, **kw)
         # Return *db* in case read during process
         return db
 
+    def _get_readfunc(self, readfunc: Optional[Callable] = None) -> Callable:
+        # Check for default
+        if readfunc is None:
+            return getattr(self.module, "read_db_source")
+        else:
+            return readfunc
+
    # --- Individual file writers ---
-    def write_dbfile_csv(self, fcsv, readfunc, f=True, db=None, **kw):
+    def write_dbfile_csv(
+            self, fcsv: str,
+            readfunc: Callable,
+            f: bool = True,
+            db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
         r"""Write a canonical db CSV file
 
         :Call:
-            >>> db = dkl.write_dbfile_csv(fcsv, readfunc, f=True, **kw)
+            >>> db = ast.write_dbfile_csv(fcsv, readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fscv*: :class:`str`
                 Name of file to write
@@ -2792,8 +3122,8 @@ class DataKitLoader(kwutils.KwargHandler):
                 to be used in other write functions
         :Versions:
             * 2021-09-10 ``@ddalle``: v1.0
-            * 2021-09-15 ``@ddalle``: Version 1.1; check for DVC stub
-            * 2021-09-15 ``@ddalle``: Version 1.2; add *dvc* option
+            * 2021-09-15 ``@ddalle``: v1.1; check for DVC stub
+            * 2021-09-15 ``@ddalle``: v1.2; add *dvc* option
         """
         # DVC option
         dvc = kw.get("dvc", False)
@@ -2831,13 +3161,17 @@ class DataKitLoader(kwutils.KwargHandler):
         # Return *db* in case it was read during process
         return db
 
-    def write_dbfile_mat(self, fmat, readfunc, f=True, db=None, **kw):
+    def write_dbfile_mat(
+            self, fmat: str,
+            readfunc: Callable,
+            f: bool = True,
+            db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
         r"""Write a canonical db MAT file
 
         :Call:
-            >>> db = dkl.write_dbfile_mat(fmat, readfunc, f=True, **kw)
+            >>> db = ast.write_dbfile_mat(fmat, readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fmat*: :class:`str`
                 Name of file to write
@@ -2855,8 +3189,8 @@ class DataKitLoader(kwutils.KwargHandler):
                 to be used in other write functions
         :Versions:
             * 2021-09-10 ``@ddalle``: v1.0
-            * 2021-09-15 ``@ddalle``: Version 1.1; check for DVC stub
-            * 2021-09-15 ``@ddalle``: Version 1.2; add *dvc* option
+            * 2021-09-15 ``@ddalle``: v1.1; check for DVC stub
+            * 2021-09-15 ``@ddalle``: v1.2; add *dvc* option
         """
         # DVC option
         dvc = kw.get("dvc", False)
@@ -2894,13 +3228,17 @@ class DataKitLoader(kwutils.KwargHandler):
         # Return *db* in case it was read during process
         return db
 
-    def write_dbfile_xlsx(self, fxls, readfunc, f=True, db=None, **kw):
+    def write_dbfile_xlsx(
+            self, fxls: str,
+            readfunc: Callable,
+            f: bool = True,
+            db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
         r"""Write a canonical db XLSX file
 
         :Call:
-            >>> db = dkl.write_dbfile_xlsx(fmat, readfunc, f=True, **kw)
+            >>> db = ast.write_dbfile_xlsx(fmat, readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fxlsx*: :class:`str`
                 Name of file to write
@@ -2956,13 +3294,13 @@ class DataKitLoader(kwutils.KwargHandler):
         return db
 
    # --- Individual file readers ---
-    def read_dbfile_mat(self, fname, **kw):
+    def read_dbfile_mat(self, fname: str, **kw) -> DataKit:
         r"""Read a ``.mat`` file from *DB_DIR*
 
         :Call:
-            >>> db = dkl.read_dbfile_mat(fname, **kw)
+            >>> db = ast.read_dbfile_mat(fname, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -2983,13 +3321,13 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read from db/ folder
         return self.read_dbfile(fname, "mat", **kw)
 
-    def read_dbfile_csv(self, fname, **kw):
+    def read_dbfile_csv(self, fname: str, **kw) -> DataKit:
         r"""Read a ``.mat`` file from *DB_DIR*
 
         :Call:
-            >>> db = dkl.read_dbfile_mat(fname, **kw)
+            >>> db = ast.read_dbfile_mat(fname, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -3010,13 +3348,13 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read from db/ folder
         return self.read_dbfile(fname, "csv", **kw)
 
-    def read_dbfile_csv_rbf(self, fname, **kw):
+    def read_dbfile_csv_rbf(self, fname: str, **kw) -> DataKit:
         r"""Read a ``.mat`` file from *DB_DIR*
 
         :Call:
-            >>> db = dkl.read_dbfile_mat(fname, **kw)
+            >>> db = ast.read_dbfile_mat(fname, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -3037,13 +3375,13 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read from db/ folder
         return self.read_dbfile(fname, "csv", **kw)
 
-    def read_dbfile(self, fname, ext, **kw):
+    def read_dbfile(self, fname: str, ext: str, **kw) -> DataKit:
         r"""Read a databook file from *DB_DIR*
 
         :Call:
-            >>> db = dkl.read_dbfile_mat(self, ext, **kw)
+            >>> db = ast.read_dbfile_mat(self, ext, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: ``None`` | :class:`str`
                 Name of file to read from raw data folder
@@ -3067,13 +3405,17 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read that file
         return self._read_dbfile(fabs, **kw)
 
-    def read_rawdatafile(self, fname, ftype=None, cls=None, **kw):
+    def read_rawdatafile(
+            self,
+            fname: str,
+            ftype: Optional[str] = None,
+            cls: Optional[type] = None, **kw) -> DataKit:
         r"""Read a file from the *RAW_DATA* folder
 
         :Call:
-            >>> db = dkl.read_rawdatafile(fname, ftype=None, **kw)
+            >>> db = ast.read_rawdatafile(fname, ftype=None, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -3090,7 +3432,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * :func:`get_rawdatafilename`
         :Versions:
             * 2021-06-25 ``@ddalle``: v1.0
-            * 2021-07-07 ``@ddalle``: Version 1.1
+            * 2021-07-07 ``@ddalle``: v1.1
                 - use :func:`get_rawdatafilename`
         """
         # Absolute file name
@@ -3098,13 +3440,16 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read that file
         return self._read_dbfile(fabs, ftype=ftype, cls=cls, **kw)
 
-    def _read_dbfile(self, fabs, ftype=None, cls=None, **kw):
+    def _read_dbfile(
+            self, fabs: str,
+            ftype: Optional[str] = None,
+            cls: Optional[type] = None, **kw) -> DataKit:
         r"""Read a file using specified DataKit class
 
         :Call:
-            >>> db = dkl._read_dbfile(fabs, ftype=None, cls=None, **kw)
+            >>> db = ast._read_dbfile(fabs, ftype=None, cls=None, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -3121,11 +3466,11 @@ class DataKitLoader(kwutils.KwargHandler):
                 DataKit instance read from *fname*
         :Versions:
             * 2021-06-28 ``@ddalle``: v1.0
-            * 2021-09-23 ``@ddalle``: Version 1.1; check ``dvc status``
+            * 2021-09-23 ``@ddalle``: v1.1; check ``dvc status``
         """
         # Default class
         if cls is None:
-            cls = self.get_option("DATAKIT_CLS")
+            cls = self.get_opt("DATAKIT_CLS")
         # Option: whether or not to check for DVC files
         dvc = kw.get("dvc", True)
         # Check for DVC file
@@ -3145,7 +3490,9 @@ class DataKitLoader(kwutils.KwargHandler):
         # Check if file exists
         if not self._check_modfile(fabs):
             # No such file
-            raise NOFILE_ERROR("No file '%s' found" % fabs)
+            raise FileNotFoundError("No file '%s' found" % fabs)
+        # Default class
+        cls = DataKit if cls is None else cls
         # Check for user-specified file type
         if ftype is None:
             # Let *cls* determine the file type
@@ -3157,13 +3504,13 @@ class DataKitLoader(kwutils.KwargHandler):
             return cls(**kw)
 
    # --- Read/write attributes ---
-    def get_dbdir_by_type(self, ext):
+    def get_dbdir_by_type(self, ext: str) -> str:
         r"""Get datakit directory for given file type
 
         :Call:
-            >>> dkl.get_db_dir_by_type(ext)
+            >>> ast.get_db_dir_by_type(ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *ext*: :class:`str`
                 File extension type
@@ -3178,17 +3525,17 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-06-29 ``@ddalle``: v1.0
         """
         # Dictionary of db folders for each file format
-        dbtypedirs = self.get_option("DB_DIRS_BY_TYPE", {})
+        dbtypedirs = self.get_opt("DB_DIRS_BY_TYPE", vdef={})
         # Get option for specified file type
         return dbtypedirs.get(ext, ext)
 
-    def get_db_suffixes_by_type(self, ext):
+    def get_db_suffixes_by_type(self, ext: str) -> list:
         r"""Get list of suffixes for given data file type
 
         :Call:
-            >>> suffixes = dkl.get_db_suffixes_by_type(ext)
+            >>> suffixes = ast.get_db_suffixes_by_type(ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *ext*: :class:`str`
                 File extension type
@@ -3201,7 +3548,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * 2021-07-01 ``@ddalle``: v1.0
         """
         # Dictionary of db suffixes for each file format
-        suffixdict = self.get_option("DB_SUFFIXES_BY_TYPE", {})
+        suffixdict = self.get_opt("DB_SUFFIXES_BY_TYPE", vdef={})
         # Get suffixes for this type
         suffixes = suffixdict.get(ext)
         # Check for any
@@ -3218,13 +3565,13 @@ class DataKitLoader(kwutils.KwargHandler):
             # Convert single suffix to list
             return [suffixes]
 
-    def get_db_filenames_by_type(self, ext):
+    def get_db_filenames_by_type(self, ext: str) -> list:
         r"""Get list of file names for a given data file type
 
         :Call:
-            >>> fnames = dkl.get_db_filenames_by_type(ext)
+            >>> fnames = ast.get_db_filenames_by_type(ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *ext*: :class:`str`
                 File extension type
@@ -3253,7 +3600,6 @@ class DataKitLoader(kwutils.KwargHandler):
             fnames.append(fname)
         # Output
         return fnames
-  # >
 
 
 # Convert to list
@@ -3295,4 +3641,5 @@ def _listify(v):
     else:
         # Create singleton
         return [v]
+
 

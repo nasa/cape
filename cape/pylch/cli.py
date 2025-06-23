@@ -10,8 +10,6 @@ executed whenever ``pylch`` is used.
 from typing import Optional
 
 # Local imports
-from .casecntl import CaseRunner
-from .cntl import Cntl
 from ..cfdx import cli
 
 
@@ -25,8 +23,8 @@ class PylchFrontDesk(cli.CfdxFrontDesk):
     _help_title = "Interact with Loci/CHEM run matrix using CAPE"
 
     # Custom classes
-    _cntl_cls = Cntl
-    _runner_cls = CaseRunner
+    _cntl_mod = "cape.pylch.cntl"
+    _casecntl_mod = "cape.pylch.casecntl"
 
 
 # New-style CLI

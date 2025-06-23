@@ -26,6 +26,7 @@ import numpy as np
 from . import arrayutils
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
 from ..tnakit import typeutils
+from ..util import split_line
 
 # Local extension
 try:
@@ -688,8 +689,11 @@ class CSVFile(BaseFile, TextInterpreter):
         # Check for empty line
         if line.strip() == "":
             return
+        coltxts = []
         # Split line
-        coltxts = [txt.strip() for txt in line.split(",")]
+        coltxts = split_line(line, ",", len(self.cols))
+        # Clear whitespace
+        coltxts = [txt.strip() for txt in coltxts]
         # List of types
         _types = self._types
         # Loop through columns
@@ -979,6 +983,8 @@ class CSVFile(BaseFile, TextInterpreter):
                 fmti = self.get_col_prop(col, "WriteFormat", fmti)
                 # Get format, using above default
                 fmti = fmts.get(col, fmti)
+                # Default
+                fmti = '%s' if fmti is None else fmti
                 # Save to list
                 fmt_list.append(fmti)
             # Just use the delimiter

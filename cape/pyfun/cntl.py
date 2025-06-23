@@ -41,6 +41,7 @@ class are also available here.
 
 # Standard library
 import os
+import re
 import shutil
 
 # Third-party modules
@@ -65,21 +66,26 @@ _fname = os.path.abspath(__file__)
 PyFunFolder = os.path.split(_fname)[0]
 
 # Adiabatic wall set
-ADIABATIC_WALLBCS = {3000, 4000, 4100, 4110}
+ADIABATIC_WALLBCS = (3000, 4000, 4100, 4110)
 
 # boundary_list wall set
-BLIST_WALLBCS = {
+BLIST_WALLBCS = (
     3000, 4000, 4100, 4110,
     5051, 5052, 7011, 7012,
     7021, 7031, 7036, 7100,
     7101, 7103, 7104, 7105
-}
+)
+BCS_WALL = (
+    3000, 4000, 4100, 4110)
+
+# Regular expression to parse a slice
+REGEX_SLICE = re.compile(r"(?P<a>[0-9]+)([-:](?P<b>[0-9]+))?")
+REGEX_IS_SLICE = re.compile(r"[0-9]+([,:-][0-9]+)*")
 
 
 # Class to read input files
 class Cntl(cntl.UgridCntl):
-    r"""
-    Class for handling global options and setup for FUN3D
+    r"""Class for handling global options and setup for FUN3D
 
     This class is intended to handle all settings used to describe a
     group of FUN3D cases.  For situations where it is not sufficiently
@@ -112,10 +118,7 @@ class Cntl(cntl.UgridCntl):
     :Versions:
         * 2015-10-16 ``@ddalle``: v1.0
     """
-  # ==================
-  # Class attributes
-  # ==================
-  # <
+  # === Class attributes ===
     # Names
     _name = "pyfun"
     _solver = "fun3d"
@@ -134,12 +137,8 @@ class Cntl(cntl.UgridCntl):
         "*.flow",
         "*.ugrid",
     ]
-  # >
 
-  # ==================
-  # Init config
-  # ==================
-  # <
+  # === Init config ===
     def init_post(self):
         r"""Do ``__init__()`` actions specific to ``pyfun``
 
@@ -157,12 +156,8 @@ class Cntl(cntl.UgridCntl):
         self.ReadRubberData()
         self.ReadMapBC()
         self.ReadConfig()
-  # >
 
-  # =======================
-  # Command-Line Interface
-  # =======================
-  # <
+  # === Command-Line Interface ===
     # Baseline function
     def cli(self, *a, **kw):
         r"""Command-line interface
@@ -223,12 +218,7 @@ class Cntl(cntl.UgridCntl):
             # Submit the jobs
             self.SubmitJobs(**kw)
 
-  # >
-
-  # ========
-  # Readers
-  # ========
-  # <
+  # === Readers ===
     # Call special post-read DataBook functions
     def ReadDataBookPost(self):
         r"""Do ``pyfun`` specific init actions after reading DataBook
@@ -243,12 +233,8 @@ class Cntl(cntl.UgridCntl):
         """
         # Save project name
         self.DataBook.proj = self.GetProjectRootName(None)
-  # >
 
-  # ========
-  # Namelist
-  # ========
-  # <
+  # === Namelist ===
     # Read the namelist
     def ReadNamelist(self, j=0, q=True):
         r"""Read the :file:`fun3d.nml` file
@@ -395,12 +381,7 @@ class Cntl(cntl.UgridCntl):
         """
         return self.GetNamelistVar('raw_grid', 'grid_format', j)
 
-  # >
-
-  # ===========
-  # Other Files
-  # ===========
-  # <
+  # === Other Files ===
     # Read the boundary condition map
     @cntl.run_rootdir
     def ReadMapBC(self, j=0, q=True):
@@ -421,7 +402,7 @@ class Cntl(cntl.UgridCntl):
             BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
         except OSError:
             return
-        # Save it.
+        # Save it
         if q:
             # Read to main slot.
             self.MapBC = BC
@@ -645,12 +626,8 @@ class Cntl(cntl.UgridCntl):
             surfs.append(surf)
         # Save
         self.FreezeSurfs = surfs
-  # >
 
-  # =====
-  # Case
-  # =====
-  # <
+  # === Case ===
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
         r"""Check if the current folder has the necessary files to run
@@ -748,12 +725,8 @@ class Cntl(cntl.UgridCntl):
         os.chdir(fpwd)
         # Output
         return q
-  # >
 
-  # ======
-  # Mesh
-  # ======
-  # <
+  # === Mesh ===
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared
@@ -884,16 +857,8 @@ class Cntl(cntl.UgridCntl):
         # Output
         return q
 
-  # >
-
-  # ===========
-  # Preparation
-  # ===========
-  # <
-   # ------------
-   # General Case
-   # ------------
-   # [
+  # === Preparation ===
+   # --- General Case ---
     # Prepare the mesh for case *i* (if necessary)
     @cntl.run_rootdir
     def PrepareMesh(self, i: int):
@@ -911,6 +876,7 @@ class Cntl(cntl.UgridCntl):
             * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
             * 2024-11-01 ``@ddalle``: v1.2; exfiltrate AFLR3 prep
             * 2024-11-04 ``@ddalle``: v1.3; exfiltrate *WarmStart* prep
+            * 2025-03-26 ``@ddalle``: v1.4; (copy|link)_files()
         """
        # ---------
        # Case info
@@ -951,11 +917,16 @@ class Cntl(cntl.UgridCntl):
        # ----------
        # Copy files
        # ----------
+        # Copy/link basic files
+        self.copy_files(i)
+        self.link_files(i)
         # Prepare warmstart files, if any
         warmstart = self.PrepareMeshWarmStart(i)
         # Finish if case was warm-started
         if warmstart:
             return
+        # Option to linke instead of copying
+        linkopt = self.opts.get_LinkMesh()
         # Get the names of the raw input files and target files
         finp = self.GetInputMeshFileNames()
         fmsh = self.GetProcessedMeshFileNames()
@@ -966,7 +937,10 @@ class Cntl(cntl.UgridCntl):
             f1 = fmshj
             # Copy fhe file.
             if os.path.isfile(f0) and not os.path.isfile(f1):
-                shutil.copyfile(f0, f1)
+                if linkopt:
+                    os.symlink(f0, f1)
+                else:
+                    shutil.copyfile(f0, f1)
        # ------------------
        # Triangulation prep
        # ------------------
@@ -1066,12 +1040,8 @@ class Cntl(cntl.UgridCntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
-   # ]
 
-   # --------
-   # Namelist
-   # --------
-   # [
+   # --- Namelist ---
     # Function to prepare "input.cntl" files
     @cntl.run_rootdir
     def PrepareNamelist(self, i: int):
@@ -1089,6 +1059,7 @@ class Cntl(cntl.UgridCntl):
             * 2014-06-06 ``@ddalle``: v1.1; low-level grid folder funcs
             * 2014-09-30 ``@ddalle``: v1.2; single case at a time
             * 2018-04-19 ``@ddalle``: v1.3; separate flight conditions
+            * 2025-04-13 ``@ddalle``: v1.4; remove PrepareAdiaba...()
         """
         # Ensure case index is set
         self.opts.setx_i(i)
@@ -1096,15 +1067,12 @@ class Cntl(cntl.UgridCntl):
         self.ReadNamelist()
         # Set the flight conditions
         self.PrepareNamelistFlightConditions(i)
-
-        # Get the casecntl.
+        # Get the case folder name
         frun = self.x.GetFullFolderNames(i)
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
         # Set up boundary list
         self.PrepareNamelistBoundaryList()
-        # Prepare Adiabatic walls
-        self.PrepareNamelistAdiabaticWalls()
 
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
@@ -1132,6 +1100,8 @@ class Cntl(cntl.UgridCntl):
             # Main folder
             fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
 
+        # Customize mapbc file
+        self.PrepareMapBC()
         # Prepare internal boundary conditions
         self.PrepareNamelistBoundaryConditions()
         # Write the BC file
@@ -1149,13 +1119,12 @@ class Cntl(cntl.UgridCntl):
                 # First run sequence; not restart
                 self.Namelist.set_opt(
                     'code_run_control', 'restart_read', 'off')
-            elif self.opts.get_AdaptMethod() != "refine/three":
+            else:
                 # Later sequence; restart
                 self.Namelist.set_opt('code_run_control', 'restart_read', 'on')
             # Get the reduced namelist for sequence *j*
             nopts = self.opts.select_namelist(j)
             dopts = self.opts.select_dual_namelist(j)
-            mopts = self.opts.select_moving_body_input(j)
             # Apply them to this namelist
             self.Namelist.apply_dict(nopts)
             # Set number of iterations
@@ -1206,21 +1175,117 @@ class Cntl(cntl.UgridCntl):
                     self.GetProjectRootName(j+1))
                 # Write the adjoint namelist
                 self.Namelist.write(fout)
-            # Apply "moving_body.input" parameters, if any
-            if mopts:
-                self.MovingBodyInput.apply_dict(mopts)
-            # Check for valid "moving_body.input" instructions
-            if self.Namelist.get_opt("global", "moving_grid"):
-                # Name out oufput file
-                if self.opts.get_Dual():
-                    # Write in the "Flow/" folder
-                    fout = os.path.join(
-                        frun, 'Flow', 'moving_body.%02i.input' % j)
-                else:
-                    # Write in the case folder
-                    fout = os.path.join(frun, 'moving_body.%02i.input' % j)
-                # Write the file
-                self.MovingBodyInput.Write(fout)
+            # Prepare moving body inputs for phase
+            self.PrepareMovingBodyInputsPhase(i, j)
+
+    @cntl.run_rootdir
+    def PrepareMovingBodyInputsPhase(self, i: int, j: int):
+        r"""Customize MovingBodyInputs file for case *i*
+
+        :Call:
+            >>> cntl.PrepareMovingBodyInputs(i)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of FUN3D control class
+            *i*: :class:`int`
+                Run index
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2025-05-16 ``@aburkhea``: v1.0; split off PrepareNamelist
+        """
+        # Get the case folder name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for valid "moving_body.input" instructions
+        if not self.Namelist.get_opt("global", "moving_grid"):
+            return
+        # Apply "moving_body.input" parameters, if any
+        self.PrepareMovingBodyPhase(j)
+        # Name out oufput file
+        if self.opts.get_Dual():
+            # Write in the "Flow/" folder
+            fout = os.path.join(
+                frun, 'Flow', 'moving_body.%02i.input' % j)
+        else:
+            # Write in the case folder
+            fout = os.path.join(frun, 'moving_body.%02i.input' % j)
+        # Write the file
+        self.MovingBodyInput.write(fout)
+
+    # Apply customizations to ``.mapbc`` file
+    def PrepareMapBC(self):
+        r"""Customize MapBC file baed on ``"MapBC"`` section
+
+        :Call:
+            >>> cntl.PrepareMapBC()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2025-04-27 ``@ddalle``: v1.0
+            * 2025-05-22 ``@ddalle``: v1.1; use MapBC IDs
+        """
+        # Get "MapBC" options
+        bcopts = self.opts.get("MapBC", {})
+        # Check for mapbc
+        mapbc = getattr(self, "MapBC", None)
+        # Exit if none
+        if mapbc is None or bcopts is None:
+            return
+        # Loop through
+        for surf, bc in bcopts.items():
+            # Get component IDs (based on grid)
+            compids = self.GetConfigBody(surf)
+            # Set the BC for each
+            for compid in compids:
+                # Set it
+                mapbc.SetBC(compid, bc)
+
+    # Prepare moving_body.input for phase *j*
+    def PrepareMovingBodyPhase(self, j: int):
+        r"""Prepare ``moving_body.input`` namelist for phase *j*
+
+        :Call:
+            >>> cntl.PrepareMovingBodyPhase(j)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of FUN3D control class
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2025-04-27 ``@ddalle``: v1.0
+        """
+        # Get namelist
+        nml = self.MovingBodyInput
+        # Skip if not defined
+        if nml is None:
+            return
+        # Get moving body definitions
+        nbody = self.opts.get_ConfigNBody()
+        # Name of special section
+        sec = "body_definitions"
+        opt = "defining_bndry"
+        # Loop through them
+        for k in range(nbody):
+            # Get definition
+            comps = self.opts.get_ConfigMovingBody(k)
+            # Initialize list of mapbc surf indices
+            mapbcidlist = []
+            # Loop through components
+            for comp in comps:
+                # Get list of mapbc surf indices in this component
+                mapbcidlist.extend(self.GetConfigBody(comp))
+            # Ensure unique list of IDs
+            bodyids = np.unique(mapbcidlist)
+            # Loop through each MapBC row in this "body"
+            for j, i in enumerate(bodyids):
+                # Set this entry
+                nml.set_opt(sec, opt, i, j=(j, k))
+        # Select options
+        mopts = self.opts.select_moving_body_input(j)
+        # Apply "moving_body.input" parameters, if any
+        if mopts:
+            nml.apply_dict(mopts)
 
     # Prepare freestream conditions
     def PrepareNamelistFlightConditions(self, i):
@@ -1447,42 +1512,30 @@ class Cntl(cntl.UgridCntl):
                 FUN3D settings interface
         :Versions:
             * 2018-10-24 ``@ddalle``: v1.0
-            * 2019-??-?? ``@jmeeroff``: v1.1; auto wall
+            * 2019-10-01 ``@jmeeroff``: v1.1; auto wall
             * 2022-07-13 ``@ddalle``: v1.2; "auto" flag
         """
+        # Section name
+        sec = "boundary_conditions"
         # Get default type
-        auto_bcs = self.GetNamelistVar("boundary_conditions", "auto")
+        auto_bcs = self.GetNamelistVar(sec, "adiabatic_wall")
         # Check for auto bcs
         if not auto_bcs:
             return
         # Namelist handle
         nml = self.Namelist
-        # Save some labels
-        bcs = "boundary_conditions"
-        wtf = "wall_temp_flag"
-        wrf = "wall_radeq_flag"
-        wtk = "wall_temperature"
         # Set the wall temperature flag for adiabatic wall
-        for k in range(self.MapBC.n):
-            # Get the boundary type
-            BC = self.MapBC.BCs[k]
+        for k, bc in enumerate(self.MapBC.BCs):
             # Check for viscous wall
-            if BC in [3000, 4000, 4100, 4110]:
+            if bc in BCS_WALL:
                 # Get current options
-                flag = nml.get_opt(bcs, wtf, k+1)
-                vwrf = nml.get_opt(bcs, wrf, k+1)
-                temp = nml.get_opt(bcs, wtk, k+1)
+                vwrf = nml.get_opt(sec, "wall_radeq_flag", k+1)
                 # Escape if using wall radiative equilibrium
                 if vwrf:
                     continue
-                # Set the wall temperature flag
-                if flag is None:
-                    # Use a wall temperature
-                    nml.set_opt(bcs, wtf, True, k+1)
-                # Set the temperature
-                if temp is None:
-                    # Use adiabatic wall
-                    nml.set_opt(bcs, wtk, -1, k+1)
+                # Set wall temperature flag to .t. and temperature to -1
+                nml.set_opt(sec, "wall_temp_flag", True, k+1)
+                nml.set_opt(sec, "wall_temperature", -1, k+1)
 
     # Set adiabatic boundary condition flags
     def PrepareNamelistAdiabaticWalls(self):
@@ -1647,12 +1700,8 @@ class Cntl(cntl.UgridCntl):
                     inp = RangeString(surf)
         # Set namelist value
         nml.set_opt('boundary_output_variables', 'boundary_list', inp)
-   # ]
 
-   # -----------
-   # Other Files
-   # -----------
-   # [
+   # --- Other Files ---
     # Prepare ``rubber.data`` file
     def PrepareRubberData(self, i):
         r"""Prepare ``rubber.data`` file if appropriate
@@ -1880,13 +1929,8 @@ class Cntl(cntl.UgridCntl):
         fout = os.path.join(frun, "kineticdata")
         # Copy the file
         shutil.copy(fname, fout)
-   # ]
-  # >
 
-  # =============
-  # SurfCT/SurfBC
-  # =============
-  # <
+  # === SurfCT/SurfBC ===
     # Prepare surface BC
     def SetSurfBC(self, key, i, CT=False):
         r"""Set all surface BCs and flow initialization for one key
@@ -2222,12 +2266,8 @@ class Cntl(cntl.UgridCntl):
         U   = M * c
         # Output
         return rho, U, c
-  # >
 
-  # ===========
-  # Surface IDs
-  # ===========
-  # <
+  # === Surface IDs ===
     # Get surface ID numbers
     def CompID2SurfID(self, compID):
         r"""Convert triangulation component ID to surface index
@@ -2306,8 +2346,58 @@ class Cntl(cntl.UgridCntl):
         return self.MapBC.GetSurfID(comp)
 
     # Get string describing which components are in config
-    def GetConfigInput(self, comp, warn=False):
-        r"""
+    def GetConfigBody(self, comp: str, warn: bool = False) -> list:
+        r"""Convert face name to list of MapBC indices
+
+        Determine which component indices are in a named component based
+        on the MapBC file, which is always numbered 1,2,...,N.  Output
+        the format as a nice string, such as ``"4-10,13,15-18"``.
+
+        If possible, this is read from the ``"Inputs"`` subsection of
+        the ``"Config"`` section of the master JSON file.  Otherwise,
+        it is read from the ``"mapbc"`` and configuration files.
+
+        :Call:
+            >>> cids = cntl.GetConfigInput(comp, warn=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *comp*: :class:`str`
+                Name of component to process
+            *warn*: ``True`` | {``False``}
+                Whether or not to print warnings if not raising errors
+        :Outputs:
+            *cids*: :class:`list`\ [:class:`str`]
+                List of MapBC inds (1-based) in *comp*
+        :Versions:
+            * 2025-05-16 ``@ddalle``: v1.0 (from GetConfigInput())
+        """
+        # Initialize
+        surf = []
+        # Get names of all child components, including *comp*
+        family = self.config.GetFamily(comp)
+        # Loop through components
+        for face in family:
+            # Check if present
+            if face not in self.MapBC.Names:
+                continue
+            # Get the surf from MapBC
+            surfID = self.MapBC.GetSurfIndex(face, check=True, warn=False) + 1
+            # If one was found, append it
+            if surfID is not None:
+                surf.append(surfID)
+        # Check for empty
+        if len(surf) == 0:
+            print(f"     Component '{comp}' has no matches in mapbc file")
+            return []
+        # Sort the surface IDs to prepare RangeString
+        surf.sort()
+        return surf
+
+    # Get string describing which components are in config
+    def GetConfigInput(self, comp: str, warn: bool = False):
+        r"""Convert face name to list of MapBC indices
+
         Determine which component indices are in a named component based
         on the MapBC file, which is always numbered 1,2,...,N.  Output
         the format as a nice string, such as ``"4-10,13,15-18"``.
@@ -2330,6 +2420,7 @@ class Cntl(cntl.UgridCntl):
                 String describing list of integers included
         :Versions:
             * 2016-10-21 ``@ddalle``: v1.0
+            * 2025-03-13 ``@ddalle``: v2.0; use config.GetFamily()
         """
         # Get input definitions.
         inp = self.opts.get_ConfigInput(comp)
@@ -2342,38 +2433,15 @@ class Cntl(cntl.UgridCntl):
             self.config
         except Exception:
             return
-        # Initialize
-        surf = []
-        # Get raw components IDs
-        compIDs = self.config.GetCompID(comp)
-        # Loop through components
-        for compID in compIDs:
-            # Check if present
-            if compID not in self.MapBC.CompID:
-                continue
-            # Get the surf from MapBC
-            surfID = self.MapBC.GetSurfID(compID, check=True, warn=False)
-            # If one was found, append it
-            if surfID is not None:
-                surf.append(surfID)
-        # Check for empty
-        if len(surf) == 0:
-            print(f"Component {comp} has no matches in mapbc file")
-            return
-        # Sort the surface IDs to prepare RangeString
-        surf.sort()
+        # Determine entries from MapBC
+        surf = self.GetConfigBody(comp, warn=warn)
+        if surf is None or len(surf) == 0:
+            return ""
         # Convert to string
-        if len(surf) > 0:
-            inp = RangeString(surf)
-        # Output
+        inp = RangeString(surf)
         return inp
 
-  # >
-
-  # =================
-  # Case Modification
-  # =================
-  # <
+  # === Case Modification ===
     # Function to apply namelist settings to a case
     def ApplyCase(self, i: int, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
@@ -2457,12 +2525,8 @@ class Cntl(cntl.UgridCntl):
         nPBS = self.opts.get_nPBS()
         print("  Writing PBS scripts 0 to %s" % (nPBS-1))
         self.WritePBS(i)
-  # >
 
-  # ==============
-  # Case Interface
-  # ==============
-  # <
+  # === Case Interface ===
     # Read a namelist from a case folder
     def ReadCaseNamelist(self, i: int, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
@@ -2490,6 +2554,4 @@ class Cntl(cntl.UgridCntl):
             return
         # Read the namelist
         return runner.read_namelist(j=j)
-  # >
 
-# class Fun3d

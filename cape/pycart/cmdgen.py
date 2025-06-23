@@ -29,7 +29,7 @@ import os.path
 
 # Local imports
 from .options import Options
-from ..cfdx.cmdgen import isolate_subsection, append_cmd_if
+from ..cfdx.cmdgen import append_cmd_if, isolate_subsection, mpiexec
 
 
 # Function to call cubes.
@@ -257,8 +257,6 @@ def flowCart(opts=None, j=0, **kw):
     mg_fc = opts.get_mg_fc(j)
     fmg = opts.get_fmg(j)
     tm = opts.get_tm(j)
-    nProc = opts.get_nProc(j)
-    mpicmd = opts.get_mpicmd(j)
     buffLim = opts.get_buffLim(j)
     td_fc = opts.get_unsteady(j)
     dt = opts.get_dt(j)
@@ -273,7 +271,7 @@ def flowCart(opts=None, j=0, **kw):
     # Initialize command.
     if mpi_fc:
         # Use mpi_flowCart but not unsteady
-        cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', '-his']
+        cmd = mpiexec(opts, j) + ["mpix_flowCart", "-his"]
     else:
         # Use single-node flowCart.
         cmd = ['flowCart', '-his']
