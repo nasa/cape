@@ -2646,7 +2646,7 @@ def compress_indices(
         # Empty array
         return node_indices
     # Maximum index we need to renumber
-    nmax = np.max(node_indices)
+    nmax = max(np.max(keep_indices), np.max(node_indices))
     # Check for trivial case
     if keep_indices.size / nmax >= 0.999:
         # Keep all nodes
@@ -2658,12 +2658,13 @@ def compress_indices(
         iold = keep_indices
     # Number of nodes
     nnode = iold.size
-    # Maximum index we need to renumber
-    nmax = np.max(node_indices)
     # Initilialize array of new indices
     inew = np.zeros(nmax, dtype=iold.dtype)
     # Create map
-    inew[iold - 1] = np.arange(1, nnode + 1, dtype=iold.dtype)
+    try:
+        inew[iold - 1] = np.arange(1, nnode + 1, dtype=iold.dtype)
+    except Exception:
+        breakpoint()
     # Renumber nodes
     new_inds = inew[node_indices - 1]
     # Output
