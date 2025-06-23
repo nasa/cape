@@ -3088,6 +3088,35 @@ class CntlBase(ABC):
             # Revert options
             self.RevertOptions()
 
+    # Delete jobs
+    def qdel_cases(self, **kw):
+        r"""Kill/stop PBS job of cases
+
+        This function deletes a case's PBS/Slurm jobbut not delete the
+        foder for a case.
+
+        :Call:
+            >>> cntl.qdel_cases(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List of cases to delete
+            *kw*: :class:`dict`
+                Other subset parameters, e.g. *re*, *cons*
+        :Versions:
+            * 2025-06-22 ``@ddalle``: v1.0
+        """
+        # Delete one case (maybe)
+        def qdel_case(i: int) -> int:
+            # Check queue
+            que = self.getval("queue", i)
+            # Delete if status other than '.'
+            if que and (que != '.'):
+                return self.StopCase(i)
+        # Case loop
+        self.caseloop_verbose(qdel_case, **kw)
+
     # Delete cases
     def rm_cases(self, prompt: bool = True, **kw) -> int:
         r"""Delete one or more cases

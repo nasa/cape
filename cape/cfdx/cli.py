@@ -809,7 +809,7 @@ class CfdxFailArgs(_CfdxSubsetArgs):
 
 
 # Settings for --qdel
-class CfdxQdelArgs(_CfdxSubsetArgs):
+class CfdxQdelArgs(_CfdxCaseLoopArgs):
     # No attributes
     __slots__ = ()
 
@@ -856,7 +856,7 @@ class CfdxReportArgs(_CfdxSubsetArgs):
 
 
 # Settings for --rm
-class CfdxRemoveCasesArgs(_CfdxSubsetArgs):
+class CfdxRemoveCasesArgs(_CfdxCaseLoopArgs):
     # No attributes
     __slots__ = ()
 
@@ -1680,7 +1680,7 @@ def cape_qdel(parser: CfdxArgReader) -> int:
     # Read instance
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
-    cntl.SubmitJobs(**kw)
+    cntl.qdel_cases(**kw)
     # Return code
     return IERR_OK
 
@@ -1734,11 +1734,12 @@ def cape_rm(parser: CfdxArgReader) -> int:
             Return code
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
+        * 2025-06-20 ``@ddalle``: v1.1; use `rm_cases()`
     """
     # Read instance
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
-    cntl.SubmitJobs(**kw)
+    cntl.rm_cases(**kw)
     # Return code
     return IERR_OK
 
