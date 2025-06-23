@@ -70,7 +70,7 @@ UGRID_EXTS = (
 COL_HEADERS = {
     "case": "Case Folder",
     "cpu-abbrev": "CPU Hours",
-    "cpu-hours": "CPU Hours",
+    "cpu-hours": "CPU Time",
     "frun": "Config/Run Directory",
     "gpu-abbrev": "GPU Hours",
     "gpu-hours": "GPU Hours",
