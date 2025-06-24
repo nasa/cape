@@ -823,6 +823,28 @@ class CaseRunner(casecntl.CaseRunner):
             # If any of that fails, return 0
             return 0.0
 
+    # Check if a phase is rerun-able
+    def check_phase_rerunable(self, j: int) -> bool:
+        r"""Check if a phase can be rerun, else it must progress to next
+
+        :Call:
+            >>> q = runner.check_phase_rerunable(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* can be restarted
+        :Versions:
+            * 2025-06-24 ``@ddalle``: v1.0
+        """
+        # Read options
+        rc = self.read_case_json()
+        # Check if adaptive
+        return not rc.get_opt("Adaptive", j)
+
    # --- Local data ---
     # Read Components.i.tri
     @casecntl.run_rootdir

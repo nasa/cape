@@ -107,6 +107,7 @@ IERR_UNKNOWN = 14
 IERR_NANS = 32
 IERR_INCOMPLETE_ITER = 65
 IERR_RUN_PHASE = 128
+IERR_RERUN_PHASE = 16
 
 #: Class for beginning and end iter of an averaging window
 #:
@@ -372,7 +373,6 @@ class CaseRunner(CaseRunnerBase):
                 # Log
                 self.log_both(f"running phase {j}")
                 # Run primary
-                # self.run_phase(j)
                 self.run_phase_main(j)
             except Exception as e:
                 # Log failure encounter
@@ -405,6 +405,15 @@ class CaseRunner(CaseRunnerBase):
                 return ierr
             # Update start counter
             nstart += 1
+            # Check for non-rerunable phase
+            if (not self.check_phase(j)) and not self.check_phase_rerunable(j):
+                # Log message
+                self.log_both(f"Phase {j} not complete and not rerunable")
+                # Failure
+                self.mark_failure(f"Rerun phase {j}")
+                self.mark_stopped()
+                # Pretend that case has been restarted
+                return IERR_RERUN_PHASE
             # Check for explicit exit
             if self.check_exit(j):
                 # Log
@@ -3713,6 +3722,25 @@ class CaseRunner(CaseRunnerBase):
         nreq = self.get_phase_nreq(j)
         # Check if actually run
         return nrun >= nreq
+
+    # Check if a phase is rerun-able
+    def check_phase_rerunable(self, j: int) -> bool:
+        r"""Check if a phase can be rerun, else it must progress to next
+
+        :Call:
+            >>> q = runner.check_phase_rerunable(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* can be restarted
+        :Versions:
+            * 2025-06-24 ``@ddalle``: v1.0
+        """
+        return True
 
     # Solver-specifc phase
     def checkx_phase(self, j: int) -> bool:
