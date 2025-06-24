@@ -4,6 +4,36 @@ Changelog
 ********************
 
 
+Release 2.1.1
+=============================
+
+New Features
+-----------------
+
+*   The interface for ``py{x} -c`` now has more options. For example you can
+    show the values of additional columns from the run matrix explicitly.
+
+    This example will show the value of run matrix keys called *user* and
+    *arch* for each row of the status table, provided they exist.
+
+    .. code-block:: console
+
+        $ pyfun -I 3:7 --add-cols "user,arch" -c
+
+    This feature is not fully documented yet and will be discussed more in the
+    release of CAPE 2.2.0.
+
+Bugs Fixed
+-------------
+
+*   When running Cart3D, CAPE will now avoid trying to restart ``aero.csh`` in
+    an infinite loop for certain cases. This seemed to be caused by Cart3D
+    terminating early when a target residual is reached (see the *nOrders*
+    option for ``input.cntl``). ``pycart`` has now been set to lower the
+    *PhaseIters* option if an adaptive phase looks to have run successfully but
+    with fewer iterations than expected.
+
+    
 Release 2.1.0
 =============================
 
