@@ -52,3 +52,8 @@ def test_c():
             # Check outout
             result = testutils.compare_files(stdout, ftarg)
         assert result.line1 is result.line2 is None
+
+
+if __name__ == "__main__":
+    test_c()
+

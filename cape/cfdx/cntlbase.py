@@ -70,7 +70,7 @@ UGRID_EXTS = (
 COL_HEADERS = {
     "case": "Case Folder",
     "cpu-abbrev": "CPU Hours",
-    "cpu-hours": "CPU Hours",
+    "cpu-hours": "CPU Time",
     "frun": "Config/Run Directory",
     "gpu-abbrev": "GPU Hours",
     "gpu-hours": "GPU Hours",
@@ -1232,7 +1232,8 @@ class CntlBase(ABC):
 
     # Loop through cases
     @CaseLoopArgs.parse
-    def caseloop_verbose(self, casefunc: Optional[Callable] = None, **kw):
+    def caseloop_verbose(
+            self, casefunc: Optional[Callable] = None, **kw) -> int:
         # Get list of indices
         inds = self.x.GetIndices(**kw)
         # Default list of columns to display
@@ -1303,6 +1304,8 @@ class CntlBase(ABC):
         print(hline)
         # Initialize headers
         counters = {col: Counter() for col in ctrs}
+        # Output counter
+        n = 0
         # Loop through cases
         for i in inds:
             # Loop through columns
@@ -1327,7 +1330,10 @@ class CntlBase(ABC):
                     counters[col].update((vj,))
             # Run case function
             if callable(casefunc):
-                casefunc(i)
+                vi = casefunc(i)
+                # Add to counter if appropriate
+                ni = vi if isinstance(vi, (int, np.integer)) else 0
+                n += ni
         # Blank line
         print("")
         # Process counters
@@ -1352,6 +1358,8 @@ class CntlBase(ABC):
                 # Loop through values
                 for vj, nj in counter.items():
                     print("%s- %*s: %i" % (tab, lj, vj, nj))
+        # Output the accumulator
+        return n
 
     # Get value for specified property
     def getval(self, opt: str, i: int) -> Any:
@@ -1364,7 +1372,7 @@ class CntlBase(ABC):
             if n is None:
                 return '/'
             else:
-                return f'{n}/{nmax}'
+                return f'{int(n)}/{nmax}'
         elif opt == "iter":
             # Get just iteration
             return self.CheckCase(i)
@@ -1570,7 +1578,8 @@ class CntlBase(ABC):
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2014-10-04 ``@ddalle``: v1.0
-            * 2014-12-09 ``@ddalle``: v2.0, ``--cons``
+            * 2014-12-09 ``@ddalle``: v2.0; ``--cons``
+            * 2025-06-20 ``@ddalle``: v3.0; use `caseloop_verbose()`
         """
         # Call verbose caseloop
         self.caseloop_verbose(**kw)
@@ -3079,9 +3088,85 @@ class CntlBase(ABC):
             # Revert options
             self.RevertOptions()
 
+    # Delete jobs
+    def qdel_cases(self, **kw):
+        r"""Kill/stop PBS job of cases
+
+        This function deletes a case's PBS/Slurm jobbut not delete the
+        foder for a case.
+
+        :Call:
+            >>> cntl.qdel_cases(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List of cases to delete
+            *kw*: :class:`dict`
+                Other subset parameters, e.g. *re*, *cons*
+        :Versions:
+            * 2025-06-22 ``@ddalle``: v1.0
+        """
+        # Delete one case (maybe)
+        def qdel_case(i: int) -> int:
+            # Check queue
+            que = self.getval("queue", i)
+            # Delete if status other than '.'
+            if que and (que != '.'):
+                return self.StopCase(i)
+        # Case loop
+        self.caseloop_verbose(qdel_case, **kw)
+
+    # Delete cases
+    def rm_cases(self, prompt: bool = True, **kw) -> int:
+        r"""Delete one or more cases
+
+        This function deletes a case's PBS job and removes the entire
+        directory. By default, the method prompts for confirmation
+        before deleting; set *prompt* to ``False`` to delete without
+        prompt, but only cases with 0 iterations can be deleted this
+        way.
+
+        :Call:
+            >>> n = cntl.rm_cases(prompt=True, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *prompt*: {``True``} | ``False``
+                Whether or not to prompt user before deleting case
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List of cases to delete
+            *kw*: :class:`dict`
+                Other subset parameters, e.g. *re*, *cons*
+        :Outputs:
+            *n*: :class:`int`
+                Number of folders deleted
+        :Versions:
+            * 2025-06-20 ``@ddalle``: v1.0
+        """
+        # Delete one case (maybe)
+        def rm_case(i: int) -> int:
+            # Check *prompt* overwrite
+            if prompt:
+                # No need to check
+                prompti = True
+            else:
+                # Get case status
+                sts = self.getval("status", i)
+                n = self.getval("iter", i)
+                # Always prompt if set up
+                prompti = n or (sts not in ("INCOMP", "ERROR", "---"))
+            # Delete
+            return self.DeleteCase(i, prompt=prompti)
+        # Case loop
+        n = self.caseloop_verbose(rm_case, **kw)
+        # Status message
+        print(f"Deleted {n} cases")
+        return n
+
     # Function to delete a case folder: qdel and rm
     @run_rootdir
-    def DeleteCase(self, i, **kw):
+    def DeleteCase(self, i: int, **kw):
         r"""Delete a case
 
         This function deletes a case's PBS job and removes the entire

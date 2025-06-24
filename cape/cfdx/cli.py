@@ -87,8 +87,6 @@ class CfdxArgReader(argread.ArgReader):
     _optmap = {
         "ERROR": "FAIL",
         "F": "force",
-        "add_cols": "add-cols",
-        "add_counters": "add-counters",
         "aero": "fm",
         "approve": "PASS",
         "check": "c",
@@ -101,6 +99,7 @@ class CfdxArgReader(argread.ArgReader):
         "fail": "FAIL",
         "file": "f",
         "help": "h",
+        "hide": "hide-cols",
         "json": "f",
         "kill": "qdel",
         "queue": "q",
@@ -274,7 +273,10 @@ class CfdxArgReader(argread.ArgReader):
     # Name for value of select options in option descriptions
     _help_optarg = {
         "I": "INDS",
+        "add-cols": "COLS",
+        "add-counters": "COLS",
         "cons": "CONS",
+        "counters": "COLS",
         "dbpyfunc": "[PAT]",
         "e": "EXEC",
         "extend": "[N_EXT]",
@@ -282,6 +284,8 @@ class CfdxArgReader(argread.ArgReader):
         "filter": "TXT",
         "fm": "[PAT]",
         "glob": "PAT",
+        "hide-cols": "COLS",
+        "hide-counters": "COLS",
         "imax": "M",
         "incremental": "[STOP_PHASE]",
         "ll": "[PAT]",
@@ -328,6 +332,28 @@ class _CfdxSubsetArgs(CfdxArgReader):
     )
 
 
+# Settings for any caseloop command
+class _CfdxCaseLoopArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "add-cols",
+        "add-counters",
+        "cols",
+        "counters",
+        "hide-cols",
+        "hide-counters",
+        "j",
+    )
+
+    # Common aliases
+    _optmap = {
+        "add": "add-cols",
+    }
+
+
 # Settings for databook commands
 class _CfdxExtractArgs(_CfdxSubsetArgs):
     # No attributes
@@ -363,7 +389,7 @@ class Cfdx1to2Args(CfdxArgReader):
 
 
 # Settings for -c
-class CfdxCheckArgs(_CfdxSubsetArgs):
+class CfdxCheckArgs(_CfdxCaseLoopArgs):
     # No attributes
     __slots__ = ()
 
@@ -375,14 +401,7 @@ class CfdxCheckArgs(_CfdxSubsetArgs):
 
     # Additional options
     _optlist = (
-        "add-cols",
-        "add-counters",
         "c",
-        "cols",
-        "counters",
-        "hide-cols",
-        "hide-counters",
-        "j",
         "u",
     )
 
@@ -790,7 +809,7 @@ class CfdxFailArgs(_CfdxSubsetArgs):
 
 
 # Settings for --qdel
-class CfdxQdelArgs(_CfdxSubsetArgs):
+class CfdxQdelArgs(_CfdxCaseLoopArgs):
     # No attributes
     __slots__ = ()
 
@@ -837,7 +856,7 @@ class CfdxReportArgs(_CfdxSubsetArgs):
 
 
 # Settings for --rm
-class CfdxRemoveCasesArgs(_CfdxSubsetArgs):
+class CfdxRemoveCasesArgs(_CfdxCaseLoopArgs):
     # No attributes
     __slots__ = ()
 
@@ -1661,7 +1680,7 @@ def cape_qdel(parser: CfdxArgReader) -> int:
     # Read instance
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
-    cntl.SubmitJobs(**kw)
+    cntl.qdel_cases(**kw)
     # Return code
     return IERR_OK
 
@@ -1715,11 +1734,12 @@ def cape_rm(parser: CfdxArgReader) -> int:
             Return code
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
+        * 2025-06-20 ``@ddalle``: v1.1; use `rm_cases()`
     """
     # Read instance
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
-    cntl.SubmitJobs(**kw)
+    cntl.rm_cases(**kw)
     # Return code
     return IERR_OK
 
