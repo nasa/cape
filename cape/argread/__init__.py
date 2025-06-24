@@ -105,12 +105,14 @@ following subclass
 """
 
 # Standard library
+import difflib
 import re
 import sys
 from collections import namedtuple
 from typing import Optional
 
 # Local imports
+from .clitext import compile_rst
 from ._vendor.kwparse import (
     MetaKwargParser,
     KWTypeError,
@@ -841,6 +843,45 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         return names
 
    # --- Help ---
+    def help_frontdesk(self, cmdname: Optional[str]) -> bool:
+        r"""Display help message for front-desk parser, if appropriate
+
+        :Call:
+            >>> q = parser.help_frontdesk(cmdname)
+        :Inputs:
+            *parser*: :class:`ArgReader`
+                Command-line argument parser
+            *cmdname*: ``None`` | :class:`str`
+                Name of sub-command, if specified
+        :Outputs:
+            *q*: :class:`str`
+                Whether front-desk help was triggered
+        """
+        # Get class
+        cls = self.__class__
+        # Check if this is a front desk
+        if cls._cmdlist is None:
+            return False
+        # Check for null commands
+        if cmdname is None:
+            print(compile_rst(self.genr8_help()))
+            return True
+        # Check if command was recognized
+        if cmdname not in cls._cmdlist:
+            # Get closest matches
+            close = difflib.get_close_matches(
+                cmdname, cls._cmdlist, n=4, cutoff=0.3)
+            # Use all if no matches
+            close = close if close else cls._cmdlist
+            # Generate list as text
+            matches = " | ".join(close)
+            # Display them
+            print(f"Unexpected '{cls._name}' command '{cmdname}'")
+            print(f"Closest matches: {matches}")
+            return True
+        # No problems
+        return False
+
     def genr8_help(self) -> str:
         r"""Generate automatic help message to use w/ ``-h``
 
