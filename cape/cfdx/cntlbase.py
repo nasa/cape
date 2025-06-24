@@ -70,7 +70,7 @@ UGRID_EXTS = (
 COL_HEADERS = {
     "case": "Case Folder",
     "cpu-abbrev": "CPU Hours",
-    "cpu-hours": "CPU Hours",
+    "cpu-hours": "CPU Time",
     "frun": "Config/Run Directory",
     "gpu-abbrev": "GPU Hours",
     "gpu-hours": "GPU Hours",
@@ -1372,7 +1372,7 @@ class CntlBase(ABC):
             if n is None:
                 return '/'
             else:
-                return f'{n}/{nmax}'
+                return f'{int(n)}/{nmax}'
         elif opt == "iter":
             # Get just iteration
             return self.CheckCase(i)

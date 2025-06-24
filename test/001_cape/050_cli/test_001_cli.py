@@ -42,3 +42,6 @@ def test_c():
         assert result.line1 == result.line2
 
 
+if __name__ == "__main__":
+    test_c()
+

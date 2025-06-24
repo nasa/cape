@@ -1969,9 +1969,8 @@ def main_template(
         print(compile_rst(parser.genr8_help()))
         return IERR_OK
     # Check for valid command name
-    ierr = _help_frontdesk(cmdname, parser_cls)
-    if ierr != IERR_OK:
-        return ierr
+    if parser.help_frontdesk(cmdname):
+        return IERR_OK
     # Check for ``-h``
     if _help(subparser):
         return IERR_OK
@@ -2015,29 +2014,6 @@ def _get_argv(argv: Optional[list]) -> list:
         argv[0] = os.path.basename(os.path.dirname(cmdname))
     # Output
     return argv
-
-
-def _help_frontdesk(cmdname: Optional[str], cls: type) -> int:
-    r"""Display help message for front-desk parser, if appropriate"""
-    # Check for null commands
-    if cmdname is None:
-        print(compile_rst(cls().genr8_help()))
-        return IERR_OK
-    # Check if command was recognized
-    if cmdname not in cls._cmdlist:
-        # Get closest matches
-        close = difflib.get_close_matches(
-            cmdname, cls._cmdlist, n=4, cutoff=0.3)
-        # Use all if no matches
-        close = close if close else cls._cmdlist
-        # Generate list as text
-        matches = " | ".join(close)
-        # Display them
-        print(f"Unexpected '{cls._name}' command '{cmdname}'")
-        print(f"Closest matches: {matches}")
-        return IERR_CMD
-    # No problems
-    return IERR_OK
 
 
 # Print help message

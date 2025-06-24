@@ -261,6 +261,8 @@ class CaseRunner(casecntl.CaseRunner):
                 PS = pointsensor.CasePointSensor()
                 PS.UpdateIterations()
                 PS.WriteHist()
+        # Reset PhaseIters if early exit
+        self._reset_phase_iters(j)
         # Output
         return ierr
 
@@ -311,12 +313,12 @@ class CaseRunner(casecntl.CaseRunner):
                 # Increase reference for averaging.
                 n0 += rc.get_it_start(j)
                 # Modified command
-                cmdi = cmdgen.flowCart(opts=rc, i=j, n=n)
+                cmdi = cmdgen.flowCart(opts=rc, j=j, n=n)
                 # Reset averaging settings
                 rc.set_it_avg(it_avg)
             else:
                 # Normal stops every *it_avg* iterations.
-                cmdi = cmdgen.flowCart(opts=rc, i=j, n=n)
+                cmdi = cmdgen.flowCart(opts=rc, j=j, n=n)
             # Run the command for *it_avg* iterations.
             ierr = self.callf(cmdi, f='flowCart.out', e="flowCart.err")
             # Automatically determine the best check file to use.
@@ -350,6 +352,8 @@ class CaseRunner(casecntl.CaseRunner):
                 PS.WriteHist()
         except Exception:
             pass
+        # Reset PhaseIters if early exit
+        self._reset_phase_iters(j)
         # Output
         return ierr
 
@@ -381,7 +385,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Get the number of previous steady steps
             n = self.get_steady_iter()
         # Call flowCart directly.
-        cmdi = cmdgen.flowCart(opts=rc, i=j, n=n)
+        cmdi = cmdgen.flowCart(opts=rc, j=j, n=n)
         # Run the command.
         ierr = self.callf(cmdi, f='flowCart.out', e="flowCart.err")
         # Check for point sensors
@@ -390,6 +394,8 @@ class CaseRunner(casecntl.CaseRunner):
             PS = pointsensor.CasePointSensor()
             PS.UpdateIterations()
             PS.WriteHist()
+        # Update phase iteration cutoffs
+        self._reset_phase_iters(j)
         # Return code
         return ierr
 
@@ -410,7 +416,14 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2016-03-04 ``@ddalle``: v1.0 (was ``CheckSuccess()``)
             * 2024-06-16 ``@ddalle``: v1.1; was ``check_error()``
+            * 2026-06-24 ``@ddalle``: v1.2; check $CART3D
         """
+        # Check for executable
+        if "CART3D" not in os.environ:
+            # No executable
+            self.log_both("CART3D env variable not found")
+            self.mark_failure("CART3D env variable")
+            return casecntl.IERR_EXEC_NOT_FOUND
         # Last reported iteration number
         n = self.get_history_iter()
         # Check status
@@ -822,6 +835,90 @@ class CaseRunner(casecntl.CaseRunner):
         except Exception:
             # If any of that fails, return 0
             return 0.0
+
+    # Check if a phase is rerun-able
+    def check_phase_rerunable(self, j: int) -> bool:
+        r"""Check if a phase can be rerun, else it must progress to next
+
+        :Call:
+            >>> q = runner.check_phase_rerunable(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* can be restarted
+        :Versions:
+            * 2025-06-24 ``@ddalle``: v1.0
+        """
+        # Read options
+        rc = self.read_case_json()
+        # Check if adaptive
+        return not rc.get_opt("Adaptive", j)
+
+   # --- Early-exit phase tools ---
+    # Solver-specifc phase
+    def checkx_phase(self, j: int) -> bool:
+        r"""Apply solver-specific checks for phase *j*
+
+        For adaptive phases, this checks for ``adapt[0-9][0-9]`` folder
+
+        :Call:
+            >>> q = runner.checkx_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* looks complete
+        :Versions:
+            * 2025-06-24 ``@ddalle``: v1.0
+        """
+        # Read options
+        rc = self.read_case_json()
+        # Check if adaptive
+        if rc.get_Adaptive(j):
+            # Get expected adaptation cycle
+            n = rc.get_n_adapt_cycles(j)
+            # Name of folder
+            dirname = f"adapt{n:02d}"
+            absdir = os.path.join(self.root_dir, dirname)
+            # Name of output file
+            fname = os.path.join(absdir, "FLOW", "DONE")
+            # Check for it
+            return os.path.isdir(absdir) and os.path.isfile(fname)
+        else:
+            # No other checks
+            return True
+
+    # Reset PhaseIters
+    def _reset_phase_iters(self, j: int):
+        # Read options
+        rc = self.read_case_json()
+        # Reset PhaseIters if early exit
+        if self.checkx_phase(j):
+            # Get current phase cutoff
+            nreq = rc.get_PhaseIters(j)
+            # Get current iters
+            nrun = self.getx_iter()
+            nrun = 0 if nrun is None else int(nrun)
+            # Reset if needed
+            if nrun >= nreq:
+                return
+            # Loop through this phase and followers
+            for jb in range(j, 1 + self.get_last_phase()):
+                # Get required iter
+                nj = rc.get_PhaseIters(jb)
+                # New required iter
+                njmax = max(0, (nj - nreq) + nrun)
+                # Set to lower option
+                rc.set_PhaseIters(min(nj, njmax), jb)
+            # Update ``case.json``
+            self.write_case_json(rc)
 
    # --- Local data ---
     # Read Components.i.tri
