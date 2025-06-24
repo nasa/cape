@@ -11,7 +11,7 @@ Test report for ``cape`` (Python 3.6)
     :name: pytest
     :skipped: 0
     :tests: 368
-    :time: 334.782
-    :timestamp: 2025-06-24T13:30:07.874289
+    :time: 333.909
+    :timestamp: 2025-06-24T14:48:25.170016
     :python-fullversion: 3.6.8 (default, Nov 15 2024, 08:11:39) [GCC 8.5.0 20210514 (Red Hat 8.5.0-22)]
     :python-executable: /usr/bin/python3
