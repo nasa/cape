@@ -261,6 +261,17 @@ class CaseRunner(casecntl.CaseRunner):
                 PS = pointsensor.CasePointSensor()
                 PS.UpdateIterations()
                 PS.WriteHist()
+        # Reset PhaseIters if early exit
+        if self.checkx_phase(j):
+            # Get current phase cutoff
+            nreq = rc.get_PhaseIters(j)
+            # Get current iters
+            nrun = self.getx_iter()
+            nrun = 0 if nrun is None else int(nrun)
+            # Reset if needed
+            if nrun < nreq:
+                rc.set_PhaseIters(nrun, j)
+                self.write_case_json(rc)
         # Output
         return ierr
 
@@ -851,6 +862,42 @@ class CaseRunner(casecntl.CaseRunner):
         rc = self.read_case_json()
         # Check if adaptive
         return not rc.get_opt("Adaptive", j)
+
+    # Solver-specifc phase
+    def checkx_phase(self, j: int) -> bool:
+        r"""Apply solver-specific checks for phase *j*
+
+        For adaptive phases, this checks for ``adapt[0-9][0-9]`` folder
+
+        :Call:
+            >>> q = runner.checkx_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* looks complete
+        :Versions:
+            * 2025-06-24 ``@ddalle``: v1.0
+        """
+        # Read options
+        rc = self.read_case_json()
+        # Check if adaptive
+        if rc.get_Adaptive(j):
+            # Get expected adaptation cycle
+            n = rc.get_n_adapt_cycles(j)
+            # Name of folder
+            dirname = f"adapt{n:02d}"
+            absdir = os.path.join(self.root_dir, dirname)
+            # Name of output file
+            fname = os.path.join(absdir, "FLOW", "DONE")
+            # Check for it
+            return os.path.isdir(absdir) and os.path.isfile(fname)
+        else:
+            # No other checks
+            return True
 
    # --- Local data ---
     # Read Components.i.tri
