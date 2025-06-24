@@ -102,6 +102,7 @@ DEFAULT_SLEEPTIME = 10.0
 IERR_OK = 0
 IERR_CALL_RETURNCODE = 1
 IERR_BOMB = 2
+IERR_EXEC_NOT_FOUND = 8
 IERR_PERMISSION = 13
 IERR_UNKNOWN = 14
 IERR_NANS = 32
@@ -341,6 +342,7 @@ class CaseRunner(CaseRunnerBase):
             * 2021-10-08 ``@ddalle``: v1.1 (``run_overflow``)
             * 2023-06-21 ``@ddalle``: v2.0; instance method
             * 2024-05-26 ``@ddalle``: v2.1; more exit causes
+            * 2025-06-24 ``@ddalle``: v2.2; add rerunable-phase check
         """
         # Log startup
         self.log_verbose(f"start {self._cls()}.run()")

@@ -410,7 +410,14 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2016-03-04 ``@ddalle``: v1.0 (was ``CheckSuccess()``)
             * 2024-06-16 ``@ddalle``: v1.1; was ``check_error()``
+            * 2026-06-24 ``@ddalle``: v1.2; check $CART3D
         """
+        # Check for executable
+        if "CART3D" not in os.environ:
+            # No executable
+            self.log_both("CART3D env variable not found")
+            self.mark_failure("CART3D env variable")
+            return casecntl.IERR_EXEC_NOT_FOUND
         # Last reported iteration number
         n = self.get_history_iter()
         # Check status

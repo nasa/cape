@@ -1372,7 +1372,7 @@ class CntlBase(ABC):
             if n is None:
                 return '/'
             else:
-                return f'{n}/{nmax}'
+                return f'{int(n)}/{nmax}'
         elif opt == "iter":
             # Get just iteration
             return self.CheckCase(i)
