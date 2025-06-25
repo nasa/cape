@@ -106,6 +106,7 @@ following subclass
 
 # Standard library
 import difflib
+import os
 import re
 import sys
 from collections import namedtuple
@@ -125,6 +126,9 @@ __version__ = "1.3.1"
 
 # Constants
 TAB = '    '
+IERR_OK = 0
+IERR_CMD = 16
+IERR_OPT = 32
 
 
 # Regular expression for options like "cdfr=1.3"
@@ -134,6 +138,7 @@ REGEX_EQUALKEY = re.compile(r"(\w+)=([^=].*)")
 ArgTuple = namedtuple("ArgTuple", ("a", "kw"))
 SubCmdTuple = namedtuple("SubCmdTuple", ("cmdname", "argv"))
 SubParserTuple = namedtuple("SubParserTuple", ("cmdname", "subparser"))
+SubParserCheck = namedtuple("SubParserCheck", ("cmdname", "subparser", "ierr"))
 
 
 # Custom error class
@@ -358,6 +363,45 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         subparser.parse(argvcmd)
         # Output
         return SubParserTuple(cmdname, subparser)
+
+    def fullparse_check(self, argv: Optional[list] = None) -> SubParserCheck:
+        r"""Identify sub-command and use appropriate parser
+
+        :Call:
+            >>> cmdname, subparser, ierr = parser.fullparse_check(argv)
+        :Inputs:
+            *parser*: :class:`ArgReader`
+                Command-line argument parser
+            *argv*: {``None``} | :class:`list`\ [:class:`str`]
+                Optional arguments to parse, else ``sys.argv``
+        :Outputs:
+            *cmdname*: ``None`` | :class:`str`
+                Name of command, if identified or inferred
+            *subparser*: :class:`ArgReadder`
+                Parser for *cmdname* applied to remaining CLI args
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-06-25 ``@ddalle``: v1.0
+        """
+        # Default args
+        argv = _get_argv(argv)
+        # Run parser with error handling
+        try:
+            # Attempt to parse
+            cmdname, subparser = self.fullparse(argv)
+            # Standard output
+            return SubParserCheck(cmdname, subparser, IERR_OK)
+        except (NameError, ValueError, TypeError) as e:
+            # Parse function name
+            if os.path.isabs(argv[0]):
+                argv[0] = os.path.basename(argv[0])
+            # Error message
+            print("In command:\n")
+            print("  " + " ".join(argv) + "\n")
+            print(e.args[0])
+            # Output
+            return SubParserCheck(0, 0, IERR_OPT)
 
     def parse(self, argv: Optional[list] = None) -> ArgTuple:
         r"""Parse CLI args
@@ -843,7 +887,33 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         return names
 
    # --- Help ---
-    def help_frontdesk(self, cmdname: Optional[str]) -> bool:
+    def show_help(self, opt: str = "help") -> bool:
+        r"""Display help message for non-front-desk parser if requested
+
+        :Call:
+            >>> q = parser.show_help(opt="help")
+        :Inputs:
+            *parser*: :class:`ArgReader`
+                Command-line argument parser
+            *opt*: {``"help"``} | :class:`str`
+                Name of option to trigger help message
+        :Outputs:
+            *q*: :class:`str`
+                Whether front-desk help was triggered
+        """
+        # Check for help option
+        if self.get(opt, False) and self._cmdlist is None:
+            # Print help message
+            print(compile_rst(self.genr8_help()))
+            return True
+        else:
+            # No "help" requested
+            return False
+
+    def help_frontdesk(
+            self,
+            cmdname: Optional[str],
+            opt: str = "help") -> bool:
         r"""Display help message for front-desk parser, if appropriate
 
         :Call:
@@ -853,6 +923,8 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
                 Command-line argument parser
             *cmdname*: ``None`` | :class:`str`
                 Name of sub-command, if specified
+            *opt*: {``"help"``} | :class:`str`
+                Name of option to trigger help message
         :Outputs:
             *q*: :class:`str`
                 Whether front-desk help was triggered
@@ -863,7 +935,7 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         if cls._cmdlist is None:
             return False
         # Check for null commands
-        if cmdname is None:
+        if cmdname is None or cmdname == opt:
             print(compile_rst(self.genr8_help()))
             return True
         # Check if command was recognized
@@ -1235,3 +1307,14 @@ def readflagstar(argv=None):
     return parser.parse(argv)
 
 
+# Get default CLI args
+def _get_argv(argv: Optional[list]) -> list:
+    # Get sys.argv if needed
+    argv = list(sys.argv) if argv is None else argv
+    # Check for name of executable
+    cmdname = argv[0]
+    if cmdname.endswith("__main__.py"):
+        # Get module name
+        argv[0] = os.path.basename(os.path.dirname(cmdname))
+    # Output
+    return argv
