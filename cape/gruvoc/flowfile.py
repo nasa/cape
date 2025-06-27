@@ -100,13 +100,19 @@ def _read_fun3d_flow(
     # Read number of nodes
     nnode, = fromfile_lb4_i(fp, 1)
     mesh.nnode = nnode
+    # Skip to byte 300 to read version
+    fp.seek(300)
+    # Get version identifier
+    ver, = fromfile_lb4_i(fp, 1)
+    # Move to position for freestream variables
+    pos = 614 if ver == 2 else 580
     # Skip to byte 580 to read freestream
-    fp.seek(580)
+    fp.seek(pos)
     # Fixed freestream in perfect-gas FUN3D
-    mesh.qinfvars = ["mach", "Rey", "alpha", "beta", "Tinf"]
-    mesh.qinf = fromfile_lb8_f(fp, 5)
-    # Skip to byte 900
-    fp.seek(900)
+    mesh.qinfvars = ["mach", "Rey", "alpha", "beta", "Tinf", "Pr"]
+    mesh.qinf = fromfile_lb8_f(fp, 7)[[0, 1, 2, 3, 4, 6]]
+    # Skip to byte 900 (or 934)
+    fp.seek(264, 1)
     # Read number of iterations
     niter, = fromfile_lb4_i(fp, 1)
     ncol, = fromfile_lb4_i(fp, 1)
