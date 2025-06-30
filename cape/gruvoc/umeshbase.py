@@ -2423,6 +2423,8 @@ class UmeshBase(ABC):
             # Nan masked points from interp calc (preserve abs. order)
             s_values[~II] = np.nan
             count = 0
+            # Get IDs for this element type
+            ele_ids = getattr(self, f"{ele_type[:-1]}_ids")
             # Flatten these once at the start
             ev1f = ele_vertices1.flatten()
             ev2f = ele_vertices2.flatten()
@@ -2494,7 +2496,10 @@ class UmeshBase(ABC):
                 if len(dedup_edgecon) == 2:
                     intersection_edges.append(dedup_edgecon)
                     # Preserve the element index from all elements
-                    intersection_ids.append(cutinds[ele])
+                    inds_type = cutinds[ele]
+                    # Convert element index to element ID (tri/quad)
+                    ids_type = ele_ids[inds_type]
+                    intersection_ids.append(ids_type)
             if closed:
                 # Add in the final connection to make it a closed manifold
                 pts, pt_count = np.unique(
@@ -2509,8 +2514,9 @@ class UmeshBase(ABC):
             intersection_points = np.array(filtered_intersection_pts)
             intersection_values = np.array(filtered_values)
         # return unique_pts, unique_vals
-        return (intersection_points, intersection_values,
-                intersection_edges, intersection_ids)
+        return (
+            intersection_points, intersection_values,
+            intersection_edges, intersection_ids)
 
     # Interface to slice a surface
     def slicesurf(
@@ -2522,7 +2528,7 @@ class UmeshBase(ABC):
             **kw):
         r"""
         :Call:
-            >>> slice = mesh.slice_surf(x, n, comp=None, fname=None)
+            >>> slice = mesh.slicesurf(x, n, comp=None, **kw)
         :Inputs:
             *x*: :class:`np.ndarray`\ [:class:`float`]
                 Coordinates of the cut plane center
@@ -2622,7 +2628,7 @@ class UmeshBase(ABC):
             if allseles.size > 0:
                 # Stack surface elements
                 allseles = np.vstack([allseles, surfeles[Icut]])
-                _cutinds = np.where(Icut == 1)[0]
+                _cutinds = Isurf[Icut, 0]
                 cutinds = np.concatenate([cutinds, _cutinds])
                 # Keep track of which surf elements are which type
                 _Ieles = np.ones(len(surfeles[Icut]), dtype=np.int8)*ie
@@ -2631,7 +2637,7 @@ class UmeshBase(ABC):
             else:
                 allseles = surfeles[Icut]
                 Ieles = np.ones(len(allseles), dtype=np.int8)*ie
-                cutinds = np.where(Icut == 1)[0]
+                cutinds = Isurf[Icut, 0]
             celltype.extend((ename,))
         # Prep output plane and values
         csurfpts = None
@@ -2673,6 +2679,7 @@ class UmeshBase(ABC):
         omesh.nnode = surfpts.shape[0]
         omesh.edges = np.array(edgelist)
         omesh.edge_ids = np.array(edgeids)
+        omesh.nedge = edgeids.size
         omesh.q = surfvals
         return omesh
 
@@ -2773,10 +2780,7 @@ def compress_indices(
     # Initilialize array of new indices
     inew = np.zeros(nmax, dtype=iold.dtype)
     # Create map
-    try:
-        inew[iold - 1] = np.arange(1, nnode + 1, dtype=iold.dtype)
-    except Exception:
-        breakpoint()
+    inew[iold - 1] = np.arange(1, nnode + 1, dtype=iold.dtype)
     # Renumber nodes
     new_inds = inew[node_indices - 1]
     # Output
