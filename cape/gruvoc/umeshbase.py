@@ -2525,26 +2525,26 @@ class UmeshBase(ABC):
         :Call:
             >>> slice = mesh.slice_surf(x, n, comp=None, fname=None)
         :Inputs:
-            *x*: :class:`np.ndarray[float]`
+            *x*: :class:`np.ndarray`\ [:class:`float`]
                 Coordinates of the cut plane center
-            *n*: :class:`np.ndarray[float]`
+            *n*: :class:`np.ndarray`\ [:class:`float`]
                 Vector normal to desired cut plane
-            *comp*: :class:`{None}` | `str` | `list`
+            *comp*: {``None``} | `str` | `list`
                 Optional name of component(s) to intersect
-            *fname*: :class:`{None}` | `str`
+            *fname*: {``None``} | `str`
                 Name of output file
             *closed*: :class: `{False}` | `True`
                 Attempt to close returned edges
         :Outputs:
             *slice*: :class:`Umesh`
                 Unstructured mesh instance for intersect
-            *slice.nodes*: :class:`np.ndarray[float]`
+            *slice.nodes*: :class:`np.ndarray`\ [:class:`float`]
                 Nx3 array of node coordinates
-            *slice.edges*: :class:`np.ndarray[int]`
+            *slice.edges*: :class:`np.ndarray`\ [:class:`int`]
                 Nx2 array of edge nodes, sorted into contiguous sections
-            *slice.edge_ids*: class:`np.ndarray[int]`
+            *slice.edge_ids*: :class:`np.ndarray`\ [:class:`int`]
                 The *tri_id* or *quad_id* from which this edge came
-            *slice.q*: :class:`np.ndarray[float]`
+            *slice.q*: :class:`np.ndarray`\ [:class:`float`]
                 Values of the *mesh.q* at the *slice.nodes*
         :Versions:
             * 2025-05-12 ``@aburkhea``: v1.0
