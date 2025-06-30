@@ -2513,12 +2513,11 @@ class UmeshBase(ABC):
                 intersection_edges, intersection_ids)
 
     # Interface to slice a surface
-    def slice_surf(
+    def slicesurf(
             self,
             x: np.array,
             n: np.array,
             comp: Optional[Union[str, int, list]] = None,
-            fname: Optional[str] = None,
             closed: Optional[bool] = False,
             **kw):
         r"""
@@ -2533,7 +2532,7 @@ class UmeshBase(ABC):
                 Optional name of component(s) to intersect
             *fname*: {``None``} | `str`
                 Name of output file
-            *closed*: :class: `{False}` | `True`
+            *closed*: {``False``} | ``True``
                 Attempt to close returned edges
         :Outputs:
             *slice*: :class:`Umesh`
@@ -2570,115 +2569,108 @@ class UmeshBase(ABC):
         # Default to cut everything
         elif comp is None:
             # Add up both tri and quad ids
-            surfids = [np.unique(
-                np.concatenate(
-                    [self.get_tri_ids(),
-                     self.get_quad_ids()
-                     ]))
-            ]
+            surfids = np.unique(
+                np.hstack((self.get_tri_ids(), self.get_quad_ids())))
         # Prep surface element cut outputs
         edgelist = []
         surfpts = None
         surfvals = None
-        for _surfids in surfids:
-            # Calculate boundary bounds
-            allseles = np.array([])
-            celltype = []
-            Itris = None
-            Iquads = None
-            # Get List of tris by surfid
-            for surfid in _surfids:
-                _Itris = self.get_tris_by_id(surfid)
-                if Itris is None:
-                    Itris = _Itris.reshape(-1, 1)
-                else:
-                    Itris = np.vstack((Itris, _Itris.reshape(-1, 1)))
-            # Get List of quads by surfid
-            for surfid in _surfids:
-                _Iquads = self.get_quads_by_id(surfid)
-                if Iquads is None:
-                    Iquads = _Iquads.reshape(-1, 1)
-                else:
-                    Iquads = np.vstack((Iquads, _Iquads.reshape(-1, 1)))
-            # Keep seperate surf element lists
-            Isurfs = {"tris": Itris, "quads": Iquads}
-            Ieles = []
-            cutinds = []
-            # For each element type
-            for ie, ename in enumerate(("tris", "quads")):
-                # Try to get element from mesh
-                _eles = self.__getattribute__(ename)
-                Isurf = Isurfs.get(ename)
-                # If no elements of this type (or none in these sids)
-                if _eles.size == 0 or Isurf.size == 0:
-                    continue
-                # Fix base 1 -> base 0 indexing for eles
-                eles = _eles - 1
-                # Pad tri element inds (N,3) to stack with quads later
-                if ename == "tris":
-                    eles = np.insert(eles, 3, -1, axis=1)
-                surfeles = eles[Isurf[:, 0], :]
-                # Get intersected elements
-                if ename == "tris":
-                    # Get mask for elements cut by plane
-                    Icut = get_intersect_elems(surfeles[:, :3], rpts[:, 2])
-                else:
-                    Icut = get_intersect_elems(surfeles, rpts[:, 2])
-                # Add mask to "global" list
-                if allseles.size > 0:
-                    # Stack surface elements
-                    allseles = np.vstack([allseles, surfeles[Icut]])
-                    _cutinds = np.where(Icut == 1)[0]
-                    cutinds = np.concatenate([cutinds, _cutinds])
-                    # Keep track of which surf elements are which type
-                    _Ieles = np.ones(len(surfeles[Icut]), dtype=np.int8)*ie
-                    # Append list of surf element types
-                    Ieles = np.concatenate([Ieles, _Ieles])
-                else:
-                    allseles = surfeles[Icut]
-                    Ieles = np.ones(len(allseles), dtype=np.int8)*ie
-                    cutinds = np.where(Icut == 1)[0]
-                celltype.extend((ename,))
-            # If no elements to cut from these surfs, move on
-            if allseles.size == 0:
-                continue
-            # Prep output plane and values
-            csurfpts = None
-            csurfvals = None
-            edgetol = kw.get("edgetol", 1e-4)
-            # Get vertex intersection and values for vol. element
-            _results = self._cut_elements_vect(
-                allseles, celltype, cutinds,
-                n, x,
-                Ieles=Ieles,
-                closed=closed,
-                edgetol=edgetol)
-            # Get nodes of surface element cut plane
-            csurfpts = _results[0]
-            # Get vals of surface element cut plane
-            csurfvals = _results[1]
-            # Get edges of surface element cut plane
-            edges = np.array(_results[2])
-            # Get edges of surface element cut plane
-            cedgeids = np.array(_results[3])
-            # Assemble results for multiple surf id groups
-            if surfpts is None:
-                nsurfs = 0
-                surfpts = csurfpts
-                surfvals = csurfvals
-                edgeids = cedgeids
+        # Calculate boundary bounds
+        allseles = np.array([])
+        celltype = []
+        Itris = None
+        Iquads = None
+        # Get List of tris by surfid
+        for surfid in surfids:
+            _Itris = self.get_tris_by_id(surfid)
+            if Itris is None:
+                Itris = _Itris.reshape(-1, 1)
             else:
-                nsurfs = surfpts.shape[0]
-                surfpts = np.vstack((surfpts, csurfpts))
-                surfvals = np.vstack((surfvals, csurfvals))
-                edgeids = np.concatenate((edgeids, cedgeids))
-            # Add cumulative edge index
-            edges = np.array(edges) + nsurfs
-            edgelist.extend(edges)
+                Itris = np.vstack((Itris, _Itris.reshape(-1, 1)))
+        # Get List of quads by surfid
+        for surfid in surfids:
+            _Iquads = self.get_quads_by_id(surfid)
+            if Iquads is None:
+                Iquads = _Iquads.reshape(-1, 1)
+            else:
+                Iquads = np.vstack((Iquads, _Iquads.reshape(-1, 1)))
+        # Keep seperate surf element lists
+        Isurfs = {"tris": Itris, "quads": Iquads}
+        Ieles = []
+        cutinds = []
+        # For each element type
+        for ie, ename in enumerate(("tris", "quads")):
+            # Try to get element from mesh
+            _eles = self.__getattribute__(ename)
+            Isurf = Isurfs.get(ename)
+            # If no elements of this type (or none in these sids)
+            if _eles.size == 0 or Isurf.size == 0:
+                continue
+            # Fix base 1 -> base 0 indexing for eles
+            eles = _eles - 1
+            # Pad tri element inds (N,3) to stack with quads later
+            if ename == "tris":
+                eles = np.insert(eles, 3, -1, axis=1)
+            surfeles = eles[Isurf[:, 0], :]
+            # Get intersected elements
+            if ename == "tris":
+                # Get mask for elements cut by plane
+                Icut = get_intersect_elems(surfeles[:, :3], rpts[:, 2])
+            else:
+                Icut = get_intersect_elems(surfeles, rpts[:, 2])
+            # Add mask to "global" list
+            if allseles.size > 0:
+                # Stack surface elements
+                allseles = np.vstack([allseles, surfeles[Icut]])
+                _cutinds = np.where(Icut == 1)[0]
+                cutinds = np.concatenate([cutinds, _cutinds])
+                # Keep track of which surf elements are which type
+                _Ieles = np.ones(len(surfeles[Icut]), dtype=np.int8)*ie
+                # Append list of surf element types
+                Ieles = np.concatenate([Ieles, _Ieles])
+            else:
+                allseles = surfeles[Icut]
+                Ieles = np.ones(len(allseles), dtype=np.int8)*ie
+                cutinds = np.where(Icut == 1)[0]
+            celltype.extend((ename,))
+        # Prep output plane and values
+        csurfpts = None
+        csurfvals = None
+        edgetol = kw.get("edgetol", 1e-4)
+        # Get vertex intersection and values for vol. element
+        _results = self._cut_elements_vect(
+            allseles, celltype, cutinds,
+            n, x,
+            Ieles=Ieles,
+            closed=closed,
+            edgetol=edgetol)
+        # Get nodes of surface element cut plane
+        csurfpts = _results[0]
+        # Get vals of surface element cut plane
+        csurfvals = _results[1]
+        # Get edges of surface element cut plane
+        edges = np.array(_results[2])
+        # Get edges of surface element cut plane
+        cedgeids = np.array(_results[3])
+        # Assemble results for multiple surf id groups
+        if surfpts is None:
+            nsurfs = 0
+            surfpts = csurfpts
+            surfvals = csurfvals
+            edgeids = cedgeids
+        else:
+            nsurfs = surfpts.shape[0]
+            surfpts = np.vstack((surfpts, csurfpts))
+            surfvals = np.vstack((surfvals, csurfvals))
+            edgeids = np.concatenate((edgeids, cedgeids))
+        # Add cumulative edge index
+        edges = np.array(edges) + nsurfs
+        edgelist.extend(edges)
         # Initialize output umesh of same class as self
         omesh = self.__class__()
         # Save outputs
         omesh.nodes = surfpts
+        omesh.nnode = surfpts.shape[0]
         omesh.edges = np.array(edgelist)
         omesh.edge_ids = np.array(edgeids)
         omesh.q = surfvals
