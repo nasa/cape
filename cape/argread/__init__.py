@@ -423,19 +423,16 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         :Versions:
             * 2021-11-21 ``@ddalle``: v1.0
         """
-        # Process optional args
-        if argv is None:
-            # Copy *sys.argv*
-            argv = list(sys.argv)
-        else:
-            # Check type of *argv*
-            assert_isinstance(argv, list, "'argv'")
-            # Check each arg is a string
-            for j, arg in enumerate(argv):
-                # Check type
-                assert_isinstance(arg, str, f"argument {j}")
-            # Copy args
-            argv = list(argv)
+        # Get args
+        argv = _get_argv(argv)
+        # Check type of *argv*
+        assert_isinstance(argv, list, "'argv'")
+        # Check each arg is a string
+        for j, arg in enumerate(argv):
+            # Check type
+            assert_isinstance(arg, str, f"argument {j}")
+        # Copy args
+        argv = list(argv)
         # Save copy of args to *self*
         self.argv = list(argv)
         # (Re)initialize attributes storing parsed arguments
