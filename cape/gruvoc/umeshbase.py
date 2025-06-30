@@ -536,6 +536,126 @@ class UmeshBase(ABC):
             for i, var in enumerate(self.qvars):
                 self.pvmesh.point_data[var] = self.q[:, i]
 
+    def make_pv_skin_friction(self, bound0, mu, a, q):
+        r"""Compute skin friction using pyvista methods
+            :Call:
+            >>>surf = mesh.make_pv_skin_friction(bound0, mu, a, q)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *bound0*: "class":`int`
+                Boundary ID to begin surface extraction (meant for
+                farfield exclsion)
+            *mu*: "class":`float`
+                Dynamic viscosity (dimensional)
+            *a*: "class":`float`
+                Value for diminsionalization of velocity
+            *q*: "class":`float`
+                Dynamic pressure (dimensional)
+        :Outputs:
+            *surf*: :class:`Umesh`
+                Surface points with computed skin friction quantities
+        """
+        # Make point_ids for boundary extraction (0=volume node)
+        ids = np.full(self.nnode, 0, dtype=int)
+
+        # Get node indicies of specfic surface tris from mapbc
+        id_list = list(self.config.facenames.keys())[bound0:]
+
+        for id in id_list:
+            t_mask = self.get_tris_by_id(id)
+            n_mask = self.tris[t_mask]
+            ids[n_mask-1] = id
+
+        # Assign ids to q array
+        self.q = (np.hstack((self.q, ids[:, None])))
+        self.qvars.append('id')
+
+        # Make/re-make pyvista mesh
+        self.make_pvmesh_vol()
+
+        # Construct the velocity vector
+        u = self.pvmesh.point_data['u'] * a
+        v = self.pvmesh.point_data['v'] * a
+        w = self.pvmesh.point_data['w'] * a
+        self.pvmesh.point_data['Velocity'] = np.vstack((u, v, w)).T
+
+        # Extract the surface (only)
+        surfu = self.pvmesh.extract_values(
+            values=id_list, scalars="id", adjacent_cells=False)
+        surf = surfu.extract_surface()
+
+        # Extract surface+first cell
+        vol_first = self.pvmesh.extract_points(
+            surfu['vtkOriginalPointIds'], adjacent_cells=True)
+
+        # Compute velocity gradient at surface using first cell
+        vol_tensor = vol_first.compute_derivative(
+            scalars='Velocity', gradient=True, divergence=True,
+            progress_bar=True)
+
+        # Sample gradient and divergecne onto surface
+        surfg = surf.sample(vol_tensor)
+        # Compute surface normals
+        surfn = surfg.compute_normals(cell_normals=False, point_normals=True)
+        # Save surface normals/gradients for use
+        normals = surfn.point_data['Normals']
+        gradw = surfn.point_data['gradient']
+        divw = surfn.point_data['divergence']
+
+        # Reshape gradient to make 3x3
+        gradwr = gradw.reshape((-1, 3, 3))
+
+        # Compute the components of the viscous stress tensor
+        # tau = mu * (grad(U) + grad(U).T) - 2/3mu*(div(U))*I
+        tau_dev = mu * (gradwr + gradwr.transpose((0, 2, 1)))
+        tau_dil = -2/3 * mu * divw[:, None, None] * np.eye(3)
+        tau = tau_dev + tau_dil
+
+        # Calculate full stress vector on the wall (traction)
+        traction = np.einsum('nij,nj->ni', tau, normals)
+        # Now get the component in the normal direction
+        traction_normal_mag = np.einsum('ni,ni->n', traction, normals)
+        # Vecotorize the normal component
+        traction_normal = traction_normal_mag[:, None] * normals
+        # Subtract out the normal component to get the WSS vectors at the wall
+        wss = traction - traction_normal
+        # Comppute the wss magnitude
+        wss_magnitude = np.linalg.norm(wss, axis=1)
+
+        # Save the values to the surface grid
+        surfn.point_data['wss_magnitude'] = wss_magnitude
+        surfn.point_data['wss'] = wss
+
+        # Compute skin friction coefficient
+        # cf = Tw/q
+        cf = wss_magnitude / q
+        surfn.point_data['cf'] = cf
+
+        # Components
+        # --X--
+        tau_w_x = wss[:, 0]
+        cfx = tau_w_x/q
+        surfn.point_data['cf_x'] = cfx
+        # --X--
+        tau_w_y = wss[:, 1]
+        cfy = tau_w_y/q
+        surfn.point_data['cf_y'] = cfy
+        # --X--
+        tau_w_z = wss[:, 2]
+        cfz = tau_w_z/q
+        surfn.point_data['cf_z'] = cfz
+
+        # Remove vectors and tensors for umesh conversion
+        surfn.point_data.remove('Velocity')
+        surfn.point_data.remove('Normals')
+        surfn.point_data.remove('gradient')
+        surfn.point_data.remove('divergence')
+        surfn.point_data.remove('wss')
+
+        # Convert to Umesh and return
+        return self.__class__.from_pvmesh(surfn)
+
    # --- DataKit ---
     def genr8_datakit(self) -> DataKit:
         r"""Create a :class:`DataKit` from an unstructured mesh

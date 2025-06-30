@@ -1998,11 +1998,14 @@ class Cntl(cntl.UgridCntl):
                 bc = keyopts.get("SurfBC", 7021)
                 # Set the BC to the "rcs_jet"
                 self.MapBC.SetBC(compID, bc)
+                # Get Dimensional freestream conditions
+                pinf = self.x.GetPressure(i, units='Pa')
+                Tinf = self.x.GetTemperature(i, units='K')
                 # Get gas ID number
                 pID = self.x.GetSurfBC_PlenumID(i, key, typ=typ)
                 # Set the BC
-                nml.set_opt(sec, 'plenum_p0', p0, surfID)
-                nml.set_opt(sec, 'plenum_t0', T0, surfID)
+                nml.set_opt(sec, 'plenum_p0', p0*pinf, surfID)
+                nml.set_opt(sec, 'plenum_t0', T0*Tinf, surfID)
                 nml.set_opt(sec, 'plenum_id', pID, surfID)
             else:
                 # Get BC number
