@@ -100,13 +100,19 @@ def _read_fun3d_flow(
     # Read number of nodes
     nnode, = fromfile_lb4_i(fp, 1)
     mesh.nnode = nnode
+    # Skip to byte 300 to read version
+    fp.seek(300)
+    # Get version identifier
+    ver, = fromfile_lb4_i(fp, 1)
+    # Move to position for freestream variables
+    pos = 614 if ver == 2 else 580
     # Skip to byte 580 to read freestream
-    fp.seek(580)
+    fp.seek(pos)
     # Fixed freestream in perfect-gas FUN3D
-    mesh.qinfvars = ["mach", "Rey", "alpha", "beta", "Tinf"]
-    mesh.qinf = fromfile_lb8_f(fp, 5)
-    # Skip to byte 900
-    fp.seek(900)
+    mesh.qinfvars = ["mach", "Rey", "alpha", "beta", "Tinf", "Pr"]
+    mesh.qinf = fromfile_lb8_f(fp, 7)[[0, 1, 2, 3, 4, 6]]
+    # Skip to byte 900 (or 934)
+    fp.seek(264, 1)
     # Read number of iterations
     niter, = fromfile_lb4_i(fp, 1)
     ncol, = fromfile_lb4_i(fp, 1)
@@ -184,8 +190,10 @@ def _read_fun3d_tavg(
     fp.seek(8)
     # Read number of iterations in average
     mesh.niter, = fromfile_lb4_i(fp, 1)
-    # Skip 8 bytes; these may be important?
-    fp.seek(8, 1)
+    # Read version
+    ver, = fromfile_lb4_i(fp, 1)
+    # Skip 1 int32, should be ``6``; may be important?
+    fp.seek(4, 1)
     # Read number of states
     nq, = fromfile_lb4_i(fp, 1)
     mesh.nq = nq
@@ -212,13 +220,29 @@ def _read_fun3d_tavg(
     # Inversion
     bnode = np.argsort(jnode)
     # Save variable names
-    if nq == 5:
+    if ver == 1:
+        # State variables
         mesh.qvars = [
             "rho", "u", "v", "w", "p",
         ]
-    # Read RMS and then average state
-    q = fromfile_lb8_f(fp, 2*nnode*nq).reshape((nnode, 2*nq))
-    qavg = q[:, :nq]
+        # Read RMS and then average state
+        q = fromfile_lb8_f(fp, 2*nnode*nq).reshape((nnode, 2*nq))
+        qavg = q[:, :nq]
+    elif ver == 2:
+        # Selected variables; many on offer
+        mesh.qvars = [
+            "rho", "u", "v", "w", "p", "T", "W",
+        ]
+        # Freestream Mach number
+        mach = mesh.qinf[0]
+        # Read all 32 cols
+        q = fromfile_lb8_f(fp, nnode*32).reshape((nnode, 32))
+        # Downselect
+        qavg = q[:, [0, 1, 2, 3, 4, 9, 6]]
+        # Renormalize velocities; u/Uinf -> u/ainf
+        qavg[:, [1, 2, 3]] *= mach
+        # Renormalize pressure; p/g*Minf^2*pinf -> p/g*pinf
+        qavg[:, 4] *= (mach*mach)
     # Reorder and save it
     mesh.q = qavg[bnode, :]
 

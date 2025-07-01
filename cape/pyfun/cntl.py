@@ -1894,7 +1894,7 @@ class Cntl(cntl.UgridCntl):
         # Create directory if necessary
         self.make_case_folder(i)
         # Destination file
-        fout = os.path.join(frun, "speciesthermodata")
+        fout = os.path.join(frun, "species_thermo_data")
         # Copy the file
         shutil.copy(fname, fout)
 
