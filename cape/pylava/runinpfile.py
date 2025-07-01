@@ -759,6 +759,7 @@ def assert_regex(c: str, regex, desc=None):
         msg1 = f"After {desc} expected to match: "
     # Show what we got
     msg3 = f"; got '{c}'"
+    breakpoint()
     # Raise an exception
     raise ValueError(msg1 + msg2 + msg3)
 
@@ -961,6 +962,9 @@ def _next_chunk(fp: IOBase) -> str:
             # Comment encountered
             fp.readline()
             return chunk.strip()
+        elif chunk.startswith("$") and c in '{}':
+            # Allow '${mach}', for example
+            pass
         elif c in SPECIAL_CHARS:
             # Revert one character
             fp.seek(fp.tell() - 1)
