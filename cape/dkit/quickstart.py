@@ -578,11 +578,15 @@ class DataKitQuickStarter:
         pkg = self.get_full_pkgname(template)
         # Get path to that folder
         pkgdir = pkg.replace('.', os.sep)
+        pkgdir = os.path.join(pkgdir, "rawdata")
+        # Path to this rawdata/ folder
+        rawdir = os.path.join(self.pkgdir, "rawdata")
         # Absolute path to template file
         srcfile = os.path.join(self.cwd, pkgdir, "datakit-sources.json")
-        rawfile = os.path.join(self.cwd, self.pkgdir, "datakit-sources.json")
+        rawfile = os.path.join(self.cwd, rawdir, "datakit-sources.json")
         # Check if it exists
         if os.path.isfile(srcfile) and not os.path.isfile(rawfile):
+            print(f"Coyping '{srcfile}' -> 'rawdata/'")
             shutil.copy(srcfile, rawfile)
 
     # Write the starter for a module
@@ -740,7 +744,7 @@ class DataKitQuickStarter:
         # Get requirements moption
         reqs = self.opts.get_opt("requirements")
         # Exit if none
-        if reqs is None:
+        if reqs is None or len(reqs) == 0:
             return
         # Ensure list
         if isinstance(reqs, str):
