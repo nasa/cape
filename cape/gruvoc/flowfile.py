@@ -238,7 +238,7 @@ def _read_fun3d_tavg(
         # Read all 32 cols
         q = fromfile_lb8_f(fp, nnode*32).reshape((nnode, 32))
         # Downselect
-        qavg = q[:, [0, 1, 2, 3, 4, 6, 9]]
+        qavg = q[:, [0, 1, 2, 3, 4, 9, 6]]
         # Renormalize velocities; u/Uinf -> u/ainf
         qavg[:, [1, 2, 3]] *= mach
         # Renormalize pressure; p/g*Minf^2*pinf -> p/g*pinf
