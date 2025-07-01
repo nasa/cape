@@ -1856,9 +1856,10 @@ class UmeshBase(ABC):
             comp: Optional[Union[str, int, list]] = None,
             closed: Optional[bool] = False,
             **kw):
-        r"""
+        r"""Create a slice through surface tris and quads
+
         :Call:
-            >>> slice = mesh.slicesurf(x, n, comp=None, **kw)
+            >>> crv = mesh.slicesurf(x, n, comp=None, **kw)
         :Inputs:
             *x*: :class:`np.ndarray`\ [:class:`float`]
                 Coordinates of the cut plane center
@@ -1871,15 +1872,15 @@ class UmeshBase(ABC):
             *closed*: {``False``} | ``True``
                 Attempt to close returned edges
         :Outputs:
-            *slice*: :class:`Umesh`
+            *crv*: :class:`Umesh`
                 Unstructured mesh instance for intersect
-            *slice.nodes*: :class:`np.ndarray`\ [:class:`float`]
+            *crv.nodes*: :class:`np.ndarray`\ [:class:`float`]
                 Nx3 array of node coordinates
-            *slice.edges*: :class:`np.ndarray`\ [:class:`int`]
+            *crv.edges*: :class:`np.ndarray`\ [:class:`int`]
                 Nx2 array of edge nodes, sorted into contiguous sections
-            *slice.edge_ids*: :class:`np.ndarray`\ [:class:`int`]
+            *crv.edge_ids*: :class:`np.ndarray`\ [:class:`int`]
                 The *tri_id* or *quad_id* from which this edge came
-            *slice.q*: :class:`np.ndarray`\ [:class:`float`]
+            *crv.q*: :class:`np.ndarray`\ [:class:`float`]
                 Values of the *mesh.q* at the *slice.nodes*
         :Versions:
             * 2025-05-12 ``@aburkhea``: v1.0
@@ -2010,8 +2011,12 @@ class UmeshBase(ABC):
         omesh.edges = np.array(edgelist)
         omesh.edge_ids = np.array(edgeids)
         omesh.nedge = edgeids.size
+        omesh.qvars = list(self.qvars)
+        omesh.qinf = copy.copy(self.qinf)
+        omesh.qinfvars = copy.copy(self.qinfvars)
         omesh.q = surfvals
         omesh.nq = self.nq
+        # Return mesh object of just the slice
         return omesh
 
     # Function to cut elements on plane
@@ -2630,6 +2635,40 @@ class UmeshBase(ABC):
 
    # --- Edges ---
     def follow_edges(self) -> SegmentedSlice:
+        r"""Follow edges created by a surface slice
+
+        The output is two simple arrays of spatial coordinates and state
+        variables long the edges. See also :func:`slicesurf` as this
+        method is meant to be called on the output of ``slicesurf()``.
+
+        :Call:
+            >>> crv = mesh.follow_edges()
+            >>> x, q = mesh.follow_edges()
+        :Inputs:
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Coordinates of the cut plane center
+            *n*: :class:`np.ndarray`\ [:class:`float`]
+                Vector normal to desired cut plane
+            *comp*: {``None``} | `str` | `list`
+                Optional name of component(s) to intersect
+            *fname*: {``None``} | `str`
+                Name of output file
+            *closed*: {``False``} | ``True``
+                Attempt to close returned edges
+        :Outputs:
+            *crv*: :class:`Umesh`
+                Unstructured mesh instance for intersect
+            *crv.nodes*: :class:`np.ndarray`\ [:class:`float`]
+                Nx3 array of node coordinates
+            *crv.edges*: :class:`np.ndarray`\ [:class:`int`]
+                Nx2 array of edge nodes, sorted into contiguous sections
+            *crv.edge_ids*: :class:`np.ndarray`\ [:class:`int`]
+                The *tri_id* or *quad_id* from which this edge came
+            *crv.q*: :class:`np.ndarray`\ [:class:`float`]
+                Values of the *mesh.q* at the *slice.nodes*
+        :Versions:
+            * 2025-07-01 ``@ddalle``: v1.0
+        """
         # Check for edges
         if not self.nedge:
             return
@@ -2649,32 +2688,89 @@ class UmeshBase(ABC):
             raise ValueError(
                 f"Edge {ji} occurs {nj[ji]} times; can only follow edges where"
                 "each node occurs 1 or 2 times")
+        # Get indices of singly-connected nodes
+        ia, = np.where(nj == 1)
         # Find location of each index in each column
         j0 = np.full(nn, -1)
         j1 = np.full(nn, -1)
         j0[e[:, 0]] = np.arange(ne)
         j1[e[:, 1]] = np.arange(ne)
+        # Make a copy of edge table containing only the duplicated nodes
+        e0 = e[:, 0].copy()
+        e1 = e[:, 1].copy()
+        e0[j0[j0 >= 0]] = -1
+        e1[j1[j1 >= 0]] = -1
+        # Get duplicated nodes
+        f0, = np.where(e0 >= 0)
+        f1, = np.where(e1 >= 0)
+        # Do the same thing for second apperances of node in each col
+        j0b = np.full(nn, -1)
+        j1b = np.full(nn, -1)
+        j0b[e0[f0]] = f0
+        j1b[e1[f1]] = f1
+        # Initialize mask of used edges
+        edgemask = np.ones(ne, 'bool')
         # Initialize mask of used nodes
-        mask = np.ones(nn, 'bool')
+        nodemask = np.ones(nn, 'bool')
         # Block nodes that don't occur in edge table
-        mask[nj == 0] = False
-        # Count number of singly-connected nodes
+        nodemask[nj == 0] = False
         # We have no quick way to detect loops at this step
         # (Loops have to repeat one node in addition to the NaN)
-        nseg = np.sum(nj == 1) / 2
         nmaxloop = ne // 3
         nmax = nn + 2*nmaxloop
         # Number of edges followed
         n = 0
+        m = 0
         # Initialize
-        j = np.full(nmax, -1)
-        x = np.zeros((nmax, 3))
-        q = np.zeros((nmax, self.nq))
+        i = np.full(nmax, -1)
+        x = np.full((nmax, 3), np.nan)
+        q = np.full((nmax, self.nq), np.nan)
         # Loop until all edges used
-        while np.any(mask):
-            break
+        while np.any(nodemask):
+            # Find next node
+            # Loop through singly-connected nodes (if any)
+            for i0 in ia:
+                # Check if already masked
+                if nodemask[i0]:
+                    # Block this node
+                    nodemask[i0] = False
+                    # Use it
+                    break
+            else:
+                # Only loops remaining; just use first available node
+                # (Don't block it b/c we'll need to come back to it.)
+                i0 = np.where(nodemask)[0][0]
+            # Save node
+            i[n] = i0
+            n += 1
+            # Loop through this segment/loop
+            while True:
+                # Find the edge we came from
+                ji = _find_edge_i(i0, j0, j1, j0b, j1b, edgemask)
+                # Check for end of a loop or dead-end single-node
+                if ji is None:
+                    break
+                # Mark this edge as "used"
+                edgemask[ji] = False
+                # Get both nodes on this edge
+                ii = e[ji]
+                # Get the "other" one (left or right col)
+                i1 = ii[ii != i0][0]
+                # Save it
+                i[n] = i1
+                i0 = i1
+                n += 1
+                m += 1
+                # Mark node as used
+                nodemask[i0] = False
+            # Add a gap to next segment/loop
+            n += 1
+        # Find locations of actual nodes
+        mask = i >= 0
+        x[mask] = self.nodes[i[mask], :]
+        q[mask] = self.q[i[mask], :]
         # Output
-        return SegmentedSlice(x, q)
+        return SegmentedSlice(x[:n], q[:n])
 
     def build_voledges(self):
         r"""Build table of unique edges in the volume mesh
@@ -2833,6 +2929,26 @@ def compress_indices(
     new_inds = inew[node_indices - 1]
     # Output
     return new_inds
+
+
+# Find position of node in edge table
+def _find_edge_i(i: int, j0, j1, j0b, j1b, mask):
+    # Try left column first appearance
+    j = j0[i]
+    if j >= 0 and mask[j]:
+        return j
+    # Try right column first appearance
+    j = j1[i]
+    if j >= 0 and mask[j]:
+        return j
+    # Try left column second appearance
+    j = j0b[i]
+    if j >= 0 and mask[j]:
+        return j
+    # Try right column second appearance
+    j = j1b[i]
+    if j >= 0 and mask[j]:
+        return j
 
 
 def _o_of_thousands(x: Union[float, int]) -> int:
