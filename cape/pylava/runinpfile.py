@@ -259,11 +259,11 @@ class CartInputFile(dict):
         self.set_opt("time", "number of steps", n)
 
    # --- Reference conditions ---
-    def get_alpha(self, a: float):
-        r"""Set freestream angle of attack
+    def get_alpha(self):
+        r"""Get freestream angle of attack
 
         :Call:
-            >>> opts.set_alpha(a)
+            >>> a = opts.get_alpha()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -279,7 +279,7 @@ class CartInputFile(dict):
         r"""Set freestream sideslip angle
 
         :Call:
-            >>> opts.set_beta(b)
+            >>> b = opts.set_beta()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -292,10 +292,10 @@ class CartInputFile(dict):
         return self.get_refcond("beta")
 
     def get_pressure(self) -> float:
-        r"""Set freestream static pressure
+        r"""Get freestream static pressure
 
         :Call:
-            >>> opts.set_pressure(p)
+            >>> p = opts.get_pressure()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -308,10 +308,10 @@ class CartInputFile(dict):
         return self.get_refcond("pressure")
 
     def get_refarea(self) -> float:
-        r"""Set solution reference length
+        r"""Get solution reference area
 
         :Call:
-            >>> opts.set_reflength(aref)
+            >>> aref = opts.set_reflength()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -340,10 +340,10 @@ class CartInputFile(dict):
         return self.get_refcond("dx")
 
     def get_reflength(self) -> float:
-        r"""Set solution reference length
+        r"""Get solution reference length
 
         :Call:
-            >>> opts.set_reflength(lref)
+            >>> lref = opts.set_reflength(lref)
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -356,10 +356,10 @@ class CartInputFile(dict):
         return self.get_refcond("length")
 
     def get_temperature(self) -> float:
-        r"""Set freestream static temperature
+        r"""Get freestream static temperature
 
         :Call:
-            >>> opts.set_pressure(p)
+            >>> t = opts.get_temperature()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -375,7 +375,7 @@ class CartInputFile(dict):
         r"""Set solution reference velocity
 
         :Call:
-            >>> opts.set_uref(uref)
+            >>> uref = opts.get_uref()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface

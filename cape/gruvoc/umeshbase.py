@@ -31,6 +31,7 @@ except ModuleNotFoundError:
 
 
 # Class for Tecplot zones; nodes and indices
+SegmentedSlice = namedtuple("SegmentedSlice", ("nodes", "q"))
 SurfZone = namedtuple("SurfZone", ("nodes", "jnode", "tris", "quads"))
 VolumeZone = namedtuple(
     "VolumeZone", ("nodes", "jnode", "tets", "pyrs", "pris", "hexs"))
@@ -2010,6 +2011,7 @@ class UmeshBase(ABC):
         omesh.edge_ids = np.array(edgeids)
         omesh.nedge = edgeids.size
         omesh.q = surfvals
+        omesh.nq = self.nq
         return omesh
 
     # Function to cut elements on plane
@@ -2627,6 +2629,53 @@ class UmeshBase(ABC):
         return nsmall, ntotal
 
    # --- Edges ---
+    def follow_edges(self) -> SegmentedSlice:
+        # Check for edges
+        if not self.nedge:
+            return
+        # Unpack edges
+        e = self.edges
+        ne = self.nedge
+        # Max edge index; node count
+        nn = np.max(e) + 1
+        # Count number of times each node appears
+        nj = np.full(nn, 0)
+        np.add.at(nj, e[:, 0], 1)
+        np.add.at(nj, e[:, 1], 1)
+        # Check for any triples
+        if np.max(nj) > 2:
+            # Find worst case
+            ji = np.argmax(nj)
+            raise ValueError(
+                f"Edge {ji} occurs {nj[ji]} times; can only follow edges where"
+                "each node occurs 1 or 2 times")
+        # Find location of each index in each column
+        j0 = np.full(nn, -1)
+        j1 = np.full(nn, -1)
+        j0[e[:, 0]] = np.arange(ne)
+        j1[e[:, 1]] = np.arange(ne)
+        # Initialize mask of used nodes
+        mask = np.ones(nn, 'bool')
+        # Block nodes that don't occur in edge table
+        mask[nj == 0] = False
+        # Count number of singly-connected nodes
+        # We have no quick way to detect loops at this step
+        # (Loops have to repeat one node in addition to the NaN)
+        nseg = np.sum(nj == 1) / 2
+        nmaxloop = ne // 3
+        nmax = nn + 2*nmaxloop
+        # Number of edges followed
+        n = 0
+        # Initialize
+        j = np.full(nmax, -1)
+        x = np.zeros((nmax, 3))
+        q = np.zeros((nmax, self.nq))
+        # Loop until all edges used
+        while np.any(mask):
+            break
+        # Output
+        return SegmentedSlice(x, q)
+
     def build_voledges(self):
         r"""Build table of unique edges in the volume mesh
 
