@@ -206,7 +206,7 @@ class CaseRunner(casecntl.CaseRunner):
         n = self.get_iter()
         # Assuming that worked, move the temp output file
         fout = "%s.%02i.out" % (fproj, j + 1)
-        flog = "%s.%02i.%i" % (fproj, j + 1, n)
+        flog = "%s.%02i.%i" % (fproj, j, n)
         flogj = flog + ".1"
         jlog = 1
         # Check if expected output file exists

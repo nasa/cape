@@ -352,8 +352,6 @@ class CaseRunner(casecntl.CaseRunner):
                 PS.WriteHist()
         except Exception:
             pass
-        # Reset PhaseIters if early exit
-        self._reset_phase_iters(j)
         # Output
         return ierr
 
@@ -394,8 +392,6 @@ class CaseRunner(casecntl.CaseRunner):
             PS = pointsensor.CasePointSensor()
             PS.UpdateIterations()
             PS.WriteHist()
-        # Update phase iteration cutoffs
-        self._reset_phase_iters(j)
         # Return code
         return ierr
 
