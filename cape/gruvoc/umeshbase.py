@@ -2642,7 +2642,7 @@ class UmeshBase(ABC):
         method is meant to be called on the output of ``slicesurf()``.
 
         :Call:
-            >>> crv = mesh.follow_edges()
+            >>> seg = mesh.follow_edges()
             >>> x, q = mesh.follow_edges()
         :Inputs:
             *x*: :class:`np.ndarray`\ [:class:`float`]
@@ -2656,16 +2656,13 @@ class UmeshBase(ABC):
             *closed*: {``False``} | ``True``
                 Attempt to close returned edges
         :Outputs:
-            *crv*: :class:`Umesh`
-                Unstructured mesh instance for intersect
-            *crv.nodes*: :class:`np.ndarray`\ [:class:`float`]
-                Nx3 array of node coordinates
-            *crv.edges*: :class:`np.ndarray`\ [:class:`int`]
-                Nx2 array of edge nodes, sorted into contiguous sections
-            *crv.edge_ids*: :class:`np.ndarray`\ [:class:`int`]
-                The *tri_id* or *quad_id* from which this edge came
-            *crv.q*: :class:`np.ndarray`\ [:class:`float`]
-                Values of the *mesh.q* at the *slice.nodes*
+            *seg*: :class:`SegmentedSlice`
+                Coordinates and state variables of connected slice
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Nodal coordinates of connected slice; a row of
+                ``np.nan`` reporesents a gap in the connected slices
+            *q*: :class:`np.ndarray`\ [:class:`float`]
+                State variables; each row corresponds to row of *x*
         :Versions:
             * 2025-07-01 ``@ddalle``: v1.0
         """
