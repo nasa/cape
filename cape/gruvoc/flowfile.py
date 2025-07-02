@@ -248,7 +248,7 @@ def _read_fun3d_tavg(
     # Inversion
     bnode = np.argsort(jnode)
     # Save variable names
-    if ver == 1:
+    if ver in (0, 1):
         # State variables
         mesh.qvars = [
             "rho", "u", "v", "w", "p",
