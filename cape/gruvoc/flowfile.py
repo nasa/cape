@@ -182,7 +182,7 @@ def _read_fun3d_flow(
     else:
         # Read generic_gas_path state
         q = fromfile_lb8_f(fp, nnode*nq).reshape((nnode, nq))
-        # Unpack
+        # Unpack (*e0* is specific internal energy here)
         rho, ru, rv, rw, e0 = q.T
         # Freestream Mach number
         Minf = mesh.qinf[mesh.qinfvars.index("mach")]
@@ -190,6 +190,21 @@ def _read_fun3d_flow(
         q[:, 1] = ru / rho * Minf
         q[:, 2] = rv / rho * Minf
         q[:, 3] = rw / rho * Minf
+        # Check for temperature
+        _assert_tag(fp, "temperature")
+        # Skip 5 ints
+        fp.seek(20, 1)
+        # Read temperature [K]
+        T = fromfile_lb8_f(fp, nnode)
+        Tinf = mesh.qinf[mesh.qinfvars.index("Tinf")]
+        That = T / (1.4*Tinf)
+        phat = rho*That
+        q[:, 4] = phat
+        # Add temperature
+        q = np.hstack((q, T.reshape((nnode, 1))))
+        # Update column list
+        mesh.nq = 6
+        mesh.qvars = ["rho", "u", "v", "w", "p", "T"]
     # Reorder and save it
     mesh.q = q[bnode, :]
 
@@ -233,7 +248,7 @@ def _read_fun3d_tavg(
     # Inversion
     bnode = np.argsort(jnode)
     # Save variable names
-    if ver == 1:
+    if ver in (0, 1):
         # State variables
         mesh.qvars = [
             "rho", "u", "v", "w", "p",
