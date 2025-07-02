@@ -1350,7 +1350,7 @@ class CntlBase(ABC):
                     nj = counter.get(sts, 0)
                     if nj:
                         sys.stdout.write(f"{sts}={nj}, ")
-                sys.stdout.write("\b\n")
+                sys.stdout.write("\n")
                 sys.stdout.flush()
             else:
                 # Print column name

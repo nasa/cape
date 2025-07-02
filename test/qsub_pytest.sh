@@ -21,7 +21,7 @@ module use -a /swbuild/fun3d/fun3dv14_users/modulefiles
 module load python3/3.11.5
 module load cape/devel
 module load aflr3/16.27.3
-module load overflow/2.4b_dp
+module load overflow/2.4d_dp
 module load FUN3D_INTG_Rome/14.1
 module load cart3d/1.6.0
 module load tecplot/2023r2

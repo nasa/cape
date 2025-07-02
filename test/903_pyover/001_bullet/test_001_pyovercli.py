@@ -7,6 +7,7 @@ import testutils
 
 # Local imports
 import cape.pyover.cntl
+from cape.pyover import cli
 
 
 # List of file globs to copy into sandbox
@@ -47,7 +48,7 @@ def test_03_fm():
     # Instantiate
     cntl = cape.pyover.cntl.Cntl()
     # Collect aero
-    cntl.cli(fm=True, I="1")
+    cli.main(["pyover", "--fm", "-I", "1"])
     # Read databook
     cntl.ReadDataBook()
     # Get value
