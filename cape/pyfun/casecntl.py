@@ -343,16 +343,38 @@ class CaseRunner(casecntl.CaseRunner):
         # Only overwrite given nml if the phase adapts
         if not adpt_opt:
             return
-        # Required settings
-        vov_req = {
-            "export_to": 'solb',
-            "primitive_variables": True,
-            "x": False,
-            "y": False,
-            "z": False,
-            "turb1": True,
-            "turb2": True
-        }
+        # Check for generic gas eqn_type
+        gov = nml.get('governing_equations')
+        # Different required volume output variables needed based on eqn type
+        if gov['eqn_type'] == "generic":
+            vov_req = {
+                "export_to": 'solb',
+                "primitive_variables": False,
+                "x": False,
+                "y": False,
+                "z": False,
+                "u": True,
+                "v": True,
+                "w": True,
+                "rho_i":{
+                    "1:99": True
+                    },
+                "tt": True,
+                "tv": True,
+                "turb1": True,
+                "turb2": True
+            }
+        else:
+            # Required settings
+            vov_req = {
+                "export_to": 'solb',
+                "primitive_variables": True,
+                "x": False,
+                "y": False,
+                "z": False,
+                "turb1": True,
+                "turb2": True
+            }
         # Overwrite volume output variables
         nml.pop("volume_output_variables", None)
         # Save vol output options to nml
