@@ -404,7 +404,7 @@ class Cntl(capecntl.Cntl):
                 # Apply the options
                 self.Namelist.ApplyDictToGrid(grdnam, ogrd)
             # Name of output file.
-            fout = os.path.join(frun, '%s.%02i.inp' % (self.GetPrefix(j), j+1))
+            fout = os.path.join(frun, '%s.%02i.inp' % (self.GetPrefix(j), j))
             # Write the input file.
             self.Namelist.Write(fout)
         # Return to original path.
@@ -774,70 +774,6 @@ class Cntl(capecntl.Cntl):
             return os.path.join(self.RootDir, fcfg)
 
   # === Case Interface ===
-    # Check a case's phase output files
-    def CheckUsedPhase(self, i, v=False):
-        r"""Check maximum phase number run at least once
-
-        :Call:
-            >>> j, n = cntl.CheckUsedPhase(i, v=False)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-            *v*: ``True`` | {``False``}
-                Verbose flag; prints messages if *n* is ``None``
-        :Outputs:
-            *j*: :class:`int` | ``None``
-                Phase number
-            *n*: :class:`int`
-                Max phase number
-        :Versions:
-            * 2017-06-29 ``@ddalle``: v1.0
-            * 2017-07-11 ``@ddalle``: v1.1; add *v*
-        """
-        # Check input
-        if type(i).__name__ not in ["int", "int64", "int32"]:
-            raise TypeError(
-                "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
-        # Get the group name.
-        frun = self.x.GetFullFolderNames(i)
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
-        # Initialize phase number.
-        j = 0
-        # Check if the folder exists.
-        if (not os.path.isdir(frun)):
-            # Verbosity option
-            if v:
-                print("    Folder '%s' does not exist" % frun)
-            j = None
-        # Check that test.
-        if j is not None:
-            # Go to the group folder.
-            os.chdir(frun)
-            # Read local settings
-            try:
-                # Get phase list
-                phases = list(self.opts.get_PhaseSequence())
-            except Exception:
-                # Get global phase list
-                phases = list(self.opts.get_PhaseSequence())
-            # Reverse the list
-            phases.reverse()
-            # Loop backwards
-            for j in phases:
-                # Check if any output files exist
-                if len(casecntl.glob.glob("run.%02i.[1-9]*" % (j+1))) > 0:
-                    # Found it.
-                    break
-        # Return to original folder.
-        os.chdir(fpwd)
-        # Output.
-        return j, phases[-1]
-
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i: int):
         r"""Check if the mesh for case *i* is prepared

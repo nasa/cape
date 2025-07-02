@@ -40,9 +40,8 @@ format used in the built-in module :mod:`subprocess` and also with
 ``"ls -lh"`` becomes the list ``["ls", "-lh"]``.
 
 :See also:
-    * :mod:`cape.cmdgen`
-    * :mod:`cape.cmdrun`
-    * :mod:`cape.pyover.cmdrun`
+    * :mod:`cape.cfdx.cmdgen`
+    * :mod:`cape.cfdx.cmdrun`
     * :mod:`cape.pyover.options.runctlopts`
 """
 
@@ -98,13 +97,13 @@ def overrun(opts=None, j=0, **kw):
     # Form string for initial part of command
     if ofcmd[0] == "overrunmpi":
         # Use the ``overrunmpi`` script
-        cmdi = ofcmd + ['-np', str(nProc), pre, '%02i' % (j+1)]
+        cmdi = ofcmd + ['-np', str(nProc), pre, '%02i' % j]
     elif ofcmd[0] == "overflowmpi":
         # Use the ``overflowmpi`` command
         cmdi = mpicmd + ['-np', str(nProc), ofcmd]
     elif ofcmd[0] == "overrun":
         # Use the ``overrun`` script
-        cmdi = ofcmd + [pre, '%02i' % (j+1)]
+        cmdi = ofcmd + [pre, '%02i' % j]
     elif n_mpi:
         # Default to "overflowmpi"
         cmdi = [mpicmd, '-np', str(nProc)] + ofcmd

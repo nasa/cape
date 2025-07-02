@@ -53,7 +53,6 @@ Modules included within this one are outlined below.
 
     * Supporting modules
         - :mod:`cape.pyover.cmdgen`
-        - :mod:`cape.pyover.cmdrun`
         - :mod:`cape.pyover.report`
         - :mod:`cape.pyover.util`
 
