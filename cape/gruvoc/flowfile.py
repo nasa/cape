@@ -163,20 +163,33 @@ def _read_fun3d_flow(
         return
     # Skip 3 more ints
     fp.seek(12, 1)
-    # Read state
-    q = fromfile_lb8_f(fp, nnode*nq).reshape((nnode, nq))
-    # Unpack
-    rho, ru, rv, rw, e0 = q.T
-    # Calculate normalized velocity magnitude times density (squared)
-    rhov2 = ru*ru + rv*rv + rw*rw
-    # Calculate pressure
-    p = 0.4*(e0 - 0.5/rho*rhov2)
-    # Reset to "usual" normalized velocity
-    q[:, 1] = ru / rho
-    q[:, 2] = rv / rho
-    q[:, 3] = rw / rho
-    # Save pressure
-    q[:, 4] = p
+    # Check type
+    if ver == 1:
+        # Read state
+        q = fromfile_lb8_f(fp, nnode*nq).reshape((nnode, nq))
+        # Unpack
+        rho, ru, rv, rw, e0 = q.T
+        # Calculate normalized velocity magnitude times density (squared)
+        rhov2 = ru*ru + rv*rv + rw*rw
+        # Calculate pressure
+        p = 0.4*(e0 - 0.5/rho*rhov2)
+        # Reset to "usual" normalized velocity
+        q[:, 1] = ru / rho
+        q[:, 2] = rv / rho
+        q[:, 3] = rw / rho
+        # Save pressure
+        q[:, 4] = p
+    else:
+        # Read generic_gas_path state
+        q = fromfile_lb8_f(fp, nnode*nq).reshape((nnode, nq))
+        # Unpack
+        rho, ru, rv, rw, e0 = q.T
+        # Freestream Mach number
+        Minf = mesh.qinf[mesh.qinfvars.index("mach")]
+        # Reset to normalized velocity u/ainf
+        q[:, 1] = ru / rho * Minf
+        q[:, 2] = rv / rho * Minf
+        q[:, 3] = rw / rho * Minf
     # Reorder and save it
     mesh.q = q[bnode, :]
 
