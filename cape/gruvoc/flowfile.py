@@ -164,7 +164,7 @@ def _read_fun3d_flow(
     # Skip 3 more ints
     fp.seek(12, 1)
     # Check type
-    if ver == 1:
+    if ver in (0, 1):
         # Read state
         q = fromfile_lb8_f(fp, nnode*nq).reshape((nnode, nq))
         # Unpack
