@@ -356,14 +356,53 @@ class CaseRunner(casecntl.CaseRunner):
                 "u": True,
                 "v": True,
                 "w": True,
-                "rho_i":{
-                    "1:99": True
-                    },
+                "rho_i": {
+                    "1:99": True},
                 "tt": True,
                 "tv": True,
                 "turb1": True,
                 "turb2": True
             }
+            # Generic eqn_type requires a solb interpolant
+            # Let's check if the solb was defined in your template
+            geotyp = nml.get_opt("sampling_parameters", 'type_of_geometry')
+            # First check if sampling parameters even exists
+            if geotyp is not None:
+                if "partition" in geotyp:
+                    update_flag = 0
+                else:
+                    update_flag = 1
+            else:
+                update_flag = 1
+            # Update sampling parameters if list is none or if partition not
+            # present
+            if update_flag == 1:
+                n = nml.get_opt("sampling_parameters", "number_of_geometries")
+                # If no sampling parameters predefined, add one
+                if not n:
+                    ngeom = 1
+                else:
+                    ngeom += 1
+                # Set the number of geometries
+                nml.set_opt(
+                    "sampling_parameters", "number_of_geometries", ngeom)
+                # Set the type
+                nml.set_opt(
+                    "sampling_parameters", "type_of_geometry",
+                    val="partition", j=ngeom-1)
+                # Set the output frequency to last iteration
+                nml.set_opt(
+                    "sampling_parameters", "sampling_frequency",
+                    val=-1, j=ngeom-1)
+                # Set the output type
+                nml.set_opt(
+                    "sampling_parameters", "export_to",
+                    val="solb", j=ngeom-1)
+                # Set the output variable (mach for now)
+                nml.set_opt(
+                    "sampling_parameters", "variable_list",
+                    val="mach", j=ngeom-1)
+
         else:
             # Required settings
             vov_req = {
