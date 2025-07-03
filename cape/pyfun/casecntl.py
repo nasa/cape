@@ -382,7 +382,7 @@ class CaseRunner(casecntl.CaseRunner):
                 if not n:
                     ngeom = 1
                 else:
-                    ngeom += 1
+                    ngeom = n + 1
                 # Set the number of geometries
                 nml.set_opt(
                     "sampling_parameters", "number_of_geometries", ngeom)
