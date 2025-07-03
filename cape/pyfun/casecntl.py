@@ -451,6 +451,10 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read settings
         rc = self.read_case_json()
+        nml = self.read_namelist()
+        # Get eqn type
+        gov = nml.get("governing_equations")
+        eqtype = gov['eqn_type']
         # Check if adaptive
         if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
             return
@@ -473,7 +477,18 @@ class CaseRunner(casecntl.CaseRunner):
         # Set command line default required args & kws
         rc.set_RefineOpt("input", f"{proj}")
         rc.set_RefineOpt("output", f"{projb}")
-        rc.set_RefineOpt("interpolant", "mach")
+        # Interpolant needs to be solb file wit one variable for generic gas
+        if eqtype == "generic":
+            # We need to find which sampling gemoetry to use
+            smp = nml.get("sampling_parameters")
+            # Check for a partition parameter
+            mask = np.where(smp['type_of_geometry'] == "partition")[0][0]
+            # Use this solb as interpolant
+            interp = f"{proj}_sampling_geom{mask+1}.solb"
+        else:
+            # Default to use mach as interpolant
+            interp = "mach"
+        rc.set_RefineOpt("interpolant", interp)
         rc.set_RefineOpt("mapbc", f'{proj}.mapbc')
         rc.set_RefineOpt("run", True)
         # Run the refine loop command
