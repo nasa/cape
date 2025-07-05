@@ -2034,7 +2034,6 @@ class DataKit(BaseData):
        # --- Init ---
         # Initialize values
         vals = {}
-        cols = []
         # Integer code for method
         imeth = RESPONSE_METHODS.index(eval_meth)
         # Check type
@@ -2103,7 +2102,7 @@ class DataKit(BaseData):
             # Save RBF weights
             vals[col2][ia:ib] = rbf.nodes
             # Save node locations (arg values)
-            vals[col7][ia:ib,:] = rbf.xi.T
+            vals[col7][ia:ib, :] = rbf.xi.T
             # Check for map- or schedule-rbf slice col
             if eval_meth == "rbf":
                 pass
@@ -2213,7 +2212,7 @@ class DataKit(BaseData):
             # Check for duplication
             if col in self.cols:
                 raise ValueError(
-                    "RBF output col '%s' is already present." % coeff)
+                    "RBF output col '%s' is already present." % col)
             # Save the data
             self.save_col(col, dbf[col])
        # --- Create RBFs ---
@@ -2417,8 +2416,6 @@ class DataKit(BaseData):
                         self.get_response_args(k), k)) +
                     ("; expected '%s'" % eval_meth))
        # --- Init ---
-        # Number of arguments
-        narg = len(eval_args)
         # Get method index
         imeth = RBF_METHODS.index(eval_meth)
         # Initialize final column list
@@ -2462,8 +2459,6 @@ class DataKit(BaseData):
             # Create values
             vals[col] = np.full(nx, imeth)
        # --- Data/Properties ---
-        # Number of columns
-        ncol = len(cols)
         # Total number of points so fart
         ny = 0
         # Loop through RBF slices (same for each *coeff*)
@@ -8793,8 +8788,8 @@ class DataKit(BaseData):
                 v0 = self[col1]
                 # Check consistent types and combine values
                 if (
-                    isinstance(v, float)
-                    and isinstance(v0, np.ndarray) and v0.ndim == 1
+                    isinstance(v, float) and
+                    isinstance(v0, np.ndarray) and v0.ndim == 1
                 ):
                     # Special case of mismatching types
                     v = np.append(v0, v)
@@ -10285,29 +10280,29 @@ class DataKit(BaseData):
                 # Trapezoidal integration
                 if ndx == 1:
                     # Common *x* coords
-                    y[i] = np.trapz(v[:,i], x)
+                    y[i] = np.trapz(v[:, i], x)
                 else:
                     # Select *x* column
-                    y[i] = np.trapz(v[:,i], x[:,i])
+                    y[i] = np.trapz(v[:, i], x[:, i])
                 # Go to next interval
                 continue
             # Check *x* dimension
             if ndx == 2:
                 # Select column and get intervale widhtds
-                dx = np.diff(x[:,i])
+                dx = np.diff(x[:, i])
             # Check L/R
             if method == "left":
                 # Lower rectangular sum
-                y[i] = np.sum(dx * v[:,i][:-1])
+                y[i] = np.sum(dx * v[:, i][:-1])
             elif method == "right":
                 # Upper rectangular sum
-                y[i] = np.sum(dx * v[:,i][1:])
+                y[i] = np.sum(dx * v[:, i][1:])
             elif ndx == 1:
                 # Callable with common *x*
-                y[i] = method(v[:,i], x)
+                y[i] = method(v[:, i], x)
             else:
                 # Callable with custom *x*
-                y[i] = method(v[:,i], x[:,i])
+                y[i] = method(v[:, i], x[:, i])
         # Output
         return y
   # >
@@ -10389,7 +10384,6 @@ class DataKit(BaseData):
             qexact  = True
             qinterp = False
             qmark   = False
-            qindex  = True
             # Get values of arg list from *DBc* and *I*
             if arg_list:
                 # Initialize
@@ -10413,7 +10407,6 @@ class DataKit(BaseData):
             qexact  = False
             qinterp = True
             qmark   = True
-            qindex  = False
             # Find matches from *a to database points
             I, J = self.find(arg_list, *a, **kw)
        # --- Options: What to plot ---
@@ -10519,7 +10512,7 @@ class DataKit(BaseData):
                 # Loop through args
                 for j, arg in enumerate(args):
                     # Get arg value
-                    aj = self.get_arg_value(j, arg, *a, **kw)
+                    self.get_arg_value(j, arg, *a, **kw)
             except Exception:
                 # Didn't work; assume indices
                 qindex = True
@@ -10532,11 +10525,11 @@ class DataKit(BaseData):
         # Check data
         if qindex:
             # Get values
-            V = self.get_all_values(col)[:,I]
+            V = self.get_all_values(col)[:, I]
             # Get *x* values
             if ndimx == 2:
                 # Get *x* values for each index
-                X = self.get_all_values(xk)[:,I]
+                X = self.get_all_values(xk)[:, I]
             else:
                 # Common *x* values
                 X = self.get_all_values(xk)
@@ -10719,7 +10712,7 @@ class DataKit(BaseData):
                 # Use zeros for negative error term
                 uyeM = np.zeros_like(ye)
             # Evaluate UQ-pluts
-            if quq and ukP and ukP==ukM:
+            if quq and ukP and ukP == ukM:
                 # Copy negative terms to positive
                 uyeP = uyeM
             elif quq and ukP:
@@ -10742,7 +10735,7 @@ class DataKit(BaseData):
                 # Use zeros for negative error term
                 uyM = np.zeros_like(yv)
             # Evaluate UQ-pluts
-            if quq and ukP and ukP==ukM:
+            if quq and ukP and ukP == ukM:
                 # Copy negative terms to positive
                 uyP = uyM
             elif quq and ukP:
@@ -10925,8 +10918,6 @@ class DataKit(BaseData):
        # --- Prep ---
         # Process column name and values to plot
         col, X, V, kw = self._prep_args_plot2(*a, **kw)
-        # Get key for *x* axis
-        xk = kw.pop("xcol", kw.pop("xk", self.get_output_xarg1(col)))
        # --- Plot Values ---
         # Check for existing handle
         h = kw.get("h")
@@ -10946,14 +10937,14 @@ class DataKit(BaseData):
             # Multiple conditions with common *x*
             for i in range(V.shape[1]):
                 # Line plot for column of *V*
-                hi = pmpl.plot(X, V[:,i], Index=i, **opts)
+                hi = pmpl.plot(X, V[:, i], Index=i, **opts)
                 # Combine plot handles
                 h.add(hi)
         else:
             # Multiple conditions with common *x*
             for i in range(V.shape[1]):
                 # Line plot for column of *V*
-                hi = pmpl.plot(X[:, i], V[:,i], Index=i, **opts)
+                hi = pmpl.plot(X[:, i], V[:, i], Index=i, **opts)
                 # combine plot handles
                 h.add(hi)
        # --- PNG ---
@@ -12104,8 +12095,6 @@ class DataKit(BaseData):
         # Checks
         if not isinstance(args, list):
             raise TypeError("Arg list must be 'list', got %s" % type(args))
-        # Number of input args
-        narg = len(args)
         # Check types
         for (j, arg) in enumerate(args):
             # Check type
@@ -12120,17 +12109,13 @@ class DataKit(BaseData):
         scol = kw.get("scol")
         # Check for list
         if isinstance(scol, list):
-            # Get additional slice keys
-            subcols = scol[1:]
             # Single slice key
             maincol = scol[0]
         elif scol is None:
             # No slices at all
-            subcols = []
             maincol = None
         else:
             # No additional slice keys
-            subcols = []
             maincol = scol
             # List of slice keys
             scol = [scol]
@@ -12146,8 +12131,6 @@ class DataKit(BaseData):
        # --- Full-Factorial Matrix ---
         # Get full-factorial matrix at the current slice value
         X, slices = self.get_fullfactorial(scol=scol, cols=args)
-        # Original values retained for creating masks during slices
-        X0 = {}
         # Number of output points
         nX = X[args[0]].size
        # --- Regularization ---
@@ -12182,8 +12165,8 @@ class DataKit(BaseData):
                         # Get value in fixed number of characters
                         sv = ("%6g" % m)[:6]
                         # In-place status update
-                        sys.stdout.write("    Slice %s=%s (%i/%i)\r"
-                            % (maincol, sv, i+1, nslice))
+                        sys.stdout.write(
+                            f"    Slice {maincol}={sv} ({i+1}/{nslice})\r")
                         sys.stdout.flush()
                     # Initialize mask
                     J = np.ones(nX, dtype="bool")
@@ -12192,7 +12175,7 @@ class DataKit(BaseData):
                         # Get value
                         vk = slices[k][i]
                         # Constrain
-                        J = np.logical_and(J, X[k]==vk)
+                        J = np.logical_and(J, X[k] == vk)
                     # Get indices of slice
                     I = np.where(J)[0]
                     # Create interpolant for fixed value of *skey*
@@ -12393,8 +12376,6 @@ class DataKit(BaseData):
         # Checks
         if not isinstance(args, list):
             raise TypeError("Arg list must be 'list', got %s" % type(args))
-        # Number of input args
-        narg = len(args)
         # Check types
         for (j, arg) in enumerate(args):
             # Check type
@@ -12488,8 +12469,8 @@ class DataKit(BaseData):
                         # Get value in fixed number of characters
                         sv = ("%6g" % m)[:6]
                         # In-place status update
-                        sys.stdout.write("    Slice %s=%s (%i/%i)\r"
-                            % (maincol, sv, i+1, nslice))
+                        sys.stdout.write(
+                            f"    Slice {maincol}={sv} ({i+1}/{nslice})\r")
                         sys.stdout.flush()
                     # Initialize mask
                     J = np.ones(nX, dtype="bool")
@@ -12498,7 +12479,7 @@ class DataKit(BaseData):
                         # Get value
                         vk = slices[k][i]
                         # Constrain
-                        J = np.logical_and(J, X[k]==vk)
+                        J = np.logical_and(J, X[k] == vk)
                     # Get indices of slice
                     I = np.where(J)[0]
                     # Create tuple of input arguments test values
@@ -12514,7 +12495,7 @@ class DataKit(BaseData):
                         V[I] = np.dot(W, Y)
                     elif ndim == 2:
                         # Linear output
-                        V[:,I] = np.dot(Y, W.T)
+                        V[:, I] = np.dot(Y, W.T)
                 # Clean up prompt
                 if verbose:
                     sys.stdout.write("%72s\r" % "")
