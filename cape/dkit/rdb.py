@@ -322,17 +322,21 @@ class DataKit(BaseData):
             ext = None
 
         # Initialize file name handles for each type
-        fcsv  = None
-        ftsv  = None
+        fcdb = None
+        fcsv = None
+        ftsv = None
         fcsvs = None
         ftsvs = None
         ftdat = None
-        fxls  = None
-        fmat  = None
+        fxls = None
+        fmat = None
         # Filter *ext*
         if ext == "csv":
             # Guess it's a mid-level CSV file
             fcsv = fname
+        elif ext == "cdb":
+            # Guess it's a CAPE binary file
+            fcdb = fname
         elif ext == "tsv":
             # Guess it's a mid-level TSV file
             ftsv = fname
@@ -350,16 +354,20 @@ class DataKit(BaseData):
             raise ValueError(
                 "Unable to guess file type of file name '%s'" % fname)
         # Last-check file names
-        fcsv  = kw.pop("csv", fcsv)
-        ftsv  = kw.pop("tsv", ftsv)
-        fxls  = kw.pop("xls", fxls)
-        fmat  = kw.pop("mat", fmat)
+        fcdb = kw.pop("cdb", fcdb)
+        fcsv = kw.pop("csv", fcsv)
+        ftsv = kw.pop("tsv", ftsv)
+        fxls = kw.pop("xls", fxls)
+        fmat = kw.pop("mat", fmat)
         fcsvs = kw.pop("simplecsv", fcsvs)
         ftsvs = kw.pop("simpletsv", ftsvs)
-        ftdat = kw.pop("textdata",  ftdat)
+        ftdat = kw.pop("textdata", ftdat)
 
         # Read
-        if fcsv is not None:
+        if fcdb is not None:
+            # Read CDB file
+            self.read_cdb(fcdb, **kw)
+        elif fcsv is not None:
             # Read CSV file
             self.read_csv(fcsv, **kw)
         elif ftsv is not None:
