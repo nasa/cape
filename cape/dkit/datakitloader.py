@@ -928,7 +928,7 @@ class DataKitLoader(OptionsDict):
         # Combine directories
         return os.path.join(moddir, dbsdir, dbtypedir, fname)
 
-    def get_dbfiles(self, dbname, ext):
+    def get_dbfiles(self, dbname: str, ext: str) -> list:
         r"""Get list of datakit filenames for specified type
 
         :Call:
@@ -1176,6 +1176,13 @@ class DataKitLoader(OptionsDict):
 
     def get_dbfiles_mat(self, dbname=None):
         return self.get_dbfiles(dbname, "mat")
+
+   # --- CDB DataKit files ---
+    def get_dbfile_cdb(self, fname=None):
+        return self.get_dbfile(fname, "cdb")
+
+    def get_dbfiles_cdb(self, dbname=None):
+        return self.get_dbfiles(dbname, "cdb")
 
     def get_dbdir_mat(self):
         return self.get_dbdir("mat")
@@ -3014,6 +3021,40 @@ class DataKitLoader(OptionsDict):
         # Output
         return db
 
+    def read_db_cdb(self, cls: Optional[type] = None, **kw) -> DataKit:
+        r"""Read a datakit using ``.cdb`` file type
+
+        :Call:
+            >>> db = ast.read_db_mat(fname, cls=None)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-07-03 ``@ddalle``: v1.0
+        """
+        # Get full list of file names
+        fnames = self.get_db_filenames_by_type("cdb")
+        # Combine option
+        kw["cls"] = cls
+        # Read those files
+        for j, fname in enumerate(fnames):
+            # Read with default options
+            if j == 0:
+                # Read initial database
+                db = self.read_dbfile_cdb(fname, **kw)
+            else:
+                # Get absolute path
+                fmat = self.get_dbfile_cdb(fname)
+                # Use existing database
+                db.read_mat(fmat)
+        # Output
+        return db
+
     def read_db_csv(self, cls: Optional[type] = None, **kw) -> DataKit:
         r"""Read a datakit using ``.csv`` file type
 
@@ -3105,6 +3146,65 @@ class DataKitLoader(OptionsDict):
                 kw["cols"] = cols
             # Write file if needed
             db = self.write_dbfile_csv(fname, readfunc, f=f, db=db, **kw)
+        # Return *db* in case read during process
+        return db
+
+    def write_db_cdb(
+            self,
+            readfunc: Optional[Callable] = None,
+            f: bool = True,
+            db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
+        r"""Write (all) canonical CAPE databse (``.cdb``) file(s)
+
+        :Call:
+            >>> db = ast.write_db_cdb(readfunc, f=True, **kw)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *readfunc*: {``None``} | **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+            *cols*: {``None``} | :class:`list`
+                If *dkl* has more than one file, *cols* must be a list
+                of lists specifying which columns to write to each file
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2021-09-10 ``@ddalle``: v1.0
+        """
+        # File name for CDB
+        fmats = self.get_dbfiles_cdb()
+        # Check for multiple
+        if len(fmats) > 1:
+            # Get column lists
+            cols = kw.pop("cols", None)
+            # Check
+            if cols is None:
+                raise ValueError(
+                    ("Cannot write multiple MAT files w/o 'cols' kwarg,") +
+                    ("a list of columns to write for each MAT file"))
+        else:
+            cols = kw.pop("cols", None)
+        # Default read function
+        readfunc = self._get_readfunc(readfunc)
+        # Loop through files
+        for j, fmat in enumerate(fmats):
+            # Get list of cols if needed
+            if len(fmats) > 1:
+                # Write columns for file *j*
+                kw["cols"] = cols[j]
+            else:
+                # Write main list
+                kw["cols"] = cols
+            # Write file if needed
+            db = self.write_dbfile_cdb(fmat, readfunc, f=f, db=db, **kw)
         # Return *db* in case read during process
         return db
 
