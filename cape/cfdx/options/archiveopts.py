@@ -151,6 +151,10 @@ class ArchivePhaseOpts(OptionsDict):
         "PreDeleteFiles": "files to delete **before** archiving",
     }
 
+    # Apply defaults
+    def init_post(self):
+        self.update(self._rc)
+
 
 # Class for "clean" phase
 class ArchiveCleanOpts(ArchivePhaseOpts):
