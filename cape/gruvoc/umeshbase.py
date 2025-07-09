@@ -56,6 +56,14 @@ SI_SUFFIXES = {
 }
 
 # Cell edge connectivity
+NODE_COUNTS = {
+    "tris": 3,
+    "quads": 4,
+    "tets": 4,
+    "pyrs": 5,
+    "pris": 6,
+    "hexs": 8,
+}
 EDGECON = {
     "tris": np.array((
         (0, 1), (1, 2), (2, 0))
@@ -708,9 +716,17 @@ class UmeshBase(ABC):
             col3 = f"{col}_ids"
             # Check if present
             if col1 in db:
+                # Get value
+                v = db[col1]
+                # Check for special types
+                nmin = NODE_COUNTS.get(col1)
+                # Fill out empty arrays; tris: (0,) -> (0, 3)
+                if nmin and isinstance(v, np.ndarray) and v.size == 0:
+                    # Create empty 2D array w/ correct shape
+                    v = np.zeros((0, nmin), dtype=v.dtype)
                 # Save data
-                setattr(mesh, col1, db[col1])
-                setattr(mesh, col2, db[col1].shape[0])
+                setattr(mesh, col1, v)
+                setattr(mesh, col2, v.shape[0])
                 if col3 in UmeshBase.__slots__:
                     setattr(mesh, col3, db.get(col3))
             else:
