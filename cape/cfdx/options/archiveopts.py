@@ -153,7 +153,8 @@ class ArchivePhaseOpts(OptionsDict):
 
     # Apply defaults
     def init_post(self):
-        self.update(self._rc)
+        for k, v in self._rc.items():
+            self.setdefault(k, v)
 
 
 # Class for "clean" phase
