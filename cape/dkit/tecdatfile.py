@@ -285,11 +285,11 @@ class TecDatFile(BaseFile, TextInterpreter):
         line = f.readline()
         # Check for a title
         parts = line.split('=', 1)
-        if parts[0].lower() != "title":
+        if parts[0].strip().lower() != "title":
             f.seek(pos)
             return
         # Save Title
-        self.title = line[7:-2]
+        self.title = parts[1].strip()[1:-1]
 
     # Read variable line
     def read_tecdat_variables(self, f):
@@ -413,6 +413,7 @@ class TecDatFile(BaseFile, TextInterpreter):
             # Initialize  empty numpy array
             V = np.array([])
             # Loop until number of items reaced
+            breakpoint()
             while np.size(V) < self.i:
                 # Read line
                 line = f.readline()
