@@ -583,10 +583,11 @@ class DataKitQuickStarter:
         rawdir = os.path.join(self.pkgdir, "rawdata")
         # Absolute path to template file
         srcfile = os.path.join(self.cwd, pkgdir, "datakit-sources.json")
+        dstfile = os.path.join(rawdir, "datakit-sources.json")
         rawfile = os.path.join(self.cwd, rawdir, "datakit-sources.json")
         # Check if it exists
         if os.path.isfile(srcfile) and not os.path.isfile(rawfile):
-            print(f"Coyping '{srcfile}' -> 'rawdata/'")
+            print(f"Copying '{dstfile}' from {template}")
             shutil.copy(srcfile, rawfile)
 
     # Write the starter for a module
