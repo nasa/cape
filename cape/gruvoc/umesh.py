@@ -32,6 +32,7 @@ from . import umeshbase
 from .avmfile import read_avm, write_avm
 from .fileutils import openfile
 from .flowfile import read_fun3d_flow, read_fun3d_tavg
+from .frofile import read_fro, write_fro
 from .pltfile import write_plt
 from .surfconfig import SurfConfig
 from .surf3dfile import read_surf3d, write_surf3d
@@ -226,6 +227,9 @@ class Umesh(umeshbase.UmeshBase):
             elif gridfmt.format == "avm":
                 # AVM format
                 self.read_avm(fp, meta)
+            elif gridfmt.format == "fro":
+                # FRO format
+                self.read_fro(fp, meta)
             elif gridfmt.format == "surf":
                 # SURF3D format
                 self.read_surf3d(fp, meta, fmt=fmt)
@@ -242,6 +246,13 @@ class Umesh(umeshbase.UmeshBase):
             meta: bool = False):
         # Read DoD CREATE/AV mesh
         read_avm(self, fname_or_fp, meta)
+
+    def read_fro(
+            self,
+            fname_or_fp: Union[str, IOBase],
+            meta: bool = False):
+        # Read LAVA FRO file
+        read_fro(self, fname_or_fp, meta)
 
     def read_fun3d_flow(
             self,
@@ -323,6 +334,9 @@ class Umesh(umeshbase.UmeshBase):
             elif gridfmt.format == "avm":
                 # AVM format
                 self.write_avm(fp)
+            elif gridfmt.format == "fro":
+                # FRO format
+                self.write_fro(fp)
             elif gridfmt.format == "plt":
                 # Tecplot PLT format
                 self.write_plt(fp, v=kw.get("v"))
@@ -338,6 +352,12 @@ class Umesh(umeshbase.UmeshBase):
             elif gridfmt.format == "ufunc":
                 # UFUNC format
                 self.write_ufunc(fp, fmt=fmt)
+
+    def write_fro(
+            self,
+            fname_or_fp: Union[str, IOBase]):
+        # Write mesh
+        write_fro(self, fname_or_fp)
 
     def write_plt(
             self,
