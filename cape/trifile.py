@@ -29,6 +29,7 @@ import shutil
 import subprocess as sp
 import sys
 from collections import OrderedDict
+from io import IOBase
 
 # Third-party modules
 import numpy as np
@@ -2144,6 +2145,49 @@ class TriBase(object):
         # Close the file.
         fid.close()
 
+    # Read from a .fro file.
+    def ReadFro(self, fname):
+        r"""Read a triangulation file (from ``*.fro``)
+
+        :Call:
+            >>> tri.ReadFro(fname)
+        :Inputs:
+            *tri*: :class:`cape.trifile.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of triangulation file to read
+        :Versions:
+            * 2025-07-14 ``@ddalle``: v1.0
+        """
+        with open(fname, 'r') as fp:
+            self._read_fro(fp)
+
+    def _read_fro(self, fp: IOBase):
+        # Read the first line
+        line = fp.readline()
+        # Split into parts; should have 6 comps, but we only need two
+        parts = line.split()
+        if len(parts) < 2:
+            raise ValueError(
+                f"FRO file {fp.name} header line must have >= 2 parts")
+        # Get number of tris and number of nodes
+        ntri = int(parts[0])
+        nnode = int(parts[1])
+        # Save the statistics.
+        self.nNode = nnode
+        self.nTri = ntri
+        self.nQuad = 0
+        # Read the data for the nodes
+        nodes = np.fromfile(fp, count=4*nnode, sep=' ')
+        # Save
+        self.Nodes = nodes.reshape((nnode, 4))[:, 1:]
+        # Read tri node indices and tri comp ids
+        tris = np.fromfile(fp, dtype="i4", count=5*ntri, sep=' ')
+        tris = tris.reshape((ntri, 5))
+        # Save tris and CompIDs
+        self.Tris = tris[:, 1:4]
+        self.CompID = tris[:, -1]
+
     # Read component names from UH3D-like list
     def ReadUH3DCompIDList(self, fname):
         r"""Read a UH3D-like component list to *tri.Conf*
@@ -2528,10 +2572,7 @@ class TriBase(object):
   # Other Writers
   # =============
   # <
-   # ++++
-   # TRIQ
-   # ++++
-   # {
+   # +++ TRIQ +++
     # Fall-through function to write the triangulation to file.
     def WriteTriq(self, fname='Components.i.triq', **kw):
         r"""Write q-triangulation to file using fastest method available
@@ -2694,12 +2735,45 @@ class TriBase(object):
         if fname != "Components.pyCart.tri":
             # Move the file.
             os.rename("Components.pyCart.tri", fname)
-   # >
 
-   # ++++++++++++
-   # UH3D Writers
-   # ++++++++++++
-   # {
+   # +++ FRO Writers +++
+    def WriteFro(self, fname: str = "Components.fro"):
+        r"""Write a triangulation to a FRO file
+
+        :Call:
+            >>> tri.WriteFro(fname='Components.fro')
+        :Inputs:
+            *tri*: :class:`cape.trifile.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Examples:
+            >>> tri = cape.ReadTri('bJet.i.tri')
+            >>> tri.WriteFro('bjet2.fro')
+        :Versions:
+            * 2025-07-14 ``@ddalle``: v1.0
+        """
+        # Open file
+        with open(fname, 'w') as fp:
+            self._write_fro(fp)
+
+    def write_fro(self, fp: IOBase):
+        # Number of components
+        ncompid = np.unique(self.CompID).size
+        # Write header line
+        fp.write(f"{self.nTri:8d}{self.nNode:8d}")
+        fp.write(f"{0:8d}{0:8d}{0:8d}{ncompid:8d}\n")
+        # Loop through nodes
+        for j, node in enumerate(self.nodes):
+            fp.write(f"{j+1:8d}{node[0]:16g}{node[1]:16g}{node[2]:16g}\n")
+        # Loop through tris
+        for k, tri in enumerate(self.tris):
+            # Get component ID for this tri
+            c = self.CompID[k]
+            # Write line
+            fp.write(f"{k+1:8d}{tri[0]:8d}{tri[1]:8d}{tri[2]:8d}{c:8d}\n")
+
+   # +++ UH3D Writers +++
     # Function to write a UH3D file
     def WriteUH3D(self, fname='Components.i.uh3d'):
         r"""Write a triangulation to a UH3D file
@@ -2801,12 +2875,7 @@ class TriBase(object):
         # Close the file.
         fid.close()
 
-   # }
-
-   # +++++++++++
-   # STL Writers
-   # +++++++++++
-   # {
+   # +++ STL Writers +++
     # Write STL using python language
     def WriteSTL(self, fname='Components.i.stl', v=False):
         r"""Write a triangulation to an STL file
@@ -2897,12 +2966,8 @@ class TriBase(object):
         if fname != "Components.pyCart.stl":
             # Move the file.
             os.rename("Components.pyCart.stl", fname)
-   # }
 
-   # ++++++++++
-   # AFLR3 Surf
-   # ++++++++++
-   # {
+   # +++ AFLR3 Surf +++
     # Function to write a UH3D file
     def WriteSurf(self, fname='Components.i.surf'):
         r"""Write a triangulation to a AFLR3 surface file
@@ -3008,8 +3073,6 @@ class TriBase(object):
         if fname != "Components.pyCart.surf":
             # Move the file.
             os.rename("Components.pyCart.surf", fname)
-
-   # }
   # >
 
   # =====================
@@ -6817,6 +6880,7 @@ class Tri(TriBase):
         # Initialize potential file names
         ftri = fname if ext == "tri" else None
         funv = fname if ext == "unv" else None
+        ffro = fname if ext == "fro" else None
         ftriq = fname if ext == "triq" else None
         fuh3d = fname if ext == "uh3d" else None
         fsurf = fname if ext == "surf" else None
@@ -6824,6 +6888,7 @@ class Tri(TriBase):
         # Get file names from kwargs
         ftri = kw.pop("tri", ftri)
         funv = kw.pop("unv", funv)
+        ffro = kw.pop("fro", ffro)
         ftriq = kw.pop("triq", ftriq)
         fuh3d = kw.pop("uh3d", fuh3d)
         fsurf = kw.pop("surf", fsurf)
@@ -6832,6 +6897,9 @@ class Tri(TriBase):
         if ftri is not None:
             # Read from TRI file
             self.Read(ftri)
+        elif ffro is not None:
+            # Read from FRO file
+            self.ReadFro(ffro)
         elif ftriq is not None:
             # Read TRIQ file
             self.Read(ftriq)
