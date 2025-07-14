@@ -605,13 +605,16 @@ class KwargParser(dict, metaclass=MetaKwargParser):
         """
         # Get class
         cls = self.__class__
+        # List of options
+        optlist = cls._optlist
         # Create a copy
         optsdict = dict(self)
         # Get full set of defaults
         rc = self.__class__.getx_cls_dict("_rc")
         # Apply any defaults
         for opt, val in rc.items():
-            optsdict.setdefault(opt, val)
+            if (optlist is None) or opt in optlist:
+                optsdict.setdefault(opt, val)
         # Get list of required options (don't combine with bases) (?)
         reqopts = cls._optlistreq
         # Loop through the same
