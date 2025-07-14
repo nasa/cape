@@ -247,6 +247,7 @@ class Cntl(capecntl.Cntl):
                 os.symlink(f0, f1)
 
   # === Input files ===
+   # --- run.yaml ---
     # Read template YAML file
     def ReadRunYAML(self):
         r"""Read run YAML file, using template if setting is empty
@@ -271,34 +272,6 @@ class Cntl(capecntl.Cntl):
             fabs = os.path.join(self.RootDir, fname)
         # Read it
         self.YamlFile = RunYAMLFile(fabs)
-
-    # Read template "run.input" file
-    def ReadCartInputFile(self):
-        r"""Read LAVA-Cartesian input file, ``run.inputs``
-
-        :Call:
-            >>> cntl.ReadCartInputFile()
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE run matrix control instance
-        :Version:
-            * 2025-07-14 ``@ddalle``: v1.0
-        """
-        # Get name of file to read
-        fname = self.opts.get_CartInputFile()
-        # Check for it
-        if fname is None:
-            # Use template
-            fabs = os.path.join(PyLavaFolder, "templates", "run.inputs")
-        elif not os.path.isabs(fname):
-            # Absolutize
-            fabs = os.path.join(self.RootDir, fname)
-        else:
-            # Already absolute
-            fabs = fname
-        # Read it if possible
-        if os.path.isfile(fabs):
-            self.CartInputs = CartInputFile(fabs)
 
     @capecntl.run_rootdir
     def PrepareRunYAML(self, i: int):
@@ -378,3 +351,62 @@ class Cntl(capecntl.Cntl):
         # Set nonlinear iterations
         np = int(self.opts.get_PhaseIters())
         opts.set_lava_subopt('nonlinearsolver', 'iterations', np)
+
+   # --- run.inputs ---
+    # Read template "run.input" file
+    def ReadCartInputFile(self):
+        r"""Read LAVA-Cartesian input file, ``run.inputs``
+
+        :Call:
+            >>> cntl.ReadCartInputFile()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+        :Version:
+            * 2025-07-14 ``@ddalle``: v1.0
+        """
+        # Get name of file to read
+        fname = self.opts.get_CartInputFile()
+        # Check for it
+        if fname is None:
+            # Use template
+            fabs = os.path.join(PyLavaFolder, "templates", "run.inputs")
+        elif not os.path.isabs(fname):
+            # Absolutize
+            fabs = os.path.join(self.RootDir, fname)
+        else:
+            # Already absolute
+            fabs = fname
+        # Read it if possible
+        if os.path.isfile(fabs):
+            self.CartInputs = CartInputFile(fabs)
+
+    # Prepare "run.inputs" file
+    def PrepareRunInputs(self, i: int):
+        ...
+
+    # Prepare flight conditions portion of "run.inputs"
+    def PrepareRunInputsFlightConditions(self, i: int):
+        # Get properties
+        u = self.x.GetVelocity(i, units="m/s")
+        p = self.x.GetPressure(i, units="Pa")
+        T = self.x.GetTemperature(i, units="K")
+        a = self.x.GetAlpha(i)
+        b = self.x.GetBeta(i)
+        # Get YAML interface
+        opts = self.CartInputs
+        # Set velocity if any velocity setting was given
+        if u is not None:
+            opts.set_umag(u)
+        # Set angle of attack
+        if a is not None:
+            opts.set_alpha(a)
+        # Set sideslip angle
+        if b is not None:
+            opts.set_beta(b)
+        # Set pressure if specified
+        if p is not None:
+            opts.set_pressure(p)
+        # Set temperature if specified
+        if T is not None:
+            opts.set_temperature(T)
