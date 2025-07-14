@@ -42,12 +42,14 @@ class Options(options.Options):
     # Additional options
     _optlist = (
         "CartInputFile",
-        "YAML",
+        "LAVASolver",
         "RunYAMLFile",
+        "YAML",
     )
 
     # Aliases
     _optmap = {
+        "Solver": "LAVASolver",
         "CartesianInputFile": "CartInputFile",
         "RunInputFile": "CartInputFile",
         "RunYAML": "YAML",
@@ -57,11 +59,24 @@ class Options(options.Options):
     # Types
     _opttypes = {
         "CartInputFile": str,
+        "LAVASolver": str,
         "RunYAMLFile": str,
+    }
+
+    # Allowed values
+    _optvals = {
+        "LAVASolver": ("cartesian", "curvilinear", "unstructured"),
+    }
+
+    # Defaults
+    _rc = {
+        "LAVASolver": "curvilinear",
     }
 
     # Descriptions
     _rst_descriptions = {
+        "CartInputFile": "template for LAVA-Cartesion input file",
+        "LAVASolver": "name of LAVA solver to use",
         "RunYAMLFile": "template LAVA input file (YAML/JSON)",
     }
 
@@ -100,6 +115,7 @@ class Options(options.Options):
 # Add properties
 Options.add_properties(
     (
+        "LAVASolver",
         "CartInputFile",
         "RunYAMLFile",
     ))

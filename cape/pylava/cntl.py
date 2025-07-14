@@ -50,6 +50,7 @@ from . import casecntl
 from . import databook
 from . import report
 from .yamlfile import RunYAMLFile
+from .runinpfile import CartInputFile
 from ..optdict import OptionsDict
 from ..cfdx import cntl as capecntl
 from ..cfdx.cmdgen import infix_phase
@@ -99,7 +100,6 @@ class Cntl(capecntl.Cntl):
     _opts_cls = options.Options
     _report_mod = report
     _fjson_default = "pyLava.json"
-    # _fjson_default = "pyLava.yaml"
     yaml_default = "run_default.yaml"
     _zombie_files = (
         "*.out",
@@ -116,7 +116,8 @@ class Cntl(capecntl.Cntl):
             * 2024-10-01 ``sneuhoff``: v1.0
         """
         # Check if json or yaml
-        fext = fname.split('.')[-1]
+        fext = None if fname is None else fname.split('.')[-1]
+        # Check for YAML vs JSON
         if fext in ("yaml", "yml"):
             # Convert yaml to json
             fout = f"{fname}.json"
@@ -140,8 +141,13 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2024-10-09 ``@ddalle``: v1.0
         """
+        # Get solver
+        solver = self.opts.get_LAVASolver()
         # Read list of custom file control classes
-        self.ReadRunYAML()
+        if solver == "curvilinear":
+            self.ReadRunYAML()
+        elif solver == "cartesian":
+            self.ReadCartInputFile()
 
   # === Case Preparation ===
     # Prepare a case
@@ -265,6 +271,34 @@ class Cntl(capecntl.Cntl):
             fabs = os.path.join(self.RootDir, fname)
         # Read it
         self.YamlFile = RunYAMLFile(fabs)
+
+    # Read template "run.input" file
+    def ReadCartInputFile(self):
+        r"""Read LAVA-Cartesian input file, ``run.inputs``
+
+        :Call:
+            >>> cntl.ReadCartInputFile()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+        :Version:
+            * 2025-07-14 ``@ddalle``: v1.0
+        """
+        # Get name of file to read
+        fname = self.opts.get_CartInputFile()
+        # Check for it
+        if fname is None:
+            # Use template
+            fabs = os.path.join(PyLavaFolder, "templates", "run.inputs")
+        elif not os.path.isabs(fname):
+            # Absolutize
+            fabs = os.path.join(self.RootDir, fname)
+        else:
+            # Already absolute
+            fabs = fname
+        # Read it if possible
+        if os.path.isfile(fabs):
+            self.CartInputs = CartInputFile(fabs)
 
     @capecntl.run_rootdir
     def PrepareRunYAML(self, i: int):
