@@ -161,6 +161,7 @@ class Umesh(umeshbase.UmeshBase):
         # Check for file names/handles by kwarg
         fugrid = kw.get("ugrid")
         favm = kw.get("avm")
+        ffro = kw.get("fro")
         fsurf = kw.get("surf")
         ftri = kw.get("tri")
         fuh3d = kw.get("uh3d")
@@ -174,6 +175,9 @@ class Umesh(umeshbase.UmeshBase):
         elif favm:
             # AVM (Kestrel) format
             self.read_avm(favm, meta=meta)
+        elif ffro:
+            # FRO (LAVA Cart.) format
+            self.read_fro(ffro, meta=meta)
         elif fsurf:
             # SURF3D (input to AFLR3)
             self.read_surf3d(fsurf, meta=meta, fmt=fmt)
