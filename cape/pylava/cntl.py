@@ -208,47 +208,27 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2024-10-10 ``@ddalle``: v1.0
         """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Create case folder if needed
-        self.make_case_folder(i)
-        # Enter the case folder
-        os.chdir(frun)
-        # ----------
-        # Copy files
-        # ----------
-        # Get the configuration folder
-        fcfg = self.opts.get_MeshConfigDir()
-        fcfg_abs = os.path.join(self.RootDir, fcfg)
-        # Get the names of the raw input files and target files
-        fmsh = self.opts.get_MeshCopyFiles(i=i)
-        # Loop through those files
-        for j in range(len(fmsh)):
-            # Original and final file names
-            f0 = os.path.join(fcfg_abs, fmsh[j])
-            f1 = os.path.split(fmsh[j])[1]
-            # Skip if full file
-            if os.path.isfile(f1):
-                continue
-            # Copy the file.
-            if os.path.isfile(f0):
-                shutil.copy(f0, f1)
-        # Get the names of input files to link
-        fmsh = self.opts.get_MeshLinkFiles(i=i)
-        # Loop through those files
-        for j in range(len(fmsh)):
-            # Original and final file names
-            f0 = os.path.join(fcfg_abs, fmsh[j])
-            f1 = os.path.split(fmsh[j])[1]
-            # Remove the file if necessary
-            if os.path.islink(f1):
-                os.remove(f1)
-            # Skip if full file
-            if os.path.isfile(f1):
-                continue
-            # Link the file.
-            if os.path.isfile(f0) or os.path.isdir(f0):
-                os.symlink(f0, f1)
+        # Check solver type
+        solver = self.opts.get_LAVASolver()
+        # Filter
+        if solver == "curvilinear":
+            self.PrepareMeshCurvilinear(i)
+
+    # Prepare curvilinear mesh
+    def PrepareMeshCurvilinear(self, i: int):
+        r"""Copy/link mesh files into case folder
+
+        :Call:
+            >>> cntl.PrepareMesh(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        self.prepare_mesh_overset(i)
 
   # === Input files ===
    # --- Main switch ---
