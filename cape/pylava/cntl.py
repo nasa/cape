@@ -213,6 +213,8 @@ class Cntl(capecntl.Cntl):
         # Filter
         if solver == "curvilinear":
             self.PrepareMeshCurvilinear(i)
+        else:
+            self.PrepareMeshUnstructured(i)
 
     # Prepare curvilinear mesh
     def PrepareMeshCurvilinear(self, i: int):
