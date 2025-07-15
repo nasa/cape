@@ -383,7 +383,10 @@ class Cntl(capecntl.Cntl):
 
     # Prepare "run.inputs" file
     def PrepareRunInputs(self, i: int):
-        ...
+        # Set case index for options
+        self.opts.setx_i(i)
+        # Set flight conditions
+        self.PrepareRunInputsFlightConditions(i)
 
     # Prepare flight conditions portion of "run.inputs"
     def PrepareRunInputsFlightConditions(self, i: int):

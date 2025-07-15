@@ -146,7 +146,6 @@ import os
 from base64 import b32encode
 from collections import namedtuple
 from functools import wraps
-from typing import Callable
 
 # Third-party
 import numpy as np
@@ -520,11 +519,28 @@ class KwargParser(dict, metaclass=MetaKwargParser):
         # Then set options from *kw)
         self.set_opts(kw)
         # Call post-process hook
-        self.init_args_post()
+        self.init_post()
+
+    # Post-initialization hook
+    def init_post(self):
+        r"""Custom post-initialization hook
+
+        This function is called in the standard :func:`__init__`. The
+        default :func:`init_post` does nothing. Users may define custom
+        actions in :func:`init_post` in subclasses to make certain
+        changes at the end of parsing
+
+        :Call:
+            >>> opts.init_post()
+        :Inputs:
+            *opts*: :class:`KwargParser`
+                Keyword argument parser instance
+        """
+        pass
 
   # *** DECORATORS ***
     @classmethod
-    def parse(cls: type, func: Callable):
+    def parse(cls, func):
         r"""Decorator for a function to parse and validate its inputs
 
         :Call:
@@ -552,9 +568,7 @@ class KwargParser(dict, metaclass=MetaKwargParser):
             # Parse options
             try:
                 # Instantiate the requested class
-                opts = cls()
-                # Read options
-                opts.read_args(*a, **kw)
+                opts = cls(*a, **kw)
                 # Get all options, applying _rc if appropriate
                 parsed_kw = opts.get_kwargs()
                 # Get positional parameters
@@ -575,60 +589,6 @@ class KwargParser(dict, metaclass=MetaKwargParser):
         return wrapper
 
   # *** GET/SET ***
-   # --- Parse args/kwargs ---
-    @_wrap_init
-    def read_args(self, *args, **kw):
-        r"""Initialization method"""
-        #: :class:`list` -- List of values of positional parameters
-        #: that cannot be aliased to options (not in :data:`_optlist`)
-        self.argvals = []
-        # Class and name
-        cls = self.__class__
-        # Allowed args
-        nargmin = cls._nargmin
-        nargmax = cls._nargmax
-        # Process args
-        narg = len(args)
-        # Format first part of error message for positional params
-        if nargmax is None:
-            # No upper limit
-            msg = f"takes at least {nargmin} arguments,"
-        else:
-            # Specified upper limit
-            ntxt = f"{nargmin} to {nargmax}"
-            ntxt = f"{nargmin}" if nargmin == nargmax else ntxt
-            msg = f"takes {ntxt} arguments,"
-        # Check arg counter
-        if narg < nargmin:
-            # Not enough args
-            raise KWTypeError(f"{msg} but {narg} were given")
-        elif (nargmax is not None) and (narg > nargmax):
-            # Too many args
-            raise KWTypeError(f"{msg} but {narg} were given")
-        # Set options from *a* first
-        self.set_args(args)
-        # Then set options from *kw)
-        self.set_opts(kw)
-        # Call post-process hook
-        self.init_args_post()
-
-    # Post-initialization hook
-    def init_args_post(self):
-        r"""Custom post-initialization hook
-
-        This function is called in the standard :func:`read_args`. The
-        default :func:`init_post` does nothing. Users may define custom
-        actions in :func:`init_post` in subclasses to make certain
-        changes at the end of parsing
-
-        :Call:
-            >>> opts.init_post()
-        :Inputs:
-            *opts*: :class:`KwargParser`
-                Keyword argument parser instance
-        """
-        pass
-
    # --- Get ---
     # Get full dictionary
     def get_kwargs(self) -> dict:
@@ -646,7 +606,7 @@ class KwargParser(dict, metaclass=MetaKwargParser):
         # Get class
         cls = self.__class__
         # List of options
-        optlist = getattr(cls, "_optlist")
+        optlist = cls._optlist
         # Create a copy
         optsdict = dict(self)
         # Get full set of defaults
