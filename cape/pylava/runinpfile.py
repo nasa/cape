@@ -291,6 +291,22 @@ class CartInputFile(dict):
         """
         return self.get_refcond("beta")
 
+    def get_density(self) -> float:
+        r"""Get freestream static density
+
+        :Call:
+            >>> rho = opts.get_density()
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *rho*: :class:`float`
+                Static density [kg/m^3]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("density")
+
     def get_pressure(self) -> float:
         r"""Get freestream static pressure
 
@@ -452,6 +468,36 @@ class CartInputFile(dict):
             * 2025-05-09 ``@ddalle``: v1.0
         """
         self.set_refcond("pressure", p)
+
+    def set_density(self, r: float):
+        r"""Set freestream static density
+
+        :Call:
+            >>> opts.set_density(r)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *r*: :class:`float`
+                Static density [kg/m^3]
+        :Versions:
+            * 2025-07-15 ``@ddalle``: v1.0
+        """
+        self.set_refcond("density", r)
+
+    def set_mach(self, m: float):
+        r"""Set freestream Mach number
+
+        :Call:
+            >>> opts.set_mach(m)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *m*: :class:`float`
+                Mach number
+        :Versions:
+            * 2025-07-15 ``@ddalle``: v1.0
+        """
+        self.set_refcond("mach", m)
 
     def set_refarea(self, aref: float):
         r"""Set solution reference length

@@ -43,6 +43,7 @@ import os
 import shutil
 
 # Third-party
+import numpy as np
 
 # Local imports
 from . import options
@@ -61,6 +62,9 @@ _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyLavaFolder = os.path.split(_fname)[0]
+
+# Constants
+DEG = np.pi / 180.0
 
 
 # Class to read input files
@@ -187,7 +191,7 @@ class Cntl(capecntl.Cntl):
         # Write the PBS script.
         self.WritePBS(i)
         # Write YAML file
-        self.PrepareRunYAML(i)
+        self.PrepareInputFile(i)
 
     # Prepare the mesh for case *i* (if necessary)
     @capecntl.run_rootdir
@@ -247,6 +251,28 @@ class Cntl(capecntl.Cntl):
                 os.symlink(f0, f1)
 
   # === Input files ===
+   # --- Main switch ---
+    def PrepareInputFile(self, i: int):
+        r"""Prepare main input file, depends on LAVA solver is in use
+
+        :Call:
+            >>> cntl.PrepareInputFile(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-07-15 ``@ddalle``: v1.0
+        """
+        # Get solver type
+        solver = self.opts.get_LAVASolver()
+        # Switch
+        if solver == "curvilinear":
+            self.PrepareRunYAML(i)
+        elif solver == "cartesian":
+            self.PrepareRunInputs(i)
+
    # --- run.yaml ---
     # Read template YAML file
     def ReadRunYAML(self):
@@ -382,34 +408,105 @@ class Cntl(capecntl.Cntl):
             self.CartInputs = CartInputFile(fabs)
 
     # Prepare "run.inputs" file
+    @capecntl.run_rootdir
     def PrepareRunInputs(self, i: int):
+        r"""Prepare the ``run.inputs`` file for each phase of one case
+
+        :Call:
+            >>> cntl.PrepareRunYAML(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
         # Set case index for options
         self.opts.setx_i(i)
         # Set flight conditions
         self.PrepareRunInputsFlightConditions(i)
+        # Get user's selected file name
+        basename = "run.inputs"
+        # Get name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Enter said folder
+        os.chdir(frun)
+        # Loop through phases
+        for j in self.opts.get_PhaseSequence():
+            # Select file name for this phase
+            runfile = infix_phase(basename, j)
+            # Other preparation
+            ...
+            # Write file
+            self.CartInputs.write(runfile)
 
     # Prepare flight conditions portion of "run.inputs"
     def PrepareRunInputsFlightConditions(self, i: int):
+        r"""Prep the reference conditions section of LAVA-cart file
+
+        :Call:
+            >>> cntl.PrepareRunInputsFlightConditions(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-07-15 ``@ddalle``: v1.0
+        """
         # Get properties
-        u = self.x.GetVelocity(i, units="m/s")
+        uinf = self.x.GetVelocity(i, units="m/s")
         p = self.x.GetPressure(i, units="Pa")
-        T = self.x.GetTemperature(i, units="K")
+        r = self.x.GetDensity(i, units="kg/m^3")
+        t = self.x.GetTemperature(i, uints="K")
+        m = self.x.GetMach(i)
         a = self.x.GetAlpha(i)
         b = self.x.GetBeta(i)
+        rey = self.x.GetReynoldsNumber(i, units="1/m")
         # Get YAML interface
         opts = self.CartInputs
-        # Set velocity if any velocity setting was given
-        if u is not None:
-            opts.set_umag(u)
-        # Set angle of attack
-        if a is not None:
-            opts.set_alpha(a)
-        # Set sideslip angle
-        if b is not None:
-            opts.set_beta(b)
-        # Set pressure if specified
-        if p is not None:
+        # Get current properties to see what user intended
+        ui = opts.get_refcond("velocity")
+        pi = opts.get_refcond("pressure")
+        ri = opts.get_refcond("density")
+        ti = opts.get_refcond("temperature")
+        rei = opts.get_refcond("Re")
+        # See which flags we are expecting; need at least two
+        qre = rei is not None
+        qr = (ri is not None)
+        qp = (pi is not None) or not (qr or qre)
+        qt = (ti is not None) or not (qr and qp) or qre
+        # Check for density
+        if qr and (r is not None):
+            opts.set_density(r)
+        # Check for temperature
+        if qt and (t is not None):
+            opts.set_temperature(t)
+        # Check for pressure
+        if qp and (p is not None):
             opts.set_pressure(p)
-        # Set temperature if specified
-        if T is not None:
-            opts.set_temperature(T)
+        if qre and (rey is not None):
+            opts.set_refcond("Re", rey)
+        # Check for velocity magnitude
+        if ui is None:
+            # Set Mach number
+            if m is not None:
+                opts.set_mach(m)
+            # Set angles
+            if a is not None:
+                opts.set_alpha(a)
+            if b is not None:
+                opts.set_beta(b)
+        else:
+            # Calculate angle
+            ca = np.cos(a*DEG)
+            cb = np.cos(b*DEG)
+            sa = np.sin(a*DEG)
+            sb = np.sin(b*DEG)
+            # Components
+            u = uinf*ca*cb
+            v = -uinf*sb
+            w = uinf*sa*cb
+            # Set velocity
+            opts.set_refcond("velocity", [u, v, w])
