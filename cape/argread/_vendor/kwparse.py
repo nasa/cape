@@ -646,7 +646,7 @@ class KwargParser(dict, metaclass=MetaKwargParser):
         # Get class
         cls = self.__class__
         # List of options
-        optlist = cls._optlist
+        optlist = getattr(cls, "_optlist")
         # Create a copy
         optsdict = dict(self)
         # Get full set of defaults
