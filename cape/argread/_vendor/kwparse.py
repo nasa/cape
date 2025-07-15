@@ -520,7 +520,7 @@ class KwargParser(dict, metaclass=MetaKwargParser):
         # Then set options from *kw)
         self.set_opts(kw)
         # Call post-process hook
-        self.init_post()
+        self.init_args_post()
 
   # *** DECORATORS ***
     @classmethod
