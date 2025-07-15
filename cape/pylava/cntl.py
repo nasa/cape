@@ -40,7 +40,6 @@ class are also available here.
 
 # Standard library
 import os
-import shutil
 
 # Third-party
 import numpy as np
@@ -207,6 +206,7 @@ class Cntl(capecntl.Cntl):
                 Case index
         :Versions:
             * 2024-10-10 ``@ddalle``: v1.0
+            * 2025-07-15 ``@ddalle``: v2.0; map *LAVASolver* value
         """
         # Check solver type
         solver = self.opts.get_LAVASolver()
@@ -219,7 +219,7 @@ class Cntl(capecntl.Cntl):
         r"""Copy/link mesh files into case folder
 
         :Call:
-            >>> cntl.PrepareMesh(i)
+            >>> cntl.PrepareMeshCurvilinear(i)
         :Inputs:
             *cntl*: :class:`Cntl`
                 CAPE run matrix controller instance

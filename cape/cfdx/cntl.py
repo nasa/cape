@@ -31,7 +31,6 @@ individualized modules are below.
 
 # Standard library modules
 import os
-import shutil
 from typing import Optional, Union
 
 # Third-party modules
@@ -1550,34 +1549,3 @@ class Cntl(CntlBase):
                     print("Checking point sensor '%s/%s'" % (comp, pt))
                     print(txt[:-1])
 
-
-# Common methods for unstructured meshes
-class UgridCntl(Cntl):
-    r"""Subclass of :class:`Cntl` for unstructured-mesh solvers
-
-    :Call:
-        >>> cntl = UgridCntl(fname=None)
-    :Inputs:
-        *fname*: {``None``} | :class:`str`
-            Name of main CAPE input (JSON) file
-    :Outputs:
-        *cntl*: :class:`UgridCntl`
-            Run matrix control instance for unstructured-mesh solver
-    """
-    # Prepare the mesh for case *i* (if necessary)
-    def PrepareMesh(self, i: int):
-        r"""Prepare the mesh for case *i* if necessary
-
-        :Call:
-            >>> cntl.PrepareMesh(i)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2015-10-19 ``@ddalle``: v1.0 (pyfun)
-            * 2024-11-04 ``@ddalle``: v1.3 (pyfun)
-            * 2024-11-07 ``@ddalle``: v1.0
-        """
-        self.PrepareMeshUnstructured(i)

@@ -1291,6 +1291,9 @@ class CntlBase(ABC):
         self.opts.setx_i(i)
         # Create case folder
         self.make_case_folder(i)
+        # Copy/link basic files
+        self.copy_files(i)
+        self.link_files(i)
         # Prepare warmstart files, if any
         warmstart = self.PrepareMeshWarmStart(i)
         # Finish if case was warm-started
@@ -1308,7 +1311,7 @@ class CntlBase(ABC):
         :Call:
             >>> fdir = cntl.GetCaseMeshFolder(i)
         :Inputs:
-            *cntl*: :class:`UgridCntl`
+            *cntl*: :class:`Cntl`
                 CAPE run matrix control instance
             *i*: {``0``} | :class:`int`
                 Case index
@@ -1341,7 +1344,7 @@ class CntlBase(ABC):
         :Call:
             >>> n = cntl.PrepareMeshFiles(i)
         :Inputs:
-            *cntl*: :class:`UgridCntl`
+            *cntl*: :class:`Cntl`
                 CAPE run matrix control instance
             *i*: :class:`int`
                 Case index
@@ -1388,7 +1391,7 @@ class CntlBase(ABC):
         :Call:
             >>> warmstart = cntl.PrepareMeshWarmStart(i)
         :Inputs:
-            *cntl*: :class:`UgridCntl`
+            *cntl*: :class:`Cntl`
                 Name of main CAPE input (JSON) file
             *i*: :class:`int`
                 Case index
@@ -1542,7 +1545,7 @@ class CntlBase(ABC):
         :Call:
             >>> fname = cntl.GetProcessedMeshFileNames()
         :Inputs:
-            *cntl*: :class:`UgridCntl`
+            *cntl*: :class:`Cntl`
                 Run matrix control instance for unstructured-mesh solver
         :Outputs:
             *fname*: :class:`list`\ [:class:`str`]
@@ -1566,7 +1569,7 @@ class CntlBase(ABC):
         :Call:
             >>> fnames = cntl.GetInputMeshFileNames()
         :Inputs:
-            *cntl*: :class:`UgridCntl`
+            *cntl*: :class:`Cntl`
                 Run matrix control instance for unstructured-mesh solver
         :Outputs:
             *fnames*: :class:`list`\ [:class:`str`]
@@ -1598,7 +1601,7 @@ class CntlBase(ABC):
         :Call:
             >>> fout = cntl.process_mesh_filename(fname, fproj=None)
         :Inputs:
-            *cntl*: :class:`UgridCntl`
+            *cntl*: :class:`Cntl`
                 Run matrix control instance for unstructured-mesh solver
             *fname*: :class:`str`
                 Raw file name to be converted to case-folder file name

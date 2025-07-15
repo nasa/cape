@@ -22,7 +22,7 @@ from ..pyfun.mapbc import MapBC
 
 
 # Primary class
-class Cntl(cntl.UgridCntl):
+class Cntl(cntl.Cntl):
   # === Class attributes ===
     # Names
     _solver = "chem"
@@ -93,6 +93,22 @@ class Cntl(cntl.UgridCntl):
         self.WritePBS(i)
         # Write .vars file
         self.PrepareVarsFile(i)
+
+    # Use unstructured mesh pre
+    def PrepareMesh(self, i: int):
+        """Prepare mesh using unstructured protocol
+
+        :Call:
+            >>> cntl.PrepareMesh(i)
+        :Inputs:
+            *cntl*: :class:`cape.pylava.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of case to analyze
+        :Versions:
+            * 2025-07-15 ``@ddalle``: v1.0
+        """
+        self.PrepareMeshUnstructured(i)
 
     @cntl.run_rootdir
     def PrepareVarsFile(self, i: int):

@@ -84,7 +84,7 @@ REGEX_IS_SLICE = re.compile(r"[0-9]+([,:-][0-9]+)*")
 
 
 # Class to read input files
-class Cntl(cntl.UgridCntl):
+class Cntl(cntl.Cntl):
     r"""Class for handling global options and setup for FUN3D
 
     This class is intended to handle all settings used to describe a
