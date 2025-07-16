@@ -1108,9 +1108,9 @@ class ConfigXML(SurfConfig):
         cfg = ConfigXML()
         # Copy the dictionaries.
         cfg.faces = self.faces.copy()
-        cfg.transform = self.transform.copy()
-        cfg.Names = list(self.Names)
-        cfg.Comps = list(self.Comps)
+        cfg.transform = dict(getattr(self, "transform", {}))
+        cfg.Names = list(getattr(self, "Names", []))
+        cfg.Comps = list(getattr(self, "Comps", []))
         # Output
         return cfg
 

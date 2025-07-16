@@ -96,7 +96,8 @@ class Cntl(capecntl.Cntl):
         * 2024-04-25 ``@sneuhoff``: v1.0
     """
   # === Class Attributes ===
-    _solver = "lavacurv"
+    _name = "pylava"
+    _solver = "lava"
     _case_mod = casecntl
     _databook_mod = databook
     _case_cls = casecntl.CaseRunner

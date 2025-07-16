@@ -1494,6 +1494,10 @@ class CntlBase(ABC):
         self.PrepareTri(i)
         # AFLR3 boundary conditions file
         fbc = self.opts.get_aflr3_BCFile()
+        # Enter case folder
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(self.RootDir)
+        os.chdir(frun)
         # Check for those AFLR3 boundary conditions
         if fbc:
             # Absolute file name
@@ -1509,7 +1513,8 @@ class CntlBase(ABC):
             if not os.path.isabs(fxml):
                 fxml = os.path.join(self.RootDir, fxml)
             # Copy the file
-            shutil.copyfile(fxml, '%s.xml' % fproj)
+            if os.path.isfile(fxml):
+                shutil.copyfile(fxml, f'{fproj}.xml')
         # Check intersection status.
         if self.opts.get_intersect():
             # Names of triangulation files
@@ -1546,8 +1551,9 @@ class CntlBase(ABC):
             ext = getattr(self, "_tri_ext", "tri")
             ftri = f"{fproj}.{ext}"
             # Write it
+            breakpoint()
             if not os.path.isfile(ftri):
-                self.tri.WriteTri(ftri)
+                self.tri.Write(ftri)
 
    # --- Mesh: File names ---
     # Get list of mesh file names that should be in a case folder
