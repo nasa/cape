@@ -1551,7 +1551,6 @@ class CntlBase(ABC):
             ext = getattr(self, "_tri_ext", "tri")
             ftri = f"{fproj}.{ext}"
             # Write it
-            breakpoint()
             if not os.path.isfile(ftri):
                 self.tri.Write(ftri)
 
