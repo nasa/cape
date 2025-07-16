@@ -1553,7 +1553,10 @@ class CntlBase(ABC):
             ftri = f"{fproj}.{ext}"
             # Write it
             if not os.path.isfile(ftri):
-                self.tri.Write(ftri)
+                if ext == "fro":
+                    self.tri.WriteFro(ftri)
+                else:
+                    self.tri.Write(ftri)
 
    # --- Mesh: File names ---
     # Get list of mesh file names that should be in a case folder
