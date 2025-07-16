@@ -226,6 +226,40 @@ class CartInputFile(dict):
         # Get existing section
         secopts[optparts[-1]] = val
 
+    def apply_dict(self, d: dict, parent: Optional[str] = None):
+        r"""Apply a :class:`dict` of options to ``run.inputs`` interface
+
+        :Call:
+            >>. opts.apply_dict(d, parent=None)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *d*: :class:`dict`
+                Dictionary of options to apply
+            *parent*: {``None``} | :class:`str`
+                Used for recursion
+        :Versions:
+            * 2025-07-16 ``@ddalle``: v1.0
+        """
+        # Get top-level section
+        parts = [] if parent is None else parent.split('.')
+        sec = None if parent is None else parts[0]
+        # Loop through options
+        for opt, v in d.items():
+            # Check for recursion
+            if isinstance(v, dict):
+                # Increase depth of *parent*
+                nextparent = '.'.join(parts + [opt])
+                # Recurse
+                self.apply_dict(v, nextparent)
+            else:
+                # Create a nested option name if in subsection
+                subsec = ".".join(parts[1:])
+                # Append to option name
+                fullopt = f"{subsec}.{opt}" if subsec else opt
+                # Apply simple option
+                self.set_opt(sec, fullopt, v)
+
    # --- Solver control ---
     def get_nstep(self) -> int:
         r"""Get number of time steps to take

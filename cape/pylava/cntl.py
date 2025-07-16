@@ -419,8 +419,12 @@ class Cntl(capecntl.Cntl):
         for j in self.opts.get_PhaseSequence():
             # Select file name for this phase
             runfile = infix_phase(basename, j)
-            # Other preparation
-            ...
+            # Select arbitrary options for this phase in JSON
+            jsonrunopts = self.opts.select_runinputs_phase(j)
+            # Apply options from JSON
+            runopts = self.CartInputs
+            if runopts is not None:
+                runopts.apply_dict(jsonrunopts)
             # Write file
             self.CartInputs.write(runfile)
 
@@ -442,7 +446,7 @@ class Cntl(capecntl.Cntl):
         uinf = self.x.GetVelocity(i, units="m/s")
         p = self.x.GetPressure(i, units="Pa")
         r = self.x.GetDensity(i, units="kg/m^3")
-        t = self.x.GetTemperature(i, uints="K")
+        t = self.x.GetTemperature(i, units="K")
         m = self.x.GetMach(i)
         a = self.x.GetAlpha(i)
         b = self.x.GetBeta(i)
