@@ -377,6 +377,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Update sampling parameters if list is none or if partition not
             # present
             if update_flag == 1:
+                # Check numer of sampling outputs first
                 n = nml.get_opt("sampling_parameters", "number_of_geometries")
                 # If no sampling parameters predefined, add one
                 if not n:
@@ -402,6 +403,11 @@ class CaseRunner(casecntl.CaseRunner):
                 nml.set_opt(
                     "sampling_parameters", "variable_list",
                     val="mach", j=ngeom-1)
+                # Set the output name
+                nml.set_opt(
+                    "sampling_parameters", "label",
+                    val=f'interpolant', j=ngeom-1)
+
 
         else:
             # Required settings
@@ -517,13 +523,9 @@ class CaseRunner(casecntl.CaseRunner):
         rc.set_RefineOpt("input", f"{proj}")
         rc.set_RefineOpt("output", f"{projb}")
         # Interpolant needs to be solb file wit one variable for generic gas
-        if eqtype == "generic":
-            # We need to find which sampling gemoetry to use
-            smp = nml.get("sampling_parameters")
-            # Check for a partition parameter
-            mask = np.where(smp['type_of_geometry'] == "partition")[0][0]
-            # Use this solb as interpolant
-            interp = f"{proj}_sampling_geom{mask+1}.solb"
+        if eqtype == 'generic':
+            # We have hardcoded this to be a specific name
+            interp = f'{proj}_interpolant.solb'
         else:
             # Default to use mach as interpolant
             interp = "mach"
