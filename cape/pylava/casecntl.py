@@ -143,10 +143,15 @@ class CaseRunner(casecntl.CaseRunner):
         n = self.get_iter()
         # Genrate name of STDOUT log, "run.{phase}.{n}"
         fhist = "run.%02i.%i" % (j, n)
+        # Get solver
+        rc = self.read_case_json()
+        solver = rc.get_LAVASolver()
+        # Get STDOUT file name
+        stdoutbase = "superlava" if solver == "curvilinear" else "lava"
         # Rename the STDOUT file
-        if os.path.isfile("superlava.out"):
+        if os.path.isfile(f"{stdoutbase}.out"):
             # Move the file
-            os.rename("superlava.out", fhist)
+            os.rename(f"{stdoutbase}.out", fhist)
         else:
             # Create an empty file
             fileutils.touch(fhist)
