@@ -498,3 +498,88 @@ class Cntl(capecntl.Cntl):
             w = uinf*sa*cb
             # Set velocity
             opts.set_refcond("velocity", [u, v, w])
+
+  # === Case Modification ===
+    # Function to apply namelist settings to a case
+    def ApplyCase(self, i: int, nPhase=None, **kw):
+        r"""Apply settings from *cntl.opts* to an individual case
+
+        This rewrites each run namelist file and the :file:`case.json`
+        file in the specified directories.
+
+        :Call:
+            >>> cntl.ApplyCase(i, nPhase=None)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                FUN3D control interface
+            *i*: :class:`int`
+                Case number
+            *nPhase*: {``None``} | positive :class:`int`
+                Last phase number (default determined by *PhaseSequence*)
+        :Versions:
+            * 2016-03-31 ``@ddalle``: v1.0
+        """
+        # Ignore cases marked PASS
+        if self.x.PASS[i] or self.x.ERROR[i]:
+            return
+        # Case function
+        self.CaseFunction(i)
+        # Read ``case.json``.
+        rc = self.read_case_json(i)
+        # Get present options
+        rco = self.opts["RunControl"]
+        # Exit if none
+        if rc is None:
+            return
+        # Get the number of phases in ``case.json``
+        nSeqC = rc.get_nSeq()
+        # Get number of phases from present options
+        nSeqO = self.opts.get_nSeq()
+        # Check for input
+        if nPhase is None:
+            # Default: inherit from pyOver.json
+            nPhase = nSeqO
+        else:
+            # Use maximum
+            nPhase = max(nSeqC, int(nPhase))
+        # Present number of iterations
+        nIter = rc.get_PhaseIters(nSeqC)
+        # Get nominal phase breaks
+        PhaseIters = self.GetPhaseBreaks()
+        # Loop through the additional phases
+        for j in range(nSeqC, nPhase):
+            # Append the new phase
+            rc["PhaseSequence"].append(j)
+            # Get iterations for this phase
+            if j >= nSeqO:
+                # Add *nIter* iterations to last phase iter
+                nj = self.opts.get_nIter(j)
+            else:
+                # Process number of *additional* iterations expected
+                nj = PhaseIters[j] - PhaseIters[j-1]
+            # Set the iteration count
+            nIter += nj
+            rc.set_PhaseIters(nIter, j)
+            # Status update
+            print("  Adding phase %s (to %s iterations)" % (j, nIter))
+        # Copy other sections
+        for k in rco:
+            # Don't copy phase and iterations
+            if k in ["PhaseIters", "PhaseSequence"]:
+                continue
+            # Otherwise, overwrite
+            rc[k] = rco[k]
+        # Write it
+        self.WriteCaseJSON(i, rc=rc)
+        # Write the conditions to a simple JSON file
+        self.WriteConditionsJSON(i)
+        # (Re)Prepare mesh in case needed
+        print("  Checking mesh preparations")
+        self.PrepareMesh(i)
+        # Rewriting phases
+        print("  Writing input files 0 to %s" % (nPhase-1))
+        self.PrepareInputFile(i)
+        # Write PBS scripts
+        nPBS = self.opts.get_nPBS()
+        print("  Writing PBS scripts 0 to %s" % (nPBS-1))
+        self.WritePBS(i)
