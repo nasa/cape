@@ -20,6 +20,40 @@ from ..cfdx.cmdgen import (
     mpiexec)
 
 
+# Function to create LAVA-cartesian command
+def lavacart(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
+    r"""Interface to LAVACART binary
+
+    :Call:
+        >>> cmdi = lavacart(opts, i=0)
+        >>> cmdi = lavacart(**kw)
+    :Inputs:
+        *opts*: :class:`Options`
+            Options instance, either global or *RunControl*
+        *j*: {``0``} | :class:`int`
+            Phase number
+    :Outputs:
+        *cmdi*: :class:`list`\ [:class:`str`]
+            Command split into a list of strings
+    :Versions:
+        * 2025-07-16 ``@ddalle``: v1.0
+    """
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl",))
+    lavaopts = isolate_subsection(opts, Options, ("RunControl", "superlava"))
+    # Initialize with MPI portion of command
+    cmdi = mpiexec(opts, j)
+    nt = opts.get_Environ("OMP_NUM_THREADS")
+    cmdi.extend(["mbind.x", "-t", nt])
+    # Get name of executable
+    execname = lavaopts.get_opt("executable", j)
+    # Append to command
+    cmdi.append(execname)
+    cmdi.append(infix_phase("run.inputs", j))
+    # Output
+    return cmdi
+
+
 # Function to create superlava command
 def superlava(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
     r"""Interface to LAVACURV binary
@@ -43,8 +77,8 @@ def superlava(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
     lavaopts = isolate_subsection(opts, Options, ("RunControl", "superlava"))
     # Initialize with MPI portion of command
     cmdi = mpiexec(opts, j)
-    np = opts.get_Environ("OMP_NUM_THREADS")
-    cmdi.extend(["mbind.x","-t",np])
+    nt = opts.get_Environ("OMP_NUM_THREADS")
+    cmdi.extend(["mbind.x", "-t", nt])
     # Get name of executable
     execname = lavaopts.get_opt("executable")
     # Get name of YAML file
