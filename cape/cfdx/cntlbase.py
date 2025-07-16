@@ -1472,8 +1472,13 @@ class CntlBase(ABC):
         :Versions:
             * 2024-11-01 ``@ddalle``: v1.0 (from pyfun's PrepareMesh())
         """
+        # Get mesh file and tri file settings
+        meshfile = self.opts.get_MeshFile()
+        trifile = self.opts.get_TriFile()
+        # Option to run aflr3
+        aflr3 = self.opts.get_aflr3()
         # Check for triangulation options
-        if not self.opts.get_aflr3():
+        if (trifile is None) or (meshfile is not None):
             return
         # Status update
         print("  Preparing surface triangulation...")
@@ -1530,12 +1535,19 @@ class CntlBase(ABC):
             # Write the AFLR3 surface file
             if not os.path.isfile(fsurf):
                 self.tri.WriteSurf(fsurf)
-        else:
+        elif aflr3:
             # Names of surface mesh files
             fsurf = "%s.surf" % fproj
             # Write the AFLR3 surface file only
             if not os.path.isfile(fsurf):
                 self.tri.WriteSurf(fsurf)
+        else:
+            # Write main tri file
+            ext = getattr(self, "_tri_ext", "tri")
+            ftri = f"{fproj}.{ext}"
+            # Write it
+            if not os.path.isfile(ftri):
+                self.tri.WriteTri(ftri)
 
    # --- Mesh: File names ---
     # Get list of mesh file names that should be in a case folder

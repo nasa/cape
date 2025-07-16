@@ -103,6 +103,7 @@ class Cntl(capecntl.Cntl):
     _opts_cls = options.Options
     _report_mod = report
     _fjson_default = "pyLava.json"
+    _tri_ext = "fro"
     yaml_default = "run_default.yaml"
     _zombie_files = (
         "*.out",

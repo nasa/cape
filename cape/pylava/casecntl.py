@@ -111,10 +111,19 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read case settings
         rc = self.read_case_json()
-        # Generate command
-        cmdi = cmdgen.superlava(rc, j)
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Check which command to generate
+        if solver == "curvilinear":
+            # LAVA-Curvilinear
+            cmdi = cmdgen.superlava(rc, j)
+            execname = "superlava"
+        elif solver == "cartesian":
+            # LAVA-Cartesian
+            cmdi = cmdgen.lavacart(rc, j)
+            execname = "lava"
         # Run the command
-        self.callf(cmdi, f="superlava.out", e="superlava.err")
+        self.callf(cmdi, f=f"{execname}.out", e=f"{execname}.err")
 
     # Clean up files afterwrad
     def finalize_files(self, j: int):
