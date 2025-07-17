@@ -38,11 +38,8 @@ class FMDataBook(cdbook.FMDataBook):
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
         """
-        # Read CaseResid object from PWD
-        if os.path.isfile("data.iter"):
-            return CaseFMCurvilinear(comp)
-        else:
-            return CaseFMCartesian(comp)
+        # Read CaseFM object from PWD
+        return CaseFM(comp)
 
     # Read case residual
     def ReadCaseResid(self):
@@ -113,8 +110,8 @@ class TimeSeriesDataBook(cdbook.TimeSeriesDataBook):
 
 
 # Iterative F&M history
-class CaseFMCartesian(cdbook.CaseFM):
-    r"""Iterative LAVA-Curvilinear component force & moment history
+class CaseFM(cdbook.CaseFM):
+    r"""Iterative LAVA component force & moment history
 
     :Call:
         >>> fm = CaseFMCartesian(comp=None)
@@ -169,9 +166,15 @@ class CaseFMCartesian(cdbook.CaseFM):
                 List of files to read to construct iterative history
         :Versions:
             * 2024-09-18 ``@sneuhoff``: v1.0
+            * 2025-07-17 ``@ddalle``: v1.1; merge Curv & Cart
         """
         # Name of (single) file
-        return [os.path.join("monitor", "Cart.data.iter")]
+        cartfile = os.path.join("monitor", "Cart.data.iter")
+        # Check for such a file
+        if os.path.isfile(cartfile):
+            return [cartfile]
+        else:
+            return ["data.iter"]
 
     # Read a raw data file
     def readfile(self, fname: str) -> dict:
@@ -197,112 +200,18 @@ class CaseFMCartesian(cdbook.CaseFM):
         comp = self.comp
         # Initialize data for output
         db = basedata.BaseData()
-        db.save_col("i", data["ctu"])
-        db.save_col("solver_iter", data["ctu"])
+        # Identify iteration column to use
+        icol = "ctu" if "ctu" in data else "iter"
+        # Force coeff prefix
+        fpre = "c" if f"cx_{comp}" in data else "cf"
+        # Save data
+        db.save_col("i", data[icol])
+        db.save_col("solver_iter", data[icol])
         db.save_col("CL", data[f"cl_{comp}"])
         db.save_col("CD", data[f"cd_{comp}"])
-        db.save_col("CA", data[f"cx_{comp}"])
-        db.save_col("CY", data[f"cy_{comp}"])
-        db.save_col("CN", data[f"cz_{comp}"])
-        db.save_col("CLL", data[f"cmx_{comp}"])
-        db.save_col("CLM", data[f"cmy_{comp}"])
-        db.save_col("CLN", data[f"cmz_{comp}"])
-        # Output
-        return db
-
-
-# Iterative F&M history
-class CaseFMCurvilinear(cdbook.CaseFM):
-    r"""Iterative LAVA-Curvilinear component force & moment history
-
-    :Call:
-        >>> fm = CaseFMCurvilinear(comp=None)
-    :Inputs:
-        *comp*: :class:`str`
-            Name of component
-    :Outputs:
-        *fm*: :class:`CaseFM`
-            One-case iterative history
-    :Versions:
-        * 2024-09-30 ``@sneuhoff``: v1.0;
-    """
-
-    # Minimal list of columns (the global ones like flowres + comps)
-    # Most of these also have cp/cv, like "cd","cdp","cdv" for
-    # pressure and viscous
-    _base_cols = (
-        "i",
-        "solver_iter",
-        "CL",
-        "CD",
-        "CA",
-        "CY",
-        "CN",
-        "CLL",
-        "CLM",
-        "CLN",
-    )
-    # Minimal list of "coeffs" (each comp gets one)
-    _base_coeffs = (
-        "CL",
-        "CD",
-        "CA",
-        "CY",
-        "CN",
-        "CLL",
-        "CLM",
-        "CLN",
-    )
-
-    # List of files to read
-    def get_filelist(self) -> list:
-        r"""Get list of files to read
-
-        :Call:
-            >>> filelist = fm.get_filelist()
-        :Inputs:
-            *prop*: :class:`CaseFM`
-                Component iterative history instance
-        :Outputs:
-            *filelist*: :class:`list`\ [:class:`str`]
-                List of files to read to construct iterative history
-        :Versions:
-            * 2024-09-18 ``@sneuhoff``: v1.0
-        """
-        # Name of (single) file
-        return ["data.iter"]
-
-    # Read a raw data file
-    def readfile(self, fname: str) -> dict:
-        r"""Read the data.iter
-
-        :Call:
-            >>> db = fm.readfile(fname)
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Single-component iterative history instance
-            *fname*: :class:`str`
-                Name of file to read
-        :Outputs:
-            *db*: :class:`dict`
-                Data read from data.iter
-        :Versions:
-            * 2024-09-18 ``@sneuhoff``: v1.0
-            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
-        """
-        # Read the data.iter
-        data = DataIterFile(fname)
-        # Unpack component name
-        comp = self.comp
-        # Initialize data for output
-        db = basedata.BaseData()
-        db.save_col("i", data["iter"])
-        db.save_col("solver_iter", data["iter"])
-        db.save_col("CL", data[f"cl_{comp}"])
-        db.save_col("CD", data[f"cd_{comp}"])
-        db.save_col("CA", data[f"cfx_{comp}"])
-        db.save_col("CY", data[f"cfy_{comp}"])
-        db.save_col("CN", data[f"cfz_{comp}"])
+        db.save_col("CA", data[f"{fpre}x_{comp}"])
+        db.save_col("CY", data[f"{fpre}y_{comp}"])
+        db.save_col("CN", data[f"{fpre}z_{comp}"])
         db.save_col("CLL", data[f"cmx_{comp}"])
         db.save_col("CLM", data[f"cmy_{comp}"])
         db.save_col("CLN", data[f"cmz_{comp}"])
