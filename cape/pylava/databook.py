@@ -9,6 +9,7 @@ outputs tracked by the :mod:`cape` package.
 """
 
 # Standard library
+import os
 
 # Third-party imports
 
@@ -21,7 +22,7 @@ from ..dkit import basedata
 # Component data book
 class FMDataBook(cdbook.FMDataBook):
     # Read case FM history
-    def ReadCase(self, comp):
+    def ReadCase(self, comp: str):
         r"""Read a :class:`CaseFM` object
 
         :Call:
@@ -38,7 +39,10 @@ class FMDataBook(cdbook.FMDataBook):
             * 2017-04-13 ``@ddalle``: First separate version
         """
         # Read CaseResid object from PWD
-        return CaseFM(comp)
+        if os.path.isfile("data.iter"):
+            return CaseFMCurvilinear(comp)
+        else:
+            return CaseFMCartesian(comp)
 
     # Read case residual
     def ReadCaseResid(self):
@@ -109,11 +113,110 @@ class TimeSeriesDataBook(cdbook.TimeSeriesDataBook):
 
 
 # Iterative F&M history
-class CaseFM(cdbook.CaseFM):
-    r"""Iterative force & moment history for one component, one case
+class CaseFMCartesian(cdbook.CaseFM):
+    r"""Iterative LAVA-Curvilinear component force & moment history
 
     :Call:
-        >>> fm = CaseFM(comp=None)
+        >>> fm = CaseFMCartesian(comp=None)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of component
+    :Outputs:
+        *fm*: :class:`CaseFM`
+            One-case iterative history
+    :Versions:
+        * 2024-09-30 ``@sneuhoff``: v1.0;
+    """
+
+    # Minimal list of columns (the global ones like flowres + comps)
+    # Most of these also have cp/cv, like "cd","cdp","cdv" for
+    # pressure and viscous
+    _base_cols = (
+        "i",
+        "solver_iter",
+        "CL",
+        "CD",
+        "CA",
+        "CY",
+        "CN",
+        "CLL",
+        "CLM",
+        "CLN",
+    )
+    # Minimal list of "coeffs" (each comp gets one)
+    _base_coeffs = (
+        "CL",
+        "CD",
+        "CA",
+        "CY",
+        "CN",
+        "CLL",
+        "CLM",
+        "CLN",
+    )
+
+    # List of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = fm.get_filelist()
+        :Inputs:
+            *prop*: :class:`CaseFM`
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        :Versions:
+            * 2024-09-18 ``@sneuhoff``: v1.0
+        """
+        # Name of (single) file
+        return [os.path.join("monitor", "Cart.data.iter")]
+
+    # Read a raw data file
+    def readfile(self, fname: str) -> dict:
+        r"""Read the data.iter
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`dict`
+                Data read from data.iter
+        :Versions:
+            * 2024-09-18 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
+        """
+        # Read the data.iter
+        data = DataIterFile(fname)
+        # Unpack component name
+        comp = self.comp
+        # Initialize data for output
+        db = basedata.BaseData()
+        db.save_col("i", data["ctu"])
+        db.save_col("solver_iter", data["ctu"])
+        db.save_col("CL", data[f"cl_{comp}"])
+        db.save_col("CD", data[f"cd_{comp}"])
+        db.save_col("CA", data[f"cfx_{comp}"])
+        db.save_col("CY", data[f"cfy_{comp}"])
+        db.save_col("CN", data[f"cfz_{comp}"])
+        db.save_col("CLL", data[f"cmx_{comp}"])
+        db.save_col("CLM", data[f"cmy_{comp}"])
+        db.save_col("CLN", data[f"cmz_{comp}"])
+        # Output
+        return db
+
+
+# Iterative F&M history
+class CaseFMCurvilinear(cdbook.CaseFM):
+    r"""Iterative LAVA-Curvilinear component force & moment history
+
+    :Call:
+        >>> fm = CaseFMCurvilinear(comp=None)
     :Inputs:
         *comp*: :class:`str`
             Name of component
@@ -194,6 +297,7 @@ class CaseFM(cdbook.CaseFM):
         # Initialize data for output
         db = basedata.BaseData()
         db.save_col("i", data["iter"])
+        db.save_col("solver_iter", data["iter"])
         db.save_col("CL", data[f"cl_{comp}"])
         db.save_col("CD", data[f"cd_{comp}"])
         db.save_col("CA", data[f"cfx_{comp}"])
@@ -312,7 +416,8 @@ class DataBook(cdbook.DataBook):
 
     # Local version of target
     def _TargetDataBook(self, targ):
-        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
+        self.Targets[targ] = TargetDataBook(
+            targ, self.x, self.opts, self.RootDir)
   # >
 
   # ========
