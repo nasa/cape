@@ -26,6 +26,7 @@ from ..cfdx import casecntl
 
 # Constants
 ITER_FILE = "data.iter"
+ITER_FILE_CART = os.path.join("monitor", "Cart.data.iter")
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -297,6 +298,9 @@ class CaseRunner(casecntl.CaseRunner):
             * 2024-08-02 ``@sneuhoff``; v1.0
             * 2024-10-11 ``@ddalle``: v2.0
         """
+        # Default file names for convenience
+        fname = fname if os.path.isfile(fname) else ITER_FILE
+        fname = fname if os.path.isfile(fname) else ITER_FILE_CART
         # Check if file exists
         if os.path.isfile(fname):
             return DataIterFile(fname, meta=meta)
