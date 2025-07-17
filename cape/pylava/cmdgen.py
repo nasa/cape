@@ -43,8 +43,6 @@ def lavacart(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
     lavaopts = isolate_subsection(opts, Options, ("RunControl", "superlava"))
     # Initialize with MPI portion of command
     cmdi = mpiexec(opts, j)
-    nt = opts.get_Environ("OMP_NUM_THREADS")
-    cmdi.extend(["mbind.x", "-t", nt])
     # Get name of executable
     execname = lavaopts.get_opt("executable", j)
     # Append to command

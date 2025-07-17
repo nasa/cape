@@ -2757,17 +2757,17 @@ class TriBase(object):
         with open(fname, 'w') as fp:
             self._write_fro(fp)
 
-    def write_fro(self, fp: IOBase):
+    def _write_fro(self, fp: IOBase):
         # Number of components
         ncompid = np.unique(self.CompID).size
         # Write header line
         fp.write(f"{self.nTri:8d}{self.nNode:8d}")
         fp.write(f"{0:8d}{0:8d}{0:8d}{ncompid:8d}\n")
         # Loop through nodes
-        for j, node in enumerate(self.nodes):
+        for j, node in enumerate(self.Nodes):
             fp.write(f"{j+1:8d}{node[0]:16g}{node[1]:16g}{node[2]:16g}\n")
         # Loop through tris
-        for k, tri in enumerate(self.tris):
+        for k, tri in enumerate(self.Tris):
             # Get component ID for this tri
             c = self.CompID[k]
             # Write line

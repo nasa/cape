@@ -890,7 +890,8 @@ class CntlBase(ABC):
             fdest = os.path.join(self.RootDir, frun, fbase)
             # Check for overwrite
             if os.path.isfile(fdest):
-                raise FileExistsError(f"  Cannot copy '{fname}'; file exists")
+                print(f"  Replacing file '{fname}'")
+                os.remove(fdest)
             # Copy file
             shutil.copy(fabs, fdest)
 
@@ -1494,6 +1495,10 @@ class CntlBase(ABC):
         self.PrepareTri(i)
         # AFLR3 boundary conditions file
         fbc = self.opts.get_aflr3_BCFile()
+        # Enter case folder
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(self.RootDir)
+        os.chdir(frun)
         # Check for those AFLR3 boundary conditions
         if fbc:
             # Absolute file name
@@ -1509,7 +1514,8 @@ class CntlBase(ABC):
             if not os.path.isabs(fxml):
                 fxml = os.path.join(self.RootDir, fxml)
             # Copy the file
-            shutil.copyfile(fxml, '%s.xml' % fproj)
+            if os.path.isfile(fxml):
+                shutil.copyfile(fxml, f'{fproj}.xml')
         # Check intersection status.
         if self.opts.get_intersect():
             # Names of triangulation files
@@ -1547,7 +1553,10 @@ class CntlBase(ABC):
             ftri = f"{fproj}.{ext}"
             # Write it
             if not os.path.isfile(ftri):
-                self.tri.WriteTri(ftri)
+                if ext == "fro":
+                    self.tri.WriteFro(ftri)
+                else:
+                    self.tri.Write(ftri)
 
    # --- Mesh: File names ---
     # Get list of mesh file names that should be in a case folder
@@ -2678,6 +2687,7 @@ class CntlBase(ABC):
             # Check for specified cutoff
             if phj:
                 # Use max of defined cutoff and *nj1*
+                nj = 0 if nj is None else nj
                 mj = max(phj, ni + nj)
             else:
                 # Min value for next phase: last total + *nj*

@@ -26,6 +26,7 @@ from ..cfdx import casecntl
 
 # Constants
 ITER_FILE = "data.iter"
+ITER_FILE_CART = os.path.join("monitor", "Cart.data.iter")
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -143,10 +144,15 @@ class CaseRunner(casecntl.CaseRunner):
         n = self.get_iter()
         # Genrate name of STDOUT log, "run.{phase}.{n}"
         fhist = "run.%02i.%i" % (j, n)
+        # Get solver
+        rc = self.read_case_json()
+        solver = rc.get_LAVASolver()
+        # Get STDOUT file name
+        stdoutbase = "superlava" if solver == "curvilinear" else "lava"
         # Rename the STDOUT file
-        if os.path.isfile("superlava.out"):
+        if os.path.isfile(f"{stdoutbase}.out"):
             # Move the file
-            os.rename("superlava.out", fhist)
+            os.rename(f"{stdoutbase}.out", fhist)
         else:
             # Create an empty file
             fileutils.touch(fhist)
@@ -292,6 +298,9 @@ class CaseRunner(casecntl.CaseRunner):
             * 2024-08-02 ``@sneuhoff``; v1.0
             * 2024-10-11 ``@ddalle``: v2.0
         """
+        # Default file names for convenience
+        fname = fname if os.path.isfile(fname) else ITER_FILE
+        fname = fname if os.path.isfile(fname) else ITER_FILE_CART
         # Check if file exists
         if os.path.isfile(fname):
             return DataIterFile(fname, meta=meta)
