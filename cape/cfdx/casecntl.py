@@ -4370,10 +4370,8 @@ class CaseRunner(CaseRunnerBase):
         # Check for relative ArchiveDir
         archivedir = opts.get_ArchiveFolder()
         if not os.path.isabs(archivedir):
-            # Get Cntl RootDir
-            rootdir = self.get_cntl_rootdir()
             # Absolutize
-            opts.set_ArchiveFolder(os.path.join(rootdir, archivedir))
+            opts.set_ArchiveFolder(os.path.join(self.root_dir, archivedir))
         # Get case name
         casename = self.get_case_name()
         # Initialize archivist
