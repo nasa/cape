@@ -78,7 +78,7 @@ from numpy import sqrt, sin, cos, tan, exp
 from ..filecntl import texfile
 from .. import tar
 from .cmdrun import pvpython
-from ..filecntl.tecfile import ExportLayout, Tecscript
+from ..filecntl.tecfile import ExportLayout, Tecscript, convert_vtk
 from .. import pltfile
 
 
@@ -4632,6 +4632,8 @@ class Report(object):
             os.chdir(frun)
             # Get the most recent PLT files.
             self.LinkVizFiles(sfig=sfig, i=i)
+            # Convert VTK -> PLT if appropriate
+            self.covnert_vtk2plt(sfig)
             # Layout file
             flay = opts.get_SubfigOpt(sfig, "Layout")
             # Full path to layout file
@@ -4665,7 +4667,7 @@ class Report(object):
                     while varset:
                         # Read Line
                         _fplt = tec.ReadKey(iline)
-                        # Relevant lay lines start with '$!VarSet' 
+                        # Relevant lay lines start with '$!VarSet'
                         if "$!VarSet" in _fplt[0]:
                             # File names only in '|LFDSFN' lines
                             if "|LFDSFN" in _fplt[0]:
@@ -5734,6 +5736,36 @@ class Report(object):
             * 2017-01-07 ``@ddalle``: v1.1; add *sfig* and *i* inputs
         """
         pass
+
+    # Convert VTK -> PLT
+    def covnert_vtk2plt(self, sfig: str):
+        r"""Convert VTK file(s) to Tecplot(R) PLT format if requested
+
+        :Call:
+            >>> rep.LinkVizFiles(sfig, i)
+        :Inputs:
+            *rep*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-07-17 ``@ddalle``: v1.0
+        """
+        # Get list of VTK files
+        vtkfiles = self.cntl.opts.get_SubfigOpt(sfig, "VTKFiles")
+        # Check for empty
+        if (vtkfiles is None) or len(vtkfiles) == 0:
+            return
+        # Loop through
+        for vtkfile in vtkfiles:
+            # Check for existence
+            if not os.path.isfile(vtkfile):
+                print(f"   Missing VTK file '{vtkfile}'")
+                continue
+            # Convert it
+            convert_vtk(vtkfile)
 
   # === Image I/O ===
     # Function to save images in various formats
