@@ -172,7 +172,7 @@ class CapeVTK2PltArgParser(_TecArgParser):
 
     # Positional parameters
     _arglist = (
-        "szplt",
+        "vtk",
         "o",
     )
 
@@ -254,7 +254,7 @@ def convert_szplt(argv: Optional[list] = None) -> int:
 
 
 # CLI handle for vtk2plt
-def convert_vt2(argv: Optional[list] = None) -> int:
+def convert_vtk(argv: Optional[list] = None) -> int:
     r"""CLI for VTK -> Tecplot(R) PLT
 
     :Call:
