@@ -12,6 +12,12 @@ import numpy as np
 # Local imports
 from . import volcomp
 from ..dkit.rdb import DataKit
+from ..convert import (
+    ReynoldsPerMeter,
+    ReynoldsPerFoot,
+    SutherlandMKS,
+    SutherlandFPS
+)
 from .errors import (
     assert_size,
     GruvocKeyError)
@@ -929,6 +935,40 @@ class UmeshBase(ABC):
         # Count them
         return face_ids.size
 
+    def get_qvar(self, qvar, index=-1) -> list:
+        r"""Get state variable in the mesh object
+
+        :Call:
+            >>> var = mesh.get_qvar()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *qvar*: :class:`str`
+                Name of q variable
+            *index*: {``-1``} | :class:`int`
+                Dimension of mesh.q that corresponds to qvar indexing
+        :Outputs:
+            *var*: :class:`np.ndarray`
+                Returns qvar array from mesh.q
+        :Versions:
+            * 2025-07-16 ``@aburkhea``: v1.0
+        """
+        # Get var list
+        varlist = self.qvars
+        # Get dimensions of q
+        ndim = self.q.ndim
+        # Translate default -1 indexing to absolute index
+        index = ndim - 1 if index == -1 else index
+        # Try to find qvar
+        try:
+            # Get index of qvar
+            i = varlist.index(qvar)
+            # Assemble smart index of q
+            ind = tuple(i if j == index else slice(None) for j in range(ndim))
+            return self.q[ind]
+        except ValueError:
+            raise ValueError(f"No '{qvar}' found in mesh.qvar")
+
    # --- Calculations (other states) ---
     def add_mach(self, gam: float = 1.4):
         r"""Add Mach number as *mach* to state matrix
@@ -1001,6 +1041,7 @@ class UmeshBase(ABC):
         self.q = np.hstack((self.q, np.array([cp]).T))
         # Increment nq for new var
         self.nq += 1
+
 
    # --- Geometry (manipulation) ---
     def rotate(
@@ -2452,6 +2493,89 @@ class UmeshBase(ABC):
             return self.get_surf_nodes()
         else:
             return j
+
+    def genr8_yplus(
+            self, p, T, M,
+            L=1.0, bound0=None, R=None, gam=None,
+            mu0=None, T0=None, C=None, mks=True):
+        r"""Calculate wall normal distances
+        :Call:
+            >>> yplus = genr8_yplus(p, T, M)
+        :Inputs:
+            *p*: :class:`float`
+                Static pressure [Pa|psf]
+            *T*: :class:`float`
+                Static temperature [K|R]
+            *M*: :class:`float`
+                Mach number
+            *mks*: {``True``} | ``False``
+                Flag for unit system
+            *R*: :class:`float`
+                Gas constant [m^2/s^2*R|ft^2/s^2*R]
+            *gam*: {``1.4``} | :class:`float`
+                Ratio of specific heats
+            *mu0*: :class:`float`
+                Reference viscosity [kg/m*s|slug/ft*s]
+            *T0*: :class:`float`
+                Reference temperature [K|R]
+            *C*: :class:`float`
+                Reference temperature [K|R]
+            *L*: {``1.0``} | :class:`int`
+                Reference length [m|ft]
+            *bound0*: :class:`int`
+                First non-farfield comp id (for make_pv_skin_friction)
+        :Outputs:
+            *yplus*: :class:`np.ndarray`
+                Wall normal distances
+        :Versions:
+            * 2025-07-17 ``@aburkhea``: v1.0
+        """
+        # If mks system
+        if mks:
+            Rex = ReynoldsPerMeter(p, T, M)
+            # Viscosity
+            mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+            # Gas constant
+            if R is None: R = 287.0
+        else:
+            Rex = ReynoldsPerFoot(p, T, M)
+            # Viscosity
+            mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+            # Gas constant
+            if R is None: R = 1716.0
+        # Scale per-unit Rex
+        Re = Rex*L
+        # Ratio of specific heats
+        if gam is None: gam = 1.4
+        # Calculate density
+        rho = p / (R*T)
+        # Sound speed
+        a = np.sqrt(gam*R*T)
+        # Velocity
+        U = M*a
+        # Dynamic pressure
+        q = 0.5*p*U**2
+        # Sound speed
+        a = np.sqrt(gam*R*T)
+        # Use data-based skin friction
+        if bound0:
+            self.make_pv_skin_friction(bound0, mu, a, q)
+            Cf = self.get_qvar("cf")
+        else:
+            # Approx with Prandtl-Schlichting formula
+            Cf = (2*np.log(Re) - 0.65)**(-2.3)
+        # Wall shear stress
+        tauw = Cf*0.5*rho*U**2
+        # Friction vel
+        ustar = np.sqrt(tauw/rho)
+        # Get wall normal distances
+        nedges = self.get_surf_nearest()
+        nedges -= 1
+        ds = self.nodes[nedges[:, 0]] - self.nodes[nedges[:, 1]]
+        dn = np.sqrt(np.sum(ds**2, axis=1))
+        # Calc yplus
+        yplus = dn*rho*ustar/mu
+        return yplus
 
    # --- Volume removal ---
     def remove_volume(self):
