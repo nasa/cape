@@ -100,6 +100,18 @@ MESHB_WRITERS = {
 }
 
 
+MESHB_DTYPES = {
+    'l1': ('<f4', '<i4'),
+    '1': ('f4', 'i4'),
+    'l2': ('<f8', '<i4'),
+    '2': ('f8', 'i4'),
+    'l3': ('<f8', '<i4'),
+    '3': ('f8', 'i4'),
+    'l4': ('<f8', '<i8'),
+    '4': ('f8', 'i8'),
+}
+
+
 # Read meshb file
 def read_meshb(
         mesh: UmeshBase,
@@ -140,8 +152,10 @@ def read_meshb(
         fmt = fmt + f"{version}"
         # Get appropriate int and float readers for this format
         iread, ireadH, fread = MESHB_READERS[fmt]
+        # Get appropriate int and float readers for this format
+        fdtype, idtype = MESHB_DTYPES[fmt]
         # Read file
-        _read_meshb(mesh, fp, iread, ireadH, fread)
+        _read_meshb(mesh, fp, iread, ireadH, fread, idtype, fdtype)
 
 
 # Read meshb verts
@@ -151,24 +165,23 @@ def _read_meshb_verts(
         iread: Callable,
         ireadH: Callable,
         fread: Callable,
-        eof: bool):
+        idtype: str,
+        fdtype: str):
     # Read location that vertex data stops
     _ = ireadH(fp, 1)[0]
     # Read Number of vertex
     nnode = iread(fp, 1)[0]
     # Save number of nodes
     mesh.nnode = nnode
-    cnt = 0
-    verts = np.array((nnode, 3), dtype=float)
-    # Read each line of vertexs
-    while cnt < nnode:
-        # Save vertexs to matrix
-        verts[cnt, :] = fread(fp, 3)
-        # Dont save this? Some reference number thing
-        _ref = iread(fp, 1)
-        cnt += 1
+    # Setup dtypes
+    dt = np.dtype([
+        ('coords', fdtype, 3),
+        ('ref', idtype)
+    ])
+    # Read entire verts at once
+    verts = np.fromfile(fp, count=nnode, dtype=dt)
     # Save to mesh
-    mesh.nodes = verts
+    mesh.nodes = verts['coords']
     # Delete to free memory
     del verts
 
@@ -180,24 +193,22 @@ def _read_meshb_tris(
         iread: Callable,
         ireadH: Callable,
         fread: Callable,
-        eof: bool):
+        idtype: str,
+        fdtype: str):
     # Read location that tri data stops
     _ = ireadH(fp, 1)[0]
     # Read Number of tris?
     ntri = iread(fp, 1)[0]
     # Save number of nodes
     mesh.ntri = ntri
-    cnt = 0
-    tris = np.array((ntri, 3), dtype=int)
-    # Read each line of tris
-    while cnt < ntri:
-        # Save tris to matrix
-        tris[cnt, :] = fread(fp, 3)
-        # Dont save this? Some reference number thing
-        _ref = iread(fp, 1)
-        cnt += 1
+    dt = np.dtype([
+        ('inds', idtype, 3),
+        ('ref', idtype)
+    ])
+    # Read entire verts at once
+    tris = np.fromfile(fp, count=ntri, dtype=dt)
     # Save to mesh
-    mesh.tris = tris
+    mesh.tris = tris['inds']
     # Delete to free memory
     del tris
 
@@ -209,24 +220,22 @@ def _read_meshb_quads(
         iread: Callable,
         ireadH: Callable,
         fread: Callable,
-        eof: bool):
+        idtype: str,
+        fdtype: str):
     # Read location that quad data stops
     _ = ireadH(fp, 1)[0]
     # Read Number of quads?
     nquad = iread(fp, 1)[0]
     # Save number of nodes
     mesh.nquad = nquad
-    cnt = 0
-    quads = np.array((nquad, 4), dtype=int)
-    # Read each line of quads
-    while cnt < nquad:
-        # Save quads to matrix
-        quads[cnt, :] = fread(fp, 4)
-        # Dont save this? Some reference number thing
-        _ref = iread(fp, 1)
-        cnt += 1
+    dt = np.dtype([
+        ('inds', idtype, 4),
+        ('ref', idtype)
+    ])
+    # Read entire verts at once
+    quads = np.fromfile(fp, count=nquad, dtype=dt)
     # Save to mesh
-    mesh.quads = quads
+    mesh.quads = quads['inds']
     # Delete to free memory
     del quads
 
@@ -238,24 +247,22 @@ def _read_meshb_tets(
         iread: Callable,
         ireadH: Callable,
         fread: Callable,
-        eof: bool):
+        idtype: str,
+        fdtype: str):
     # Read location that tet data stops
     _ = ireadH(fp, 1)[0]
     # Read Number of tets?
     ntet = iread(fp, 1)[0]
     # Save number of nodes
     mesh.ntet = ntet
-    cnt = 0
-    tets = np.array((ntet, 4), dtype=int)
-    # Read each line of tets
-    while cnt < ntet:
-        # Save tets to matrix
-        tets[cnt, :] = fread(fp, 4)
-        # Dont save this? Some reference number thing
-        _ref = iread(fp, 1)
-        cnt += 1
+    dt = np.dtype([
+        ('inds', idtype, 4),
+        ('ref', idtype)
+    ])
+    # Read entire verts at once
+    tets = np.fromfile(fp, count=ntet, dtype=dt)
     # Save to mesh
-    mesh.tets = tets
+    mesh.tets = tets['inds']
     # Delete to free memory
     del tets
 
@@ -267,24 +274,22 @@ def _read_meshb_pris(
         iread: Callable,
         ireadH: Callable,
         fread: Callable,
-        eof: bool):
+        idtype: str,
+        fdtype: str):
     # Read location that data stops
     _ = ireadH(fp, 1)[0]
     # Read Number of pris?
     npri = iread(fp, 1)[0]
     # Save number of nodes
     mesh.npri = npri
-    cnt = 0
-    pris = np.array((npri, 5), dtype=int)
-    # Read each line of priss
-    while cnt < npri:
-        # Save pris to matrix
-        pris[cnt, :] = fread(fp, 5)
-        # Dont save this? Some reference number thing
-        _ref = iread(fp, 1)
-        cnt += 1
+    dt = np.dtype([
+        ('inds', idtype, 6),
+        ('ref', idtype)
+    ])
+    # Read entire verts at once
+    pris = np.fromfile(fp, count=npri, dtype=dt)
     # Save to mesh
-    mesh.pris = pris
+    mesh.pris = pris['inds']
     # Delete to free memory
     del pris
 
@@ -296,37 +301,51 @@ def _read_meshb_pyrs(
         iread: Callable,
         ireadH: Callable,
         fread: Callable,
-        eof: bool):
+        idtype: str,
+        fdtype: str):
     # Read location that pyr data stops
     _ = ireadH(fp, 1)[0]
     # Read Number of pyrs?
     npyr = iread(fp, 1)[0]
     # Save number of nodes
     mesh.npyr = npyr
-    cnt = 0
-    pyrs = np.array((npyr, 5), dtype=int)
-    # Read each line of pyrs
-    while cnt < npyr:
-        # Save pyrs to matrix
-        pyrs[cnt, :] = fread(fp, 5)
-        # Dont save this? Some reference number thing
-        _ref = iread(fp, 1)
-        cnt += 1
+    dt = np.dtype([
+        ('inds', idtype, 5),
+        ('ref', idtype)
+    ])
+    # Read entire verts at once
+    pyrs = np.fromfile(fp, count=npyr, dtype=dt)
     # Save to mesh
-    mesh.pyrs = pyrs
+    mesh.pyrs = pyrs['inds']
     # Delete to free memory
     del pyrs
 
 
-# Read meshb eof
-def _read_meshb_eof(
+# Read meshb prys
+def _read_meshb_hexs(
         mesh: UmeshBase,
         fp: IOBase,
         iread: Callable,
         ireadH: Callable,
         fread: Callable,
-        eof: bool):
-    eof = True
+        idtype: str,
+        fdtype: str):
+    # Read location that hex data stops
+    _ = ireadH(fp, 1)[0]
+    # Read Number of hexs?
+    nhex = iread(fp, 1)[0]
+    # Save number of nodes
+    mesh.nhex = nhex
+    dt = np.dtype([
+        ('inds', idtype, 12),
+        ('ref', idtype)
+    ])
+    # Read entire verts at once
+    hexs = np.fromfile(fp, count=nhex, dtype=dt)
+    # Save to mesh
+    mesh.hexs = hexs['inds']
+    # Delete to free memory
+    del hexs
 
 
 # Meshb format keywords int -> meaning
@@ -336,8 +355,8 @@ MESHB_KW_READ_MAP = {
     7: _read_meshb_quads,
     8: _read_meshb_tets,
     9: _read_meshb_pris,
-    49: _read_meshb_pyrs,
-    54: _read_meshb_eof,
+    10: _read_meshb_hexs,
+    49: _read_meshb_pyrs
 }
 
 
@@ -347,7 +366,9 @@ def _read_meshb(
         fp: IOBase,
         iread: Callable,
         ireadH: Callable,
-        fread: Callable):
+        fread: Callable,
+        idtype: str,
+        fdtype: str,):
     r"""Read data to a mesh object from ``.meshb`` file
 
     :Call:
@@ -388,11 +409,14 @@ def _read_meshb(
     while not eof:
         # Read next kw
         nkw = iread(fp, 1)[0]
+        # Catch eof kw
+        if nkw == 54:
+            break
         # Get reader for this kw
         rfunc = MESHB_KW_READ_MAP.get(nkw, None)
         # Exectute if known reader
         if rfunc:
-            rfunc(mesh, fp, iread, ireadH, fread)
+            rfunc(mesh, fp, iread, ireadH, fread, idtype, fdtype)
         else:
             raise NotImplementedError(f"Unknown meshb keyword {nkw}")
 
@@ -427,9 +451,11 @@ def write_meshb(
         # Only write version 4 (i64,f64)
         fmt = fendian + "4"
         # Get writers
-        iwrite, iwriteH, fwrite = MESHB_WRITERS[fmt]
+        iwrite, _, fwrite = MESHB_WRITERS[fmt]
+        # Get appropriate int and float readers for this format
+        fdtype, idtype = MESHB_DTYPES[fmt]
         # Write file
-        _write_meshb(mesh, fp, iwrite, iwriteH, fwrite)
+        _write_meshb(mesh, fp, iwrite, fwrite, fdtype, idtype)
 
 
 # Write meshb
@@ -437,8 +463,9 @@ def _write_meshb(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
-        iwriteH: Callable,
-        fwrite: Callable):
+        fwrite: Callable,
+        fdtype: str,
+        idtype: str,):
     # Get ndim if explicit, else get from node dimension
     ndim = mesh.ndim if mesh.ndim else mesh.nodes.shape[-1]
     # Integer data type
@@ -452,63 +479,38 @@ def _write_meshb(
     # Write ndim
     iwrite(fp, 3)
     # Write end of ndim bits location
-    iwriteH(fp, 5*isize)
+    iwrite(fp, 5*isize)
     # Write ndim
     iwrite(fp, ndim)
-    # Write Vertex kw
-    iwrite(fp, 4)
-
-    # Write SolbyVertex kw
-    iwrite(fp, 62)
-    # Write end of sol bits location (7 prev ints and 4 more inclusive)
-    nq_scalar = mesh.nq if mesh.nq_scalar is None else mesh.nq_scalar
-    # Set vector 0 unless explicitly stated
-    nq_vector = 0 if mesh.nq_vector is None else mesh.nq_vector
-    # Set vector 0 unless explicitly stated
-    nq_metric = 0 if mesh.nq_metric is None else mesh.nq_metric
-    if nq_vector:
-        raise NotImplementedError(
-            "Writing vectors not implemented, consider stacking (N, 3) " +
-            "vector data onto q as (N, nq + 3)")
-    if nq_metric:
-        raise NotImplementedError(
-            "Writing metric not implemented, consider stacking (N, 6) " +
-            "matrix data onto q as (N, nq + 6)")
-    nmeshbs = nq_scalar + nq_vector + nq_metric
-    # Need to calculate size of each scalar, vector, metric
-    sscal = 1
-    svect = ndim
-    smetr = 3 if ndim == 2 else 6
-    # Total data size per node
-    stotal = nq_scalar*sscal + nq_vector*svect + nq_metric*smetr
-    # Actually a little more annoying, have to know number of solns
-    iwriteH(fp, isize*(6 + 1 + 1 + nmeshbs) + fsize*mesh.nnode*stotal)
-    # Write Number of verts with solns
-    iwrite(fp, mesh.nnode)
-    # If soln type list given
-    if mesh.q_type:
-        # Append number of solns to soln types
-        nsols = len(mesh.q_type)
-    else:
-        # Try to form q type list just as scal,vect,metr ordering
-        scal_meshbs = [1]*nq_scalar
-        vect_meshbs = [2]*nq_vector
-        metr_meshbs = [3]*nq_metric
-        mesh.q_type = scal_meshbs + vect_meshbs + metr_meshbs
-        nsols = len(mesh.q_type)
-        # Make sure 2d so written on the same line
-    iwrite(fp, np.concatenate((np.array([nsols]), mesh.q_type)))
-    # Order of things to write
-    write_sequence = (
-        ("q", fwrite),
-    )
-    # Loop through things to write
-    for j, (field, fn) in enumerate(write_sequence):
-        # Write to file
-        q = mesh._write_from_slot(fp, field, fn)
-        # Exit loop if one of the slots was ``None``
-        if not q:
-            break
+    if mesh.nnode:
+        # Write vertex
+        _write_meshb_verts(
+            mesh, fp,
+            iwrite, fwrite,
+            isize, fsize,
+            fdtype, idtype)
+    if mesh.ntri:
+        # Write tris
+        _write_meshb_tris(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+    if mesh.nquad:
+        # Write quads
+        _write_meshb_quads(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+    if mesh.ntet:
+        # Write tets
+        _write_meshb_tets(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+    if mesh.npri:
+        # Write pris
+        _write_meshb_pris(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+    if mesh.npyr:
+        # Write pyrs
+        _write_meshb_pyrs(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+    if mesh.nhex:
+        # Write hexs
+        _write_meshb_hexs(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+    # Write eof?
+    iwrite(fp, 54)
+    # Write extra 0 like F3D?
+    iwrite(fp, 0)
 
 
 # Read meshb verts
@@ -516,22 +518,158 @@ def _write_meshb_verts(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
-        iwriteH: Callable,
         fwrite: Callable,
         isize: int,
-        fsize: int,):
+        fsize: int,
+        fdtype: str,
+        idtype: str,):
+    # Write Vertex kw
+    iwrite(fp, 4)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwriteH(fp, mesh.nnode*(fsize*3 + isize) + isize*2)
+    iwrite(fp, fp.tell() + mesh.nnode*(fsize*3 + isize) + isize*2)
     # Write Number of vertex
     iwrite(fp, mesh.nnode)
-    cnt = 0
-    # Read each line of vertexs
-    while cnt < mesh.nnode:
-        # Write each vertex on line
-        fwrite(fp, mesh.nodes[cnt, :])
-        # Dont save this? Some reference number thing
-        _ref = iwrite(fp, 1)
-        cnt += 1
+    dtype = np.dtype([
+        ('x', fdtype),
+        ('y', fdtype),
+        ('z', fdtype),
+        ('r', idtype),
+    ])
+    # Build numpy array with (3 floats 1 int) rows
+    nodesout = np.empty(mesh.nnode, dtype=dtype)
+    nodesout["x"] = mesh.nodes[:, 0]
+    nodesout["y"] = mesh.nodes[:, 1]
+    nodesout["z"] = mesh.nodes[:, 2]
+    nodesout["r"] = np.zeros(mesh.nnode, dtype=idtype)
+    # Call tofile directly to avoid inbuild fncs "ensure fmt" step
+    nodesout.tofile(fp)
+
+
+# Read meshb tris
+def _write_meshb_tris(
+        mesh: UmeshBase,
+        fp: IOBase,
+        iwrite: Callable,
+        fwrite: Callable,
+        isize: int,
+        fsize: int,
+        idtype: str,):
+    # Write kw
+    iwrite(fp, 6)
+    # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
+    iwrite(fp, fp.tell() + mesh.ntri*(isize*3 + isize) + isize*2)
+    # Write Number of tris
+    iwrite(fp, mesh.ntri)
+    # Build mat to write out
+    nodeout = np.hstack((mesh.tris, np.zeros((mesh.ntri, 1), dtype=idtype)))
+    # Write to file
+    iwrite(fp, nodeout)
+
+
+# Read meshb quads
+def _write_meshb_quads(
+        mesh: UmeshBase,
+        fp: IOBase,
+        iwrite: Callable,
+        fwrite: Callable,
+        isize: int,
+        fsize: int,
+        idtype: str,):
+    # Write kw
+    iwrite(fp, 7)
+    # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
+    iwrite(fp, fp.tell() + mesh.nquad*(isize*4 + isize) + isize*2)
+    # Write Number of quads
+    iwrite(fp, mesh.nquad)
+    # Build mat to write out
+    nodeout = np.hstack((mesh.quads, np.zeros((mesh.nquad, 1), dtype=idtype)))
+    # Write to file
+    iwrite(fp, nodeout)
+
+
+# Read meshb tets
+def _write_meshb_tets(
+        mesh: UmeshBase,
+        fp: IOBase,
+        iwrite: Callable,
+        fwrite: Callable,
+        isize: int,
+        fsize: int,
+        idtype: str,):
+    # Write kw
+    iwrite(fp, 8)
+    # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
+    iwrite(fp, fp.tell() + mesh.ntet*(isize*4 + isize) + isize*2)
+    # Write Number of tets
+    iwrite(fp, mesh.ntet)
+    # Build mat to write out
+    nodeout = np.hstack((mesh.tets, np.zeros((mesh.ntet, 1), dtype=idtype)))
+    # Write to file
+    iwrite(fp, nodeout)
+
+
+# Read meshb pris
+def _write_meshb_pris(
+        mesh: UmeshBase,
+        fp: IOBase,
+        iwrite: Callable,
+        fwrite: Callable,
+        isize: int,
+        fsize: int,
+        idtype: str,):
+    # Write kw
+    iwrite(fp, 9)
+    leng = fp.tell() + mesh.npri*(isize*6 + isize) + isize*2
+    # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
+    iwrite(fp, fp.tell() + mesh.npri*(isize*6 + isize) + isize*2)
+    # Write Number of pris
+    iwrite(fp, mesh.npri)
+    # Build mat to write out
+    nodeout = np.hstack((mesh.pris, np.zeros((mesh.npri, 1), dtype=idtype)))
+    # Write to file
+    iwrite(fp, nodeout)
+
+
+# Read meshb pyrs
+def _write_meshb_pyrs(
+        mesh: UmeshBase,
+        fp: IOBase,
+        iwrite: Callable,
+        fwrite: Callable,
+        isize: int,
+        fsize: int,
+        idtype: str,):
+    # Write kw
+    iwrite(fp, 49)
+    # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
+    iwrite(fp, fp.tell() + mesh.npyr*(isize*5 + isize) + isize*2)
+    # Write Number of pyrs
+    iwrite(fp, mesh.npyr)
+    # Build mat to write out
+    nodeout = np.hstack((mesh.pyrs, np.zeros((mesh.npyr, 1), dtype=idtype)))
+    # Write to file
+    iwrite(fp, nodeout)
+
+
+# Read meshb hexs
+def _write_meshb_hexs(
+        mesh: UmeshBase,
+        fp: IOBase,
+        iwrite: Callable,
+        fwrite: Callable,
+        isize: int,
+        fsize: int,
+        idtype: str,):
+    # Write kw
+    iwrite(fp, 10)
+    # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
+    iwrite(fp, fp.tell() + mesh.nhex*(isize*12 + isize) + isize*2)
+    # Write Number of hexs
+    iwrite(fp, mesh.nhex)
+    # Build mat to write out
+    nodeout = np.hstack((mesh.hexs, np.zeros((mesh.nhex, 1), dtype=idtype)))
+    # Write to file
+    iwrite(fp, nodeout)
 
 
 # Check ASCII mode
@@ -661,8 +799,6 @@ def get_meshb_mode(
 def _check_meshb_mode(fp, little=True, record=False):
     # Integer data type
     isize = 4
-    # Get last position
-    fp.seek(0, 2)
     # Integer data type
     dtype = "<i4" if little else ">i4"
     # Go to beginning of file
