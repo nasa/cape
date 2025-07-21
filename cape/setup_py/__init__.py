@@ -74,6 +74,8 @@ SETUP_SETTINGS = dict(
         "cape.pycart.options": ["*.json"],
         "cape.pyfun": ["templates/*"],
         "cape.pyfun.options": ["*.json"],
+        "cape.pylava": ["templates/*"],
+        "cape.pylava.options": ["*.json"],
         "cape.pyover": ["templates/*"],
         "cape.pyover.options": ["*.json"],
     },
