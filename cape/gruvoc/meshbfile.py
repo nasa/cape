@@ -619,7 +619,6 @@ def _write_meshb_pris(
         idtype: str,):
     # Write kw
     iwrite(fp, 9)
-    leng = fp.tell() + mesh.npri*(isize*6 + isize) + isize*2
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
     iwrite(fp, fp.tell() + mesh.npri*(isize*6 + isize) + isize*2)
     # Write Number of pris
