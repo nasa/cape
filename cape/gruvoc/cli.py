@@ -4,7 +4,6 @@ from .errors import GruvocError
 from .umesh import Umesh
 from ..argread import ArgReader
 from ..argread.clitext import compile_rst
-from ..argread._vendor.kwparse import KwargParser
 
 
 # Return codes
@@ -87,7 +86,7 @@ class GruvocArgParser(ArgReader):
     _nargmin = 1
 
 
-class GruvocConvertArgParser(KwargParser):
+class GruvocConvertArgParser(ArgReader):
     __slots__ = ()
 
     _optlist = (
@@ -120,7 +119,7 @@ class GruvocConvertArgParser(KwargParser):
     _nargmax = 2
 
 
-class GruvocPrintParser(KwargParser):
+class GruvocPrintParser(ArgReader):
     __slots__ = ()
 
     _optlist = (
@@ -137,7 +136,7 @@ class GruvocPrintParser(KwargParser):
     )
 
 
-class GruvocSmallVolParser(KwargParser):
+class GruvocSmallVolParser(ArgReader):
     __slots__ = ()
 
     _optlist = (

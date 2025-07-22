@@ -16,7 +16,7 @@ from typing import Optional, Union
 # CAPE modules
 from .. import argread
 from .. import convert1to2
-from ..argread._vendor.kwparse import BOOL_TYPES, INT_TYPES
+from ..argread import BOOL_TYPES, INT_TYPES
 
 
 # Constants
