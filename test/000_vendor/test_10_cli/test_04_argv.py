@@ -3,7 +3,7 @@
 import sys
 
 # Local imports
-from cape.argread import readkeys
+from argread import readkeys
 
 
 def test_readkeys01():
@@ -12,6 +12,5 @@ def test_readkeys01():
     assert a == []
     assert kw == {
         "cj": True,
-        "__replaced__": [],
     }
 

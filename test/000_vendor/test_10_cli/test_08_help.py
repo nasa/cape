@@ -1,6 +1,30 @@
 
 # Local imports
-from cape.argread import ArgReader
+from argread import ArgReader
+
+
+# Custom class to delegate to subfunctions
+class HelpDesk(ArgReader):
+    __slots__ = ()
+
+    _optlist = {
+        "h",
+        "v",
+    }
+
+    _optmap = {
+        "help": "h",
+    }
+
+    _cmdlist = (
+        "run",
+        "stop",
+    )
+
+    _help_cmd = {
+        "run": "Run one phase",
+        "stop": "Stop current run",
+    }
 
 
 # Custom class with help messages
@@ -45,7 +69,7 @@ class HelpReader(ArgReader):
 
 
 # Test some features of docstrings
-def test_clitext01():
+def test_help01():
     # Instantiate
     opts = HelpReader()
     # Generate help message for just "h"
@@ -58,3 +82,18 @@ def test_clitext01():
     # Show help message
     msg = opts.genr8_help()
     assert msg.startswith("``argread-test``")
+
+
+# Test help-desk message
+def test_help02():
+    # Instantiate
+    opts = HelpDesk()
+    # Generate help message
+    usage = opts._genr8_help_usage()
+    cmdhelp = opts._genr8_help_cmdlist()
+    msg = opts.genr8_help()
+    # Make sure it's reasonable
+    assert "``stop``" in cmdhelp
+    assert "CMD" in usage
+    assert cmdhelp in msg
+    assert ":Options:" in msg

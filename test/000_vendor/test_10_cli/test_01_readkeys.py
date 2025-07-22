@@ -1,7 +1,7 @@
 
 
 # Local
-from cape.argread import readkeys
+from argread import ArgReader, readkeys, readkeys_full
 
 
 def test_readkeys01():
@@ -9,7 +9,6 @@ def test_readkeys01():
     assert a == []
     assert kw == {
         "cj": True,
-        "__replaced__": [],
     }
 
 
@@ -18,7 +17,6 @@ def test_readkeys02():
     assert a == ["a", "b"]
     assert kw == {
         "extend": "2",
-        "__replaced__": [],
     }
 
 
@@ -29,7 +27,6 @@ def test_readkeys03():
         "v": True,
         "qsub": True,
         "start": False,
-        "__replaced__": [],
     }
 
 
@@ -39,12 +36,11 @@ def test_readkeys04():
     assert kw == {
         "q": "devel",
         "c": "1",
-        "__replaced__": [],
     }
 
 
 def test_readkeys05():
-    a, kw = readkeys(["p", "-x", "1.py", "-x", "2.py", "-x", "3.py"])
+    a, kw = readkeys_full(["p", "-x", "1.py", "-x", "2.py", "-x", "3.py"])
     assert a == []
     assert kw == {
         "x": "3.py",
@@ -54,3 +50,24 @@ def test_readkeys05():
         ],
     }
 
+
+def test_argtuple01():
+    # Parse CLI w/ repeated option
+    parser = ArgReader()
+    parser.parse(["p", "a", "-x", "1.py", "-x", "2.py", "-x", "3.py"])
+    # Parse as tuple
+    arglist = parser.get_argtuple()
+    # Check value
+    assert arglist == (
+        ("arg1", "a"),
+        ("x", "1.py"),
+        ("x", "2.py"),
+        ("x", "3.py"),
+    )
+    # Parse a dict
+    argdict = parser.get_argdict()
+    # Check it
+    assert argdict == {
+        "arg1": "a",
+        "x": "3.py",
+    }

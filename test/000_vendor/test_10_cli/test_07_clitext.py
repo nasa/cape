@@ -1,6 +1,6 @@
 
 # Local imports
-from cape.argread.clitext import (
+from argread.clitext import (
     BOLD,
     BOLDITALIC,
     ITALIC,

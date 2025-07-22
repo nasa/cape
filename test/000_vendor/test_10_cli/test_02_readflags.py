@@ -1,7 +1,7 @@
 
 
 # Local
-from cape.argread import readflags
+from argread import readflags
 
 
 def test_readflags01():
@@ -10,7 +10,6 @@ def test_readflags01():
     assert kw == {
         "c": True,
         "j": True,
-        "__replaced__": [],
     }
 
 
@@ -19,7 +18,6 @@ def test_readflags02():
     assert a == ["a", "b"]
     assert kw == {
         "extend": "2",
-        "__replaced__": [],
     }
 
 
@@ -28,6 +26,5 @@ def test_readflags03():
     assert a == []
     assert kw == {
         "": True,
-        "__replaced__": [],
     }
 

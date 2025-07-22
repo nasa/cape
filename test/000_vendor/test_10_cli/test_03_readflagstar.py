@@ -1,7 +1,7 @@
 
 
 # Local
-from cape.argread import readflagstar
+from argread import readflagstar
 
 
 def test_readflagstar01():
@@ -10,7 +10,6 @@ def test_readflagstar01():
     assert kw == {
         "c": True,
         "j": True,
-        "__replaced__": [],
     }
 
 
@@ -22,6 +21,5 @@ def test_readflagstar02():
         "f": "fname",
         "v": True,
         "qsub": True,
-        "__replaced__": [],
     }
 

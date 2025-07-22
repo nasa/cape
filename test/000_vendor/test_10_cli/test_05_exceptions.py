@@ -4,7 +4,7 @@
 import pytest
 
 # Local
-from cape.argread import readkeys
+from argread import readkeys
 
 
 def test_bad_argv():
