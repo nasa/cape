@@ -30,7 +30,6 @@ SETUP_SETTINGS = dict(
     packages=[
         "cape",
         "cape.argread",
-        "cape.argread._vendor",
         "cape.dkit",
         "cape.cfdx",
         "cape.cfdx.options",
