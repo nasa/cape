@@ -1,7 +1,7 @@
 
 
 # Local
-from argread import readflagstar
+from cape.argread import readflagstar
 
 
 def test_readflagstar01():

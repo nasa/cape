@@ -1,7 +1,7 @@
 
 # Local imports
-from argread import ArgReader
-from argread.errors import ArgReadError
+from cape.argread import ArgReader
+from cape.argread.errors import ArgReadError
 
 
 # Create custom class

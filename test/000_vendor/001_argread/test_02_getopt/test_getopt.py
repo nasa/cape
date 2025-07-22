@@ -1,6 +1,6 @@
 
 # Local imports
-from argread import ArgReader
+from cape.argread import ArgReader
 
 
 # Create custom class

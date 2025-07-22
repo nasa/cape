@@ -1,7 +1,7 @@
 
 
 # Local
-from argread import ArgReader
+from cape.argread import ArgReader
 
 
 def test_subcmd01():

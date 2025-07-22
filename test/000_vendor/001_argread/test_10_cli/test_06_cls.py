@@ -1,7 +1,7 @@
 
 
 # Local
-from argread import ArgReader, FlagsArgReader
+from cape.argread import ArgReader, FlagsArgReader
 
 
 # Parser w/ no ``a=1`` keys

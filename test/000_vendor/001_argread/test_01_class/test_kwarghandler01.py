@@ -3,8 +3,8 @@
 import pytest
 
 # Local imports
-from argread import ArgReader
-from argread.errors import (
+from cape.argread import ArgReader
+from cape.argread.errors import (
     ArgReadKeyError,
     ArgReadNameError,
     ArgReadTypeError,

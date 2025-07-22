@@ -1,7 +1,7 @@
 
 
 # Local
-from argread import ArgReader, readkeys, readkeys_full
+from cape.argread import ArgReader, readkeys, readkeys_full
 
 
 def test_readkeys01():

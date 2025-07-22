@@ -3,7 +3,7 @@
 import sys
 
 # Local imports
-from argread import readkeys
+from cape.argread import readkeys
 
 
 def test_readkeys01():
