@@ -55,7 +55,7 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Names
     _modname = "pylava"
-    _progname = "lavacurv"
+    _progname = "lava"
 
     # Specific classes
     _rc_cls = RunControlOpts
