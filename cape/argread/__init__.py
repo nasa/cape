@@ -200,22 +200,22 @@ Here are some examples of how FKwargs might handle bad inputs.
 .. code-block:: pycon
 
     >>> FKwargs("my", help=True)
-    File "kwparse.py", line 172, in wrapper
+    File "argread.py", line 172, in wrapper
         raise err.__class__(msg) from None
-    kwparse.ArgReadTypeError: FKwargs() takes 2 arguments, but 1 were given
+    argread.ArgReadTypeError: FKwargs() takes 2 arguments, but 1 were given
     >>> FKwargs(2, 3)
-    File "kwparse.py", line 172, in wrapper
+    File "argread.py", line 172, in wrapper
         raise err.__class__(msg) from None
-    kwparse.ArgReadTypeError: FKwargs() arg 0 (name='a'): got type 'int';
+    argread.ArgReadTypeError: FKwargs() arg 0 (name='a'): got type 'int';
     expected 'str'
     >>> FKwargs("my", 10, b=True)
-    File "kwparse.py", line 172, in wrapper
+    File "argread.py", line 172, in wrapper
         raise err.__class__(msg) from None
-    kwparse.ArgReadNameError: FKwargs() unknown kwarg 'b'
+    argread.ArgReadNameError: FKwargs() unknown kwarg 'b'
     >>> FKwargs("my", 10, h=1)
-    File "kwparse.py", line 172, in wrapper
+    File "argread.py", line 172, in wrapper
         raise err.__class__(msg) from None
-    kwparse.ArgReadTypeError: FKwargs() kwarg 'help': got type 'int';
+    argread.ArgReadTypeError: FKwargs() kwarg 'help': got type 'int';
     expected 'bool'
 
 In order to use an instance of this :class:`FKwargs` there are several
@@ -248,7 +248,7 @@ import sys
 from base64 import b32encode
 from collections import namedtuple
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 # Third-party imports
 import numpy as np
@@ -1556,7 +1556,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
         return cmdlist
 
    # --- Arg/Option interface ---
-    def save_arg(self, arg):
+    def save_arg(self, arg: Any):
         r"""Save a positional argument
 
         :Call:
@@ -1569,7 +1569,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
         """
         self._save(None, arg)
 
-    def save_double_dash(self, k, v=True):
+    def save_double_dash(self, k: str, v: Union[bool, str] = True):
         r"""Save a double-dash keyword and value
 
         :Call:
@@ -1585,7 +1585,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
         self._save(k, v)
         self.kwargs_double_dash[k] = v
 
-    def save_equal_key(self, k, v):
+    def save_equal_key(self, k: str, v: Any):
         r"""Save an equal-sign key/value pair, like ``"mach=0.9"``
 
         :Call:
@@ -1601,7 +1601,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
         self._save(k, v)
         self.kwargs_equal_sign[k] = v
 
-    def save_single_dash(self, k, v=True):
+    def save_single_dash(self, k: str, v: Union[bool, str] = True):
         r"""Save a single-dash keyword and value
 
         :Call:
@@ -1617,7 +1617,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
         self._save(k, v)
         self.kwargs_single_dash[k] = v
 
-    def _save(self, rawopt: str, rawval):
+    def _save(self, rawopt: str, rawval: Any):
         # Append to universal list of args
         self.param_sequence.append((rawopt, rawval))
         # Check option vs arg
@@ -1676,7 +1676,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
             *opt*: {``"help"``} | :class:`str`
                 Name of option to trigger help message
         :Outputs:
-            *q*: :class:`str`
+            *q*: :class:`bool`
                 Whether front-desk help was triggered
         """
         # Check for help option
@@ -1704,7 +1704,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
             *opt*: {``"help"``} | :class:`str`
                 Name of option to trigger help message
         :Outputs:
-            *q*: :class:`str`
+            *q*: :class:`bool`
                 Whether front-desk help was triggered
         """
         # Get class
@@ -2432,7 +2432,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
 
     # Generate error message identifier for arg
     @classmethod
-    def _genr8_argmsg(cls, j: int, argname) -> str:
+    def _genr8_argmsg(cls, j: int, argname: str) -> str:
         # Common part (parameter index)
         msg1 = f"arg {j}"
         # Parameter name if appropriate
