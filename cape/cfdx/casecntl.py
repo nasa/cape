@@ -58,6 +58,7 @@ from . import queue
 from .. import fileutils
 from .archivist import CaseArchivist
 from .casecntlbase import CaseRunnerBase, REGEX_RUNFILE
+from .casedata import CaseFM
 from .caseutils import run_rootdir
 from .cntlbase import CntlBase
 from .logger import CaseLogger
@@ -192,6 +193,9 @@ class CaseRunner(CaseRunnerBase):
     # Specific classes
     _rc_cls = RunControlOpts
     _archivist_cls = CaseArchivist
+    _dex_cls = {
+        "fm": CaseFM,
+    }
 
    # --- __dunder__ ---
     def __init__(self, fdir: Optional[str] = None):
@@ -2173,6 +2177,10 @@ class CaseRunner(CaseRunnerBase):
         return triqfiles[-1], None, None, None
 
   # === DataBook ===
+   # --- Readers ---
+    def read_dex_fm(self) -> CaseFM:
+        ...
+
    # --- Triload ---
     def write_triload_input(self, comp: str):
         r"""Write input file for ``trilaodCmd``
