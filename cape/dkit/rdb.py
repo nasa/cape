@@ -31,8 +31,9 @@ import difflib
 import os
 import re
 import sys
+import time
 from collections import namedtuple
-from typing import Any, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -90,6 +91,9 @@ RBF_FUNCS = [
 ]
 # Names of parameters needed to describe an RBF network
 RBF_SUFFIXES = ["method", "rbf", "func", "eps", "smooth", "N", "xcols"]
+# Timeout for datakit lock files
+LOCKFILE_TIMEOUT = 5400.0
+LOCKFILE_INTERVAL = 10
 
 # Special return types
 MatchInds = namedtuple("MatchInds", ("selfinds", "targetinds"))
@@ -266,6 +270,9 @@ class DataKit(BaseData):
         self.defns = {}
         self.bkpts = {}
         self.sources = {}
+        self.fname = None
+        self.fdir = None
+        self.mtime = None
         # Evaluation attributes
         self.response_arg_alternates = {}
         self.response_arg_converters = {}
@@ -875,6 +882,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = CSVFile(fname, **kw)
         # Link the data
@@ -981,6 +990,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = CSVSimple(fname, **kw)
         # Link the data
@@ -1029,6 +1040,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = TSVFile(fname, **kw)
         # Link the data
@@ -1133,6 +1146,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = TSVSimple(fname, **kw)
         # Link the data
@@ -1178,6 +1193,8 @@ class DataKit(BaseData):
             # Already a file itnerface
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an insteance
             dbf = TextDataFile(fname, **kw)
         # Linke the data
@@ -1238,6 +1255,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = XLSFile(fname, **kw)
         # Link the data
@@ -1320,6 +1339,8 @@ class DataKit(BaseData):
             # Already a MAT database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = MATFile(fname, **kw)
         # Columns to keep
@@ -1417,6 +1438,8 @@ class DataKit(BaseData):
             # Already a MAT database
             dbf = fcdb
         else:
+            # Save file data
+            self._save_fname(fcdb)
             # Create an instance
             dbf = CapeFile(fcdb, **kw)
         # List of columns (for finish_defns())
@@ -1496,7 +1519,230 @@ class DataKit(BaseData):
         # Output
         return db
 
+   # --- Main ---
+    def write(self, fname: Optional[str] = None, merge: bool = True):
+        r"""Write to main data format, merging any new contents
+
+        :Call:
+            >>> db.write(fname=None, merge=True)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+            *fname*: {``None``} | :class:`str`
+                File name to write (else *db.fname*)
+            *merge*: {``True``} | ``False``
+                Whether or not to merge new contens from *fname*
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Default fname
+        fname = self.get_fname_abs() if fname is None else fname
+        # Get modification time
+        mtime = 0.0 if getattr(self, "mtime") is None else self.mtime
+        # Merge
+        if merge:
+            # Check modification time
+            if os.path.isfile(fname) and os.path.getmtime(fname) > mtime:
+                # Read the file
+                db = DataKit(fname)
+                # Merge
+                self.merge(db)
+        # Get writer function
+        write_func = self._get_writer(fname)
+        # Lock and write
+        self.lock()
+        write_func(fname)
+        # Unlock database
+        self.unlock()
+
+    def _get_writer(self, fname: str) -> Callable:
+        # Get extension
+        ext = fname.rsplit('.', 1)[-1].lower()
+        # Check it
+        if ext == "csv":
+            return self.write_csv_dense
+        # Use default
+        return getattr(self, f"write_{ext}")
+
+   # --- Lock ---
+    # Write the lock file
+    def lock(self):
+        r"""Write a LOCK file for this DataKitFile
+
+        :Call:
+            >>> db.lock()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Versions:
+            * 2017-06-12 ``@ddalle``: v1.0 (``DataBook``)
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Safely lock
+        try:
+            # Open the file
+            with open(self.get_lockfile(), 'w') as fp:
+                fp.write(f"{self.get_basename()}\n")
+        except Exception:
+            pass
+
+    def get_lockfile(self) -> str:
+        r"""Get name of lock file
+
+        :Call:
+            >>> lockfile = db.get_lockfile()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Outputs:
+            *lockfile*: :class:`str`
+                Absolute path to lock file
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get base path and file name
+        basepath = self.get_rootdir()
+        basefile = self.get_basename()
+        # Combine
+        return os.path.join(basepath, f"lock.{basefile}")
+
+    # Check lock file
+    def check_lockfile(self):
+        r"""Check if lock file for this component exists
+
+        :Call:
+            >>> q = db.check_lockfile()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not corresponding LOCK file exists
+        :Versions:
+            * 2017-06-12 ``@ddalle``: v1.0 (``DataBook``)
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get the name of the lock file
+        flock = self.get_lockfile()
+        # Check if the file exists
+        if os.path.isfile(flock):
+            # Get the mod time of said file
+            tlock = os.path.getmtime(flock)
+            # Check for a stale file (using 1.5 hrs)
+            if time.time() - tlock > LOCKFILE_TIMEOUT:
+                # Stale file; not locked
+                self.unlock()
+                return False
+            else:
+                # Still locked
+                return True
+        else:
+            # File does not exist
+            return False
+
+    # Wait for lock file
+    def wait_lockfile(self):
+        r"""Wait until lock file is no longer present
+
+        :Call:
+            >>> db.wait_lockfile()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get file name
+        basename = self.get_basename()
+        # Total wait time
+        t = 0
+        while self.check_lockfile():
+            # Update wait time
+            t += LOCKFILE_INTERVAL
+            # Status update
+            sys.stdout.write(f"\r  DataKit '{basename}' locked, ")
+            sys.stdout.write(f"waiting {t} s ...")
+            sys.stdout.flush()
+            time.sleep(LOCKFILE_INTERVAL)
+        # Clean up prompt if any waiting was done
+        if t > 0:
+            print("")
+
+    # Unlock the file
+    def unlock(self):
+        r"""Delete the LOCK file if it exists
+
+        :Call:
+            >>> db.unlock()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Versions:
+            * 2017-06-12 ``@ddalle``: v1.0 (``DataBook``)
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Name of the lock file
+        flock = self.get_lockfile()
+        # Check if it exists
+        if os.path.isfile(flock):
+            # Delete the file
+            try:
+                os.remove(flock)
+            except PermissionError:
+                print(f"PermissionError deleting\n'{flock}'")
+
    # --- Utilities ---
+    def abspath(self, fname: str):
+        # Check for absolute file
+        if os.path.isabs(fname):
+            return fname
+        # Get reference rootdir
+        rootdir = self.get_rootdir()
+        # Add base to relative path
+        return os.path.join(rootdir, fname)
+
+    def get_rootdir(self) -> str:
+        # Get reference
+        basefile = getattr(self, "fname", None)
+        basepath = getattr(self, "fdir", None)
+        # Use dirname(basefile) > getcwd() as reference root
+        dirname = os.getcwd() if (
+            basefile is None or not os.path.isabs(basefile)
+        ) else os.path.basename(basefile)
+        # Use fdir > inferred
+        rootdir = basepath if basepath else dirname
+        return rootdir
+
+    def get_fname_abs(self) -> str:
+        # Get folder and relative file name
+        dirname = self.get_rootdir()
+        basename = self.get_basename()
+        # Output
+        return os.path.join(dirname, basename)
+
+    def get_basename(self) -> str:
+        # Get file
+        basefile = getattr(self, "fname", None)
+        # Check if used
+        if basefile is None:
+            return f"{self.__class__.__name__}.mat"
+        else:
+            return basefile
+
+    def _save_fname(self, fname: Optional[str]):
+        # Skip if no file
+        if fname is None:
+            return
+        # Ensure absolute path
+        fabs = os.path.abspath(fname)
+        # Save parts
+        self.fdir = os.path.dirname(fabs)
+        self.fname = os.path.basename(fabs)
+        # Wait for lock file
+        self.wait_lockfile()
+        # Save modification time
+        self.mtime = os.path.getmtime(fabs)
+
     def _save_src(self, db: dict, ext: str, save: bool = False):
         if save:
             # Name this source
