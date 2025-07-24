@@ -256,6 +256,7 @@ class DataKit(BaseData):
             * 2019-12-06 ``@ddalle``: v1.0
         """
         # Required attributes
+        self.xcols = None
         self.cols = []
         self.n = 0
         self.defns = {}
@@ -8716,10 +8717,11 @@ class DataKit(BaseData):
                 tie-breakers
         :Versions:
             * 2021-09-17 ``@ddalle``: v1.0
+            * 2025-07-24 ``@ddalle``: v1.1; use *db.xcols* as default
         """
         # Default columns
-        if cols is None:
-            cols = list(self.cols)
+        cols = cols if cols else self.xcols
+        cols = cols if cols else self.cols
         # First column
         col0 = cols[0]
         # Get value
