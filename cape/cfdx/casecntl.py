@@ -66,6 +66,7 @@ from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
 from .options.funcopts import UserFuncOpts
 from ..config import ConfigXML, SurfConfig
+from ..dkit.rdb import DataKit
 from ..errors import CapeRuntimeError
 from ..optdict import _NPEncoder
 from ..trifile import Tri
@@ -2178,8 +2179,33 @@ class CaseRunner(CaseRunnerBase):
 
   # === DataBook ===
    # --- Readers ---
-    def read_dex_fm(self) -> CaseFM:
-        ...
+    def read_dex(self, comp: str) -> DataKit:
+        r"""Read a data component
+
+        :Call:
+            >>> db = runner.read_dex(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get component type
+        typ = cntl.opts.get_DataBookType(comp).lower()
+        # Special preparation methods
+        name1 = f"prep_dex_{typ}"
+        name2 = f"get_dex_args_{typ}"
+        # Get methods
+        f1 = getattr(self, name1)
+        f2 = getattr(self, name2)
+        # Get class
+        cls = self._dex_cls[typ]
+        # Use it
+        return cls(comp)
 
    # --- Triload ---
     def write_triload_input(self, comp: str):

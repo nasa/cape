@@ -10,7 +10,6 @@ interface to individual CFD cases. The base class is
 
 # Standard library
 import re
-from abc import ABC, abstractmethod
 from typing import Optional
 
 # Local imports
@@ -114,7 +113,7 @@ class MetaCaseRunner(type):
 
 
 # Definition
-class CaseRunnerBase(ABC, metaclass=MetaCaseRunner):
+class CaseRunnerBase(metaclass=MetaCaseRunner):
     r"""Abstract base class for :class:`cape.cfdx.casecntl.CaseRunner`
 
     The main purpose for this class is to provide useful type
@@ -153,7 +152,6 @@ class CaseRunnerBase(ABC, metaclass=MetaCaseRunner):
     _dex_cls = {}
 
     # Read ``case.json``
-    @abstractmethod
     def read_case_json(self) -> RunControlOpts:
         r"""Read ``case.json`` if not already
 
@@ -203,7 +201,6 @@ class CaseRunnerBase(ABC, metaclass=MetaCaseRunner):
         return f"{self._progname}.err"
 
     # Get most recent observable iteration
-    @abstractmethod
     def get_iter(self, f: bool = True):
         r"""Detect most recent iteration
 
@@ -221,7 +218,6 @@ class CaseRunnerBase(ABC, metaclass=MetaCaseRunner):
         pass
 
     # Determine phase number
-    @abstractmethod
     def get_phase(self, f: bool = True) -> int:
         r"""Determine phase number in present case
 
@@ -239,7 +235,6 @@ class CaseRunnerBase(ABC, metaclass=MetaCaseRunner):
         pass
 
     # Read total time
-    @abstractmethod
     def get_cpu_time(self) -> Optional[float]:
         r"""Read most appropriate total CPU usage for current case
 
@@ -255,7 +250,6 @@ class CaseRunnerBase(ABC, metaclass=MetaCaseRunner):
         pass
 
     # Get PBS/Slurm job ID
-    @abstractmethod
     def get_job_id(self) -> str:
         r"""Get PBS/Slurm job ID, if any
 
@@ -271,7 +265,6 @@ class CaseRunnerBase(ABC, metaclass=MetaCaseRunner):
         pass
 
     # Write case settings to ``case.json``
-    @abstractmethod
     def write_case_json(self, rc: RunControlOpts):
         r"""Write the current settinsg to ``case.json``
 
