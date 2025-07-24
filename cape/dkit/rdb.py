@@ -9912,6 +9912,32 @@ class DataKit(BaseData):
             # Return combined set of matches
             return I, J
 
+    # Match dictionary of conditions
+    def xfind(self, d: dict) -> Optional[int]:
+        r"""Find a match based on a :class:`dict` of conditions
+
+        :Call:
+            >>> i = db.xfind(d)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *d*: :class:`dict`
+                Dictionary of cols (keys) and values to search for
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Initialize inputs to find()
+        args = []
+        x = []
+        # Loop through dictionary
+        for k, v in d.items():
+            args.append(k)
+            x.append(v)
+        # Call search
+        mask, _ = self.find(args, *x, once=True)
+        # Return result
+        return None if mask.size == 0 else mask[0]
+
     # Find matches from a target
     def match(self, dbt, maskt=None, cols=None, **kw):
         r"""Find cases with matching values of specified list of cols
