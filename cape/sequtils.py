@@ -15,7 +15,7 @@ from typing import Optional
 import numpy as np
 
 # Local imports
-from .argread._vendor.kwparse import KwargParser
+from .argread import ArgReader
 
 
 # Type arrays
@@ -23,7 +23,7 @@ INT_TYPES = (int, np.integer)
 
 
 # Options for processing
-class SequenceKwargs(KwargParser):
+class SequenceKwargs(ArgReader):
     # No attributes
     __slots__ = ()
 

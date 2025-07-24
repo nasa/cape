@@ -35,7 +35,7 @@ from . import cmdrun
 from . import cmdgen
 from . import pltfile
 from .. import fileutils
-from .databook import CaseResid
+from .databook import CaseFM, CaseResid
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 from ..cfdx import casecntl
@@ -119,6 +119,9 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _dex_cls = {
+        "fm": CaseFM,
+    }
 
    # --- Config ---
     def init_post(self):
@@ -406,9 +409,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Set the output name
                 nml.set_opt(
                     "sampling_parameters", "label",
-                    val=f'interpolant', j=ngeom-1)
-
-
+                    val='interpolant', j=ngeom-1)
         else:
             # Required settings
             vov_req = {
@@ -1683,6 +1684,27 @@ class CaseRunner(casecntl.CaseRunner):
             os.chdir('..')
         # Output
         return nml
+
+   # --- DataBook ---
+    # Create tuple of args prior to *comp*
+    def get_dex_args_pre(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_pre()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one string, project base root name
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        proj = self.get_project_baserootname()
+        # Use it
+        return (proj,)
 
    # --- File search ---
     # Function to get restart file

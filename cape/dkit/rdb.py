@@ -31,7 +31,9 @@ import difflib
 import os
 import re
 import sys
-from typing import Optional, Union
+import time
+from collections import namedtuple
+from typing import Any, Callable, Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -89,6 +91,12 @@ RBF_FUNCS = [
 ]
 # Names of parameters needed to describe an RBF network
 RBF_SUFFIXES = ["method", "rbf", "func", "eps", "smooth", "N", "xcols"]
+# Timeout for datakit lock files
+LOCKFILE_TIMEOUT = 5400.0
+LOCKFILE_INTERVAL = 10
+
+# Special return types
+MatchInds = namedtuple("MatchInds", ("selfinds", "targetinds"))
 
 
 # Options for RDBNull
@@ -176,10 +184,7 @@ class DataKit(BaseData):
         * 2019-12-04 ``@ddalle``: v1.0
         * 2020-02-19 ``@ddalle``: v1.1; was ``DBResponseNull``
     """
-  # =====================
-  # Class Attributes
-  # =====================
-  # <
+  # *** CLASS ATTRIBUTES ***
    # --- Options ---
     # Class for options
     _optscls = DataKitOpts
@@ -249,13 +254,8 @@ class DataKit(BaseData):
         "rbf-linear": "_create_rbf_linear",
         "rbf-map": "_create_rbf_map",
     }
-  # >
 
-  # =============
-  # Config
-  # =============
-  # <
-   # --- Dunder Methods ---
+  # *** DUNDER ***
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method
@@ -264,11 +264,15 @@ class DataKit(BaseData):
             * 2019-12-06 ``@ddalle``: v1.0
         """
         # Required attributes
+        self.xcols = None
         self.cols = []
         self.n = 0
         self.defns = {}
         self.bkpts = {}
         self.sources = {}
+        self.fname = None
+        self.fdir = None
+        self.mtime = None
         # Evaluation attributes
         self.response_arg_alternates = {}
         self.response_arg_converters = {}
@@ -392,7 +396,7 @@ class DataKit(BaseData):
             # If reaching this point, process values
             self.process_kw_values()
 
-   # --- Copy ---
+  # *** COPY ***
     # Copy
     def copy(self):
         r"""Make a copy of a database class
@@ -582,12 +586,8 @@ class DataKit(BaseData):
         else:
             # Shallow copy
             return copy.copy(v)
-  # >
 
-  # ==================
-  # Options
-  # ==================
-  # <
+  # *** OPTIONS ***
    # --- Column Definitions ---
     # Set a definition
     def set_defn(self, col, defn, _warnmode=0):
@@ -844,207 +844,8 @@ class DataKit(BaseData):
                 (col, type(ndim)))
         # Set it
         defn["Dimension"] = ndim + 1
-  # >
 
-  # ================
-  # Sources
-  # ================
-  # <
-   # --- Get Source ---
-    # Get a source by type and number
-    def get_source(self, ext=None, n=None):
-        r"""Get a source by category (and number), if possible
-
-        :Call:
-            >>> dbf = db.get_source(ext)
-            >>> dbf = db.get_source(ext, n)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *ext*: {``None``} | :class:`str`
-                Source type, by extension, to retrieve
-            *n*: {``None``} | :class:`int` >= 0
-                Source number
-        :Outputs:
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-        :Versions:
-            * 2020-02-13 ``@ddalle``: v1.0
-        """
-        # Get sources
-        srcs = self.__dict__.get("sources", {})
-        # Check for *n*
-        if n is None:
-            # Check for both ``None``
-            if ext is None:
-                raise ValueError("Either 'ext' or 'n' must be specified")
-            # Loop through sources
-            for name, dbf in srcs.items():
-                # Check name
-                if name.split("-")[1] == ext:
-                    # Output
-                    return dbf
-            else:
-                # No match
-                return
-        elif ext is None:
-            # Check names
-            targ = "%02i" % n
-            # Loop through sources
-            for name, dbf in srcs.items():
-                # Check name
-                if name.split("-")[0] == targ:
-                    # Output
-                    return dbf
-            else:
-                # No match
-                return
-        else:
-            # Get explicit name
-            name = "%02i-%s" % (n, ext)
-            # Check for source
-            return srcs.get(name)
-
-    # Get source, creating if necessary
-    def make_source(self, ext, cls, n=None, cols=None, save=True, **kw):
-        r"""Get or create a source by category (and number)
-
-        :Call:
-            >>> dbf = db.make_source(ext, cls)
-            >>> dbf = db.make_source(ext, cls, n=None, cols=None, **kw)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *ext*: :class:`str`
-                Source type, by extension, to retrieve
-            *cls*: :class:`type`
-                Subclass of :class:`BaseFile` to create (if needed)
-            *n*: {``None``} | :class:`int` >= 0
-                Source number to search for
-            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
-                List of data columns to include in *dbf*
-            *save*: {``True``} | ``False``
-                Option to save *dbf* in *db.sources*
-            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
-                Extra attributes of *db* to save for ``.mat`` files
-        :Outputs:
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-        :Versions:
-            * 2020-02-13 ``@ddalle``: v1.0
-            * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
-        """
-        # Don't use existing if *cols* is specified
-        if cols is None and kw.get("attrs") is None:
-            # Get the source
-            dbf = self.get_source(ext, n=n)
-            # Check if found
-            if dbf is not None:
-                # Done
-                return dbf
-        # Create a new one
-        dbf = self.genr8_source(ext, cls, cols=cols, **kw)
-        # Save the file interface if needed
-        if save:
-            # Name for this source
-            name = "%02i-%s" % (len(self.sources), ext)
-            # Save it
-            self.sources[name] = dbf
-        # Output
-        return dbf
-
-    # Build new source, creating if necessary
-    def genr8_source(self, ext, cls, cols=None, **kw):
-        r"""Create a new source file interface
-
-        :Call:
-            >>> dbf = db.genr8_source(ext, cls)
-            >>> dbf = db.genr8_source(ext, cls, cols=None, **kw)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *ext*: :class:`str`
-                Source type, by extension, to retrieve
-            *cls*: :class:`type`
-                Subclass of :class:`BaseFile` to create (if needed)
-            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
-                List of data columns to include in *dbf*
-            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
-                Extra attributes of *db* to save for ``.mat`` files
-        :Outputs:
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-        :Versions:
-            * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
-        """
-        # Default columns
-        if cols is None:
-            # Use listed columns
-            cols = list(self.cols)
-        # Get relevant options
-        kwcls = {"_warnmode": 0}
-        # Set values
-        kwcls["Values"] = {col: self[col] for col in cols}
-        # Explicit column list
-        kwcls["cols"] = cols
-        # Copy definitions
-        kwcls["Definitions"] = self.defns
-        # Create from class
-        dbf = cls(**kwcls)
-        # Get attributes to copy
-        attrs = kw.get("attrs")
-        # Copy them
-        self._copy_attrs(dbf, attrs)
-        # Output
-        return dbf
-
-    # Copy attributes
-    def _copy_attrs(self, dbf, attrs):
-        r"""Copy additional attributes to new "source" database
-
-        :Call:
-            >>> db._copy_attrs(dbf, attrs)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-            *attrs*: ``None`` | :class:`list`\ [:class:`str`]
-                List of *db* attributes to copy
-        :Versions:
-            * 2020-04-30 ``@ddalle``: v1.0
-        """
-        # Check for null option
-        if attrs is None:
-            return
-        # Loop through attributes
-        for attr in attrs:
-            # Get current value
-            v = self.__dict__.get(attr)
-            # Check for :class:`dict`
-            if not isinstance(v, dict):
-                # Copy attribute and move to next attribute
-                setattr(dbf, attr, copy.copy(v))
-                continue
-            # Check if this is a dict of information by column
-            if not any([col in v for col in dbf]):
-                # Just some other :class:`dict`; copy whole hting
-                setattr(dbf, attr, copy.copy(v))
-            # Initialize dict to save
-            v1 = {}
-            # Loop through cols
-            for col, vi in v.items():
-                # Check if it's a *col* in *dbf*
-                if col in dbf:
-                    v1[col] = copy.copy(vi)
-            # Save new :class:`dict`
-            setattr(dbf, attr, v1)
-  # >
-
-  # ==================
-  # I/O
-  # ==================
-  # <
+  # *** I/O ***
    # --- CSV ---
     # Read CSV file
     def read_csv(self, fname, **kw):
@@ -1081,6 +882,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = CSVFile(fname, **kw)
         # Link the data
@@ -1187,6 +990,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = CSVSimple(fname, **kw)
         # Link the data
@@ -1235,6 +1040,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = TSVFile(fname, **kw)
         # Link the data
@@ -1339,6 +1146,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = TSVSimple(fname, **kw)
         # Link the data
@@ -1384,6 +1193,8 @@ class DataKit(BaseData):
             # Already a file itnerface
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an insteance
             dbf = TextDataFile(fname, **kw)
         # Linke the data
@@ -1444,6 +1255,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = XLSFile(fname, **kw)
         # Link the data
@@ -1526,6 +1339,8 @@ class DataKit(BaseData):
             # Already a MAT database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = MATFile(fname, **kw)
         # Columns to keep
@@ -1623,6 +1438,8 @@ class DataKit(BaseData):
             # Already a MAT database
             dbf = fcdb
         else:
+            # Save file data
+            self._save_fname(fcdb)
             # Create an instance
             dbf = CapeFile(fcdb, **kw)
         # List of columns (for finish_defns())
@@ -1702,7 +1519,230 @@ class DataKit(BaseData):
         # Output
         return db
 
+   # --- Main ---
+    def write(self, fname: Optional[str] = None, merge: bool = True):
+        r"""Write to main data format, merging any new contents
+
+        :Call:
+            >>> db.write(fname=None, merge=True)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+            *fname*: {``None``} | :class:`str`
+                File name to write (else *db.fname*)
+            *merge*: {``True``} | ``False``
+                Whether or not to merge new contens from *fname*
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Default fname
+        fname = self.get_fname_abs() if fname is None else fname
+        # Get modification time
+        mtime = 0.0 if getattr(self, "mtime") is None else self.mtime
+        # Merge
+        if merge:
+            # Check modification time
+            if os.path.isfile(fname) and os.path.getmtime(fname) > mtime:
+                # Read the file
+                db = DataKit(fname)
+                # Merge
+                self.merge(db)
+        # Get writer function
+        write_func = self._get_writer(fname)
+        # Lock and write
+        self.lock()
+        write_func(fname)
+        # Unlock database
+        self.unlock()
+
+    def _get_writer(self, fname: str) -> Callable:
+        # Get extension
+        ext = fname.rsplit('.', 1)[-1].lower()
+        # Check it
+        if ext == "csv":
+            return self.write_csv_dense
+        # Use default
+        return getattr(self, f"write_{ext}")
+
+   # --- Lock ---
+    # Write the lock file
+    def lock(self):
+        r"""Write a LOCK file for this DataKitFile
+
+        :Call:
+            >>> db.lock()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Versions:
+            * 2017-06-12 ``@ddalle``: v1.0 (``DataBook``)
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Safely lock
+        try:
+            # Open the file
+            with open(self.get_lockfile(), 'w') as fp:
+                fp.write(f"{self.get_basename()}\n")
+        except Exception:
+            pass
+
+    def get_lockfile(self) -> str:
+        r"""Get name of lock file
+
+        :Call:
+            >>> lockfile = db.get_lockfile()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Outputs:
+            *lockfile*: :class:`str`
+                Absolute path to lock file
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get base path and file name
+        basepath = self.get_rootdir()
+        basefile = self.get_basename()
+        # Combine
+        return os.path.join(basepath, f"lock.{basefile}")
+
+    # Check lock file
+    def check_lockfile(self):
+        r"""Check if lock file for this component exists
+
+        :Call:
+            >>> q = db.check_lockfile()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not corresponding LOCK file exists
+        :Versions:
+            * 2017-06-12 ``@ddalle``: v1.0 (``DataBook``)
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get the name of the lock file
+        flock = self.get_lockfile()
+        # Check if the file exists
+        if os.path.isfile(flock):
+            # Get the mod time of said file
+            tlock = os.path.getmtime(flock)
+            # Check for a stale file (using 1.5 hrs)
+            if time.time() - tlock > LOCKFILE_TIMEOUT:
+                # Stale file; not locked
+                self.unlock()
+                return False
+            else:
+                # Still locked
+                return True
+        else:
+            # File does not exist
+            return False
+
+    # Wait for lock file
+    def wait_lockfile(self):
+        r"""Wait until lock file is no longer present
+
+        :Call:
+            >>> db.wait_lockfile()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get file name
+        basename = self.get_basename()
+        # Total wait time
+        t = 0
+        while self.check_lockfile():
+            # Update wait time
+            t += LOCKFILE_INTERVAL
+            # Status update
+            sys.stdout.write(f"\r  DataKit '{basename}' locked, ")
+            sys.stdout.write(f"waiting {t} s ...")
+            sys.stdout.flush()
+            time.sleep(LOCKFILE_INTERVAL)
+        # Clean up prompt if any waiting was done
+        if t > 0:
+            print("")
+
+    # Unlock the file
+    def unlock(self):
+        r"""Delete the LOCK file if it exists
+
+        :Call:
+            >>> db.unlock()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Versions:
+            * 2017-06-12 ``@ddalle``: v1.0 (``DataBook``)
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Name of the lock file
+        flock = self.get_lockfile()
+        # Check if it exists
+        if os.path.isfile(flock):
+            # Delete the file
+            try:
+                os.remove(flock)
+            except PermissionError:
+                print(f"PermissionError deleting\n'{flock}'")
+
    # --- Utilities ---
+    def abspath(self, fname: str):
+        # Check for absolute file
+        if os.path.isabs(fname):
+            return fname
+        # Get reference rootdir
+        rootdir = self.get_rootdir()
+        # Add base to relative path
+        return os.path.join(rootdir, fname)
+
+    def get_rootdir(self) -> str:
+        # Get reference
+        basefile = getattr(self, "fname", None)
+        basepath = getattr(self, "fdir", None)
+        # Use dirname(basefile) > getcwd() as reference root
+        dirname = os.getcwd() if (
+            basefile is None or not os.path.isabs(basefile)
+        ) else os.path.basename(basefile)
+        # Use fdir > inferred
+        rootdir = basepath if basepath else dirname
+        return rootdir
+
+    def get_fname_abs(self) -> str:
+        # Get folder and relative file name
+        dirname = self.get_rootdir()
+        basename = self.get_basename()
+        # Output
+        return os.path.join(dirname, basename)
+
+    def get_basename(self) -> str:
+        # Get file
+        basefile = getattr(self, "fname", None)
+        # Check if used
+        if basefile is None:
+            return f"{self.__class__.__name__}.mat"
+        else:
+            return basefile
+
+    def _save_fname(self, fname: Optional[str]):
+        # Skip if no file
+        if fname is None:
+            return
+        # Ensure absolute path
+        fabs = os.path.abspath(fname)
+        # Save parts
+        self.fdir = os.path.dirname(fabs)
+        self.fname = os.path.basename(fabs)
+        # Wait for lock file
+        self.wait_lockfile()
+        # Save modification time
+        self.mtime = os.path.getmtime(fabs)
+
     def _save_src(self, db: dict, ext: str, save: bool = False):
         if save:
             # Name this source
@@ -2900,12 +2940,198 @@ class DataKit(BaseData):
             raise ValueError("Invalid response_method code '%s'" % i_method)
         # Output
         return i_method, response_method
-  # >
 
-  # ==================
-  # Eval/Call
-  # ==================
-  # <
+   # --- Data sources ---
+    # Get a source by type and number
+    def get_source(self, ext=None, n=None):
+        r"""Get a source by category (and number), if possible
+
+        :Call:
+            >>> dbf = db.get_source(ext)
+            >>> dbf = db.get_source(ext, n)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *ext*: {``None``} | :class:`str`
+                Source type, by extension, to retrieve
+            *n*: {``None``} | :class:`int` >= 0
+                Source number
+        :Outputs:
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-02-13 ``@ddalle``: v1.0
+        """
+        # Get sources
+        srcs = self.__dict__.get("sources", {})
+        # Check for *n*
+        if n is None:
+            # Check for both ``None``
+            if ext is None:
+                raise ValueError("Either 'ext' or 'n' must be specified")
+            # Loop through sources
+            for name, dbf in srcs.items():
+                # Check name
+                if name.split("-")[1] == ext:
+                    # Output
+                    return dbf
+            else:
+                # No match
+                return
+        elif ext is None:
+            # Check names
+            targ = "%02i" % n
+            # Loop through sources
+            for name, dbf in srcs.items():
+                # Check name
+                if name.split("-")[0] == targ:
+                    # Output
+                    return dbf
+            else:
+                # No match
+                return
+        else:
+            # Get explicit name
+            name = "%02i-%s" % (n, ext)
+            # Check for source
+            return srcs.get(name)
+
+    # Get source, creating if necessary
+    def make_source(self, ext, cls, n=None, cols=None, save=True, **kw):
+        r"""Get or create a source by category (and number)
+
+        :Call:
+            >>> dbf = db.make_source(ext, cls)
+            >>> dbf = db.make_source(ext, cls, n=None, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *cls*: :class:`type`
+                Subclass of :class:`BaseFile` to create (if needed)
+            *n*: {``None``} | :class:`int` >= 0
+                Source number to search for
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of data columns to include in *dbf*
+            *save*: {``True``} | ``False``
+                Option to save *dbf* in *db.sources*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
+        :Outputs:
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-02-13 ``@ddalle``: v1.0
+            * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
+        """
+        # Don't use existing if *cols* is specified
+        if cols is None and kw.get("attrs") is None:
+            # Get the source
+            dbf = self.get_source(ext, n=n)
+            # Check if found
+            if dbf is not None:
+                # Done
+                return dbf
+        # Create a new one
+        dbf = self.genr8_source(ext, cls, cols=cols, **kw)
+        # Save the file interface if needed
+        if save:
+            # Name for this source
+            name = "%02i-%s" % (len(self.sources), ext)
+            # Save it
+            self.sources[name] = dbf
+        # Output
+        return dbf
+
+    # Build new source, creating if necessary
+    def genr8_source(self, ext, cls, cols=None, **kw):
+        r"""Create a new source file interface
+
+        :Call:
+            >>> dbf = db.genr8_source(ext, cls)
+            >>> dbf = db.genr8_source(ext, cls, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *cls*: :class:`type`
+                Subclass of :class:`BaseFile` to create (if needed)
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of data columns to include in *dbf*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
+        :Outputs:
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
+        """
+        # Default columns
+        if cols is None:
+            # Use listed columns
+            cols = list(self.cols)
+        # Get relevant options
+        kwcls = {"_warnmode": 0}
+        # Set values
+        kwcls["Values"] = {col: self[col] for col in cols}
+        # Explicit column list
+        kwcls["cols"] = cols
+        # Copy definitions
+        kwcls["Definitions"] = self.defns
+        # Create from class
+        dbf = cls(**kwcls)
+        # Get attributes to copy
+        attrs = kw.get("attrs")
+        # Copy them
+        self._copy_attrs(dbf, attrs)
+        # Output
+        return dbf
+
+    # Copy attributes
+    def _copy_attrs(self, dbf, attrs):
+        r"""Copy additional attributes to new "source" database
+
+        :Call:
+            >>> db._copy_attrs(dbf, attrs)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+            *attrs*: ``None`` | :class:`list`\ [:class:`str`]
+                List of *db* attributes to copy
+        :Versions:
+            * 2020-04-30 ``@ddalle``: v1.0
+        """
+        # Check for null option
+        if attrs is None:
+            return
+        # Loop through attributes
+        for attr in attrs:
+            # Get current value
+            v = self.__dict__.get(attr)
+            # Check for :class:`dict`
+            if not isinstance(v, dict):
+                # Copy attribute and move to next attribute
+                setattr(dbf, attr, copy.copy(v))
+                continue
+            # Check if this is a dict of information by column
+            if not any([col in v for col in dbf]):
+                # Just some other :class:`dict`; copy whole hting
+                setattr(dbf, attr, copy.copy(v))
+            # Initialize dict to save
+            v1 = {}
+            # Loop through cols
+            for col, vi in v.items():
+                # Check if it's a *col* in *dbf*
+                if col in dbf:
+                    v1[col] = copy.copy(vi)
+            # Save new :class:`dict`
+            setattr(dbf, attr, v1)
+
+  # *** RESPONSE/CALL ***
    # --- Evaluation ---
     # Evaluate interpolation
     def __call__(self, *a, **kw):
@@ -5634,12 +5860,8 @@ class DataKit(BaseData):
         else:
             # Stand-alone function
             return f(*x, **kw)
-  # >
 
-  # ===================
-  # Column Names
-  # ===================
-  # <
+  # *** COL NAMES ***
    # --- Rename ---
     # Rename a column
     def rename_col(self, col1, col2):
@@ -5814,7 +6036,7 @@ class DataKit(BaseData):
 
    # --- Suffix ---
     # Append something to the name of a column
-    def append_colname(self, col, suffix):
+    def append_colname(self, col: str, suffix: str):
         r"""Add a suffix to a column name
 
         This maintains component names, so for example if *col* is
@@ -5856,7 +6078,7 @@ class DataKit(BaseData):
         return newcol
 
     # Prepend something to the name of a columns
-    def rstrip_colname(self, col, suffix):
+    def rstrip_colname(self, col: str, suffix: str):
         r"""Remove a suffix from a column name
 
         This maintains component names, so for example if *col* is
@@ -5948,12 +6170,8 @@ class DataKit(BaseData):
             newcol = coeff
         # Output
         return newcol
-  # >
 
-  # ===================
-  # UQ
-  # ===================
-  # <
+  # *** UQ ***
    # --- Estimators ---
     # Entire database UQ generation
     def est_uq_db(self, db2, cols=None, **kw):
@@ -6898,12 +7116,8 @@ class DataKit(BaseData):
             raise TypeError("Function is not callable")
         # Get entry for *col*
         uq_afuncs[ucol] = afunc
-  # >
 
-  # ===================
-  # Increment & Deltas
-  # ===================
-  # <
+  # *** INCREMENTS & DELTAS ***
    # --- Increment ---
     # Create increment and UQ estimate for one column
     def genr8_udiff_by_rbf(self, db2, cols, scol=None, **kw):
@@ -7382,12 +7596,8 @@ class DataKit(BaseData):
             slices.append(I)
         # Output
         return vals, slices
-  # >
 
-  # ===================
-  # Break Points
-  # ===================
-  # <
+  # *** BREAK POINTS ***
    # --- Breakpoint Creation ---
     # Get automatic break points
     def create_bkpts(self, cols, nmin=5, tol=1e-12, tols={}, mask=None):
@@ -8164,12 +8374,8 @@ class DataKit(BaseData):
                     slices[col] = np.hstack((slices[col], Xs[col]))
         # Output
         return X, slices
-  # >
 
-  # ====================
-  # Interpolation Tools
-  # ====================
-  # <
+  # *** INTERPOLATION ***
    # --- RBF construction ---
     # Regularization
     def create_global_rbfs(self, cols, args, I=None, **kw):
@@ -8450,12 +8656,8 @@ class DataKit(BaseData):
             W[:, k] = W1
         # Output
         return W
-  # >
 
-  # ==================
-  # Filtering
-  # ==================
-  # <
+  # *** FILTERING ***
    # --- Repeats ---
     # Remove repeats
     def filter_repeats(self, args, cols=None, **kw):
@@ -8670,16 +8872,148 @@ class DataKit(BaseData):
             anchors.add(imap[0])
         # Output
         return repeats
-  # >
 
-  # ==================
-  # Data
-  # ==================
-  # <
-   # --- Save/Add ---
+  # *** DATA ***
+   # --- Append ---
+    # Append a case of another DataKit
+    def append_db_case(self, db: "DataKit", i: int):
+        r"""Append data to each colum from one entry of another DataKit
+
+        :Call:
+            >>> db.append_db_case(db1, i)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *db1*: :class:`DataKit`
+                Data instance to append from
+            *i*: :class:`int`
+                Index of entry in *db1* to append
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Loop through columns
+        for col in db.cols:
+            self.append_col(col, db.get_values(col, i))
+
+    # Append data to multiple columns
+    def xappend(self, d: dict):
+        r"""Append data to multiple columns
+
+        This works for scalars, lists, 1D arrays, and *N*-D arrays
+
+        :Call:
+            >>> db.append_dict(d)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *d*: :class:`dict`
+                Dictionary of cols (keys) and values to append
+        :Versions:
+            * 2025-07-23 ``@ddalle``: v1.0
+        """
+        # Loop through cols of *d*
+        for col, v in d.items():
+            self.append_col(col, v)
+
+    # Append data to a column
+    def append_col(self, col: str, v: Any):
+        r"""Append *v* to the value of ``db[col]``
+
+        This works for scalars, lists, 1D arrays, and *N*-D arrays
+
+        :Call:
+            >>> db.append_col(col, v)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *col*: :class:`str`
+                Name of column to append to
+            *v*: :class:`object`
+                Appropriately-sized item (e.g. column for 2D array)
+        :Versions:
+            * 2025-07-23 ``@ddalle``: v1.0
+        """
+        # Get data
+        u = self.get(col)
+        # Check type
+        if u is None:
+            # Empty; add new data
+            self.save_col(col, v)
+        elif isinstance(u, list):
+            # Just append it
+            u.append(v)
+        elif isinstance(u, np.ndarray):
+            # Ensure array, check sizes, etc.
+            va = self._prep_append(col, v)
+            # Check for simple case
+            if u.ndim == 1:
+                # Simple append
+                self[col] = np.hstack((u, v))
+            else:
+                # Append after sampling to one-higher dimension
+                self[col] = np.hstack((u, va[..., None]))
+        else:
+            # Replace scalar
+            self[col] = v
+
+    # Prepare *v* for appending
+    def _prep_append(self, col: str, v: Any) -> np.ndarray:
+        # Get values (assume array)
+        u = self.get(col)
+        # Ensure array
+        va = np.asarray(v)
+        # Get dimensions
+        ndu = u.ndim
+        ndv = va.ndim
+        # Check
+        if ndv + 1 != ndu:
+            raise IndexError(
+                f"Cannt append {ndv}-dimensional data to "
+                f"{ndu}-dimensional array in '{col}'")
+        # Check other dimensions
+        for k in range(ndv):
+            muk = u.shape[k]
+            mvk = v.shape[k]
+            if muk != mvk:
+                raise IndexError(
+                    f"Cannot append shape {va.shape} to {u.shape} "
+                    f"in col '{col}'")
+        # Return validated array
+        return va
+
+   # --- Set ---
+    # Replace values from another entry
+    def replace_db_case(self, i: int, db: "DataKit", j: int):
+        # Loop through columns
+        for col in db.cols:
+            # Get value
+            v = db.get_values(col, j)
+            # Set it
+            self.set_values(col, v, i)
+
+    # Set value for one entry of one col
+    def set_values(self, col: str, v: Any, i: int):
+        # Get data
+        u = self.get(col)
+        # Check type
+        if u is None:
+            # Empty; add new data
+            self.save_col(col, v)
+        elif isinstance(u, list):
+            # Just append it
+            u[i] = v
+        elif isinstance(u, np.ndarray):
+            # Ensure array, check sizes, etc.
+            va = self._prep_append(col, v)
+            # Set values
+            u[..., i] = va
+        else:
+            # Replace scalar
+            self[col] = v
+
    # --- Sort ---
     # Sort by list of columns
-    def sort(self, cols=None):
+    def sort(self, cols: Optional[list] = None):
         r"""Sort (ascending) using list of *cols*
 
         :Call:
@@ -8693,10 +9027,11 @@ class DataKit(BaseData):
                 tie-breakers
         :Versions:
             * 2021-09-17 ``@ddalle``: v1.0
+            * 2025-07-24 ``@ddalle``: v1.1; use *db.xcols* as default
         """
         # Default columns
-        if cols is None:
-            cols = list(self.cols)
+        cols = cols if cols else self.xcols
+        cols = cols if cols else self.cols
         # First column
         col0 = cols[0]
         # Get value
@@ -8728,7 +9063,7 @@ class DataKit(BaseData):
             self[col] = v
 
     # Sort by list of columns (get order)
-    def argsort(self, cols=None):
+    def argsort(self, cols: Optional[list] = None):
         r"""Get (ascending) sort order using list of *cols*
 
         :Call:
@@ -8773,6 +9108,108 @@ class DataKit(BaseData):
             sort_args.insert(0, v)
         # Sort
         return np.lexsort(sort_args)
+
+   # --- Delete ---
+    def delete(self, mask: np.ndarray, cols: Optional[list] = None):
+        r"""Delete one or more cases from DataKit
+
+        :Call:
+            >>> db.delete(mask, cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Array of indices to delete
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Default column list
+        cols = self.cols if cols is None else cols
+        # Delete from each
+        for col in cols:
+            try:
+                self.delete_col(col, mask)
+            except IndexError:
+                print(
+                    f"  Cannot delete from col '{col}' due to size mismatch")
+
+    def delete_col(self, col: str, mask: np.ndarray):
+        r"""Delete data from one column
+
+        :Call:
+            >>> db.delete_col(col, mask)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Array of indices to delete
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get data
+        u = self.get_all_values(col)
+        # Check type
+        if u is None:
+            return
+        # Convert *mask* to indices
+        mask_bool = self.prep_mask(mask, col, inds=False)
+        # Select cases to **keep**, inverse of *mask_bool*
+        u = self.get_values(col, ~mask_bool)
+        # Save it
+        self[col] = u
+        # Return number of deletions
+        return np.sum(mask_bool)
+
+   # --- Merge ---
+    def merge(self, db: "DataKit", statuscol: Optional[str] = None):
+        r"""Combine data w/o duplication
+
+        This will search for matches between *db* and *dbt* using the
+        attribute *db.xcols*, so that attribute must be set.
+
+        :Call:
+            >>> db.merge(dbt, statuscol=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *dbt*: :class:`DataKit`
+                Additional data container to merge data from
+            *statuscol*: {``None``} | :class:`str`
+                Optional column name to use to decide if *db* or *dbt*
+                is newer for any case present in both instances
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Check for *xcols*
+        if not self.xcols:
+            raise ValueError("'xcols' attribute must be set in order to merge")
+        # Skip if *db* is empty
+        if len(db[self.xcols[0]]) == 0:
+            return
+        # Find matches
+        ia, ib = self.xmatch(db)
+        # Look for cases in *db* w/o match
+        maskb = db.prep_mask(ib, self.xcols[0], inds=False)
+        # Addition flag
+        flag = False
+        # Convert to indices
+        for jb in np.where(~maskb)[0]:
+            # Append that case
+            self.append_db_case(db, jb)
+            flag = True
+        # Search matching cases for updates
+        if statuscol:
+            for ja, jb in zip(ia, ib):
+                # Get values of status col
+                va = self[statuscol][ja]
+                vb = db[statuscol][jb]
+                # Replace if newer
+                if vb > va:
+                    self.replace_db_case(ja, db, jb)
+                    flag = True
+        # Sort if we've done anything
+        if flag:
+            self.sort()
 
    # --- Copy/Link ---
     # Append data
@@ -9223,7 +9660,7 @@ class DataKit(BaseData):
             return None
 
     # Attempt to get values of an argument or column, with mask
-    def get_values(self, col, mask=None):
+    def get_values(self, col: str, mask: Optional[np.ndarray] = None):
         r"""Attempt to get all or some values of a specified column
 
         This will use *db.response_arg_converters* if possible.
@@ -9358,12 +9795,18 @@ class DataKit(BaseData):
 
    # --- Mask ---
     # Prepare mask
-    def prep_mask(self, mask, col=None, V=None):
+    def prep_mask(
+            self,
+            mask: Union[int, np.ndarray],
+            col: Optional[str] = None,
+            V: Optional[np.ndarray] = None,
+            inds: bool = True):
         r"""Prepare logical or index mask
 
         :Call:
             >>> I = db.prep_mask(mask, col=None, V=None)
             >>> I = db.prep_mask(mask_index, col=None, V=None)
+            >>> mask = db.prep_mask(mask, col=None, V=None, inds=False)
         :Inputs:
             *db*: :class:`DataKit`
                 Data container
@@ -9399,26 +9842,31 @@ class DataKit(BaseData):
             n0 = V.shape[-1]
         # Ensure array
         if isinstance(mask, (list, int)):
-            mask = np.array(mask)
+            mask = np.array(mask, ndmin=1)
         # Get data type
         if mask is not None:
             dtype = mask.dtype.name
         # Filter mask
         if mask is None:
-            # Create indices
-            mask_index = np.arange(n0)
+            # Select all cases
+            mask_out = np.arange(n0) if inds else np.ones(n0, dtype="bool")
         elif dtype.startswith("bool"):
-            # Get indices
-            mask_index = np.where(mask)[0]
+            # Convert from True/False mask
+            mask_out = mask if (not inds) else np.where(mask)[0]
         elif dtype.startswith("int") or dtype.startswith("uint"):
-            # Already indices
-            mask_index = mask
+            # Convert from indices
+            if inds:
+                mask_out = mask
+            else:
+                # Initialize as all False and select the indices
+                mask_out = np.zeros(n0, dtype="bool")
+                mask_out[mask] = True
         else:
             # Bad type
             # Note: should not be reachable
             raise TypeError("Mask must have dtype 'bool' or 'int'")
         # Output
-        return mask_index
+        return mask_out
 
     # Check if mask
     def check_mask(self, mask, col=None, V=None):
@@ -9654,7 +10102,7 @@ class DataKit(BaseData):
 
    # --- Search ---
     # Find matches
-    def find(self, args, *a, **kw):
+    def find(self, args: list, *a, **kw):
         r"""Find cases that match a condition [within a tolerance]
 
         :Call:
@@ -9887,6 +10335,35 @@ class DataKit(BaseData):
             # Return combined set of matches
             return I, J
 
+    # Match dictionary of conditions
+    def xfind(self, d: dict) -> Optional[int]:
+        r"""Find a match based on a :class:`dict` of conditions
+
+        :Call:
+            >>> i = db.xfind(d)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *d*: :class:`dict`
+                Dictionary of cols (keys) and values to search for
+        :Outputs:
+            *i*: ``None`` | :class:`int`
+                Index of (first) matching case, if any
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Initialize inputs to find()
+        args = []
+        x = []
+        # Loop through dictionary
+        for k, v in d.items():
+            args.append(k)
+            x.append(v)
+        # Call search
+        mask, _ = self.find(args, *x, once=True)
+        # Return result
+        return None if mask.size == 0 else mask[0]
+
     # Find matches from a target
     def match(self, dbt, maskt=None, cols=None, **kw):
         r"""Find cases with matching values of specified list of cols
@@ -10022,7 +10499,46 @@ class DataKit(BaseData):
             # Invert mask
             J = maskt_index[J]
         # Output
-        return I, J
+        return MatchInds(I, J)
+
+    # Find matches in target under certain assumptions
+    def xmatch(
+            self,
+            dbt: dict,
+            cols: Optional[list] = None,
+            tol: float = 1e-4,
+            tols: Optional[dict] = None) -> MatchInds:
+        r"""Find cases with matching values using *xcols* as default
+
+        :Call:
+            >>> inds = db.xmatch(dbt, maskt, cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`DataKit`
+                Target data set
+            *cols*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                List of cols to compare (default to *db.xcols*)
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+        :Outputs:
+            *inds.selfinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *db* that have a match in *dbt*
+            *inds.targetinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *dbt* that have a match in *db*
+        :Versions:
+            * 2020-02-20 ``@ddalle``: v1.0
+            * 2020-03-06 ``@ddalle``: Name from :func:`find_pairwise`
+        """
+        # Default column list
+        cols = cols if cols else self.xcols
+        cols = cols if cols else self.cols
+        # Default tolerance dict
+        tols = {} if tols is None else tols
+        # Call parent function
+        return self.match(dbt, cols=cols, once=True, tol=tol, tols=tols)
 
    # --- Statistics ---
     # Get coverage
@@ -10404,12 +10920,8 @@ class DataKit(BaseData):
                 y[i] = method(v[:, i], x[:, i])
         # Output
         return y
-  # >
 
-  # ===================
-  # Plot
-  # ===================
-  # <
+  # *** PLOT ***
    # --- Preprocessors ---
     # Process arguments to plot_scalar()
     def _prep_args_plot1(self, *a, **kw):
@@ -12079,12 +12591,8 @@ class DataKit(BaseData):
     pmpl.MPLOpts._doc_keys_fn(plot_scalar, "plot", indent=12)
     pmpl.MPLOpts._doc_keys_fn(
         plot_contour, "axformat", fmt_key="axkeys", indent=12)
-  # >
 
-  # ===================
-  # Regularization
-  # ===================
-  # <
+  # *** REGULARIZATION ***
    # --- RBF ---
     # Regularization using radial basis functions
     def regularize_by_rbf(self, cols, args=None, **kw):
@@ -12669,7 +13177,6 @@ class DataKit(BaseData):
                 self.defns[argreg] = self._defncls(**defn)
                 # Link break points
                 bkpts[argreg] = bkpts[arg]
-  # >
 
 
 # Combine options

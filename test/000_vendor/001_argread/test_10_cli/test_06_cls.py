@@ -22,7 +22,6 @@ def test_cls01():
     assert kw == {
         "c": True,
         "j": True,
-        "__replaced__": [],
     }
 
 
@@ -37,6 +36,5 @@ def test_cls02():
         "a": "1",
         "c": True,
         "j": True,
-        "__replaced__": [],
     }
 

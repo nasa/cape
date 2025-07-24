@@ -10,7 +10,6 @@ interface to individual CFD cases. The base class is
 
 # Standard library
 import re
-from abc import ABC, abstractmethod
 from typing import Optional
 
 # Local imports
@@ -34,8 +33,87 @@ CONDITIONS_FILE = "conditions.json"
 REGEX_RUNFILE = re.compile("run.([0-9][0-9]+).([0-9]+)")
 
 
+# Meta class to merge _dex_cls
+class MetaCaseRunner(type):
+    r"""Metaclass for :class:`CaseRunner`
+
+    This metaclass ensures that new subclasses of :class:`CaseRunner`,
+    for example in :mod:`cape.pyfun` or :mod:`cape.pylava`, merge their
+    :attr:`_dex_cls` class attribute values.
+    """
+    def __new__(metacls, name: str, bases: tuple, namespace: dict):
+        r"""Initialize a new subclass, but combine ``_dex-cls`` attr
+
+        :Call:
+            >>> cls = metacls.__new__(name, bases, namespace)
+        :Inputs:
+            *metacls*: :class:`type`
+                The :class:`MetaArgReader` metaclass
+            *name*: :class:`str`
+                Name of new class being created
+            *bases*: :class:`tuple`\ [:class:`type`]
+                Bases for new class
+            *namespace*: :class:`dict`
+                Attributes, methods, etc. for new class
+        :Outputs:
+            *cls*: :class:`type`
+                New class using *metacls* instead of :class:`type`
+        """
+        # Initialize the new class
+        cls = type.__new__(metacls, name, bases, namespace)
+        # Return the new class
+        return cls
+
+    @classmethod
+    def combine_dex_cls(metacls, clsj: type, cls: type):
+        r"""Combine the ``_dex_cls`` from a class and one of its bases
+
+        :Call:
+            >>> metacls.combine_dex_cls(clsj, cls)
+        :Inputs:
+            *metacls*: :class:`type`
+                The :class:`MetaArgReader` metaclass
+            *clsj*: :class:`type`
+                Parent class (basis) to combine into *cls*
+            *cls*: :class:`type`
+                New class in which to save combined attributes
+        """
+        metacls.combine_dict(clsj, cls, "_dex_cls")
+
+    @classmethod
+    def combine_dict(metacls, clsj: type, cls: type, attr: str):
+        r"""Combine one dict-like class attribute of *clsj* and *cls*
+
+        :Call:
+            >>> metacls.combine_dict(clsj, cls, attr)
+        :Inputs:
+            *metacls*: :class:`type`
+                The :class:`MetaArgReader` metaclass
+            *clsj*: :class:`type`
+                Parent class (basis) to combine into *cls*
+            *cls*: :class:`type`
+                New class in which to save combined attributes
+            *attr*: :class:`str`
+                Name of attribute to combine
+        """
+        # Get initial properties
+        vj = getattr(clsj, attr, None)
+        vx = cls.__dict__.get(attr)
+        # Check for both
+        qj = isinstance(vj, dict)
+        qx = isinstance(vx, dict)
+        if not (qj and qx):
+            return
+        # Copy dict from basis
+        combined_dict = dict(vj)
+        # Combine results
+        combined_dict.update(vx)
+        # Save combined list
+        setattr(cls, attr, combined_dict)
+
+
 # Definition
-class CaseRunnerBase(ABC):
+class CaseRunnerBase(metaclass=MetaCaseRunner):
     r"""Abstract base class for :class:`cape.cfdx.casecntl.CaseRunner`
 
     The main purpose for this class is to provide useful type
@@ -52,6 +130,7 @@ class CaseRunnerBase(ABC):
         * :attr:`_logprefix`
         * :attr:`_rc_cls`
         * :attr:`_archivist_cls`
+        * :attr:`_dex_cls`
     """
     # Maximum number of starts
     _nstart_max = 100
@@ -69,9 +148,10 @@ class CaseRunnerBase(ABC):
     _rc_cls = RunControlOpts
     #: Class for case archiving instances
     _archivist_cls = CaseArchivist
+    #: Classes for extracting types of data from case
+    _dex_cls = {}
 
     # Read ``case.json``
-    @abstractmethod
     def read_case_json(self) -> RunControlOpts:
         r"""Read ``case.json`` if not already
 
@@ -121,7 +201,6 @@ class CaseRunnerBase(ABC):
         return f"{self._progname}.err"
 
     # Get most recent observable iteration
-    @abstractmethod
     def get_iter(self, f: bool = True):
         r"""Detect most recent iteration
 
@@ -139,7 +218,6 @@ class CaseRunnerBase(ABC):
         pass
 
     # Determine phase number
-    @abstractmethod
     def get_phase(self, f: bool = True) -> int:
         r"""Determine phase number in present case
 
@@ -157,7 +235,6 @@ class CaseRunnerBase(ABC):
         pass
 
     # Read total time
-    @abstractmethod
     def get_cpu_time(self) -> Optional[float]:
         r"""Read most appropriate total CPU usage for current case
 
@@ -173,7 +250,6 @@ class CaseRunnerBase(ABC):
         pass
 
     # Get PBS/Slurm job ID
-    @abstractmethod
     def get_job_id(self) -> str:
         r"""Get PBS/Slurm job ID, if any
 
@@ -189,7 +265,6 @@ class CaseRunnerBase(ABC):
         pass
 
     # Write case settings to ``case.json``
-    @abstractmethod
     def write_case_json(self, rc: RunControlOpts):
         r"""Write the current settinsg to ``case.json``
 

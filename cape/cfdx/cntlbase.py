@@ -43,7 +43,7 @@ from .runmatrix import RunMatrix
 from .logger import CntlLogger
 from .options import Options
 from .options.funcopts import UserFuncOpts
-from ..argread._vendor.kwparse import KwargParser
+from ..argread import ArgReader
 from ..config import ConfigXML, ConfigJSON
 from ..errors import assert_isinstance
 from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
@@ -257,7 +257,7 @@ class CaseCache(dict):
 
 
 # Arg parser for caseloop()
-class CaseLoopArgs(KwargParser):
+class CaseLoopArgs(ArgReader):
     __slots__ = ()
     _optmap = {
         "add_cols": "add-cols",
@@ -1702,7 +1702,7 @@ class CntlBase(ABC):
             exec(open(fx).read())
 
     # Loop through cases
-    @CaseLoopArgs.parse
+    @CaseLoopArgs.check
     def caseloop_verbose(
             self, casefunc: Optional[Callable] = None, **kw) -> int:
         # Get list of indices

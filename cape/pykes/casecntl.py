@@ -26,6 +26,7 @@ import yaml
 # Local imports
 from . import cmdgen
 from .. import fileutils
+from .databook import CaseFM
 from .jobxml import JobXML
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
@@ -108,6 +109,9 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _dex_cls = {
+        "fm": CaseFM,
+    }
 
    # --- Config ---
     def init_post(self):

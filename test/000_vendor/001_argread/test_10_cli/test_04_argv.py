@@ -12,6 +12,5 @@ def test_readkeys01():
     assert a == []
     assert kw == {
         "cj": True,
-        "__replaced__": [],
     }
 
