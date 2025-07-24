@@ -176,10 +176,7 @@ class DataKit(BaseData):
         * 2019-12-04 ``@ddalle``: v1.0
         * 2020-02-19 ``@ddalle``: v1.1; was ``DBResponseNull``
     """
-  # =====================
-  # Class Attributes
-  # =====================
-  # <
+  # *** CLASS ATTRIBUTES ***
    # --- Options ---
     # Class for options
     _optscls = DataKitOpts
@@ -249,13 +246,8 @@ class DataKit(BaseData):
         "rbf-linear": "_create_rbf_linear",
         "rbf-map": "_create_rbf_map",
     }
-  # >
 
-  # =============
-  # Config
-  # =============
-  # <
-   # --- Dunder Methods ---
+  # *** DUNDER ***
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method
@@ -392,7 +384,7 @@ class DataKit(BaseData):
             # If reaching this point, process values
             self.process_kw_values()
 
-   # --- Copy ---
+  # *** COPY ***
     # Copy
     def copy(self):
         r"""Make a copy of a database class
@@ -582,12 +574,8 @@ class DataKit(BaseData):
         else:
             # Shallow copy
             return copy.copy(v)
-  # >
 
-  # ==================
-  # Options
-  # ==================
-  # <
+  # *** OPTIONS ***
    # --- Column Definitions ---
     # Set a definition
     def set_defn(self, col, defn, _warnmode=0):
@@ -844,207 +832,8 @@ class DataKit(BaseData):
                 (col, type(ndim)))
         # Set it
         defn["Dimension"] = ndim + 1
-  # >
 
-  # ================
-  # Sources
-  # ================
-  # <
-   # --- Get Source ---
-    # Get a source by type and number
-    def get_source(self, ext=None, n=None):
-        r"""Get a source by category (and number), if possible
-
-        :Call:
-            >>> dbf = db.get_source(ext)
-            >>> dbf = db.get_source(ext, n)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *ext*: {``None``} | :class:`str`
-                Source type, by extension, to retrieve
-            *n*: {``None``} | :class:`int` >= 0
-                Source number
-        :Outputs:
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-        :Versions:
-            * 2020-02-13 ``@ddalle``: v1.0
-        """
-        # Get sources
-        srcs = self.__dict__.get("sources", {})
-        # Check for *n*
-        if n is None:
-            # Check for both ``None``
-            if ext is None:
-                raise ValueError("Either 'ext' or 'n' must be specified")
-            # Loop through sources
-            for name, dbf in srcs.items():
-                # Check name
-                if name.split("-")[1] == ext:
-                    # Output
-                    return dbf
-            else:
-                # No match
-                return
-        elif ext is None:
-            # Check names
-            targ = "%02i" % n
-            # Loop through sources
-            for name, dbf in srcs.items():
-                # Check name
-                if name.split("-")[0] == targ:
-                    # Output
-                    return dbf
-            else:
-                # No match
-                return
-        else:
-            # Get explicit name
-            name = "%02i-%s" % (n, ext)
-            # Check for source
-            return srcs.get(name)
-
-    # Get source, creating if necessary
-    def make_source(self, ext, cls, n=None, cols=None, save=True, **kw):
-        r"""Get or create a source by category (and number)
-
-        :Call:
-            >>> dbf = db.make_source(ext, cls)
-            >>> dbf = db.make_source(ext, cls, n=None, cols=None, **kw)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *ext*: :class:`str`
-                Source type, by extension, to retrieve
-            *cls*: :class:`type`
-                Subclass of :class:`BaseFile` to create (if needed)
-            *n*: {``None``} | :class:`int` >= 0
-                Source number to search for
-            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
-                List of data columns to include in *dbf*
-            *save*: {``True``} | ``False``
-                Option to save *dbf* in *db.sources*
-            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
-                Extra attributes of *db* to save for ``.mat`` files
-        :Outputs:
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-        :Versions:
-            * 2020-02-13 ``@ddalle``: v1.0
-            * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
-        """
-        # Don't use existing if *cols* is specified
-        if cols is None and kw.get("attrs") is None:
-            # Get the source
-            dbf = self.get_source(ext, n=n)
-            # Check if found
-            if dbf is not None:
-                # Done
-                return dbf
-        # Create a new one
-        dbf = self.genr8_source(ext, cls, cols=cols, **kw)
-        # Save the file interface if needed
-        if save:
-            # Name for this source
-            name = "%02i-%s" % (len(self.sources), ext)
-            # Save it
-            self.sources[name] = dbf
-        # Output
-        return dbf
-
-    # Build new source, creating if necessary
-    def genr8_source(self, ext, cls, cols=None, **kw):
-        r"""Create a new source file interface
-
-        :Call:
-            >>> dbf = db.genr8_source(ext, cls)
-            >>> dbf = db.genr8_source(ext, cls, cols=None, **kw)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *ext*: :class:`str`
-                Source type, by extension, to retrieve
-            *cls*: :class:`type`
-                Subclass of :class:`BaseFile` to create (if needed)
-            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
-                List of data columns to include in *dbf*
-            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
-                Extra attributes of *db* to save for ``.mat`` files
-        :Outputs:
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-        :Versions:
-            * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
-        """
-        # Default columns
-        if cols is None:
-            # Use listed columns
-            cols = list(self.cols)
-        # Get relevant options
-        kwcls = {"_warnmode": 0}
-        # Set values
-        kwcls["Values"] = {col: self[col] for col in cols}
-        # Explicit column list
-        kwcls["cols"] = cols
-        # Copy definitions
-        kwcls["Definitions"] = self.defns
-        # Create from class
-        dbf = cls(**kwcls)
-        # Get attributes to copy
-        attrs = kw.get("attrs")
-        # Copy them
-        self._copy_attrs(dbf, attrs)
-        # Output
-        return dbf
-
-    # Copy attributes
-    def _copy_attrs(self, dbf, attrs):
-        r"""Copy additional attributes to new "source" database
-
-        :Call:
-            >>> db._copy_attrs(dbf, attrs)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-            *attrs*: ``None`` | :class:`list`\ [:class:`str`]
-                List of *db* attributes to copy
-        :Versions:
-            * 2020-04-30 ``@ddalle``: v1.0
-        """
-        # Check for null option
-        if attrs is None:
-            return
-        # Loop through attributes
-        for attr in attrs:
-            # Get current value
-            v = self.__dict__.get(attr)
-            # Check for :class:`dict`
-            if not isinstance(v, dict):
-                # Copy attribute and move to next attribute
-                setattr(dbf, attr, copy.copy(v))
-                continue
-            # Check if this is a dict of information by column
-            if not any([col in v for col in dbf]):
-                # Just some other :class:`dict`; copy whole hting
-                setattr(dbf, attr, copy.copy(v))
-            # Initialize dict to save
-            v1 = {}
-            # Loop through cols
-            for col, vi in v.items():
-                # Check if it's a *col* in *dbf*
-                if col in dbf:
-                    v1[col] = copy.copy(vi)
-            # Save new :class:`dict`
-            setattr(dbf, attr, v1)
-  # >
-
-  # ==================
-  # I/O
-  # ==================
-  # <
+  # *** I/O ***
    # --- CSV ---
     # Read CSV file
     def read_csv(self, fname, **kw):
@@ -2900,12 +2689,198 @@ class DataKit(BaseData):
             raise ValueError("Invalid response_method code '%s'" % i_method)
         # Output
         return i_method, response_method
-  # >
 
-  # ==================
-  # Eval/Call
-  # ==================
-  # <
+   # --- Data sources ---
+    # Get a source by type and number
+    def get_source(self, ext=None, n=None):
+        r"""Get a source by category (and number), if possible
+
+        :Call:
+            >>> dbf = db.get_source(ext)
+            >>> dbf = db.get_source(ext, n)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *ext*: {``None``} | :class:`str`
+                Source type, by extension, to retrieve
+            *n*: {``None``} | :class:`int` >= 0
+                Source number
+        :Outputs:
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-02-13 ``@ddalle``: v1.0
+        """
+        # Get sources
+        srcs = self.__dict__.get("sources", {})
+        # Check for *n*
+        if n is None:
+            # Check for both ``None``
+            if ext is None:
+                raise ValueError("Either 'ext' or 'n' must be specified")
+            # Loop through sources
+            for name, dbf in srcs.items():
+                # Check name
+                if name.split("-")[1] == ext:
+                    # Output
+                    return dbf
+            else:
+                # No match
+                return
+        elif ext is None:
+            # Check names
+            targ = "%02i" % n
+            # Loop through sources
+            for name, dbf in srcs.items():
+                # Check name
+                if name.split("-")[0] == targ:
+                    # Output
+                    return dbf
+            else:
+                # No match
+                return
+        else:
+            # Get explicit name
+            name = "%02i-%s" % (n, ext)
+            # Check for source
+            return srcs.get(name)
+
+    # Get source, creating if necessary
+    def make_source(self, ext, cls, n=None, cols=None, save=True, **kw):
+        r"""Get or create a source by category (and number)
+
+        :Call:
+            >>> dbf = db.make_source(ext, cls)
+            >>> dbf = db.make_source(ext, cls, n=None, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *cls*: :class:`type`
+                Subclass of :class:`BaseFile` to create (if needed)
+            *n*: {``None``} | :class:`int` >= 0
+                Source number to search for
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of data columns to include in *dbf*
+            *save*: {``True``} | ``False``
+                Option to save *dbf* in *db.sources*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
+        :Outputs:
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-02-13 ``@ddalle``: v1.0
+            * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
+        """
+        # Don't use existing if *cols* is specified
+        if cols is None and kw.get("attrs") is None:
+            # Get the source
+            dbf = self.get_source(ext, n=n)
+            # Check if found
+            if dbf is not None:
+                # Done
+                return dbf
+        # Create a new one
+        dbf = self.genr8_source(ext, cls, cols=cols, **kw)
+        # Save the file interface if needed
+        if save:
+            # Name for this source
+            name = "%02i-%s" % (len(self.sources), ext)
+            # Save it
+            self.sources[name] = dbf
+        # Output
+        return dbf
+
+    # Build new source, creating if necessary
+    def genr8_source(self, ext, cls, cols=None, **kw):
+        r"""Create a new source file interface
+
+        :Call:
+            >>> dbf = db.genr8_source(ext, cls)
+            >>> dbf = db.genr8_source(ext, cls, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *cls*: :class:`type`
+                Subclass of :class:`BaseFile` to create (if needed)
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of data columns to include in *dbf*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
+        :Outputs:
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
+        """
+        # Default columns
+        if cols is None:
+            # Use listed columns
+            cols = list(self.cols)
+        # Get relevant options
+        kwcls = {"_warnmode": 0}
+        # Set values
+        kwcls["Values"] = {col: self[col] for col in cols}
+        # Explicit column list
+        kwcls["cols"] = cols
+        # Copy definitions
+        kwcls["Definitions"] = self.defns
+        # Create from class
+        dbf = cls(**kwcls)
+        # Get attributes to copy
+        attrs = kw.get("attrs")
+        # Copy them
+        self._copy_attrs(dbf, attrs)
+        # Output
+        return dbf
+
+    # Copy attributes
+    def _copy_attrs(self, dbf, attrs):
+        r"""Copy additional attributes to new "source" database
+
+        :Call:
+            >>> db._copy_attrs(dbf, attrs)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+            *attrs*: ``None`` | :class:`list`\ [:class:`str`]
+                List of *db* attributes to copy
+        :Versions:
+            * 2020-04-30 ``@ddalle``: v1.0
+        """
+        # Check for null option
+        if attrs is None:
+            return
+        # Loop through attributes
+        for attr in attrs:
+            # Get current value
+            v = self.__dict__.get(attr)
+            # Check for :class:`dict`
+            if not isinstance(v, dict):
+                # Copy attribute and move to next attribute
+                setattr(dbf, attr, copy.copy(v))
+                continue
+            # Check if this is a dict of information by column
+            if not any([col in v for col in dbf]):
+                # Just some other :class:`dict`; copy whole hting
+                setattr(dbf, attr, copy.copy(v))
+            # Initialize dict to save
+            v1 = {}
+            # Loop through cols
+            for col, vi in v.items():
+                # Check if it's a *col* in *dbf*
+                if col in dbf:
+                    v1[col] = copy.copy(vi)
+            # Save new :class:`dict`
+            setattr(dbf, attr, v1)
+
+  # *** RESPONSE/CALL ***
    # --- Evaluation ---
     # Evaluate interpolation
     def __call__(self, *a, **kw):
@@ -5634,12 +5609,8 @@ class DataKit(BaseData):
         else:
             # Stand-alone function
             return f(*x, **kw)
-  # >
 
-  # ===================
-  # Column Names
-  # ===================
-  # <
+  # *** COL NAMES ***
    # --- Rename ---
     # Rename a column
     def rename_col(self, col1, col2):
@@ -5948,12 +5919,8 @@ class DataKit(BaseData):
             newcol = coeff
         # Output
         return newcol
-  # >
 
-  # ===================
-  # UQ
-  # ===================
-  # <
+  # *** UQ ***
    # --- Estimators ---
     # Entire database UQ generation
     def est_uq_db(self, db2, cols=None, **kw):
@@ -6898,12 +6865,8 @@ class DataKit(BaseData):
             raise TypeError("Function is not callable")
         # Get entry for *col*
         uq_afuncs[ucol] = afunc
-  # >
 
-  # ===================
-  # Increment & Deltas
-  # ===================
-  # <
+  # *** INCREMENTS & DELTAS ***
    # --- Increment ---
     # Create increment and UQ estimate for one column
     def genr8_udiff_by_rbf(self, db2, cols, scol=None, **kw):
@@ -7382,12 +7345,8 @@ class DataKit(BaseData):
             slices.append(I)
         # Output
         return vals, slices
-  # >
 
-  # ===================
-  # Break Points
-  # ===================
-  # <
+  # *** BREAK POINTS ***
    # --- Breakpoint Creation ---
     # Get automatic break points
     def create_bkpts(self, cols, nmin=5, tol=1e-12, tols={}, mask=None):
@@ -8164,12 +8123,8 @@ class DataKit(BaseData):
                     slices[col] = np.hstack((slices[col], Xs[col]))
         # Output
         return X, slices
-  # >
 
-  # ====================
-  # Interpolation Tools
-  # ====================
-  # <
+  # *** INTERPOLATION ***
    # --- RBF construction ---
     # Regularization
     def create_global_rbfs(self, cols, args, I=None, **kw):
@@ -8450,12 +8405,8 @@ class DataKit(BaseData):
             W[:, k] = W1
         # Output
         return W
-  # >
 
-  # ==================
-  # Filtering
-  # ==================
-  # <
+  # *** FILTERING ***
    # --- Repeats ---
     # Remove repeats
     def filter_repeats(self, args, cols=None, **kw):
@@ -8670,16 +8621,13 @@ class DataKit(BaseData):
             anchors.add(imap[0])
         # Output
         return repeats
-  # >
 
-  # ==================
-  # Data
-  # ==================
-  # <
-   # --- Save/Add ---
+  # *** DATA ***
+   # --- Append ---
+
    # --- Sort ---
     # Sort by list of columns
-    def sort(self, cols=None):
+    def sort(self, cols: Optional[list] = None):
         r"""Sort (ascending) using list of *cols*
 
         :Call:
@@ -8728,7 +8676,7 @@ class DataKit(BaseData):
             self[col] = v
 
     # Sort by list of columns (get order)
-    def argsort(self, cols=None):
+    def argsort(self, cols: Optional[list] = None):
         r"""Get (ascending) sort order using list of *cols*
 
         :Call:
@@ -9654,7 +9602,7 @@ class DataKit(BaseData):
 
    # --- Search ---
     # Find matches
-    def find(self, args, *a, **kw):
+    def find(self, args: list, *a, **kw):
         r"""Find cases that match a condition [within a tolerance]
 
         :Call:
@@ -10404,12 +10352,8 @@ class DataKit(BaseData):
                 y[i] = method(v[:, i], x[:, i])
         # Output
         return y
-  # >
 
-  # ===================
-  # Plot
-  # ===================
-  # <
+  # *** PLOT ***
    # --- Preprocessors ---
     # Process arguments to plot_scalar()
     def _prep_args_plot1(self, *a, **kw):
@@ -12079,12 +12023,8 @@ class DataKit(BaseData):
     pmpl.MPLOpts._doc_keys_fn(plot_scalar, "plot", indent=12)
     pmpl.MPLOpts._doc_keys_fn(
         plot_contour, "axformat", fmt_key="axkeys", indent=12)
-  # >
 
-  # ===================
-  # Regularization
-  # ===================
-  # <
+  # *** REGULARIZATION ***
    # --- RBF ---
     # Regularization using radial basis functions
     def regularize_by_rbf(self, cols, args=None, **kw):
@@ -12669,7 +12609,6 @@ class DataKit(BaseData):
                 self.defns[argreg] = self._defncls(**defn)
                 # Link break points
                 bkpts[argreg] = bkpts[arg]
-  # >
 
 
 # Combine options
