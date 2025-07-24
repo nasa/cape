@@ -31,7 +31,7 @@ import difflib
 import os
 import re
 import sys
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -5785,7 +5785,7 @@ class DataKit(BaseData):
 
    # --- Suffix ---
     # Append something to the name of a column
-    def append_colname(self, col, suffix):
+    def append_colname(self, col: str, suffix: str):
         r"""Add a suffix to a column name
 
         This maintains component names, so for example if *col* is
@@ -5827,7 +5827,7 @@ class DataKit(BaseData):
         return newcol
 
     # Prepend something to the name of a columns
-    def rstrip_colname(self, col, suffix):
+    def rstrip_colname(self, col: str, suffix: str):
         r"""Remove a suffix from a column name
 
         This maintains component names, so for example if *col* is
@@ -8624,6 +8624,61 @@ class DataKit(BaseData):
 
   # *** DATA ***
    # --- Append ---
+    # Append data to a column
+    def append_col(self, col: str, v: Any):
+        r"""Append *v* to the value of ``db[col]``
+
+        This works for scalars, lists, 1D arrays, and *N*-D arrays
+
+        :Call:
+            >>> db.append_col(col, v)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *col*: :class:`str`
+                Name of column to append to
+            *v*: :class:`object`
+                Appropriately-sized item (e.g. column for 2D array)
+        :Versions:
+            * 2025-07-23 ``@ddalle``: v1.0
+        """
+        # Get data
+        u = self.get(col)
+        # Check type
+        if u is None:
+            # Empty; add new data
+            self.save_col(col, v)
+        elif isinstance(u, list):
+            # Just append it
+            u.append(v)
+        elif isinstance(u, np.ndarray):
+            # Ensure array
+            va = np.asarray(v)
+            # Get dimensions
+            ndu = u.ndim
+            ndv = va.ndim
+            # Check
+            if ndv + 1 != ndu:
+                raise IndexError(
+                    f"Cannt append {ndv}-dimensional data to "
+                    f"{ndu}-dimensional array in '{col}'")
+            # Check other dimensions
+            for k in range(ndv):
+                muk = u.shape[k]
+                mvk = v.shape[k]
+                if muk != mvk:
+                    raise IndexError(
+                        f"Cannot append shape {va.shape} to {u.shape} "
+                        f"in col '{col}'")
+            # Check for simple case
+            if ndu == 1:
+                # Simple append
+                self[col] = np.hstack((u, v))
+            else:
+                # Convert *v* to same-dimension array
+                mask = (slice(None),)*ndv + (None,)
+                # Append
+                self[col] = np.hstack((u, va[mask]))
 
    # --- Sort ---
     # Sort by list of columns
@@ -9171,7 +9226,7 @@ class DataKit(BaseData):
             return None
 
     # Attempt to get values of an argument or column, with mask
-    def get_values(self, col, mask=None):
+    def get_values(self, col: str, mask: Optional[np.ndarray] = None):
         r"""Attempt to get all or some values of a specified column
 
         This will use *db.response_arg_converters* if possible.
