@@ -2192,20 +2192,106 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
         """
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Create extra args
+        args0 = self.genr8_dex_args_pre(typ)
+        args1 = self.genr8_dex_args_post(typ)
+        # Get class
+        cls = self._dex_cls[typ]
+        # Use it
+        return cls(*args0, comp, *args1)
+
+    # Create tuple of args prior to *comp*
+    def genr8_dex_args_pre(self, typ: str) -> tuple:
+        r"""Generate tuple of args before *comp* when reading data cls
+
+        This will call the function ``runner.get_dex_args_pre_{typ}()``
+        if possible, or ``runner.get_dex_args_pre()`` as a fall back. If
+        neither function exists, an empty :class:`tuple` will be
+        returned.
+
+        :Call:
+            >>> args = runner.genr8_dex_args_pre(typ)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *typ*: :class:`str`
+                DataBook component type
+        :Outputs:
+            *args*: :class:`tuple`
+                Arguments for ``_dex_cls`` instantiation
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Generate function names
+        name0 = "get_dex_args_pre"
+        name1 = f"get_dex_args_pre_{typ}"
+        # Get functions if possible
+        f0 = getattr(self, name0)
+        f1 = getattr(self, name1, f0)
+        # Call function if possible
+        args = () if not callable(f1) else f1()
+        # Output
+        return args
+
+    # Create tuple of args after *comp*
+    def genr8_dex_args_post(self, typ: str) -> tuple:
+        r"""Generate tuple of args after *comp* when reading data cls
+
+        This will call the function ``runner.get_dex_args_post_{typ}()``
+        if possible, or ``runner.get_dex_args_post()`` as a fall back.
+        If neither function exists, an empty :class:`tuple` will be
+        returned.
+
+        :Call:
+            >>> args = runner.genr8_dex_args_post(typ)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *typ*: :class:`str`
+                DataBook component type
+        :Outputs:
+            *args*: :class:`tuple`
+                Arguments for ``_dex_cls`` instantiation
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Generate function names
+        name0 = "get_dex_args_post"
+        name1 = f"get_dex_args_post_{typ}"
+        # Get functions if possible
+        f0 = getattr(self, name0)
+        f1 = getattr(self, name1, f0)
+        # Call function if possible
+        args = () if not callable(f1) else f1()
+        # Output
+        return args
+
+   # --- Options ---
+    # Get DataBook component type
+    def get_dex_type(self, comp: str) -> str:
+        r"""Get category for a DataBook component
+
+        :Call:
+            >>> typ = runner.get_dex_type(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Outputs:
+            *typ*: :class:`str`
+                DataBook component type
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
         # Read *cntl*
         cntl = self.read_cntl()
         # Get component type
         typ = cntl.opts.get_DataBookType(comp).lower()
-        # Special preparation methods
-        name1 = f"prep_dex_{typ}"
-        name2 = f"get_dex_args_{typ}"
-        # Get methods
-        f1 = getattr(self, name1)
-        f2 = getattr(self, name2)
-        # Get class
-        cls = self._dex_cls[typ]
-        # Use it
-        return cls(comp)
+        # Output
+        return typ
 
    # --- Triload ---
     def write_triload_input(self, comp: str):
