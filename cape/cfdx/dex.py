@@ -52,3 +52,21 @@ class DataExchanger(DataKit):
             k for k in x.cols
             if x.GetKeyDType(k) != "str"]
 
+  # *** DATA ***
+    def merge(self, db: DataKit):
+        r"""Combine data w/o duplication
+
+        This overwrites :func:`DataKit.merge` by using ``"nStats"`` as
+        the status column.
+
+        :Call:
+            >>> db.merge(dbnew)
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+            *dbnew*: :class:`DataKit`
+                Additional data container to merge data from
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        DataKit.merge(self, db, statuscol="nStats")
