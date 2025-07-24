@@ -19,6 +19,7 @@ from typing import Optional
 # Local imports
 from . import cmdgen
 from .. import fileutils
+from .databook import CaseFM
 from .dataiterfile import DataIterFile
 from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
@@ -59,6 +60,9 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _dex_cls = {
+        "fm": CaseFM,
+    }
 
    # --- Config ---
     def init_post(self):

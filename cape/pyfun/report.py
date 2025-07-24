@@ -60,20 +60,14 @@ method, for example
 """
 
 # Standard library
-import os
-import json
-import shutil
-import glob
 
 # Third-party
-import numpy as np
 
 # Local import
 from .casecntl import LinkPLT
 from .databook import CaseFM, CaseResid
-from .. import tar
 from ..cfdx import report as capereport
-from ..filecntl.tecfile import ExportLayout, Tecscript
+from ..filecntl.tecfile import Tecscript
 
 
 # Class to interface with report generation and updating.
