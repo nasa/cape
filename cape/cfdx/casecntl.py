@@ -2228,7 +2228,7 @@ class CaseRunner(CaseRunnerBase):
         name0 = "get_dex_args_pre"
         name1 = f"get_dex_args_pre_{typ}"
         # Get functions if possible
-        f0 = getattr(self, name0)
+        f0 = getattr(self, name0, None)
         f1 = getattr(self, name1, f0)
         # Call function if possible
         args = () if not callable(f1) else f1()
@@ -2263,7 +2263,7 @@ class CaseRunner(CaseRunnerBase):
         name0 = "get_dex_args_post"
         name1 = f"get_dex_args_post_{typ}"
         # Get functions if possible
-        f0 = getattr(self, name0)
+        f0 = getattr(self, name0, None)
         f1 = getattr(self, name1, f0)
         # Call function if possible
         args = () if not callable(f1) else f1()
