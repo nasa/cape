@@ -155,7 +155,7 @@ def read_meshb(
         # Get appropriate int and float readers for this format
         fdtype, idtype = MESHB_DTYPES[fmt]
         # Read file
-        _read_meshb(mesh, fp, iread, ireadH, fread, idtype, fdtype)
+        _read_meshb(mesh, fp, iread, ireadH, fread, idtype, fdtype, fmt)
 
 
 # Read meshb verts
@@ -368,7 +368,8 @@ def _read_meshb(
         ireadH: Callable,
         fread: Callable,
         idtype: str,
-        fdtype: str,):
+        fdtype: str,
+        fmt: str):
     r"""Read data to a mesh object from ``.meshb`` file
 
     :Call:
@@ -382,18 +383,18 @@ def _read_meshb(
     :Versions:
         * 2025-03-06 ``@aburkhea``: Version 1.0
     """
-    # Get file size
-    fp.seek(0, 2)
-    fsize = fp.tell()
     # Return to beginning of file
     fp.seek(0)
-    # Read "MeshVersionFormatted" keyword
-    meshv = iread(fp, 1)[0]
+    # Set kw reader (alway 32 bit)
+    ireadkw = fromfile_lb4_i if fmt[0] == "l" else fromfile_b4_i
+    # Read "MeshVersionFormatted" kwd always 32?
+    # Read version kw
+    meshv = ireadkw(fp, 1)
+    # Read version (always 4?)
+    _ = ireadkw(fp, 1)
     assert meshv == 1
-    # Read version number (already known from readers used)
-    _ = iread(fp, 1)[0]
     # Read dimension kw (== 3)
-    dimkw = iread(fp, 1)[0]
+    dimkw = ireadkw(fp, 1)[0]
     # If not 3 raise not implemented error?
     if dimkw != 3:
         raise NotImplementedError(
@@ -402,13 +403,13 @@ def _read_meshb(
     # Read location that dimension data stops
     _ = ireadH(fp, 1)[0]
     # Read Number of dimensions
-    ndim = iread(fp, 1)[0]
+    ndim = ireadkw(fp, 1)[0]
     mesh.ndim = ndim
     # Init eof flag
     eof = False
     while not eof:
         # Read next kw
-        nkw = iread(fp, 1)[0]
+        nkw = ireadkw(fp, 1)[0]
         # Catch eof kw
         if nkw == 54:
             break
@@ -451,66 +452,100 @@ def write_meshb(
         # Only write version 4 (i64,f64)
         fmt = fendian + "4"
         # Get writers
-        iwrite, _, fwrite = MESHB_WRITERS[fmt]
+        iwrite, iwriteH, fwrite = MESHB_WRITERS[fmt]
         # Get appropriate int and float readers for this format
         fdtype, idtype = MESHB_DTYPES[fmt]
         # Write file
-        _write_meshb(mesh, fp, iwrite, fwrite, fdtype, idtype)
+        _write_meshb(mesh, fp, iwrite, iwriteH, fwrite, fdtype, idtype, fmt)
 
 
+# Theres actually 3 different classes of integers that change based on
+# the file version:
+# 1. Keyword integers (and SOME ints associated with the kws, for ex.
+# the version or ndim int is always 32 but the number of verts/tris etc
+# follow the data integer bits)
+# 2. Data integers
+# 3. Data "header" integers
+# The keyword ints are always 32 bit, no matter the version
+# The data ints are 32 bit for versions 1,2,3 and 64 bit for version 4
+# The data "header" ints are 32 bit for vers. 1,2 and 64 bit for 3,4
 # Write meshb
 def _write_meshb(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
+        iwriteH: Callable,
         fwrite: Callable,
         fdtype: str,
-        idtype: str,):
+        idtype: str,
+        fmt: str):
     # Get ndim if explicit, else get from node dimension
     ndim = mesh.ndim if mesh.ndim else mesh.nodes.shape[-1]
     # Integer data type
     isize = 8
     # Float data type
     fsize = 8
+    # Set iwritekw always 32 no matter version
+    iwritekw = tofile_lb4_i if fmt[0] == "l" else tofile_b4_i
     # Write version kw
-    iwrite(fp, 1)
+    iwritekw(fp, 1)
     # Write version (always 4?)
-    iwrite(fp, 4)
+    iwritekw(fp, 4)
     # Write ndim
-    iwrite(fp, 3)
+    iwritekw(fp, 3)
     # Write end of ndim bits location
-    iwrite(fp, 5*isize)
+    iwriteH(fp, fp.tell() + 4 + isize)
     # Write ndim
-    iwrite(fp, ndim)
+    iwritekw(fp, ndim)
     if mesh.nnode:
         # Write vertex
         _write_meshb_verts(
             mesh, fp,
-            iwrite, fwrite,
+            iwrite, iwritekw, iwriteH, fwrite,
             isize, fsize,
             fdtype, idtype)
     if mesh.ntri:
         # Write tris
-        _write_meshb_tris(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+        _write_meshb_tris(
+            mesh, fp,
+            iwrite, iwritekw, iwriteH, fwrite,
+            isize, fsize, idtype)
     if mesh.nquad:
         # Write quads
-        _write_meshb_quads(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+        _write_meshb_quads(
+            mesh, fp,
+            iwrite, iwritekw, iwriteH, fwrite,
+            isize, fsize, idtype)
     if mesh.ntet:
         # Write tets
-        _write_meshb_tets(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+        _write_meshb_tets(
+            mesh, fp,
+            iwrite, iwritekw, iwriteH, fwrite,
+            isize, fsize, idtype)
     if mesh.npri:
         # Write pris
-        _write_meshb_pris(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+        _write_meshb_pris(
+            mesh, fp,
+            iwrite, iwritekw, iwriteH, fwrite,
+            isize, fsize, idtype)
     if mesh.npyr:
         # Write pyrs
-        _write_meshb_pyrs(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+        _write_meshb_pyrs(
+            mesh, fp,
+            iwrite, iwritekw, iwriteH, fwrite,
+            isize, fsize, idtype)
     if mesh.nhex:
         # Write hexs
-        _write_meshb_hexs(mesh, fp, iwrite, fwrite, isize, fsize, idtype)
+        _write_meshb_hexs(
+            mesh, fp,
+            iwrite, iwritekw, iwriteH, fwrite,
+            isize, fsize, idtype)
     # Write eof?
-    iwrite(fp, 54)
-    # Write extra 0 like F3D?
-    iwrite(fp, 0)
+    iwritekw(fp, 54)
+    # Write eof?
+    iwritekw(fp, 0)
+    # Write eof?
+    iwritekw(fp, 0)
 
 
 # Read meshb verts
@@ -518,15 +553,17 @@ def _write_meshb_verts(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
+        iwritekw: Callable,
+        iwriteH: Callable,
         fwrite: Callable,
         isize: int,
         fsize: int,
         fdtype: str,
         idtype: str,):
     # Write Vertex kw
-    iwrite(fp, 4)
+    iwritekw(fp, 4)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwrite(fp, fp.tell() + mesh.nnode*(fsize*3 + isize) + isize*2)
+    iwriteH(fp, fp.tell() + mesh.nnode*(fsize*3 + isize) + (2*isize))
     # Write Number of vertex
     iwrite(fp, mesh.nnode)
     dtype = np.dtype([
@@ -550,14 +587,16 @@ def _write_meshb_tris(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
+        iwritekw: Callable,
+        iwriteH: Callable,
         fwrite: Callable,
         isize: int,
         fsize: int,
         idtype: str,):
     # Write kw
-    iwrite(fp, 6)
+    iwritekw(fp, 6)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwrite(fp, fp.tell() + mesh.ntri*(isize*3 + isize) + isize*2)
+    iwriteH(fp, fp.tell() + mesh.ntri*(isize*3 + isize) + (2*isize))
     # Write Number of tris
     iwrite(fp, mesh.ntri)
     # Build mat to write out
@@ -571,14 +610,16 @@ def _write_meshb_quads(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
+        iwritekw: Callable,
+        iwriteH: Callable,
         fwrite: Callable,
         isize: int,
         fsize: int,
         idtype: str,):
     # Write kw
-    iwrite(fp, 7)
+    iwritekw(fp, 7)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwrite(fp, fp.tell() + mesh.nquad*(isize*4 + isize) + isize*2)
+    iwriteH(fp, fp.tell() + mesh.nquad*(isize*4 + isize) + (2*isize))
     # Write Number of quads
     iwrite(fp, mesh.nquad)
     # Build mat to write out
@@ -592,14 +633,16 @@ def _write_meshb_tets(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
+        iwritekw: Callable,
+        iwriteH: Callable,
         fwrite: Callable,
         isize: int,
         fsize: int,
         idtype: str,):
     # Write kw
-    iwrite(fp, 8)
+    iwritekw(fp, 8)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwrite(fp, fp.tell() + mesh.ntet*(isize*4 + isize) + isize*2)
+    iwriteH(fp, fp.tell() + mesh.ntet*(isize*4 + isize) + (2*isize))
     # Write Number of tets
     iwrite(fp, mesh.ntet)
     # Build mat to write out
@@ -613,14 +656,16 @@ def _write_meshb_pris(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
+        iwritekw: Callable,
+        iwriteH: Callable,
         fwrite: Callable,
         isize: int,
         fsize: int,
         idtype: str,):
     # Write kw
-    iwrite(fp, 9)
+    iwritekw(fp, 9)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwrite(fp, fp.tell() + mesh.npri*(isize*6 + isize) + isize*2)
+    iwriteH(fp, fp.tell() + mesh.npri*(isize*6 + isize)  + (2*isize))
     # Write Number of pris
     iwrite(fp, mesh.npri)
     # Build mat to write out
@@ -634,14 +679,16 @@ def _write_meshb_pyrs(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
+        iwritekw: Callable,
+        iwriteH: Callable,
         fwrite: Callable,
         isize: int,
         fsize: int,
         idtype: str,):
     # Write kw
-    iwrite(fp, 49)
+    iwritekw(fp, 49)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwrite(fp, fp.tell() + mesh.npyr*(isize*5 + isize) + isize*2)
+    iwriteH(fp, fp.tell() + mesh.npyr*(isize*5 + isize) + (2*isize))
     # Write Number of pyrs
     iwrite(fp, mesh.npyr)
     # Build mat to write out
@@ -655,14 +702,16 @@ def _write_meshb_hexs(
         mesh: UmeshBase,
         fp: IOBase,
         iwrite: Callable,
+        iwritekw: Callable,
+        iwriteH: Callable,
         fwrite: Callable,
         isize: int,
         fsize: int,
         idtype: str,):
     # Write kw
-    iwrite(fp, 10)
+    iwritekw(fp, 10)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwrite(fp, fp.tell() + mesh.nhex*(isize*12 + isize) + isize*2)
+    iwriteH(fp, fp.tell() + mesh.nhex*(isize*12 + isize) + (2*isize))
     # Write Number of hexs
     iwrite(fp, mesh.nhex)
     # Build mat to write out

@@ -141,7 +141,7 @@ def read_solb(
         # Get appropriate int and float readers for this format
         iread, ireadH, fread = SOLB_READERS[fmt]
         # Read file
-        _read_solb(mesh, fp, iread, ireadH, fread)
+        _read_solb(mesh, fp, iread, ireadH, fread, fmt)
 
 
 # Read solb file
@@ -150,7 +150,8 @@ def _read_solb(
         fp: IOBase,
         iread: Callable,
         ireadH: Callable,
-        fread: Callable):
+        fread: Callable,
+        fmt: str):
     r"""Read data to a mesh object from ``.solb`` file
 
     :Call:
@@ -169,13 +170,14 @@ def _read_solb(
     fsize = fp.tell()
     # Return to beginning of file
     fp.seek(0)
+    ireadkw = fromfile_lb4_i if fmt[0] == "l" else fromfile_b4_i
     # Read "MeshVersionFormatted" keyword
-    meshv = iread(fp, 1)[0]
+    meshv = ireadkw(fp, 1)[0]
     assert meshv == 1
     # Read version number (already known from readers used)
-    _ = iread(fp, 1)[0]
+    _ = ireadkw(fp, 1)[0]
     # Read dimension kw (== 3)
-    dimkw = iread(fp, 1)[0]
+    dimkw = ireadkw(fp, 1)[0]
     # If not 3 raise not implemented error?
     if dimkw != 3:
         raise NotImplementedError(
@@ -184,10 +186,10 @@ def _read_solb(
     # Read location that dimension data stops
     _ = ireadH(fp, 1)[0]
     # Read Number of dimensions
-    ndim = iread(fp, 1)[0]
+    ndim = ireadkw(fp, 1)[0]
     mesh.ndim = ndim
     # Read SolAtVertices kw
-    solkw = iread(fp, 1)[0]
+    solkw = ireadkw(fp, 1)[0]
     # If not 62 raise not implemented error?
     if solkw != 62:
         raise NotImplementedError(
@@ -199,7 +201,7 @@ def _read_solb(
     nverts = iread(fp, 1)[0]
     mesh.nnode = nverts
     # Read number of solutions at each vert
-    nsol = iread(fp, 1)[0]
+    nsol = ireadkw(fp, 1)[0]
     # Initialize count of each soln type (scalar,vector,metric)
     soltypes = np.array([], dtype=int)
     _soltypes = np.array([], dtype=int)
@@ -215,7 +217,7 @@ def _read_solb(
     # Read each solution type
     for i in range(nsol):
         # Read each solution type
-        stype = iread(fp, 1)[0]
+        stype = ireadkw(fp, 1)[0]
         # Count number of scalars and get size
         if stype == 1:
             nscal += 1
@@ -243,6 +245,8 @@ def _read_solb(
     Nmetr = nmetr*3 if ndim == 2 else nmetr*6
     # Now can read solution at each vertex
     q_shape = (nverts, Nscal + Nvect + Nmetr)
+    # Save nq
+    mesh.nq = q_shape[-1]
     # List of things to read
     read_sequence = (
         ("q", fread, q_shape, None),
@@ -311,7 +315,7 @@ def write_solb(
         # Get writers
         iwrite, iwriteH, fwrite = SOLB_WRITERS[fmt]
         # Write file
-        _write_solb(mesh, fp, iwrite, iwriteH, fwrite)
+        _write_solb(mesh, fp, iwrite, iwriteH, fwrite, fmt)
 
 
 # Write solb
@@ -320,25 +324,28 @@ def _write_solb(
         fp: IOBase,
         iwrite: Callable,
         iwriteH: Callable,
-        fwrite: Callable):
+        fwrite: Callable,
+        fmt: str):
     # Get ndim if explicit, else get from node dimension
     ndim = mesh.ndim if mesh.ndim else mesh.nodes.shape[-1]
     # Integer data type
     isize = 8
     # Float data type
     fsize = 8
+    # Set iwritekw always 32 no matter version
+    iwritekw = tofile_lb4_i if fmt[0] == "l" else tofile_b4_i
     # Write version kw
-    iwrite(fp, 1)
+    iwritekw(fp, 1)
     # Write version (always 4?)
-    iwrite(fp, 4)
+    iwritekw(fp, 4)
     # Write ndim
-    iwrite(fp, 3)
+    iwritekw(fp, 3)
     # Write end of ndim bits location
-    iwriteH(fp, 5*isize)
+    iwriteH(fp, fp.tell() + 4 + isize)
     # Write ndim
-    iwrite(fp, ndim)
+    iwritekw(fp, ndim)
     # Write SolbyVertex kw
-    iwrite(fp, 62)
+    iwritekw(fp, 62)
     # Write end of sol bits location (7 prev ints and 4 more inclusive)
     nq_scalar = mesh.nq if mesh.nq_scalar is None else mesh.nq_scalar
     # Set vector 0 unless explicitly stated
@@ -361,11 +368,11 @@ def _write_solb(
     # Total data size per node
     stotal = nq_scalar*sscal + nq_vector*svect + nq_metric*smetr
     # Actually a little more annoying, have to know number of solns
-    iwriteH(fp, isize*(6 + 1 + 1 + nsolbs) + fsize*mesh.nnode*stotal)
+    iwriteH(fp, fp.tell() + 4*(1 + nsolbs) + 2*isize + fsize*mesh.nnode*stotal)
     # Write Number of verts with solns
     iwrite(fp, mesh.nnode)
     # If soln type list given
-    if mesh.q_type:
+    if isinstance(mesh.q_type, np.ndarray):
         # Append number of solns to soln types
         nsols = len(mesh.q_type)
     else:
@@ -376,7 +383,7 @@ def _write_solb(
         mesh.q_type = scal_solbs + vect_solbs + metr_solbs
         nsols = len(mesh.q_type)
         # Make sure 2d so written on the same line
-    iwrite(fp, np.concatenate((np.array([nsols]), mesh.q_type)))
+    iwritekw(fp, np.concatenate((np.array([nsols]), mesh.q_type)))
     # Order of things to write
     write_sequence = (
         ("q", fwrite),
@@ -388,6 +395,10 @@ def _write_solb(
         # Exit loop if one of the slots was ``None``
         if not q:
             break
+    # Write eof
+    iwritekw(fp, 54)
+    iwritekw(fp, 0)
+    iwritekw(fp, 0)
 
 
 # Check ASCII mode
