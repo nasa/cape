@@ -31,6 +31,7 @@ import difflib
 import os
 import re
 import sys
+from collections import namedtuple
 from typing import Any, Optional, Union
 
 # Third-party modules
@@ -89,6 +90,9 @@ RBF_FUNCS = [
 ]
 # Names of parameters needed to describe an RBF network
 RBF_SUFFIXES = ["method", "rbf", "func", "eps", "smooth", "N", "xcols"]
+
+# Special return types
+MatchInds = namedtuple("MatchInds", ("selfinds", "targetinds"))
 
 
 # Options for RDBNull
@@ -8625,8 +8629,28 @@ class DataKit(BaseData):
 
   # *** DATA ***
    # --- Append ---
+    # Append a case of another DataKit
+    def append_db_case(self, db: "DataKit", i: int):
+        r"""Append data to each colum from one entry of another DataKit
+
+        :Call:
+            >>> db.append_db_case(db1, i)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *db1*: :class:`DataKit`
+                Data instance to append from
+            *i*: :class:`int`
+                Index of entry in *db1* to append
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Loop through columns
+        for col in db.cols:
+            self.append_col(col, db.get_values(col, i))
+
     # Append data to multiple columns
-    def append_dict(self, d: dict):
+    def xappend(self, d: dict):
         r"""Append data to multiple columns
 
         This works for scalars, lists, 1D arrays, and *N*-D arrays
@@ -8673,33 +8697,73 @@ class DataKit(BaseData):
             # Just append it
             u.append(v)
         elif isinstance(u, np.ndarray):
-            # Ensure array
-            va = np.asarray(v)
-            # Get dimensions
-            ndu = u.ndim
-            ndv = va.ndim
-            # Check
-            if ndv + 1 != ndu:
-                raise IndexError(
-                    f"Cannt append {ndv}-dimensional data to "
-                    f"{ndu}-dimensional array in '{col}'")
-            # Check other dimensions
-            for k in range(ndv):
-                muk = u.shape[k]
-                mvk = v.shape[k]
-                if muk != mvk:
-                    raise IndexError(
-                        f"Cannot append shape {va.shape} to {u.shape} "
-                        f"in col '{col}'")
+            # Ensure array, check sizes, etc.
+            va = self._prep_append(col, v)
             # Check for simple case
-            if ndu == 1:
+            if u.ndim == 1:
                 # Simple append
                 self[col] = np.hstack((u, v))
             else:
-                # Convert *v* to same-dimension array
-                mask = (slice(None),)*ndv + (None,)
-                # Append
-                self[col] = np.hstack((u, va[mask]))
+                # Append after sampling to one-higher dimension
+                self[col] = np.hstack((u, va[..., None]))
+        else:
+            # Replace scalar
+            self[col] = v
+
+    # Prepare *v* for appending
+    def _prep_append(self, col: str, v: Any) -> np.ndarray:
+        # Get values (assume array)
+        u = self.get(col)
+        # Ensure array
+        va = np.asarray(v)
+        # Get dimensions
+        ndu = u.ndim
+        ndv = va.ndim
+        # Check
+        if ndv + 1 != ndu:
+            raise IndexError(
+                f"Cannt append {ndv}-dimensional data to "
+                f"{ndu}-dimensional array in '{col}'")
+        # Check other dimensions
+        for k in range(ndv):
+            muk = u.shape[k]
+            mvk = v.shape[k]
+            if muk != mvk:
+                raise IndexError(
+                    f"Cannot append shape {va.shape} to {u.shape} "
+                    f"in col '{col}'")
+        # Return validated array
+        return va
+
+   # --- Set ---
+    # Replace values from another entry
+    def replace_db_case(self, i: int, db: "DataKit", j: int):
+        # Loop through columns
+        for col in db.cols:
+            # Get value
+            v = db.get_values(col, j)
+            # Set it
+            self.set_values(col, v, i)
+
+    # Set value for one entry of one col
+    def set_values(self, col: str, v: Any, i: int):
+        # Get data
+        u = self.get(col)
+        # Check type
+        if u is None:
+            # Empty; add new data
+            self.save_col(col, v)
+        elif isinstance(u, list):
+            # Just append it
+            u[i] = v
+        elif isinstance(u, np.ndarray):
+            # Ensure array, check sizes, etc.
+            va = self._prep_append(col, v)
+            # Set values
+            u[..., i] = va
+        else:
+            # Replace scalar
+            self[col] = v
 
    # --- Sort ---
     # Sort by list of columns
@@ -8798,6 +8862,108 @@ class DataKit(BaseData):
             sort_args.insert(0, v)
         # Sort
         return np.lexsort(sort_args)
+
+   # --- Delete ---
+    def delete(self, mask: np.ndarray, cols: Optional[list] = None):
+        r"""Delete one or more cases from DataKit
+
+        :Call:
+            >>> db.delete(mask, cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Array of indices to delete
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Default column list
+        cols = self.cols if cols is None else cols
+        # Delete from each
+        for col in cols:
+            try:
+                self.delete_col(col, mask)
+            except IndexError:
+                print(
+                    f"  Cannot delete from col '{col}' due to size mismatch")
+
+    def delete_col(self, col: str, mask: np.ndarray):
+        r"""Delete data from one column
+
+        :Call:
+            >>> db.delete_col(col, mask)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Array of indices to delete
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get data
+        u = self.get_all_values(col)
+        # Check type
+        if u is None:
+            return
+        # Convert *mask* to indices
+        mask_bool = self.prep_mask(mask, col, inds=False)
+        # Select cases to **keep**, inverse of *mask_bool*
+        u = self.get_values(col, ~mask_bool)
+        # Save it
+        self[col] = u
+        # Return number of deletions
+        return np.sum(mask_bool)
+
+   # --- Merge ---
+    def merge(self, db: "DataKit", statuscol: Optional[str] = None):
+        r"""Combine data w/o duplication
+
+        This will search for matches between *db* and *dbt* using the
+        attribute *db.xcols*, so that attribute must be set.
+
+        :Call:
+            >>> db.merge(dbt, statuscol=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *dbt*: :class:`DataKit`
+                Additional data container to merge data from
+            *statuscol*: {``None``} | :class:`str`
+                Optional column name to use to decide if *db* or *dbt*
+                is newer for any case present in both instances
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Check for *xcols*
+        if not self.xcols:
+            raise ValueError("'xcols' attribute must be set in order to merge")
+        # Skip if *db* is empty
+        if len(db[self.xcols[0]]) == 0:
+            return
+        # Find matches
+        ia, ib = self.xmatch(db)
+        # Look for cases in *db* w/o match
+        maskb = db.prep_mask(ib, self.xcols[0], inds=False)
+        # Addition flag
+        flag = False
+        # Convert to indices
+        for jb in np.where(~maskb)[0]:
+            # Append that case
+            self.append_db_case(db, jb)
+            flag = True
+        # Search matching cases for updates
+        if statuscol:
+            for ja, jb in zip(ia, ib):
+                # Get values of status col
+                va = self[statuscol][ja]
+                vb = db[statuscol][jb]
+                # Replace if newer
+                if vb > va:
+                    self.replace_db_case(ja, db, jb)
+                    flag = True
+        # Sort if we've done anything
+        if flag:
+            self.sort()
 
    # --- Copy/Link ---
     # Append data
@@ -9383,12 +9549,18 @@ class DataKit(BaseData):
 
    # --- Mask ---
     # Prepare mask
-    def prep_mask(self, mask, col=None, V=None):
+    def prep_mask(
+            self,
+            mask: Union[int, np.ndarray],
+            col: Optional[str] = None,
+            V: Optional[np.ndarray] = None,
+            inds: bool = True):
         r"""Prepare logical or index mask
 
         :Call:
             >>> I = db.prep_mask(mask, col=None, V=None)
             >>> I = db.prep_mask(mask_index, col=None, V=None)
+            >>> mask = db.prep_mask(mask, col=None, V=None, inds=False)
         :Inputs:
             *db*: :class:`DataKit`
                 Data container
@@ -9424,26 +9596,31 @@ class DataKit(BaseData):
             n0 = V.shape[-1]
         # Ensure array
         if isinstance(mask, (list, int)):
-            mask = np.array(mask)
+            mask = np.array(mask, ndmin=1)
         # Get data type
         if mask is not None:
             dtype = mask.dtype.name
         # Filter mask
         if mask is None:
-            # Create indices
-            mask_index = np.arange(n0)
+            # Select all cases
+            mask_out = np.arange(n0) if inds else np.ones(n0, dtype="bool")
         elif dtype.startswith("bool"):
-            # Get indices
-            mask_index = np.where(mask)[0]
+            # Convert from True/False mask
+            mask_out = mask if (not inds) else np.where(mask)[0]
         elif dtype.startswith("int") or dtype.startswith("uint"):
-            # Already indices
-            mask_index = mask
+            # Convert from indices
+            if inds:
+                mask_out = mask
+            else:
+                # Initialize as all False and select the indices
+                mask_out = np.zeros(n0, dtype="bool")
+                mask_out[mask] = True
         else:
             # Bad type
             # Note: should not be reachable
             raise TypeError("Mask must have dtype 'bool' or 'int'")
         # Output
-        return mask_index
+        return mask_out
 
     # Check if mask
     def check_mask(self, mask, col=None, V=None):
@@ -10076,7 +10253,46 @@ class DataKit(BaseData):
             # Invert mask
             J = maskt_index[J]
         # Output
-        return I, J
+        return MatchInds(I, J)
+
+    # Find matches in target under certain assumptions
+    def xmatch(
+            self,
+            dbt: dict,
+            cols: Optional[list] = None,
+            tol: float = 1e-4,
+            tols: Optional[dict] = None) -> MatchInds:
+        r"""Find cases with matching values using *xcols* as default
+
+        :Call:
+            >>> inds = db.xmatch(dbt, maskt, cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`DataKit`
+                Target data set
+            *cols*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                List of cols to compare (default to *db.xcols*)
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+        :Outputs:
+            *inds.selfinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *db* that have a match in *dbt*
+            *inds.targetinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *dbt* that have a match in *db*
+        :Versions:
+            * 2020-02-20 ``@ddalle``: v1.0
+            * 2020-03-06 ``@ddalle``: Name from :func:`find_pairwise`
+        """
+        # Default column list
+        cols = cols if cols else self.xcols
+        cols = cols if cols else self.cols
+        # Default tolerance dict
+        tols = {} if tols is None else tols
+        # Call parent function
+        return self.match(dbt, cols=cols, once=True, tol=tol, tols=tols)
 
    # --- Statistics ---
     # Get coverage

@@ -4041,7 +4041,6 @@ class FMDataBook(DataBookComp):
         """
         # Read CaseResid object from PWD
         return CaseResid()
-
   # >
 
   # ======
