@@ -8624,6 +8624,26 @@ class DataKit(BaseData):
 
   # *** DATA ***
    # --- Append ---
+    # Append data to multiple columns
+    def append_dict(self, d: dict):
+        r"""Append data to multiple columns
+
+        This works for scalars, lists, 1D arrays, and *N*-D arrays
+
+        :Call:
+            >>> db.append_dict(d)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *d*: :class:`dict`
+                Dictionary of cols (keys) and values to append
+        :Versions:
+            * 2025-07-23 ``@ddalle``: v1.0
+        """
+        # Loop through cols of *d*
+        for col, v in d.items():
+            self.append_col(col, v)
+
     # Append data to a column
     def append_col(self, col: str, v: Any):
         r"""Append *v* to the value of ``db[col]``
