@@ -2232,6 +2232,8 @@ class CaseRunner(CaseRunnerBase):
         f1 = getattr(self, name1, f0)
         # Call function if possible
         args = () if not callable(f1) else f1()
+        # Convert scalaars
+        args = args if isinstance(args, (tuple, list)) else (args,)
         # Output
         return args
 
@@ -2264,6 +2266,7 @@ class CaseRunner(CaseRunnerBase):
         f0 = getattr(self, name0)
         f1 = getattr(self, name1, f0)
         # Call function if possible
+        args = () if not callable(f1) else f1()
         args = () if not callable(f1) else f1()
         # Output
         return args

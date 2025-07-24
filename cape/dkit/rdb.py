@@ -9923,6 +9923,9 @@ class DataKit(BaseData):
                 Data container
             *d*: :class:`dict`
                 Dictionary of cols (keys) and values to search for
+        :Outputs:
+            *i*: ``None`` | :class:`int`
+                Index of (first) matching case, if any
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
         """
