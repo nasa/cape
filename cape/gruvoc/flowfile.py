@@ -36,7 +36,8 @@ DEFAULT_STRLEN = 256
 def read_fun3d_flow(
         mesh: UmeshBase,
         fname_or_fp: Union[str, IOBase],
-        meta: bool = False):
+        meta: bool = False,
+        turb: bool = False):
     r"""Read data to a mesh object from FUN3D ``.flow`` file
 
     :Call:
@@ -58,7 +59,7 @@ def read_fun3d_flow(
     # Open file
     with openfile(fname_or_fp, 'rb') as fp:
         # Read file
-        _read_fun3d_flow(mesh, fp, meta=meta)
+        _read_fun3d_flow(mesh, fp, meta=meta, turb=turb)
 
 
 # Read FUN3D TAVG.1 file
@@ -94,7 +95,8 @@ def read_fun3d_tavg(
 def _read_fun3d_flow(
         mesh: UmeshBase,
         fp: IOBase,
-        meta: bool = False):
+        meta: bool = False,
+        turb: bool = False):
     # Skip first bytes
     fp.seek(288)
     # Read number of nodes
@@ -179,6 +181,29 @@ def _read_fun3d_flow(
         q[:, 3] = rw / rho
         # Save pressure
         q[:, 4] = p
+        # Save turb vars if requested
+        if turb:
+            # Skip a bunch of ints
+            fp.seek(64*4, 1)
+            # Read in meta data for unknown section
+            _num, _nnode = fromfile_lb4_i(fp, 2)
+            # Skip over unknown section
+            fp.seek(nnode*8, 1)
+            # Skip over more ints
+            fp.seek(65*4, 1)
+            # Second num
+            _num = fromfile_lb4_i(fp, 1)
+            # Read turb meta data
+            nqt, _nnode = fromfile_lb8_i(fp, 2)
+            # Read in turb vars
+            qt = fromfile_lb8_f(fp, nnode*nqt).reshape((nnode, nqt))
+            # Save
+            q = np.hstack([q, qt])
+            # Add turb variables
+            turbvars = [f"turb{i}" for i in range(nqt)]
+            mesh.qvars = mesh.qvars + turbvars
+            mesh.nq = nq + nqt
+
     else:
         # Read generic_gas_path state
         q = fromfile_lb8_f(fp, nnode*nq).reshape((nnode, nq))
