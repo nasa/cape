@@ -228,8 +228,8 @@ class CaseRunner(casecntl.CaseRunner):
                 # Parse the filename to link to
                 parse = re.findall(r"'(.*?)'", fnstr)
                 # Append the output name and last file
-                fname = f'{parse[0]}.{parse[1]}'
-                fsrc = vgrp[fnstr][-1]
+                fname = f'{vdir}/{parse[0]}.{parse[1]}'
+                fsrc = f'{vdir}/{vgrp[fnstr][-1]}'
                 # Link the files
                 LinkFromFile(fname, fsrc)
 
