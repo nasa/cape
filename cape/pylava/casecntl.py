@@ -12,6 +12,7 @@ they are available unless specifically overwritten by specific
 
 # Standard library modules
 import os
+import re
 from typing import Optional
 
 # Third-party modules
@@ -199,6 +200,39 @@ class CaseRunner(casecntl.CaseRunner):
         # Return the last iteration
         return db.n
 
+   # --- File manipulation ---
+    # Link best Output files
+    @casecntl.run_rootdir
+    def link_viz(self):
+        r"""Link the most recent visualization files
+
+        :Call:
+            >>> runner.link_viz()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2025-07-25 ``@jmeeroff``: v1.0
+        """
+        # Visualization subfolders
+        vizdirs = ['volume', 'isosurface', 'surface']
+        # Call the archivist for grouping
+        achvst = self.get_archivist()
+        # Loop through viz directories
+        for vdir in vizdirs:
+            # Get groups using archivist
+            vgrp = achvst.search_regex(
+                re.escape(vdir)+r"/(.+)\.[0-9]+\.([a-z0-9]+)")
+            # Loop through keys:
+            for fnstr in vgrp.keys():
+                # Parse the filename to link to
+                parse = re.findall(r"'(.*?)'", fnstr)
+                # Append the output name and last file
+                fname = f'{parse[0]}.{parse[1]}'
+                fsrc = vgrp[fnstr][-1]
+                # Link the files
+                LinkFromFile(fname, fsrc)
+
    # --- Special readers ---
     # Read namelist
     @casecntl.run_rootdir
@@ -311,3 +345,40 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             # Empty instance
             return DataIterFile(None)
+
+# Link best file based on name and glob
+def LinkFromFile(fname, fsrc):
+    r"""Link the most recent file to a generic Tecplot file name
+
+    :Call:
+        >>> casecntl.LinkFromGlob(fname, fglb)
+        >>> casecntl.LinkFromGlob(fname, fglbs)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of unmarked file, like ``Components.i.plt``
+        *fglb*: :class:`str`
+            Glob for marked file names
+        *fglbs*: :class:`list`\ [:class:`str`]
+            Multiple glob file name patterns
+    :Versions:
+        * 2016-10-24 ``@ddalle``: v1.0
+        * 2023-03-26 ``@ddalle``: v1.1; multiple *fglbs*
+    """
+    # Check for already-existing regular file
+    if os.path.isfile(fname) and not os.path.islink(fname):
+        return
+    # Exit if no matches
+    if fsrc is None:
+        return
+    # Remove the link if necessary
+    if os.path.islink(fname):
+        # Check if link matches
+        if os.readlink(fname) == fsrc:
+            # Nothing to do
+            return
+        else:
+            # Remove existing link to different file
+            os.remove(fname)
+    # Create the link if possible
+    if os.path.isfile(fsrc):
+        os.symlink(fsrc, fname)
