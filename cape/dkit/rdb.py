@@ -9842,7 +9842,7 @@ class DataKit(BaseData):
             n0 = V.shape[-1]
         # Ensure array
         if isinstance(mask, (list, int)):
-            mask = np.array(mask, ndmin=1)
+            mask = np.array(mask)
         # Get data type
         if mask is not None:
             dtype = mask.dtype.name
