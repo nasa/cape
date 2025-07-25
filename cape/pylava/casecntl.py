@@ -161,6 +161,8 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             # Create an empty file
             fileutils.touch(fhist)
+        # Perform flow viz linking
+        self.link_viz()
 
     # Function to get total iteration number
     def getx_restart_iter(self):
@@ -229,7 +231,7 @@ class CaseRunner(casecntl.CaseRunner):
                 parse = re.findall(r"'(.*?)'", fnstr)
                 # Append the output name and last file
                 fname = f'{vdir}/{parse[0]}.{parse[1]}'
-                fsrc = f'{vdir}/{vgrp[fnstr][-1]}'
+                fsrc = vgrp[fnstr][-1]
                 # Link the files
                 LinkFromFile(fname, fsrc)
 
@@ -351,15 +353,13 @@ def LinkFromFile(fname, fsrc):
     r"""Link the most recent file to a generic Tecplot file name
 
     :Call:
-        >>> casecntl.LinkFromGlob(fname, fglb)
-        >>> casecntl.LinkFromGlob(fname, fglbs)
+        >>> casecntl.LinkFromFile(fname, fglb)
+        >>> casecntl.LinkFromFile(fname, fglbs)
     :Inputs:
         *fname*: :class:`str`
             Name of unmarked file, like ``Components.i.plt``
-        *fglb*: :class:`str`
+        *fsrc*: :class:`str`
             Glob for marked file names
-        *fglbs*: :class:`list`\ [:class:`str`]
-            Multiple glob file name patterns
     :Versions:
         * 2016-10-24 ``@ddalle``: v1.0
         * 2023-03-26 ``@ddalle``: v1.1; multiple *fglbs*
@@ -370,10 +370,12 @@ def LinkFromFile(fname, fsrc):
     # Exit if no matches
     if fsrc is None:
         return
+    # Split of leading directory if there
+    fsrci = fsrc.split('/')[-1]
     # Remove the link if necessary
     if os.path.islink(fname):
         # Check if link matches
-        if os.readlink(fname) == fsrc:
+        if os.readlink(fname) == fsrci:
             # Nothing to do
             return
         else:
@@ -381,4 +383,4 @@ def LinkFromFile(fname, fsrc):
             os.remove(fname)
     # Create the link if possible
     if os.path.isfile(fsrc):
-        os.symlink(fsrc, fname)
+        os.symlink(fsrci, fname)
