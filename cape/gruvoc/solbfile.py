@@ -326,8 +326,13 @@ def _write_solb(
         iwriteH: Callable,
         fwrite: Callable,
         fmt: str):
-    # Get ndim if explicit, else get from node dimension
-    ndim = mesh.ndim if mesh.ndim else mesh.nodes.shape[-1]
+    # Get ndim if explicit, else look for nodes dim else default to 3
+    if mesh.ndim:
+        ndim = mesh.ndim
+    elif isinstance(mesh.nodes, np.ndarray):
+        ndim = mesh.nodes.shape[-1]
+    else:
+        ndim = 3
     # Integer data type
     isize = 8
     # Float data type
@@ -346,6 +351,9 @@ def _write_solb(
     iwritekw(fp, ndim)
     # Write SolbyVertex kw
     iwritekw(fp, 62)
+    # Try to auto set nq
+    if mesh.nq is None:
+        mesh.nq = mesh.q.shape[-1]
     # Write end of sol bits location (7 prev ints and 4 more inclusive)
     nq_scalar = mesh.nq if mesh.nq_scalar is None else mesh.nq_scalar
     # Set vector 0 unless explicitly stated
