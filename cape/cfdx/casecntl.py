@@ -2271,6 +2271,11 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return args
 
+   # --- Status ---
+    # Get the current iteration number as applies to
+    def get_dex_iter(self, comp: str) -> int:
+        return self.get_restart_iter()
+
    # --- Options ---
     # Get DataBook component type
     def get_dex_type(self, comp: str) -> str:
@@ -2295,6 +2300,30 @@ class CaseRunner(CaseRunnerBase):
         typ = cntl.opts.get_DataBookType(comp).lower()
         # Output
         return typ
+
+    # General option
+    def get_dex_opt(self, comp: str, opt: str) -> Any:
+        r"""Get general option for a DataBook component
+
+        :Call:
+            >>> v = runner.get_dex_opt(comp, opt)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+            *opt*: :class:`str`
+                Name of option to access
+        :Outputs:
+            *v*: :class:`object`
+                DataBook option value
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get component option
+        return cntl.opts.get_DataBookOpt(comp, opt)
 
    # --- Triload ---
     def write_triload_input(self, comp: str):

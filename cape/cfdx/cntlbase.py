@@ -368,6 +368,7 @@ class CntlBase(ABC):
         self.InitFunction()
         # Initialize slots
         self.DataBook = None
+        self.data = {}
         #: Cache of current iteration for each case
         self.cache_iter = CaseCache("iter")
 
@@ -385,6 +386,8 @@ class CntlBase(ABC):
             cls.__module__,
             cls.__name__,
             self.x.nCase)
+
+    __str__ = __repr__
 
    # --- Other Init ---
     def init_post(self):

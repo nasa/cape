@@ -43,6 +43,7 @@ from . import queue
 from . import report
 from .casecntl import CaseRunner
 from .cntlbase import CntlBase, run_rootdir
+from .dex import DataExchanger
 from ..optdict import WARNMODE_WARN
 
 
@@ -540,6 +541,59 @@ class Cntl(CntlBase):
         # Extend the case
         runner.extend_case(m=n, j=j, nmax=imax)
 
+   # --- Data Exchange ---
+    def update_dex_case(self, comp: str, i: int) -> int:
+        r"""Update one case of a *DataBook* component
+
+        :Call:
+            >>> n = cntl.update_dex_case(comp, i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *comp*: :class:`str`
+                Name of component to read
+            *i*: :class:`int`
+                Case to index
+        :Outputs:
+            *n*: ``0`` | ``1``
+                Number of updates made
+        :Versions:
+            * 2025-07-25 ``@ddalle``: v1.0
+        """
+        ...
+
+    def read_dex(self, comp: str, force: bool = False) -> DataExchanger:
+        r"""Read a *DataBook* component using :class:`DataExchanger`
+
+        :Call:
+            >>> db = cntl.read_dex(comp, force=False)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *comp*: :class:`str`
+                Name of component to read
+            *force*: ``True`` | {``False``}
+                Option to re-read even if present in database
+        :Outputs:
+            *db*: :class:`DataExchanger`
+                Data extracted from run matrix for comp *comp*
+        :Versions:
+            * 2025-07-25 ``@ddalle``: v1.0
+        """
+        # Get data dictionary
+        dex = self.data
+        dex = {} if self.data is None else dex
+        # Check for component
+        if (not force) and comp in dex:
+            return dex[comp]
+        # Read
+        db = DataExchanger(self, comp)
+        # Save it
+        dex[comp] = db
+        self.data = dex
+        # Output
+        return db
+
    # --- Archiving ---
     # Run ``--archive`` on one case
     def ArchiveCase(self, i: int, test: bool = False):
@@ -551,8 +605,8 @@ class Cntl(CntlBase):
         :Call:
             >>> cntl.CleanCase(i, test=False)
         :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control interface
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
             *i*: :class:`int`
                 Case index
             *test*: ``True`` | {``False``}
