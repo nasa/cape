@@ -8,6 +8,7 @@ from typing import Any, Callable, Optional, Union
 
 # Third party
 import numpy as np
+from scipy.spatial import cKDTree
 
 # Local imports
 from . import volcomp
@@ -935,7 +936,7 @@ class UmeshBase(ABC):
         # Count them
         return face_ids.size
 
-    def get_qvar(self, qvar, index=-1) -> list:
+    def get_qvar(self, qvar, index=-1) -> np.ndarray:
         r"""Get state variable in the mesh object
 
         :Call:
@@ -1041,7 +1042,6 @@ class UmeshBase(ABC):
         self.q = np.hstack((self.q, np.array([cp]).T))
         # Increment nq for new var
         self.nq += 1
-
 
    # --- Geometry (manipulation) ---
     def rotate(
@@ -3158,3 +3158,41 @@ def print_smallvol_table(v, j, x, y, z):
         print(fmt % (v[i], xm[i], ym[i], zm[i]))
     # Final line
     print(hline)
+
+
+def interpolate_q(smesh: UmeshBase, rmesh: UmeshBase, k=5):
+    r"""Interpolate mesh.q to another mesh.nodes w/ NN-inverse distance
+
+    :Call:
+        >>> interpolate_q(smesh, rmesh)
+    :Inputs:
+        *smesh*: :class:`Umesh`
+            Source mesh
+        *rmesh*: :class:`Umesh`
+            Receptor mesh
+        *k*: {``5``} | :class:`int`
+            Number of nearest neighbors to use
+    :Versions:
+        * 2025-07-22 ``@aburkhea``: Version 1.0
+    """
+    print("building KDtree...")
+    # Build tree
+    tree = cKDTree(smesh.nodes)
+    print("querying KDtree...")
+    # Query tree for nearest k points
+    dists, inds = tree.query(rmesh.nodes, k=k)
+    # Get indexes of matching points
+    I = dists[:, 0] < 1e-16
+    # Calculate weights
+    weights = np.zeros((rmesh.nnode, k))
+    print("interpolating...")
+    # Set matching points weights to 1 (just smesh.q -> rmesh.q)
+    weights[I, 0] = 1.0
+    # Calculate rest of the weights
+    weights[~I] = 1.0 / dists[~I]
+    # Normalize
+    weights /= weights.sum(axis=1, keepdims=True)
+    # Interpolate (stack weights to do all q at once
+    rmesh.q = np.multiply(
+        smesh.q[inds, :], np.stack([weights]*smesh.nq, axis=2)
+    ).sum(axis=1)
