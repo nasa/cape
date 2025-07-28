@@ -30,8 +30,9 @@ individualized modules are below.
 """
 
 # Standard library modules
+import functools
 import os
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -42,9 +43,12 @@ from . import databook
 from . import queue
 from . import report
 from .casecntl import CaseRunner
-from .cntlbase import CntlBase, run_rootdir
+from .cntlbase import CntlBase
+from .logger import CntlLogger
+from .options import Options
 from .dex import DataExchanger
-from ..optdict import WARNMODE_WARN
+from .runmatrix import RunMatrix
+from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
 
 
 # Constants
@@ -62,7 +66,193 @@ UGRID_EXTS = (
     "r4",
     "r8",
 )
+COL_HEADERS = {
+    "case": "Case Folder",
+    "cpu-abbrev": "CPU Hours",
+    "cpu-hours": "CPU Time",
+    "frun": "Config/Run Directory",
+    "gpu-abbrev": "GPU Hours",
+    "gpu-hours": "GPU Hours",
+    "group": "Group Folder",
+    "i": "Case",
+    "job": "Job ID",
+    "job-id": "Job ID",
+    "phase": "Phase",
+    "progress": "Iterations",
+    "queue": "Que",
+    "status": "Status",
+}
 DEG = np.pi / 180.0
+JOB_STATUSES = (
+    'PASS',
+    'PASS*',
+    '---',
+    'INCOMP',
+    'RUN',
+    'DONE',
+    'QUEUE',
+    'ERROR',
+    'ERROR*',
+    'FAIL',
+    'ZOMBIE',
+    'THIS_JOB',
+)
+
+
+# Decorator for moving directories
+def run_rootdir(func):
+    r"""Decorator to run a function within a specified folder
+
+    :Call:
+        >>> func = run_rootdir(func)
+    :Wrapper Signature:
+        >>> v = cntl.func(*a, **kw)
+    :Inputs:
+        *func*: :class:`func`
+            Name of function
+        *cntl*: :class:`Cntl`
+            Control instance from which to use *cntl.RootDir*
+        *a*: :class:`tuple`
+            Positional args to :func:`cntl.func`
+        *kw*: :class:`dict`
+            Keyword args to :func:`cntl.func`
+    :Versions:
+        * 2018-11-20 ``@ddalle``: v1.0
+        * 2020-02-25 ``@ddalle``: v1.1: better exceptions
+        * 2023-06-16 ``@ddalle``: v1.2; use ``finally``
+    """
+    # Declare wrapper function to change directory
+    @functools.wraps(func)
+    def wrapper_func(self, *args, **kwargs):
+        # Recall current directory
+        fpwd = os.getcwd()
+        # Go to specified directory
+        os.chdir(self.RootDir)
+        # Run the function with exception handling
+        try:
+            # Attempt to run the function
+            v = func(self, *args, **kwargs)
+        except Exception:
+            # Raise the error
+            raise
+        except KeyboardInterrupt:
+            # Raise the error
+            raise
+        finally:
+            # Go back to original folder (always)
+            os.chdir(fpwd)
+        # Return function values
+        return v
+    # Apply the wrapper
+    return wrapper_func
+
+
+# Convert ``a,b,c`` -> ``['a', 'b', 'c']``
+def _split(v: Union[str, list]) -> list:
+    # Check type
+    if isinstance(v, str):
+        return [vj.strip() for vj in v.split(',')]
+    else:
+        return v
+
+
+# Cache of one property for each case
+class CaseCache(dict):
+    r"""Cache of one property for cases in a run matrix
+
+    :Call:
+        >>> cache = CaseCache(prop)
+    :Inputs:
+        *prop*: :class:`str`
+            Name of property being cached
+    :Outputs:
+        *cache*: :class:`CaseCache`
+            Cache of property for each case, like a :class:`dict`
+    """
+    # Properties
+    __slots__ = (
+        "prop"
+    )
+
+    # Initialization
+    def __init__(self, prop: str):
+        #: :class:`str`
+        #: Name of property being cached
+        self.prop = prop
+
+    # Get value
+    def get_value(self, i: int) -> Any:
+        r"""Get a value for a case, if any
+
+        :Call:
+            >>> val = cache.get_value(i)
+        :Inputs:
+            *cache*: :class:`CaseCache`
+                Cache of property for cases in a run matrix
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *val*: :class:`object` | ``None``
+                Value, if present
+        :Versions:
+            * 2025-03-01 ``@ddalle``: v1.0
+        """
+        # Get value if any
+        return self.get(i)
+
+    # Save value
+    def save_value(self, i: int, val: Any):
+        r"""Save a value for a case
+
+        :Call:
+            >>> cache.save_value(i, val)
+        :Inputs:
+            *cache*: :class:`CaseCache`
+                Cache of property for cases in a run matrix
+            *i*: :class:`int`
+                Case index
+            *val*: :class:`object` | ``None``
+                Value, if present
+        :Versions:
+            * 2025-03-01 ``@ddalle``: v1.0
+        """
+        # Save value
+        self[i] = val
+
+    # Clear value
+    def clear_case(self, i: int):
+        r"""Clear cache for one case, if present
+
+        :Call:
+            >>> cache.clear_case(i)
+        :Inputs:
+            *cache*: :class:`CaseCache`
+                Cache of property for cases in a run matrix
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-03-01 ``@ddalle``: v1.0
+        """
+        self.pop(i, None)
+
+    # Check case
+    def check_case(self, i: int) -> bool:
+        r"""Save a value for a case
+
+        :Call:
+            >>> q = cache.check_case(i)
+        :Inputs:
+            *cache*: :class:`CaseCache`
+                Cache of property for cases in a run matrix
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not case *i* is present
+        :Versions:
+            * 2025-03-01 ``@ddalle``: v1.0
+        """
+        return i in self
 
 
 # Class to read input files
@@ -87,13 +277,133 @@ class Cntl(CntlBase):
         * 2015-09-20 ``@ddalle``: Started
         * 2016-04-01 ``@ddalle``: v1.0
     """
-   # --- Class Attributes ---
-    # Hooks to py{x} specific modules
+  # *** CLASS ATTRIBUTES ***
+   # --- Names ---
+    #: Name of this CAPE module
+    #: :class:`str`
+    _name = "cfdx"
+
+    #: Name of CFD solver for this module
+    #: :class:`str`
+    _solver = "cfdx"
+
+   # --- Specific modules ---
+    #: Module for case control
     _case_mod = casecntl
+
+    #: Solver-specific module for DataBook
     _databook_mod = databook
+
+    #: Solver-specific module for automated reports
     _report_mod = report
-    # Hooks to py{x} specific classes
+
+   # --- Specific  classes ---
+    #: Solver-specific class for running cases
+    #: :class:`type`
     _case_cls = casecntl.CaseRunner
+
+    #: Solver-specific class for CAPE options
+    #: :class:`type`
+    _opts_cls = Options
+
+   # --- Other settings ---
+    #: Name of default JSON file
+    #: :class:`str`
+    _fjson_default = "cape.json"
+
+    #: Warning mode
+    #: :class:`int`
+    _warnmode_default = WARNMODE_WARN
+
+    #: Environment variable to read warning mode from
+    #: :class:`str`
+    _warnmode_envvar = "CAPE_WARNMODE"
+
+    #: List of files to check for zombie status
+    #: :class:`list`\ [:class:`str`]
+    _zombie_files = ["*.out"]
+
+  # *** DUNDER ***
+    # Initialization method
+    def __init__(self, fname: Optional[str] = None):
+        r"""Initialization method for :mod:`cape.cfdx.cntl.Cntl`
+
+        :Versions:
+            * 2015-09-20 ``ddalle``: v1.0
+        """
+        # Default file name
+        fname = self._fjson_default if fname is None else fname
+        # Check if file exists
+        if not os.path.isfile(fname):
+            # Raise error but suppress traceback
+            os.sys.tracebacklimit = 0
+            raise ValueError("No cape control file '%s' found" % fname)
+        #: :class:`str`
+        #: Root folder for this run matrix
+        self.RootDir = os.getcwd()
+        #: :class:`CaseRunner`
+        #: Slot for the current case runner
+        self.caserunner = None
+        #: :class:`int`
+        #: Case index of the current case runner
+        self.caseindex = None
+        #: :class:`Options`
+        #: Options interface for this run matrix
+        self.opts = None
+        # Read options
+        self.read_options(fname)
+        #: :class:`dict`
+        #: Dictionary of imported custom modules
+        self.modules = {}
+        #: :class:`CntlLogger`
+        #: Run matrix logger instacnce
+        self.logger = None
+        #: :class:`RunMatrix`
+        #: Run matrix instance
+        self.x = RunMatrix(**self.opts['RunMatrix'])
+        # Set run matrix w/i options
+        self.opts.save_x(self.x)
+        # Set initial index
+        self.opts.setx_i(0)
+        #: :class:`str`
+        #: Job name to check
+        self.job = None
+        #: :class:`dict`\ [:class:`str`]
+        #: Dictionary of jobs 
+        self.jobs = {}
+        #: :class:`list`\ [:class:`str`]
+        #: List of queues that have been checked
+        self.jobqueues = []
+        # Run cntl init functions, customize for py{x}
+        self.init_post()
+        # Run any initialization functions
+        self.InitFunction()
+        #: :class:`DataBook`
+        #: Interface to post-processed data
+        self.DataBook = None
+        #: :class:`dict`\ [:class:`DataExchanger`]
+        #: Data extraction classes for each component of DataBook
+        self.data = {}
+        #: :class:`CaseCache`
+        #: Cache of current iteration for each case
+        self.cache_iter = CaseCache("iter")
+
+    # Output representation
+    def __repr__(self) -> str:
+        r"""Output representation method for Cntl class
+
+        :Versions:
+            * 2015-09-20 ``@ddalle``: v1.0
+        """
+        # Get class handle
+        cls = self.__class__
+        # Display basic information
+        return "<%s.%s(nCase=%i)>" % (
+            cls.__module__,
+            cls.__name__,
+            self.x.nCase)
+
+    __str__ = __repr__
 
    # --- Input Readers ---
     # Read the data book

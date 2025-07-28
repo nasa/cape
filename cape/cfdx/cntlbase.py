@@ -34,14 +34,11 @@ import numpy as np
 from . import casecntlbase
 from . import databookbase
 from . import queue
-from . import report
 from .. import convert
 from .. import console
 from .. import textutils
 from .casecntlbase import CaseRunnerBase
-from .runmatrix import RunMatrix
 from .logger import CntlLogger
-from .options import Options
 from .options.funcopts import UserFuncOpts
 from ..argread import ArgReader
 from ..config import ConfigXML, ConfigJSON
@@ -157,105 +154,6 @@ def _split(v: Union[str, list]) -> list:
         return v
 
 
-# Cache of one property for each case
-class CaseCache(dict):
-    r"""Cache of one property for cases in a run matrix
-
-    :Call:
-        >>> cache = CaseCache(prop)
-    :Inputs:
-        *prop*: :class:`str`
-            Name of property being cached
-    :Outputs:
-        *cache*: :class:`CaseCache`
-            Cache of property for each case, like a :class:`dict`
-    """
-    # Properties
-    __slots__ = (
-        "prop"
-    )
-
-    # Initialization
-    def __init__(self, prop: str):
-        #: :class:`str`
-        #: Name of property being cached
-        self.prop = prop
-
-    # Get value
-    def get_value(self, i: int) -> Any:
-        r"""Get a value for a case, if any
-
-        :Call:
-            >>> val = cache.get_value(i)
-        :Inputs:
-            *cache*: :class:`CaseCache`
-                Cache of property for cases in a run matrix
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *val*: :class:`object` | ``None``
-                Value, if present
-        :Versions:
-            * 2025-03-01 ``@ddalle``: v1.0
-        """
-        # Get value if any
-        return self.get(i)
-
-    # Save value
-    def save_value(self, i: int, val: Any):
-        r"""Save a value for a case
-
-        :Call:
-            >>> cache.save_value(i, val)
-        :Inputs:
-            *cache*: :class:`CaseCache`
-                Cache of property for cases in a run matrix
-            *i*: :class:`int`
-                Case index
-            *val*: :class:`object` | ``None``
-                Value, if present
-        :Versions:
-            * 2025-03-01 ``@ddalle``: v1.0
-        """
-        # Save value
-        self[i] = val
-
-    # Clear value
-    def clear_case(self, i: int):
-        r"""Clear cache for one case, if present
-
-        :Call:
-            >>> cache.clear_case(i)
-        :Inputs:
-            *cache*: :class:`CaseCache`
-                Cache of property for cases in a run matrix
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2025-03-01 ``@ddalle``: v1.0
-        """
-        self.pop(i, None)
-
-    # Check case
-    def check_case(self, i: int) -> bool:
-        r"""Save a value for a case
-
-        :Call:
-            >>> q = cache.check_case(i)
-        :Inputs:
-            *cache*: :class:`CaseCache`
-                Cache of property for cases in a run matrix
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *q*: :class:`bool`
-                Whether or not case *i* is present
-        :Versions:
-            * 2025-03-01 ``@ddalle``: v1.0
-        """
-        return i in self
-
-
 # Arg parser for caseloop()
 class CaseLoopArgs(ArgReader):
     __slots__ = ()
@@ -308,84 +206,28 @@ class CntlBase(ABC):
         * :attr:`cache_iter`
     """
    # --- Class Attributes ---
-    # Names
     _name = "cfdx"
     _solver = "cfdx"
-    # Hooks to py{x} specific modules
     _case_mod = casecntlbase
     _databook_mod = databookbase
-    _report_mod = report
-    # Hooks to py{x} specific classes
-    _case_cls = CaseRunnerBase
-    _opts_cls = Options
-    # Other settings
-    _fjson_default = "cape.json"
-    _warnmode_default = WARNMODE_QUIET
-    _warnmode_envvar = "CAPE_WARNMODE"
-    _zombie_files = ["*.out"]
+    _report_mod = None
+    _case_cls = None
+    _opts_cls = None
+    _fjson_default = None
+    _warnmode_default = None
+    _warnmode_envvar = None
+    _zombie_files = None
 
    # --- __DUNDER__ ---
     # Initialization method
-    def __init__(self, fname=None):
-        r"""Initialization method for :mod:`cape.cfdx.cntl.Cntl`
-
-        :Versions:
-            * 2015-09-20 ``ddalle``: v1.0
-        """
-        # Check fname
-        if fname is None:
-            fname = self._fjson_default
-        # Check if file exists
-        if not os.path.isfile(fname):
-            # Raise error but suppress traceback
-            os.sys.tracebacklimit = 0
-            raise ValueError("No cape control file '%s' found" % fname)
-
-        # Save the current directory as the root
-        self.RootDir = os.getcwd()
-        # Current case runner
-        self.caserunner = None
-        self.caseindex = None
-        # Read options
-        self.read_options(fname)
-        # Import modules
-        self.modules = {}
-        # Initialize logger
-        self.logger = None
-        # Process the trajectory.
-        self.x = RunMatrix(**self.opts['RunMatrix'])
-        # Save conditions w/i options
-        self.opts.save_x(self.x)
-        # Set initial index
-        self.opts.setx_i(0)
-        # Job list
-        self.job = None
-        self.jobs = {}
-        self.jobqueues = []
-        # Run cntl init functions, customize for py{x}
-        self.init_post()
-        # Run any initialization functions
-        self.InitFunction()
-        # Initialize slots
-        self.DataBook = None
-        self.data = {}
-        #: Cache of current iteration for each case
-        self.cache_iter = CaseCache("iter")
+    @abstractmethod
+    def __init__(self, fname: Optional[str] = None):
+        pass
 
     # Output representation
-    def __repr__(self):
-        r"""Output representation method for Cntl class
-
-        :Versions:
-            * 2015-09-20 ``@ddalle``: v1.0
-        """
-        # Get class handle
-        cls = self.__class__
-        # Display basic information
-        return "<%s.%s(nCase=%i)>" % (
-            cls.__module__,
-            cls.__name__,
-            self.x.nCase)
+    @abstractmethod
+    def __repr__(self) -> str:
+        pass
 
     __str__ = __repr__
 
