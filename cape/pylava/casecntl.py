@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pylava.case`: LAVACURV case control module
-=====================================================
+:mod:`cape.pylava.casecntl`: LAVA case control module
+=========================================================
 
 This module contains LAVACURV-specific versions of some of the generic
 methods from :mod:`cape.cfdx.case`.
@@ -198,7 +198,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Read it, but only metadata
         db = self.read_data_iter(meta=True)
         # Return the last iteration
-        return db.n
+        return int(db.n + 0.99)
 
    # --- File manipulation ---
     # Link best Output files
