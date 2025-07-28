@@ -354,6 +354,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Empty instance
             return DataIterFile(None)
 
+
 # Link best file based on name and glob
 def LinkFromFile(fname, fsrc):
     r"""Link the most recent file to a generic Tecplot file name

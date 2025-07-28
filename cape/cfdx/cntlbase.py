@@ -39,7 +39,6 @@ from .. import console
 from .. import textutils
 from .casecntlbase import CaseRunnerBase
 from .logger import CntlLogger
-from .options.funcopts import UserFuncOpts
 from ..argread import ArgReader
 from ..config import ConfigXML, ConfigJSON
 from ..errors import assert_isinstance
@@ -258,131 +257,39 @@ class CntlBase(ABC):
         pass
 
     # Execute a function by name only
+    @abstractmethod
     def exec_cntlfunction_str(self, funcname: str) -> Any:
-        r"""Execute a function from *cntl.modules*
-
-        :Call:
-            >>> v = cntl.exec_modfunction(funcname, a, kw, name=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funcname*: :class:`str`
-                Name of function to execute, e.g. ``"mymod.myfunc"``
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
-        return self.exec_modfunction(funcname)
+        pass
 
     # Execute a function by dict
+    @abstractmethod
     def exec_cntl_function_dict(self, funcspec: dict):
-        r"""Execute a *Cntl* function, accessing user-specified modules
-
-        :Call:
-            >>> v = cntl.exec_cntl_function_dict(funcspec)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funcspec*: :class:`dict`
-                Function opts parsed by :class:`UserFuncOpts`
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
-        # Process options
-        opts = UserFuncOpts(funcspec)
-        # Get name
-        functype = opts.get_opt("type")
-        funcname = opts.get_opt("name")
-        funcrole = opts.get_opt("role", vdef=funcname)
-        # Check if present
-        if funcname is None:
-            raise ValueError(f"User-defined function has no name:\n{funcspec}")
-        # Get argument names
-        argnames = opts.get_opt("args", vdef=[])
-        kwargdict = opts.get_opt("kwargs", vdef={})
-        verbose = opts.get_opt("verbose", vdef=False)
-        # Expand args
-        a = [self._expand_funcarg(aj) for aj in argnames]
-        kw = {k: self._expand_funcarg(v) for k, v in kwargdict.items()}
-        # STDOUT tag
-        name = funcrole if verbose else None
-        # Execute
-        return self._exec_pyfunc(functype, funcname, a, kw, name=name)
-
-    def _expand_funcarg(self, argval: Union[Any, str]) -> Any:
-        r"""Expand a function value
-
-        :Call:
-            >>> v = cntl._expand_funcarg(argval)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-        :Outputs:
-            *v*: :class:`str` | :class:`float` | :class:`int`
-                Expanded value, usually float or string
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
-        # Check if string
-        if not isinstance(argval, str):
-            return argval
-        # Check for $
-        if not argval.startswith("$"):
-            # Raw string
-            return argval
-        # Get current case index
-        i = self.opts.i
-        # Get argument name
-        argname = argval.lstrip("$")
-        # Check pre-defined values
-        if argname == "cntl":
-            return self
-        elif argname == "i":
-            return i
-        elif argname == "runner":
-            return self.ReadCaseRunner(i)
-        elif argname in self.x.cols:
-            return self.x[argname][i]
-        else:
-            return self.x.GetValue(argname, i)
+        pass
 
     # Execute a function
+    @abstractmethod
     def exec_modfunction(
             self,
             funcname: str,
             a: Optional[Union[tuple, list]] = None,
             kw: Optional[dict] = None,
             name: Optional[str] = None) -> Any:
-        r"""Execute a function from *cntl.modules*
+        pass
 
-        :Call:
-            >>> v = cntl.exec_modfunction(funcname, a, kw, name=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funcname*: :class:`str`
-                Name of function to execute, e.g. ``"mymod.myfunc"``
-            *a*: {``None``} | :class:`tuple`
-                Positional arguments to called function
-            *kw*: {``None``} | :class:`dict`
-                Keyworkd arguments to called function
-            *name*: {``None``} | :class:`str`
-                Hook name to use in status update
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2022-04-12 ``@ddalle``: v1.0
-            * 2025-03-28 ``@ddalle``: v1.1; improve error messages
-        """
-        return self._exec_pyfunc("module", funcname, a, kw, name)
+    @abstractmethod
+    def import_module(self, modname: str):
+        pass
+
+    @abstractmethod
+    def _expand_funcarg(self, argval: Union[Any, str]) -> Any:
+        pass
+
+    @abstractmethod
+    def _exec_funclist(self, funclist, a=None, kw=None, name=None):
+        pass
 
     # Execute a function
+    @abstractmethod
     def _exec_pyfunc(
             self,
             functype: str,
@@ -390,126 +297,7 @@ class CntlBase(ABC):
             a: Optional[Union[tuple, list]] = None,
             kw: Optional[dict] = None,
             name: Optional[str] = None) -> Any:
-        r"""Execute a function from *cntl.modules*
-
-        :Call:
-            >>> v = cntl._exec_pyfunc(functype, funcname, a, kw, name)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *functype*: {``"module"``} | ``"cntl"`` | ``"runner"``
-                Module source, general *cntl*, or *cntl.caserunner*
-            *funcname*: :class:`str`
-                Name of function to execute, e.g. ``"mymod.myfunc"``
-            *a*: {``None``} | :class:`tuple`
-                Positional arguments to called function
-            *kw*: {``None``} | :class:`dict`
-                Keyworkd arguments to called function
-            *name*: {``None``} | :class:`str`
-                Hook name to use in status update
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2022-04-12 ``@ddalle``: v1.0
-            * 2025-03-28 ``@ddalle``: v1.1; improve error messages
-        """
-        # Default args and kwargs
-        a = tuple() if a is None else a
-        a = a if isinstance(a, (tuple, list)) else (a,)
-        kw = kw if isinstance(kw, dict) else {}
-        # Check function type
-        if functype == "cntl":
-            # Get instance method from here
-            func = getattr(self, funcname)
-        elif functype == "runner":
-            # Get case runner
-            i = self.opts.i
-            # Read Caserunner
-            runner = self.ReadCaseRunner(i)
-            # Get method from there
-            func = getattr(runner, funcname)
-        else:
-            # Split name into module(s) and function name
-            funcparts = funcname.rsplit(".", 1)
-            # Has to be at least two parts
-            if len(funcparts) < 2:
-                raise ValueError(
-                    f"User-defined function '{funcname}' has no module name; "
-                    "must contain at least one '.'")
-            # Get module name and function name
-            modname, funcname = funcparts
-            # Import module
-            mod = self.import_module(modname)
-            # Get function
-            func = mod.__dict__.get(funcname)
-        # Check if found
-        if func is None:
-            raise NameError(f"Name '{funcname}' is not defined")
-        # Check if final spec is callable
-        if not callable(func):
-            raise TypeError(f"Name '{funcname}' is not callable")
-        # Status update if appropriate
-        if name:
-            print("  %s: %s()" % (name, funcname))
-        # Call function
-        return func(*a, **kw)
-
-    def import_module(self, modname: str):
-        r"""Import a module by name, if possible
-
-        :Call:
-            >>> mod = cntl.import_module(modname)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *modname*: :class:`str`
-                Name of module to import
-        :Outputs:
-            *mod*: **module**
-                Python module
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
-        # Get dict of module names
-        modnamedict = self.opts.get_opt("ModuleNames", vdef={})
-        # Get alias, if any
-        fullmodname = modnamedict.get(modname, modname)
-        # Check if module already imported
-        if fullmodname not in sys.modules:
-            # Status update
-            print(f"Importing module '{modname}'")
-        # Try to import module
-        return importlib.import_module(fullmodname)
-
-    def _exec_funclist(self, funclist, a=None, kw=None, name=None):
-        r"""Execute a list of functions in one category
-
-        :Call:
-            >>>  cntl._exec_funclist(funclist, a, kw, name=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funclist*: :class:`list`\ [:class:`str`]
-                List of function specs to execute
-            *a*: {``None``} | :class:`tuple`
-                Positional arguments to called function
-            *kw*: {``None``} | :class:`dict`
-                Keyworkd arguments to called function
-            *name*: {``None``} | :class:`str`
-                Hook name to use in status update
-        :Versions:
-            * 2022-04-12 ``@ddalle``: v1.0
-        """
-        # Exit if none
-        if not funclist:
-            return
-        # Ensure list
-        assert_isinstance(funclist, list, "list of functions")
-        # Loop through functions
-        for func in funclist:
-            # Execute function
-            self.exec_modfunction(func, a, kw, name)
+        pass
 
     # Function to apply initialization function
     def InitFunction(self):
