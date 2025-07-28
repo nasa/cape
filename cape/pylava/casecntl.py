@@ -161,8 +161,6 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             # Create an empty file
             fileutils.touch(fhist)
-        # Perform flow viz linking
-        self.link_viz()
 
     # Function to get total iteration number
     def getx_restart_iter(self):
@@ -384,3 +382,17 @@ def LinkFromFile(fname, fsrc):
     # Create the link if possible
     if os.path.isfile(fsrc):
         os.symlink(fsrci, fname)
+
+# Link best viz files
+def LinkViz():
+    r"""Link the most recent viz files to fixed file names
+
+    :Call:
+        >>> LinkPLT()
+    :Versions:
+        * 2025-07-28 ``@jmeeroff``: v1.0
+    """
+    # Instantiate
+    runner = CaseRunner()
+    # Call link method
+    runner.link_viz()
