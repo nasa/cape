@@ -2,6 +2,9 @@
 from ..cfdx import cli
 
 
-__doc__ = cli.CAPE_HELP
+# Instantiate parser
+parser = cli.CfdxFrontDesk()
+# Generate help
+__doc__ = parser.genr8_help()
 
 

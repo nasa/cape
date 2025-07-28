@@ -185,26 +185,9 @@ class CaseLoopArgs(ArgReader):
 
 # Class to read input files
 class CntlBase(ABC):
-    r"""Class to handle options, setup, and execution of CFD codes
+    r"""Base class for :class:`cape.cfdx.cntl.Cntl`"""
 
-    :Call:
-        >>> cntl = cape.CntlBase(fname="cape.json")
-    :Inputs:
-        *fname*: :class:`str`
-            Name of JSON settings file from which to read options
-    :Outputs:
-        *cntl*: :class:`cape.cfdx.cntl.Cntl`
-            Instance of Cape control interface
-        *cntl.opts*: :class:`cape.cfdx.options.Options`
-            Options interface
-        *cntl.x*: :class:`cape.runmatrix.RunMatrix`
-            Run matrix interface
-        *cntl.RootDir*: :class:`str`
-            Working directory from which the class was generated
-    :Attributes:
-        * :attr:`cache_iter`
-    """
-   # --- Class Attributes ---
+  # *** CLASS ATTRIBUTES ***
     _name = "cfdx"
     _solver = "cfdx"
     _case_mod = casecntlbase
@@ -217,10 +200,11 @@ class CntlBase(ABC):
     _warnmode_envvar = None
     _zombie_files = None
 
-   # --- __DUNDER__ ---
+  # *** DUNDER ***
     # Initialization method
     @abstractmethod
     def __init__(self, fname: Optional[str] = None):
+        r"""Initialization method"""
         pass
 
     # Output representation
@@ -230,6 +214,7 @@ class CntlBase(ABC):
 
     __str__ = __repr__
 
+  # *** OPTIONS ***
    # --- Other Init ---
     @abstractmethod
     def init_post(self):
@@ -245,61 +230,45 @@ class CntlBase(ABC):
         """
         pass
 
-   # --- Hooks & Modules ---
+  # *** HOOKS ***
     # Function to import user-specified modules
     @abstractmethod
     def ImportModules(self):
-        pass
+        r"""Import user-defined modules if specified in the options
 
-    # Execute a function by spec
-    @abstractmethod
-    def exec_cntlfunction(self, funcspec: Union[str, dict]) -> Any:
-        pass
+        All modules from the ``"Modules"`` global option of the JSON
+        file (``cntl.opts["Modules"]``) will be imported and saved as
+        attributes of *cntl*.  For example, if the user wants to use a
+        module called :mod:`dac3`, it will be imported as *cntl.dac3*.
+        A noncomprehensive list of disallowed module names is below.
 
-    # Execute a function by name only
-    @abstractmethod
-    def exec_cntlfunction_str(self, funcname: str) -> Any:
-        pass
+            *DataBook*, *RootDir*, *jobs*, *opts*, *tri*, *x*
 
-    # Execute a function by dict
-    @abstractmethod
-    def exec_cntl_function_dict(self, funcspec: dict):
-        pass
+        The name of any method of this class is also disallowed.
+        However, if the user wishes to import a module whose name is
+        disallowed, he/she can use a dictionary to specify a different
+        name to import the module as. For example, the user may import a
+        module called :mod:`tri` as :mod:`mytri` using the following
+        JSON syntax.
 
-    # Execute a function
-    @abstractmethod
-    def exec_modfunction(
-            self,
-            funcname: str,
-            a: Optional[Union[tuple, list]] = None,
-            kw: Optional[dict] = None,
-            name: Optional[str] = None) -> Any:
-        pass
+            .. code-block:: javascript
 
-    @abstractmethod
-    def import_module(self, modname: str):
-        pass
+                "Modules": [{"tri": "mytri"}]
 
-    @abstractmethod
-    def _expand_funcarg(self, argval: Union[Any, str]) -> Any:
-        pass
-
-    @abstractmethod
-    def _exec_funclist(self, funclist, a=None, kw=None, name=None):
-        pass
-
-    # Execute a function
-    @abstractmethod
-    def _exec_pyfunc(
-            self,
-            functype: str,
-            funcname: str,
-            a: Optional[Union[tuple, list]] = None,
-            kw: Optional[dict] = None,
-            name: Optional[str] = None) -> Any:
+        :Call:
+            >>> cntl.ImportModules()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of Cape control interface
+        :Versions:
+            * 2014-10-08 ``@ddalle``: v1.0 (:mod:`pycart`)
+            * 2015-09-20 ``@ddalle``: v1.0
+            * 2022-04-12 ``@ddalle``: v2.0; use *self.modules*
+        """
         pass
 
     # Function to apply initialization function
+    @abstractmethod
     def InitFunction(self):
         r"""Run one or more functions a "initialization" hook
 
@@ -324,12 +293,10 @@ class CntlBase(ABC):
             * 2017-04-04 ``@ddalle``: v1.0
             * 2022-04-12 ``@ddalle``: v2.0; use _exec_funclist()
         """
-        # Get input functions
-        funclist = self.opts.get("InitFunction")
-        # Execute each
-        self._exec_funclist(funclist, self, name="InitFunction")
+        pass
 
     # Call function to apply settings for case *i*
+    @abstractmethod
     def CaseFunction(self, i: int):
         r"""Run one or more functions at "prepare-case" hook
 
@@ -375,13 +342,205 @@ class CntlBase(ABC):
             * :func:`cape.pyover.cntl.Cntl.PrepareCase`
             * :func:`cape.pyover.cntl.Cntl.ApplyCase`
         """
-        # Get input functions
-        funclist = self.opts.get("CaseFunction")
-        # Execute each
-        self._exec_funclist(funclist, (self, i), name="CaseFunction")
+        pass
 
+    # Execute a function by spec
+    @abstractmethod
+    def exec_cntlfunction(self, funcspec: Union[str, dict]) -> Any:
+        r"""Execute a *Cntl* function, accessing user-specified modules
+
+        :Call:
+            >>> v = cntl.exec_cntlfunction(funcname)
+            >>> v = cntl.exec_cntlfunction(funcspec)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *funcname*: :class:`str`
+                Name of function to execute, e.g. ``"mymod.myfunc"``
+            *funcspec*: :class:`dict`
+                Function opts parsed by :class:`UserFuncOpts`
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Execute a function by name only
+    @abstractmethod
+    def exec_cntlfunction_str(self, funcname: str) -> Any:
+        r"""Execute a function from *cntl.modules*
+
+        :Call:
+            >>> v = cntl.exec_modfunction(funcname, a, kw, name=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *funcname*: :class:`str`
+                Name of function to execute, e.g. ``"mymod.myfunc"``
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Execute a function by dict
+    @abstractmethod
+    def exec_cntl_function_dict(self, funcspec: dict):
+        r"""Execute a *Cntl* function, accessing user-specified modules
+
+        :Call:
+            >>> v = cntl.exec_cntl_function_dict(funcspec)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *funcspec*: :class:`dict`
+                Function opts parsed by :class:`UserFuncOpts`
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Execute a function
+    @abstractmethod
+    def exec_modfunction(
+            self,
+            funcname: str,
+            a: Optional[Union[tuple, list]] = None,
+            kw: Optional[dict] = None,
+            name: Optional[str] = None) -> Any:
+        r"""Execute a function from *cntl.modules*
+
+        :Call:
+            >>> v = cntl.exec_modfunction(funcname, a, kw, name=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *funcname*: :class:`str`
+                Name of function to execute, e.g. ``"mymod.myfunc"``
+            *a*: {``None``} | :class:`tuple`
+                Positional arguments to called function
+            *kw*: {``None``} | :class:`dict`
+                Keyworkd arguments to called function
+            *name*: {``None``} | :class:`str`
+                Hook name to use in status update
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2022-04-12 ``@ddalle``: v1.0
+            * 2025-03-28 ``@ddalle``: v1.1; improve error messages
+        """
+        pass
+
+    @abstractmethod
+    def import_module(self, modname: str):
+        r"""Import a module by name, if possible
+
+        :Call:
+            >>> mod = cntl.import_module(modname)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *modname*: :class:`str`
+                Name of module to import
+        :Outputs:
+            *mod*: **module**
+                Python module
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        pass
+
+    @abstractmethod
+    def _expand_funcarg(self, argval: Union[Any, str]) -> Any:
+        r"""Expand a function value
+
+        :Call:
+            >>> v = cntl._expand_funcarg(argval)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+        :Outputs:
+            *v*: :class:`str` | :class:`float` | :class:`int`
+                Expanded value, usually float or string
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        pass
+
+    @abstractmethod
+    def _exec_funclist(
+            self,
+            funclist: list,
+            a: Optional[tuple] = None,
+            kw: Optional[dict] = None,
+            name: Optional[str] = None):
+        r"""Execute a list of functions in one category
+
+        :Call:
+            >>>  cntl._exec_funclist(funclist, a, kw, name=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *funclist*: :class:`list`\ [:class:`str`]
+                List of function specs to execute
+            *a*: {``None``} | :class:`tuple`
+                Positional arguments to called function
+            *kw*: {``None``} | :class:`dict`
+                Keyworkd arguments to called function
+            *name*: {``None``} | :class:`str`
+                Hook name to use in status update
+        :Versions:
+            * 2022-04-12 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Execute a function
+    @abstractmethod
+    def _exec_pyfunc(
+            self,
+            functype: str,
+            funcname: str,
+            a: Optional[Union[tuple, list]] = None,
+            kw: Optional[dict] = None,
+            name: Optional[str] = None) -> Any:
+        r"""Execute a function from *cntl.modules*
+
+        :Call:
+            >>> v = cntl._exec_pyfunc(functype, funcname, a, kw, name)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *functype*: {``"module"``} | ``"cntl"`` | ``"runner"``
+                Module source, general *cntl*, or *cntl.caserunner*
+            *funcname*: :class:`str`
+                Name of function to execute, e.g. ``"mymod.myfunc"``
+            *a*: {``None``} | :class:`tuple`
+                Positional arguments to called function
+            *kw*: {``None``} | :class:`dict`
+                Keyworkd arguments to called function
+            *name*: {``None``} | :class:`str`
+                Hook name to use in status update
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2022-04-12 ``@ddalle``: v1.0
+            * 2025-03-28 ``@ddalle``: v1.1; improve error messages
+        """
+        pass
+
+  # *** FILE MANAGEMENT ***
    # --- Files ---
     # Absolutize
+    @abstractmethod
     def abspath(self, fname: str) -> str:
         r"""Absolutize a file name
 
@@ -399,18 +558,10 @@ class CntlBase(ABC):
             * 2021-10-25 ``@ddalle``: v1.0
             * 2025-03-26 ``@ddalle``: v1.1; Windows compatibility fix
         """
-        # Replace '/' -> '\' on Windows
-        fname_sys = fname.replace('/', os.sep)
-        # Check if absolute
-        if os.path.isabs(fname_sys):
-            # Already absolute
-            return fname_sys
-        else:
-            # Relative to *RootDir*
-            return os.path.join(self.RootDir, fname_sys)
+        pass
 
     # Copy files
-    @run_rootdir
+    @abstractmethod
     def copy_files(self, i: int):
         r"""Copy specified files to case *i* run folder
 
@@ -424,34 +575,10 @@ class CntlBase(ABC):
         :Versions:
             * 2025-03-26 ``@ddalle``: v1.0
         """
-        # Get list of files to copy
-        files = self.opts.get_CopyFiles()
-        # Check for any
-        if files is None or len(files) == 0:
-            return
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Create case folder
-        self.make_case_folder(i)
-        # Name of case folder
-        frun = self.x.GetFullFolderNames(i)
-        # Loop through files
-        for fname in files:
-            # Absolutize
-            fabs = self.abspath(fname)
-            # Get base file name
-            fbase = os.path.basename(fabs)
-            # Destination file
-            fdest = os.path.join(self.RootDir, frun, fbase)
-            # Check for overwrite
-            if os.path.isfile(fdest):
-                print(f"  Replacing file '{fname}'")
-                os.remove(fdest)
-            # Copy file
-            shutil.copy(fabs, fdest)
+        pass
 
     # Link files
-    @run_rootdir
+    @abstractmethod
     def link_files(self, i: int):
         r"""Link specified files to case *i* run folder
 
@@ -465,32 +592,11 @@ class CntlBase(ABC):
         :Versions:
             * 2025-03-26 ``@ddalle``: v1.0
         """
-        # Get list of files to copy
-        files = self.opts.get_LinkFiles()
-        # Check for any
-        if files is None or len(files) == 0:
-            return
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Create case folder
-        self.make_case_folder(i)
-        # Name of case folder
-        frun = self.x.GetFullFolderNames(i)
-        # Loop through files
-        for fname in files:
-            # Absolutize
-            fabs = self.abspath(fname)
-            # Get base file name
-            fbase = os.path.basename(fabs)
-            # Destination file
-            fdest = os.path.join(self.RootDir, frun, fbase)
-            # Check for overwrite
-            if os.path.isfile(fdest):
-                raise FileExistsError(f"  Cannot copy '{fname}'; file exists")
-            # Copy file
-            os.symlink(fabs, fdest)
+        pass
 
-    @run_rootdir
+  # *** CASE PREPARATION ***
+   # --- Mesh ---
+    @abstractmethod
     def PrepareMesh(self, i: int):
         r"""Prepare the mesh for case *i* if necessary
 
@@ -506,25 +612,10 @@ class CntlBase(ABC):
             * 2024-11-04 ``@ddalle``: v1.3 (pyfun)
             * 2024-11-07 ``@ddalle``: v1.0
         """
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Create case folder
-        self.make_case_folder(i)
-        # Copy/link generic files
-        self.copy_files(i)
-        self.link_files(i)
-        # Prepare warmstart files, if any
-        warmstart = self.PrepareMeshWarmStart(i)
-        # Finish if case was warm-started
-        if warmstart:
-            return
-        # Copy main files
-        self.PrepareMeshFiles(i)
-        # Prepare surface triangulation for AFLR3 if appropriate
-        self.PrepareMeshTri(i)
+        pass
 
     # Prepare the mesh for case *i* (if necessary)
-    @run_rootdir
+    @abstractmethod
     def prepare_mesh_overset(self, i: int):
         r"""Copy/link mesh files from config folder into case folder
 
@@ -538,59 +629,11 @@ class CntlBase(ABC):
         :Versions:
             * 2024-10-10 ``@ddalle``: v1.0
         """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Create case folder if needed
-        self.make_case_folder(i)
-        # Enter the case folder
-        os.chdir(frun)
-        # ----------
-        # Copy files
-        # ----------
-        # Get the configuration folder
-        fcfg = self.opts.get_MeshConfigDir()
-        fcfg_abs = os.path.join(self.RootDir, fcfg)
-        # Get the names of the raw input files and target files
-        fmsh = self.opts.get_MeshCopyFiles(i=i)
-        # Loop through those files
-        for j in range(len(fmsh)):
-            # Original and final file names
-            f0 = os.path.join(fcfg_abs, fmsh[j])
-            f1 = os.path.split(fmsh[j])[1]
-            # Skip if full file
-            if os.path.isfile(f1):
-                continue
-            # Copy the file.
-            if os.path.isfile(f0):
-                shutil.copy(f0, f1)
-        # Get the names of input files to link
-        fmsh = self.opts.get_MeshLinkFiles(i=i)
-        # Loop through those files
-        for j in range(len(fmsh)):
-            # Original and final file names
-            f0 = os.path.join(fcfg_abs, fmsh[j])
-            f1 = os.path.split(fmsh[j])[1]
-            # Remove the file if necessary
-            if os.path.islink(f1):
-                os.remove(f1)
-            # Skip if full file
-            if os.path.isfile(f1):
-                continue
-            # Link the file.
-            if os.path.isfile(f0) or os.path.isdir(f0):
-                os.symlink(f0, f1)
-
-   # --- Input Readers ---
-    @abstractmethod
-    def ReadDataBook(self, comp: Optional[str] = None):
         pass
 
-    @abstractmethod
-    def ReadReport(self, rep: str):
-        pass
-
+   # --- Tri files ---
     # Function to prepare the triangulation for each grid folder
-    @run_rootdir
+    @abstractmethod
     def ReadTri(self):
         r"""Read initial triangulation file(s)
 
@@ -602,68 +645,44 @@ class CntlBase(ABC):
         :Versions:
             * 2014-08-30 ``@ddalle``: v1.0
         """
-        # Only read triangulation if not already present.
-        try:
-            self.tri
-            return
-        except AttributeError:
-            pass
-        # Get the list of tri files.
-        ftri = self.opts.get_TriFile()
-        # Status update.
-        print("  Reading tri file(s) from root directory.")
-        # Name of config file
-        fxml = self.opts.get_ConfigFile()
-        # Check for a config file.
-        if fxml is None:
-            # Nothing to read
-            cfg = None
-        else:
-            # Read config file
-            cfg = ConfigXML(fxml)
-        # Ensure list
-        if not isinstance(ftri, (list, np.ndarray)):
-            ftri = [ftri]
-        # Read first file
-        tri = ReadTriFile(ftri[0])
-        # Apply configuration
-        if cfg is not None:
-            tri.ApplyConfig(cfg)
-        # Initialize number of nodes in each file
-        tri.iTri = [tri.nTri]
-        tri.iQuad = [tri.nQuad]
-        # Loop through files
-        for f in ftri[1:]:
-            # Check for non-surface tri file
-            if f.startswith('-'):
-                # Not for writing in "VolTri"; don't intersect it
-                qsurf = -1
-                # Strip leading "-"
-                f = f.lstrip("-")
-            else:
-                # This is a regular surface
-                qsurf = 1
-            # Read the next triangulation
-            trii = ReadTriFile(f)
-            # Apply configuration
-            if cfg is not None:
-                trii.ApplyConfig(cfg)
-            # Append the triangulation
-            tri.Add(trii)
-            # Save the face counts
-            tri.iTri.append(qsurf*tri.nTri)
-            tri.iQuad.append(qsurf*tri.nQuad)
-        # Save the triangulation and config.
-        self.tri = tri
-        self.tri.config = cfg
-        # Check for AFLR3 bcs
-        fbc = self.opts.get_aflr3_BCFile()
-        # If present, map it.
-        if fbc:
-            # Map boundary conditions
-            self.tri.ReadBCs_AFLR3(fbc)
-        # Make a copy of the original to revert to after rotations, etc.
-        self.tri0 = self.tri.Copy()
+        pass
+
+  # *** REPORTING ***
+    @abstractmethod
+    def ReadReport(self, rep: str):
+        r"""Read a report interface
+
+        :Call:
+            >>> rep = cntl.ReadReport(rep)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE main control instance
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *rep*: :class:`cape.cfdx.report.Report`
+                Report interface
+        :Versions:
+            * 2018-10-19 ``@ddalle``: Version 1.0
+        """
+        pass
+
+  # *** DATA EXTRACTION ***
+   # --- DataBook ---
+    @abstractmethod
+    def ReadDataBook(self, comp: Optional[str] = None):
+        r"""Read the current data book
+
+        :Call:
+            >>> cntl.ReadDataBook()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2016-09-15 ``@ddalle``: v1.0
+            * 2023-05-31 ``@ddalle``: v2.0; universal ``cape.cntl``
+        """
+        pass
 
     # Read configuration (without tri file if necessary)
     @run_rootdir

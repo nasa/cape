@@ -33,6 +33,7 @@ individualized modules are below.
 import functools
 import importlib
 import os
+import shutil
 import sys
 from typing import Any, Optional, Union
 
@@ -51,8 +52,12 @@ from .logger import CntlLogger
 from .options import Options
 from .options.funcopts import UserFuncOpts
 from .runmatrix import RunMatrix
+from ..config import ConfigXML, ConfigJSON
 from ..errors import assert_isinstance
 from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
+from ..optdict.optitem import getel
+from ..geom import RotatePoints
+from ..trifile import ReadTriFile
 
 
 # Constants
@@ -269,14 +274,34 @@ class Cntl(CntlBase):
         *fname*: :class:`str`
             Name of JSON settings file from which to read options
     :Outputs:
-        *cntl*: :class:`cape.cfdx.cntl.Cntl`
-            Instance of Cape control interface
-        *cntl.opts*: :class:`cape.cfdx.options.Options`
-            Options interface
-        *cntl.x*: :class:`cape.runmatrix.RunMatrix`
-            Run matrix interface
-        *cntl.RootDir*: :class:`str`
-            Working directory from which the class was generated
+        *cntl*: :class:`Cntl`
+            Instance of CAPE control interface
+    :Class attributes:
+        * :attr:`_case_cls`
+        * :attr:`_case_mod`
+        * :attr:`_databook_mod`
+        * :attr:`_fjson_default`
+        * :attr:`_name`
+        * :attr:`_opts_cls`
+        * :attr:`_report_mod`
+        * :attr:`_solver`
+        * :attr:`_warnmode_default`
+        * :attr:`_warnmode_envvar`
+        * :attr:`_zombie_files`
+    :Attributes:
+        * :attr:`DataBook`
+        * :attr:`RootDir`
+        * :attr:`cache_iter`
+        * :attr:`caseindex`
+        * :attr:`caserunner`
+        * :attr:`data`
+        * :attr:`job`
+        * :attr:`jobqueues`
+        * :attr:`jobs`
+        * :attr:`logger`
+        * :attr:`modules`
+        * :attr:`opts`
+        * :attr:`x`
     :Versions:
         * 2015-09-20 ``@ddalle``: Started
         * 2016-04-01 ``@ddalle``: v1.0
@@ -330,11 +355,6 @@ class Cntl(CntlBase):
   # *** DUNDER ***
     # Initialization method
     def __init__(self, fname: Optional[str] = None):
-        r"""Initialization method for :mod:`cape.cfdx.cntl.Cntl`
-
-        :Versions:
-            * 2015-09-20 ``ddalle``: v1.0
-        """
         # Default file name
         fname = self._fjson_default if fname is None else fname
         # Check if file exists
@@ -351,7 +371,7 @@ class Cntl(CntlBase):
         #: :class:`int`
         #: Case index of the current case runner
         self.caseindex = None
-        #: :class:`Options`
+        #: :class:`cape.cfdx.options.Options`
         #: Options interface for this run matrix
         self.opts = None
         # Read options
@@ -362,7 +382,7 @@ class Cntl(CntlBase):
         #: :class:`CntlLogger`
         #: Run matrix logger instacnce
         self.logger = None
-        #: :class:`RunMatrix`
+        #: :class:`cape.cfdx.runmatrix.RunMatrix`
         #: Run matrix instance
         self.x = RunMatrix(**self.opts['RunMatrix'])
         # Set run matrix w/i options
@@ -382,7 +402,7 @@ class Cntl(CntlBase):
         self.init_post()
         # Run any initialization functions
         self.InitFunction()
-        #: :class:`DataBook`
+        #: :class:`cape.cfdx.databook.DataBook`
         #: Interface to post-processed data
         self.DataBook = None
         #: :class:`dict`\ [:class:`DataExchanger`]
@@ -412,52 +432,11 @@ class Cntl(CntlBase):
   # *** OPTIONS ***
    # --- Other Init ---
     def init_post(self):
-        r"""Do ``py{x}`` specific initialization actions
-
-        :Call:
-            >>> cntl.init_post()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-        :Versions:
-            * 2023-05-31 ``@ddalle``: v1.0
-        """
         pass
 
   # *** HOOKS ***
     # Function to import user-specified modules
     def ImportModules(self):
-        r"""Import user-defined modules if specified in the options
-
-        All modules from the ``"Modules"`` global option of the JSON
-        file (``cntl.opts["Modules"]``) will be imported and saved as
-        attributes of *cntl*.  For example, if the user wants to use a
-        module called :mod:`dac3`, it will be imported as *cntl.dac3*.
-        A noncomprehensive list of disallowed module names is below.
-
-            *DataBook*, *RootDir*, *jobs*, *opts*, *tri*, *x*
-
-        The name of any method of this class is also disallowed.
-        However, if the user wishes to import a module whose name is
-        disallowed, he/she can use a dictionary to specify a different
-        name to import the module as. For example, the user may import a
-        module called :mod:`tri` as :mod:`mytri` using the following
-        JSON syntax.
-
-            .. code-block:: javascript
-
-                "Modules": [{"tri": "mytri"}]
-
-        :Call:
-            >>> cntl.ImportModules()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of Cape control interface
-        :Versions:
-            * 2014-10-08 ``@ddalle``: v1.0 (:mod:`pycart`)
-            * 2015-09-20 ``@ddalle``: v1.0
-            * 2022-04-12 ``@ddalle``: v2.0; use *self.modules*
-        """
         # Get module soption
         module_list = self.opts.get("Modules")
         # Exit if none
@@ -487,26 +466,22 @@ class Cntl(CntlBase):
             # Load the module by its name
             self.modules[as_name] = importlib.import_module(import_name)
 
+    # Call function to apply settings for case *i*
+    def CaseFunction(self, i: int):
+        # Get input functions
+        funclist = self.opts.get("CaseFunction")
+        # Execute each
+        self._exec_funclist(funclist, (self, i), name="CaseFunction")
+
+    # Function to apply initialization function
+    def InitFunction(self):
+        # Get input functions
+        funclist = self.opts.get("InitFunction")
+        # Execute each
+        self._exec_funclist(funclist, self, name="InitFunction")
+
     # Execute a function by spec
     def exec_cntlfunction(self, funcspec: Union[str, dict]) -> Any:
-        r"""Execute a *Cntl* function, accessing user-specified modules
-
-        :Call:
-            >>> v = cntl.exec_cntlfunction(funcname)
-            >>> v = cntl.exec_cntlfunction(funcspec)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funcname*: :class:`str`
-                Name of function to execute, e.g. ``"mymod.myfunc"``
-            *funcspec*: :class:`dict`
-                Function opts parsed by :class:`UserFuncOpts`
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
         # Check type
         if isinstance(funcspec, dict):
             return self.exec_cntl_function_dict(funcspec)
@@ -516,40 +491,10 @@ class Cntl(CntlBase):
 
     # Execute a function by name only
     def exec_cntlfunction_str(self, funcname: str) -> Any:
-        r"""Execute a function from *cntl.modules*
-
-        :Call:
-            >>> v = cntl.exec_modfunction(funcname, a, kw, name=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funcname*: :class:`str`
-                Name of function to execute, e.g. ``"mymod.myfunc"``
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
         return self.exec_modfunction(funcname)
 
     # Execute a function by dict
     def exec_cntl_function_dict(self, funcspec: dict):
-        r"""Execute a *Cntl* function, accessing user-specified modules
-
-        :Call:
-            >>> v = cntl.exec_cntl_function_dict(funcspec)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funcspec*: :class:`dict`
-                Function opts parsed by :class:`UserFuncOpts`
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
         # Process options
         opts = UserFuncOpts(funcspec)
         # Get name
@@ -578,46 +523,9 @@ class Cntl(CntlBase):
             a: Optional[Union[tuple, list]] = None,
             kw: Optional[dict] = None,
             name: Optional[str] = None) -> Any:
-        r"""Execute a function from *cntl.modules*
-
-        :Call:
-            >>> v = cntl.exec_modfunction(funcname, a, kw, name=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funcname*: :class:`str`
-                Name of function to execute, e.g. ``"mymod.myfunc"``
-            *a*: {``None``} | :class:`tuple`
-                Positional arguments to called function
-            *kw*: {``None``} | :class:`dict`
-                Keyworkd arguments to called function
-            *name*: {``None``} | :class:`str`
-                Hook name to use in status update
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2022-04-12 ``@ddalle``: v1.0
-            * 2025-03-28 ``@ddalle``: v1.1; improve error messages
-        """
         return self._exec_pyfunc("module", funcname, a, kw, name)
 
     def import_module(self, modname: str):
-        r"""Import a module by name, if possible
-
-        :Call:
-            >>> mod = cntl.import_module(modname)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *modname*: :class:`str`
-                Name of module to import
-        :Outputs:
-            *mod*: **module**
-                Python module
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
         # Get dict of module names
         modnamedict = self.opts.get_opt("ModuleNames", vdef={})
         # Get alias, if any
@@ -630,19 +538,6 @@ class Cntl(CntlBase):
         return importlib.import_module(fullmodname)
 
     def _expand_funcarg(self, argval: Union[Any, str]) -> Any:
-        r"""Expand a function value
-
-        :Call:
-            >>> v = cntl._expand_funcarg(argval)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-        :Outputs:
-            *v*: :class:`str` | :class:`float` | :class:`int`
-                Expanded value, usually float or string
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
         # Check if string
         if not isinstance(argval, str):
             return argval
@@ -666,25 +561,12 @@ class Cntl(CntlBase):
         else:
             return self.x.GetValue(argname, i)
 
-    def _exec_funclist(self, funclist, a=None, kw=None, name=None):
-        r"""Execute a list of functions in one category
-
-        :Call:
-            >>>  cntl._exec_funclist(funclist, a, kw, name=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funclist*: :class:`list`\ [:class:`str`]
-                List of function specs to execute
-            *a*: {``None``} | :class:`tuple`
-                Positional arguments to called function
-            *kw*: {``None``} | :class:`dict`
-                Keyworkd arguments to called function
-            *name*: {``None``} | :class:`str`
-                Hook name to use in status update
-        :Versions:
-            * 2022-04-12 ``@ddalle``: v1.0
-        """
+    def _exec_funclist(
+            self,
+            funclist: list,
+            a: Optional[tuple] = None,
+            kw: Optional[dict] = None,
+            name: Optional[str] = None):
         # Exit if none
         if not funclist:
             return
@@ -703,30 +585,6 @@ class Cntl(CntlBase):
             a: Optional[Union[tuple, list]] = None,
             kw: Optional[dict] = None,
             name: Optional[str] = None) -> Any:
-        r"""Execute a function from *cntl.modules*
-
-        :Call:
-            >>> v = cntl._exec_pyfunc(functype, funcname, a, kw, name)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *functype*: {``"module"``} | ``"cntl"`` | ``"runner"``
-                Module source, general *cntl*, or *cntl.caserunner*
-            *funcname*: :class:`str`
-                Name of function to execute, e.g. ``"mymod.myfunc"``
-            *a*: {``None``} | :class:`tuple`
-                Positional arguments to called function
-            *kw*: {``None``} | :class:`dict`
-                Keyworkd arguments to called function
-            *name*: {``None``} | :class:`str`
-                Hook name to use in status update
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2022-04-12 ``@ddalle``: v1.0
-            * 2025-03-28 ``@ddalle``: v1.1; improve error messages
-        """
         # Default args and kwargs
         a = tuple() if a is None else a
         a = a if isinstance(a, (tuple, list)) else (a,)
@@ -768,70 +626,136 @@ class Cntl(CntlBase):
         # Call function
         return func(*a, **kw)
 
-   # --- Input Readers ---
-    # Read the data book
+  # *** CASE PREPARATION ***
+   # --- Mesh ---
     @run_rootdir
-    def ReadDataBook(self, comp=None):
-        r"""Read the current data book
-
-        :Call:
-            >>> cntl.ReadDataBook()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-        :Versions:
-            * 2016-09-15 ``@ddalle``: v1.0
-            * 2023-05-31 ``@ddalle``: v2.0; universal ``cape.cntl``
-        """
-        # Test if already read
-        if self.DataBook is not None:
+    def PrepareMesh(self, i: int):
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Copy/link generic files
+        self.copy_files(i)
+        self.link_files(i)
+        # Prepare warmstart files, if any
+        warmstart = self.PrepareMeshWarmStart(i)
+        # Finish if case was warm-started
+        if warmstart:
             return
-        # Ensure list of components
-        if comp is not None and not isinstance(comp, list):
-            comp = [comp]
-        # Get DataBook class
-        databookmod = self.__class__._databook_mod
-        # Instantiate class
-        self.DataBook = databookmod.DataBook(self, comp=comp)
-        # Call any custom functions
-        self.ReadDataBookPost()
+        # Copy main files
+        self.PrepareMeshFiles(i)
+        # Prepare surface triangulation for AFLR3 if appropriate
+        self.PrepareMeshTri(i)
 
-    # Call special post-read DataBook functions
-    def ReadDataBookPost(self):
-        r"""Do ``py{x}`` specific init actions after reading DataBook
-
-        :Call:
-            >>> cntl.ReadDataBookPost()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-        :Versions:
-            * 2023-05-31 ``@ddalle``: v1.0
-        """
-        pass
-
-    # Read report
+    # Prepare the mesh for case *i* (if necessary)
     @run_rootdir
-    def ReadReport(self, rep):
-        r"""Read a report interface
+    def prepare_mesh_overset(self, i: int):
+        # Get the case name
+        frun = self.x.GetFullFolderNames(i)
+        # Create case folder if needed
+        self.make_case_folder(i)
+        # Enter the case folder
+        os.chdir(frun)
+        # ----------
+        # Copy files
+        # ----------
+        # Get the configuration folder
+        fcfg = self.opts.get_MeshConfigDir()
+        fcfg_abs = os.path.join(self.RootDir, fcfg)
+        # Get the names of the raw input files and target files
+        fmsh = self.opts.get_MeshCopyFiles(i=i)
+        # Loop through those files
+        for j in range(len(fmsh)):
+            # Original and final file names
+            f0 = os.path.join(fcfg_abs, fmsh[j])
+            f1 = os.path.split(fmsh[j])[1]
+            # Skip if full file
+            if os.path.isfile(f1):
+                continue
+            # Copy the file.
+            if os.path.isfile(f0):
+                shutil.copy(f0, f1)
+        # Get the names of input files to link
+        fmsh = self.opts.get_MeshLinkFiles(i=i)
+        # Loop through those files
+        for j in range(len(fmsh)):
+            # Original and final file names
+            f0 = os.path.join(fcfg_abs, fmsh[j])
+            f1 = os.path.split(fmsh[j])[1]
+            # Remove the file if necessary
+            if os.path.islink(f1):
+                os.remove(f1)
+            # Skip if full file
+            if os.path.isfile(f1):
+                continue
+            # Link the file.
+            if os.path.isfile(f0) or os.path.isdir(f0):
+                os.symlink(f0, f1)
 
-        :Call:
-            >>> R = cntl.ReadReport(rep)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *R*: :class:`pyFun.report.Report`
-                Report interface
-        :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
-        """
-        # Read the report
-        R = self.__class__._report_mod.Report(self, rep)
-        # Output
-        return R
+   # --- Tri Files ---
+    # Function to prepare the triangulation for each grid folder
+    @run_rootdir
+    def ReadTri(self):
+        # Only read triangulation if not already present
+        tri = getattr(self, "tri", None)
+        if tri is not None:
+            return
+        # Get the list of tri files.
+        ftri = self.opts.get_TriFile()
+        # Status update.
+        print("  Reading tri file(s) from root directory.")
+        # Name of config file
+        fxml = self.opts.get_ConfigFile()
+        # Check for a config file.
+        if fxml is None:
+            # Nothing to read
+            cfg = None
+        else:
+            # Read config file
+            cfg = ConfigXML(fxml)
+        # Ensure list
+        if not isinstance(ftri, (list, np.ndarray)):
+            ftri = [ftri]
+        # Read first file
+        tri = ReadTriFile(ftri[0])
+        # Apply configuration
+        if cfg is not None:
+            tri.ApplyConfig(cfg)
+        # Initialize number of nodes in each file
+        tri.iTri = [tri.nTri]
+        tri.iQuad = [tri.nQuad]
+        # Loop through files
+        for f in ftri[1:]:
+            # Check for non-surface tri file
+            if f.startswith('-'):
+                # Not for writing in "VolTri"; don't intersect it
+                qsurf = -1
+                # Strip leading "-"
+                f = f.lstrip("-")
+            else:
+                # This is a regular surface
+                qsurf = 1
+            # Read the next triangulation
+            trii = ReadTriFile(f)
+            # Apply configuration
+            if cfg is not None:
+                trii.ApplyConfig(cfg)
+            # Append the triangulation
+            tri.Add(trii)
+            # Save the face counts
+            tri.iTri.append(qsurf*tri.nTri)
+            tri.iQuad.append(qsurf*tri.nQuad)
+        # Save the triangulation and config.
+        self.tri = tri
+        self.tri.config = cfg
+        # Check for AFLR3 bcs
+        fbc = self.opts.get_aflr3_BCFile()
+        # If present, map it.
+        if fbc:
+            # Map boundary conditions
+            self.tri.ReadBCs_AFLR3(fbc)
+        # Make a copy of the original to revert to after rotations, etc.
+        self.tri0 = self.tri.Copy()
 
    # --- Run Interface ---
     # Get case runner from a folder
@@ -1214,6 +1138,16 @@ class Cntl(CntlBase):
         # Extend the case
         runner.extend_case(m=n, j=j, nmax=imax)
 
+  # *** REPORTING ***
+    # Read report
+    @run_rootdir
+    def ReadReport(self, rep: str) -> report.Report:
+        # Read the report
+        rep = self.__class__._report_mod.Report(self, rep)
+        # Output
+        return rep
+
+  # *** DATA EXTRACTION ***
    # --- Data Exchange ---
     def update_dex_case(self, comp: str, i: int) -> int:
         r"""Update one case of a *DataBook* component
@@ -1267,105 +1201,47 @@ class Cntl(CntlBase):
         # Output
         return db
 
-   # --- Archiving ---
-    # Run ``--archive`` on one case
-    def ArchiveCase(self, i: int, test: bool = False):
-        r"""Perform ``--archive`` archiving on one case
-
-        There are no restrictions on the status of the case for this
-        action.
+   # --- DataBook Init ---
+    # Read the data book
+    @run_rootdir
+    def ReadDataBook(self, comp: Optional[str] = None) -> databook.DataBook:
+        r"""Read the current data book
 
         :Call:
-            >>> cntl.CleanCase(i, test=False)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE run matrix controller instance
-            *i*: :class:`int`
-                Case index
-            *test*: ``True`` | {``False``}
-                Log file/folder actions but don't actually delete/copy
-        :Versions:
-            * 2024-09-18 ``@ddalle``: v1.0
-        """
-        # Read case runner
-        runner = self.ReadCaseRunner(i)
-        # Run action
-        runner.archive(test)
-
-    # Run ``--skeleton`` on one case
-    def SkeletonCase(self, i: int, test: bool = False):
-        r"""Perform ``--skeleton`` archiving on one case
-
-        There are no restrictions on the status of the case for this
-        action.
-
-        :Call:
-            >>> cntl.SkeletonCase(i, test=False)
+            >>> cntl.ReadDataBook()
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control interface
-            *i*: :class:`int`
-                Case index
-            *test*: ``True`` | {``False``}
-                Log file/folder actions but don't actually delete/copy
+                CAPE run matrix control instance
         :Versions:
-            * 2024-09-18 ``@ddalle``: v1.0
+            * 2016-09-15 ``@ddalle``: v1.0
+            * 2023-05-31 ``@ddalle``: v2.0; universal ``cape.cntl``
         """
-        # Read case runner
-        runner = self.ReadCaseRunner(i)
-        # Run action
-        runner.skeleton(test)
+        # Test if already read
+        if self.DataBook is not None:
+            return
+        # Ensure list of components
+        if comp is not None and not isinstance(comp, list):
+            comp = [comp]
+        # Get DataBook class
+        databookmod = self.__class__._databook_mod
+        # Instantiate class
+        self.DataBook = databookmod.DataBook(self, comp=comp)
+        # Call any custom functions
+        self.ReadDataBookPost()
 
-    # Run ``--clean`` on one case
-    def CleanCase(self, i: int, test: bool = False):
-        r"""Perform ``--clean`` archiving on one case
-
-        There are no restrictions on the status of the case for this
-        action.
+    # Call special post-read DataBook functions
+    def ReadDataBookPost(self):
+        r"""Do ``py{x}`` specific init actions after reading DataBook
 
         :Call:
-            >>> cntl.CleanCase(i, test=False)
+            >>> cntl.ReadDataBookPost()
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control interface
-            *i*: :class:`int`
-                Case index
-            *test*: ``True`` | {``False``}
-                Log file/folder actions but don't actually delete/copy
+                CAPE run matrix control instance
         :Versions:
-            * 2024-09-18 ``@ddalle``: v1.0
+            * 2023-05-31 ``@ddalle``: v1.0
         """
-        # Read case runner
-        runner = self.ReadCaseRunner(i)
-        # Run action
-        runner.clean(test)
-
-    # Unarchive cases
-    def UnarchiveCases(self, **kw):
-        r"""Unarchive a list of cases
-
-        :Call:
-            >>> cntl.UnarchiveCases(**kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control interface
-        :Versions:
-            * 2017-03-13 ``@ddalle``: v1.0
-            * 2023-10-20 ``@ddalle``: v1.1; arbitrary-depth *frun*
-            * 2024-09-20 ``@ddalle``: v2.0; use CaseArchivist
-        """
-        # Test status
-        test = kw.get("test", False)
-        # Loop through the folders
-        for i in self.x.GetIndices(**kw):
-            # Print case name
-            print(self.x.GetFullFolderNames(i))
-            # Create the case folder
-            self.make_case_folder(i)
-            # Read case runner
-            runner = self.ReadCaseRunner(i)
-            # Unarchive!
-            runner.unarchive(test)
+        pass
 
    # --- DataBook Updaters ---
     # Databook updater
@@ -2275,4 +2151,199 @@ class Cntl(CntlBase):
                     # Header
                     print("Checking point sensor '%s/%s'" % (comp, pt))
                     print(txt[:-1])
+
+  # *** FILE MANAGEMENT ***
+   # --- Files ---
+    # Absolutize
+    def abspath(self, fname: str) -> str:
+        # Replace '/' -> '\' on Windows
+        fname_sys = fname.replace('/', os.sep)
+        # Check if absolute
+        if os.path.isabs(fname_sys):
+            # Already absolute
+            return fname_sys
+        else:
+            # Relative to *RootDir*
+            return os.path.join(self.RootDir, fname_sys)
+
+    # Copy files
+    @run_rootdir
+    def copy_files(self, i: int):
+        r"""Copy specified files to case *i* run folder
+
+        :Call:
+            >>> cntl.copy_files(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-03-26 ``@ddalle``: v1.0
+        """
+        # Get list of files to copy
+        files = self.opts.get_CopyFiles()
+        # Check for any
+        if files is None or len(files) == 0:
+            return
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through files
+        for fname in files:
+            # Absolutize
+            fabs = self.abspath(fname)
+            # Get base file name
+            fbase = os.path.basename(fabs)
+            # Destination file
+            fdest = os.path.join(self.RootDir, frun, fbase)
+            # Check for overwrite
+            if os.path.isfile(fdest):
+                print(f"  Replacing file '{fname}'")
+                os.remove(fdest)
+            # Copy file
+            shutil.copy(fabs, fdest)
+
+    # Link files
+    @run_rootdir
+    def link_files(self, i: int):
+        r"""Link specified files to case *i* run folder
+
+        :Call:
+            >>> cntl.link_files(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-03-26 ``@ddalle``: v1.0
+        """
+        # Get list of files to copy
+        files = self.opts.get_LinkFiles()
+        # Check for any
+        if files is None or len(files) == 0:
+            return
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through files
+        for fname in files:
+            # Absolutize
+            fabs = self.abspath(fname)
+            # Get base file name
+            fbase = os.path.basename(fabs)
+            # Destination file
+            fdest = os.path.join(self.RootDir, frun, fbase)
+            # Check for overwrite
+            if os.path.isfile(fdest):
+                raise FileExistsError(f"  Cannot copy '{fname}'; file exists")
+            # Copy file
+            os.symlink(fabs, fdest)
+
+   # --- Archiving ---
+    # Run ``--archive`` on one case
+    def ArchiveCase(self, i: int, test: bool = False):
+        r"""Perform ``--archive`` archiving on one case
+
+        There are no restrictions on the status of the case for this
+        action.
+
+        :Call:
+            >>> cntl.CleanCase(i, test=False)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *i*: :class:`int`
+                Case index
+            *test*: ``True`` | {``False``}
+                Log file/folder actions but don't actually delete/copy
+        :Versions:
+            * 2024-09-18 ``@ddalle``: v1.0
+        """
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Run action
+        runner.archive(test)
+
+    # Run ``--skeleton`` on one case
+    def SkeletonCase(self, i: int, test: bool = False):
+        r"""Perform ``--skeleton`` archiving on one case
+
+        There are no restrictions on the status of the case for this
+        action.
+
+        :Call:
+            >>> cntl.SkeletonCase(i, test=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of control interface
+            *i*: :class:`int`
+                Case index
+            *test*: ``True`` | {``False``}
+                Log file/folder actions but don't actually delete/copy
+        :Versions:
+            * 2024-09-18 ``@ddalle``: v1.0
+        """
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Run action
+        runner.skeleton(test)
+
+    # Run ``--clean`` on one case
+    def CleanCase(self, i: int, test: bool = False):
+        r"""Perform ``--clean`` archiving on one case
+
+        There are no restrictions on the status of the case for this
+        action.
+
+        :Call:
+            >>> cntl.CleanCase(i, test=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of control interface
+            *i*: :class:`int`
+                Case index
+            *test*: ``True`` | {``False``}
+                Log file/folder actions but don't actually delete/copy
+        :Versions:
+            * 2024-09-18 ``@ddalle``: v1.0
+        """
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Run action
+        runner.clean(test)
+
+    # Unarchive cases
+    def UnarchiveCases(self, **kw):
+        r"""Unarchive a list of cases
+
+        :Call:
+            >>> cntl.UnarchiveCases(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of control interface
+        :Versions:
+            * 2017-03-13 ``@ddalle``: v1.0
+            * 2023-10-20 ``@ddalle``: v1.1; arbitrary-depth *frun*
+            * 2024-09-20 ``@ddalle``: v2.0; use CaseArchivist
+        """
+        # Test status
+        test = kw.get("test", False)
+        # Loop through the folders
+        for i in self.x.GetIndices(**kw):
+            # Print case name
+            print(self.x.GetFullFolderNames(i))
+            # Create the case folder
+            self.make_case_folder(i)
+            # Read case runner
+            runner = self.ReadCaseRunner(i)
+            # Unarchive!
+            runner.unarchive(test)
 
