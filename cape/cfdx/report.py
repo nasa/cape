@@ -4630,10 +4630,10 @@ class Report(object):
         if os.path.isdir(frun):
             # Go there.
             os.chdir(frun)
-            # Get the most recent PLT files.
+            # Get the most recent PLT files
             self.LinkVizFiles(sfig=sfig, i=i)
             # Convert VTK -> PLT if appropriate
-            self.covnert_vtk2plt(sfig)
+            self.convert_vtk2plt(sfig)
             # Layout file
             flay = opts.get_SubfigOpt(sfig, "Layout")
             # Full path to layout file
@@ -5738,11 +5738,11 @@ class Report(object):
         pass
 
     # Convert VTK -> PLT
-    def covnert_vtk2plt(self, sfig: str):
+    def convert_vtk2plt(self, sfig: str):
         r"""Convert VTK file(s) to Tecplot(R) PLT format if requested
 
         :Call:
-            >>> rep.LinkVizFiles(sfig, i)
+            >>> rep.convert_vtk2plt(sfig, i)
         :Inputs:
             *rep*: :class:`cape.cfdx.report.Report`
                 Automated report interface
@@ -5764,6 +5764,24 @@ class Report(object):
             if not os.path.isfile(vtkfile):
                 print(f"   Missing VTK file '{vtkfile}'")
                 continue
+            # Check for link
+            if os.path.islink(vtkfile):
+                # Get the real name
+                vtkrealfile = os.path.realpath(vtkfile)
+                # Path to folder containing link
+                vtkdir = os.path.join(os.getcwd(), os.path.dirname(vtkfile))
+                # Relative path for link
+                vtkrelfile = os.path.relpath(vtkrealfile, vtkdir)
+                # Replace VTK link with original file
+                vtkfile = os.path.relpath(vtkrealfile, os.getcwd())
+                # Relative path for PLT link
+                pltrelfile = vtkrelfile.rsplit('.', 1)[0] + ".plt"
+                # Path to PLT link
+                pltlinkfile = vtkfile.rsplit('.', 1)[0] + ".plt"
+                # Pre-create viz link for .plt file
+                if os.path.isfile(pltlinkfile):
+                    os.remove(pltlinkfile)
+                os.symlink(pltrelfile, pltlinkfile)
             # Convert it
             convert_vtk(vtkfile)
 

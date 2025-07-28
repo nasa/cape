@@ -219,6 +219,11 @@ def convert_vtk(fvtk: str, fplt: Optional[str] = None, **kw) -> str:
     # Name of output file
     fbase = fvtk.rsplit('.', 1)[0]
     fplt = f"{fbase}.plt" if fplt is None else fplt
+    # Check for up-to-date file
+    if os.path.isfile(fplt):
+        # Check dates
+        if os.path.getmtime(fplt) >= os.path.getmtime(fvtk):
+            return fplt
     # Read file
     pvmesh = pv.read(fvtk)
     # Convert to gruvoc
