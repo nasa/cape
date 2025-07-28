@@ -297,21 +297,29 @@ class CaseRunner(casecntl.CaseRunner):
         # Check history
         if db.n == 0:
             return False
-        # Read YAML file
-        yamlfile = self.read_runyaml()
-        # Maximum iterations
-        maxiters = yamlfile.get_lava_subopt("nonlinearsolver", "iterations")
-        if db.n >= maxiters:
-            return True
-        # Target convergence
-        l2conv_target = yamlfile.get_lava_subopt("nonlinearsolver", "l2conv")
-        # Apply it
-        if l2conv_target:
-            # Check reported convergence
-            return db.l2conv <= l2conv_target
-        else:
-            # No convergence test
-            return True
+        # Read options
+        rc = self.read_case_json()
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Check which command to generate
+        if solver == "curvilinear":
+            # Read YAML file
+            yamlfile = self.read_runyaml()
+            # Maximum iterations
+            maxiters = yamlfile.get_lava_subopt(
+                "nonlinearsolver", "iterations")
+            if db.n >= maxiters:
+                return True
+            # Target convergence
+            l2conv_target = yamlfile.get_lava_subopt(
+                "nonlinearsolver", "l2conv")
+            # Apply it
+            if l2conv_target:
+                # Check reported convergence
+                return db.l2conv <= l2conv_target
+            else:
+                # No convergence test
+                return False
         # Perform parent check
         q = casecntl.CaseRunner.check_complete(self)
         # Quit if not complete

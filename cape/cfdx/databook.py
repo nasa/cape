@@ -413,7 +413,6 @@ class DataBookComp(DataKit):
   # Read
   # ======
   # <
-
     # Process FM data book columns
     def ProcessColumns(self):
         r"""Process column names
