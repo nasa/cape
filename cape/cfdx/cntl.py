@@ -1205,17 +1205,6 @@ class Cntl(CntlBase):
     # Read the data book
     @run_rootdir
     def ReadDataBook(self, comp: Optional[str] = None) -> databook.DataBook:
-        r"""Read the current data book
-
-        :Call:
-            >>> cntl.ReadDataBook()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-        :Versions:
-            * 2016-09-15 ``@ddalle``: v1.0
-            * 2023-05-31 ``@ddalle``: v2.0; universal ``cape.cntl``
-        """
         # Test if already read
         if self.DataBook is not None:
             return

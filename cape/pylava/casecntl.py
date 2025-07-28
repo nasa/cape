@@ -233,25 +233,28 @@ class CaseRunner(casecntl.CaseRunner):
                 Controller to run one case of solver
         :Versions:
             * 2025-07-25 ``@jmeeroff``: v1.0
+            * 2025-07-28 ``@ddalle``: v1.1; bug for subfolder links
         """
         # Visualization subfolders
-        vizdirs = ['volume', 'isosurface', 'surface']
+        vizdirs = ('volume', 'isosurface', 'surface')
         # Call the archivist for grouping
-        achvst = self.get_archivist()
+        a = self.get_archivist()
         # Loop through viz directories
-        for vdir in vizdirs:
+        for vizdir in vizdirs:
+            # Go to that viz folder
+            os.chdir(self.root_dir)
+            os.chdir(vizdir)
             # Get groups using archivist
-            vgrp = achvst.search_regex(
-                re.escape(vdir)+r"/(.+)\.[0-9]+\.([a-z0-9]+)")
+            vgrp = a.search_regex(r"/(.+)\.[0-9]+\.([a-z0-9]+)")
             # Loop through keys:
             for fnstr in vgrp.keys():
                 # Parse the filename to link to
                 parse = re.findall(r"'(.*?)'", fnstr)
                 # Append the output name and last file
-                fname = f'{vdir}/{parse[0]}.{parse[1]}'
+                fname = f'{parse[0]}.{parse[1]}'
                 fsrc = vgrp[fnstr][-1]
                 # Link the files
-                LinkFromFile(fname, fsrc)
+                self.link_file(fname, fsrc)
 
    # --- Special readers ---
     # Read namelist
@@ -373,44 +376,6 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             # Empty instance
             return DataIterFile(None)
-
-
-# Link best file based on name and glob
-def LinkFromFile(fname, fsrc):
-    r"""Link the most recent file to a generic Tecplot file name
-
-    :Call:
-        >>> casecntl.LinkFromFile(fname, fglb)
-        >>> casecntl.LinkFromFile(fname, fglbs)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of unmarked file, like ``Components.i.plt``
-        *fsrc*: :class:`str`
-            Glob for marked file names
-    :Versions:
-        * 2016-10-24 ``@ddalle``: v1.0
-        * 2023-03-26 ``@ddalle``: v1.1; multiple *fglbs*
-    """
-    # Check for already-existing regular file
-    if os.path.isfile(fname) and not os.path.islink(fname):
-        return
-    # Exit if no matches
-    if fsrc is None:
-        return
-    # Split of leading directory if there
-    fsrci = fsrc.split('/')[-1]
-    # Remove the link if necessary
-    if os.path.islink(fname):
-        # Check if link matches
-        if os.readlink(fname) == fsrci:
-            # Nothing to do
-            return
-        else:
-            # Remove existing link to different file
-            os.remove(fname)
-    # Create the link if possible
-    if os.path.isfile(fsrc):
-        os.symlink(fsrci, fname)
 
 
 # Link best viz files
