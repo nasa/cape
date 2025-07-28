@@ -201,6 +201,26 @@ class CaseRunner(casecntl.CaseRunner):
         return int(db.n + 0.99)
 
    # --- File manipulation ---
+    def prepare_files(self, j: int):
+        r"""Prepare files for phase *j*, LAVA-specific
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2025-07-28 ``@ddalle``: v1.0
+        """
+        # Create post-processing and log folder to ensure permissions
+        self.mkdir("isosurface")
+        self.mkdir("monitor")
+        self.mkdir("restart")
+        self.mkdir("surface")
+        self.mkdir("volume")
+
     # Link best Output files
     @casecntl.run_rootdir
     def link_viz(self):
@@ -391,6 +411,7 @@ def LinkFromFile(fname, fsrc):
     # Create the link if possible
     if os.path.isfile(fsrc):
         os.symlink(fsrci, fname)
+
 
 # Link best viz files
 def LinkViz():

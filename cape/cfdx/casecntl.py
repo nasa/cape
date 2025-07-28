@@ -1410,6 +1410,31 @@ class CaseRunner(CaseRunnerBase):
         # Apply setting
         set_rlimit(r, ulim, u, j, unit)
 
+   # --- Folders ---
+    @run_rootdir
+    def mkdir(self, dirname: str):
+        r"""Create a folder (if needed); set permissions to match root
+
+        :Call:
+            >>> runner.mkdir(dirname)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *dirname*: :class:`str`
+                Name of folder to create and/or modify
+        :Versions:
+            * 2025-07-28 ``@ddalle``: v1.0
+        """
+        # Check if folder exists
+        if not os.path.isdir(dirname):
+            # Create folder
+            os.mkdir(dirname)
+        # Get permissions of parent folder and current subfolder perms
+        p1 = os.stat(self.root_dir).st_mode
+        p2 = os.stat(dirname).st_mode
+        # Match permissions to parent folder
+        os.chmod(dirname, p1 | p2)
+
    # --- File manipulation ---
     # Copy a file
     def copy_file(self, src: str, dst: str, f: bool = False):
