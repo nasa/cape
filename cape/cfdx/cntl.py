@@ -31,6 +31,7 @@ individualized modules are below.
 
 # Standard library modules
 import functools
+import importlib
 import os
 from typing import Any, Optional, Union
 
@@ -48,6 +49,7 @@ from .logger import CntlLogger
 from .options import Options
 from .dex import DataExchanger
 from .runmatrix import RunMatrix
+from ..errors import assert_isinstance
 from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
 
 
@@ -369,7 +371,7 @@ class Cntl(CntlBase):
         #: Job name to check
         self.job = None
         #: :class:`dict`\ [:class:`str`]
-        #: Dictionary of jobs 
+        #: Dictionary of PBS/slurm job IDs
         self.jobs = {}
         #: :class:`list`\ [:class:`str`]
         #: List of queues that have been checked
@@ -404,6 +406,84 @@ class Cntl(CntlBase):
             self.x.nCase)
 
     __str__ = __repr__
+
+  # *** OPTIONS ***
+   # --- Other Init ---
+    def init_post(self):
+        r"""Do ``py{x}`` specific initialization actions
+
+        :Call:
+            >>> cntl.init_post()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2023-05-31 ``@ddalle``: v1.0
+        """
+        pass
+
+  # *** HOOKS ***
+    # Function to import user-specified modules
+    def ImportModules(self):
+        r"""Import user-defined modules if specified in the options
+
+        All modules from the ``"Modules"`` global option of the JSON
+        file (``cntl.opts["Modules"]``) will be imported and saved as
+        attributes of *cntl*.  For example, if the user wants to use a
+        module called :mod:`dac3`, it will be imported as *cntl.dac3*.
+        A noncomprehensive list of disallowed module names is below.
+
+            *DataBook*, *RootDir*, *jobs*, *opts*, *tri*, *x*
+
+        The name of any method of this class is also disallowed.
+        However, if the user wishes to import a module whose name is
+        disallowed, he/she can use a dictionary to specify a different
+        name to import the module as. For example, the user may import a
+        module called :mod:`tri` as :mod:`mytri` using the following
+        JSON syntax.
+
+            .. code-block:: javascript
+
+                "Modules": [{"tri": "mytri"}]
+
+        :Call:
+            >>> cntl.ImportModules()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of Cape control interface
+        :Versions:
+            * 2014-10-08 ``@ddalle``: v1.0 (:mod:`pycart`)
+            * 2015-09-20 ``@ddalle``: v1.0
+            * 2022-04-12 ``@ddalle``: v2.0; use *self.modules*
+        """
+        # Get module soption
+        module_list = self.opts.get("Modules")
+        # Exit if none
+        if not module_list:
+            return
+        # Ensure list
+        assert_isinstance(module_list, list, '"Modules" option')
+        # Loop through modules
+        for module_spec in module_list:
+            # Check for list
+            if isinstance(module_spec, list):
+                # Check length
+                if len(module_spec) != 2:
+                    raise IndexError(
+                        'Expected "list" type in "Modules" to have' +
+                        ('len=2, got %i' % len(module_spec)))
+                # Get the file name and import name separately
+                import_name, as_name = module_spec
+                # Status update
+                print("Importing module '%s' as '%s'" % (import_name, as_name))
+            else:
+                # Import as the default name
+                import_name = module_spec
+                as_name = module_spec
+                # Status update
+                print("Importing module '%s'" % import_name)
+            # Load the module by its name
+            self.modules[as_name] = importlib.import_module(import_name)
 
    # --- Input Readers ---
     # Read the data book

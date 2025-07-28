@@ -232,6 +232,7 @@ class CntlBase(ABC):
     __str__ = __repr__
 
    # --- Other Init ---
+    @abstractmethod
     def init_post(self):
         r"""Do ``py{x}`` specific initialization actions
 
@@ -247,93 +248,14 @@ class CntlBase(ABC):
 
    # --- Hooks & Modules ---
     # Function to import user-specified modules
+    @abstractmethod
     def ImportModules(self):
-        r"""Import user-defined modules if specified in the options
-
-        All modules from the ``"Modules"`` global option of the JSON
-        file (``cntl.opts["Modules"]``) will be imported and saved as
-        attributes of *cntl*.  For example, if the user wants to use a
-        module called :mod:`dac3`, it will be imported as *cntl.dac3*.
-        A noncomprehensive list of disallowed module names is below.
-
-            *DataBook*, *RootDir*, *jobs*, *opts*, *tri*, *x*
-
-        The name of any method of this class is also disallowed.
-        However, if the user wishes to import a module whose name is
-        disallowed, he/she can use a dictionary to specify a different
-        name to import the module as. For example, the user may import a
-        module called :mod:`tri` as :mod:`mytri` using the following
-        JSON syntax.
-
-            .. code-block:: javascript
-
-                "Modules": [{"tri": "mytri"}]
-
-        :Call:
-            >>> cntl.ImportModules()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of Cape control interface
-        :Versions:
-            * 2014-10-08 ``@ddalle``: v1.0 (:mod:`pycart`)
-            * 2015-09-20 ``@ddalle``: v1.0
-            * 2022-04-12 ``@ddalle``: v2.0; use *self.modules*
-        """
-        # Get module soption
-        module_list = self.opts.get("Modules")
-        # Exit if none
-        if not module_list:
-            return
-        # Ensure list
-        assert_isinstance(module_list, list, '"Modules" option')
-        # Loop through modules
-        for module_spec in module_list:
-            # Check for list
-            if isinstance(module_spec, list):
-                # Check length
-                if len(module_spec) != 2:
-                    raise IndexError(
-                        'Expected "list" type in "Modules" to have' +
-                        ('len=2, got %i' % len(module_spec)))
-                # Get the file name and import name separately
-                import_name, as_name = module_spec
-                # Status update
-                print("Importing module '%s' as '%s'" % (import_name, as_name))
-            else:
-                # Import as the default name
-                import_name = module_spec
-                as_name = module_spec
-                # Status update
-                print("Importing module '%s'" % import_name)
-            # Load the module by its name
-            self.modules[as_name] = importlib.import_module(import_name)
+        pass
 
     # Execute a function by spec
+    @abstractmethod
     def exec_cntlfunction(self, funcspec: Union[str, dict]) -> Any:
-        r"""Execute a *Cntl* function, accessing user-specified modules
-
-        :Call:
-            >>> v = cntl.exec_cntlfunction(funcname)
-            >>> v = cntl.exec_cntlfunction(funcspec)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall control interface
-            *funcname*: :class:`str`
-                Name of function to execute, e.g. ``"mymod.myfunc"``
-            *funcspec*: :class:`dict`
-                Function opts parsed by :class:`UserFuncOpts`
-        :Outputs:
-            *v*: **any**
-                Output from execution of function
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
-        # Check type
-        if isinstance(funcspec, dict):
-            return self.exec_cntl_function_dict(funcspec)
-        elif isinstance(funcspec, str):
-            return self.exec_cntlfunction_str(funcspec)
-        # Otherwise bad type
+        pass
 
     # Execute a function by name only
     def exec_cntlfunction_str(self, funcname: str) -> Any:
