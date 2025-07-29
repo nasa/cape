@@ -10180,7 +10180,8 @@ class DataKit(BaseData):
         # Overall tolerance default
         tol = kw.pop("tol", 1e-4)
         # Specific tolerances
-        tols = kw.pop("tols", {})
+        tols = kw.pop("tols", None)
+        tols = {} if tols is None else tols
         # Option for unique matches
         once = kw.pop("once", False)
         # Option for mapped matches
@@ -10349,7 +10350,11 @@ class DataKit(BaseData):
             return I, J
 
     # Match dictionary of conditions
-    def xfind(self, d: dict) -> Optional[int]:
+    def xfind(
+            self,
+            d: dict,
+            tol: float = 1e-4,
+            tols: Optional[dict] = None) -> Optional[int]:
         r"""Find a match based on a :class:`dict` of conditions
 
         :Call:
@@ -10359,6 +10364,10 @@ class DataKit(BaseData):
                 Data container
             *d*: :class:`dict`
                 Dictionary of cols (keys) and values to search for
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
         :Outputs:
             *i*: ``None`` | :class:`int`
                 Index of (first) matching case, if any
@@ -10373,7 +10382,7 @@ class DataKit(BaseData):
             args.append(k)
             x.append(v)
         # Call search
-        mask, _ = self.find(args, *x, once=True)
+        mask, _ = self.find(args, *x, once=True, tol=tol, tols=tols)
         # Return result
         return None if mask.size == 0 else mask[0]
 
@@ -10524,7 +10533,7 @@ class DataKit(BaseData):
         r"""Find cases with matching values using *xcols* as default
 
         :Call:
-            >>> inds = db.xmatch(dbt, maskt, cols=None)
+            >>> inds = db.xmatch(dbt, cols=None)
         :Inputs:
             *db*: :class:`DataKit`
                 Data kit with response surfaces
@@ -10552,6 +10561,43 @@ class DataKit(BaseData):
         tols = {} if tols is None else tols
         # Call parent function
         return self.match(dbt, cols=cols, once=True, tol=tol, tols=tols)
+
+    # Find matches in target under certain assumptions
+    def ximatch(
+            self,
+            dbt: dict,
+            j: int,
+            cols: Optional[list] = None,
+            tol: float = 1e-4,
+            tols: Optional[dict] = None) -> Optional[int]:
+        r"""Find cases with matching values using *xcols* as default
+
+        :Call:
+            >>> i = db.ximatch(dbt, j, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`DataKit`
+                Target data set
+            *cols*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                List of cols to compare (default to *db.xcols*)
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+        :Outputs:
+            *i*: :class:`int` | ``None``
+                Index of case in *db* that matches *dbt[j]*, if any
+        :Versions:
+            * 2025-07-29 ``@ddalle``: v1.0
+        """
+        # Default column list
+        cols = cols if cols else self.xcols
+        cols = cols if cols else self.cols
+        # Form dictionary of conditions to match
+        d = {col: dbt[col][j] for col in cols}
+        # Call parent function
+        return self.xfind(d, tol=tol, tols=tols)
 
    # --- Statistics ---
     # Get coverage

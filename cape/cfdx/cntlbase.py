@@ -1271,6 +1271,24 @@ class CntlBase(ABC):
 
    # --- DataExchanger updates ---
     @abstractmethod
+    def update_dex_comp(self, comp: str, **kw):
+        r"""Update a DataBook component
+
+        :Call:
+            >>> n = cntl.update_dex_comp(comp, **kw)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *comp*: :class:`str`
+                Name of component to read
+            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases to process
+        :Versions:
+            * 2025-07-29 ``@ddalle``: v1.0
+        """
+        pass
+
+    @abstractmethod
     def update_dex_case(self, comp: str, i: int) -> int:
         r"""Update one case of a *DataBook* component
 
@@ -1322,7 +1340,26 @@ class CntlBase(ABC):
         """
         pass
 
-   # --- DataBook Components ---
+   # --- DataBook options ---
+    @abstractmethod
+    def get_databook_comp_nmin(self, comp: str) -> int:
+        r"""Calculate the min iterations required for a DataBook comp
+
+        :Call:
+            >>> n = cntl.get_databook_comp_nmin(comp)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-07-29 ``@ddalle``: v1.0
+        """
+        pass
+
     @abstractmethod
     def get_transformation_matrix(
             self, topts: dict, i: int) -> Optional[np.ndarray]:

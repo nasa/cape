@@ -2203,6 +2203,40 @@ class CaseRunner(CaseRunnerBase):
         return triqfiles[-1], None, None, None
 
   # === DataBook ===
+   # --- Sampling ---
+    def sample_dex(self, comp: str) -> dict:
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Check for custom sampling function
+        samplefunc = getattr(self, f"sample_dex_{typ}", None)
+        # Check if found
+        if samplefunc is None:
+            # Read the raw data (e.g. iterative history)
+            db = self.read_dex(comp)
+            # Use it (no sampling necessary)
+            return db
+        else:
+            # Call sample
+            return samplefunc(comp)
+
+    def sample_dex_fm(self, comp: str) -> dict:
+        r"""Sample a force & moment iterative history
+
+        :Call:
+            >>> d = runner.sample_dex_fm(comp)
+        :Versions:
+            * 2025-07-29 ``@ddalle``: v1.0
+        """
+        # Read the raw data (e.g. iterative history)
+        fm = self.read_dex(comp)
+        # Get run matrix instance
+        cntl = self.read_cntl()
+        # Get relevant options
+        na = cntl.opts.get_DataBookOpt(comp, "NStats")
+        nb = cntl.opts.get_DataBookOpt(comp, "NMaxStats")
+        # Sample
+        return fm.GetStats(na, nb)
+
    # --- Readers ---
     def read_dex(self, comp: str) -> DataKit:
         r"""Read a data component

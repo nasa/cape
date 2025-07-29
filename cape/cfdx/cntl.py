@@ -64,6 +64,7 @@ from .options.runctlopts import RunControlOpts
 from .report import Report
 from .runmatrix import RunMatrix
 from ..argread import ArgReader
+from ..argread.clitext import compile_rst
 from ..config import ConfigXML, ConfigJSON
 from ..errors import assert_isinstance
 from ..optdict import WARNMODE_WARN
@@ -3373,6 +3374,10 @@ class Cntl(CntlBase):
    # --- DataExchanger updates ---
     # Update one component, several cases
     def update_dex_comp(self, comp: str, **kw):
+        # Get component type
+        typ = self.opts.get_DataBookType(comp)
+        # Status update
+        print(compile_rst(f"**{comp}** (type=*{typ}*)"))
         # Get indices
         inds = self.x.GetIndices(**kw)
         # Loop through inds
@@ -3398,9 +3403,48 @@ class Cntl(CntlBase):
     def update_dex_case(self, comp: str, i: int) -> int:
         # Read data
         db = self.read_dex(comp)
+        # Get name of folder
+        frun = self.x.GetFullFolderNames(i)
+        # Status update
+        print(frun)
+        # Check for folder
+        if not os.path.isdir(os.path.join(self.RootDir, frun)):
+            return 0
         # Read case runner
         runner = self.ReadCaseRunner(i)
-        # Sample status
+        # Check iterations
+        ni = runner.get_dex_iter(comp)
+        # Calculate number of iterations required
+        nmin = self.get_databook_comp_nmin(comp)
+        # Check if out of date
+        if ni < nmin:
+            print(f"  Not enough iterations ({ni} < {nmin})")
+            return 0
+        # Search for case *i* in DataBook
+        j = db.ximatch(self.x, i)
+        # If match found; check status column
+        if j is not None:
+            # Existing iterations
+            nj = db.get_values("nIter", j)
+            # Check if out of date
+            if nj is None:
+                # No status; no updates
+                print("  In databook; nIter=None; no update")
+                return 0
+            if nj == ni:
+                print("  Up-to-date")
+                return 0
+            # Otherwise update
+            print(f"  Updating iteration: {nj} -> {ni}")
+        else:
+            # New case
+            print(f"  New entry at iteration {ni}")
+        # Sample the data
+        d = runner.sample_dex(comp)
+        # Save it to the data
+        db.xappend(d)
+        # Return counter
+        return 1
 
    # --- DataBook init ---
     # Read the data book
@@ -3424,6 +3468,26 @@ class Cntl(CntlBase):
         pass
 
    # --- DataBook options ---
+    def get_databook_comp_nmin(self, comp: str) -> int:
+        # Get component options
+        nmin = self.opts.get_DataBookOpt(comp, "NMin")
+        nmax = self.opts.get_DataBookOpt(comp, "NLastStats")
+        na = self.opts.get_DataBookOpt(comp, "NStats")
+        # Convert None -> int defaults
+        mmin = 0 if nmin is None else nmin
+        mmax = 0 if nmax is None else nmax
+        ma = 1 if na is None else na
+        # Check for a specified iteration
+        if nmax is None:
+            # Normal case; use most recent iteration
+            return mmin + ma
+        elif mmax > 0:
+            # Specified iteration given
+            return mmax
+        else:
+            # Negative iterations; relative to end of iterative history
+            return mmin + ma - mmax
+
     def get_transformation_matrix(
             self, topts: dict, i: int) -> Optional[np.ndarray]:
         # Get the transformation type
