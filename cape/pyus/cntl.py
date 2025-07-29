@@ -98,7 +98,7 @@ class Cntl(cntl.Cntl):
   # ================
   # <
     # Case module
-    _case_mod = casecntl
+    _case_cls = casecntl.CaseRunner
     # Options class
     _opts_cls = options.Options
     # Other options

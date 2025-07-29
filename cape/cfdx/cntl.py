@@ -51,7 +51,6 @@ import numpy as np
 from . import casecntl
 from . import databook
 from . import queue
-from . import report
 from .. import console
 from .. import convert
 from .. import textutils
@@ -62,6 +61,7 @@ from .logger import CntlLogger
 from .options import Options
 from .options.funcopts import UserFuncOpts
 from .options.runctlopts import RunControlOpts
+from .report import Report
 from .runmatrix import RunMatrix
 from ..argread import ArgReader
 from ..config import ConfigXML, ConfigJSON
@@ -327,12 +327,11 @@ class Cntl(CntlBase):
             Instance of CAPE control interface
     :Class attributes:
         * :attr:`_case_cls`
-        * :attr:`_case_mod`
         * :attr:`_databook_mod`
         * :attr:`_fjson_default`
         * :attr:`_name`
         * :attr:`_opts_cls`
-        * :attr:`_report_mod`
+        * :attr:`_report_cls`
         * :attr:`_solver`
         * :attr:`_warnmode_default`
         * :attr:`_warnmode_envvar`
@@ -366,14 +365,11 @@ class Cntl(CntlBase):
     _solver = "cfdx"
 
    # --- Specific modules ---
-    #: Module for case control
-    _case_mod = casecntl
-
     #: Solver-specific module for DataBook
     _databook_mod = databook
 
     #: Solver-specific module for automated reports
-    _report_mod = report
+    _report_cls = Report
 
    # --- Specific  classes ---
     #: Solver-specific class for running cases
@@ -3350,9 +3346,9 @@ class Cntl(CntlBase):
   # *** REPORTING ***
     # Read report
     @run_rootdir
-    def ReadReport(self, rep: str) -> report.Report:
+    def ReadReport(self, rep: str) -> Report:
         # Read the report
-        rep = self.__class__._report_mod.Report(self, rep)
+        rep = self.__class__._report_cls(self, rep)
         # Output
         return rep
 

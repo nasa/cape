@@ -98,11 +98,10 @@ class Cntl(capecntl.Cntl):
   # === Class Attributes ===
     _name = "pylava"
     _solver = "lava"
-    _case_mod = casecntl
     _databook_mod = databook
     _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
-    _report_mod = report
+    _report_cls = report.Report
     _fjson_default = "pyLava.json"
     _tri_ext = "fro"
     yaml_default = "run_default.yaml"

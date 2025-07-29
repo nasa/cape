@@ -20,7 +20,6 @@ from typing import Any, Callable, Optional, Union
 import numpy as np
 
 # Local imports
-from . import casecntlbase
 from . import databookbase
 from . import queue
 from .casecntlbase import CaseRunnerBase
@@ -36,10 +35,9 @@ class CntlBase(ABC):
   # *** CLASS ATTRIBUTES ***
     _name = "cfdx"
     _solver = "cfdx"
-    _case_mod = casecntlbase
     _databook_mod = databookbase
     _report_mod = None
-    _case_cls = None
+    _case_cls = CaseRunnerBase
     _opts_cls = None
     _fjson_default = None
     _warnmode_default = None

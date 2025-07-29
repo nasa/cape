@@ -102,9 +102,8 @@ class Cntl(capecntl.Cntl):
     # Names
     _solver = "cart3d"
     # Hooks to py{x} specific modules
-    _case_mod = casecntl
     _databook_mod = databook
-    _report_mod = report
+    _report_cls = report.Report
     # Hooks to py{x} specific classes
     _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options

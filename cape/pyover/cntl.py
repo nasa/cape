@@ -105,9 +105,8 @@ class Cntl(capecntl.Cntl):
     # Names
     _solver = "overflow"
     # Hooks to py{x} specific modules
-    _case_mod = casecntl
     _databook_mod = databook
-    _report_mod = report
+    _report_cls = report.Report
     # Options class
     _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
