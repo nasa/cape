@@ -1247,6 +1247,50 @@ class CntlBase(ABC):
         pass
 
   # *** DATA EXTRACTION ***
+   # --- Data Exchange ---
+    @abstractmethod
+    def read_dex(self, comp: str, force: bool = False):
+        r"""Read a *DataBook* component using :class:`DataExchanger`
+
+        :Call:
+            >>> db = cntl.read_dex(comp, force=False)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *comp*: :class:`str`
+                Name of component to read
+            *force*: ``True`` | {``False``}
+                Option to re-read even if present in database
+        :Outputs:
+            *db*: :class:`cape.cfdx.dex.DataExchanger`
+                Data extracted from run matrix for comp *comp*
+        :Versions:
+            * 2025-07-25 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- DataExchanger updates ---
+    @abstractmethod
+    def update_dex_case(self, comp: str, i: int) -> int:
+        r"""Update one case of a *DataBook* component
+
+        :Call:
+            >>> n = cntl.update_dex_case(comp, i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *comp*: :class:`str`
+                Name of component to read
+            *i*: :class:`int`
+                Case to index
+        :Outputs:
+            *n*: ``0`` | ``1``
+                Number of updates made
+        :Versions:
+            * 2025-07-25 ``@ddalle``: v1.0
+        """
+        pass
+
    # --- DataBook ---
     @abstractmethod
     def ReadDataBook(self, comp: Optional[str] = None):

@@ -9110,41 +9110,54 @@ class DataKit(BaseData):
         return np.lexsort(sort_args)
 
    # --- Delete ---
-    def delete(self, mask: np.ndarray, cols: Optional[list] = None):
+    def delete(self, mask: np.ndarray, cols: Optional[list] = None) -> int:
         r"""Delete one or more cases from DataKit
 
         :Call:
-            >>> db.delete(mask, cols=None)
+            >>> n = db.delete(mask, cols=None)
         :Inputs:
             *db*: :class:`DataKit`
                 Data container
             *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
                 Array of indices to delete
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases deleted
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
+            * 2025-07-29 ``@ddalle``: v1.1; add *n* output
         """
         # Default column list
         cols = self.cols if cols is None else cols
+        # Count number of cases
+        n = 0
         # Delete from each
         for col in cols:
             try:
-                self.delete_col(col, mask)
+                nj = self.delete_col(col, mask)
+                n = max(n, nj)
             except IndexError:
                 print(
                     f"  Cannot delete from col '{col}' due to size mismatch")
+        # Return number of deletions
+        return n
 
-    def delete_col(self, col: str, mask: np.ndarray):
+    def delete_col(self, col: str, mask: np.ndarray) -> int:
         r"""Delete data from one column
 
         :Call:
-            >>> db.delete_col(col, mask)
+            >>> n = db.delete_col(col, mask)
         :Inputs:
             *db*: :class:`DataKit`
                 Data container
             *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
                 Array of indices to delete
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases deleted
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
+            * 2025-07-29 ``@ddalle``: v1.1; add *n* output
         """
         # Get data
         u = self.get_all_values(col)

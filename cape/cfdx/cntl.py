@@ -3354,44 +3354,8 @@ class Cntl(CntlBase):
 
   # *** DATA EXTRACTION ***
    # --- Data Exchange ---
-    def update_dex_case(self, comp: str, i: int) -> int:
-        r"""Update one case of a *DataBook* component
-
-        :Call:
-            >>> n = cntl.update_dex_case(comp, i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE run matrix controller instance
-            *comp*: :class:`str`
-                Name of component to read
-            *i*: :class:`int`
-                Case to index
-        :Outputs:
-            *n*: ``0`` | ``1``
-                Number of updates made
-        :Versions:
-            * 2025-07-25 ``@ddalle``: v1.0
-        """
-        ...
-
+    # Read DataExchanger component
     def read_dex(self, comp: str, force: bool = False) -> DataExchanger:
-        r"""Read a *DataBook* component using :class:`DataExchanger`
-
-        :Call:
-            >>> db = cntl.read_dex(comp, force=False)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE run matrix controller instance
-            *comp*: :class:`str`
-                Name of component to read
-            *force*: ``True`` | {``False``}
-                Option to re-read even if present in database
-        :Outputs:
-            *db*: :class:`DataExchanger`
-                Data extracted from run matrix for comp *comp*
-        :Versions:
-            * 2025-07-25 ``@ddalle``: v1.0
-        """
         # Get data dictionary
         dex = self.data
         dex = {} if self.data is None else dex
@@ -3406,7 +3370,39 @@ class Cntl(CntlBase):
         # Output
         return db
 
-   # --- DataBook Init ---
+   # --- DataExchanger updates ---
+    # Update one component, several cases
+    def update_dex_comp(self, comp: str, **kw):
+        # Get indices
+        inds = self.x.GetIndices(**kw)
+        # Loop through inds
+        if kw.get("delete", False):
+            # Read databook comp
+            db = self.read_dex(comp)
+            # Delete cases
+            n = db.delete(inds)
+        else:
+            # Count cases updated
+            n = 0
+            # Loop through cases
+            for i in inds:
+                # Update DEx, check result
+                ni = self.update_dex_case(comp, i)
+                # Update counter
+                n += ni
+        # Write updated databook
+        if n:
+            db.write()
+
+    # Update one case of one component
+    def update_dex_case(self, comp: str, i: int) -> int:
+        # Read data
+        db = self.read_dex(comp)
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Sample status
+
+   # --- DataBook init ---
     # Read the data book
     @run_rootdir
     def ReadDataBook(self, comp: Optional[str] = None) -> databook.DataBook:
@@ -3427,7 +3423,7 @@ class Cntl(CntlBase):
     def ReadDataBookPost(self):
         pass
 
-   # --- DataBook Components ---
+   # --- DataBook options ---
     def get_transformation_matrix(
             self, topts: dict, i: int) -> Optional[np.ndarray]:
         # Get the transformation type
@@ -3490,7 +3486,7 @@ class Cntl(CntlBase):
         elif ttype == "Euler123":
             return np.dot(R3, np.dot(R2, R1))
 
-   # --- DataBook Updaters ---
+   # --- DataBook updaters ---
     # Databook updater
     @run_rootdir
     def UpdateFM(self, **kw):
