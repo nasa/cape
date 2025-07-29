@@ -25,13 +25,11 @@ import numpy as np
 from . import casecntlbase
 from . import databookbase
 from . import queue
-from .. import convert
 from .casecntlbase import CaseRunnerBase
 from .options.runctlopts import RunControlOpts
 from .logger import CntlLogger
 from ..config import ConfigXML, ConfigJSON
 from ..optdict import WARNMODE_WARN
-from ..geom import RotatePoints
 
 
 # Constants
@@ -770,6 +768,48 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Hooks ---
+    # Apply a special triangulation function
+    @abstractmethod
+    def PrepareTriFunction(self, key: str, i: int):
+        r"""Apply special surf modification function for a case
+
+        :Call:
+            >>> cntl.PrepareTriFunction(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of key
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: v1.0
+            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
+            * 2022-04-13 ``@ddalle``: v2.0; exec_modfunction()
+        """
+        pass
+
+    # Apply a special configuration function
+    @abstractmethod
+    def PrepareConfigFunction(self, key: str, i: int):
+        r"""Apply special configuration modification function for a case
+
+        :Call:
+            >>> cntl.PrepareConfigFunction(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of key
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2016-08-23 ``@ddalle``: v1.0
+            * 2022-04-13 ``@ddalle``: v2.0; exec_modfunction()
+        """
+        pass
+
    # --- Mesh ---
     @abstractmethod
     def PrepareMesh(self, i: int):
@@ -984,6 +1024,65 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Surface: manipulation ---
+    # Function to apply special triangulation modification keys
+    @abstractmethod
+    def PrepareTri(self, i: int):
+        r"""Rotate/translate/etc. triangulation for given case
+
+        :Call:
+            >>> cntl.PrepareTri(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014-12-01 ``@ddalle``: v1.0
+            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
+        """
+        pass
+
+    # Apply a triangulation translation
+    @abstractmethod
+    def PrepareTriTranslation(self, key: str, i: int):
+        r"""Apply a translation to a component or components
+
+        :Call:
+            >>> cntl.PrepareTriTranslation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Run matrix key for translation def'n
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: v1.0
+            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
+        """
+        pass
+
+    # Apply a triangulation rotation
+    @abstractmethod
+    def PrepareTriRotation(self, key: str, i: int):
+        r"""Apply a rotation to a component or components
+
+        :Call:
+            >>> cntl.PrepareTriRotation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Run matrix for rotation defn'
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: v1.0
+            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
+        """
+        pass
+
    # --- Surface: config ---
     # Function to apply transformations to config
     @abstractmethod
@@ -1021,6 +1120,213 @@ class CntlBase(ABC):
         """
         pass
 
+    # Apply a config.xml translation
+    @abstractmethod
+    def PrepareConfigTranslation(self, key: str, i: int):
+        r"""Apply a translation to a component or components
+
+        :Call:
+            >>> cntl.PrepareConfigTranslation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of variable from which to get value
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2016-08-23 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Apply a configuration rotation
+    @abstractmethod
+    def PrepareConfigRotation(self, key: str, i: int):
+        r"""Apply a rotation to a component or components
+
+        :Call:
+            >>> cntl.PrepareConfigRotation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of the trajectory key
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2016-08-23 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Geometry: points ---
+    # Evaluate "Points" positions w/o preparing tri or config
+    @abstractmethod
+    def PreparePoints(self, i: int):
+        r"""Calculate the value of each named ``"Point"`` for case *i*
+
+        :Call:
+            >>> x = cntl.PreparePoints(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2022-03-07 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Apply a translation to "Points"
+    @abstractmethod
+    def PreparePointsTranslation(self, key: str, i: int):
+        r"""Apply a translation to named config points for one col
+
+        :Call:
+            >>> cntl.PreparePointsTranslation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of the trajectory key
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2022-03-07 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Apply a configuration rotation
+    @abstractmethod
+    def PreparePointsRotation(self, key: str, i: int):
+        r"""Apply a rotation to named config points for one col
+
+        :Call:
+            >>> cntl.PreparePointsRotation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of the trajectory key
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2022-03-07 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Thrust Preparation ---
+    # Get exit area for SurfCT boundary condition
+    @abstractmethod
+    def GetSurfCT_ExitArea(
+            self,
+            key: str,
+            i: int,
+            comp: Optional[str] = None) -> float:
+        r"""Get exit area for a *CT* trajectory key
+
+        This can use either the area ratio (if available) or calculate from the
+        exit Mach number.  The input area is determined from the component ID.
+        If using the exit Mach number *M2*, the input Mach number *M1* is also
+        needed.  The relationship between area ratio and exit Mach is given
+        below.
+
+            .. math::
+
+                \\frac{A_2}{A_1} = \\frac{M_1}{M_2}\\left(
+                    \\frac{1+\\frac{\\gamma-1}{2}M_2^2}{
+                    1+\\frac{\\gamma-1}{2}M_1^2}
+                \\right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
+
+        :Call:
+            >>> A2 = cntl.GetSurfCT_ExitArea(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of trajectory key to check
+            *i*: :class:`int`
+                Case number
+            *comp*: {``None``} | :class:`str`
+                Name of component for which to get BCs
+        :Outputs:
+            *A2*: :class:`list` (:class:`float`)
+                Exit area for each component referenced by this key
+        :Versions:
+            * 2016-04-13 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Get exit Mach number for SurfCT boundary condition
+    @abstractmethod
+    def GetSurfCT_ExitMach(
+            self,
+            key: str,
+            i: int,
+            comp: Optional[str] = None) -> float:
+        r"""Get exit Mach number for a *CT* trajectory key
+
+        This can use either the ``"ExitMach"`` parameter (if available)
+        or calculate from the area ratio.  If using the area ratio, the
+        input Mach number is also needed.  The relationship between area
+        ratio and exit Mach is given below.
+
+            .. math::
+
+                \frac{A_2}{A_1} = \frac{M_1}{M_2}\left(
+                    \frac{1+\frac{\gamma-1}{2}M_2^2}{
+                    1+\frac{\gamma-1}{2}M_1^2}
+                \right) ^ {\frac{1}{2}\frac{\gamma+1}{\gamma-1}}
+
+        :Call:
+            >>> M2 = cntl.GetSurfCT_ExitMach(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of trajectory key to check
+            *i*: :class:`int`
+                Case number
+            *comp*: {``None``} | :class:`str`
+                Name of component for which to get BCs
+        :Outputs:
+            *M2*: :class:`float`
+                Exit Mach number
+        :Versions:
+            * 2016-04-13 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Reference area
+    @abstractmethod
+    def GetSurfCT_RefArea(self, key: str, i: int) -> float:
+        r"""Get reference area for surface *CT* trajectory key
+
+        This references the ``"RefArea"`` parameter of the definition
+        for the run matrix variable *key*.  The user should set this
+        parameter to ``1.0`` if thrust inputs are given as dimensional
+        values.
+
+        If this is ``None``, it returns the global reference area; if it
+        is a string the reference area comes from the reference area for
+        that component using ``cntl.opts.get_RefArea(comp)``.
+
+        :Call:
+            >>> Aref = cntl.GetSurfCT_RefArea(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *key*: :class:`str`
+                Name of trajectory key to check
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *Aref*: :class:`float`
+                Reference area for normalizing thrust coefficients
+        :Versions:
+            * 2016-04-13 ``@ddalle``: v1.0
+        """
+        pass
+
   # *** REPORTING ***
     @abstractmethod
     def ReadReport(self, rep: str):
@@ -1055,6 +1361,44 @@ class CntlBase(ABC):
         :Versions:
             * 2016-09-15 ``@ddalle``: v1.0
             * 2023-05-31 ``@ddalle``: v2.0; universal ``cape.cntl``
+        """
+        pass
+
+    # Call special post-read DataBook functions
+    @abstractmethod
+    def ReadDataBookPost(self):
+        r"""Do ``py{x}`` specific init actions after reading DataBook
+
+        :Call:
+            >>> cntl.ReadDataBookPost()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2023-05-31 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- DataBook Components ---
+    @abstractmethod
+    def get_transformation_matrix(
+            self, topts: dict, i: int) -> Optional[np.ndarray]:
+        r"""Calculate rotation matrix for a databook transformation
+
+        :Call:
+            >>> mat = cntl.get_transformation_matrix(topts, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *topts*: :class:`dict`
+                Definitions for transformation
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *mat*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
+                Rotation matrix if *topts* is a rotation
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
         """
         pass
 
@@ -2456,1039 +2800,6 @@ class CntlBase(ABC):
             * 2025-04-30 ``@ddalle``
         """
         pass
-
-  # *** REMAINING ***
-
-   # --- Case Preparation ---
-
-
-   # --- Geometry "Points" ---
-    # Evaluate "Points" positions w/o preparing tri or config
-    def PreparePoints(self, i):
-        r"""Calculate the value of each named ``"Point"`` for case *i*
-
-        :Call:
-            >>> x = cntl.PreparePoints(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-                Index of the case to check (0-based)
-        :Versions:
-            * 2022-03-07 ``@ddalle``: v1.0
-        """
-        # Reset points
-        self.opts.reset_Points()
-        # Loop through run matrix variables
-        for key in self.x.cols:
-            # Get type
-            ktyp = self.x.defns[key].get("Type")
-            # Check type
-            if ktyp in ("rotation", "rotate"):
-                self.PreparePointsRotation(key, i)
-            elif ktyp in ("translation", "translate"):
-                self.PreparePointsTranslation(key, i)
-
-    # Apply a translation to "Points"
-    def PreparePointsTranslation(self, key, i):
-        r"""Apply a translation to named config points for one col
-
-        :Call:
-            >>> cntl.PreparePointsTranslation(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *key*: :class:`str`
-                Name of the trajectory key
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2022-03-07 ``@ddalle``: v1.0
-        """
-        # Get the options for this key.
-        kopts = self.x.defns[key]
-        # Check for a direction
-        if 'Vector' not in kopts:
-            raise KeyError(
-                "Translation key '%s' does not have a 'Vector'." % key)
-        # Get the direction and its type
-        vec = kopts['Vector']
-        # Get points to translate along with it.
-        pts  = kopts.get('Points', [])
-        ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists
-        if not isinstance(pts, list):
-            pts = [pts]
-        if not isinstance(ptsR, list):
-            ptsR = [ptsR]
-        # Check the type
-        if isinstance(vec, (list, np.ndarray)):
-            # Specified directly.
-            u = np.array(vec)
-        else:
-            # Named vector
-            u = np.array(self.opts.get_Point(vec))
-        # Form the translation vector
-        v = u * self.x[key][i]
-        # Loop through translation points.
-        for pt in pts:
-            # Get point
-            x = self.opts.get_Point(pt)
-            # Apply transformation.
-            self.opts.set_Point(x+v, pt)
-        # Loop through translation points.
-        for pt in ptsR:
-            # Get point
-            x = self.opts.get_Point(pt)
-            # Apply transformation.
-            self.opts.set_Point(x-v, pt)
-
-    # Apply a configuration rotation
-    def PreparePointsRotation(self, key, i):
-        r"""Apply a rotation to named config points for one col
-
-        :Call:
-            >>> cntl.PreparePointsRotation(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *key*: :class:`str`
-                Name of the trajectory key
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2022-03-07 ``@ddalle``: v1.0
-        """
-        # ---------------
-        # Read the inputs
-        # ---------------
-        # Get the options for this key.
-        kopts = self.x.defns[key]
-        # Rotation angle
-        theta = self.x[key][i]
-        # Get the components to rotate.
-        comps = kopts.get('CompID', [])
-        # Components to rotate in opposite direction
-        compsR = kopts.get('CompIDSymmetric', [])
-        # Get the components to translate based on a lever armg
-        compsT  = kopts.get('CompIDTranslate', [])
-        compsTR = kopts.get('CompIDTranslateSymmetric', [])
-        # Ensure list
-        if not isinstance(comps, list):
-            comps = [comps]
-        if not isinstance(compsR, list):
-            compsR = [compsR]
-        if not isinstance(compsT, list):
-            compsT = [compsT]
-        if not isinstance(compsTR, list):
-            compsTR = [compsTR]
-        # Symmetry applied to rotation vector.
-        kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
-        kx = kopts.get('AxisSymmetry',   kv)
-        kc = kopts.get('CenterSymmetry', kx)
-        ka = kopts.get('AngleSymmetry', -1.0)
-        # Convert symmetries: list -> numpy.ndarray
-        if isinstance(kv, list):
-            kv = np.array(kv)
-        if isinstance(kx, list):
-            kx = np.array(kx)
-        if isinstance(kc, list):
-            kc = np.array(kc)
-        # Get the reference points for translations based on this rotation
-        xT  = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
-        # Get scale for translated points
-        kt = kopts.get('TranslateScale', np.ones(3))
-        # Ensure vector
-        if isinstance(kt, list):
-            kt = np.array(kt)
-        # Get vector
-        vec = kopts.get('Vector')
-        ax  = kopts.get('Axis')
-        cen = kopts.get('Center')
-        # Get points to translate along with it.
-        pts  = kopts.get('Points', [])
-        ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists
-        if not isinstance(pts, list):
-            pts = [pts]
-        if not isinstance(ptsR, list):
-            ptsR = [ptsR]
-        # ---------------------------
-        # Process the rotation vector
-        # ---------------------------
-        # Check for an axis and center
-        if vec is not None:
-            # Check type
-            if len(vec) != 2:
-                raise KeyError(
-                    "Rotation key '%s' vector must be exactly two points."
-                    % key)
-            # Get start and end points of rotation vector.
-            v0 = np.array(self.opts.get_Point(vec[0]))
-            v1 = np.array(self.opts.get_Point(vec[1]))
-            # Convert to axis and center
-            cen = v0
-            ax  = v1 - v0
-        else:
-            # Get default axis if necessary
-            if ax is None:
-                ax = [0.0, 1.0, 0.0]
-            # Get default center if necessary
-            if cen is None:
-                cen = [0.0, 0.0, 0.0]
-            # Convert points
-            cen = np.array(self.opts.get_Point(cen))
-            ax  = np.array(self.opts.get_Point(ax))
-        # Symmetry rotation vectors.
-        axR  = kx*ax
-        cenR = kc*cen
-        # Form vectors
-        v0 = cen
-        v1 = ax + cen
-        v0R = cenR
-        v1R = axR + cenR
-        # Ensure a dictionary for reference points
-        if not isinstance(xT, dict):
-            # Initialize dict (can't use an iterator to do this in old Python)
-            yT = {}
-            # Loop through components affected by this translation
-            for comp in compsT+compsTR:
-                yT[comp] = xT
-            # Move the variable name
-            xT = yT
-        # Create full dictionary
-        for comp in compsT+compsTR:
-            # Get ref point for this component
-            pt = xT.get(comp, xT.get('def', [0.0, 0.0, 0.0]))
-            # Save it as a dimensionalized point
-            xT[comp] = np.array(self.opts.get_Point(pt))
-        # ---------------------
-        # Apply transformations
-        # ---------------------
-        # Points to be rotated
-        X  = np.array([self.opts.get_Point(pt) for pt in pts])
-        XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
-        # Apply transformation
-        Y  = RotatePoints(X,  v0,  v1,  theta)
-        YR = RotatePoints(XR, v0R, v1R, ka*theta)
-        # Save the points.
-        for j in range(len(pts)):
-            # Set the new value.
-            self.opts.set_Point(Y[j], pts[j])
-        # Save the symmetric points.
-        for j in range(len(ptsR)):
-            # Set the new value.
-            self.opts.set_Point(YR[j], ptsR[j])
-
-   # --- Geometry Prep ---
-    # Function to apply special triangulation modification keys
-    def PrepareTri(self, i):
-        r"""Rotate/translate/etc. triangulation for given case
-
-        :Call:
-            >>> cntl.PrepareTri(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2014-12-01 ``@ddalle``: v1.0
-            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
-        """
-        # Special key types
-        tri_types = [
-            "TriFunction",
-            "TriRotate",
-            "TriTranslate",
-            "translation",
-            "rotation",
-        ]
-        # Get function for rotations, etc.
-        keys = self.x.GetKeysByType(tri_types)
-        # Reset reference points
-        self.opts.reset_Points()
-        # Loop through keys.
-        for key in keys:
-            # Type
-            kt = self.x.defns[key]['Type']
-            # Filter on which type of triangulation modification it is.
-            if kt == "TriFunction":
-                # Special triangulation function
-                self.PrepareTriFunction(key, i)
-            elif kt in ("TriTranslate", "translation"):
-                # Component(s) translation
-                self.PrepareTriTranslation(key, i)
-            elif kt in ("TriRotate", "rotation"):
-                # Component(s) rotation
-                self.PrepareTriRotation(key, i)
-
-    # Apply a special triangulation function
-    def PrepareTriFunction(self, key, i):
-        r"""Apply special surf modification function for a case
-
-        :Call:
-            >>> cntl.PrepareTriFunction(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *key*: :class:`str`
-                Name of key
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2015-09-11 ``@ddalle``: v1.0
-            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
-            * 2022-04-13 ``@ddalle``: v2.0; exec_modfunction()
-        """
-        # Get the function for this *TriFunction*
-        func = self.x.defns[key]['Function']
-        # Form args and kwargs
-        a = (self, self.x[key][i])
-        kw = dict(i=i)
-        # Apply it
-        self.exec_modfunction(func, a, kw, name="TriFunction")
-
-    # Apply a special configuration function
-    def PrepareConfigFunction(self, key, i):
-        r"""Apply special configuration modification function for a case
-
-        :Call:
-            >>> cntl.PrepareConfigFunction(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *key*: :class:`str`
-                Name of key
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2016-08-23 ``@ddalle``: v1.0
-            * 2022-04-13 ``@ddalle``: v2.0; exec_modfunction()
-        """
-        # Get the function for this *ConfigFunction*
-        func = self.x.defns[key]['Function']
-        # Form args and kwargs
-        a = (self, self.x[key][i])
-        kw = dict(i=i)
-        # Apply it
-        self.exec_modfunction(func, a, kw, name="ConfigFunction")
-
-    # Apply a triangulation translation
-    def PrepareTriTranslation(self, key, i):
-        r"""Apply a translation to a component or components
-
-        :Call:
-            >>> cntl.PrepareTriTranslation(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2015-09-11 ``@ddalle``: v1.0
-            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
-        """
-        # Get the options for this key.
-        kopts = self.x.defns[key]
-        # Get the components to translate.
-        compID  = self.tri.GetCompID(kopts.get('CompID'), warn=True)
-        # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(
-            kopts.get('CompIDSymmetric', []), warn=True)
-        # Check for a direction
-        if 'Vector' not in kopts:
-            raise IOError(
-                "Rotation key '%s' does not have a 'Vector'." % key)
-        # Get the direction and its type
-        vec = kopts['Vector']
-        # Get points to translate along with it.
-        pts  = kopts.get('Points', [])
-        ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists.
-        if not isinstance(pts, list):
-            pts  = list(pts)
-        if not isinstance(ptsR, list):
-            ptsR = list(ptsR)
-        # Check the type
-        if isinstance(vec, (list, np.ndarray)) and len(vec) == 2:
-            # Vector b/w two points
-            u0 = self.opts.get_Point(vec[0])
-            u1 = self.opts.get_Point(vec[1])
-            u = np.array(u1) - np.array(u0)
-        else:
-            # Named vector or already vector
-            u = np.array(self.opts.get_Point(vec))
-        # Form the translation vector
-        v = u * self.x[key][i]
-        # Translate the triangulation
-        self.tri.Translate(v, compID=compID)
-        self.tri.Translate(-v, compID=compIDR)
-        # Loop through translation points.
-        for pt in pts:
-            # Get point
-            x = self.opts.get_Point(pt)
-            # Apply transformation.
-            self.opts.set_Point(x+v, pt)
-        # Loop through translation points.
-        for pt in ptsR:
-            # Get point
-            x = self.opts.get_Point(pt)
-            # Apply transformation.
-            self.opts.set_Point(x-v, pt)
-
-    # Apply a config.xml translation
-    def PrepareConfigTranslation(self, key, i):
-        r"""Apply a translation to a component or components
-
-        :Call:
-            >>> cntl.PrepareConfigTranslation(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *key*: :class:`str`
-                Name of variable from which to get value
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2016-08-23 ``@ddalle``: v1.0
-        """
-        # Get the options for this key.
-        kopts = self.x.defns[key]
-        # Get the components to translate.
-        comps = kopts.get("CompID", [])
-        comps = list(np.array(comps).flatten())
-        # Components to translate in opposite direction
-        compsR = kopts.get("CompIDSymmetric", [])
-        compsR = list(np.array(compsR).flatten())
-        # Get index of transformation (which order in Config.xml)
-        I = kopts.get('TransformationIndex')
-        # Process the transformation indices
-        if not isinstance(I, dict):
-            # Initialize index dictionary.
-            J = {}
-            # Loop through all components
-            for comp in (comps+compsR):
-                J[comp] = I
-            # Transfer values
-            I = J
-        # Check for a direction
-        if 'Vector' not in kopts:
-            raise KeyError(
-                "Translation key '%s' does not have a 'Vector'." % key)
-        # Get the direction and its type
-        vec = kopts['Vector']
-        tvec = type(vec).__name__
-        # Get points to translate along with it.
-        pts  = kopts.get('Points', [])
-        ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists
-        if not isinstance(pts, list):
-            pts = list(pts)
-        if not isinstance(ptsR, list):
-            ptsR = list(ptsR)
-        # Check the type
-        if tvec in ['list', 'ndarray']:
-            # Specified directly.
-            u = np.array(vec)
-        else:
-            # Named vector
-            u = np.array(self.opts.get_Point(vec))
-        # Form the translation vector
-        v = u * self.x[key][i]
-        # Set the displacement for the positive translations
-        for comp in comps:
-            self.config.SetTranslation(comp, i=I.get(comp), Displacement=v)
-        # Set the displacement for the negative translations
-        for comp in compsR:
-            self.config.SetTranslation(comp, i=I.get(comp), Displacement=-v)
-        # Loop through translation points.
-        for pt in pts:
-            # Get point
-            x = self.opts.get_Point(pt)
-            # Apply transformation.
-            self.opts.set_Point(x+v, pt)
-        # Loop through translation points.
-        for pt in ptsR:
-            # Get point
-            x = self.opts.get_Point(pt)
-            # Apply transformation.
-            self.opts.set_Point(x-v, pt)
-
-    # Apply a triangulation rotation
-    def PrepareTriRotation(self, key, i):
-        r"""Apply a rotation to a component or components
-
-        :Call:
-            >>> cntl.PrepareTriRotation(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2015-09-11 ``@ddalle``: v1.0
-            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
-        """
-        # ---------------
-        # Read the inputs
-        # ---------------
-        # Get the options for this key.
-        kopts = self.x.defns[key]
-        # Rotation angle
-        theta = self.x[key][i]
-        # Get the components to translate.
-        compID = self.tri.GetCompID(kopts.get('CompID'), warn=True)
-        # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(
-            kopts.get('CompIDSymmetric', []), warn=True)
-        # Get the components to translate based on a lever armg
-        compsT  = kopts.get('CompIDTranslate', [])
-        compsTR = kopts.get('CompIDTranslateSymmetric', [])
-        # Symmetry applied to rotation vector.
-        kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
-        kx = kopts.get('AxisSymmetry',   kv)
-        kc = kopts.get('CenterSymmetry', kx)
-        ka = kopts.get('AngleSymmetry', -1.0)
-        # Convert symmetries: list -> numpy.ndarray
-        if isinstance(kv, list):
-            kv = np.array(kv)
-        if isinstance(kx, list):
-            kx = np.array(kx)
-        if isinstance(kc, list):
-            kc = np.array(kc)
-        # Get the reference points for translations based on this rotation
-        xT = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
-        # Get scale for translated points
-        kt = kopts.get('TranslateScale', np.ones(3))
-        # Ensure vector
-        if isinstance(kt, list):
-            # Ensure vector so that we can multiply it by another vector
-            kt = np.array(kt)
-        # Get vector
-        vec = kopts.get('Vector')
-        ax  = kopts.get('Axis')
-        cen = kopts.get('Center')
-        # Get points to translate along with it.
-        pts  = kopts.get('Points', [])
-        ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists.
-        if not isinstance(pts, list):
-            pts = list(pts)
-        if not isinstance(ptsR, list):
-            ptsR = list(ptsR)
-        # ---------------------------
-        # Process the rotation vector
-        # ---------------------------
-        # Check for an axis and center
-        if vec is not None:
-            # Check type
-            if len(vec) != 2:
-                raise KeyError(
-                    "Rotation key '%s' vector must be exactly two points."
-                    % key)
-            # Get start and end points of rotation vector.
-            v0 = np.array(self.opts.get_Point(vec[0]))
-            v1 = np.array(self.opts.get_Point(vec[1]))
-            # Convert to axis and center
-            cen = v0
-            ax  = v1 - v0
-        else:
-            # Get default axis if necessary
-            if ax is None:
-                ax = [0.0, 1.0, 0.0]
-            # Get default center if necessary
-            if cen is None:
-                cen = [0.0, 0.0, 0.0]
-            # Convert points
-            cen = np.array(self.opts.get_Point(cen))
-            ax  = np.array(self.opts.get_Point(ax))
-        # Symmetry rotation vectors.
-        axR  = kx*ax
-        cenR = kc*cen
-        # Form vectors
-        v0 = cen
-        v1 = ax + cen
-        v0R = cenR
-        v1R = axR + cenR
-        # Ensure a dictionary for reference points
-        if not isinstance(xT, dict):
-            # Initialize dict (can't use an iterator to do this in old Python)
-            yT = {}
-            # Loop through components affected by this translation
-            for comp in compsT+compsTR:
-                yT[comp] = xT
-            # Move the variable name
-            xT = yT
-        # Create full dictionary
-        for comp in compsT+compsTR:
-            # Get ref point for this component
-            pt = xT.get(comp, xT.get('def', [0.0, 0.0, 0.0]))
-            # Save it as a dimensionalized point
-            xT[comp] = np.array(self.opts.get_Point(pt))
-        # ---------------------
-        # Apply transformations
-        # ---------------------
-        # Rotate the triangulation.
-        self.tri.Rotate(v0,  v1,  theta,  compID=compID)
-        self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
-        # Points to be rotated
-        X  = np.array([self.opts.get_Point(pt) for pt in pts])
-        XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
-        # Reference points to be rotated
-        XT  = np.array([xT[comp] for comp in compsT])
-        XTR = np.array([xT[comp] for comp in compsTR])
-        # Apply transformation
-        Y   = RotatePoints(X,   v0,  v1,  theta)
-        YT  = RotatePoints(XT,  v0,  v1,  theta)
-        YR  = RotatePoints(XR,  v0R, v1R, ka*theta)
-        YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
-        # Process translations caused by this rotation
-        for j in range(len(compsT)):
-            self.tri.Translate(kt*(YT[j]-XT[j]), compID=compsT[j])
-        # Process translations caused by symmetric rotation
-        for j in range(len(compsTR)):
-            self.tri.Translate(kt*(YTR[j]-XTR[j]), compID=compsTR[j])
-        # Apply transformation
-        Y  = RotatePoints(X,  v0,  v1,  theta)
-        YR = RotatePoints(XR, v0R, v1R, ka*theta)
-        # Save the points.
-        for j in range(len(pts)):
-            # Set the new value.
-            self.opts.set_Point(Y[j], pts[j])
-        # Save the symmetric points.
-        for j in range(len(ptsR)):
-            # Set the new value.
-            self.opts.set_Point(YR[j], ptsR[j])
-
-    # Apply a configuration rotation
-    def PrepareConfigRotation(self, key, i):
-        r"""Apply a rotation to a component or components
-
-        :Call:
-            >>> cntl.PrepareConfigRotation(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *key*: :class:`str`
-                Name of the trajectory key
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2016-08-23 ``@ddalle``: v1.0
-        """
-        # ---------------
-        # Read the inputs
-        # ---------------
-        # Get the options for this key.
-        kopts = self.x.defns[key]
-        # Rotation angle
-        theta = self.x[key][i]
-        # Get the components to rotate.
-        comps = kopts.get('CompID', [])
-        # Components to rotate in opposite direction
-        compsR = kopts.get('CompIDSymmetric', [])
-        # Get the components to translate based on a lever armg
-        compsT  = kopts.get('CompIDTranslate', [])
-        compsTR = kopts.get('CompIDTranslateSymmetric', [])
-        # Options to modify GMP
-        freeze_ax = kopts.get("FreezeGMPAxis", False)
-        freeze_cen = kopts.get("FreezeGMPCenter", False)
-        # Ensure list
-        if not isinstance(comps, list):
-            comps = [comps]
-        if not isinstance(compsR, list):
-            compsR = [compsR]
-        if not isinstance(compsT, list):
-            compsT = [compsT]
-        if not isinstance(compsTR, list):
-            compsTR = [compsTR]
-        # Get index of transformation (which order in Config.xml)
-        I = kopts.get('TransformationIndex')
-        # Symmetry applied to rotation vector.
-        kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
-        kx = kopts.get('AxisSymmetry',   kv)
-        kc = kopts.get('CenterSymmetry', kx)
-        ka = kopts.get('AngleSymmetry', -1.0)
-        # Convert symmetries: list -> numpy.ndarray
-        if not isinstance(kv, list):
-            kv = np.array(kv)
-        if not isinstance(kx, list):
-            kx = np.array(kx)
-        if not isinstance(kc, list):
-            kc = np.array(kc)
-        # Get the reference points for translations based on this rotation
-        xT  = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
-        # Get scale for translated points
-        kt = kopts.get('TranslateScale', np.ones(3))
-        # Ensure vector
-        if type(kt).__name__ == 'list':
-            # Ensure vector so that we can multiply it by another vector
-            kt = np.array(kt)
-        # Get vector
-        vec = kopts.get('Vector')
-        ax  = kopts.get('Axis')
-        cen = kopts.get('Center')
-        frm = kopts.get('Frame')
-        # Get points to translate along with it.
-        pts  = kopts.get('Points', [])
-        ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists
-        if not isinstance(pts, list):
-            pts  = list(pts)
-        if not isinstance(ptsR, list):
-            ptsR = list(ptsR)
-        # ---------------------------
-        # Process the rotation vector
-        # ---------------------------
-        # Check for an axis and center
-        if vec is not None:
-            # Check type
-            if len(vec) != 2:
-                raise KeyError(
-                    "Rotation key '%s' vector must be exactly two points."
-                    % key)
-            # Get start and end points of rotation vector.
-            v0 = np.array(self.opts.get_Point(vec[0]))
-            v1 = np.array(self.opts.get_Point(vec[1]))
-            # Convert to axis and center
-            cen = v0
-            ax  = v1 - v0
-        else:
-            # Get default axis if necessary
-            if ax is None:
-                ax = [0.0, 1.0, 0.0]
-            # Get default center if necessary
-            if cen is None:
-                cen = [0.0, 0.0, 0.0]
-            # Convert points
-            cen = np.array(self.opts.get_Point(cen))
-            ax  = np.array(self.opts.get_Point(ax))
-        # Symmetry rotation vectors.
-        axR  = kx*ax
-        cenR = kc*cen
-        # Form vectors
-        v0 = cen
-        v1 = ax + cen
-        v0R = cenR
-        v1R = axR + cenR
-        # Ensure a dictionary for reference points
-        if not isinstance(xT, dict):
-            # Initialize dict (can't use an iterator to do this in old Python)
-            xT = {comp: xT for comp in compsT + compsTR}
-        # Create full dictionary
-        for comp in compsT+compsTR:
-            # Get ref point for this component
-            pt = xT.get(comp, xT.get('def', [0.0, 0.0, 0.0]))
-            # Save it as a dimensionalized point
-            xT[comp] = np.array(self.opts.get_Point(pt))
-        # Process the transformation indices
-        if type(I).__name__ != 'dict':
-            # Initialize index dictionary.
-            J = {}
-            # Loop through all components
-            for comp in (comps+compsR+compsT+compsTR):
-                J[comp] = I
-            # Transfer values
-            I = J
-        # ---------------------
-        # Apply transformations
-        # ---------------------
-        # Check for freeze options
-        if freeze_ax:
-            gmp_ax = None
-            gmp_axR = None
-        else:
-            gmp_ax = ax
-            gmp_axR = axR
-        if freeze_cen:
-            gmp_cen = None
-            gmp_cenR = None
-        else:
-            gmp_cen = cen
-            gmp_cenR = cenR
-        # Set the positive rotations.
-        for comp in comps:
-            self.config.SetRotation(
-                comp, i=I.get(comp),
-                Angle=theta, Center=gmp_cen, Axis=gmp_ax, Frame=frm)
-        # Set the negative rotations.
-        for comp in compsR:
-            self.config.SetRotation(
-                comp, i=I.get(comp),
-                Angle=ka*theta, Center=gmp_cenR, Axis=gmp_axR, Frame=frm)
-        # Points to be rotated
-        X  = np.array([self.opts.get_Point(pt) for pt in pts])
-        XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
-        # Reference points to be rotated
-        XT  = np.array([xT[comp] for comp in compsT])
-        XTR = np.array([xT[comp] for comp in compsTR])
-        # Apply transformation
-        Y   = RotatePoints(X,   v0,  v1,  theta)
-        YT  = RotatePoints(XT,  v0,  v1,  theta)
-        YR  = RotatePoints(XR,  v0R, v1R, ka*theta)
-        YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
-        # Process translations caused by this rotation
-        for j in range(len(compsT)):
-            # Get component
-            comp = compsT[j]
-            # Apply translation
-            self.config.SetTranslation(
-                comp, i=I.get(comp),
-                Displacement=kt*(YT[j]-XT[j]))
-        # Process translations caused by symmetric rotation
-        for j in range(len(compsTR)):
-            # Get component
-            comp = compsTR[j]
-            # Apply translation
-            self.config.SetTranslation(
-                comp, i=I.get(comp),
-                Displacement=kt*(YTR[j]-XTR[j]))
-        # Save the points.
-        for j in range(len(pts)):
-            # Set the new value.
-            self.opts.set_Point(Y[j], pts[j])
-        # Save the symmetric points.
-        for j in range(len(ptsR)):
-            # Set the new value.
-            self.opts.set_Point(YR[j], ptsR[j])
-
-   # --- Thrust Preparation ---
-    # Get exit area for SurfCT boundary condition
-    def GetSurfCT_ExitArea(self, key, i, comp=None):
-        r"""Get exit area for a *CT* trajectory key
-
-        This can use either the area ratio (if available) or calculate from the
-        exit Mach number.  The input area is determined from the component ID.
-        If using the exit Mach number *M2*, the input Mach number *M1* is also
-        needed.  The relationship between area ratio and exit Mach is given
-        below.
-
-            .. math::
-
-                \\frac{A_2}{A_1} = \\frac{M_1}{M_2}\\left(
-                    \\frac{1+\\frac{\\gamma-1}{2}M_2^2}{
-                    1+\\frac{\\gamma-1}{2}M_1^2}
-                \\right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
-
-        :Call:
-            >>> A2 = cntl.GetSurfCT_ExitArea(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *key*: :class:`str`
-                Name of trajectory key to check
-            *i*: :class:`int`
-                Case number
-            *comp*: {``None``} | :class:`str`
-                Name of component for which to get BCs
-        :Outputs:
-            *A2*: :class:`list` (:class:`float`)
-                Exit area for each component referenced by this key
-        :Versions:
-            * 2016-04-13 ``@ddalle``: v1.0
-        """
-        # Check for exit area
-        A2 = self.x.GetSurfCT_ExitArea(i, key, comp=comp)
-        # Check for a results
-        if A2 is not None:
-            return A2
-        # Ensure triangulation if necessary
-        self.ReadTri()
-        # Get component(s)
-        if comp is None:
-            # Hopefully there is only one component
-            comp = self.x.GetSurfCT_CompID(i, key)
-            # Ensure one component
-            if isinstance(comp, (list, np.ndarray)):
-                comp = comp[0]
-        # Input area(s)
-        A1 = self.tri.GetCompArea(comp)
-        # Check for area ratio
-        AR = self.x.GetSurfCT_AreaRatio(i, key)
-        # Check if we need to use Mach number
-        if AR is None:
-            # Get input and exit Mach numbers
-            M1 = self.x.GetSurfCT_Mach(i, key)
-            M2 = self.x.GetSurfCT_ExitMach(i, key)
-            # Gas constants
-            gam = self.GetSurfCT_Gamma(i, key)
-            g1 = 0.5 * (gam+1) / (gam-1)
-            g2 = 0.5 * (gam-1)
-            # Ratio
-            AR = M1/M2 * ((1+g2*M2*M2) / (1+g2*M1*M1))**g1
-        # Return exit areas
-        return A1*AR
-
-    # Get exit Mach number for SurfCT boundary condition
-    def GetSurfCT_ExitMach(self, key, i, comp=None):
-        r"""Get exit Mach number for a *CT* trajectory key
-
-        This can use either the ``"ExitMach"`` parameter (if available)
-        or calculate from the area ratio.  If using the area ratio, the
-        input Mach number is also needed.  The relationship between area
-        ratio and exit Mach is given below.
-
-            .. math::
-
-                \frac{A_2}{A_1} = \frac{M_1}{M_2}\left(
-                    \frac{1+\frac{\gamma-1}{2}M_2^2}{
-                    1+\frac{\gamma-1}{2}M_1^2}
-                \right) ^ {\frac{1}{2}\frac{\gamma+1}{\gamma-1}}
-
-        :Call:
-            >>> M2 = cntl.GetSurfCT_ExitMach(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *key*: :class:`str`
-                Name of trajectory key to check
-            *i*: :class:`int`
-                Case number
-            *comp*: {``None``} | :class:`str`
-                Name of component for which to get BCs
-        :Outputs:
-            *M2*: :class:`float`
-                Exit Mach number
-        :Versions:
-            * 2016-04-13 ``@ddalle``: v1.0
-        """
-        # Get exit Mach number
-        M2 = self.x.GetSurfCT_ExitMach(i, key, comp=comp)
-        # Check if we need to use area ratio
-        if M2 is None:
-            # Get input Mach number
-            M1 = self.x.GetSurfCT_Mach(i, key, comp=comp)
-            # Get area ratio
-            AR = self.x.GetSurfCT_AreaRatio(i, key, comp=comp)
-            # Ratio of specific heats
-            gam = self.x.GetSurfCT_Gamma(i, key, comp=comp)
-            # Calculate exit Mach number
-            M2 = convert.ExitMachFromAreaRatio(AR, M1, gam)
-        # Output
-        return M2
-
-    # Reference area
-    def GetSurfCT_RefArea(self, key, i):
-        r"""Get reference area for surface *CT* trajectory key
-
-        This references the ``"RefArea"`` parameter of the definition
-        for the run matrix variable *key*.  The user should set this
-        parameter to ``1.0`` if thrust inputs are given as dimensional
-        values.
-
-        If this is ``None``, it returns the global reference area; if it
-        is a string the reference area comes from the reference area for
-        that component using ``cntl.opts.get_RefArea(comp)``.
-
-        :Call:
-            >>> Aref = cntl.GetSurfCT_RefArea(key, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *key*: :class:`str`
-                Name of trajectory key to check
-            *i*: :class:`int`
-                Case number
-        :Outputs:
-            *Aref*: :class:`float`
-                Reference area for normalizing thrust coefficients
-        :Versions:
-            * 2016-04-13 ``@ddalle``: v1.0
-        """
-        # Get *Aref* option
-        Aref = self.x.GetSurfCT_RefArea(i, key)
-        # Type
-        t = type(Aref).__name__
-        # Check type
-        if Aref is None:
-            # Use the default
-            return self.opts.get_RefArea()
-        elif t in ['str', 'unicode']:
-            # Use the input as a component ID name
-            return self.opts.get_RefArea(Aref)
-        else:
-            # Assume it's already given as the correct type
-            return Aref
-
-   # --- DataBook Components ---
-    def get_transformation_matrix(
-            self, topts: dict, i: int) -> Optional[np.ndarray]:
-        r"""Calculate rotation matrix for a databook transformation
-
-        :Call:
-            >>> mat = cntl.get_transformation_matrix(topts, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *topts*: :class:`dict`
-                Definitions for transformation
-            *i*: :class:`int`
-                Case number
-        :Outputs:
-            *mat*: ``None`` | :class:`np.ndarray`\ [:class:`float`]
-                Rotation matrix if *topts* is a rotation
-        :Versions:
-            * 2025-01-30 ``@ddalle``: v1.0
-        """
-        # Get the transformation type
-        ttype = topts.get("Type", "")
-        # Check type
-        if ttype not in ("Euler321", "Euler123"):
-            return
-        # Use same as default in case it's obvious what they should be.
-        kph = topts.get('phi', 0.0)
-        kth = topts.get('theta', 0.0)
-        kps = topts.get('psi', 0.0)
-        # Extract roll
-        if not isinstance(kph, str):
-            # Fixed value
-            phi = kph*DEG
-        elif kph.startswith('-'):
-            # Negative roll angle.
-            phi = -self.x[kph[1:]][i]*DEG
-        else:
-            # Positive roll
-            phi = self.x[kph][i]*DEG
-        # Extract pitch
-        if not isinstance(kth, str):
-            # Fixed value
-            theta = kth*DEG
-        elif kth.startswith('-'):
-            # Negative pitch
-            theta = -self.x[kth[1:]][i]*DEG
-        else:
-            # Positive pitch
-            theta = self.x[kth][i]*DEG
-        # Extract yaw
-        if not isinstance(kps, str):
-            # Fixed value
-            psi = kps*DEG
-        elif kps.startswith('-'):
-            # Negative yaw
-            psi = -self.x[kps[1:]][i]*DEG
-        else:
-            # Positive pitch
-            psi = self.x[kps][i]*DEG
-        # Sines and cosines
-        cph = np.cos(phi)
-        cth = np.cos(theta)
-        cps = np.cos(psi)
-        sph = np.sin(phi)
-        sth = np.sin(theta)
-        sps = np.sin(psi)
-        # Roll matrix
-        R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
-        # Pitch matrix
-        R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
-        # Yaw matrix
-        R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
-        # Combined transformation matrix
-        # Remember, these are applied backwards in order to undo the
-        # original Euler transformation that got the component here.
-        if ttype == "Euler321":
-            return np.dot(R1, np.dot(R2, R3))
-        elif ttype == "Euler123":
-            return np.dot(R3, np.dot(R2, R1))
 
   # *** GARBAGE ***
     # Master interface function
