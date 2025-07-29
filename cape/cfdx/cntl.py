@@ -3377,7 +3377,7 @@ class Cntl(CntlBase):
         # Get component type
         typ = self.opts.get_DataBookType(comp)
         # Status update
-        print(compile_rst(f"**{comp}** (type=*{typ}*)"))
+        print(compile_rst(f"Component ``{comp}`` (type=*{typ}*)"))
         # Get indices
         inds = self.x.GetIndices(**kw)
         # Loop through inds
@@ -3398,6 +3398,7 @@ class Cntl(CntlBase):
         # Write updated databook
         if n:
             db.write()
+            print(f"Added or updated {n} entries")
 
     # Update one case of one component
     def update_dex_case(self, comp: str, i: int) -> int:
@@ -3579,10 +3580,13 @@ class Cntl(CntlBase):
         # Get component option
         comp = kw.get("fm", kw.get("aero"))
         # If *comp* is ``True``, process all options
-        if comp is True:
-            comp = None
+        comp = None if comp is True else comp
         # Get full list of components
-        comp = self.opts.get_DataBookByGlob("FM", comp)
+        comps = self.opts.get_DataBookByGlob("FM", comp)
+        # Loop through them
+        for comp in comps:
+            self.update_dex_comp(comp, **kw)
+        return
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Check if we are deleting or adding.
