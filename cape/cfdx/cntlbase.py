@@ -14,10 +14,7 @@ in CAPE.
 # Standard library modules
 import functools
 import os
-import shutil
-import sys
 from abc import ABC, abstractmethod
-from datetime import datetime
 from io import IOBase
 from typing import Any, Callable, Optional, Union
 
@@ -29,8 +26,8 @@ from . import casecntlbase
 from . import databookbase
 from . import queue
 from .. import convert
-from .. import console
 from .casecntlbase import CaseRunnerBase
+from .options.runctlopts import RunControlOpts
 from .logger import CntlLogger
 from ..config import ConfigXML, ConfigJSON
 from ..optdict import WARNMODE_WARN
@@ -131,15 +128,6 @@ def run_rootdir(func):
         return v
     # Apply the wrapper
     return wrapper_func
-
-
-# Convert ``a,b,c`` -> ``['a', 'b', 'c']``
-def _split(v: Union[str, list]) -> list:
-    # Check type
-    if isinstance(v, str):
-        return [vj.strip() for vj in v.split(',')]
-    else:
-        return v
 
 
 # Class to read input files
@@ -618,64 +606,170 @@ class CntlBase(ABC):
         """
         pass
 
-  # *** FILE MANAGEMENT ***
-   # --- Files ---
-    # Absolutize
-    @abstractmethod
-    def abspath(self, fname: str) -> str:
-        r"""Absolutize a file name
-
-        :Call:
-            >>> fabs = cntl.abspath(fname)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE main control instance
-            *fname*: :class:`str`
-                A file name
-        :Outputs:
-            *fabs*: :class:`str`
-                Absolute file path
-        :Versions:
-            * 2021-10-25 ``@ddalle``: v1.0
-            * 2025-03-26 ``@ddalle``: v1.1; Windows compatibility fix
-        """
-        pass
-
-    # Copy files
-    @abstractmethod
-    def copy_files(self, i: int):
-        r"""Copy specified files to case *i* run folder
-
-        :Call:
-            >>> cntl.copy_files(i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2025-03-26 ``@ddalle``: v1.0
-        """
-        pass
-
-    # Link files
-    @abstractmethod
-    def link_files(self, i: int):
-        r"""Link specified files to case *i* run folder
-
-        :Call:
-            >>> cntl.link_files(i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2025-03-26 ``@ddalle``: v1.0
-        """
-        pass
-
   # *** CASE PREPARATION ***
+   # --- Main ---
+    # Prepare a case
+    @abstractmethod
+    def PrepareCase(self, i: int):
+        r"""Prepare case for running if necessary
+
+        This function creates the folder, copies mesh files, and saves
+        settings and input files.  All of these tasks are completed only
+        if they have not already been completed, and it needs to be
+        customized for each CFD solver.
+
+        :Call:
+            >>> cntl.PrepareCase(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of case to analyze
+        :Versions:
+            * 2014-09-30 ``@ddalle``: v1.0
+            * 2015-09-27 ``@ddalle``: v2.0, convert to template
+        """
+        pass
+
+    @abstractmethod
+    def make_case_folder(self, i: int):
+        r"""Create folder(s) if needed for case *i*
+
+        :Call:
+            >>> cntl.make_case_folder(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of case to analyze
+        :Versions:
+            * 2023-08-25 ``@ddalle``: v1.0 (CreateFolder)
+            * 2023-10-20 ``@ddalle``: v2.0; support arbitrary depth
+        """
+        pass
+
+    # Prepare ``CAPE-STOP-PHASE`` file
+    @abstractmethod
+    def _prepare_incremental(self, i: int, j: Union[bool, int] = False):
+        r"""Prepare a case to stop at end of specified phase
+
+        :Call:
+            >>> cntl._prepare_incremental(i, j=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+            *j*: ``True`` | {``False``} | :class:`int`
+                Option to stop at end of any phase (``True``) or
+                specific phase number
+        :Versions:
+            * 2024-05-26 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Case settings ---
+    # Write conditions JSON file
+    @abstractmethod
+    def WriteConditionsJSON(self, i: int):
+        r"""Write JSON file with run matrix settings for case *i*
+
+        :Call:
+            >>> cntl.WriteConditionsJSON(i, rc=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Generic control class
+            *i*: :class:`int`
+                Run index
+            *rc*: {``None``} | :class:`dict`
+                If specified, write specified "RunControl" options
+        :Versions:
+            * 2021-09-08 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Write run control options to JSON file
+    @abstractmethod
+    def WriteCaseJSON(self, i: int, rc: Optional[dict] = None):
+        r"""Write JSON file with run control settings for case *i*
+
+        :Call:
+            >>> cntl.WriteCaseJSON(i, rc=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Generic control class
+            *i*: :class:`int`
+                Run index
+            *rc*: {``None``} | :class:`dict`
+                If specified, write specified "RunControl" options
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+            * 2023-03-31 ``@ddalle``: v2.0; manual options input
+            * 2023-08-29 ``@ddalle``: v2.1; call sample_dict()
+            * 2024-08-24 ``@ddalle``: v2.2; use CaseRunner
+            * 2025-01-23 ``@ddalle``: v2.3; eliminate *Arvhive* settings
+        """
+        pass
+
+   # --- PBS/Slurm ---
+    # Write the PBS script
+    @abstractmethod
+    def WritePBS(self, i: int):
+        r"""Write the PBS script(s) for a given case
+
+        :Call:
+            >>> cntl.WritePBS(i)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2014-10-19 ``@ddalle``: v1.0
+            * 2023-10-20 ``@ddalle``: v1.1; arbitrary *frun* depth
+            * 2024-08-01 ``@ddalle``: v2.0; solver-agnostic
+        """
+        pass
+
+    # Write a PBS header
+    @abstractmethod
+    def WritePBSHeader(
+            self,
+            fp: IOBase,
+            i: Optional[int] = None,
+            j: int = 0,
+            typ: Optional[str] = None,
+            wd: Optional[str] = None):
+        r"""Write common part of PBS or Slurm script
+
+        :Call:
+            >>> cntl.WritePBSHeader(fp, i=None, j=0, typ=None, wd=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *fp*: :class:`IOBase`
+                Open file handle
+            *i*: {``None``} | :class:`int`
+                Case index (ignore if ``None``); used for PBS job name
+            *j*: :class:`int`
+                Phase number
+            *typ*: {``None``} | ``"batch"`` | ``"post"``
+                Group of PBS options to use
+            *wd*: {``None``} | :class:`str`
+                Folder to enter when starting the job
+        :Versions:
+            * 2015-09-30 ``@ddalle``: v1.0, fork WritePBS()
+            * 2016-09-25 ``@ddalle``: v1.1, "BatchPBS"
+            * 2016-12-20 ``@ddalle``: v1.2
+                - Consolidated to *opts*
+                - Added *prefix*
+
+            * 2024-08-15 ``@ddalle``: v1.3
+                - Use *cntl.opts.name* as prefix
+                - User-controlled job name length, longer default
+        """
+        pass
+
    # --- Mesh ---
     @abstractmethod
     def PrepareMesh(self, i: int):
@@ -874,7 +968,7 @@ class CntlBase(ABC):
         """
         pass
 
-   # --- Tri files ---
+   # --- Surface: read ---
     # Function to prepare the triangulation for each grid folder
     @abstractmethod
     def ReadTri(self):
@@ -890,7 +984,24 @@ class CntlBase(ABC):
         """
         pass
 
-   # --- Surface config ---
+   # --- Surface: config ---
+    # Function to apply transformations to config
+    @abstractmethod
+    def PrepareConfig(self, i: int):
+        r"""Apply rotations, translations, etc. to ``Config.xml``
+
+        :Call:
+            >>> cntl.PrepareConfig(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2016-08-23 ``@ddalle``: v1.0
+        """
+        pass
+
     # Read configuration (without tri file if necessary)
     @abstractmethod
     def ReadConfig(self, f=False) -> Union[ConfigXML, ConfigJSON]:
@@ -982,6 +1093,39 @@ class CntlBase(ABC):
         :Outputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+        """
+        pass
+
+    @abstractmethod
+    def _read_runner(self, i: int, active: bool = True) -> CaseRunnerBase:
+        r"""Read case runner and synch PBS jobs tracker
+
+        :Call:
+            >>> runner = cntl._read_runner(i, active=True)
+        """
+        pass
+
+   # --- Case settings ---
+    # Read run control options from case JSON file
+    @abstractmethod
+    def read_case_json(self, i: int) -> RunControlOpts:
+        r"""Read ``case.json`` file from case *i* if possible
+
+        :Call:
+            >>> rc = cntl.read_case_json(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *rc*: ``None`` | :class:`dict`
+                Run control interface read from ``case.json`` file
+        :Versions:
+            * 2016-12-12 ``@ddalle``: v1.0
+            * 2017-04-12 ``@ddalle``: v1.1; add to :mod:`cape.cfdx`
+            * 2023-06-29 ``@ddalle``: v2.0; use _case_mod
+            * 2023-07-07 ``@ddalle``: v2.1; use CaseRunner
         """
         pass
 
@@ -1093,6 +1237,39 @@ class CntlBase(ABC):
         pass
 
    # --- Status ---
+    # Get overall status using runner
+    @abstractmethod
+    def check_case_status(self, i: int, active: bool = True) -> str:
+        r"""Get queue status of the PBS/Slurm job from case *i*
+
+        :Call:
+            >>> sts = cntl.check_case_job(i, active=True)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Controller for one CAPE run matrix
+            *i*: :class:`int`
+                Case index
+            *active*: {``True``} | ``False``
+                Whether or not to allow new calls to ``qstat``
+        :Outputs:
+            *sts*: :class:`str`
+                Case status
+
+                * ``---``: folder does not exist
+                * ``INCOMP``: case incomplete but [partially] set up
+                * ``QUEUE``: case waiting in PBS/Slurm queue
+                * ``RUNNING``: case currently running
+                * ``DONE``: all phases and iterations complete
+                * ``PASS``: *DONE* and marked by user as passed
+                * ``ZOMBIE``: seems running; but no recent file updates
+                * ``PASS*``: case marked by user but not *DONE*
+                * ``ERROR``: case marked as error
+                * ``FAIL``: case failed but not marked by user
+        :Versions:
+            * 2025-05-04 ``@ddalle``: v1.0
+        """
+        pass
+
     # Function to determine if case is PASS, ---, INCOMP, etc.
     @abstractmethod
     def CheckCaseStatus(
@@ -1148,6 +1325,91 @@ class CntlBase(ABC):
         :Versions:
             * 2015-09-27 ``@ddalle``: v1.0
             * 2017-02-22 ``@ddalle``: v1.1, verbosity option
+        """
+        pass
+
+    # Check if a case is running
+    @abstractmethod
+    def CheckRunning(self, i: int) -> bool:
+        r"""Check if a case is currently running
+
+        :Call:
+            >>> q = cntl.CheckRunning(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has :file:`RUNNING` file in it
+        """
+        pass
+
+    # Check for a failure
+    @abstractmethod
+    def CheckError(self, i: int) -> bool:
+        r"""Check if a case has a failure
+
+        :Call:
+            >>> q = cntl.CheckError(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has ``FAIL`` file in it
+        """
+        pass
+
+    # Check for no unchanged files
+    @abstractmethod
+    def CheckZombie(self, i):
+        r"""Check a case for ``ZOMBIE`` status
+
+        A running case is declared a zombie if none of the listed files
+        (by default ``*.out``) have been modified in the last 30
+        minutes.  However, a case cannot be a zombie unless it contains
+        a ``RUNNING`` file and returns ``True`` from
+        :func:`CheckRunning`.
+
+        :Call:
+            >>> q = cntl.CheckZombie(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                ``True`` if no listed files have been modified recently
+        :Versions:
+            * 2017-04-04 ``@ddalle``: v1.0
+            * 2021-01-25 ``@ddalle``: v1.1; use cls._zombie_files
+        """
+        pass
+
+    # Check for if we are running inside a batch job
+    @abstractmethod
+    def CheckBatch(self) -> int:
+        r"""Check to see if we are running inside a batch job
+
+        This looks for environment variables to see if this is running
+        inside a batch job.  Currently supports slurm and PBS.
+
+        :Call:
+            >>> q = cntl.CheckBatch()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+        :Outputs:
+            *jobid*: :class:`int`
+                ``0`` if no batch environment was detected
+        :Versions:
+            * 2023-12-13 ``@dvicker``: v1.0
+            * 2023-12-18 ``@ddalle``: v1.1; debug
         """
         pass
 
@@ -1288,7 +1550,79 @@ class CntlBase(ABC):
         """
         pass
 
-   # --- PBS/Slurm ---
+   # --- PBS jobs ---
+    # Get PBS/Slurm queue status indicator
+    @abstractmethod
+    def check_case_job(self, i: int, active: bool = True) -> str:
+        r"""Get queue status of the PBS/Slurm job from case *i*
+
+        :Call:
+            >>> s = cntl.check_case_job(i, active=True)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Controller for one CAPE run matrix
+            *i*: :class:`int`
+                Case index
+            *active*: {``True``} | ``False``
+                Whether or not to allow new calls to ``qstat``
+        :Outputs:
+            *s*: :class:`str`
+                Job queue status
+
+                * ``-``: not in queue
+                * ``Q``: job queued (not running)
+                * ``R``: job running
+                * ``H``: job held
+                * ``E``: job error status
+        :Versions:
+            * 2025-05-04 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Get PBS name
+    @abstractmethod
+    def GetPBSName(self, i: int) -> str:
+        r"""Get PBS name for a given case
+
+        :Call:
+            >>> lbl = cntl.GetPBSName(i, pre=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+            *pre*: {``None``} | :class:`str`
+                Prefix for PBS job name
+        :Outputs:
+            *lbl*: :class:`str`
+                Short name for the PBS job, visile via ``qstat``
+        :Versions:
+            * 2014-09-30 ``@ddalle``: v1.0
+            * 2016-12-20 ``@ddalle``: v1.1, moved to *x*
+        """
+        pass
+
+    # Get PBS job ID if possible
+    @abstractmethod
+    def GetPBSJobID(self, i: int) -> Optional[str]:
+        r"""Get PBS job number if one exists
+
+        :Call:
+            >>> jobID = cntl.GetPBSJobID(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *jobID*: ``None`` | :class:`str`
+                Most recent PBS/Slurm job name, if able
+        :Versions:
+            * 2014-10-06 ``@ddalle``: v1.0
+            * 2024-01-12 ``@ddalle``: v1.1; remove CheckCase() for speed
+        """
+        pass
+
     # Get information on all jobs from current user
     @abstractmethod
     def get_pbs_jobs(
@@ -1322,6 +1656,37 @@ class CntlBase(ABC):
 
     @abstractmethod
     def _get_qstat(self) -> queue.QStat:
+        pass
+
+   # --- CPU Stats ---
+    # Get total CPU hours (actually core hours)
+    @abstractmethod
+    def GetCPUTime(self, i: int):
+        r"""Read a CAPE-style core-hour file from a case
+
+        This function needs to be customized for each solver because it
+        needs to know the name of the file in which timing data is
+        saved.  It defaults to ``cape_time.dat``.  Modifying this
+        command is a one-line fix with a call to
+        :func:`cape.cfdx.cntl.Cntl.GetCPUTimeFromFile` with the correct file
+        name.
+
+        :Call:
+            >>> CPUt = cntl.GetCPUTime(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE control interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *CPUt*: :class:`float` | ``None``
+                Total core hours used in this job
+        :Versions:
+            * 2015-12-22 ``@ddalle``: v1.0
+            * 2016-08-30 ``@ddalle``: v1.1; check for ``RUNNING``
+            * 2016-08-31 ``@ddalle``: v1.2; use ``GetCPUTimeBoth``
+            * 2023-07-09 ``@ddalle``: v2.0; use ``CaseRunner``
+        """
         pass
 
   # *** CLI ***
@@ -1643,7 +2008,9 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Delete/Stop ---
     # Delete jobs
+    @abstractmethod
     def qdel_cases(self, **kw):
         r"""Kill/stop PBS job of cases
 
@@ -1662,17 +2029,10 @@ class CntlBase(ABC):
         :Versions:
             * 2025-06-22 ``@ddalle``: v1.0
         """
-        # Delete one case (maybe)
-        def qdel_case(i: int) -> int:
-            # Check queue
-            que = self.getval("queue", i)
-            # Delete if status other than '.'
-            if que and (que != '.'):
-                return self.StopCase(i)
-        # Case loop
-        self.caseloop_verbose(qdel_case, **kw)
+        pass
 
     # Delete cases
+    @abstractmethod
     def rm_cases(self, prompt: bool = True, **kw) -> int:
         r"""Delete one or more cases
 
@@ -1699,28 +2059,10 @@ class CntlBase(ABC):
         :Versions:
             * 2025-06-20 ``@ddalle``: v1.0
         """
-        # Delete one case (maybe)
-        def rm_case(i: int) -> int:
-            # Check *prompt* overwrite
-            if prompt:
-                # No need to check
-                prompti = True
-            else:
-                # Get case status
-                sts = self.getval("status", i)
-                n = self.getval("iter", i)
-                # Always prompt if set up
-                prompti = n or (sts not in ("INCOMP", "ERROR", "---"))
-            # Delete
-            return self.DeleteCase(i, prompt=prompti)
-        # Case loop
-        n = self.caseloop_verbose(rm_case, **kw)
-        # Status message
-        print(f"Deleted {n} cases")
-        return n
+        pass
 
     # Function to delete a case folder: qdel and rm
-    @run_rootdir
+    @abstractmethod
     def DeleteCase(self, i: int, **kw):
         r"""Delete a case
 
@@ -1744,38 +2086,26 @@ class CntlBase(ABC):
         :Versions:
             * 2018-11-20 ``@ddalle``: v1.0
         """
-        # Local function to perform deletion
-        def del_folder(frun):
-            # Delete the folder using :mod:`shutil`
-            shutil.rmtree(frun)
-            # Status update
-            print("   Deleted folder '%s'" % frun)
-        # Get the case name and go there.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if folder exists
-        if not os.path.isdir(frun):
-            # Nothing to do
-            n = 0
-        # Check for prompt option
-        elif kw.get('prompt', True):
-            # Prompt text
-            txt = "Delete case '%s'? y/n" % frun
-            # Get option from user
-            prompt = console.prompt_color(txt, "n")
-            # Check option
-            if (prompt is None) or (prompt.lower() != "y"):
-                # Do not delete
-                n = 0
-            else:
-                # Delete folder
-                del_folder(frun)
-                n = 1
-        else:
-            # Delete without prompt
-            del_folder(frun)
-            n = 1
-        # Output
-        return n
+        pass
+
+   # --- Batch ---
+    # Write batch PBS job
+    @abstractmethod
+    def run_batch(self, argv: list) -> str:
+        r"""Write and submit PBS/Slurm script for a CLI
+
+        :Call:
+            >>> jobid = cntl.run_batch(argv)
+        :Inputs:
+            *argv*: :class:`list`\ [:class:`str`]
+                List of command-line inputs
+        :Outputs:
+            *jobid*: :class:`str`
+                PBS/Slurm job number/ID
+        :Versions:
+            * 2024-12-20 ``@ddalle``: v1.0
+        """
+        pass
 
   # *** RUN MATRIX ***
    # --- Values ---
@@ -1869,93 +2199,66 @@ class CntlBase(ABC):
         """
         pass
 
-    # Check if a case is running
+  # *** FILE MANAGEMENT ***
+   # --- Files ---
+    # Absolutize
     @abstractmethod
-    def CheckRunning(self, i: int) -> bool:
-        r"""Check if a case is currently running
+    def abspath(self, fname: str) -> str:
+        r"""Absolutize a file name
 
         :Call:
-            >>> q = cntl.CheckRunning(i)
+            >>> fabs = cntl.abspath(fname)
         :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *fname*: :class:`str`
+                A file name
         :Outputs:
-            *q*: :class:`bool`
-                If ``True``, case has :file:`RUNNING` file in it
-        """
-        pass
-
-    # Check for a failure
-    @abstractmethod
-    def CheckError(self, i: int) -> bool:
-        r"""Check if a case has a failure
-
-        :Call:
-            >>> q = cntl.CheckError(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *q*: :class:`bool`
-                If ``True``, case has ``FAIL`` file in it
-        """
-        pass
-
-    # Check for no unchanged files
-    @abstractmethod
-    def CheckZombie(self, i):
-        r"""Check a case for ``ZOMBIE`` status
-
-        A running case is declared a zombie if none of the listed files
-        (by default ``*.out``) have been modified in the last 30
-        minutes.  However, a case cannot be a zombie unless it contains
-        a ``RUNNING`` file and returns ``True`` from
-        :func:`CheckRunning`.
-
-        :Call:
-            >>> q = cntl.CheckZombie(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *q*: :class:`bool`
-                ``True`` if no listed files have been modified recently
+            *fabs*: :class:`str`
+                Absolute file path
         :Versions:
-            * 2017-04-04 ``@ddalle``: v1.0
-            * 2021-01-25 ``@ddalle``: v1.1; use cls._zombie_files
+            * 2021-10-25 ``@ddalle``: v1.0
+            * 2025-03-26 ``@ddalle``: v1.1; Windows compatibility fix
         """
         pass
 
-    # Check for if we are running inside a batch job
+    # Copy files
     @abstractmethod
-    def CheckBatch(self) -> int:
-        r"""Check to see if we are running inside a batch job
-
-        This looks for environment variables to see if this is running
-        inside a batch job.  Currently supports slurm and PBS.
+    def copy_files(self, i: int):
+        r"""Copy specified files to case *i* run folder
 
         :Call:
-            >>> q = cntl.CheckBatch()
+            >>> cntl.copy_files(i)
         :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-        :Outputs:
-            *jobid*: :class:`int`
-                ``0`` if no batch environment was detected
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
         :Versions:
-            * 2023-12-13 ``@dvicker``: v1.0
-            * 2023-12-18 ``@ddalle``: v1.1; debug
+            * 2025-03-26 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Link files
+    @abstractmethod
+    def link_files(self, i: int):
+        r"""Link specified files to case *i* run folder
+
+        :Call:
+            >>> cntl.link_files(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-03-26 ``@ddalle``: v1.0
         """
         pass
 
    # --- Archiving ---
     # Function to archive results and remove files
+    @abstractmethod
     def ArchiveCases(self, **kw):
         r"""Archive completed cases and clean them up if specified
 
@@ -1973,26 +2276,7 @@ class CntlBase(ABC):
             * 2016-12-09 ``@ddalle``: v1.0
             * 2024-09-19 ``@ddalle``: v2.0
         """
-        # Get test option
-        test = kw.get("test", False)
-        # Loop through the folders
-        for i in self.x.GetIndices(**kw):
-            # Get folder name
-            frun = self.x.GetFullFolderNames(i)
-            fabs = os.path.join(self.RootDir, frun)
-            # Check if the case is ready to archive
-            if not os.path.isdir(fabs):
-                continue
-            # Status update
-            print(frun)
-            # Run action
-            self.CleanCase(i, test)
-            # Check status
-            if self.CheckCaseStatus(i) not in ('PASS', 'ERROR'):
-                print("  Case is not marked PASS | FAIL")
-                continue
-            # Archive
-            self.ArchiveCase(i, test)
+        pass
 
     # Run ``--archive`` on one case
     @abstractmethod
@@ -2017,7 +2301,7 @@ class CntlBase(ABC):
         pass
 
     # Function to archive results and remove files
-    @run_rootdir
+    @abstractmethod
     def SkeletonCases(self, **kw):
         r"""Archive completed cases and delete all but a few files
 
@@ -2035,27 +2319,7 @@ class CntlBase(ABC):
             * 2016-12-14 ``@ddalle``: v1.0
             * 2024-09-19 ``@ddalle``: v2.0
         """
-        # Get test option
-        test = kw.get("test", False)
-        # Loop through the folders
-        for i in self.x.GetIndices(**kw):
-            # Get folder name
-            frun = self.x.GetFullFolderNames(i)
-            fabs = os.path.join(self.RootDir, frun)
-            # Check if the case is ready to archive
-            if not os.path.isdir(fabs):
-                continue
-            # Status update
-            print(frun)
-            # Run action
-            self.CleanCase(i, test)
-            # Check status
-            if self.CheckCaseStatus(i) not in ('PASS', 'ERROR'):
-                print("  Case is not marked PASS | FAIL")
-                continue
-            # Archive and skeleton
-            self.ArchiveCase(i, test)
-            self.SkeletonCase(i, test)
+        pass
 
     # Run ``--skeleton`` on one case
     @abstractmethod
@@ -2080,6 +2344,7 @@ class CntlBase(ABC):
         pass
 
     # Clean a set of cases
+    @abstractmethod
     def CleanCases(self, **kw):
         r"""Clean a list of cases using *Progress* archive options only
 
@@ -2092,20 +2357,7 @@ class CntlBase(ABC):
             * 2017-03-13 ``@ddalle``: v1.0
             * 2024-09-18 ``@ddalle``: v2.0
         """
-        # Test status
-        test = kw.get("test", False)
-        # Loop through the folders
-        for i in self.x.GetIndices(**kw):
-            # Get folder name
-            frun = self.x.GetFullFolderNames(i)
-            fabs = os.path.join(self.RootDir, frun)
-            # Check if the case is ready to archive
-            if not os.path.isdir(fabs):
-                continue
-            # Status update
-            print(frun)
-            # Run action
-            self.CleanCase(i, test)
+        pass
 
     # Run ``--clean`` on one case
     @abstractmethod
@@ -2127,43 +2379,25 @@ class CntlBase(ABC):
         """
         pass
 
-   # --- CPU Stats ---
-    # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i: int):
-        r"""Read a CAPE-style core-hour file from a case
-
-        This function needs to be customized for each solver because it
-        needs to know the name of the file in which timing data is
-        saved.  It defaults to ``cape_time.dat``.  Modifying this
-        command is a one-line fix with a call to
-        :func:`cape.cfdx.cntl.Cntl.GetCPUTimeFromFile` with the correct file
-        name.
+    # Unarchive cases
+    @abstractmethod
+    def UnarchiveCases(self, **kw):
+        r"""Unarchive a list of cases
 
         :Call:
-            >>> CPUt = cntl.GetCPUTime(i)
+            >>> cntl.UnarchiveCases(**kw)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE control interface
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *CPUt*: :class:`float` | ``None``
-                Total core hours used in this job
+                Instance of control interface
         :Versions:
-            * 2015-12-22 ``@ddalle``: v1.0
-            * 2016-08-30 ``@ddalle``: v1.1; check for ``RUNNING``
-            * 2016-08-31 ``@ddalle``: v1.2; use ``GetCPUTimeBoth``
-            * 2023-07-09 ``@ddalle``: v2.0; use ``CaseRunner``
+            * 2017-03-13 ``@ddalle``: v1.0
+            * 2023-10-20 ``@ddalle``: v1.1; arbitrary-depth *frun*
+            * 2024-09-20 ``@ddalle``: v2.0; use CaseArchivist
         """
-        # Read case
-        runner = self.ReadCaseRunner(i)
-        # Check for null runner (probably haven't started case)
-        if runner is None:
-            return None
-        # Return CPU time from that
-        return runner.get_cpu_time()
+        pass
 
-   # --- Logging ---
+  # *** LOGGING ***
+    @abstractmethod
     def log_main(
             self,
             msg: str,
@@ -2185,15 +2419,9 @@ class CntlBase(ABC):
         :Versions:
             * 2025-04-30 ``@ddalle``: v1.0
         """
-        # Name of calling function
-        funcname = self.get_funcname(parent + 2)
-        # Check for manual title
-        title = funcname if title is None else title
-        # Get logger
-        logger = self.get_logger()
-        # Log the message
-        logger.log_main(title, msg)
+        pass
 
+    @abstractmethod
     def get_logger(self) -> CntlLogger:
         r"""Get current logger and/or initialize one
 
@@ -2208,16 +2436,9 @@ class CntlBase(ABC):
         :Versions:
             * 2025-04-30 ``@ddalle``: v1.0
         """
-        # Get current logger
-        logger = getattr(self, "logger", None)
-        # Check if present
-        if isinstance(logger, CntlLogger):
-            return logger
-        # Get name of config
-        jsonfile = self.opts._filenames[0]
-        # Create one
-        self.logger = CntlLogger(self.RootDir, jsonfile)
+        pass
 
+    @abstractmethod
     def get_funcname(self, frame: int = 1) -> str:
         r"""Get name of calling function, mostly for log messages
 
@@ -2234,434 +2455,12 @@ class CntlBase(ABC):
         :Versions:
             * 2025-04-30 ``@ddalle``
         """
-        # Get frame of function calling this one
-        func = sys._getframe(frame).f_code
-        # Get name
-        return func.co_name
+        pass
 
-   # --- PBS Jobs ---
-    # Get PBS name
-    def GetPBSName(self, i: int) -> str:
-        r"""Get PBS name for a given case
-
-        :Call:
-            >>> lbl = cntl.GetPBSName(i, pre=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
-            *pre*: {``None``} | :class:`str`
-                Prefix for PBS job name
-        :Outputs:
-            *lbl*: :class:`str`
-                Short name for the PBS job, visile via ``qstat``
-        :Versions:
-            * 2014-09-30 ``@ddalle``: v1.0
-            * 2016-12-20 ``@ddalle``: v1.1, moved to *x*
-        """
-        # Get max length of PBS/Slurm job name
-        maxlen = self.opts.get_RunMatrixMaxJobNameLength()
-        # Use JSON real file name as prefix
-        prefix = self.opts.name
-        prefix = f"{prefix}-" if prefix else ''
-        # Call from trajectory
-        return self.x.GetPBSName(i, prefix=prefix, maxlen=maxlen)
-
-    # Get PBS job ID if possible
-    @run_rootdir
-    def GetPBSJobID(self, i: int) -> Optional[str]:
-        r"""Get PBS job number if one exists
-
-        :Call:
-            >>> jobID = cntl.GetPBSJobID(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *jobID*: ``None`` | :class:`str`
-                Most recent PBS/Slurm job name, if able
-        :Versions:
-            * 2014-10-06 ``@ddalle``: v1.0
-            * 2024-01-12 ``@ddalle``: v1.1; remove CheckCase() for speed
-        """
-        # Get case runner
-        runner = self.ReadCaseRunner(i)
-        # Check if case exists
-        if runner is None:
-            return
-        # Read principal jobID if possible
-        jobID = runner.get_job_id()
-        # Repace '' -> None
-        return None if jobID == '' else jobID
-
-    # Write the PBS script
-    @run_rootdir
-    def WritePBS(self, i: int):
-        r"""Write the PBS script(s) for a given case
-
-        :Call:
-            >>> cntl.WritePBS(i)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Run index
-        :Versions:
-            * 2014-10-19 ``@ddalle``: v1.0
-            * 2023-10-20 ``@ddalle``: v1.1; arbitrary *frun* depth
-            * 2024-08-01 ``@ddalle``: v2.0; solver-agnostic
-        """
-        # Get solver name
-        name = self._solver
-        # Get module name
-        modname_parts = self.__class__.__module__.split('.')
-        # Strip off last portion (cape.pyfun.cntl -> cape.pyfun)
-        modname = ".".join(modname_parts[:-1])
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Make folder if necessary
-        self.make_case_folder(i)
-        # Go to the folder.
-        os.chdir(frun)
-        # Determine number of unique PBS scripts.
-        if self.opts.get_nPBS() > 1:
-            # If more than one, use unique PBS script for each run.
-            nPBS = self.opts.get_nSeq()
-        else:
-            # Otherwise use a single PBS script.
-            nPBS = 1
-        # Loop through the runs.
-        for j in range(nPBS):
-            # PBS script name.
-            if nPBS > 1:
-                # Put PBS number in file name.
-                fpbs = f'run_{name}.{j:02d}.pbs'
-            else:
-                # Use single PBS script with plain name.
-                fpbs = f'run_{name}.pbs'
-            # Initialize the PBS script
-            with open(fpbs, 'w') as fp:
-                # Write the header
-                self.WritePBSHeader(fp, i, j)
-                # Initialize options to `run_fun3d.py`
-                flgs = ''
-                # Get specific python version
-                pyexec = self.opts.get_PythonExec(j)
-                # Use "python3" as default
-                pyexec = "python3" if pyexec is None else pyexec
-                # Call the main CAPE interface using python3 -m
-                fp.write('\n# Call the main executable\n')
-                fp.write(f"{pyexec} -m {modname} run {flgs}\n")
-
-    # Write a PBS header
-    def WritePBSHeader(
-            self,
-            fp: IOBase,
-            i: Optional[int] = None,
-            j: int = 0,
-            typ: Optional[str] = None,
-            wd: Optional[str] = None):
-        r"""Write common part of PBS or Slurm script
-
-        :Call:
-            >>> cntl.WritePBSHeader(fp, i=None, j=0, typ=None, wd=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *fp*: :class:`IOBase`
-                Open file handle
-            *i*: {``None``} | :class:`int`
-                Case index (ignore if ``None``); used for PBS job name
-            *j*: :class:`int`
-                Phase number
-            *typ*: {``None``} | ``"batch"`` | ``"post"``
-                Group of PBS options to use
-            *wd*: {``None``} | :class:`str`
-                Folder to enter when starting the job
-        :Versions:
-            * 2015-09-30 ``@ddalle``: v1.0, fork WritePBS()
-            * 2016-09-25 ``@ddalle``: v1.1, "BatchPBS"
-            * 2016-12-20 ``@ddalle``: v1.2
-                - Consolidated to *opts*
-                - Added *prefix*
-
-            * 2024-08-15 ``@ddalle``: v1.3
-                - Use *cntl.opts.name* as prefix
-                - User-controlled job name length, longer default
-        """
-        # Get the shell name.
-        if i is None:
-            # Batch job
-            lbl = '%s-batch' % self.__module__.split('.')[0].lower()
-            # Max job name length
-            maxlen = self.opts.get_RunMatrixMaxJobNameLength()
-            # Ensure length
-            lbl = lbl[:maxlen]
-        else:
-            # Case PBS job name
-            lbl = self.GetPBSName(i)
-        # Check the task manager
-        if self.opts.get_slurm(j):
-            # Write the Slurm header
-            self.opts.WriteSlurmHeader(fp, lbl, j=j, typ=typ, wd=wd)
-        else:
-            # Call the function from *opts*
-            self.opts.WritePBSHeader(fp, lbl, j=j, typ=typ, wd=wd)
-
-    # Write batch PBS job
-    @run_rootdir
-    def run_batch(self, argv: list):
-        r"""Write and submit PBS/Slurm script for a CLI
-
-        :Call:
-            >>> cntl.run_batch(argv)
-        :Inputs:
-            *argv*: :class:`list`\ [:class:`str`]
-                List of command-line inputs
-        :Versions:
-            * 2024-12-20 ``@ddalle``: v1.0
-        """
-        # Create the folder if necessary
-        if not os.path.isdir('batch-pbs'):
-            os.mkdir('batch-pbs')
-        # Enter the batch pbs folder
-        os.chdir('batch-pbs')
-        # File name header
-        prog = self.__module__.split('.')[0].lower()
-        # Current time
-        fnow = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-        # File name
-        fpbs = '%s-%s.pbs' % (prog, fnow)
-        # Write the file
-        with open(fpbs, 'w') as fp:
-            # Write header
-            self.WritePBSHeader(fp, typ='batch', wd=self.RootDir)
-            # Write the command
-            fp.write('\n# Run the command\n')
-            fp.write('%s\n\n' % (" ".join(argv)))
-        # Submit the job
-        if self.opts.get_slurm(0):
-            # Submit Slurm job
-            pbs = queue.sbatch(fpbs)
-        else:
-            # Submit PBS job
-            pbs = queue.pqsub(fpbs)
-        # Output
-        return pbs
+  # *** REMAINING ***
 
    # --- Case Preparation ---
-    # Prepare a case
-    @run_rootdir
-    def PrepareCase(self, i: int):
-        r"""Prepare case for running if necessary
 
-        This function creates the folder, copies mesh files, and saves
-        settings and input files.  All of these tasks are completed only
-        if they have not already been completed, and it needs to be
-        customized for each CFD solver.
-
-        :Call:
-            >>> cntl.PrepareCase(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Index of case to analyze
-        :Versions:
-            * 2014-09-30 ``@ddalle``: v1.0
-            * 2015-09-27 ``@ddalle``: v2.0, convert to template
-        """
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Get the existing status
-        n = self.CheckCase(i)
-        # Quit if prepared
-        if n is not None:
-            return None
-        # Clear the cache
-        self.cache_iter.clear_case(i)
-        # Get the run name
-        frun = self.x.GetFullFolderNames(i)
-        # Case function
-        self.CaseFunction(i)
-        # Make the directory if necessary
-        self.make_case_folder(i)
-        # Go there.
-        os.chdir(frun)
-        # Write the conditions to a simple JSON file.
-        self.x.WriteConditionsJSON(i)
-        # Write a JSON files with contents of "RunControl" section
-        self.WriteCaseJSON(i)
-
-    @run_rootdir
-    def make_case_folder(self, i: int):
-        r"""Create folder(s) if needed for case *i*
-
-        :Call:
-            >>> cntl.make_case_folder(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Index of case to analyze
-        :Versions:
-            * 2023-08-25 ``@ddalle``: v1.0 (CreateFolder)
-            * 2023-10-20 ``@ddalle``: v2.0; support arbitrary depth
-        """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Loop through levels
-        for fpart in frun.split(os.sep):
-            # Check if folder exists
-            if not os.path.isdir(fpart):
-                # Create it
-                os.mkdir(fpart)
-            # Enter folder to prepare for next level
-            os.chdir(fpart)
-
-    # Function to apply transformations to config
-    def PrepareConfig(self, i):
-        r"""Apply rotations, translations, etc. to ``Config.xml``
-
-        :Call:
-            >>> cntl.PrepareConfig(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2016-08-23 ``@ddalle``: v1.0
-        """
-        # Ensure index is set
-        self.opts.setx_i(i)
-        # Get function for rotations, etc.
-        keys = self.x.GetKeysByType(['translate', 'rotate', 'ConfigFunction'])
-        # Exit if no keys
-        if len(keys) == 0:
-            return
-        # Reset reference points
-        self.opts.reset_Points()
-        # Loop through keys.
-        for key in keys:
-            # Type
-            kt = self.x.defns[key]['Type']
-            # Filter on which type of configuration modification it is
-            if kt == "ConfigFunction":
-                # Special config.xml function
-                self.PrepareConfigFunction(key, i)
-            elif kt.lower() == "translate":
-                # Component(s) translation
-                self.PrepareConfigTranslation(key, i)
-            elif kt.lower() == "rotate":
-                # Component(s) translation
-                self.PrepareConfigRotation(key, i)
-        # Write the configuration file
-        self.WriteConfig(i)
-
-    # Write conditions JSON file
-    @run_rootdir
-    def WriteConditionsJSON(self, i, rc=None):
-        r"""Write JSON file with run matrix settings for case *i*
-
-        :Call:
-            >>> cntl.WriteConditionsJSON(i, rc=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Generic control class
-            *i*: :class:`int`
-                Run index
-            *rc*: {``None``} | :class:`dict`
-                If specified, write specified "RunControl" options
-        :Versions:
-            * 2021-09-08 ``@ddalle``: v1.0
-        """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Write conditions
-        self.x.WriteConditionsJSON(i)
-
-    # Write run control options to JSON file
-    @run_rootdir
-    def WriteCaseJSON(self, i: int, rc: Optional[dict] = None):
-        r"""Write JSON file with run control settings for case *i*
-
-        :Call:
-            >>> cntl.WriteCaseJSON(i, rc=None)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Generic control class
-            *i*: :class:`int`
-                Run index
-            *rc*: {``None``} | :class:`dict`
-                If specified, write specified "RunControl" options
-        :Versions:
-            * 2015-10-19 ``@ddalle``: v1.0
-            * 2023-03-31 ``@ddalle``: v2.0; manual options input
-            * 2023-08-29 ``@ddalle``: v2.1; call sample_dict()
-            * 2024-08-24 ``@ddalle``: v2.2; use CaseRunner
-            * 2025-01-23 ``@ddalle``: v2.3; eliminate *Arvhive* settings
-        """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists
-        if not os.path.isdir(frun):
-            return
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Go to the folder
-        os.chdir(frun)
-        # Get "RunControl" section
-        if rc is None:
-            # Select
-            rc = self.opts["RunControl"]
-        # Sample to case *i*
-        rc = self.opts.sample_dict(rc)
-        # Remove *Archive* section
-        rc.pop("Archive", None)
-        # Read case runner
-        runner = self.ReadCaseRunner(i)
-        # Write settings
-        runner.write_case_json(rc)
-
-    # Read run control options from case JSON file
-    @run_rootdir
-    def read_case_json(self, i):
-        r"""Read ``case.json`` file from case *i* if possible
-
-        :Call:
-            >>> rc = cntl.read_case_json(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control class
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *rc*: ``None`` | :class:`dict`
-                Run control interface read from ``case.json`` file
-        :Versions:
-            * 2016-12-12 ``@ddalle``: v1.0
-            * 2017-04-12 ``@ddalle``: v1.1; add to :mod:`cape.cfdx`
-            * 2023-06-29 ``@ddalle``: v2.0; use _case_mod
-            * 2023-07-07 ``@ddalle``: v2.1; use CaseRunner
-        """
-        # Fall back if case doesn't exist
-        try:
-            # Get a case runner
-            runner = self.ReadCaseRunner(i)
-            # Get settings
-            return runner.read_case_json()
-        except Exception:
-            # Fall back to None
-            return None
 
    # --- Geometry "Points" ---
     # Evaluate "Points" positions w/o preparing tri or config

@@ -40,6 +40,8 @@ import shutil
 import sys
 import time
 from collections import Counter
+from datetime import datetime
+from io import IOBase
 from typing import Any, Callable, Optional, Union
 
 # Third-party modules
@@ -50,6 +52,7 @@ from . import casecntl
 from . import databook
 from . import queue
 from . import report
+from .. import console
 from .. import textutils
 from .casecntl import CaseRunner
 from .cntlbase import CntlBase
@@ -57,6 +60,7 @@ from .dex import DataExchanger
 from .logger import CntlLogger
 from .options import Options
 from .options.funcopts import UserFuncOpts
+from .options.runctlopts import RunControlOpts
 from .runmatrix import RunMatrix
 from ..argread import ArgReader
 from ..config import ConfigXML, ConfigJSON
@@ -754,6 +758,173 @@ class Cntl(CntlBase):
         return func(*a, **kw)
 
   # *** CASE PREPARATION ***
+   # --- Main ---
+    # Prepare a case
+    @run_rootdir
+    def PrepareCase(self, i: int):
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Get the existing status
+        n = self.CheckCase(i)
+        # Quit if prepared
+        if n is not None:
+            return None
+        # Clear the cache
+        self.cache_iter.clear_case(i)
+        # Get the run name
+        frun = self.x.GetFullFolderNames(i)
+        # Case function
+        self.CaseFunction(i)
+        # Make the directory if necessary
+        self.make_case_folder(i)
+        # Go there.
+        os.chdir(frun)
+        # Write the conditions to a simple JSON file.
+        self.x.WriteConditionsJSON(i)
+        # Write a JSON files with contents of "RunControl" section
+        self.WriteCaseJSON(i)
+
+    @run_rootdir
+    def make_case_folder(self, i: int):
+        # Get the case name
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through levels
+        for fpart in frun.split(os.sep):
+            # Check if folder exists
+            if not os.path.isdir(fpart):
+                # Create it
+                os.mkdir(fpart)
+            # Enter folder to prepare for next level
+            os.chdir(fpart)
+
+    # Prepare ``CAPE-STOP-PHASE`` file
+    def _prepare_incremental(self, i: int, j: Union[bool, int] = False):
+        # Check option
+        if j is False:
+            # Normal case; no incremental option
+            return
+        # Run folder
+        frun = self.x.GetFullFolderNames(i)
+        # Absolutize
+        fstop = os.path.join(self.RootDir, frun, casecntl.STOP_PHASE_FILE)
+        # Create file
+        with open(fstop, 'w') as fp:
+            # Write phase number if *j* is an int
+            if isinstance(j, (int, np.int32, np.int64)):
+                fp.write(f"{j}\n")
+
+   # --- Case settings ---
+    # Write conditions JSON file
+    @run_rootdir
+    def WriteConditionsJSON(self, i: int):
+        # Get the case name
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists.
+        if not os.path.isdir(frun):
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        # Write conditions
+        self.x.WriteConditionsJSON(i)
+
+    # Write run control options to JSON file
+    @run_rootdir
+    def WriteCaseJSON(self, i: int, rc: Optional[dict] = None):
+        # Get the case name
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists
+        if not os.path.isdir(frun):
+            return
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Go to the folder
+        os.chdir(frun)
+        # Get "RunControl" section
+        if rc is None:
+            # Select
+            rc = self.opts["RunControl"]
+        # Sample to case *i*
+        rc = self.opts.sample_dict(rc)
+        # Remove *Archive* section
+        rc.pop("Archive", None)
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Write settings
+        runner.write_case_json(rc)
+
+   # --- PBS/Slurm ---
+    # Write the PBS script
+    @run_rootdir
+    def WritePBS(self, i: int):
+        # Get solver name
+        name = self._solver
+        # Get module name
+        modname_parts = self.__class__.__module__.split('.')
+        # Strip off last portion (cape.pyfun.cntl -> cape.pyfun)
+        modname = ".".join(modname_parts[:-1])
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Make folder if necessary
+        self.make_case_folder(i)
+        # Go to the folder.
+        os.chdir(frun)
+        # Determine number of unique PBS scripts.
+        if self.opts.get_nPBS() > 1:
+            # If more than one, use unique PBS script for each run.
+            nPBS = self.opts.get_nSeq()
+        else:
+            # Otherwise use a single PBS script.
+            nPBS = 1
+        # Loop through the runs.
+        for j in range(nPBS):
+            # PBS script name.
+            if nPBS > 1:
+                # Put PBS number in file name.
+                fpbs = f'run_{name}.{j:02d}.pbs'
+            else:
+                # Use single PBS script with plain name.
+                fpbs = f'run_{name}.pbs'
+            # Initialize the PBS script
+            with open(fpbs, 'w') as fp:
+                # Write the header
+                self.WritePBSHeader(fp, i, j)
+                # Initialize options to `run_fun3d.py`
+                flgs = ''
+                # Get specific python version
+                pyexec = self.opts.get_PythonExec(j)
+                # Use "python3" as default
+                pyexec = "python3" if pyexec is None else pyexec
+                # Call the main CAPE interface using python3 -m
+                fp.write('\n# Call the main executable\n')
+                fp.write(f"{pyexec} -m {modname} run {flgs}\n")
+
+    # Write a PBS header
+    def WritePBSHeader(
+            self,
+            fp: IOBase,
+            i: Optional[int] = None,
+            j: int = 0,
+            typ: Optional[str] = None,
+            wd: Optional[str] = None):
+        # Get the shell name.
+        if i is None:
+            # Batch job
+            lbl = '%s-batch' % self.__module__.split('.')[0].lower()
+            # Max job name length
+            maxlen = self.opts.get_RunMatrixMaxJobNameLength()
+            # Ensure length
+            lbl = lbl[:maxlen]
+        else:
+            # Case PBS job name
+            lbl = self.GetPBSName(i)
+        # Check the task manager
+        if self.opts.get_slurm(j):
+            # Write the Slurm header
+            self.opts.WriteSlurmHeader(fp, lbl, j=j, typ=typ, wd=wd)
+        else:
+            # Call the function from *opts*
+            self.opts.WritePBSHeader(fp, lbl, j=j, typ=typ, wd=wd)
+
    # --- Mesh ---
     @run_rootdir
     def PrepareMesh(self, i: int):
@@ -946,7 +1117,7 @@ class Cntl(CntlBase):
         # Return status
         return True
 
-   # --- Mesh: Surf ---
+   # --- Mesh: surface ---
     def PrepareMeshTri(self, i: int):
         # Get mesh file and tri file settings
         meshfile = self.opts.get_MeshFile()
@@ -1033,7 +1204,7 @@ class Cntl(CntlBase):
                 else:
                     self.tri.Write(ftri)
 
-   # --- Mesh: File names ---
+   # --- Mesh: file names ---
     # Get list of mesh file names that should be in a case folder
     def GetProcessedMeshFileNames(self) -> list:
         # Initialize output
@@ -1082,7 +1253,7 @@ class Cntl(CntlBase):
             # Just the extension
             return f"{fproj}.{fext}"
 
-   # --- Tri files ---
+   # --- Surface: read ---
     # Function to prepare the triangulation for each grid folder
     @run_rootdir
     def ReadTri(self):
@@ -1147,7 +1318,35 @@ class Cntl(CntlBase):
         # Make a copy of the original to revert to after rotations, etc.
         self.tri0 = self.tri.Copy()
 
-   # --- Surface config ---
+   # --- Surface: config ---
+    # Function to apply transformations to config
+    def PrepareConfig(self, i: int):
+        # Ensure index is set
+        self.opts.setx_i(i)
+        # Get function for rotations, etc.
+        keys = self.x.GetKeysByType(['translate', 'rotate', 'ConfigFunction'])
+        # Exit if no keys
+        if len(keys) == 0:
+            return
+        # Reset reference points
+        self.opts.reset_Points()
+        # Loop through keys.
+        for key in keys:
+            # Type
+            kt = self.x.defns[key]['Type']
+            # Filter on which type of configuration modification it is
+            if kt == "ConfigFunction":
+                # Special config.xml function
+                self.PrepareConfigFunction(key, i)
+            elif kt.lower() == "translate":
+                # Component(s) translation
+                self.PrepareConfigTranslation(key, i)
+            elif kt.lower() == "rotate":
+                # Component(s) translation
+                self.PrepareConfigRotation(key, i)
+        # Write the configuration file
+        self.WriteConfig(i)
+
     # Read configuration (without tri file if necessary)
     @run_rootdir
     def ReadConfig(self, f: bool = False) -> Union[ConfigXML, ConfigJSON]:
@@ -1222,6 +1421,46 @@ class Cntl(CntlBase):
         self.caserunner.cntl = self
         # Output
         return self.caserunner
+
+    def _read_runner(self, i: int, active: bool = True) -> CaseRunner:
+        # Get case runner
+        runner = self.ReadCaseRunner(i)
+        # Check for null case
+        if runner is None:
+            return
+        # Check for active job trackers
+        if isinstance(runner.jobs, queue.QStat):
+            if isinstance(self.jobs, queue.QStat):
+                # Both runner and cntl are active; combine
+                self.jobs.update(runner.jobs)
+                runner.jobs = self.jobs
+            else:
+                # Save the runner's version here
+                self.jobs = runner.jobs
+        elif isinstance(self.jobs, queue.QStat):
+            # Save local instance in *runner*
+            runner.jobs = self.jobs
+        else:
+            # Initialize
+            self.jobs = runner._get_qstat()
+        # Apply *active* setting
+        runner.jobs.active = active
+        # Output
+        return runner
+
+   # --- Case settings ---
+    # Read run control options from case JSON file
+    @run_rootdir
+    def read_case_json(self, i: int) -> RunControlOpts:
+        # Fall back if case doesn't exist
+        try:
+            # Get a case runner
+            runner = self.ReadCaseRunner(i)
+            # Get settings
+            return runner.read_case_json()
+        except Exception:
+            # Fall back to None
+            return None
 
    # --- Start/stop ---
     # Function to start a case: submit or run
@@ -1317,6 +1556,20 @@ class Cntl(CntlBase):
         return total_running
 
    # --- Status ---
+    def check_case_status(self, i: int, active: bool = True) -> str:
+        # Get case runner
+        runner = self._read_runner(i, active)
+        # Check for empty case
+        if runner is None:
+            # Check for mark
+            if self.x.ERROR[i]:
+                return 'ERROR'
+            elif self.x.PASS[i]:
+                return 'PASS*'
+            return '---'
+        # Check
+        return runner.get_status()
+
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(
             self, i: int,
@@ -1392,6 +1645,109 @@ class Cntl(CntlBase):
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v: bool = False) -> bool:
         return False
+
+    # Check if a case is running.
+    @run_rootdir
+    def CheckRunning(self, i):
+        r"""Check if a case is currently running
+
+        :Call:
+            >>> q = cntl.CheckRunning(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has :file:`RUNNING` file in it
+        :Versions:
+            * 2014-10-03 ``@ddalle``: v1.0
+        """
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for the RUNNING file.
+        q = os.path.isfile(os.path.join(frun, casecntl.RUNNING_FILE))
+        # Output
+        return q
+
+    # Check for a failure
+    @run_rootdir
+    def CheckError(self, i: int) -> bool:
+        r"""Check if a case has a failure
+
+        :Call:
+            >>> q = cntl.CheckError(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has ``FAIL`` file in it
+        :Versions:
+            * 2015-01-02 ``@ddalle``: v1.0
+        """
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for the error file
+        q = os.path.isfile(os.path.join(frun, casecntl.FAIL_FILE))
+        # Check ERROR flag
+        q = q or self.x.ERROR[i]
+        # Output
+        return q
+
+    # Check for no unchanged files
+    @run_rootdir
+    def CheckZombie(self, i):
+        # Check if case is running
+        qrun = self.CheckRunning(i)
+        # If not running, cannot be a zombie
+        if not qrun:
+            return False
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check if the folder exists
+        if not os.path.isdir(frun):
+            return False
+        # Enter the folder
+        os.chdir(frun)
+        # List of files to check
+        fzomb = self.opts.get("ZombieFiles", self.__class__._zombie_files)
+        # Ensure list
+        if not isinstance(fzomb, (list, tuple)):
+            # Singleton glob, probably
+            fzomb = [fzomb]
+        # Create list of files matching globs
+        fglob = []
+        for fg in fzomb:
+            fglob += glob.glob(fg)
+        # Timeout time (in minutes)
+        tmax = self.opts.get("ZombieTimeout", 30.0)
+        t = tmax
+        # Current time
+        toc = time.time()
+        # Loop through glob files
+        for fname in fglob:
+            # Get minutes since modification for *fname*
+            ti = (toc - os.path.getmtime(fname))/60
+            # Running minimum
+            t = min(t, ti)
+        # Output
+        return (t >= tmax)
+
+    # Check for if we are running inside a batch job
+    def CheckBatch(self) -> int:
+        # Check which job manager
+        if self.opts.get_slurm(0):
+            # Slurm
+            envid = os.environ.get('SLURM_JOB_ID', '0')
+        else:
+            # Slurm
+            envid = os.environ.get('PBS_JOBID', '0')
+        # Convert to integer
+        return int(envid.split(".", 1)[0])
 
    # --- Phase ---
     # Check a case's phase output files
@@ -1516,7 +1872,40 @@ class Cntl(CntlBase):
         # Return it
         return n
 
-   # --- PBS/Slurm ---
+   # --- PBS jobs ---
+    # Get PBS/Slurm queue status indicator
+    def check_case_job(self, i: int, active: bool = True) -> str:
+        # Get case runner
+        runner = self._read_runner(i, active)
+        # Check for null case
+        if runner is None:
+            return '.'
+        # Check
+        return runner.check_queue()
+
+    # Get PBS name
+    def GetPBSName(self, i: int) -> str:
+        # Get max length of PBS/Slurm job name
+        maxlen = self.opts.get_RunMatrixMaxJobNameLength()
+        # Use JSON real file name as prefix
+        prefix = self.opts.name
+        prefix = f"{prefix}-" if prefix else ''
+        # Call from trajectory
+        return self.x.GetPBSName(i, prefix=prefix, maxlen=maxlen)
+
+    # Get PBS job ID if possible
+    @run_rootdir
+    def GetPBSJobID(self, i: int) -> Optional[str]:
+        # Get case runner
+        runner = self.ReadCaseRunner(i)
+        # Check if case exists
+        if runner is None:
+            return
+        # Read principal jobID if possible
+        jobID = runner.get_job_id()
+        # Repace '' -> None
+        return None if jobID == '' else jobID
+
     # Get information on all jobs from current user
     def get_pbs_jobs(
             self,
@@ -1562,6 +1951,17 @@ class Cntl(CntlBase):
         self.jobs.scheduler = sched
         # Output
         return self.jobs
+
+   # --- CPU Stats ---
+    # Get total CPU hours (actually core hours)
+    def GetCPUTime(self, i: int):
+        # Read case
+        runner = self.ReadCaseRunner(i)
+        # Check for null runner (probably haven't started case)
+        if runner is None:
+            return None
+        # Return CPU time from that
+        return runner.get_cpu_time()
 
   # *** CLI ***
    # --- Case loop ---
@@ -1963,31 +2363,6 @@ class Cntl(CntlBase):
    # --- Modify cases ---
     # Function to extend one or more cases
     def ExtendCases(self, **kw):
-        r"""Extend one or more case by a number of iterations
-
-        By default, this applies to the final phase, but the phase
-        number *j* can also be specified as input. The number of
-        additional iterations is generally the nominal number of
-        iterations that phase *j* would normally run.
-
-        :Call:
-            >>> cntl.ExtendCases(cons=[], extend=1, **kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of overall control interface
-            *extend*: {``True``} | positive :class:`int`
-                Extend phase *j* by *extend* nominal runs
-            *imax*: {``None``} | :class:`int`
-                Do not increase iteration number beyond *imax*
-            *j*, *phase*: {``None``} | :class:`int`
-                Optional index of phase to extend
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints
-            *I*: :class:`list`\ [:class:`int`]
-                List of indices
-        :Versions:
-            * 2016-12-12 ``@ddalle``: v1.0
-        """
         # Process inputs
         n = kw.get('extend', 1)
         j = kw.get("phase", kw.get("j", None))
@@ -2030,22 +2405,6 @@ class Cntl(CntlBase):
             n: int = 1,
             j: Optional[int] = None,
             imax: Optional[int] = None):
-        r"""Add iterations to case *i* by repeating the last phase
-
-        :Call:
-            >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Run index
-            *n*: {``1``} | positive :class:`int`
-                Add *n* times *steps* to the total iteration count
-            *j*: {``None``} | :class:`int`
-                Optional phase to extend
-            *imax*: {``None``} | nonnegative :class:`int`
-                Use *imax* as the maximum iteration count
-        """
         raise NotImplementedError(
             f"ExtendCase() not implemented for {self._name} module")
 
@@ -2094,42 +2453,12 @@ class Cntl(CntlBase):
 
     # Extend a case
     def ApplyCase(self, i: int, **kw):
-        r"""Rewrite CAPE inputs for case *i*
-
-        :Call:
-            >>> cntl.ApplyCase(i, n=1, j=None, imax=None)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Run index
-            *qsub*: ``True`` | {``False``}
-                Option to submit case after applying settings
-            *nPhase*: :class:`int`
-                Phase to apply settings to
-        """
         raise NotImplementedError(
             f"ExtendCase() not implemented for {self._name} module")
 
+   # --- Delete/Stop ---
     # Delete jobs
     def qdel_cases(self, **kw):
-        r"""Kill/stop PBS job of cases
-
-        This function deletes a case's PBS/Slurm jobbut not delete the
-        foder for a case.
-
-        :Call:
-            >>> cntl.qdel_cases(**kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Cape control interface
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List of cases to delete
-            *kw*: :class:`dict`
-                Other subset parameters, e.g. *re*, *cons*
-        :Versions:
-            * 2025-06-22 ``@ddalle``: v1.0
-        """
         # Delete one case (maybe)
         def qdel_case(i: int) -> int:
             # Check queue
@@ -2142,31 +2471,6 @@ class Cntl(CntlBase):
 
     # Delete cases
     def rm_cases(self, prompt: bool = True, **kw) -> int:
-        r"""Delete one or more cases
-
-        This function deletes a case's PBS job and removes the entire
-        directory. By default, the method prompts for confirmation
-        before deleting; set *prompt* to ``False`` to delete without
-        prompt, but only cases with 0 iterations can be deleted this
-        way.
-
-        :Call:
-            >>> n = cntl.rm_cases(prompt=True, **kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Cape control interface
-            *prompt*: {``True``} | ``False``
-                Whether or not to prompt user before deleting case
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List of cases to delete
-            *kw*: :class:`dict`
-                Other subset parameters, e.g. *re*, *cons*
-        :Outputs:
-            *n*: :class:`int`
-                Number of folders deleted
-        :Versions:
-            * 2025-06-20 ``@ddalle``: v1.0
-        """
         # Delete one case (maybe)
         def rm_case(i: int) -> int:
             # Check *prompt* overwrite
@@ -2190,28 +2494,6 @@ class Cntl(CntlBase):
     # Function to delete a case folder: qdel and rm
     @run_rootdir
     def DeleteCase(self, i: int, **kw):
-        r"""Delete a case
-
-        This function deletes a case's PBS job and removes the entire
-        directory.  By default, the method prompts for user's
-        confirmation before deleting; set *prompt* to ``False`` to delete
-        without prompt.
-
-        :Call:
-            >>> n = cntl.DeleteCase(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Cape control interface
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-            *prompt*: {``True``} | ``False``
-                Whether or not to prompt user before deleting case
-        :Outputs:
-            *n*: ``0`` | ``1``
-                Number of folders deleted
-        :Versions:
-            * 2018-11-20 ``@ddalle``: v1.0
-        """
         # Local function to perform deletion
         def del_folder(frun):
             # Delete the folder using :mod:`shutil`
@@ -2244,6 +2526,38 @@ class Cntl(CntlBase):
             n = 1
         # Output
         return n
+
+   # --- Batch ---
+    # Write batch PBS job
+    @run_rootdir
+    def run_batch(self, argv: list) -> str:
+        # Create the folder if necessary
+        if not os.path.isdir('batch-pbs'):
+            os.mkdir('batch-pbs')
+        # Enter the batch pbs folder
+        os.chdir('batch-pbs')
+        # File name header
+        prog = self.__module__.split('.')[0].lower()
+        # Current time
+        fnow = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        # File name
+        fpbs = '%s-%s.pbs' % (prog, fnow)
+        # Write the file
+        with open(fpbs, 'w') as fp:
+            # Write header
+            self.WritePBSHeader(fp, typ='batch', wd=self.RootDir)
+            # Write the command
+            fp.write('\n# Run the command\n')
+            fp.write('%s\n\n' % (" ".join(argv)))
+        # Submit the job
+        if self.opts.get_slurm(0):
+            # Submit Slurm job
+            pbs = queue.sbatch(fpbs)
+        else:
+            # Submit PBS job
+            pbs = queue.pqsub(fpbs)
+        # Output
+        return pbs
 
   # *** RUN MATRIX ***
    # --- Values ---
@@ -2365,285 +2679,6 @@ class Cntl(CntlBase):
     # Get case index
     def GetCaseIndex(self, frun: str) -> Optional[int]:
         return self.x.GetCaseIndex(frun)
-
-   # --- Run Interface ---
-
-   # --- Case Preparation ---
-    # Prepare ``CAPE-STOP-PHASE`` file
-    def _prepare_incremental(self, i: int, j: Union[bool, int] = False):
-        r"""Prepare a case to stop at end of specified phase
-
-        :Call:
-            >>> cntl._prepare_incremental(i, j=False)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control class
-            *i*: :class:`int`
-                Case index
-            *j*: ``True`` | {``False``} | :class:`int`
-                Option to stop at end of any phase (``True``) or
-                specific phase number
-        :Versions:
-            * 2024-05-26 ``@ddalle``: v1.0
-        """
-        # Check option
-        if j is False:
-            # Normal case; no incremental option
-            return
-        # Run folder
-        frun = self.x.GetFullFolderNames(i)
-        # Absolutize
-        fstop = os.path.join(self.RootDir, frun, casecntl.STOP_PHASE_FILE)
-        # Create file
-        with open(fstop, 'w') as fp:
-            # Write phase number if *j* is an int
-            if isinstance(j, (int, np.int32, np.int64)):
-                fp.write(f"{j}\n")
-
-   # --- Cases ---
-    # Check if a case is running.
-    @run_rootdir
-    def CheckRunning(self, i):
-        r"""Check if a case is currently running
-
-        :Call:
-            >>> q = cntl.CheckRunning(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *q*: :class:`bool`
-                If ``True``, case has :file:`RUNNING` file in it
-        :Versions:
-            * 2014-10-03 ``@ddalle``: v1.0
-        """
-        # Get run name
-        frun = self.x.GetFullFolderNames(i)
-        # Check for the RUNNING file.
-        q = os.path.isfile(os.path.join(frun, casecntl.RUNNING_FILE))
-        # Output
-        return q
-
-    # Check for a failure
-    @run_rootdir
-    def CheckError(self, i: int) -> bool:
-        r"""Check if a case has a failure
-
-        :Call:
-            >>> q = cntl.CheckError(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *q*: :class:`bool`
-                If ``True``, case has ``FAIL`` file in it
-        :Versions:
-            * 2015-01-02 ``@ddalle``: v1.0
-        """
-        # Get run name
-        frun = self.x.GetFullFolderNames(i)
-        # Check for the error file
-        q = os.path.isfile(os.path.join(frun, casecntl.FAIL_FILE))
-        # Check ERROR flag
-        q = q or self.x.ERROR[i]
-        # Output
-        return q
-
-    # Check for no unchanged files
-    @run_rootdir
-    def CheckZombie(self, i):
-        # Check if case is running
-        qrun = self.CheckRunning(i)
-        # If not running, cannot be a zombie
-        if not qrun:
-            return False
-        # Get run name
-        frun = self.x.GetFullFolderNames(i)
-        # Check if the folder exists
-        if not os.path.isdir(frun):
-            return False
-        # Enter the folder
-        os.chdir(frun)
-        # List of files to check
-        fzomb = self.opts.get("ZombieFiles", self.__class__._zombie_files)
-        # Ensure list
-        if not isinstance(fzomb, (list, tuple)):
-            # Singleton glob, probably
-            fzomb = [fzomb]
-        # Create list of files matching globs
-        fglob = []
-        for fg in fzomb:
-            fglob += glob.glob(fg)
-        # Timeout time (in minutes)
-        tmax = self.opts.get("ZombieTimeout", 30.0)
-        t = tmax
-        # Current time
-        toc = time.time()
-        # Loop through glob files
-        for fname in fglob:
-            # Get minutes since modification for *fname*
-            ti = (toc - os.path.getmtime(fname))/60
-            # Running minimum
-            t = min(t, ti)
-        # Output
-        return (t >= tmax)
-
-    # Check for if we are running inside a batch job
-    def CheckBatch(self) -> int:
-        # Check which job manager
-        if self.opts.get_slurm(0):
-            # Slurm
-            envid = os.environ.get('SLURM_JOB_ID', '0')
-        else:
-            # Slurm
-            envid = os.environ.get('PBS_JOBID', '0')
-        # Convert to integer
-        return int(envid.split(".", 1)[0])
-
-    def check_case_job(self, i: int, active: bool = True) -> str:
-        r"""Get queue status of the PBS/Slurm job from case *i*
-
-        :Call:
-            >>> s = cntl.check_case_job(i, active=True)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Controller for one CAPE run matrix
-            *i*: :class:`int`
-                Case index
-            *active*: {``True``} | ``False``
-                Whether or not to allow new calls to ``qstat``
-        :Outputs:
-            *s*: :class:`str`
-                Job queue status
-
-                * ``-``: not in queue
-                * ``Q``: job queued (not running)
-                * ``R``: job running
-                * ``H``: job held
-                * ``E``: job error status
-        :Versions:
-            * 2025-05-04 ``@ddalle``: v1.0
-        """
-        # Get case runner
-        runner = self._read_runner(i, active)
-        # Check for null case
-        if runner is None:
-            return '.'
-        # Check
-        return runner.check_queue()
-
-    def check_case_status(self, i: int, active: bool = True) -> str:
-        r"""Get queue status of the PBS/Slurm job from case *i*
-
-        :Call:
-            >>> sts = cntl.check_case_job(i, active=True)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Controller for one CAPE run matrix
-            *i*: :class:`int`
-                Case index
-            *active*: {``True``} | ``False``
-                Whether or not to allow new calls to ``qstat``
-        :Outputs:
-            *sts*: :class:`str`
-                Case status
-
-                * ``---``: folder does not exist
-                * ``INCOMP``: case incomplete but [partially] set up
-                * ``QUEUE``: case waiting in PBS/Slurm queue
-                * ``RUNNING``: case currently running
-                * ``DONE``: all phases and iterations complete
-                * ``PASS``: *DONE* and marked by user as passed
-                * ``ZOMBIE``: seems running; but no recent file updates
-                * ``PASS*``: case marked by user but not *DONE*
-                * ``ERROR``: case marked as error
-                * ``FAIL``: case failed but not marked by user
-        :Versions:
-            * 2025-05-04 ``@ddalle``: v1.0
-        """
-        # Get case runner
-        runner = self._read_runner(i, active)
-        # Check for empty case
-        if runner is None:
-            # Check for mark
-            if self.x.ERROR[i]:
-                return 'ERROR'
-            elif self.x.PASS[i]:
-                return 'PASS*'
-            return '---'
-        # Check
-        return runner.get_status()
-
-    def _read_runner(self, i: int, active: bool = True) -> CaseRunner:
-        r"""Read case runner and synch PBS jobs tracker
-
-        :Call:
-            >>> runner = cntl._read_runner(i, active=True)
-        """
-        # Get case runner
-        runner = self.ReadCaseRunner(i)
-        # Check for null case
-        if runner is None:
-            return
-        # Check for active job trackers
-        if isinstance(runner.jobs, queue.QStat):
-            if isinstance(self.jobs, queue.QStat):
-                # Both runner and cntl are active; combine
-                self.jobs.update(runner.jobs)
-                runner.jobs = self.jobs
-            else:
-                # Save the runner's version here
-                self.jobs = runner.jobs
-        elif isinstance(self.jobs, queue.QStat):
-            # Save local instance in *runner*
-            runner.jobs = self.jobs
-        else:
-            # Initialize
-            self.jobs = runner._get_qstat()
-        # Apply *active* setting
-        runner.jobs.active = active
-        # Output
-        return runner
-
-   # --- Case Modification ---
-    # Extend a case
-    def ExtendCase(
-            self,
-            i: int,
-            n: int = 1,
-            j: Optional[int] = None,
-            imax: Optional[int] = None):
-        r"""Add iterations to case *i* by repeating the last phase
-
-        :Call:
-            >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Run index
-            *n*: {``1``} | positive :class:`int`
-                Add *n* times *steps* to the total iteration count
-            *j*: {``None``} | :class:`int`
-                Optional phase to extend
-            *imax*: {``None``} | nonnegative :class:`int`
-                Use *imax* as the maximum iteration count
-        :Versions:
-            * 2016-12-12 ``@ddalle``: v1.0
-            * 2024-08-27 ``@ddalle``: v2.0; move code to ``CaseRunner``
-            * 2024-09-28 ``@ddalle``: v2.1; add *j*
-        """
-        # Ignore cases marked PASS
-        if self.x.PASS[i] or self.x.ERROR[i]:
-            return
-        # Get the runner
-        runner = self.ReadCaseRunner(i)
-        # Extend the case
-        runner.extend_case(m=n, j=j, nmax=imax)
 
   # *** REPORTING ***
     # Read report
@@ -3665,18 +3700,6 @@ class Cntl(CntlBase):
     # Copy files
     @run_rootdir
     def copy_files(self, i: int):
-        r"""Copy specified files to case *i* run folder
-
-        :Call:
-            >>> cntl.copy_files(i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2025-03-26 ``@ddalle``: v1.0
-        """
         # Get list of files to copy
         files = self.opts.get_CopyFiles()
         # Check for any
@@ -3706,18 +3729,6 @@ class Cntl(CntlBase):
     # Link files
     @run_rootdir
     def link_files(self, i: int):
-        r"""Link specified files to case *i* run folder
-
-        :Call:
-            >>> cntl.link_files(i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2025-03-26 ``@ddalle``: v1.0
-        """
         # Get list of files to copy
         files = self.opts.get_LinkFiles()
         # Check for any
@@ -3744,73 +3755,87 @@ class Cntl(CntlBase):
             os.symlink(fabs, fdest)
 
    # --- Archiving ---
+    # Function to archive results and remove files
+    def ArchiveCases(self, **kw):
+        # Get test option
+        test = kw.get("test", False)
+        # Loop through the folders
+        for i in self.x.GetIndices(**kw):
+            # Get folder name
+            frun = self.x.GetFullFolderNames(i)
+            fabs = os.path.join(self.RootDir, frun)
+            # Check if the case is ready to archive
+            if not os.path.isdir(fabs):
+                continue
+            # Status update
+            print(frun)
+            # Run action
+            self.CleanCase(i, test)
+            # Check status
+            if self.CheckCaseStatus(i) not in ('PASS', 'ERROR'):
+                print("  Case is not marked PASS | FAIL")
+                continue
+            # Archive
+            self.ArchiveCase(i, test)
+
     # Run ``--archive`` on one case
     def ArchiveCase(self, i: int, test: bool = False):
-        r"""Perform ``--archive`` archiving on one case
-
-        There are no restrictions on the status of the case for this
-        action.
-
-        :Call:
-            >>> cntl.CleanCase(i, test=False)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE run matrix controller instance
-            *i*: :class:`int`
-                Case index
-            *test*: ``True`` | {``False``}
-                Log file/folder actions but don't actually delete/copy
-        :Versions:
-            * 2024-09-18 ``@ddalle``: v1.0
-        """
         # Read case runner
         runner = self.ReadCaseRunner(i)
         # Run action
         runner.archive(test)
 
+    # Function to archive results and remove files
+    @run_rootdir
+    def SkeletonCases(self, **kw):
+        # Get test option
+        test = kw.get("test", False)
+        # Loop through the folders
+        for i in self.x.GetIndices(**kw):
+            # Get folder name
+            frun = self.x.GetFullFolderNames(i)
+            fabs = os.path.join(self.RootDir, frun)
+            # Check if the case is ready to archive
+            if not os.path.isdir(fabs):
+                continue
+            # Status update
+            print(frun)
+            # Run action
+            self.CleanCase(i, test)
+            # Check status
+            if self.CheckCaseStatus(i) not in ('PASS', 'ERROR'):
+                print("  Case is not marked PASS | FAIL")
+                continue
+            # Archive and skeleton
+            self.ArchiveCase(i, test)
+            self.SkeletonCase(i, test)
+
     # Run ``--skeleton`` on one case
     def SkeletonCase(self, i: int, test: bool = False):
-        r"""Perform ``--skeleton`` archiving on one case
-
-        There are no restrictions on the status of the case for this
-        action.
-
-        :Call:
-            >>> cntl.SkeletonCase(i, test=False)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control interface
-            *i*: :class:`int`
-                Case index
-            *test*: ``True`` | {``False``}
-                Log file/folder actions but don't actually delete/copy
-        :Versions:
-            * 2024-09-18 ``@ddalle``: v1.0
-        """
         # Read case runner
         runner = self.ReadCaseRunner(i)
         # Run action
         runner.skeleton(test)
 
+    # Clean a set of cases
+    def CleanCases(self, **kw):
+        # Test status
+        test = kw.get("test", False)
+        # Loop through the folders
+        for i in self.x.GetIndices(**kw):
+            # Get folder name
+            frun = self.x.GetFullFolderNames(i)
+            fabs = os.path.join(self.RootDir, frun)
+            # Check if the case is ready to archive
+            if not os.path.isdir(fabs):
+                continue
+            # Status update
+            print(frun)
+            # Run action
+            self.CleanCase(i, test)
+
     # Run ``--clean`` on one case
     def CleanCase(self, i: int, test: bool = False):
-        r"""Perform ``--clean`` archiving on one case
-
-        There are no restrictions on the status of the case for this
-        action.
-
-        :Call:
-            >>> cntl.CleanCase(i, test=False)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control interface
-            *i*: :class:`int`
-                Case index
-            *test*: ``True`` | {``False``}
-                Log file/folder actions but don't actually delete/copy
-        :Versions:
-            * 2024-09-18 ``@ddalle``: v1.0
-        """
         # Read case runner
         runner = self.ReadCaseRunner(i)
         # Run action
@@ -3818,18 +3843,6 @@ class Cntl(CntlBase):
 
     # Unarchive cases
     def UnarchiveCases(self, **kw):
-        r"""Unarchive a list of cases
-
-        :Call:
-            >>> cntl.UnarchiveCases(**kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control interface
-        :Versions:
-            * 2017-03-13 ``@ddalle``: v1.0
-            * 2023-10-20 ``@ddalle``: v1.1; arbitrary-depth *frun*
-            * 2024-09-20 ``@ddalle``: v2.0; use CaseArchivist
-        """
         # Test status
         test = kw.get("test", False)
         # Loop through the folders
@@ -3842,4 +3855,36 @@ class Cntl(CntlBase):
             runner = self.ReadCaseRunner(i)
             # Unarchive!
             runner.unarchive(test)
+
+  # *** LOGGING ***
+    def log_main(
+            self,
+            msg: str,
+            title: Optional[str] = None,
+            parent: int = 0):
+        # Name of calling function
+        funcname = self.get_funcname(parent + 2)
+        # Check for manual title
+        title = funcname if title is None else title
+        # Get logger
+        logger = self.get_logger()
+        # Log the message
+        logger.log_main(title, msg)
+
+    def get_logger(self) -> CntlLogger:
+        # Get current logger
+        logger = getattr(self, "logger", None)
+        # Check if present
+        if isinstance(logger, CntlLogger):
+            return logger
+        # Get name of config
+        jsonfile = self.opts._filenames[0]
+        # Create one
+        self.logger = CntlLogger(self.RootDir, jsonfile)
+
+    def get_funcname(self, frame: int = 1) -> str:
+        # Get frame of function calling this one
+        func = sys._getframe(frame).f_code
+        # Get name
+        return func.co_name
 
