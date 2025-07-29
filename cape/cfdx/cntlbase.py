@@ -12,8 +12,6 @@ in CAPE.
 
 
 # Standard library modules
-import functools
-import os
 from abc import ABC, abstractmethod
 from io import IOBase
 from typing import Any, Callable, Optional, Union
@@ -29,103 +27,6 @@ from .casecntlbase import CaseRunnerBase
 from .options.runctlopts import RunControlOpts
 from .logger import CntlLogger
 from ..config import ConfigXML, ConfigJSON
-from ..optdict import WARNMODE_WARN
-
-
-# Constants
-DEFAULT_WARNMODE = WARNMODE_WARN
-MATRIX_CHUNK_SIZE = 1000
-UGRID_EXTS = (
-    "b4",
-    "b8",
-    "b8l",
-    "lb4",
-    "lb8",
-    "lb8l",
-    "lr4",
-    "lr8",
-    "r4",
-    "r8",
-)
-COL_HEADERS = {
-    "case": "Case Folder",
-    "cpu-abbrev": "CPU Hours",
-    "cpu-hours": "CPU Time",
-    "frun": "Config/Run Directory",
-    "gpu-abbrev": "GPU Hours",
-    "gpu-hours": "GPU Hours",
-    "group": "Group Folder",
-    "i": "Case",
-    "job": "Job ID",
-    "job-id": "Job ID",
-    "phase": "Phase",
-    "progress": "Iterations",
-    "queue": "Que",
-    "status": "Status",
-}
-DEG = np.pi / 180.0
-JOB_STATUSES = (
-    'PASS',
-    'PASS*',
-    '---',
-    'INCOMP',
-    'RUN',
-    'DONE',
-    'QUEUE',
-    'ERROR',
-    'ERROR*',
-    'FAIL',
-    'ZOMBIE',
-    'THIS_JOB',
-)
-
-
-# Decorator for moving directories
-def run_rootdir(func):
-    r"""Decorator to run a function within a specified folder
-
-    :Call:
-        >>> func = run_rootdir(func)
-    :Wrapper Signature:
-        >>> v = cntl.func(*a, **kw)
-    :Inputs:
-        *func*: :class:`func`
-            Name of function
-        *cntl*: :class:`Cntl`
-            Control instance from which to use *cntl.RootDir*
-        *a*: :class:`tuple`
-            Positional args to :func:`cntl.func`
-        *kw*: :class:`dict`
-            Keyword args to :func:`cntl.func`
-    :Versions:
-        * 2018-11-20 ``@ddalle``: v1.0
-        * 2020-02-25 ``@ddalle``: v1.1: better exceptions
-        * 2023-06-16 ``@ddalle``: v1.2; use ``finally``
-    """
-    # Declare wrapper function to change directory
-    @functools.wraps(func)
-    def wrapper_func(self, *args, **kwargs):
-        # Recall current directory
-        fpwd = os.getcwd()
-        # Go to specified directory
-        os.chdir(self.RootDir)
-        # Run the function with exception handling
-        try:
-            # Attempt to run the function
-            v = func(self, *args, **kwargs)
-        except Exception:
-            # Raise the error
-            raise
-        except KeyboardInterrupt:
-            # Raise the error
-            raise
-        finally:
-            # Go back to original folder (always)
-            os.chdir(fpwd)
-        # Return function values
-        return v
-    # Apply the wrapper
-    return wrapper_func
 
 
 # Class to read input files

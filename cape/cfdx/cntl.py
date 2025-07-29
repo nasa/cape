@@ -87,6 +87,8 @@ UGRID_EXTS = (
     "r4",
     "r8",
 )
+#: :class:`dict`\ [:class:`str`]
+#: Column headers for ``py{x} -c``
 COL_HEADERS = {
     "case": "Case Folder",
     "cpu-abbrev": "CPU Hours",
@@ -104,6 +106,8 @@ COL_HEADERS = {
     "status": "Status",
 }
 DEG = np.pi / 180.0
+#: :class:`tuple`\ [:class:`str`]
+#: Typical job statuses
 JOB_STATUSES = (
     'PASS',
     'PASS*',
@@ -189,6 +193,8 @@ class CaseCache(dict):
     :Outputs:
         *cache*: :class:`CaseCache`
             Cache of property for each case, like a :class:`dict`
+    :Attributes:
+        * :attr:`prop`
     """
     # Properties
     __slots__ = (
@@ -278,6 +284,7 @@ class CaseCache(dict):
 
 # Arg parser for caseloop()
 class CaseLoopArgs(ArgReader):
+    r"""Argument parser for :func:`Cntl.caseloop_verbose`"""
     __slots__ = ()
     _optmap = {
         "add_cols": "add-cols",
