@@ -215,7 +215,7 @@ class CntlBase(ABC):
     __str__ = __repr__
 
   # *** OPTIONS ***
-   # --- Other Init ---
+   # --- Other init ---
     @abstractmethod
     def init_post(self):
         r"""Do ``py{x}`` specific initialization actions
@@ -227,6 +227,86 @@ class CntlBase(ABC):
                 CAPE run matrix control instance
         :Versions:
             * 2023-05-31 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- I/O ---
+    # Read options (first time)
+    @abstractmethod
+    def read_options(self, fjson: str):
+        r"""Read options using appropriate class
+
+        This allows users to set warning mode via an environment
+        variable.
+
+        :Call:
+            >>> cntl.read_options(fjson)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+            *fjson*: :class:`str`
+                Name of JSON file to read
+        :Versions:
+            * 2023-05-26 ``@ddalle``: v1.0; forked from __init__()
+            * 2023-12-13 ``@ddalle``: v1.1; add *RootDir* and *JSONFile*
+        """
+        pass
+
+   # --- Options history ---
+    # Copy all options
+    @abstractmethod
+    def SaveOptions(self):
+        r"""Copy *cntl.opts* and store it as *cntl.opts0*
+
+        :Call:
+            >>> cntl.SaveOptions()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE solver control interface
+        :Versions:
+            * 2021-07-31 ``@ddalle``: v1.0
+        """p
+        ass
+
+    # Reset options to last "save"
+    @abstractmethod
+    def RevertOptions(self):
+        r"""Revert to *cntl.opts0* as working options
+
+        :Call:
+            >>> cntl.ResetOptions()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE solver control interface
+        :Versions:
+            * 2021-07-31 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Top-level options ---
+    # Get the project rootname
+    @abstractmethod
+    def GetProjectRootName(self, j: int = 0) -> str:
+        r"""Get the project root name
+
+        The JSON file overrides the value from the namelist file if
+        appropriate
+
+        :Call:
+            >>> name = cntl.GetProjectName(j=0)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *j*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *name*: :class:`str`
+                Project root name
+        :Versions:
+            * 2015-10-18 ``@ddalle``: v1.0 (pyfun)
+            * 2023-06-15 ``@ddalle``: v1.1; cleaner logic
+            * 2024-10-22 ``@ddalle``: v2.0; moved to ``cfdx``
+            * 2025-07-15 ``@ddalle``: v2.1; move into ``CntlBase``
         """
         pass
 
@@ -616,236 +696,6 @@ class CntlBase(ABC):
 
     # Prepare the mesh for case *i* (if necessary)
     @abstractmethod
-    def prepare_mesh_overset(self, i: int):
-        r"""Copy/link mesh files from config folder into case folder
-
-        :Call:
-            >>> cntl.prepare_mesh_overset(i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE run matrix controller instance
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2024-10-10 ``@ddalle``: v1.0
-        """
-        pass
-
-   # --- Tri files ---
-    # Function to prepare the triangulation for each grid folder
-    @abstractmethod
-    def ReadTri(self):
-        r"""Read initial triangulation file(s)
-
-        :Call:
-            >>> cntl.ReadTri()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-        :Versions:
-            * 2014-08-30 ``@ddalle``: v1.0
-        """
-        pass
-
-  # *** REPORTING ***
-    @abstractmethod
-    def ReadReport(self, rep: str):
-        r"""Read a report interface
-
-        :Call:
-            >>> rep = cntl.ReadReport(rep)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE main control instance
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *rep*: :class:`cape.cfdx.report.Report`
-                Report interface
-        :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
-        """
-        pass
-
-  # *** DATA EXTRACTION ***
-   # --- DataBook ---
-    @abstractmethod
-    def ReadDataBook(self, comp: Optional[str] = None):
-        r"""Read the current data book
-
-        :Call:
-            >>> cntl.ReadDataBook()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-        :Versions:
-            * 2016-09-15 ``@ddalle``: v1.0
-            * 2023-05-31 ``@ddalle``: v2.0; universal ``cape.cntl``
-        """
-        pass
-
-    # Read configuration (without tri file if necessary)
-    @run_rootdir
-    def ReadConfig(self, f=False):
-        r"""Read ``Config.xml`` or other surf configuration format
-
-        :Call:
-            >>> cntl.ReadConfig(f=False)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *f*: ``True`` | {``False``}
-                Option to reread existing *cntl.config*
-        :Versions:
-            * 2016-06-10 ``@ddalle``: v1.0
-            * 2016-10-21 ``@ddalle``: v2.0, added ``Config.json``
-            * 2020-09-01 ``@ddalle``: v2.1, add *f* kwarg
-        """
-        # Check for config
-        if not f:
-            try:
-                self.config
-                return
-            except AttributeError:
-                pass
-            # Try to read from the triangulation
-            try:
-                self.config = self.tri.config
-                return
-            except AttributeError:
-                pass
-        # Name of config file
-        fxml = self.opts.get_ConfigFile()
-        # Split based on '.'
-        fext = fxml.split('.')
-        # Get the extension
-        if len(fext) < 2:
-            # Odd case, no extension given
-            fext = 'json'
-        else:
-            # Get the extension
-            fext = fext[-1].lower()
-        # Read the configuration if it can be found
-        if fxml is None or not os.path.isfile(fxml):
-            # Nothing to read
-            self.config = None
-        elif fext == "xml":
-            # Read XML config file
-            self.config = ConfigXML(fxml)
-        else:
-            # Read JSON config file
-            self.config = ConfigJSON(fxml)
-
-   # --- Options ---
-    # Read options (first time)
-    def read_options(self, fjson: str):
-        r"""Read options using appropriate class
-
-        This allows users to set warning mode via an environment
-        variable.
-
-        :Call:
-            >>> cntl.read_options(fjson)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-            *fjson*: :class:`str`
-                Name of JSON file to read
-        :Versions:
-            * 2023-05-26 ``@ddalle``: v1.0; forked from __init__()
-            * 2023-12-13 ``@ddalle``: v1.1; add *RootDir* and *JSONFile*
-        """
-        # Get class
-        cls = self.__class__
-        optscls = cls._opts_cls
-        # Environment variable
-        envvar = cls._warnmode_envvar
-        warnmode_def = cls._warnmode_default
-        # Read environment
-        warnmode = os.environ.get(envvar, warnmode_def)
-        # Convert to integer if string
-        if isinstance(warnmode, str):
-            warnmode = int(warnmode)
-        # Read settings
-        self.opts = optscls(fjson, _warnmode=warnmode)
-        # Save root dir
-        self.opts.set_RootDir(self.RootDir)
-        # Follow any links
-        freal = os.path.realpath(fjson)
-        # Save path relative to RootDir
-        frel = os.path.relpath(freal, self.RootDir)
-        self.opts.set_JSONFile(frel)
-
-    # Copy all options
-    def SaveOptions(self):
-        r"""Copy *cntl.opts* and store it as *cntl.opts0*
-
-        :Call:
-            >>> cntl.SaveOptions()
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE solver control interface
-        :Versions:
-            * 2021-07-31 ``@ddalle``: v1.0
-        """
-        # Copy the options
-        self._opts0 = copy.deepcopy(self.opts)
-
-    # Reset options to last "save"
-    def RevertOptions(self):
-        r"""Revert to *cntl.opts0* as working options
-
-        :Call:
-            >>> cntl.ResetOptions()
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE solver control interface
-        :Versions:
-            * 2021-07-31 ``@ddalle``: v1.0
-        """
-        # Get the saved options
-        try:
-            opts0 = self._opts0
-        except AttributeError:
-            opts0 = None
-        # Check for null options
-        if opts0 is None:
-            raise AttributeError("No *cntl._opts0* options archived")
-        # Revert options
-        self.opts = copy.deepcopy(opts0)
-
-    # Get the project rootname
-    def GetProjectRootName(self, j: int = 0) -> str:
-        r"""Get the project root name
-
-        The JSON file overrides the value from the namelist file if
-        appropriate
-
-        :Call:
-            >>> name = cntl.GetProjectName(j=0)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE run matrix control instance
-            *j*: {``0``} | :class:`int`
-                Phase number
-        :Outputs:
-            *name*: :class:`str`
-                Project root name
-        :Versions:
-            * 2015-10-18 ``@ddalle``: v1.0 (pyfun)
-            * 2023-06-15 ``@ddalle``: v1.1; cleaner logic
-            * 2024-10-22 ``@ddalle``: v2.0; moved to ``cfdx``
-            * 2025-07-15 ``@ddalle``: v2.1; move into ``CntlBase``
-        """
-        # Get default, pyfun, pylava, etc.
-        modname = self.__class__.__module__
-        projname = modname.split('.')[1]
-        # (base method, probably overwritten)
-        return getattr(self, "_name", projname)
-
-   # --- Mesh: general ---
-    # Prepare the mesh for case *i* (if necessary)
-    @run_rootdir
     def PrepareMeshUnstructured(self, i: int):
         r"""Prepare the mesh for case *i* if necessary
 
@@ -862,24 +712,27 @@ class CntlBase(ABC):
             * 2024-11-07 ``@ddalle``: v1.0
             * 2025-07-15 ``@ddalle``: v1.1; name change
         """
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Create case folder
-        self.make_case_folder(i)
-        # Copy/link basic files
-        self.copy_files(i)
-        self.link_files(i)
-        # Prepare warmstart files, if any
-        warmstart = self.PrepareMeshWarmStart(i)
-        # Finish if case was warm-started
-        if warmstart:
-            return
-        # Copy main files
-        self.PrepareMeshFiles(i)
-        # Prepare surface triangulation for AFLR3 if appropriate
-        self.PrepareMeshTri(i)
+        pass
+
+    # Prepare the mesh for case *i* (if necessary)
+    @abstractmethod
+    def prepare_mesh_overset(self, i: int):
+        r"""Copy/link mesh files from config folder into case folder
+
+        :Call:
+            >>> cntl.prepare_mesh_overset(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        pass
 
    # --- Mesh: location ---
+    @abstractmethod
     def GetCaseMeshFolder(self, i: int) -> str:
         r"""Get relative path to folder where mesh should be copied
 
@@ -896,23 +749,10 @@ class CntlBase(ABC):
         :Versions:
             * 2024-11-06 ``@ddalle``: v1.0
         """
-        # Check for a group setting
-        if self.opts.get_GroupMesh():
-            # Get the name of the group
-            fgrp = self.x.GetGroupFolderNames(i)
-            # Use that
-            return fgrp
-        # Case folder
-        frun = self.x.GetFullFolderNames(i)
-        # Get the CaseRunner
-        runner = self.ReadCaseRunner(i)
-        # Check for working folder
-        workdir = runner.get_working_folder_()
-        # Combine
-        return os.path.join(frun, workdir)
+        pass
 
    # --- Mesh: files ---
-    @run_rootdir
+    @abstractmethod
     def PrepareMeshFiles(self, i: int) -> int:
         r"""Copy main unstructured mesh files to case folder
 
@@ -930,38 +770,11 @@ class CntlBase(ABC):
             * 2024-11-05 ``@ddalle``: v1.0
             * 2025-04-02 ``@ddalle``: v1.1; add *LinkMesh* option
         """
-        # Start counter
-        n = 0
-        # Get working folder
-        workdir = self.GetCaseMeshFolder(i)
-        # Create working folder if necessary
-        if not os.path.isdir(workdir):
-            os.mkdir(workdir)
-        # Enter the working folder
-        os.chdir(workdir)
-        # Option to link instead of copying
-        linkopt = self.opts.get_LinkMesh()
-        # Loop through those files
-        for fraw in self.GetInputMeshFileNames():
-            # Get processed name of file
-            fout = self.process_mesh_filename(fraw)
-            # Absolutize input file
-            fabs = self.abspath(fraw)
-            # Copy fhe file.
-            if os.path.isfile(fabs) and not os.path.isfile(fout):
-                # Copy the file
-                if linkopt:
-                    os.symlink(fabs, fout)
-                else:
-                    shutil.copyfile(fabs, fout)
-                # Counter
-                n += 1
-        # Output the count
-        return n
+        pass
 
+    @abstractmethod
     def PrepareMeshWarmStart(self, i: int) -> bool:
         r"""Prepare *WarmStart* files for case, if appropriate
-
 
         :Call:
             >>> warmstart = cntl.PrepareMeshWarmStart(i)
@@ -1226,6 +1039,79 @@ class CntlBase(ABC):
         else:
             # Just the extension
             return f"{fproj}.{fext}"
+
+   # --- Tri files ---
+    # Function to prepare the triangulation for each grid folder
+    @abstractmethod
+    def ReadTri(self):
+        r"""Read initial triangulation file(s)
+
+        :Call:
+            >>> cntl.ReadTri()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+        :Versions:
+            * 2014-08-30 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Surface config ---
+    # Read configuration (without tri file if necessary)
+    @abstractmethod
+    def ReadConfig(self, f=False) -> Union[ConfigXML, ConfigJSON]:
+        r"""Read ``Config.xml`` or other surf configuration format
+
+        :Call:
+            >>> cntl.ReadConfig(f=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *f*: ``True`` | {``False``}
+                Option to reread existing *cntl.config*
+        :Versions:
+            * 2016-06-10 ``@ddalle``: v1.0
+            * 2016-10-21 ``@ddalle``: v2.0, added ``Config.json``
+            * 2020-09-01 ``@ddalle``: v2.1, add *f* kwarg
+        """
+        pass
+
+  # *** REPORTING ***
+    @abstractmethod
+    def ReadReport(self, rep: str):
+        r"""Read a report interface
+
+        :Call:
+            >>> rep = cntl.ReadReport(rep)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE main control instance
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *rep*: :class:`cape.cfdx.report.Report`
+                Report interface
+        :Versions:
+            * 2018-10-19 ``@ddalle``: Version 1.0
+        """
+        pass
+
+  # *** DATA EXTRACTION ***
+   # --- DataBook ---
+    @abstractmethod
+    def ReadDataBook(self, comp: Optional[str] = None):
+        r"""Read the current data book
+
+        :Call:
+            >>> cntl.ReadDataBook()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2016-09-15 ``@ddalle``: v1.0
+            * 2023-05-31 ``@ddalle``: v2.0; universal ``cape.cntl``
+        """
+        pass
 
    # --- Command-Line Interface ---
     # CLI arg preprocesser

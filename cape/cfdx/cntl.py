@@ -30,6 +30,7 @@ individualized modules are below.
 """
 
 # Standard library modules
+import copy
 import functools
 import importlib
 import os
@@ -430,9 +431,61 @@ class Cntl(CntlBase):
     __str__ = __repr__
 
   # *** OPTIONS ***
-   # --- Other Init ---
+   # --- Other init ---
     def init_post(self):
         pass
+
+   # --- I/O ---
+    # Read options (first time)
+    def read_options(self, fjson: str):
+        # Get class
+        cls = self.__class__
+        optscls = cls._opts_cls
+        # Environment variable
+        envvar = cls._warnmode_envvar
+        warnmode_def = cls._warnmode_default
+        # Read environment
+        warnmode = os.environ.get(envvar, warnmode_def)
+        # Convert to integer if string
+        if isinstance(warnmode, str):
+            warnmode = int(warnmode)
+        # Read settings
+        self.opts = optscls(fjson, _warnmode=warnmode)
+        # Save root dir
+        self.opts.set_RootDir(self.RootDir)
+        # Follow any links
+        freal = os.path.realpath(fjson)
+        # Save path relative to RootDir
+        frel = os.path.relpath(freal, self.RootDir)
+        self.opts.set_JSONFile(frel)
+
+   # --- Options history ---
+    # Copy all options
+    def SaveOptions(self):
+        # Copy the options
+        self._opts0 = copy.deepcopy(self.opts)
+
+    # Reset options to last "save"
+    def RevertOptions(self):
+        # Get the saved options
+        try:
+            opts0 = self._opts0
+        except AttributeError:
+            opts0 = None
+        # Check for null options
+        if opts0 is None:
+            raise AttributeError("No *cntl._opts0* options archived")
+        # Revert options
+        self.opts = copy.deepcopy(opts0)
+
+   # --- Top-level options ---
+    # Get the project rootname
+    def GetProjectRootName(self, j: int = 0) -> str:
+        # Get default, pyfun, pylava, etc.
+        modname = self.__class__.__module__
+        projname = modname.split('.')[1]
+        # (base method, probably overwritten)
+        return getattr(self, "_name", projname)
 
   # *** HOOKS ***
     # Function to import user-specified modules
@@ -649,6 +702,26 @@ class Cntl(CntlBase):
 
     # Prepare the mesh for case *i* (if necessary)
     @run_rootdir
+    def PrepareMeshUnstructured(self, i: int):
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Copy/link basic files
+        self.copy_files(i)
+        self.link_files(i)
+        # Prepare warmstart files, if any
+        warmstart = self.PrepareMeshWarmStart(i)
+        # Finish if case was warm-started
+        if warmstart:
+            return
+        # Copy main files
+        self.PrepareMeshFiles(i)
+        # Prepare surface triangulation for AFLR3 if appropriate
+        self.PrepareMeshTri(i)
+
+    # Prepare the mesh for case *i* (if necessary)
+    @run_rootdir
     def prepare_mesh_overset(self, i: int):
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
@@ -692,7 +765,250 @@ class Cntl(CntlBase):
             if os.path.isfile(f0) or os.path.isdir(f0):
                 os.symlink(f0, f1)
 
-   # --- Tri Files ---
+   # --- Mesh: location ---
+    def GetCaseMeshFolder(self, i: int) -> str:
+        # Check for a group setting
+        if self.opts.get_GroupMesh():
+            # Get the name of the group
+            fgrp = self.x.GetGroupFolderNames(i)
+            # Use that
+            return fgrp
+        # Case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Get the CaseRunner
+        runner = self.ReadCaseRunner(i)
+        # Check for working folder
+        workdir = runner.get_working_folder_()
+        # Combine
+        return os.path.join(frun, workdir)
+
+   # --- Mesh: files ---
+    @run_rootdir
+    def PrepareMeshFiles(self, i: int) -> int:
+        # Start counter
+        n = 0
+        # Get working folder
+        workdir = self.GetCaseMeshFolder(i)
+        # Create working folder if necessary
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+        # Enter the working folder
+        os.chdir(workdir)
+        # Option to link instead of copying
+        linkopt = self.opts.get_LinkMesh()
+        # Loop through those files
+        for fraw in self.GetInputMeshFileNames():
+            # Get processed name of file
+            fout = self.process_mesh_filename(fraw)
+            # Absolutize input file
+            fabs = self.abspath(fraw)
+            # Copy fhe file.
+            if os.path.isfile(fabs) and not os.path.isfile(fout):
+                # Copy the file
+                if linkopt:
+                    os.symlink(fabs, fout)
+                else:
+                    shutil.copyfile(fabs, fout)
+                # Counter
+                n += 1
+        # Output the count
+        return n
+
+    def PrepareMeshWarmStart(self, i: int) -> bool:
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Get *WarmStart* settings
+        warmstart = self.opts.get_WarmStart(phase0)
+        warmstartdir = self.opts.get_WarmStartFolder(phase0)
+        # If user defined a WarmStart source, expand it
+        if warmstartdir is None or warmstart is False:
+            # No *warmstart*
+            return False
+        else:
+            # Read conditions
+            x = {key: self.x[key][i] for key in self.x.cols}
+            # Expand the folder name
+            warmstartdir = warmstartdir % x
+            # Absolutize path (already run in workdir)
+            warmstartdir = os.path.realpath(warmstartdir)
+            # Override *warmstart* if source and destination match
+            warmstart = warmstartdir != os.getcwd()
+        # Exit if WarmStart not turned on
+        if not warmstart:
+            return False
+        # Get project name for source
+        srcj = self.opts.get_WarmStartPhase(phase0)
+        # Read case
+        runner = self.ReadFolderCaseRunner(warmstartdir)
+        # Project name
+        src_project = runner.get_project_rootname(srcj)
+        # Get restart file
+        fsrc = runner.get_restart_file(srcj)
+        fto = runner.get_restart_file(j=0)
+        # Get nominal mesh file
+        fmsh = self.opts.get_MeshFile(0)
+        # Normalize it
+        fmsh_src = self.process_mesh_filename(fmsh, src_project)
+        fmsh_to = self.process_mesh_filename(fmsh, fproj)
+        # Absolutize
+        fmsh_src = os.path.join(warmstartdir, fmsh_src)
+        # Check for source file
+        if not os.path.isfile(fsrc):
+            raise ValueError("No WarmStart source file '%s'" % fsrc)
+        if not os.path.isfile(fmsh_src):
+            raise ValueError("No WarmStart mesh '%s'" % fmsh_src)
+        # Status message
+        print("    WarmStart from folder")
+        print("      %s" % warmstartdir)
+        print("      Using restart file: %s" % os.path.basename(fsrc))
+        print("      Using mesh file: %s" % os.path.basename(fmsh_src))
+        # Copy files
+        shutil.copy(fsrc, fto)
+        shutil.copy(fmsh_src, fmsh_to)
+        # Return status
+        return True
+
+   # --- Mesh: Surf ---
+    def PrepareMeshTri(self, i: int):
+        # Get mesh file and tri file settings
+        meshfile = self.opts.get_MeshFile()
+        trifile = self.opts.get_TriFile()
+        # Option to run aflr3
+        aflr3 = self.opts.get_aflr3()
+        # Check for triangulation options
+        if (trifile is None) or (meshfile is not None):
+            return
+        # Status update
+        print("  Preparing surface triangulation...")
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Read the mesh
+        self.ReadTri()
+        # Revert to initial surface
+        self.tri = self.tri0.Copy()
+        # Apply rotations, translations, etc.
+        self.PrepareTri(i)
+        # AFLR3 boundary conditions file
+        fbc = self.opts.get_aflr3_BCFile()
+        # Enter case folder
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(self.RootDir)
+        os.chdir(frun)
+        # Check for those AFLR3 boundary conditions
+        if fbc:
+            # Absolute file name
+            if not os.path.isabs(fbc):
+                fbc = os.path.join(self.RootDir, fbc)
+            # Copy the file
+            shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
+        # Surface configuration file
+        fxml = self.opts.get_ConfigFile()
+        # Write it if necessary
+        if fxml:
+            # Absolute file name
+            if not os.path.isabs(fxml):
+                fxml = os.path.join(self.RootDir, fxml)
+            # Copy the file
+            if os.path.isfile(fxml):
+                shutil.copyfile(fxml, f'{fproj}.xml')
+        # Check intersection status.
+        if self.opts.get_intersect():
+            # Names of triangulation files
+            fvtri = "%s.tri" % fproj
+            fctri = "%s.c.tri" % fproj
+            fftri = "%s.f.tri" % fproj
+            # Write tri file as non-intersected; each volume is one CompID
+            if not os.path.isfile(fvtri):
+                self.tri.WriteVolTri(fvtri)
+            # Write the existing triangulation with existing CompIDs.
+            if not os.path.isfile(fctri):
+                self.tri.WriteCompIDTri(fctri)
+            # Write the farfield and source triangulation files
+            if not os.path.isfile(fftri):
+                self.tri.WriteFarfieldTri(fftri)
+        elif self.opts.get_verify():
+            # Names of surface mesh files
+            fitri = "%s.i.tri" % fproj
+            fsurf = "%s.surf" % fproj
+            # Write the tri file
+            if not os.path.isfile(fitri):
+                self.tri.Write(fitri)
+            # Write the AFLR3 surface file
+            if not os.path.isfile(fsurf):
+                self.tri.WriteSurf(fsurf)
+        elif aflr3:
+            # Names of surface mesh files
+            fsurf = "%s.surf" % fproj
+            # Write the AFLR3 surface file only
+            if not os.path.isfile(fsurf):
+                self.tri.WriteSurf(fsurf)
+        else:
+            # Write main tri file
+            ext = getattr(self, "_tri_ext", "tri")
+            ftri = f"{fproj}.{ext}"
+            # Write it
+            if not os.path.isfile(ftri):
+                if ext == "fro":
+                    self.tri.WriteFro(ftri)
+                else:
+                    self.tri.Write(ftri)
+
+   # --- Mesh: File names ---
+    # Get list of mesh file names that should be in a case folder
+    def GetProcessedMeshFileNames(self) -> list:
+        # Initialize output
+        fname = []
+        # Loop through input files.
+        for f in self.GetInputMeshFileNames():
+            # Get processed name
+            fname.append(self.process_mesh_filename(f))
+        # Output
+        return fname
+
+    # Get list of raw file names
+    def GetInputMeshFileNames(self) -> list:
+        # Get the file names from *opts*
+        fname = self.opts.get_MeshFile()
+        # Ensure list
+        if fname is None:
+            # Remove ``None``
+            return []
+        elif isinstance(fname, (list, np.ndarray, tuple)):
+            # Return list-like as list
+            return list(fname)
+        else:
+            # Convert to list
+            return [fname]
+
+    # Process a mesh file name to use the project root name
+    def process_mesh_filename(
+            self,
+            fname: str,
+            fproj: Optional[str] = None) -> str:
+        # Get project name
+        if fproj is None:
+            fproj = self.GetProjectRootName()
+        # Split names by '.'
+        fsplt = fname.split('.')
+        # Get final extension
+        fext = fsplt[-1]
+        # Get infix
+        finfix = None if len(fsplt) < 2 else fsplt[-2]
+        # Use project name plus the same extension.
+        if finfix and finfix in UGRID_EXTS:
+            # Copy second-to-last extension
+            return f"{fproj}.{finfix}.{fext}"
+        else:
+            # Just the extension
+            return f"{fproj}.{fext}"
+
+   # --- Tri files ---
     # Function to prepare the triangulation for each grid folder
     @run_rootdir
     def ReadTri(self):
@@ -756,6 +1072,45 @@ class Cntl(CntlBase):
             self.tri.ReadBCs_AFLR3(fbc)
         # Make a copy of the original to revert to after rotations, etc.
         self.tri0 = self.tri.Copy()
+
+   # --- Surface config ---
+    # Read configuration (without tri file if necessary)
+    @run_rootdir
+    def ReadConfig(self, f: bool = False) -> Union[ConfigXML, ConfigJSON]:
+        # Check for config
+        if not f:
+            try:
+                self.config
+                return
+            except AttributeError:
+                pass
+            # Try to read from the triangulation
+            try:
+                self.config = self.tri.config
+                return
+            except AttributeError:
+                pass
+        # Name of config file
+        fxml = self.opts.get_ConfigFile()
+        # Split based on '.'
+        fext = fxml.split('.')
+        # Get the extension
+        if len(fext) < 2:
+            # Odd case, no extension given
+            fext = 'json'
+        else:
+            # Get the extension
+            fext = fext[-1].lower()
+        # Read the configuration if it can be found
+        if fxml is None or not os.path.isfile(fxml):
+            # Nothing to read
+            self.config = None
+        elif fext == "xml":
+            # Read XML config file
+            self.config = ConfigXML(fxml)
+        else:
+            # Read JSON config file
+            self.config = ConfigJSON(fxml)
 
    # --- Run Interface ---
     # Get case runner from a folder
