@@ -1515,40 +1515,6 @@ class CntlBase(ABC):
         """
         pass
 
-    # Function to determine if case is PASS, ---, INCOMP, etc.
-    @abstractmethod
-    def CheckCaseStatus(
-            self, i: int,
-            jobs: Optional[dict] = None,
-            auto: bool = False,
-            u: Optional[str] = None,
-            qstat: bool = True) -> str:
-        r"""Determine the current status of a case
-
-        :Call:
-            >>> sts = cntl.CheckCaseStatus(i, jobs=None, **kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-            *jobs*: :class:`dict`
-                Information on each job by ID number
-            *u*: :class:`str`
-                User name (defaults to process username)
-            *qstat*: {``True``} | ``False``
-                Option to call qstat/squeue to get job status
-        :Outputs:
-            *sts*: :class:`str`
-                Stats of case *i8
-        :Versions:
-            * 2014-10-04 ``@ddalle``: v1.0
-            * 2014-10-06 ``@ddalle``: v1.1; check queue status
-            * 2023-12-13 ``@dvicker``: v1.2; check for THIS_JOB
-            * 2024-08-22 ``@ddalle``: v1.3; add *qstat*
-        """
-        pass
-
     # Check if cases with zero iterations are not yet setup to run
     @abstractmethod
     def CheckNone(self, v: bool = False) -> bool:

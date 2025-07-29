@@ -2262,7 +2262,7 @@ class Cntl(CntlBase):
         # Loop through cases
         for i in I:
             # Check status of that case
-            sts = self.CheckCaseStatus(i, jobs, u)
+            sts = self.check_case_status(i, jobs, u)
             # Add to counter if running
             running = 1 if (sts in ("RUN", "QUEUE")) else 0
             total_running += running
@@ -2308,78 +2308,6 @@ class Cntl(CntlBase):
             return '---'
         # Check
         return runner.get_status()
-
-    # Function to determine if case is PASS, ---, INCOMP, etc.
-    def CheckCaseStatus(
-            self, i: int,
-            jobs: Optional[dict] = None,
-            auto: bool = False,
-            u: Optional[str] = None,
-            qstat: bool = True):
-        # Current iteration count
-        n = self.CheckCase(i)
-        # Try to get a job ID.
-        jobID = self.GetPBSJobID(i)
-        # Get list of jobs
-        jobs = self.get_pbs_jobs(u=u, qstat=qstat)
-        # Check if the case is prepared.
-        if self.CheckError(i):
-            # Case contains :file:`FAIL`
-            sts = "ERROR"
-        elif n is None:
-            # Nothing prepared.
-            sts = "---"
-        else:
-            # Check if the case is running.
-            if self.CheckRunning(i):
-                # Case currently marked as running.
-                sts = "RUN"
-            elif self.CheckError(i):
-                # Case has some sort of error.
-                sts = "ERROR"
-            else:
-                # Get maximum iteration count.
-                nMax = self.GetLastIter(i)
-                # Get current phase
-                j, jLast = self.CheckUsedPhase(i)
-                # Check current count.
-                if jobID in jobs:
-                    # It's in the queue, but apparently not running.
-                    if jobs[jobID]['R'] == "R":
-                        # Job running according to the queue
-                        sts = "RUN"
-                    else:
-                        # It's in the queue.
-                        sts = "QUEUE"
-                elif j < jLast:
-                    # Not enough phases
-                    sts = "INCOMP"
-                elif n >= nMax:
-                    # Not running and sufficient iterations completed.
-                    sts = "DONE"
-                else:
-                    # Not running and iterations remaining.
-                    sts = "INCOMP"
-        # Check for zombies
-        if (sts == "RUN") and self.CheckZombie(i):
-            # Looks like it is running, but no files modified
-            sts = "ZOMBIE"
-        # Check if the case is marked as PASS
-        if self.x.PASS[i]:
-            # Check for cases marked but that can't be done.
-            if sts == "DONE":
-                # Passed!
-                sts = "PASS"
-            else:
-                # Funky
-                sts = "PASS*"
-        # Get current job ID, if any
-        current_jobid = self.CheckBatch()
-        # Check current job ID against the one in this case folder
-        if current_jobid == jobID:
-            sts = "THIS_JOB"
-        # Output
-        return sts
 
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v: bool = False) -> bool:
@@ -3086,7 +3014,7 @@ class Cntl(CntlBase):
         # Loop through folders
         for i in I:
             # Get status
-            sts = self.CheckCaseStatus(i)
+            sts = self.check_case_status(i)
             # Move to next case if not zombie
             if sts != "ZOMBIE":
                 continue
@@ -3124,7 +3052,7 @@ class Cntl(CntlBase):
             # Start/submit the case?
             if qsub:
                 # Check status
-                sts = self.CheckCaseStatus(i)
+                sts = self.check_case_status(i)
                 # Check if it's a submittable/restartable status
                 if sts not in ['---', 'INCOMP']:
                     continue
@@ -3175,7 +3103,7 @@ class Cntl(CntlBase):
             # Start/submit the case?
             if qsub:
                 # Check status
-                sts = self.CheckCaseStatus(i)
+                sts = self.check_case_status(i)
                 # Check if it's a submittable/restartable status
                 if sts not in ['---', 'INCOMP']:
                     continue
@@ -4564,7 +4492,7 @@ class Cntl(CntlBase):
             # Run action
             self.CleanCase(i, test)
             # Check status
-            if self.CheckCaseStatus(i) not in ('PASS', 'ERROR'):
+            if self.check_case_status(i) not in ('PASS', 'ERROR'):
                 print("  Case is not marked PASS | FAIL")
                 continue
             # Archive
@@ -4595,7 +4523,7 @@ class Cntl(CntlBase):
             # Run action
             self.CleanCase(i, test)
             # Check status
-            if self.CheckCaseStatus(i) not in ('PASS', 'ERROR'):
+            if self.check_case_status(i) not in ('PASS', 'ERROR'):
                 print("  Case is not marked PASS | FAIL")
                 continue
             # Archive and skeleton

@@ -75,9 +75,10 @@ import numpy as np
 from numpy import sqrt, sin, cos, tan, exp
 
 # Local modules
-from ..filecntl import texfile
 from .. import tar
 from .cmdrun import pvpython
+from .cntlbase import CntlBase
+from ..filecntl import texfile
 from ..filecntl.tecfile import ExportLayout, Tecscript, convert_vtk
 from .. import pltfile
 
@@ -100,28 +101,26 @@ class Report(object):
     :Outputs:
         *R*: :class:`cape.cfdx.report.Report`
             Automated report interface
-        *R.cntl*: :class:`cape.cfdx.cntl.Cntl`
-            Overall solver control interface
-        *R.rep*: :class:`str`
-            Name of report, same as *rep*
-        *R.opts*: :class:`cape.cfdx.options.Report.Report`
-            Options specific to report *rep*
-        *R.cases*: :class:`dict` (:class:`cape.texfile.Tex`)
-            Dictionary of LaTeX handles for each single-case page
-        *R.sweeps*: :class:`dict` (:class:`cape.texfile.Tex`)
-            Dictionary of LaTeX handles for each single-sweep page
-        *R.tex*: :class:`cape.texfile.Tex`
-            Handle to main LaTeX file
+    :Attributes:
+        * :attr:`cntl`
+        * :attr:`cases`
+        * :attr:`i`
+        * :attr:`rep`
+        * :attr:`sweeps`
+        * :attr:`tex`
     :Versions:
         * 2015-03-10 ``@ddalle``: v1.0
         * 2015-10-15 ``@ddalle``: v1.1; ``cfdx`` version
     """
   # === __dunder__ ===
     # Initialization method
-    def __init__(self, cntl, rep):
+    def __init__(self, cntl: CntlBase, rep: str):
         r"""Initialization method"""
-        # Save the interface
+        #: :class:`cape.cfdx.cntl.Cntl`
+        #: Run matrix control instance
         self.cntl = cntl
+        #: :class:`int`
+        #: Current case index
         self.i = None
         # Check for this report.
         if rep not in cntl.opts.get_ReportList():
@@ -137,15 +136,23 @@ class Report(object):
         os.umask(cntl.opts.get_umask())
         # Go into the report folder.
         os.chdir('report')
-        # Get the options and save them.
+        #: :class:`str`
+        #: Name of report
         self.rep = rep
         self.opts = cntl.opts['Report'][rep]
-        # Initialize a dictionary of handles to case LaTeX files
+        #: :class:`dict`\ [:class:`cape.filecntl.texfile.Tex`]
+        #: Dictionary of LaTeX handles for each sweep page
         self.sweeps = {}
+        #: :class:`dict`\ [:class:`cape.filecntl.texfile.Tex`]
+        #: Dictionary of LaTeX handles for each single-case page
         self.cases = {}
+        #: :class:`cape.filecntl.texfile.Tex`
+        #: Main LaTeX file interface
+        self.tex = None
         # Read the file if applicable
         self.OpenMain()
-        # Set force update
+        #: :class:`bool`
+        #: Option to overwrite existing subfigures
         self.force_update = False
         # Return
         os.chdir(fpwd)
@@ -476,7 +483,7 @@ class Report(object):
         # Get case number of required iterations
         nMax = self.cntl.GetLastIter(i)
         # Get status
-        sts = self.cntl.CheckCaseStatus(i)
+        sts = self.cntl.check_case_status(i)
         # Form iteration string
         if n is None:
             # Unknown.
@@ -813,11 +820,11 @@ class Report(object):
                 # Go home and quit.
                 return []
             # Check status.
-            sts = self.cntl.CheckCaseStatus(i)
+            sts = self.cntl.check_case_status(i)
             # Call `qstat` if needed.
             if (sts == "INCOMP") and (n is not None):
                 # Check the current queue
-                sts = self.cntl.CheckCaseStatus(i, auto=True)
+                sts = self.cntl.check_case_status(i, auto=True)
             # Get the figure list
             if n:
                 # Nominal case with some results
@@ -885,11 +892,11 @@ class Report(object):
             os.chdir(fpwd)
             return
         # Check status.
-        sts = self.cntl.CheckCaseStatus(i)
+        sts = self.cntl.check_case_status(i)
         # Call `qstat` if needed.
         if (sts == "INCOMP") and (n is not None):
             # Check the current queue
-            sts = self.cntl.CheckCaseStatus(i, auto=True)
+            sts = self.cntl.check_case_status(i, auto=True)
         # Get the figure list
         if n:
             # Nominal case with some results
