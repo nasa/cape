@@ -12,17 +12,13 @@ in CAPE.
 
 
 # Standard library modules
-import copy
 import functools
-import getpass
 import glob
-import importlib
 import os
 import shutil
 import sys
 import time
 from abc import ABC, abstractmethod
-from collections import Counter
 from datetime import datetime
 from io import IOBase
 from typing import Any, Callable, Optional, Union
@@ -36,16 +32,11 @@ from . import databookbase
 from . import queue
 from .. import convert
 from .. import console
-from .. import textutils
 from .casecntlbase import CaseRunnerBase
 from .logger import CntlLogger
-from ..argread import ArgReader
 from ..config import ConfigXML, ConfigJSON
-from ..errors import assert_isinstance
-from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
-from ..optdict.optitem import getel
+from ..optdict import WARNMODE_WARN
 from ..geom import RotatePoints
-from ..trifile import ReadTriFile
 
 
 # Constants
@@ -153,36 +144,6 @@ def _split(v: Union[str, list]) -> list:
         return v
 
 
-# Arg parser for caseloop()
-class CaseLoopArgs(ArgReader):
-    __slots__ = ()
-    _optmap = {
-        "add_cols": "add-cols",
-        "add_counters": "add-counters",
-        "hide": "hide-cols",
-        "hide_cols": "hide-cols",
-        "hide_counters": "hide-counters",
-        "j": "job",
-    }
-    _opttypes = {
-        "sep": str,
-    }
-    _optconverters = {
-        "add-cols": _split,
-        "add-counters": _split,
-        "cols": _split,
-        "counters": _split,
-        "hide-cols": _split,
-        "hide-counters": _split,
-    }
-    _arglist = (
-        "casefunc",
-    )
-    _rc = {
-        "sep": " ",
-    }
-
-
 # Class to read input files
 class CntlBase(ABC):
     r"""Base class for :class:`cape.cfdx.cntl.Cntl`"""
@@ -265,8 +226,8 @@ class CntlBase(ABC):
                 CAPE solver control interface
         :Versions:
             * 2021-07-31 ``@ddalle``: v1.0
-        """p
-        ass
+        """
+        pass
 
     # Reset options to last "save"
     @abstractmethod
@@ -307,6 +268,48 @@ class CntlBase(ABC):
             * 2023-06-15 ``@ddalle``: v1.1; cleaner logic
             * 2024-10-22 ``@ddalle``: v2.0; moved to ``cfdx``
             * 2025-07-15 ``@ddalle``: v2.1; move into ``CntlBase``
+        """
+        pass
+
+   # --- Phases ---
+    # Get expected actual breaks of phase iters
+    @abstractmethod
+    def GetPhaseBreaks(self) -> list:
+        r"""Get expected iteration numbers at phase breaks
+
+        This fills in ``0`` entries in *RunControl* |>| *PhaseIters* and
+        returns the filled-out list.
+
+        :Call:
+            >>> PI = cntl.GetPhaseBreaks()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+        :Outputs:
+            *PI*: :class:`list`\ [:class:`int`]
+                Min iteration counts for each phase
+        :Versions:
+            * 2017-04-12 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Get last iter
+    @abstractmethod
+    def GetLastIter(self, i: int) -> int:
+        r"""Get minimum required iteration for a given case
+
+        :Call:
+            >>> nIter = cntl.GetLastIter(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *nIter*: :class:`int`
+                Number of iterations required for case *i*
+        :Versions:
+            * 2014-10-03 ``@ddalle``: v1.0
         """
         pass
 
@@ -789,64 +792,10 @@ class CntlBase(ABC):
         :Versions:
             * 2024-11-04 ``@ddalle``: v1.0
         """
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Starting phase
-        phase0 = self.opts.get_PhaseSequence(0)
-        # Project name
-        fproj = self.GetProjectRootName(phase0)
-        # Get *WarmStart* settings
-        warmstart = self.opts.get_WarmStart(phase0)
-        warmstartdir = self.opts.get_WarmStartFolder(phase0)
-        # If user defined a WarmStart source, expand it
-        if warmstartdir is None or warmstart is False:
-            # No *warmstart*
-            return False
-        else:
-            # Read conditions
-            x = {key: self.x[key][i] for key in self.x.cols}
-            # Expand the folder name
-            warmstartdir = warmstartdir % x
-            # Absolutize path (already run in workdir)
-            warmstartdir = os.path.realpath(warmstartdir)
-            # Override *warmstart* if source and destination match
-            warmstart = warmstartdir != os.getcwd()
-        # Exit if WarmStart not turned on
-        if not warmstart:
-            return False
-        # Get project name for source
-        srcj = self.opts.get_WarmStartPhase(phase0)
-        # Read case
-        runner = self.ReadFolderCaseRunner(warmstartdir)
-        # Project name
-        src_project = runner.get_project_rootname(srcj)
-        # Get restart file
-        fsrc = runner.get_restart_file(srcj)
-        fto = runner.get_restart_file(j=0)
-        # Get nominal mesh file
-        fmsh = self.opts.get_MeshFile(0)
-        # Normalize it
-        fmsh_src = self.process_mesh_filename(fmsh, src_project)
-        fmsh_to = self.process_mesh_filename(fmsh, fproj)
-        # Absolutize
-        fmsh_src = os.path.join(warmstartdir, fmsh_src)
-        # Check for source file
-        if not os.path.isfile(fsrc):
-            raise ValueError("No WarmStart source file '%s'" % fsrc)
-        if not os.path.isfile(fmsh_src):
-            raise ValueError("No WarmStart mesh '%s'" % fmsh_src)
-        # Status message
-        print("    WarmStart from folder")
-        print("      %s" % warmstartdir)
-        print("      Using restart file: %s" % os.path.basename(fsrc))
-        print("      Using mesh file: %s" % os.path.basename(fmsh_src))
-        # Copy files
-        shutil.copy(fsrc, fto)
-        shutil.copy(fmsh_src, fmsh_to)
-        # Return status
-        return True
+        pass
 
    # --- Mesh: Surf ---
+    @abstractmethod
     def PrepareMeshTri(self, i: int):
         r"""Prepare surface triangulation for AFLR3, if appropriate
 
@@ -860,94 +809,12 @@ class CntlBase(ABC):
         :Versions:
             * 2024-11-01 ``@ddalle``: v1.0 (from pyfun's PrepareMesh())
         """
-        # Get mesh file and tri file settings
-        meshfile = self.opts.get_MeshFile()
-        trifile = self.opts.get_TriFile()
-        # Option to run aflr3
-        aflr3 = self.opts.get_aflr3()
-        # Check for triangulation options
-        if (trifile is None) or (meshfile is not None):
-            return
-        # Status update
-        print("  Preparing surface triangulation...")
-        # Starting phase
-        phase0 = self.opts.get_PhaseSequence(0)
-        # Project name
-        fproj = self.GetProjectRootName(phase0)
-        # Read the mesh
-        self.ReadTri()
-        # Revert to initial surface
-        self.tri = self.tri0.Copy()
-        # Apply rotations, translations, etc.
-        self.PrepareTri(i)
-        # AFLR3 boundary conditions file
-        fbc = self.opts.get_aflr3_BCFile()
-        # Enter case folder
-        frun = self.x.GetFullFolderNames(i)
-        os.chdir(self.RootDir)
-        os.chdir(frun)
-        # Check for those AFLR3 boundary conditions
-        if fbc:
-            # Absolute file name
-            if not os.path.isabs(fbc):
-                fbc = os.path.join(self.RootDir, fbc)
-            # Copy the file
-            shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
-        # Surface configuration file
-        fxml = self.opts.get_ConfigFile()
-        # Write it if necessary
-        if fxml:
-            # Absolute file name
-            if not os.path.isabs(fxml):
-                fxml = os.path.join(self.RootDir, fxml)
-            # Copy the file
-            if os.path.isfile(fxml):
-                shutil.copyfile(fxml, f'{fproj}.xml')
-        # Check intersection status.
-        if self.opts.get_intersect():
-            # Names of triangulation files
-            fvtri = "%s.tri" % fproj
-            fctri = "%s.c.tri" % fproj
-            fftri = "%s.f.tri" % fproj
-            # Write tri file as non-intersected; each volume is one CompID
-            if not os.path.isfile(fvtri):
-                self.tri.WriteVolTri(fvtri)
-            # Write the existing triangulation with existing CompIDs.
-            if not os.path.isfile(fctri):
-                self.tri.WriteCompIDTri(fctri)
-            # Write the farfield and source triangulation files
-            if not os.path.isfile(fftri):
-                self.tri.WriteFarfieldTri(fftri)
-        elif self.opts.get_verify():
-            # Names of surface mesh files
-            fitri = "%s.i.tri" % fproj
-            fsurf = "%s.surf" % fproj
-            # Write the tri file
-            if not os.path.isfile(fitri):
-                self.tri.Write(fitri)
-            # Write the AFLR3 surface file
-            if not os.path.isfile(fsurf):
-                self.tri.WriteSurf(fsurf)
-        elif aflr3:
-            # Names of surface mesh files
-            fsurf = "%s.surf" % fproj
-            # Write the AFLR3 surface file only
-            if not os.path.isfile(fsurf):
-                self.tri.WriteSurf(fsurf)
-        else:
-            # Write main tri file
-            ext = getattr(self, "_tri_ext", "tri")
-            ftri = f"{fproj}.{ext}"
-            # Write it
-            if not os.path.isfile(ftri):
-                if ext == "fro":
-                    self.tri.WriteFro(ftri)
-                else:
-                    self.tri.Write(ftri)
+        pass
 
    # --- Mesh: File names ---
     # Get list of mesh file names that should be in a case folder
-    def GetProcessedMeshFileNames(self):
+    @abstractmethod
+    def GetProcessedMeshFileNames(self) -> list:
         r"""Return the list of mesh files that are written
 
         :Call:
@@ -961,16 +828,10 @@ class CntlBase(ABC):
         :Versions:
             * 2015-10-19 ``@ddalle``: v1.0
         """
-        # Initialize output
-        fname = []
-        # Loop through input files.
-        for f in self.GetInputMeshFileNames():
-            # Get processed name
-            fname.append(self.process_mesh_filename(f))
-        # Output
-        return fname
+        pass
 
     # Get list of raw file names
+    @abstractmethod
     def GetInputMeshFileNames(self) -> list:
         r"""Return the list of mesh files from file
 
@@ -986,20 +847,10 @@ class CntlBase(ABC):
             * 2015-10-19 ``@ddalle``: v1.0 (pyfun)
             * 2024-10-22 ``@ddalle``: v1.0
         """
-        # Get the file names from *opts*
-        fname = self.opts.get_MeshFile()
-        # Ensure list
-        if fname is None:
-            # Remove ``None``
-            return []
-        elif isinstance(fname, (list, np.ndarray, tuple)):
-            # Return list-like as list
-            return list(fname)
-        else:
-            # Convert to list
-            return [fname]
+        pass
 
     # Process a mesh file name to use the project root name
+    @abstractmethod
     def process_mesh_filename(
             self,
             fname: str,
@@ -1023,22 +874,7 @@ class CntlBase(ABC):
             * 2023-03-15 ``@ddalle``: v1.1; add *fproj*
             * 2024-10-22 ``@ddalle``: v2.0; move to ``cfdx``
         """
-        # Get project name
-        if fproj is None:
-            fproj = self.GetProjectRootName()
-        # Split names by '.'
-        fsplt = fname.split('.')
-        # Get final extension
-        fext = fsplt[-1]
-        # Get infix
-        finfix = None if len(fsplt) < 2 else fsplt[-2]
-        # Use project name plus the same extension.
-        if finfix and finfix in UGRID_EXTS:
-            # Copy second-to-last extension
-            return f"{fproj}.{finfix}.{fext}"
-        else:
-            # Just the extension
-            return f"{fproj}.{fext}"
+        pass
 
    # --- Tri files ---
     # Function to prepare the triangulation for each grid folder
@@ -1113,939 +949,20 @@ class CntlBase(ABC):
         """
         pass
 
-   # --- Command-Line Interface ---
-    # CLI arg preprocesser
-    def preprocess_kwargs(self, kw: dict):
-        r"""Preprocess command-line arguments and flags/keywords
-
-        This will effect the following CLI options:
-
-        --cons CONS
-            Comma-separated constraints split into a list
-
-        -x FPY
-            Each ``-x`` argument is executed (can be repeated)
-
-        -I INDS
-            Convert *INDS* like ``3-6,8`` to ``[3, 4, 5, 8]``
-
-        :Call:
-            >>> opts = cntl.cli_preprocess(*a, **kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *kw*: :class:`dict`\ [``True`` | ``False`` | :class:`str`]
-                CLI keyword arguments and flags, modified in-place
-        :Versions:
-            * 2024-12-19 ``@ddalle``: v1.0
-        """
-        # Get constraints and convert text to list
-        cons = kw.get('cons')
-        if cons:
-            kw["cons"] = [con.strip() for con in cons.split(',')]
-        # Get explicit indices
-        inds = kw.get("I")
-        if inds:
-            kw["I"] = self.x.ExpandIndices(inds)
-
-        # Get list of scripts in the "__replaced__" section
-        kwx = [
-            valj for optj, valj in kw.get('__replaced__', []) if optj == "x"
-        ]
-        # Append the last "-x" input
-        x = kw.pop("x", None)
-        if x:
-            kwx.append(x)
-        # Apply all scripts
-        for fx in kwx:
-            # Open file and execute it
-            exec(open(fx).read())
-
-    # Loop through cases
-    @CaseLoopArgs.check
-    def caseloop_verbose(
-            self, casefunc: Optional[Callable] = None, **kw) -> int:
-        # Get list of indices
-        inds = self.x.GetIndices(**kw)
-        # Default list of columns to display
-        defaultcols = [
-            "i",
-            "frun",
-            "status",
-            "progress",
-            "queue",
-            "cpu-hours",
-        ]
-        # Default list of columns to count
-        defaultcountercols = [
-            "status",
-        ]
-        # Process options
-        add_cols = kw.get("add-cols")
-        add_ctrs = kw.get("add-counters")
-        hide_cols = kw.get("hide-cols")
-        hide_ctrs = kw.get("hide-counters")
-        sep = kw.get("sep", " ")
-        # Get indent
-        indent = kw.get("indent", 4)
-        tab = ' ' * indent
-        # Remove None
-        add_cols = [] if not add_cols else add_cols
-        add_ctrs = [] if not add_ctrs else add_ctrs
-        hide_cols = [] if not hide_cols else hide_cols
-        hide_ctrs = [] if not hide_ctrs else hide_ctrs
-        # Process main list
-        cols = kw.get("cols", defaultcols)
-        ctrs = kw.get("counters", defaultcountercols)
-        # Process additional cols
-        for col in add_cols:
-            if col not in cols:
-                cols.append(col)
-        for col in add_ctrs:
-            if col not in ctrs:
-                ctrs.append(col)
-        # Process explicit hidden columns
-        for col in hide_cols:
-            if col in cols:
-                cols.remove(col)
-        for col in hide_ctrs:
-            if col in ctrs:
-                ctrs.remove(col)
-        # Final column count
-        ncol = len(cols)
-        # Get headers
-        headers = {
-            col: self._header(col) for col in cols
-        }
-        # Ensure lengths are large enough for header
-        maxlens = {
-            col: max(self._maxlen(col, inds), len(headers[col]))
-            for col in cols
-        }
-        # Header and horizontal line
-        hdr_parts = [
-            '%-*s' % (maxlens[col], header)
-            for col, header in headers.items()
-        ]
-        hline_parts = ['-'*l for l in maxlens.values()]
-        header = sep.join(hdr_parts)
-        hline = sep.join(hline_parts)
-        # Print header
-        print(header)
-        print(hline)
-        # Initialize headers
-        counters = {col: Counter() for col in ctrs}
-        # Output counter
-        n = 0
-        # Loop through cases
-        for i in inds:
-            # Loop through columns
-            for j, col in enumerate(cols):
-                # Get length
-                lj = maxlens[col]
-                # Get value
-                vj = self.getvalstr(col, i)
-                # Print it
-                sys.stdout.write("%-*s" % (lj, vj))
-                sys.stdout.flush()
-                # Print separator
-                if j + 1 >= ncol:
-                    # New line
-                    sys.stdout.write('\n')
-                else:
-                    # Separator
-                    sys.stdout.write(sep)
-                sys.stdout.flush()
-                # Count value if appropriate
-                if col in counters:
-                    counters[col].update((vj,))
-            # Run case function
-            if callable(casefunc):
-                vi = casefunc(i)
-                # Add to counter if appropriate
-                ni = vi if isinstance(vi, (int, np.integer)) else 0
-                n += ni
-        # Blank line
-        print("")
-        # Process counters
-        for col, counter in counters.items():
-            # Skip if not in column list
-            if col not in maxlens:
-                continue
-            # Length for this column
-            lj = maxlens[col]
-            # Check for special case
-            if col == "status":
-                # Loop through statuses in specified order
-                for sts in JOB_STATUSES:
-                    nj = counter.get(sts, 0)
-                    if nj:
-                        sys.stdout.write(f"{sts}={nj}, ")
-                sys.stdout.write("\n")
-                sys.stdout.flush()
-            else:
-                # Print column name
-                print(f"{headers[col]}:")
-                # Loop through values
-                for vj, nj in counter.items():
-                    print("%s- %*s: %i" % (tab, lj, vj, nj))
-        # Output the accumulator
-        return n
-
-    # Get value for specified property
-    def getval(self, opt: str, i: int) -> Any:
-        # Check for special cases
-        if opt == "progress":
-            # Get iteration
-            n = self.CheckCase(i)
-            nmax = self.GetLastIter(i)
-            # Display '/' if case not set up
-            if n is None:
-                return '/'
-            else:
-                return f'{int(n)}/{nmax}'
-        elif opt == "iter":
-            # Get just iteration
-            return self.CheckCase(i)
-        elif opt == "i":
-            # Case index
-            return i
-        elif opt == "cpu-hours":
-            # Get CPU hours
-            return self.GetCPUTime(i)
-        elif opt == "cpu-abbrev":
-            # Get CPU hours
-            hr = self.GetCPUTime(i)
-            # Shorten
-            return textutils.pprint_n(hr)
-        elif opt == "status":
-            # Get case status
-            return self.check_case_status(i)
-        elif opt == "maxiter":
-            # Case's indicated maximum req'd iteration
-            return self.GetLastIter(i)
-        elif opt == "phase":
-            # Get case's current phase
-            j, jmax = self.CheckUsedPhase(i)
-            # Format string
-            return f"{j}/{jmax}"
-        elif opt == "frun":
-            # Get full folder name
-            return self.x.GetFullFolderNames(i)
-        elif opt == "group":
-            # Group folder name
-            return self.x.GetGroupFolderNames(i)
-        elif opt == "case":
-            # Case folder name (no group)
-            return self.x.GetFolderNames(i)
-        elif opt == "job-id":
-            # Get job name
-            job = self.GetPBSJobID(i)
-            # Get int
-            return int(job.split('.', 0))
-        elif opt == "job":
-            # Get full PBS/Slurm job name
-            return self.GetPBSJobID(i)
-        elif opt == "status":
-            # Get case status, INCOMP, DONE, etc.
-            return self.check_case_status(i)
-        elif opt == "queue":
-            # Get PBS/Slurm queue indicator
-            return self.check_case_job(i)
-        else:
-            return self.x.GetValue(opt, i)
-
-    # Get value for aribtrary value, skipping progress
-    def _maxlen(self, opt: str, I: np.ndarray) -> int:
-        # Check for special cases
-        if opt == "progress":
-            # Get anticipated max iteration
-            jmax = self.opts.get_PhaseSequence(-1)
-            imax = self.opts.get_PhaseIters(jmax)
-            # Add some padding
-            ipad = str(int(1.8*imax))
-            # Create example string w/ max anticipated length
-            return 2*len(ipad) + 1
-        elif opt == "iter":
-            # Get anticipated max iteration
-            jmax = self.opts.get_PhaseSequence(-1)
-            imax = self.opts.get_PhaseIters(jmax)
-            # Add some padding
-            ipad = str(int(1.8*imax))
-            # Create example string w/ max anticipated length
-            return len(ipad)
-        elif opt == "cpu-hours":
-            # Max it out at 8 ....
-            return 8
-        elif opt == "gpu-hours":
-            # Max it out at 8 ...
-            return 8
-        elif opt in ("cpu-abbrev", "gpu-abbrev", "wall-abbrev"):
-            return 5
-            # Abbreviated counts
-        elif opt == "job-id":
-            # Just the integer portion of job ID
-            return 8
-        elif opt == "job":
-            # Full name of job ID, int + (first part of server)
-            return 16
-        elif opt == "maxiter":
-            # Get anticipated max iteration
-            jmax = self.opts.get_PhaseSequence(-1)
-            imax = self.opts.get_PhaseIters(jmax)
-            # Add some padding
-            ipad = str(int(1.8*imax))
-            # Create example string w/ max anticipated length
-            return len(ipad)
-        elif opt == "phase":
-            # Get anticipated max phase
-            jmax = max(self.opts.get_PhaseSequence())
-            # Create example string w/ max phase
-            return 2*len(str(jmax)) + 1
-        elif opt == "frun":
-            # Get folder names
-            fruns = self.x.GetFullFolderNames(I)
-            # Return max length
-            return max(map(len, fruns))
-        elif opt == "group":
-            # Get group folder names
-            fruns = self.x.GetGroupFolderNames(I)
-            # Return max length
-            return max(map(len, fruns))
-        elif opt == "case":
-            # Get case folder name
-            fruns = self.x.GetFolderNames(I)
-            # Return max length
-            return max(map(len, fruns))
-        elif opt == "i":
-            # Case index; avoid 0
-            inds = np.fmax(2, I)
-            return int(np.max(np.ceil(np.log10(inds))))
-        elif opt == "status":
-            # Case status
-            return 7
-        elif opt == "queue":
-            # Queue indicator
-            return 1
-        else:
-            # Get values
-            vals = self.x.GetValue(opt, I)
-            # Check for float
-            if isinstance(vals[0], (float, np.floating)):
-                return 8
-            # Get max length when converted to str
-            return max([len(str(v)) for v in vals])
-
-    # Get header for display column
-    def _header(self, opt: str) -> str:
-        return COL_HEADERS.get(opt, opt)
-
-    # Get value, ensuring string output
-    def getvalstr(self, opt: str, i: int) -> str:
-        r"""Get value of run matrix variable as string
-
-        :Versions:
-            * 2025-06-16 ``@ddalle``: v1.0
-        """
-        # Get raw value
-        v = self.getval(opt, i)
-        # Don't display "None"
-        v = '' if v is None else v
-        # Check type
-        if isinstance(v, str):
-            # Return it
-            return v
-        elif isinstance(v, (float, np.floating)):
-            # Convert
-            return "%8g" % v
-        else:
-            # Use primary string method
-            return str(v)
-
-    # Loop through cases
-    def caseloop(self, casefunc: Callable, **kw):
-        r"""Loop through cases and execute function for each case
-
-        :Call:
-            >>> cntl.caseloop(casefun, **kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-            *indent*: {``0``} | :class:`int`
-                Number of spaces to indent each case name
-        :Versions:
-            * 2025-02-12 ``@ddalle``: v1.0
-        """
-        # Get list of indices
-        inds = self.x.GetIndices(**kw)
-        # Get indent
-        indent = kw.get("indent", 0)
-        tab = ' ' * indent
-        # Loop through cases
-        for i in inds:
-            # Get case name
-            frun = self.x.GetFullFolderNames(i)
-            # Display it
-            print(f"{tab}{frun}")
-            # Run the function
-            casefunc(i)
-
-    # Function to display current status
-    def DisplayStatus(self, **kw):
-        r"""Display current status for all cases
-
-        This prints case names, current iteration numbers, and so on.
-        This is the function that is called when the user issues a
-        system command like ``cape -c``.
-
-        :Call:
-            >>> cntl.DisplayStatus(j=False)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *j*: :class:`bool`
-                Whether or not to display job ID numbers
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints like ``'Mach<=0.5'``
-        :Versions:
-            * 2014-10-04 ``@ddalle``: v1.0
-            * 2014-12-09 ``@ddalle``: v2.0; ``--cons``
-            * 2025-06-20 ``@ddalle``: v3.0; use `caseloop_verbose()`
-        """
-        # Call verbose caseloop
-        self.caseloop_verbose(**kw)
-
-    # Master interface function
-    def SubmitJobs(self, **kw):
-        r"""Check jobs and prepare or submit jobs if necessary
-
-        :Call:
-            >>> cntl.SubmitJobs(**kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *c*: :``True`` | {``False``}
-                If ``True``, only display status; do not submit new jobs
-            *j*: :class:`bool`
-                Whether or not to display job ID numbers
-            *n*: :class:`int`
-                Maximum number of jobs to submit
-            *I*: :class:`list`\ [:class:`int`]
-                List of indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints like ``'Mach<=0.5'``
-        :Versions:
-            * 2014-10-05 ``@ddalle``: v1.0
-            * 2014-12-09 ``@ddalle``: v2.0, ``--cons``
-            * 2021-08-01 ``@ddalle``: v2.1, save/revert options
-            * 2023-05-17 ``@ddalle``: v2.2, ``opts.setx_i()``
-        """
-       # -----------------------
-       # Command Determination
-       # -----------------------
-        # Get flag that tells pycart only to check jobs.
-        qCheck = kw.get('c', False)
-        # Get flag to show job IDs
-        qJobID = kw.get('j', False)
-        # Whether or not to delete cases
-        qDel = kw.get('rm', False)
-        # Check whether or not to kill PBS jobs
-        qKill = kw.get('qdel', kw.get('kill', kw.get('scancel', False)))
-        # Option to run "incremental" job
-        q_incr = kw.get("incremental", False)
-        # No submissions if we're just deleting.
-        if qKill or qDel:
-            qCheck = True
-       # ---------
-       # Options
-       # ---------
-        # Check if we should start cases
-        if kw.get("nostart") or (not kw.get("start", True)):
-            # Set cases up but do not start them
-            q_strt = False
-        else:
-            # Set cases up and submit/start them
-            q_strt = True
-        # Check if we should submit INCOMP jobs
-        if kw.get("norestart") or (not kw.get("restart", True)):
-            # Do not submit jobs labeled "INCOMP"
-            stat_submit = ["---"]
-        elif q_strt:
-            # Submit either new jobs or "INCOMP"
-            stat_submit = ["---", "INCOMP"]
-        else:
-            # If not starting jobs, no reason for "INCOMP"
-            stat_submit = ["---"]
-        # Check for --no-qsub option
-        if not kw.get('qsub', True):
-            self.opts.set_qsub(False)
-        if not kw.get('sbatch', True):
-            self.opts.set_sbatch(False)
-        # Check for skipping marked cases
-        if kw.get("unmarked", False):
-            # Unmarked cases
-            q_umark = True
-        elif kw.get("nomarked", False) or (not kw.get("marked", True)):
-            # Only show unmarked cases
-            q_umark = True
-        else:
-            # Show all cases
-            q_umark = False
-        # Check for showing errored casses
-        if kw.get("errored", False) or kw.get("failed", False):
-            q_error = True
-        else:
-            q_error = False
-        # Maximum number of jobs to submit
-        nSubMax = int(kw.get('n', 10))
-        # Requested number to keep running
-        nJob = self.opts["RunControl"].get_NJob()
-        nJob = 0 if nJob is None else nJob
-       # --------
-       # Cases
-       # --------
-        # Get list of indices.
-        I = self.x.GetIndices(**kw)
-        # Get the case names.
-        fruns = self.x.GetFullFolderNames(I)
-       # -------
-       # Queue
-       # -------
-        # Check for --no-qstat
-        qstat = kw.get("qstat", True)
-        # Get the qstat info (safely; do not raise an exception)
-        jobs = self.get_pbs_jobs(
-            force=True,
-            u=kw.get('u'),
-            qstat=qstat)
-        # Check for auto-submit options
-        if (nJob > 0) and kw.get("auto", True):
-            # Look for running cases
-            nRunning = self.CountQueuedCases(u=kw.get('u'))
-            # Reset nSubMax to the cape minus number running
-            nSubMax = min(nSubMax, nJob - nRunning)
-            # Status update
-            print(f"Found {nRunning} running cases out of {nJob} max")
-            # check to see if the max are already running
-            if nRunning >= nJob and not qCheck:
-                print(f"Aborting because >={nJob} cases already running.\n")
-                return
-            print("")
-       # -------------
-       # Formatting
-       # -------------
-        # Maximum length of one of the names
-        if len(fruns) > 0:
-            # Check the cases
-            lrun = max([len(frun) for frun in fruns])
-        else:
-            # Just use a default value.
-            lrun = 0
-        # Make sure it's as long as the header
-        lrun = max(lrun, 21)
-        # Print the right number of '-' chars
-        f, s = '-', ' '
-        # Create the string stencil.
-        if qJobID:
-            # Print status with job numbers.
-            stncl = ('%%-%is ' * 7) % (4, lrun, 7, 11, 3, 8, 7)
-            # Print header row.
-            print(
-                stncl % (
-                    "Case", "Config/Run Directory", "Status",
-                    "Iterations", "Que", "CPU Time", "Job ID"))
-            # Print "---- --------" etc.
-            print(
-                f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s +
-                f*8 + s + f*7)
-        else:
-            # Print status without job numbers.
-            stncl = ('%%-%is ' * 6) % (4, lrun, 7, 11, 3, 8)
-            # Print header row.
-            print(
-                stncl % (
-                    "Case", "Config/Run Directory", "Status",
-                    "Iterations", "Que", "CPU Time"))
-            # Print "---- --------" etc.
-            print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*8)
-       # -------
-       # Loop
-       # -------
-        # Initialize number of submitted jobs
-        nSub = 0
-        # Number of deleted jobs
-        nDel = 0
-        # Initialize dictionary of statuses.3
-        total = {
-            'PASS': 0,
-            'PASS*': 0,
-            '---': 0,
-            'INCOMP': 0,
-            'RUN': 0,
-            'DONE': 0,
-            'QUEUE': 0,
-            'ERROR': 0,
-            'ERROR*': 0,
-            'FAIL': 0,
-            'ZOMBIE': 0,
-            'THIS_JOB': 0,
-        }
-        # Save current options
-        if not qCheck:
-            self.SaveOptions()
-        # Loop through the runs.
-        for j in range(len(I)):
-           # --- Case ID ---
-            # Case index
-            i = I[j]
-            # Set current state
-            self.opts.setx_i(i)
-            # Extract case
-            frun = fruns[j]
-           # --- Mark check ---
-            # Check for unmarked-only flag
-            if q_umark and (self.x.PASS[i] or self.x.ERROR[i]):
-                continue
-            if q_error and not self.x.ERROR[i]:
-                continue
-           # --- Status ---
-            # Check status
-            sts = self.check_case_status(i)
-            # Get active job number
-            jobID = self.GetPBSJobID(i)
-            # Append.
-            total[sts] += 1
-            # Get the current number of iterations
-            n = self.CheckCase(i)
-            # Get CPU hours
-            t = self.GetCPUTime(i)
-            # Convert to string
-            if t is None:
-                # Empty string
-                CPUt = ""
-            else:
-                # Convert to %.1f
-                CPUt = "%8.1f" % t
-            # Switch on whether or not case is set up.
-            if n is None:
-                # Case is not prepared.
-                itr = "/"
-                que = "."
-            else:
-                # Case is prepared and might be running.
-                # Get last iteration.
-                nMax = self.GetLastIter(i)
-                # Iteration string
-                itr = "%i/%i" % (n, nMax)
-                # Check the queue
-                que = self.check_case_job(i)
-           # --- Display ---
-            # Print info
-            if qJobID and jobID in jobs:
-                # Isolate number
-                try:
-                    job_num = int(jobID.split(".")[0])
-                except Exception:
-                    job_num = jobID
-                # Print job number
-                print(stncl % (i, frun, sts, itr, que, CPUt, job_num))
-            elif qJobID:
-                # Print blank job number
-                print(stncl % (i, frun, sts, itr, que, CPUt, ""))
-            else:
-                # No job number
-                print(stncl % (i, frun, sts, itr, que, CPUt))
-           # --- Execution ---
-            # Check for queue killing
-            if qKill and (n is not None) and (jobID in jobs):
-                # Delete it.
-                self.StopCase(i)
-                continue
-            # Check for deletion
-            if qDel and (not n) and (sts in ["INCOMP", "ERROR", "---"]):
-                # Delete folder
-                nDel += self.DeleteCase(i, **kw)
-            elif qDel:
-                # Delete but forcing prompt
-                nDel += self.DeleteCase(i, prompt=True)
-            # Check status.
-            if qCheck:
-                continue
-            # If submitting is allowed, check the job status.
-            if (sts in stat_submit) and self.FilterUser(i, **kw):
-                # Prepare the job
-                self.PrepareCase(i)
-                # Check for "incremental" option
-                self._prepare_incremental(i, q_incr)
-                # Start (submit or run) case
-                if q_strt:
-                    self.StartCase(i)
-                # Increase job number
-                nSub += 1
-            # Revert to original optons
-            self.RevertOptions()
-            # Don't continue checking if maximum submissions reached.
-            if nSub >= nSubMax:
-                break
-       # ---------
-       # Summary
-       # ---------
-        # Extra line.
-        print("")
-        # State how many jobs submitted.
-        if nSub:
-            # Submitted/started?
-            if q_strt:
-                print("Submitted or ran %i job(s).\n" % nSub)
-            else:
-                # We can still count cases set up
-                print("Set up %i job(s) but did not start.\n" % nSub)
-        # State how many jobs deleted
-        if nDel:
-            print("Deleted %s jobs" % nDel)
-        # Status summary
-        fline = ""
-        for key in total:
-            # Check for any cases with the status.
-            if total[key]:
-                # At least one with this status.
-                fline += ("%s=%i, " % (key, total[key]))
-        # Print the line.
-        if fline:
-            print(fline)
-
-    # Mark a case as PASS
-    @run_rootdir
-    def MarkPASS(self, **kw):
-        r"""Mark one or more cases as **PASS** and rewrite matrix
-
-        :Call:
-            >>> cntl.MarkPASS(**kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *I*: :class:`list`\ [:class:`int`]
-                List of indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints like ``'Mach<=0.5'``
-            *flag*: {``"p"``} | ``"P"`` | ``"PASS"`` | ``"$p"``
-                Marker to use to denote status
-        :Versions:
-            * 2019-06-14 ``@ddalle``: v1.0
-        """
-        # Get indices
-        I = self.x.GetIndices(**kw)
-        # Check sanity
-        if len(I) > 100:
-            raise ValueError(
-                "Attempting to mark %i ERRORs; that's too many!" % len(I))
-        # Process flag option
-        flag = kw.get("flag", "p")
-        # Loop through cases
-        for i in I:
-            # Mark case
-            self.x.MarkPASS(i, flag=flag)
-        # Write the trajectory
-        self.x.WriteRunMatrixFile()
-
-    # Mark a case as PASS
-    @run_rootdir
-    def MarkERROR(self, **kw):
-        r"""Mark one or more cases as **ERROR** and rewrite matrix
-
-        :Call:
-            >>> cntl.MarkERROR(**kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *I*: :class:`list`\ [:class:`int`]
-                List of indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints like ``'Mach<=0.5'``
-            *flag*: {``"E"``} | ``"e"`` | ``"ERROR"`` | ``"$E"``
-                Marker to use to denote status
-        :Versions:
-            * 2019-06-14 ``@ddalle``: v1.0
-        """
-        # Get indices
-        I = self.x.GetIndices(**kw)
-        # Check sanity
-        if len(I) > 100:
-            raise ValueError(
-                "Attempting to mark %i ERRORs; that's too many!" % len(I))
-        # Process flag option
-        flag = kw.get("flag", "E")
-        # Get deletion options
-        qrm = kw.get("rm", False)
-        qprompt = kw.get("prompt", True)
-        # Loop through cases
-        for i in I:
-            # Mark case
-            self.x.MarkERROR(i, flag=flag)
-            # Delete folder (?)
-            if qrm:
-                self.DeleteCase(i, prompt=qprompt)
-        # Write the trajectory
-        self.x.WriteRunMatrixFile()
-
-    # Remove PASS and ERROR markers
-    @run_rootdir
-    def UnmarkCase(self, **kw):
-        r"""Remove **PASS** or **ERROR** marking from one or more cases
-
-        :Call:
-            >>> cntl.UnmarkCase(**kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *I*: :class:`list`\ [:class:`int`]
-                List of indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints like ``'Mach<=0.5'``
-        :Versions:
-            * 2019-06-14 ``@ddalle``: v1.0
-        """
-        # Get indices
-        I = self.x.GetIndices(**kw)
-        # Loop through cases
-        for i in I:
-            # Mark case
-            self.x.UnmarkCase(i)
-        # Write the trajectory
-        self.x.WriteRunMatrixFile()
-
-    # Execute script
-    @run_rootdir
-    def ExecScript(self, **kw):
-        r"""Execute a script in a given case folder
-
-        This function is the interface to command-line calls using the
-        ``-e`` flag, such as ``pycart -e 'ls -lh'``.
-
-        :Call:
-            >>> ierr = cntl.ExecScript(i, cmd)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Case index (0-based)
-        :Outputs:
-            *ierr*: ``None`` | :class:`int`
-                Exit status from the command
-        :Versions:
-            * 2016-08-26 ``@ddalle``: v1.0
-            * 2024-12-09 ``@jfdiaz3``:v1.1
-        """
-        # Apply constraints
-        I = self.x.GetIndices(**kw)
-        # Initialize return code
-        ierr = 0
-        # Get execute command
-        cmd = kw.get('exec', kw.get('e'))
-        for i in I:
-            os.chdir(self.RootDir)
-            # Get the case folder name
-            frun = self.x.GetFullFolderNames(i)
-            # Check for the folder
-            if not os.path.isdir(frun):
-                return
-            print(f'{i} {frun}')
-            # Enter the folder
-            os.chdir(frun)
-            # Set current case index
-            self.opts.setx_i(i)
-            # Status update
-            print("  Executing system command:")
-            # Check if it's a file.
-            if not cmd.startswith(os.sep):
-                # First command could be a script name
-                fcmd = cmd.split()[0]
-                # Get file name relative to Cntl root directory
-                fcmd = os.path.join(self.RootDir, fcmd)
-                # Check for the file.
-                if os.path.exists(fcmd):
-                    # Copy the file here
-                    shutil.copy(fcmd, '.')
-                    # Name of the script
-                    fexec = os.path.split(fcmd)[1]
-                    # Strip folder names from command
-                    ncmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
-                else:
-                    # Just run command as it is
-                    ncmd = cmd
-            # Status update
-            print("    %s" % ncmd)
-            # Pass to dangerous system command
-            ierr = os.system(ncmd)
-            # Output
-            if ierr:
-                print("    exit(%s)" % ierr)
-        return ierr
-
-   # --- Run Interface ---
-    # Apply user filter
-    def FilterUser(self, i: int, **kw) -> bool:
-        r"""Determine if case *i* is assigned to current user
-
-        :Call:
-            >>> q = cntl.FilterUser(i, **kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-            *u*, *user*: :class:`str`
-                User name (default: executing process's username) for
-                comparing to run matrix
-        :Outputs:
-            *q*: :class:`bool`
-                Whether user is owner of case *i*
-        :Versions:
-            2017-07-10 ``@ddalle``: v1.0
-        """
-        # Get any 'user' trajectory keys
-        ku = self.x.GetKeysByType('user')
-        # Check if there's a user variable
-        if len(ku) == 0:
-            # No user filter
-            return True
-        elif len(ku) > 1:
-            # More than one user constraint? sounds like a bad idea
-            raise ValueError(
-                "Found more than one USER run matrix value: %s" % ku)
-        # Select the user key
-        k = ku[0]
-        # Get target user
-        uid = kw.get('u', kw.get('user'))
-        # Default
-        if uid is None:
-            uid = getpass.getuser()
-        # Get the value of the user from the run matrix
-        # Also, remove leading '@' character if present
-        ui = self.x[k][i].lstrip('@').lower()
-        # Check the actual constraint
-        if ui == "":
-            # No user constraint; pass
-            return True
-        elif ui == uid:
-            # Correct user
-            return True
-        else:
-            # Wrong user!
-            return False
-
+  # *** CASE INTERFACE ***
+   # --- CaseRunner ---
     # Get case runner from a folder
     @abstractmethod
     def ReadFolderCaseRunner(self, fdir: str) -> CaseRunnerBase:
         r"""Read a ``CaseRunner`` from a folder by name
 
         :Call:
-            >>> runner = cntl.ReadFolderCaseRunner(i)
+            >>> runner = cntl.ReadFolderCaseRunner(fdir)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
+            *fdir*: :class:`str`
+                Folder of case to read from
         :Outputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2070,6 +987,7 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Start/stop ---
     # Function to start a case: submit or run
     @abstractmethod
     def StartCase(self, i: int):
@@ -2116,96 +1034,13 @@ class CntlBase(ABC):
         """
         pass
 
-    # Get expected actual breaks of phase iters
-    def GetPhaseBreaks(self) -> list:
-        r"""Get expected iteration numbers at phase breaks
-
-        This fills in ``0`` entries in *RunControl* |>| *PhaseIters* and
-        returns the filled-out list.
-
-        :Call:
-            >>> PI = cntl.GetPhaseBreaks()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Cape control interface
-        :Outputs:
-            *PI*: :class:`list`\ [:class:`int`]
-                Min iteration counts for each phase
-        :Versions:
-            * 2017-04-12 ``@ddalle``: v1.0
-        """
-        # Get list of phases to use
-        PhaseSeq = self.opts.get_PhaseSequence()
-        PhaseSeq = list(np.array(PhaseSeq).flatten())
-        # Get option values for *PhaseIters* and *nIter*
-        PI = [self.opts.get_PhaseIters(j) for j in PhaseSeq]
-        NI = [self.opts.get_nIter(j) for j in PhaseSeq]
-        # Initialize total
-        ni = 0
-        # Loop through phases
-        for j, (phj, nj) in enumerate(zip(PI, NI)):
-            # Check for specified cutoff
-            if phj:
-                # Use max of defined cutoff and *nj1*
-                nj = 0 if nj is None else nj
-                mj = max(phj, ni + nj)
-            else:
-                # Min value for next phase: last total + *nj*
-                mj = ni + nj
-            # Save new cutoff
-            PI[j] = mj
-        # Output
-        return PI
-
-    # Get last iter
-    def GetLastIter(self, i: int) -> int:
-        r"""Get minimum required iteration for a given case
-
-        :Call:
-            >>> nIter = cntl.GetLastIter(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Cape control interface
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *nIter*: :class:`int`
-                Number of iterations required for case *i*
-        :Versions:
-            * 2014-10-03 ``@ddalle``: v1.0
-        """
-        # Read the local case.json file.
-        rc = self.read_case_json(i)
-        # Check for null file
-        if rc is None:
-            return self.opts.get_PhaseIters(-1)
-        # Option for desired iterations
-        N = rc.get('PhaseIters', 0)
-        # Output the last entry (if list)
-        return getel(N, -1)
-
-    # Get case index
-    def GetCaseIndex(self, frun: str) -> Optional[int]:
-        r"""Get index of a case in the current run matrix
-
-        :Call:
-            >>> i = cntl.GetCaseIndex(frun)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Cape control interface
-            *frun*: :class:`str`
-                Name of case, must match exactly
-        :Outputs:
-            *i*: :class:`int` | ``None``
-                Index of case with name *frun* in run matrix, if present
-        :Versions:
-            * 2024-08-15 ``@ddalle``: v1.0
-            * 2024-10-16 ``@ddalle``: v1.1; move to :class:`RunMatrix`
-        """
-        return self.x.GetCaseIndex(frun)
-
+   # --- Counts by status ---
     # Count R/Q cases based on full status
-    def CountRunningCases(self, I, jobs=None, u=None):
+    @abstractmethod
+    def CountRunningCases(
+            self, I: list,
+            jobs: Optional[dict] = None,
+            u: Optional[str] = None) -> int:
         r"""Count number of running cases via the batch system
 
         Also print a status of the running jobs.
@@ -2227,21 +1062,10 @@ class CntlBase(ABC):
         :Versions:
             * 2023-12-08 ``@dvicker``: v1.0
         """
-        # Status update
-        print("Checking for currently queued jobs")
-        # Initialize counter
-        total_running = 0
-        # Loop through cases
-        for i in I:
-            # Check status of that case
-            sts = self.CheckCaseStatus(i, jobs, u)
-            # Add to counter if running
-            running = 1 if (sts in ("RUN", "QUEUE")) else 0
-            total_running += running
-        # Return the counter
-        return total_running
+        pass
 
     # Count R/Q cases based on PBS/Slurm only
+    @abstractmethod
     def CountQueuedCases(
             self,
             I: Optional[list] = None,
@@ -2268,33 +1092,17 @@ class CntlBase(ABC):
             * 2024-01-17 ``@ddalle``: v1.1; check for *this_job*
             * 2025-05-01 ``@ddalle``: v1.2; remove *jobs* kwarg
         """
-        # Status update
-        print("Checking for currently queued jobs")
-        # Check for ID of "this job" if called from a running job
-        this_job = self.CheckBatch()
-        # Initialize counter
-        total_running = 0
-        # Get full set of cases
-        I = self.x.GetIndices(I=I, **kw)
-        # Process jobs list
-        jobs = self.get_pbs_jobs(u=u)
-        # Loop through cases
-        for i in I:
-            # Get the JobID for that case
-            jobid = self.GetPBSJobID(i)
-            # Check if it's in the queue right now
-            if (jobid in jobs) and (jobid != this_job):
-                total_running += 1
-        # Output
-        return total_running
+        pass
 
+   # --- Status ---
     # Function to determine if case is PASS, ---, INCOMP, etc.
+    @abstractmethod
     def CheckCaseStatus(
             self, i: int,
             jobs: Optional[dict] = None,
             auto: bool = False,
             u: Optional[str] = None,
-            qstat: bool = True):
+            qstat: bool = True) -> str:
         r"""Determine the current status of a case
 
         :Call:
@@ -2310,146 +1118,116 @@ class CntlBase(ABC):
                 User name (defaults to process username)
             *qstat*: {``True``} | ``False``
                 Option to call qstat/squeue to get job status
+        :Outputs:
+            *sts*: :class:`str`
+                Stats of case *i8
         :Versions:
             * 2014-10-04 ``@ddalle``: v1.0
             * 2014-10-06 ``@ddalle``: v1.1; check queue status
             * 2023-12-13 ``@dvicker``: v1.2; check for THIS_JOB
             * 2024-08-22 ``@ddalle``: v1.3; add *qstat*
         """
-        # Current iteration count
-        n = self.CheckCase(i)
-        # Try to get a job ID.
-        jobID = self.GetPBSJobID(i)
-        # Get list of jobs
-        jobs = self.get_pbs_jobs(u=u, qstat=qstat)
-        # Check if the case is prepared.
-        if self.CheckError(i):
-            # Case contains :file:`FAIL`
-            sts = "ERROR"
-        elif n is None:
-            # Nothing prepared.
-            sts = "---"
-        else:
-            # Check if the case is running.
-            if self.CheckRunning(i):
-                # Case currently marked as running.
-                sts = "RUN"
-            elif self.CheckError(i):
-                # Case has some sort of error.
-                sts = "ERROR"
-            else:
-                # Get maximum iteration count.
-                nMax = self.GetLastIter(i)
-                # Get current phase
-                j, jLast = self.CheckUsedPhase(i)
-                # Check current count.
-                if jobID in jobs:
-                    # It's in the queue, but apparently not running.
-                    if jobs[jobID]['R'] == "R":
-                        # Job running according to the queue
-                        sts = "RUN"
-                    else:
-                        # It's in the queue.
-                        sts = "QUEUE"
-                elif j < jLast:
-                    # Not enough phases
-                    sts = "INCOMP"
-                elif n >= nMax:
-                    # Not running and sufficient iterations completed.
-                    sts = "DONE"
-                else:
-                    # Not running and iterations remaining.
-                    sts = "INCOMP"
-        # Check for zombies
-        if (sts == "RUN") and self.CheckZombie(i):
-            # Looks like it is running, but no files modified
-            sts = "ZOMBIE"
-        # Check if the case is marked as PASS
-        if self.x.PASS[i]:
-            # Check for cases marked but that can't be done.
-            if sts == "DONE":
-                # Passed!
-                sts = "PASS"
-            else:
-                # Funky
-                sts = "PASS*"
-        # Get current job ID, if any
-        current_jobid = self.CheckBatch()
-        # Check current job ID against the one in this case folder
-        if current_jobid == jobID:
-            sts = "THIS_JOB"
-        # Output
-        return sts
+        pass
 
-    # Get information on all jobs from current user
-    def get_pbs_jobs(
-            self,
-            force: bool = False,
-            u: Optional[str] = None,
-            server: Optional[str] = None,
-            qstat: bool = True) -> dict:
-        r"""Get dictionary of current jobs active by one user
+    # Check if cases with zero iterations are not yet setup to run
+    @abstractmethod
+    def CheckNone(self, v: bool = False) -> bool:
+        r"""Check if the current directory has the needed files to run
+
+        This function needs to be customized for each CFD solver so that
+        it checks for the appropriate files.
 
         :Call:
-            >>> jobs = cntl.get_pbs_jobs(force=False, **kw)
+            >>> q = cntl.CheckNone(v=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints message if *q* is ``True``
+        :Outputs:
+            *q*: ```True`` | `False``
+                Whether or not case is missing files
+        :Versions:
+            * 2015-09-27 ``@ddalle``: v1.0
+            * 2017-02-22 ``@ddalle``: v1.1, verbosity option
+        """
+        pass
+
+   # --- Phase ---
+    # Check a case's phase output files
+    @abstractmethod
+    def CheckUsedPhase(self, i: int, v: bool = False):
+        r"""Check maximum phase number run at least once
+
+        :Call:
+            >>> j, n = cntl.CheckUsedPhase(i, v=False)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
-            *force*: ``True`` | {``False``}
-                Query current queue even if *cntl.jobs* exists
-            *u*: {``None``} | :class:`str`
-                User name (defaults to process username)
-            *server*: {``None``} | :class:`str`
-                Name of non-default PBS/Slurm server
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints messages if *n* is ``None``
         :Outputs:
-            *jobs*: :class:`dict`
-                Information on each job by ID number
+            *j*: :class:`int` | ``None``
+                Phase number
+            *n*: :class:`int` | ``None``
+                Maximum phase number
         :Versions:
-            * 2024-01-12 ``@ddalle``: v1.0
-            * 2024-08-22 ``@ddalle``: v1.1; add *qstat* option
-            * 2025-05-01 ``@ddalle``: v1.2; simplify flow
+            * 2017-06-29 ``@ddalle``: v1.0
+            * 2017-07-11 ``@ddalle``: v1.1; verbosity option
+            * 2025-03-02 ``@ddalle``: v2.0; use CaseRunner
         """
-        # Identifier for this user and queue
-        qid = (server, u)
-        # Check for existing jobs
-        if (not force) and (qid in self.jobqueues):
-            return self.jobs
-        # Get current jobs
-        jobs = self.jobs
-        jobs = {} if jobs is None else jobs
-        # Check for ``--no-qstat`` flag
-        if not qstat:
-            return jobs
-        # Get list of jobs currently running for user *u*
-        if self.opts.get_slurm(0):
-            # Call slurm instead of PBS
-            newjobs = queue.squeue(u=u)
-        else:
-            # Use qstat to get job info
-            newjobs = queue.qstat(u=u, server=server)
-        # Add to full list
-        self.jobs.update(newjobs)
-        # Note this status
-        if qid not in self.jobqueues:
-            self.jobqueues.append(qid)
-        # Output
-        return self.jobs
+        pass
 
-    def _get_qstat(self) -> queue.QStat:
-        # Check current attribute
-        if isinstance(self.jobs, queue.QStat):
-            return self.jobs
-        # Create one
-        self.jobs = queue.QStat()
-        # Set Slurm vs PBS
-        rc = self.read_case_json()
-        sched = "slurm" if rc.get_slurm(0) else "pbs"
-        self.jobs.scheduler = sched
-        # Output
-        return self.jobs
+    # Check a case's phase number
+    @abstractmethod
+    def CheckPhase(self, i: int, v: bool = False) -> Optional[int]:
+        r"""Check current phase number of run *i*
 
+        :Call:
+            >>> n = cntl.CheckPhase(i, v=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints messages if *n* is ``None``
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Get the current iteration number from :mod:`case`
+    @abstractmethod
+    def CaseGetCurrentPhase(self):
+        r"""Get the current phase number from the appropriate module
+
+        This function utilizes the :mod:`cape.cfdx.case` module, and so
+        it must be copied to the definition for each solver's control
+        class.
+
+        :Call:
+            >>> j = cntl.CaseGetCurrentPhase()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: v1.0
+            * 2023-07-06 ``@ddalle``: v1.1; use ``CaseRunner``
+        """
+        pass
+
+   # --- Iteration ---
     # Check a case
-    @run_rootdir
+    @abstractmethod
     def CheckCase(
             self,
             i: int,
@@ -2482,38 +1260,10 @@ class CntlBase(ABC):
             * 2017-02-22 ``@ddalle``: v2.2; add verbose flag
             * 2023-11-06 ``@ddalle``: v2.3; call ``setx_i(i)``
         """
-        # Check input
-        assert_isinstance(i, (int, np.integer), "case index")
-        # Set options
-        self.opts.setx_i(i)
-        # Get the group name.
-        frun = self.x.GetFullFolderNames(i)
-        # Initialize iteration number.
-        n = 0
-        # Check if the folder exists.
-        if v and (not os.path.isdir(frun)):
-            # Verbosity option
-            if v:
-                print("    Folder '%s' does not exist" % frun)
-        # Get case status
-        n = self.GetCurrentIter(i, force)
-        # If zero, check if the required files are set up
-        if n == 0:
-            # Get name of folder
-            frun = self.x.GetFullFolderNames(i)
-            # Check for case
-            if os.path.isdir(frun):
-                # Enter folder
-                os.chdir(frun)
-                # Check if prepared
-                n = None if self.CheckNone(v) else 0
-            else:
-                # No folder
-                n = None
-        # Output
-        return n
+        pass
 
-    # Get the current iteration number from :mod:`case`
+    # Get the current iteration number from :mod:`casecntl`
+    @abstractmethod
     def GetCurrentIter(self, i: int, force: bool = False) -> int:
         r"""Get the current iteration number (using :mod:`case`)
 
@@ -2538,165 +1288,329 @@ class CntlBase(ABC):
             * 2023-07-07 ``@ddalle``: v2.0; use ``CaseRunner``
             * 2025-03-01 ``@ddalle``: v3.0; add caching
         """
-        # Check if case is cached
-        if (not force) and self.cache_iter.check_case(i):
-            # Return cached value
-            return self.cache_iter.get_value(i)
-        # Instantiate case runner
-        runner = self.ReadCaseRunner(i)
-        # Check for non-existint case
-        if runner is None:
-            # No case to check
-            n = None
-        else:
-            # Get iteration
-            n = runner.get_iter()
-        # Default to 0
-        n = 0 if n is None else n
-        # Save it
-        self.cache_iter.save_value(i, n)
-        # Return it
-        return n
+        pass
 
-    # Check a case's phase output files
-    @run_rootdir
-    def CheckUsedPhase(self, i: int, v: bool = False):
-        r"""Check maximum phase number run at least once
+   # --- PBS/Slurm ---
+    # Get information on all jobs from current user
+    @abstractmethod
+    def get_pbs_jobs(
+            self,
+            force: bool = False,
+            u: Optional[str] = None,
+            server: Optional[str] = None,
+            qstat: bool = True) -> dict:
+        r"""Get dictionary of current jobs active by one user
 
         :Call:
-            >>> j, n = cntl.CheckUsedPhase(i, v=False)
+            >>> jobs = cntl.get_pbs_jobs(force=False, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *force*: ``True`` | {``False``}
+                Query current queue even if *cntl.jobs* exists
+            *u*: {``None``} | :class:`str`
+                User name (defaults to process username)
+            *server*: {``None``} | :class:`str`
+                Name of non-default PBS/Slurm server
+        :Outputs:
+            *jobs*: :class:`dict`
+                Information on each job by ID number
+        :Versions:
+            * 2024-01-12 ``@ddalle``: v1.0
+            * 2024-08-22 ``@ddalle``: v1.1; add *qstat* option
+            * 2025-05-01 ``@ddalle``: v1.2; simplify flow
+        """
+        pass
+
+    @abstractmethod
+    def _get_qstat(self) -> queue.QStat:
+        pass
+
+  # *** CLI ***
+   # --- Case loop ---
+    # Loop through cases
+    @abstractmethod
+    def caseloop_verbose(
+            self, casefunc: Optional[Callable] = None, **kw) -> int:
+        r"""Loop through cases and produce verbose table
+
+        :Call:
+            >>> n = cntl.caseloop_verbose(casefunc, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *casefunc*: {``None``} | :class:`Callable`
+                Optional function to run in each case folder
+            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Case indices
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases started/submitted
+        :Versions:
+            * 2025-06-19 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Loop through cases
+    @abstractmethod
+    def caseloop(self, casefunc: Callable, **kw):
+        r"""Loop through cases and execute function for each case
+
+        :Call:
+            >>> cntl.caseloop(casefun, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+            *indent*: {``0``} | :class:`int`
+                Number of spaces to indent each case name
+        :Versions:
+            * 2025-02-12 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Get value for aribtrary value, skipping progress
+    @abstractmethod
+    def _maxlen(self, opt: str, I: np.ndarray) -> int:
+        pass
+
+    # Get header for display column
+    @abstractmethod
+    def _header(self, opt: str) -> str:
+        pass
+
+   # --- Preprocess ---
+    # CLI arg preprocesser
+    @abstractmethod
+    def preprocess_kwargs(self, kw: dict):
+        r"""Preprocess command-line arguments and flags/keywords
+
+        This will effect the following CLI options:
+
+        --cons CONS
+            Comma-separated constraints split into a list
+
+        -x FPY
+            Each ``-x`` argument is executed (can be repeated)
+
+        -I INDS
+            Convert *INDS* like ``3-6,8`` to ``[3, 4, 5, 8]``
+
+        :Call:
+            >>> opts = cntl.cli_preprocess(*a, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *kw*: :class:`dict`\ [``True`` | ``False`` | :class:`str`]
+                CLI keyword arguments and flags, modified in-place
+        :Versions:
+            * 2024-12-19 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Check ---
+    # Function to display current status
+    @abstractmethod
+    def DisplayStatus(self, **kw):
+        r"""Display current status for all cases
+
+        This prints case names, current iteration numbers, and so on.
+        This is the function that is called when the user issues a
+        system command like ``cape -c``.
+
+        :Call:
+            >>> cntl.DisplayStatus(j=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *j*: :class:`bool`
+                Whether or not to display job ID numbers
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2014-10-04 ``@ddalle``: v1.0
+            * 2014-12-09 ``@ddalle``: v2.0; ``--cons``
+            * 2025-06-20 ``@ddalle``: v3.0; use `caseloop_verbose()`
+        """
+        pass
+
+   # --- Mark ---
+    # Mark a case as PASS
+    @abstractmethod
+    def MarkPASS(self, **kw):
+        r"""Mark one or more cases as **PASS** and rewrite matrix
+
+        :Call:
+            >>> cntl.MarkPASS(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+            *flag*: {``"p"``} | ``"P"`` | ``"PASS"`` | ``"$p"``
+                Marker to use to denote status
+        :Versions:
+            * 2019-06-14 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Mark a case as PASS
+    @abstractmethod
+    def MarkERROR(self, **kw):
+        r"""Mark one or more cases as **ERROR** and rewrite matrix
+
+        :Call:
+            >>> cntl.MarkERROR(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+            *flag*: {``"E"``} | ``"e"`` | ``"ERROR"`` | ``"$E"``
+                Marker to use to denote status
+        :Versions:
+            * 2019-06-14 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Remove PASS and ERROR markers
+    @abstractmethod
+    def UnmarkCase(self, **kw):
+        r"""Remove **PASS** or **ERROR** marking from one or more cases
+
+        :Call:
+            >>> cntl.UnmarkCase(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2019-06-14 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Execute script ---
+    # Execute script
+    @abstractmethod
+    def ExecScript(self, **kw) -> int:
+        r"""Execute a script in a given case folder
+
+        This function is the interface to command-line calls using the
+        ``-e`` flag, such as ``pycart -e 'ls -lh'``.
+
+        :Call:
+            >>> ierr = cntl.ExecScript(i, cmd)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Case index (0-based)
+        :Outputs:
+            *ierr*: ``None`` | :class:`int`
+                Exit status from the command
+        :Versions:
+            * 2016-08-26 ``@ddalle``: v1.0
+            * 2024-12-09 ``@jfdiaz3``:v1.1
+        """
+        pass
+
+  # *** RUN MATRIX ***
+   # --- Values ---
+    # Get value for specified property
+    @abstractmethod
+    def getval(self, opt: str, i: int) -> Any:
+        r"""Get run matrix or case status value for one case
+
+        :Call:
+            >>> v = cntl.getval(opt, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *opt*: :class:`str`
+                Name of option or run matrix key
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *v*: :class:`Any`
+                Value of option *opt* for case *i*
+        :Versions:
+            * 2025-06-16 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Get value, ensuring string output
+    @abstractmethod
+    def getvalstr(self, opt: str, i: int) -> str:
+        r"""Get value of run matrix variable as string
+
+        :Call:
+            >>> txt = cntl.getvalstr(opt, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *opt*: :class:`str`
+                Name of option or run matrix key
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *txt*: :class:`str`
+                Text of value of option *opt* for case *i*
+        :Versions:
+            * 2025-06-16 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Filter ---
+    # Apply user filter
+    @abstractmethod
+    def FilterUser(self, i: int, **kw) -> bool:
+        r"""Determine if case *i* is assigned to current user
+
+        :Call:
+            >>> q = cntl.FilterUser(i, **kw)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
-            *v*: ``True`` | {``False``}
-                Verbose flag; prints messages if *n* is ``None``
+            *u*, *user*: :class:`str`
+                User name (default: executing process's username) for
+                comparing to run matrix
         :Outputs:
-            *j*: :class:`int` | ``None``
-                Phase number
-            *n*: :class:`int` | ``None``
-                Maximum phase number
+            *q*: :class:`bool`
+                Whether user is owner of case *i*
         :Versions:
-            * 2017-06-29 ``@ddalle``: v1.0
-            * 2017-07-11 ``@ddalle``: v1.1; verbosity option
-            * 2025-03-02 ``@ddalle``: v2.0; use CaseRunner
+            2017-07-10 ``@ddalle``: v1.0
         """
-        # Check input
-        assert_isinstance(i, (int, np.integer), "case index")
-        # Read case runner
-        runner = self.ReadCaseRunner(i)
-        # Check if found
-        if runner is None:
-            # Verbosity option
-            if v:
-                # Get the group name
-                frun = self.x.GetFullFolderNames(i)
-                # Show it
-                print("    Folder '%s' does not exist" % frun)
-            # Phase
-            j = 0
-            jlast = self.opts.get_PhaseSequence()[-1]
-            return j, jlast
-        # Use runner's call
-        return runner.get_phase_simple()
+        pass
 
-    # Check a case's phase number
-    @run_rootdir
-    def CheckPhase(self, i: int, v: bool = False) -> Optional[int]:
-        r"""Check current phase number of run *i*
+   # --- Index ---
+    # Get case index
+    @abstractmethod
+    def GetCaseIndex(self, frun: str) -> Optional[int]:
+        r"""Get index of a case in the current run matrix
 
         :Call:
-            >>> n = cntl.CheckPhase(i, v=False)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-            *v*: ``True`` | {``False``}
-                Verbose flag; prints messages if *n* is ``None``
-        :Outputs:
-            *j*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2017-06-29 ``@ddalle``: v1.0
-        """
-        # Check input
-        assert_isinstance(i, (int, np.integer), "case index")
-        # Get the group name.
-        frun = self.x.GetFullFolderNames(i)
-        # Initialize iteration number.
-        n = 0
-        # Check if the folder exists.
-        if (not os.path.isdir(frun)):
-            # Verbosity option
-            if v:
-                print("    Folder '%s' does not exist" % frun)
-            n = None
-        # Check that test.
-        if n is not None:
-            # Go to the group folder.
-            os.chdir(frun)
-            # Check the phase information
-            try:
-                n = self.CaseGetCurrentPhase()
-            except Exception:
-                # At least one file missing that is required
-                n = 0
-        # Output.
-        return n
-
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentPhase(self):
-        r"""Get the current phase number from the appropriate module
-
-        This function utilizes the :mod:`cape.cfdx.case` module, and so
-        it must be copied to the definition for each solver's control
-        class.
-
-        :Call:
-            >>> j = cntl.CaseGetCurrentPhase()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-        :Outputs:
-            *j*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2017-06-29 ``@ddalle``: v1.0
-            * 2023-07-06 ``@ddalle``: v1.1; use ``CaseRunner``
-        """
-        # Be safe
-        try:
-            # Instatiate case runner
-            runner = self.ReadCaseRunner()
-            # Get the phase number
-            return runner.get_phase()
-        except Exception:
-            return 0
-
-    # Check if cases with zero iterations are not yet setup to run
-    def CheckNone(self, v=False):
-        r"""Check if the current directory has the needed files to run
-
-        This function needs to be customized for each CFD solver so that
-        it checks for the appropriate files.
-
-        :Call:
-            >>> q = cntl.CheckNone(v=False)
+            >>> i = cntl.GetCaseIndex(frun)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Cape control interface
-            *v*: ``True`` | {``False``}
-                Verbose flag; prints message if *q* is ``True``
+            *frun*: :class:`str`
+                Name of case, must match exactly
         :Outputs:
-            *q*: ```True`` | `False``
-                Whether or not case is missing files
+            *i*: :class:`int` | ``None``
+                Index of case with name *frun* in run matrix, if present
         :Versions:
-            * 2015-09-27 ``@ddalle``: v1.0
-            * 2017-02-22 ``@ddalle``: v1.1, verbosity option
+            * 2024-08-15 ``@ddalle``: v1.0
+            * 2024-10-16 ``@ddalle``: v1.1; move to :class:`RunMatrix`
         """
-        return False
+        pass
 
     # Check if a case is running
     @abstractmethod
@@ -4891,3 +3805,302 @@ class CntlBase(ABC):
         elif ttype == "Euler123":
             return np.dot(R3, np.dot(R2, R1))
 
+  # *** GARBAGE ***
+    # Master interface function
+    def SubmitJobs(self, **kw):
+        r"""Check jobs and prepare or submit jobs if necessary
+
+        :Call:
+            >>> cntl.SubmitJobs(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *c*: :``True`` | {``False``}
+                If ``True``, only display status; do not submit new jobs
+            *j*: :class:`bool`
+                Whether or not to display job ID numbers
+            *n*: :class:`int`
+                Maximum number of jobs to submit
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2014-10-05 ``@ddalle``: v1.0
+            * 2014-12-09 ``@ddalle``: v2.0, ``--cons``
+            * 2021-08-01 ``@ddalle``: v2.1, save/revert options
+            * 2023-05-17 ``@ddalle``: v2.2, ``opts.setx_i()``
+        """
+       # -----------------------
+       # Command Determination
+       # -----------------------
+        # Get flag that tells pycart only to check jobs.
+        qCheck = kw.get('c', False)
+        # Get flag to show job IDs
+        qJobID = kw.get('j', False)
+        # Whether or not to delete cases
+        qDel = kw.get('rm', False)
+        # Check whether or not to kill PBS jobs
+        qKill = kw.get('qdel', kw.get('kill', kw.get('scancel', False)))
+        # Option to run "incremental" job
+        q_incr = kw.get("incremental", False)
+        # No submissions if we're just deleting.
+        if qKill or qDel:
+            qCheck = True
+       # ---------
+       # Options
+       # ---------
+        # Check if we should start cases
+        if kw.get("nostart") or (not kw.get("start", True)):
+            # Set cases up but do not start them
+            q_strt = False
+        else:
+            # Set cases up and submit/start them
+            q_strt = True
+        # Check if we should submit INCOMP jobs
+        if kw.get("norestart") or (not kw.get("restart", True)):
+            # Do not submit jobs labeled "INCOMP"
+            stat_submit = ["---"]
+        elif q_strt:
+            # Submit either new jobs or "INCOMP"
+            stat_submit = ["---", "INCOMP"]
+        else:
+            # If not starting jobs, no reason for "INCOMP"
+            stat_submit = ["---"]
+        # Check for --no-qsub option
+        if not kw.get('qsub', True):
+            self.opts.set_qsub(False)
+        if not kw.get('sbatch', True):
+            self.opts.set_sbatch(False)
+        # Check for skipping marked cases
+        if kw.get("unmarked", False):
+            # Unmarked cases
+            q_umark = True
+        elif kw.get("nomarked", False) or (not kw.get("marked", True)):
+            # Only show unmarked cases
+            q_umark = True
+        else:
+            # Show all cases
+            q_umark = False
+        # Check for showing errored casses
+        if kw.get("errored", False) or kw.get("failed", False):
+            q_error = True
+        else:
+            q_error = False
+        # Maximum number of jobs to submit
+        nSubMax = int(kw.get('n', 10))
+        # Requested number to keep running
+        nJob = self.opts["RunControl"].get_NJob()
+        nJob = 0 if nJob is None else nJob
+       # --------
+       # Cases
+       # --------
+        # Get list of indices.
+        I = self.x.GetIndices(**kw)
+        # Get the case names.
+        fruns = self.x.GetFullFolderNames(I)
+       # -------
+       # Queue
+       # -------
+        # Check for --no-qstat
+        qstat = kw.get("qstat", True)
+        # Get the qstat info (safely; do not raise an exception)
+        jobs = self.get_pbs_jobs(
+            force=True,
+            u=kw.get('u'),
+            qstat=qstat)
+        # Check for auto-submit options
+        if (nJob > 0) and kw.get("auto", True):
+            # Look for running cases
+            nRunning = self.CountQueuedCases(u=kw.get('u'))
+            # Reset nSubMax to the cape minus number running
+            nSubMax = min(nSubMax, nJob - nRunning)
+            # Status update
+            print(f"Found {nRunning} running cases out of {nJob} max")
+            # check to see if the max are already running
+            if nRunning >= nJob and not qCheck:
+                print(f"Aborting because >={nJob} cases already running.\n")
+                return
+            print("")
+       # -------------
+       # Formatting
+       # -------------
+        # Maximum length of one of the names
+        if len(fruns) > 0:
+            # Check the cases
+            lrun = max([len(frun) for frun in fruns])
+        else:
+            # Just use a default value.
+            lrun = 0
+        # Make sure it's as long as the header
+        lrun = max(lrun, 21)
+        # Print the right number of '-' chars
+        f, s = '-', ' '
+        # Create the string stencil.
+        if qJobID:
+            # Print status with job numbers.
+            stncl = ('%%-%is ' * 7) % (4, lrun, 7, 11, 3, 8, 7)
+            # Print header row.
+            print(
+                stncl % (
+                    "Case", "Config/Run Directory", "Status",
+                    "Iterations", "Que", "CPU Time", "Job ID"))
+            # Print "---- --------" etc.
+            print(
+                f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s +
+                f*8 + s + f*7)
+        else:
+            # Print status without job numbers.
+            stncl = ('%%-%is ' * 6) % (4, lrun, 7, 11, 3, 8)
+            # Print header row.
+            print(
+                stncl % (
+                    "Case", "Config/Run Directory", "Status",
+                    "Iterations", "Que", "CPU Time"))
+            # Print "---- --------" etc.
+            print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*8)
+       # -------
+       # Loop
+       # -------
+        # Initialize number of submitted jobs
+        nSub = 0
+        # Number of deleted jobs
+        nDel = 0
+        # Initialize dictionary of statuses.3
+        total = {
+            'PASS': 0,
+            'PASS*': 0,
+            '---': 0,
+            'INCOMP': 0,
+            'RUN': 0,
+            'DONE': 0,
+            'QUEUE': 0,
+            'ERROR': 0,
+            'ERROR*': 0,
+            'FAIL': 0,
+            'ZOMBIE': 0,
+            'THIS_JOB': 0,
+        }
+        # Save current options
+        if not qCheck:
+            self.SaveOptions()
+        # Loop through the runs.
+        for j in range(len(I)):
+           # --- Case ID ---
+            # Case index
+            i = I[j]
+            # Set current state
+            self.opts.setx_i(i)
+            # Extract case
+            frun = fruns[j]
+           # --- Mark check ---
+            # Check for unmarked-only flag
+            if q_umark and (self.x.PASS[i] or self.x.ERROR[i]):
+                continue
+            if q_error and not self.x.ERROR[i]:
+                continue
+           # --- Status ---
+            # Check status
+            sts = self.check_case_status(i)
+            # Get active job number
+            jobID = self.GetPBSJobID(i)
+            # Append.
+            total[sts] += 1
+            # Get the current number of iterations
+            n = self.CheckCase(i)
+            # Get CPU hours
+            t = self.GetCPUTime(i)
+            # Convert to string
+            if t is None:
+                # Empty string
+                CPUt = ""
+            else:
+                # Convert to %.1f
+                CPUt = "%8.1f" % t
+            # Switch on whether or not case is set up.
+            if n is None:
+                # Case is not prepared.
+                itr = "/"
+                que = "."
+            else:
+                # Case is prepared and might be running.
+                # Get last iteration.
+                nMax = self.GetLastIter(i)
+                # Iteration string
+                itr = "%i/%i" % (n, nMax)
+                # Check the queue
+                que = self.check_case_job(i)
+           # --- Display ---
+            # Print info
+            if qJobID and jobID in jobs:
+                # Isolate number
+                try:
+                    job_num = int(jobID.split(".")[0])
+                except Exception:
+                    job_num = jobID
+                # Print job number
+                print(stncl % (i, frun, sts, itr, que, CPUt, job_num))
+            elif qJobID:
+                # Print blank job number
+                print(stncl % (i, frun, sts, itr, que, CPUt, ""))
+            else:
+                # No job number
+                print(stncl % (i, frun, sts, itr, que, CPUt))
+           # --- Execution ---
+            # Check for queue killing
+            if qKill and (n is not None) and (jobID in jobs):
+                # Delete it.
+                self.StopCase(i)
+                continue
+            # Check for deletion
+            if qDel and (not n) and (sts in ["INCOMP", "ERROR", "---"]):
+                # Delete folder
+                nDel += self.DeleteCase(i, **kw)
+            elif qDel:
+                # Delete but forcing prompt
+                nDel += self.DeleteCase(i, prompt=True)
+            # Check status.
+            if qCheck:
+                continue
+            # If submitting is allowed, check the job status.
+            if (sts in stat_submit) and self.FilterUser(i, **kw):
+                # Prepare the job
+                self.PrepareCase(i)
+                # Check for "incremental" option
+                self._prepare_incremental(i, q_incr)
+                # Start (submit or run) case
+                if q_strt:
+                    self.StartCase(i)
+                # Increase job number
+                nSub += 1
+            # Revert to original optons
+            self.RevertOptions()
+            # Don't continue checking if maximum submissions reached.
+            if nSub >= nSubMax:
+                break
+       # ---------
+       # Summary
+       # ---------
+        # Extra line.
+        print("")
+        # State how many jobs submitted.
+        if nSub:
+            # Submitted/started?
+            if q_strt:
+                print("Submitted or ran %i job(s).\n" % nSub)
+            else:
+                # We can still count cases set up
+                print("Set up %i job(s) but did not start.\n" % nSub)
+        # State how many jobs deleted
+        if nDel:
+            print("Deleted %s jobs" % nDel)
+        # Status summary
+        fline = ""
+        for key in total:
+            # Check for any cases with the status.
+            if total[key]:
+                # At least one with this status.
+                fline += ("%s=%i, " % (key, total[key]))
+        # Print the line.
+        if fline:
+            print(fline)
