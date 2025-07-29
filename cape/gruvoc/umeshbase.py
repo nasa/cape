@@ -8,7 +8,6 @@ from typing import Any, Callable, Optional, Union
 
 # Third party
 import numpy as np
-from scipy.spatial import cKDTree
 
 # Local imports
 from . import volcomp
@@ -35,6 +34,10 @@ except ModuleNotFoundError:
     # Empty imports
     pv = None
     vtkPlane = None
+try:
+    from scipy.spatial import cKDTree
+except ModuleNotFoundError:
+    cKDTree = None
 
 
 # Class for Tecplot zones; nodes and indices
