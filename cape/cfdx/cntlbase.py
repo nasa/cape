@@ -13,11 +13,9 @@ in CAPE.
 
 # Standard library modules
 import functools
-import glob
 import os
 import shutil
 import sys
-import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from io import IOBase
@@ -1520,226 +1518,9 @@ class CntlBase(ABC):
         """
         pass
 
-  # *** RUN MATRIX ***
-   # --- Values ---
-    # Get value for specified property
-    @abstractmethod
-    def getval(self, opt: str, i: int) -> Any:
-        r"""Get run matrix or case status value for one case
-
-        :Call:
-            >>> v = cntl.getval(opt, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *opt*: :class:`str`
-                Name of option or run matrix key
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *v*: :class:`Any`
-                Value of option *opt* for case *i*
-        :Versions:
-            * 2025-06-16 ``@ddalle``: v1.0
-        """
-        pass
-
-    # Get value, ensuring string output
-    @abstractmethod
-    def getvalstr(self, opt: str, i: int) -> str:
-        r"""Get value of run matrix variable as string
-
-        :Call:
-            >>> txt = cntl.getvalstr(opt, i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *opt*: :class:`str`
-                Name of option or run matrix key
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *txt*: :class:`str`
-                Text of value of option *opt* for case *i*
-        :Versions:
-            * 2025-06-16 ``@ddalle``: v1.0
-        """
-        pass
-
-   # --- Filter ---
-    # Apply user filter
-    @abstractmethod
-    def FilterUser(self, i: int, **kw) -> bool:
-        r"""Determine if case *i* is assigned to current user
-
-        :Call:
-            >>> q = cntl.FilterUser(i, **kw)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-            *u*, *user*: :class:`str`
-                User name (default: executing process's username) for
-                comparing to run matrix
-        :Outputs:
-            *q*: :class:`bool`
-                Whether user is owner of case *i*
-        :Versions:
-            2017-07-10 ``@ddalle``: v1.0
-        """
-        pass
-
-   # --- Index ---
-    # Get case index
-    @abstractmethod
-    def GetCaseIndex(self, frun: str) -> Optional[int]:
-        r"""Get index of a case in the current run matrix
-
-        :Call:
-            >>> i = cntl.GetCaseIndex(frun)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Cape control interface
-            *frun*: :class:`str`
-                Name of case, must match exactly
-        :Outputs:
-            *i*: :class:`int` | ``None``
-                Index of case with name *frun* in run matrix, if present
-        :Versions:
-            * 2024-08-15 ``@ddalle``: v1.0
-            * 2024-10-16 ``@ddalle``: v1.1; move to :class:`RunMatrix`
-        """
-        pass
-
-    # Check if a case is running
-    @abstractmethod
-    def CheckRunning(self, i: int) -> bool:
-        r"""Check if a case is currently running
-
-        :Call:
-            >>> q = cntl.CheckRunning(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *q*: :class:`bool`
-                If ``True``, case has :file:`RUNNING` file in it
-        """
-        pass
-
-    # Check for a failure
-    @abstractmethod
-    def CheckError(self, i: int) -> bool:
-        r"""Check if a case has a failure
-
-        :Call:
-            >>> q = cntl.CheckError(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *q*: :class:`bool`
-                If ``True``, case has ``FAIL`` file in it
-        """
-        pass
-
-    # Check for no unchanged files
-    @run_rootdir
-    def CheckZombie(self, i):
-        r"""Check a case for ``ZOMBIE`` status
-
-        A running case is declared a zombie if none of the listed files
-        (by default ``*.out``) have been modified in the last 30
-        minutes.  However, a case cannot be a zombie unless it contains
-        a ``RUNNING`` file and returns ``True`` from
-        :func:`CheckRunning`.
-
-        :Call:
-            >>> q = cntl.CheckZombie(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *q*: :class:`bool`
-                ``True`` if no listed files have been modified recently
-        :Versions:
-            * 2017-04-04 ``@ddalle``: v1.0
-            * 2021-01-25 ``@ddalle``: v1.1; use cls._zombie_files
-        """
-        # Check if case is running
-        qrun = self.CheckRunning(i)
-        # If not running, cannot be a zombie
-        if not qrun:
-            return False
-        # Get run name
-        frun = self.x.GetFullFolderNames(i)
-        # Check if the folder exists
-        if not os.path.isdir(frun):
-            return False
-        # Enter the folder
-        os.chdir(frun)
-        # List of files to check
-        fzomb = self.opts.get("ZombieFiles", self.__class__._zombie_files)
-        # Ensure list
-        if not isinstance(fzomb, (list, tuple)):
-            # Singleton glob, probably
-            fzomb = [fzomb]
-        # Create list of files matching globs
-        fglob = []
-        for fg in fzomb:
-            fglob += glob.glob(fg)
-        # Timeout time (in minutes)
-        tmax = self.opts.get("ZombieTimeout", 30.0)
-        t = tmax
-        # Current time
-        toc = time.time()
-        # Loop through glob files
-        for fname in fglob:
-            # Get minutes since modification for *fname*
-            ti = (toc - os.path.getmtime(fname))/60
-            # Running minimum
-            t = min(t, ti)
-        # Output
-        return (t >= tmax)
-
-    # Check for if we are running inside a batch job
-    def CheckBatch(self) -> int:
-        r"""Check to see if we are running inside a batch job
-
-        This looks for environment variables to see if this is running
-        inside a batch job.  Currently supports slurm and PBS.
-
-        :Call:
-            >>> q = cntl.CheckBatch()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-        :Outputs:
-            *jobid*: :class:`int`
-                ``0`` if no batch environment was detected
-        :Versions:
-            * 2023-12-13 ``@dvicker``: v1.0
-            * 2023-12-18 ``@ddalle``: v1.1; debug
-        """
-        # Check which job manager
-        if self.opts.get_slurm(0):
-            # Slurm
-            envid = os.environ.get('SLURM_JOB_ID', '0')
-        else:
-            # Slurm
-            envid = os.environ.get('PBS_JOBID', '0')
-        # Convert to integer
-        return int(envid.split(".", 1)[0])
-
-   # --- Case Modification ---
+   # --- Cleanup ---
     # Function to clear out zombies
+    @abstractmethod
     def Dezombie(self, **kw):
         r"""Clean up any **ZOMBIE** cases
 
@@ -1761,31 +1542,11 @@ class CntlBase(ABC):
         :Versions:
             * 2021-10-14 ``@ddalle``: v1.0
         """
-        # Zombie counter
-        nzombie = 0
-        # Cases
-        I = self.x.GetIndices(**kw)
-        # Largest size
-        nlog = int(np.ceil(np.log10(max(1, np.max(I)))))
-        # Print format
-        fmt = "%%%ii %%s" % nlog
-        # Loop through folders
-        for i in I:
-            # Get status
-            sts = self.CheckCaseStatus(i)
-            # Move to next case if not zombie
-            if sts != "ZOMBIE":
-                continue
-            # Status update
-            print(fmt % (i, self.x.GetFullFolderNames(i)))
-            # qdel any cases
-            self.StopCase(i)
-            # Counter
-            nzombie += 1
-        # Final status
-        print("Cleared up %i ZOMBIEs" % nzombie)
+        pass
 
+   # --- Modify cases ---
     # Function to extend one or more cases
+    @abstractmethod
     def ExtendCases(self, **kw):
         r"""Extend one or more case by a number of iterations
 
@@ -1812,40 +1573,7 @@ class CntlBase(ABC):
         :Versions:
             * 2016-12-12 ``@ddalle``: v1.0
         """
-        # Process inputs
-        n = kw.get('extend', 1)
-        j = kw.get("phase", kw.get("j", None))
-        imax = kw.get('imax')
-        # Convert inputs to integers
-        if n:
-            n = int(n)
-        if imax:
-            imax = int(imax)
-        # Restart inputs
-        qsub = kw.get("restart", kw.get("qsub", False))
-        nsub = kw.get("n", 150)
-        jsub = 0
-        # Loop through folders
-        for i in self.x.GetIndices(**kw):
-            # Status update
-            print(self.x.GetFullFolderNames(i))
-            # Extend case
-            self.ExtendCase(i, n=n, j=j, imax=imax)
-            # Start/submit the case?
-            if qsub:
-                # Check status
-                sts = self.CheckCaseStatus(i)
-                # Check if it's a submittable/restartable status
-                if sts not in ['---', 'INCOMP']:
-                    continue
-                # Try to start the case
-                pbs = self.StartCase(i)
-                # Check for a submission
-                if pbs:
-                    jsub += 1
-                # Check submission limit
-                if jsub >= nsub:
-                    return
+        pass
 
     # Extend a case
     @abstractmethod
@@ -1874,6 +1602,7 @@ class CntlBase(ABC):
         pass
 
     # Function to extend one or more cases
+    @abstractmethod
     def ApplyCases(self, **kw):
         r"""Reapply settings to one or more cases
 
@@ -1893,46 +1622,26 @@ class CntlBase(ABC):
         :Versions:
             * 2016-12-12 ``@ddalle``: v1.0
         """
-        # Process inputs
-        n = kw.get('apply', True)
-        # Handle raw ``-apply`` inputs vs. ``--apply $n``
-        if n is True:
-            # Use ``None`` to inherit phase count from *cntl*
-            n = None
-        else:
-            # Convert input string to integer
-            n = int(n)
-        # Restart inputs
-        qsub = kw.get("restart", kw.get("qsub", False))
-        nsub = kw.get("n", 150)
-        jsub = 0
-        # Save current copy of options
-        self.SaveOptions()
-        # Loop through folders
-        for i in self.x.GetIndices(**kw):
-            # Status update
-            print(self.x.GetFullFolderNames(i))
-            # Clear cache
-            self.cache_iter.clear_case(i)
-            # Extend case
-            self.ApplyCase(i, nPhase=n)
-            # Start/submit the case?
-            if qsub:
-                # Check status
-                sts = self.CheckCaseStatus(i)
-                # Check if it's a submittable/restartable status
-                if sts not in ['---', 'INCOMP']:
-                    continue
-                # Try to start the case
-                pbs = self.StartCase(i)
-                # Check for a submission
-                if pbs:
-                    jsub += 1
-                # Check submission limit
-                if jsub >= nsub:
-                    return
-            # Revert options
-            self.RevertOptions()
+        pass
+
+    # Extend a case
+    @abstractmethod
+    def ApplyCase(self, i: int, **kw):
+        r"""Rewrite CAPE inputs for case *i*
+
+        :Call:
+            >>> cntl.ApplyCase(i, n=1, j=None, imax=None)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Run index
+            *qsub*: ``True`` | {``False``}
+                Option to submit case after applying settings
+            *nPhase*: :class:`int`
+                Phase to apply settings to
+        """
+        pass
 
     # Delete jobs
     def qdel_cases(self, **kw):
@@ -2067,6 +1776,183 @@ class CntlBase(ABC):
             n = 1
         # Output
         return n
+
+  # *** RUN MATRIX ***
+   # --- Values ---
+    # Get value for specified property
+    @abstractmethod
+    def getval(self, opt: str, i: int) -> Any:
+        r"""Get run matrix or case status value for one case
+
+        :Call:
+            >>> v = cntl.getval(opt, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *opt*: :class:`str`
+                Name of option or run matrix key
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *v*: :class:`Any`
+                Value of option *opt* for case *i*
+        :Versions:
+            * 2025-06-16 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Get value, ensuring string output
+    @abstractmethod
+    def getvalstr(self, opt: str, i: int) -> str:
+        r"""Get value of run matrix variable as string
+
+        :Call:
+            >>> txt = cntl.getvalstr(opt, i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *opt*: :class:`str`
+                Name of option or run matrix key
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *txt*: :class:`str`
+                Text of value of option *opt* for case *i*
+        :Versions:
+            * 2025-06-16 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Filter ---
+    # Apply user filter
+    @abstractmethod
+    def FilterUser(self, i: int, **kw) -> bool:
+        r"""Determine if case *i* is assigned to current user
+
+        :Call:
+            >>> q = cntl.FilterUser(i, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *u*, *user*: :class:`str`
+                User name (default: executing process's username) for
+                comparing to run matrix
+        :Outputs:
+            *q*: :class:`bool`
+                Whether user is owner of case *i*
+        :Versions:
+            2017-07-10 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Index ---
+    # Get case index
+    @abstractmethod
+    def GetCaseIndex(self, frun: str) -> Optional[int]:
+        r"""Get index of a case in the current run matrix
+
+        :Call:
+            >>> i = cntl.GetCaseIndex(frun)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *frun*: :class:`str`
+                Name of case, must match exactly
+        :Outputs:
+            *i*: :class:`int` | ``None``
+                Index of case with name *frun* in run matrix, if present
+        :Versions:
+            * 2024-08-15 ``@ddalle``: v1.0
+            * 2024-10-16 ``@ddalle``: v1.1; move to :class:`RunMatrix`
+        """
+        pass
+
+    # Check if a case is running
+    @abstractmethod
+    def CheckRunning(self, i: int) -> bool:
+        r"""Check if a case is currently running
+
+        :Call:
+            >>> q = cntl.CheckRunning(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has :file:`RUNNING` file in it
+        """
+        pass
+
+    # Check for a failure
+    @abstractmethod
+    def CheckError(self, i: int) -> bool:
+        r"""Check if a case has a failure
+
+        :Call:
+            >>> q = cntl.CheckError(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has ``FAIL`` file in it
+        """
+        pass
+
+    # Check for no unchanged files
+    @abstractmethod
+    def CheckZombie(self, i):
+        r"""Check a case for ``ZOMBIE`` status
+
+        A running case is declared a zombie if none of the listed files
+        (by default ``*.out``) have been modified in the last 30
+        minutes.  However, a case cannot be a zombie unless it contains
+        a ``RUNNING`` file and returns ``True`` from
+        :func:`CheckRunning`.
+
+        :Call:
+            >>> q = cntl.CheckZombie(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                ``True`` if no listed files have been modified recently
+        :Versions:
+            * 2017-04-04 ``@ddalle``: v1.0
+            * 2021-01-25 ``@ddalle``: v1.1; use cls._zombie_files
+        """
+        pass
+
+    # Check for if we are running inside a batch job
+    @abstractmethod
+    def CheckBatch(self) -> int:
+        r"""Check to see if we are running inside a batch job
+
+        This looks for environment variables to see if this is running
+        inside a batch job.  Currently supports slurm and PBS.
+
+        :Call:
+            >>> q = cntl.CheckBatch()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+        :Outputs:
+            *jobid*: :class:`int`
+                ``0`` if no batch environment was detected
+        :Versions:
+            * 2023-12-13 ``@dvicker``: v1.0
+            * 2023-12-18 ``@ddalle``: v1.1; debug
+        """
+        pass
 
    # --- Archiving ---
     # Function to archive results and remove files

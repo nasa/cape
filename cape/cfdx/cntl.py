@@ -33,10 +33,12 @@ individualized modules are below.
 import copy
 import functools
 import getpass
+import glob
 import importlib
 import os
 import shutil
 import sys
+import time
 from collections import Counter
 from typing import Any, Callable, Optional, Union
 
@@ -1931,6 +1933,318 @@ class Cntl(CntlBase):
                 print("    exit(%s)" % ierr)
         return ierr
 
+   # --- Cleanup ---
+    # Function to clear out zombies
+    def Dezombie(self, **kw):
+        # Zombie counter
+        nzombie = 0
+        # Cases
+        I = self.x.GetIndices(**kw)
+        # Largest size
+        nlog = int(np.ceil(np.log10(max(1, np.max(I)))))
+        # Print format
+        fmt = "%%%ii %%s" % nlog
+        # Loop through folders
+        for i in I:
+            # Get status
+            sts = self.CheckCaseStatus(i)
+            # Move to next case if not zombie
+            if sts != "ZOMBIE":
+                continue
+            # Status update
+            print(fmt % (i, self.x.GetFullFolderNames(i)))
+            # qdel any cases
+            self.StopCase(i)
+            # Counter
+            nzombie += 1
+        # Final status
+        print("Cleared up %i ZOMBIEs" % nzombie)
+
+   # --- Modify cases ---
+    # Function to extend one or more cases
+    def ExtendCases(self, **kw):
+        r"""Extend one or more case by a number of iterations
+
+        By default, this applies to the final phase, but the phase
+        number *j* can also be specified as input. The number of
+        additional iterations is generally the nominal number of
+        iterations that phase *j* would normally run.
+
+        :Call:
+            >>> cntl.ExtendCases(cons=[], extend=1, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of overall control interface
+            *extend*: {``True``} | positive :class:`int`
+                Extend phase *j* by *extend* nominal runs
+            *imax*: {``None``} | :class:`int`
+                Do not increase iteration number beyond *imax*
+            *j*, *phase*: {``None``} | :class:`int`
+                Optional index of phase to extend
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+        :Versions:
+            * 2016-12-12 ``@ddalle``: v1.0
+        """
+        # Process inputs
+        n = kw.get('extend', 1)
+        j = kw.get("phase", kw.get("j", None))
+        imax = kw.get('imax')
+        # Convert inputs to integers
+        if n:
+            n = int(n)
+        if imax:
+            imax = int(imax)
+        # Restart inputs
+        qsub = kw.get("restart", kw.get("qsub", False))
+        nsub = kw.get("n", 150)
+        jsub = 0
+        # Loop through folders
+        for i in self.x.GetIndices(**kw):
+            # Status update
+            print(self.x.GetFullFolderNames(i))
+            # Extend case
+            self.ExtendCase(i, n=n, j=j, imax=imax)
+            # Start/submit the case?
+            if qsub:
+                # Check status
+                sts = self.CheckCaseStatus(i)
+                # Check if it's a submittable/restartable status
+                if sts not in ['---', 'INCOMP']:
+                    continue
+                # Try to start the case
+                pbs = self.StartCase(i)
+                # Check for a submission
+                if pbs:
+                    jsub += 1
+                # Check submission limit
+                if jsub >= nsub:
+                    return
+
+    # Extend a case
+    def ExtendCase(
+            self,
+            i: int,
+            n: int = 1,
+            j: Optional[int] = None,
+            imax: Optional[int] = None):
+        r"""Add iterations to case *i* by repeating the last phase
+
+        :Call:
+            >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Run index
+            *n*: {``1``} | positive :class:`int`
+                Add *n* times *steps* to the total iteration count
+            *j*: {``None``} | :class:`int`
+                Optional phase to extend
+            *imax*: {``None``} | nonnegative :class:`int`
+                Use *imax* as the maximum iteration count
+        """
+        raise NotImplementedError(
+            f"ExtendCase() not implemented for {self._name} module")
+
+    # Function to extend one or more cases
+    def ApplyCases(self, **kw):
+        # Process inputs
+        n = kw.get('apply', True)
+        # Handle raw ``-apply`` inputs vs. ``--apply $n``
+        if n is True:
+            # Use ``None`` to inherit phase count from *cntl*
+            n = None
+        else:
+            # Convert input string to integer
+            n = int(n)
+        # Restart inputs
+        qsub = kw.get("restart", kw.get("qsub", False))
+        nsub = kw.get("n", 150)
+        jsub = 0
+        # Save current copy of options
+        self.SaveOptions()
+        # Loop through folders
+        for i in self.x.GetIndices(**kw):
+            # Status update
+            print(self.x.GetFullFolderNames(i))
+            # Clear cache
+            self.cache_iter.clear_case(i)
+            # Extend case
+            self.ApplyCase(i, nPhase=n)
+            # Start/submit the case?
+            if qsub:
+                # Check status
+                sts = self.CheckCaseStatus(i)
+                # Check if it's a submittable/restartable status
+                if sts not in ['---', 'INCOMP']:
+                    continue
+                # Try to start the case
+                pbs = self.StartCase(i)
+                # Check for a submission
+                if pbs:
+                    jsub += 1
+                # Check submission limit
+                if jsub >= nsub:
+                    return
+            # Revert options
+            self.RevertOptions()
+
+    # Extend a case
+    def ApplyCase(self, i: int, **kw):
+        r"""Rewrite CAPE inputs for case *i*
+
+        :Call:
+            >>> cntl.ApplyCase(i, n=1, j=None, imax=None)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Run index
+            *qsub*: ``True`` | {``False``}
+                Option to submit case after applying settings
+            *nPhase*: :class:`int`
+                Phase to apply settings to
+        """
+        raise NotImplementedError(
+            f"ExtendCase() not implemented for {self._name} module")
+
+    # Delete jobs
+    def qdel_cases(self, **kw):
+        r"""Kill/stop PBS job of cases
+
+        This function deletes a case's PBS/Slurm jobbut not delete the
+        foder for a case.
+
+        :Call:
+            >>> cntl.qdel_cases(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List of cases to delete
+            *kw*: :class:`dict`
+                Other subset parameters, e.g. *re*, *cons*
+        :Versions:
+            * 2025-06-22 ``@ddalle``: v1.0
+        """
+        # Delete one case (maybe)
+        def qdel_case(i: int) -> int:
+            # Check queue
+            que = self.getval("queue", i)
+            # Delete if status other than '.'
+            if que and (que != '.'):
+                return self.StopCase(i)
+        # Case loop
+        self.caseloop_verbose(qdel_case, **kw)
+
+    # Delete cases
+    def rm_cases(self, prompt: bool = True, **kw) -> int:
+        r"""Delete one or more cases
+
+        This function deletes a case's PBS job and removes the entire
+        directory. By default, the method prompts for confirmation
+        before deleting; set *prompt* to ``False`` to delete without
+        prompt, but only cases with 0 iterations can be deleted this
+        way.
+
+        :Call:
+            >>> n = cntl.rm_cases(prompt=True, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *prompt*: {``True``} | ``False``
+                Whether or not to prompt user before deleting case
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List of cases to delete
+            *kw*: :class:`dict`
+                Other subset parameters, e.g. *re*, *cons*
+        :Outputs:
+            *n*: :class:`int`
+                Number of folders deleted
+        :Versions:
+            * 2025-06-20 ``@ddalle``: v1.0
+        """
+        # Delete one case (maybe)
+        def rm_case(i: int) -> int:
+            # Check *prompt* overwrite
+            if prompt:
+                # No need to check
+                prompti = True
+            else:
+                # Get case status
+                sts = self.getval("status", i)
+                n = self.getval("iter", i)
+                # Always prompt if set up
+                prompti = n or (sts not in ("INCOMP", "ERROR", "---"))
+            # Delete
+            return self.DeleteCase(i, prompt=prompti)
+        # Case loop
+        n = self.caseloop_verbose(rm_case, **kw)
+        # Status message
+        print(f"Deleted {n} cases")
+        return n
+
+    # Function to delete a case folder: qdel and rm
+    @run_rootdir
+    def DeleteCase(self, i: int, **kw):
+        r"""Delete a case
+
+        This function deletes a case's PBS job and removes the entire
+        directory.  By default, the method prompts for user's
+        confirmation before deleting; set *prompt* to ``False`` to delete
+        without prompt.
+
+        :Call:
+            >>> n = cntl.DeleteCase(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *prompt*: {``True``} | ``False``
+                Whether or not to prompt user before deleting case
+        :Outputs:
+            *n*: ``0`` | ``1``
+                Number of folders deleted
+        :Versions:
+            * 2018-11-20 ``@ddalle``: v1.0
+        """
+        # Local function to perform deletion
+        def del_folder(frun):
+            # Delete the folder using :mod:`shutil`
+            shutil.rmtree(frun)
+            # Status update
+            print("   Deleted folder '%s'" % frun)
+        # Get the case name and go there.
+        frun = self.x.GetFullFolderNames(i)
+        # Check if folder exists
+        if not os.path.isdir(frun):
+            # Nothing to do
+            n = 0
+        # Check for prompt option
+        elif kw.get('prompt', True):
+            # Prompt text
+            txt = "Delete case '%s'? y/n" % frun
+            # Get option from user
+            prompt = console.prompt_color(txt, "n")
+            # Check option
+            if (prompt is None) or (prompt.lower() != "y"):
+                # Do not delete
+                n = 0
+            else:
+                # Delete folder
+                del_folder(frun)
+                n = 1
+        else:
+            # Delete without prompt
+            del_folder(frun)
+            n = 1
+        # Output
+        return n
+
   # *** RUN MATRIX ***
    # --- Values ---
     # Get value for specified property
@@ -2138,6 +2452,57 @@ class Cntl(CntlBase):
         q = q or self.x.ERROR[i]
         # Output
         return q
+
+    # Check for no unchanged files
+    @run_rootdir
+    def CheckZombie(self, i):
+        # Check if case is running
+        qrun = self.CheckRunning(i)
+        # If not running, cannot be a zombie
+        if not qrun:
+            return False
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check if the folder exists
+        if not os.path.isdir(frun):
+            return False
+        # Enter the folder
+        os.chdir(frun)
+        # List of files to check
+        fzomb = self.opts.get("ZombieFiles", self.__class__._zombie_files)
+        # Ensure list
+        if not isinstance(fzomb, (list, tuple)):
+            # Singleton glob, probably
+            fzomb = [fzomb]
+        # Create list of files matching globs
+        fglob = []
+        for fg in fzomb:
+            fglob += glob.glob(fg)
+        # Timeout time (in minutes)
+        tmax = self.opts.get("ZombieTimeout", 30.0)
+        t = tmax
+        # Current time
+        toc = time.time()
+        # Loop through glob files
+        for fname in fglob:
+            # Get minutes since modification for *fname*
+            ti = (toc - os.path.getmtime(fname))/60
+            # Running minimum
+            t = min(t, ti)
+        # Output
+        return (t >= tmax)
+
+    # Check for if we are running inside a batch job
+    def CheckBatch(self) -> int:
+        # Check which job manager
+        if self.opts.get_slurm(0):
+            # Slurm
+            envid = os.environ.get('SLURM_JOB_ID', '0')
+        else:
+            # Slurm
+            envid = os.environ.get('PBS_JOBID', '0')
+        # Convert to integer
+        return int(envid.split(".", 1)[0])
 
     def check_case_job(self, i: int, active: bool = True) -> str:
         r"""Get queue status of the PBS/Slurm job from case *i*
