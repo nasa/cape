@@ -25,7 +25,7 @@ class PylavaFrontDesk(cli.CfdxFrontDesk):
 
     # Custom classes
     _cntl_mod = "cape.pylava.cntl"
-    _casecntl_mod = "cape.pylave.casecntl"
+    _casecntl_mod = "cape.pylava.casecntl"
 
 
 # New-style CLI

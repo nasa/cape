@@ -142,23 +142,40 @@ class DataIterFile(dict):
         pos = fp.tell()
         # Number of lines/records
         nrec = (fsize - pos) // (ncol * 8)
-        # Index of "iters" in column list
-        jiter = self.cols.index("iter")
-        jresid = self.cols.index("flowres")
-        # Head to the last record
-        fp.seek((nrec - 1)*ncol*8 + 8*jiter, 1)
-        # Next entry is most recently reported iteration
-        n, = fromfile_lb8_f(fp, 1)
-        # Switch to 1-based iterations
-        self.n = n + 1
-        # Read original and final L2 residual
-        fp.seek(pos)
-        fp.seek(8*jresid, 1)
-        resid0, = fromfile_lb8_f(fp, 1)
-        fp.seek((nrec-1)*ncol*8 - 8, 1)
-        resid1, = fromfile_lb8_f(fp, 1)
-        # Save the convergence
-        self.l2conv = resid1 / resid0
+        # Report "iteration" number
+        if "iter" in self.cols:
+            icol = "iter"
+        elif "ctu" in self.cols:
+            icol = "ctu"
+        else:
+            icol = None
+        # Get iterations
+        if icol and (icol in self.cols):
+            # Index of "iters" column
+            jcol = self.cols.index(icol)
+            # Head to the last record
+            fp.seek((nrec - 1)*ncol*8 + 8*jcol, 1)
+            # Next entry is most recently reported "iteration"
+            n, = fromfile_lb8_f(fp, 1)
+            # Selectively switch to 1-based iteration
+            self.n = n + 1 if (icol == "iter") else n
+        # Report residual drop
+        if "flowres" in self.cols:
+            icol = "flowres"
+        else:
+            icol = None
+        # Get residual drop
+        if icol and (icol in self.cols):
+            # Index of "flowres" column
+            jcol = self.cols.index(icol)
+            # Read original and final L2 residual
+            fp.seek(pos)
+            fp.seek(8*jcol, 1)
+            resid0, = fromfile_lb8_f(fp, 1)
+            fp.seek((nrec-1)*ncol*8 - 8, 1)
+            resid1, = fromfile_lb8_f(fp, 1)
+            # Save the convergence
+            self.l2conv = resid1 / resid0
         # Check for "meta" option
         if kw.get("meta", False):
             return
@@ -189,4 +206,4 @@ def _read_strn(fp: IOBase, n: int = DEFAULT_STRLEN):
     # Read *n* bytes
     buf = fp.read(n)
     # Encode
-    return buf.decode("utf-8").rstrip()
+    return buf.decode("utf-8").strip()

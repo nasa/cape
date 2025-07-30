@@ -249,7 +249,7 @@ New Features
     worked as expected before, it will still work now, but for new cases it
     might be much easier to set up. The (new) recommended process is to use a
     ConfigJSON file and only specify a ``"Tree"`` section. See
-    :ref:`cofnigjson-syntax`.
+    :ref:`configjson-syntax`.
 
 Behavior Changes
 ------------------------

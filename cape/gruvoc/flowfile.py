@@ -36,7 +36,8 @@ DEFAULT_STRLEN = 256
 def read_fun3d_flow(
         mesh: UmeshBase,
         fname_or_fp: Union[str, IOBase],
-        meta: bool = False):
+        meta: bool = False,
+        turb: bool = False):
     r"""Read data to a mesh object from FUN3D ``.flow`` file
 
     :Call:
@@ -58,7 +59,7 @@ def read_fun3d_flow(
     # Open file
     with openfile(fname_or_fp, 'rb') as fp:
         # Read file
-        _read_fun3d_flow(mesh, fp, meta=meta)
+        _read_fun3d_flow(mesh, fp, meta=meta, turb=turb)
 
 
 # Read FUN3D TAVG.1 file
@@ -94,19 +95,26 @@ def read_fun3d_tavg(
 def _read_fun3d_flow(
         mesh: UmeshBase,
         fp: IOBase,
-        meta: bool = False):
+        meta: bool = False,
+        turb: bool = False):
     # Skip first bytes
     fp.seek(288)
     # Read number of nodes
     nnode, = fromfile_lb4_i(fp, 1)
     mesh.nnode = nnode
+    # Skip to byte 300 to read version
+    fp.seek(300)
+    # Get version identifier
+    ver, = fromfile_lb4_i(fp, 1)
+    # Move to position for freestream variables
+    pos = 614 if ver == 2 else 580
     # Skip to byte 580 to read freestream
-    fp.seek(580)
+    fp.seek(pos)
     # Fixed freestream in perfect-gas FUN3D
-    mesh.qinfvars = ["mach", "Rey", "alpha", "beta", "Tinf"]
-    mesh.qinf = fromfile_lb8_f(fp, 5)
-    # Skip to byte 900
-    fp.seek(900)
+    mesh.qinfvars = ["mach", "Rey", "alpha", "beta", "Tinf", "Pr"]
+    mesh.qinf = fromfile_lb8_f(fp, 7)[[0, 1, 2, 3, 4, 6]]
+    # Skip to byte 900 (or 934)
+    fp.seek(264, 1)
     # Read number of iterations
     niter, = fromfile_lb4_i(fp, 1)
     ncol, = fromfile_lb4_i(fp, 1)
@@ -157,20 +165,71 @@ def _read_fun3d_flow(
         return
     # Skip 3 more ints
     fp.seek(12, 1)
-    # Read state
-    q = fromfile_lb8_f(fp, nnode*nq).reshape((nnode, nq))
-    # Unpack
-    rho, ru, rv, rw, e0 = q.T
-    # Calculate normalized velocity magnitude times density (squared)
-    rhov2 = ru*ru + rv*rv + rw*rw
-    # Calculate pressure
-    p = 0.4*(e0 - 0.5/rho*rhov2)
-    # Reset to "usual" normalized velocity
-    q[:, 1] = ru / rho
-    q[:, 2] = rv / rho
-    q[:, 3] = rw / rho
-    # Save pressure
-    q[:, 4] = p
+    # Check type
+    if ver in (0, 1):
+        # Read state
+        q = fromfile_lb8_f(fp, nnode*nq).reshape((nnode, nq))
+        # Unpack
+        rho, ru, rv, rw, e0 = q.T
+        # Calculate normalized velocity magnitude times density (squared)
+        rhov2 = ru*ru + rv*rv + rw*rw
+        # Calculate pressure
+        p = 0.4*(e0 - 0.5/rho*rhov2)
+        # Reset to "usual" normalized velocity
+        q[:, 1] = ru / rho
+        q[:, 2] = rv / rho
+        q[:, 3] = rw / rho
+        # Save pressure
+        q[:, 4] = p
+        # Save turb vars if requested
+        if turb:
+            # Skip a bunch of ints
+            fp.seek(64*4, 1)
+            # Read in meta data for unknown section
+            _num, _nnode = fromfile_lb4_i(fp, 2)
+            # Skip over unknown section
+            fp.seek(nnode*8, 1)
+            # Skip over more ints
+            fp.seek(65*4, 1)
+            # Second num
+            _num = fromfile_lb4_i(fp, 1)
+            # Read turb meta data
+            nqt, _nnode = fromfile_lb8_i(fp, 2)
+            # Read in turb vars
+            qt = fromfile_lb8_f(fp, nnode*nqt).reshape((nnode, nqt))
+            # Save
+            q = np.hstack([q, qt])
+            # Add turb variables
+            turbvars = [f"turb{i}" for i in range(nqt)]
+            mesh.qvars = mesh.qvars + turbvars
+            mesh.nq = nq + nqt
+
+    else:
+        # Read generic_gas_path state
+        q = fromfile_lb8_f(fp, nnode*nq).reshape((nnode, nq))
+        # Unpack (*e0* is specific internal energy here)
+        rho, ru, rv, rw, e0 = q.T
+        # Freestream Mach number
+        Minf = mesh.qinf[mesh.qinfvars.index("mach")]
+        # Reset to normalized velocity u/ainf
+        q[:, 1] = ru / rho * Minf
+        q[:, 2] = rv / rho * Minf
+        q[:, 3] = rw / rho * Minf
+        # Check for temperature
+        _assert_tag(fp, "temperature")
+        # Skip 5 ints
+        fp.seek(20, 1)
+        # Read temperature [K]
+        T = fromfile_lb8_f(fp, nnode)
+        Tinf = mesh.qinf[mesh.qinfvars.index("Tinf")]
+        That = T / (1.4*Tinf)
+        phat = rho*That
+        q[:, 4] = phat
+        # Add temperature
+        q = np.hstack((q, T.reshape((nnode, 1))))
+        # Update column list
+        mesh.nq = 6
+        mesh.qvars = ["rho", "u", "v", "w", "p", "T"]
     # Reorder and save it
     mesh.q = q[bnode, :]
 
@@ -184,8 +243,10 @@ def _read_fun3d_tavg(
     fp.seek(8)
     # Read number of iterations in average
     mesh.niter, = fromfile_lb4_i(fp, 1)
-    # Skip 8 bytes; these may be important?
-    fp.seek(8, 1)
+    # Read version
+    ver, = fromfile_lb4_i(fp, 1)
+    # Skip 1 int32, should be ``6``; may be important?
+    fp.seek(4, 1)
     # Read number of states
     nq, = fromfile_lb4_i(fp, 1)
     mesh.nq = nq
@@ -212,13 +273,29 @@ def _read_fun3d_tavg(
     # Inversion
     bnode = np.argsort(jnode)
     # Save variable names
-    if nq == 5:
+    if ver in (0, 1):
+        # State variables
         mesh.qvars = [
             "rho", "u", "v", "w", "p",
         ]
-    # Read RMS and then average state
-    q = fromfile_lb8_f(fp, 2*nnode*nq).reshape((nnode, 2*nq))
-    qavg = q[:, :nq]
+        # Read RMS and then average state
+        q = fromfile_lb8_f(fp, 2*nnode*nq).reshape((nnode, 2*nq))
+        qavg = q[:, :nq]
+    elif ver == 2:
+        # Selected variables; many on offer
+        mesh.qvars = [
+            "rho", "u", "v", "w", "p", "T", "W",
+        ]
+        # Freestream Mach number
+        mach = mesh.qinf[0]
+        # Read all 32 cols
+        q = fromfile_lb8_f(fp, nnode*32).reshape((nnode, 32))
+        # Downselect
+        qavg = q[:, [0, 1, 2, 3, 4, 9, 6]]
+        # Renormalize velocities; u/Uinf -> u/ainf
+        qavg[:, [1, 2, 3]] *= mach
+        # Renormalize pressure; p/g*Minf^2*pinf -> p/g*pinf
+        qavg[:, 4] *= (mach*mach)
     # Reorder and save it
     mesh.q = qavg[bnode, :]
 

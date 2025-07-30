@@ -1329,6 +1329,7 @@ class TSVTecDatFile(TSVSimple):
         self.cols = []
         self.n = 0
         self.fname = None
+        self.zone = None
 
         # Process keyword arguments
         self.opts = self.process_kw(**kw)
@@ -1368,12 +1369,49 @@ class TSVTecDatFile(TSVSimple):
         self.fname = fname
         # Open file
         with open(fname, 'r') as fp:
-            # Process column names
-            self.read_tsvtecdat_header(fp)
-            # Initialize columns
-            self.init_cols(self.cols)
-            # Loop through lines
-            self.read_tsvsimple_data(fp)
+            # Get length of file
+            pos = fp.seek(0, 2)
+            fp.seek(0)
+            # Loop until no more zones
+            while True:
+                # Process column names
+                self.read_tsvtecdat_header(fp)
+                # Initialize columns
+                if self.cols is None or (len(self.cols) == 0):
+                    self.cols = list(basecols)
+                self.init_cols(self.cols)
+                # Loop through lines
+                self.read_tsvsimple_data(fp)
+                # Check for EOF
+                if fp.tell() + 10 >= pos:
+                    break
+                # Create zone list
+                if "zones" in self:
+                    # Append
+                    self["zones"].append(self.zone)
+                    # Transfer data
+                    for col in basecols:
+                        # Prefix zone name
+                        self.save_col(f"{self.zone}.{col}", self.burst_col(col))
+                elif fp.tell() + 10 >= pos:
+                    # End of file; no more zones
+                    break
+                else:
+                    # Store list of raw variable names
+                    basecols = list(self.cols)
+                    # Initialize
+                    self.save_col("zones", [self.zone])
+                    # Transfer data
+                    for col in basecols:
+                        # Prefix zone name
+                        self.save_col(f"{self.zone}.{col}", self.burst_col(col))
+        # Reconstruct col list (this is a little broken)
+        if "zones" in self:
+            cols = ["zones"]
+            for zone in self["zones"]:
+                cols.extend([f"{zone}.{col}" for col in basecols])
+            # Update list
+            self.cols = cols
         # Get counter
         self.n = len(self[self.cols[0]])
 
@@ -1428,7 +1466,7 @@ class TSVTecDatFile(TSVSimple):
                 # Strip quotes
                 self.title = title.strip('"').strip("'")
                 continue
-            elif linetype == "zone" and (not continuation_line):
+            elif linetype in ("zone", "zone t") and (not continuation_line):
                 # Title is on right-hand side
                 zone = line.split('=')[1].strip()
                 # Strip quotes
@@ -1444,7 +1482,20 @@ class TSVTecDatFile(TSVSimple):
                 continue
             # Process variable names
             linecols = re.findall('"([^"]+)"', line)
+            # Translate
+            linecols = self.translate_colnames(linecols)
             # Append to list
-            cols.extend(linecols)
+            if self.zone is None:
+                # Use raw variable names
+                cols.extend(linecols)
+            else:
+                # Process each col
+                for col in linecols:
+                    if col in self:
+                        # Add zone name as prefix
+                        cols.append(f"{self.zone}.{col}")
+                    else:
+                        # Use column name as-is
+                        cols.append(col)
         # Save column list
-        self.cols = self.translate_colnames(cols)
+        self.cols = cols

@@ -20,7 +20,7 @@ LONG_DESCRIPTION = open(DESCRIPTION_FILE).read()
 # Compile and link
 SETUP_SETTINGS = dict(
     name="cape",
-    version="2.1.1",
+    version="2.1.2alpha",
     description="CAPE computational aerosciences package",
     long_description=LONG_DESCRIPTION,
     url="https://www.github.com/nasa/cape",
@@ -30,7 +30,6 @@ SETUP_SETTINGS = dict(
     packages=[
         "cape",
         "cape.argread",
-        "cape.argread._vendor",
         "cape.dkit",
         "cape.cfdx",
         "cape.cfdx.options",
@@ -45,6 +44,8 @@ SETUP_SETTINGS = dict(
         "cape.pyfun.options",
         "cape.pykes",
         "cape.pykes.options",
+        "cape.pylava",
+        "cape.pylava.options",
         "cape.pyover",
         "cape.pyover.options",
         "cape.tnakit",
@@ -72,6 +73,8 @@ SETUP_SETTINGS = dict(
         "cape.pycart.options": ["*.json"],
         "cape.pyfun": ["templates/*"],
         "cape.pyfun.options": ["*.json"],
+        "cape.pylava": ["templates/*"],
+        "cape.pylava.options": ["*.json"],
         "cape.pyover": ["templates/*"],
         "cape.pyover.options": ["*.json"],
     },
@@ -86,6 +89,7 @@ SETUP_SETTINGS = dict(
             "pycart=cape.pycart.cli:main",
             "pyfun=cape.pyfun.cli:main",
             "pykes=cape.pykes.cli:main",
+            "pylava=cape.pylava.cli:main",
             "pyover=cape.pyover.cli:main",
             "dkit=cape.dkit.cli:main",
             "dkit-quickstart=cape.dkit.quickstart:main",

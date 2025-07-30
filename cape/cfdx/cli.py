@@ -8,7 +8,6 @@ executable called ``cape``.
 """
 
 # Standard library modules
-import difflib
 import importlib
 import os
 import sys
@@ -17,8 +16,7 @@ from typing import Optional, Union
 # CAPE modules
 from .. import argread
 from .. import convert1to2
-from ..argread.clitext import compile_rst
-from ..argread._vendor.kwparse import BOOL_TYPES, INT_TYPES
+from ..argread import BOOL_TYPES, INT_TYPES
 
 
 # Constants
@@ -1957,22 +1955,15 @@ def main_template(
     # Use sys.argv if necessary
     argv = _get_argv(argv)
     # Identify subcommand
-    try:
-        cmdname, subparser = parser.fullparse(argv)
-    except (NameError, ValueError, TypeError) as e:
-        print("In command:\n")
-        print("  " + " ".join(argv) + "\n")
-        print(e.args[0])
+    cmdname, subparser, ierr = parser.fullparse_check(argv)
+    # Check for errors
+    if ierr:
         return IERR_OPT
-    # Help message
-    if cmdname is None or cmdname == "help":
-        print(compile_rst(parser.genr8_help()))
-        return IERR_OK
-    # Check for valid command name
+    # Check for valid command name or other front-desk help triggers
     if parser.help_frontdesk(cmdname):
         return IERR_OK
     # Check for ``-h``
-    if _help(subparser):
+    if subparser.show_help("h"):
         return IERR_OK
     # Set Cntl/CaseRunner classes for this solver
     subparser.cntl_mod = parser_cls._cntl_mod
@@ -2014,29 +2005,3 @@ def _get_argv(argv: Optional[list]) -> list:
         argv[0] = os.path.basename(os.path.dirname(cmdname))
     # Output
     return argv
-
-
-# Print help message
-def _help(parser: CfdxArgReader) -> bool:
-    r"""Generate help message for non-front-desk command
-
-    :Call:
-        >>> q = _help(parser)
-    :Inputs:
-        *parser*: :class:`CfdxArgReader`
-            Parsed CLI args
-    :Outputs:
-        *q*: :class:`bool`
-            Whether help message was displayed
-    :Versions:
-        * 2024-12-19 ``@ddalle``: v1.0
-    """
-    # Check for help message
-    if parser.get("h", False) and parser._cmdlist is None:
-        # Print help message
-        print(compile_rst(parser.genr8_help()))
-        return True
-    else:
-        # No help
-        return False
-

@@ -75,10 +75,11 @@ import numpy as np
 from numpy import sqrt, sin, cos, tan, exp
 
 # Local modules
-from ..filecntl import texfile
 from .. import tar
 from .cmdrun import pvpython
-from ..filecntl.tecfile import ExportLayout, Tecscript
+from .cntlbase import CntlBase
+from ..filecntl import texfile
+from ..filecntl.tecfile import ExportLayout, Tecscript, convert_vtk
 from .. import pltfile
 
 
@@ -100,28 +101,26 @@ class Report(object):
     :Outputs:
         *R*: :class:`cape.cfdx.report.Report`
             Automated report interface
-        *R.cntl*: :class:`cape.cfdx.cntl.Cntl`
-            Overall solver control interface
-        *R.rep*: :class:`str`
-            Name of report, same as *rep*
-        *R.opts*: :class:`cape.cfdx.options.Report.Report`
-            Options specific to report *rep*
-        *R.cases*: :class:`dict` (:class:`cape.texfile.Tex`)
-            Dictionary of LaTeX handles for each single-case page
-        *R.sweeps*: :class:`dict` (:class:`cape.texfile.Tex`)
-            Dictionary of LaTeX handles for each single-sweep page
-        *R.tex*: :class:`cape.texfile.Tex`
-            Handle to main LaTeX file
+    :Attributes:
+        * :attr:`cntl`
+        * :attr:`cases`
+        * :attr:`i`
+        * :attr:`rep`
+        * :attr:`sweeps`
+        * :attr:`tex`
     :Versions:
         * 2015-03-10 ``@ddalle``: v1.0
         * 2015-10-15 ``@ddalle``: v1.1; ``cfdx`` version
     """
   # === __dunder__ ===
     # Initialization method
-    def __init__(self, cntl, rep):
+    def __init__(self, cntl: CntlBase, rep: str):
         r"""Initialization method"""
-        # Save the interface
+        #: :class:`cape.cfdx.cntl.Cntl`
+        #: Run matrix control instance
         self.cntl = cntl
+        #: :class:`int`
+        #: Current case index
         self.i = None
         # Check for this report.
         if rep not in cntl.opts.get_ReportList():
@@ -137,15 +136,23 @@ class Report(object):
         os.umask(cntl.opts.get_umask())
         # Go into the report folder.
         os.chdir('report')
-        # Get the options and save them.
+        #: :class:`str`
+        #: Name of report
         self.rep = rep
         self.opts = cntl.opts['Report'][rep]
-        # Initialize a dictionary of handles to case LaTeX files
+        #: :class:`dict`\ [:class:`cape.filecntl.texfile.Tex`]
+        #: Dictionary of LaTeX handles for each sweep page
         self.sweeps = {}
+        #: :class:`dict`\ [:class:`cape.filecntl.texfile.Tex`]
+        #: Dictionary of LaTeX handles for each single-case page
         self.cases = {}
+        #: :class:`cape.filecntl.texfile.Tex`
+        #: Main LaTeX file interface
+        self.tex = None
         # Read the file if applicable
         self.OpenMain()
-        # Set force update
+        #: :class:`bool`
+        #: Option to overwrite existing subfigures
         self.force_update = False
         # Return
         os.chdir(fpwd)
@@ -476,7 +483,7 @@ class Report(object):
         # Get case number of required iterations
         nMax = self.cntl.GetLastIter(i)
         # Get status
-        sts = self.cntl.CheckCaseStatus(i)
+        sts = self.cntl.check_case_status(i)
         # Form iteration string
         if n is None:
             # Unknown.
@@ -813,11 +820,11 @@ class Report(object):
                 # Go home and quit.
                 return []
             # Check status.
-            sts = self.cntl.CheckCaseStatus(i)
+            sts = self.cntl.check_case_status(i)
             # Call `qstat` if needed.
             if (sts == "INCOMP") and (n is not None):
                 # Check the current queue
-                sts = self.cntl.CheckCaseStatus(i, auto=True)
+                sts = self.cntl.check_case_status(i, auto=True)
             # Get the figure list
             if n:
                 # Nominal case with some results
@@ -885,11 +892,11 @@ class Report(object):
             os.chdir(fpwd)
             return
         # Check status.
-        sts = self.cntl.CheckCaseStatus(i)
+        sts = self.cntl.check_case_status(i)
         # Call `qstat` if needed.
         if (sts == "INCOMP") and (n is not None):
             # Check the current queue
-            sts = self.cntl.CheckCaseStatus(i, auto=True)
+            sts = self.cntl.check_case_status(i, auto=True)
         # Get the figure list
         if n:
             # Nominal case with some results
@@ -4630,8 +4637,10 @@ class Report(object):
         if os.path.isdir(frun):
             # Go there.
             os.chdir(frun)
-            # Get the most recent PLT files.
+            # Get the most recent PLT files
             self.LinkVizFiles(sfig=sfig, i=i)
+            # Convert VTK -> PLT if appropriate
+            self.convert_vtk2plt(sfig)
             # Layout file
             flay = opts.get_SubfigOpt(sfig, "Layout")
             # Full path to layout file
@@ -4665,7 +4674,7 @@ class Report(object):
                     while varset:
                         # Read Line
                         _fplt = tec.ReadKey(iline)
-                        # Relevant lay lines start with '$!VarSet' 
+                        # Relevant lay lines start with '$!VarSet'
                         if "$!VarSet" in _fplt[0]:
                             # File names only in '|LFDSFN' lines
                             if "|LFDSFN" in _fplt[0]:
@@ -5734,6 +5743,54 @@ class Report(object):
             * 2017-01-07 ``@ddalle``: v1.1; add *sfig* and *i* inputs
         """
         pass
+
+    # Convert VTK -> PLT
+    def convert_vtk2plt(self, sfig: str):
+        r"""Convert VTK file(s) to Tecplot(R) PLT format if requested
+
+        :Call:
+            >>> rep.convert_vtk2plt(sfig, i)
+        :Inputs:
+            *rep*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-07-17 ``@ddalle``: v1.0
+        """
+        # Get list of VTK files
+        vtkfiles = self.cntl.opts.get_SubfigOpt(sfig, "VTKFiles")
+        # Check for empty
+        if (vtkfiles is None) or len(vtkfiles) == 0:
+            return
+        # Loop through
+        for vtkfile in vtkfiles:
+            # Check for existence
+            if not os.path.isfile(vtkfile):
+                print(f"   Missing VTK file '{vtkfile}'")
+                continue
+            # Check for link
+            if os.path.islink(vtkfile):
+                # Get the real name
+                vtkrealfile = os.path.realpath(vtkfile)
+                # Path to folder containing link
+                vtkdir = os.path.join(os.getcwd(), os.path.dirname(vtkfile))
+                # Relative path for link
+                vtkrelfile = os.path.relpath(vtkrealfile, vtkdir)
+                # Replace VTK link with original file
+                vtkfile = os.path.relpath(vtkrealfile, os.getcwd())
+                # Relative path for PLT link
+                pltrelfile = vtkrelfile.rsplit('.', 1)[0] + ".plt"
+                # Path to PLT link
+                pltlinkfile = vtkfile.rsplit('.', 1)[0] + ".plt"
+                # Pre-create viz link for .plt file
+                if os.path.isfile(pltlinkfile):
+                    os.remove(pltlinkfile)
+                os.symlink(pltrelfile, pltlinkfile)
+            # Convert it
+            convert_vtk(vtkfile)
 
   # === Image I/O ===
     # Function to save images in various formats

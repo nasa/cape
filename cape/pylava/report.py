@@ -15,6 +15,7 @@ from typing import Optional
 import numpy as np
 
 # Local import
+from .casecntl import LinkViz
 from .databook import CaseFM, CaseResid
 from ..cfdx import report as capereport
 
@@ -183,4 +184,24 @@ class Report(capereport.Report):
         """
         return CaseResid()
 
+    # Function to link appropriate visualization files
+    def LinkVizFiles(self, sfig=None, i=None):
+        r"""Create links to appropriate visualization files
+
+        :Call:
+            >>> R.LinkVizFiles(sfig, i)
+        :Inputs:
+            *R*: :class:`Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of the subfigure
+            *i*: :class:`int`
+                Case index
+        :See Also:
+            :func:`cape.pylava.casecntl.LinkViz`
+        :Versions:
+            * 2025-07-28 ``@jmeeroff``: First version
+        """
+        # Defer to function from :func:`pylava.casecntl`
+        LinkViz()
 

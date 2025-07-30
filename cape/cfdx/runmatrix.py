@@ -1079,6 +1079,25 @@ class RunMatrix(dict):
         # Return matches
         return np.array(self.cols)[KV == val]
 
+    # Get key's "value" option
+    def GetKeyDType(self, col: str) -> str:
+        r"""Get the *Value* option for a given key
+
+        :Call:
+            >>> dtype = x.GetKeyDType(col)
+        :Inputs:
+            *x*: :class:`cape.runmatrix.RunMatrix`
+                Instance of pyCart trajectory class
+            *col*: :class:`str`
+                Name of key to access
+        :Outputs:
+            *dtype*: :class:`str`
+                Value of the option *Value* from definition of *col*
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        return self.defns[col].get("Value", "float")
+
     # Function to get the group index from the case index
     def GetGroupIndex(self, i):
         """Get group index from case index

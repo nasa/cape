@@ -29,11 +29,16 @@ from typing import Optional
 
 # Third-party
 import numpy as np
+try:
+    import pyvista as pv
+except Exception:
+    pv = None
 
 # Local modules
 from .filecntl import FileCntl
 from ..cfdx.cmdrun import tecmcr
 from ..color import ToRGB
+from ..gruvoc.umesh import Umesh
 from ..util import TECPLOT_TEMPLATES
 
 
@@ -187,6 +192,44 @@ def convert_szplt(fszplt: str, fplt: Optional[str] = None, **kw) -> str:
     # Clean up if requested
     if kw.get("clean", True):
         os.remove(fmcr)
+    # Output
+    return fplt
+
+
+# Convert VTK -> PLT
+def convert_vtk(fvtk: str, fplt: Optional[str] = None, **kw) -> str:
+    r"""Convert a ``.vtk`` file to ``.plt``
+
+    :Call:
+        >>> fplt = convert_vtk(fvtk, **kw)
+    :Inputs:
+        *fvtk*: :class:`str`
+            Name of original ``.vtk`` file to convert
+        *fplt*: {``None``} | :class:`str`
+            Name of ``.plt`` file to write
+    :Outputs:
+        *fplt*: :class:`str`
+            Name of converted ``.plt`` file if successful
+    :Versions:
+        * 2025-07-17 ``@ddalle``: v1.0
+    """
+    # Check for file
+    if not os.path.isfile(fvtk):
+        raise FileNotFoundError(f"Could not find file '{fvtk}'")
+    # Name of output file
+    fbase = fvtk.rsplit('.', 1)[0]
+    fplt = f"{fbase}.plt" if fplt is None else fplt
+    # Check for up-to-date file
+    if os.path.isfile(fplt):
+        # Check dates
+        if os.path.getmtime(fplt) >= os.path.getmtime(fvtk):
+            return fplt
+    # Read file
+    pvmesh = pv.read(fvtk)
+    # Convert to gruvoc
+    mesh = Umesh.from_pvmesh(pvmesh)
+    # Write output
+    mesh.write_plt(fplt)
     # Output
     return fplt
 
@@ -1257,8 +1300,6 @@ class Tecscript(FileCntl):
             * 2016-10-04 ``@ddalle``: v1.0
             * 2025-02-26 ``@ddalle``: v1.1; code improvements
         """
-        # Number of groups of field maps
-        n = len(grps)
         # Loop through groups
         for i, gmax in enumerate(grps):
             # Get beginning of group

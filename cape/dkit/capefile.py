@@ -65,7 +65,7 @@ ELEMTYPE_SET = uint32(0x30)
 ELEMTYPE_DICT = uint32(0x40)
 ELEMTYPE_FLAG_NESTED = uint32(0xf0)
 ELEMTYPE_FLAG_STR = uint32(8)
-# Commont element size flags
+# Common element size flags
 ELEMSIZE_2 = uint32(0) << RT_SHIFT_ELEMBITS
 ELEMSIZE_8 = uint32(3) << RT_SHIFT_ELEMBITS
 ELEMSIZE_16 = uint32(4) << RT_SHIFT_ELEMBITS

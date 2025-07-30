@@ -98,7 +98,7 @@ class Cntl(cntl.Cntl):
   # ================
   # <
     # Case module
-    _case_mod = casecntl
+    _case_cls = casecntl.CaseRunner
     # Options class
     _opts_cls = options.Options
     # Other options
@@ -551,16 +551,16 @@ class Cntl(cntl.Cntl):
         # Loop through input files.
         for f in self.GetInputMeshFileNames():
             # Get processed name
-            fname.append(self.ProcessMeshFileName(f))
+            fname.append(self.process_mesh_filename(f))
         # Output
         return fname
 
     # Process a mesh file name to use the project root name
-    def ProcessMeshFileName(self, fname):
+    def process_mesh_filename(self, fname):
         r"""Return a mesh file name using the project root name
 
         :Call:
-            >>> fout = cntl.ProcessMeshFileName(fname)
+            >>> fout = cntl.process_mesh_filename(fname)
         :Inputs:
             *cntl*: :class:`cape.pyus.cntl.Cntl`
                 Instance of control class

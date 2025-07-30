@@ -9,6 +9,7 @@ outputs tracked by the :mod:`cape` package.
 """
 
 # Standard library
+import os
 
 # Third-party imports
 
@@ -21,7 +22,7 @@ from ..dkit import basedata
 # Component data book
 class FMDataBook(cdbook.FMDataBook):
     # Read case FM history
-    def ReadCase(self, comp):
+    def ReadCase(self, comp: str):
         r"""Read a :class:`CaseFM` object
 
         :Call:
@@ -37,7 +38,7 @@ class FMDataBook(cdbook.FMDataBook):
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
         """
-        # Read CaseResid object from PWD
+        # Read CaseFM object from PWD
         return CaseFM(comp)
 
     # Read case residual
@@ -110,10 +111,10 @@ class TimeSeriesDataBook(cdbook.TimeSeriesDataBook):
 
 # Iterative F&M history
 class CaseFM(cdbook.CaseFM):
-    r"""Iterative force & moment history for one component, one case
+    r"""Iterative LAVA component force & moment history
 
     :Call:
-        >>> fm = CaseFM(comp=None)
+        >>> fm = CaseFMCartesian(comp=None)
     :Inputs:
         *comp*: :class:`str`
             Name of component
@@ -165,9 +166,15 @@ class CaseFM(cdbook.CaseFM):
                 List of files to read to construct iterative history
         :Versions:
             * 2024-09-18 ``@sneuhoff``: v1.0
+            * 2025-07-17 ``@ddalle``: v1.1; merge Curv & Cart
         """
         # Name of (single) file
-        return ["data.iter"]
+        cartfile = os.path.join("monitor", "Cart.data.iter")
+        # Check for such a file
+        if os.path.isfile(cartfile):
+            return [cartfile]
+        else:
+            return ["data.iter"]
 
     # Read a raw data file
     def readfile(self, fname: str) -> dict:
@@ -193,12 +200,18 @@ class CaseFM(cdbook.CaseFM):
         comp = self.comp
         # Initialize data for output
         db = basedata.BaseData()
-        db.save_col("i", data["iter"])
+        # Identify iteration column to use
+        icol = "ctu" if "ctu" in data else "iter"
+        # Force coeff prefix
+        fpre = "c" if f"cx_{comp}" in data else "cf"
+        # Save data
+        db.save_col("i", data[icol])
+        db.save_col("solver_iter", data[icol])
         db.save_col("CL", data[f"cl_{comp}"])
         db.save_col("CD", data[f"cd_{comp}"])
-        db.save_col("CA", data[f"cfx_{comp}"])
-        db.save_col("CY", data[f"cfy_{comp}"])
-        db.save_col("CN", data[f"cfz_{comp}"])
+        db.save_col("CA", data[f"{fpre}x_{comp}"])
+        db.save_col("CY", data[f"{fpre}y_{comp}"])
+        db.save_col("CN", data[f"{fpre}z_{comp}"])
         db.save_col("CLL", data[f"cmx_{comp}"])
         db.save_col("CLM", data[f"cmy_{comp}"])
         db.save_col("CLN", data[f"cmz_{comp}"])
@@ -312,7 +325,8 @@ class DataBook(cdbook.DataBook):
 
     # Local version of target
     def _TargetDataBook(self, targ):
-        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
+        self.Targets[targ] = TargetDataBook(
+            targ, self.x, self.opts, self.RootDir)
   # >
 
   # ========

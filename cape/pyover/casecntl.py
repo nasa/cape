@@ -29,9 +29,9 @@ import shutil
 import numpy as np
 
 # Local imports
-from . import cmdrun
 from . import cmdgen
 from .. import fileutils
+from .databook import CaseFM
 from ..cfdx import casecntl
 from .options.runctlopts import RunControlOpts
 from .overnmlfile import OverNamelist
@@ -122,6 +122,9 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _dex_cls = {
+        "fm": CaseFM,
+    }
 
    # --- Config ---
     # Initialize extra slots
@@ -162,7 +165,7 @@ class CaseRunner(casecntl.CaseRunner):
         if os.path.isfile("over.namelist") or os.path.islink("over.namelist"):
             os.remove("over.namelist")
         # Create the correct namelist
-        shutil.copy("%s.%02i.inp" % (fproj, j+1), "over.namelist")
+        shutil.copy("%s.%02i.inp" % (fproj, j), "over.namelist")
         # Read case settings
         rc = self.read_case_json()
         # Get iteration pre-run
@@ -205,8 +208,8 @@ class CaseRunner(casecntl.CaseRunner):
         # Get the most recent iteration number
         n = self.get_iter()
         # Assuming that worked, move the temp output file
-        fout = "%s.%02i.out" % (fproj, j + 1)
-        flog = "%s.%02i.%i" % (fproj, j + 1, n)
+        fout = "%s.%02i.out" % (fproj, j)
+        flog = "%s.%02i.%i" % (fproj, j, n)
         flogj = flog + ".1"
         jlog = 1
         # Check if expected output file exists
@@ -275,7 +278,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Loop through possible input numbers.
         for i, j in enumerate(rc.get_PhaseSequence()):
             # Output file glob
-            fglob = '%s.%02i.[0-9]*' % (rc.get_Prefix(j), j + 1)
+            fglob = '%s.%02i.[0-9]*' % (rc.get_Prefix(j), j)
             # Check for output files.
             if len(glob.glob(fglob)) > 0:
                 # This run has an output file
@@ -518,7 +521,7 @@ class CaseRunner(casecntl.CaseRunner):
             if j is None:
                 j = self.get_phase()
             # Read the namelist file.
-            return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(j), j + 1))
+            return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(j), j))
 
    # --- Local options ---
     # Function to get prefix

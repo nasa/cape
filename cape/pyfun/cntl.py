@@ -84,7 +84,7 @@ REGEX_IS_SLICE = re.compile(r"[0-9]+([,:-][0-9]+)*")
 
 
 # Class to read input files
-class Cntl(cntl.UgridCntl):
+class Cntl(cntl.Cntl):
     r"""Class for handling global options and setup for FUN3D
 
     This class is intended to handle all settings used to describe a
@@ -123,9 +123,8 @@ class Cntl(cntl.UgridCntl):
     _name = "pyfun"
     _solver = "fun3d"
     # Hooks to py{x} specific modules
-    _case_mod = casecntl
     _databook_mod = databook
-    _report_mod = report
+    _report_cls = report.Report
     # Hooks to py{x} specific classes
     _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
@@ -1894,7 +1893,7 @@ class Cntl(cntl.UgridCntl):
         # Create directory if necessary
         self.make_case_folder(i)
         # Destination file
-        fout = os.path.join(frun, "speciesthermodata")
+        fout = os.path.join(frun, "species_thermo_data")
         # Copy the file
         shutil.copy(fname, fout)
 

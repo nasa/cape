@@ -59,6 +59,7 @@ class Options(options.Options):
         "MovingBodyInput",
         "NamelistFunction",
         "RubberDataFile",
+        "TDataFile",
     }
 
     # Aliases
@@ -67,6 +68,8 @@ class Options(options.Options):
         "mapbc": "MapBC",
         "Namelist": "Fun3DNamelist",
         "RubberData": "RubberDataFile",
+        "TData": "TDataFile",
+        "tdata": "TDataFile",
     }
 
     # Known option types
@@ -74,6 +77,7 @@ class Options(options.Options):
         "Fun3DNamelist": str,
         "NamelistFunction": str,
         "RubberDataFile": str,
+        "TDataFile": str,
     }
 
     # Option default list depth
@@ -91,6 +95,7 @@ class Options(options.Options):
     _rst_descriptions = {
         "Fun3DNamelist": "template ``fun3d.nml`` file",
         "RubberDataFile": "template ``rubber.data`` file",
+        "TDataFile": "template ``tdata`` file",
     }
 
     # New or replaced sections

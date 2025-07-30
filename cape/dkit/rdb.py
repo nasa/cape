@@ -31,6 +31,9 @@ import difflib
 import os
 import re
 import sys
+import time
+from collections import namedtuple
+from typing import Any, Callable, Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -48,6 +51,7 @@ from . import basefile
 from .. import plot_mpl as pmpl
 from .. import statutils
 from .basedata import BaseData
+from .capefile import CapeFile
 from .csvfile import CSVFile, CSVSimple
 from .matfile import MATFile
 from .tsvfile import TSVFile, TSVSimple
@@ -87,6 +91,12 @@ RBF_FUNCS = [
 ]
 # Names of parameters needed to describe an RBF network
 RBF_SUFFIXES = ["method", "rbf", "func", "eps", "smooth", "N", "xcols"]
+# Timeout for datakit lock files
+LOCKFILE_TIMEOUT = 5400.0
+LOCKFILE_INTERVAL = 10
+
+# Special return types
+MatchInds = namedtuple("MatchInds", ("selfinds", "targetinds"))
 
 
 # Options for RDBNull
@@ -171,13 +181,10 @@ class DataKit(BaseData):
         *db*: :class:`DataKit`
             Generic database
     :Versions:
-        * 2019-12-04 ``@ddalle``: Version 1.0
-        * 2020-02-19 ``@ddalle``: Version 1.1; was ``DBResponseNull``
+        * 2019-12-04 ``@ddalle``: v1.0
+        * 2020-02-19 ``@ddalle``: v1.1; was ``DBResponseNull``
     """
-  # =====================
-  # Class Attributes
-  # =====================
-  # <
+  # *** CLASS ATTRIBUTES ***
    # --- Options ---
     # Class for options
     _optscls = DataKitOpts
@@ -247,26 +254,25 @@ class DataKit(BaseData):
         "rbf-linear": "_create_rbf_linear",
         "rbf-map": "_create_rbf_map",
     }
-  # >
 
-  # =============
-  # Config
-  # =============
-  # <
-   # --- Dunder Methods ---
+  # *** DUNDER ***
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method
 
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
         """
         # Required attributes
+        self.xcols = None
         self.cols = []
         self.n = 0
         self.defns = {}
         self.bkpts = {}
         self.sources = {}
+        self.fname = None
+        self.fdir = None
+        self.mtime = None
         # Evaluation attributes
         self.response_arg_alternates = {}
         self.response_arg_converters = {}
@@ -320,17 +326,21 @@ class DataKit(BaseData):
             ext = None
 
         # Initialize file name handles for each type
-        fcsv  = None
-        ftsv  = None
+        fcdb = None
+        fcsv = None
+        ftsv = None
         fcsvs = None
         ftsvs = None
         ftdat = None
-        fxls  = None
-        fmat  = None
+        fxls = None
+        fmat = None
         # Filter *ext*
         if ext == "csv":
             # Guess it's a mid-level CSV file
             fcsv = fname
+        elif ext == "cdb":
+            # Guess it's a CAPE binary file
+            fcdb = fname
         elif ext == "tsv":
             # Guess it's a mid-level TSV file
             ftsv = fname
@@ -348,16 +358,20 @@ class DataKit(BaseData):
             raise ValueError(
                 "Unable to guess file type of file name '%s'" % fname)
         # Last-check file names
-        fcsv  = kw.pop("csv", fcsv)
-        ftsv  = kw.pop("tsv", ftsv)
-        fxls  = kw.pop("xls", fxls)
-        fmat  = kw.pop("mat", fmat)
+        fcdb = kw.pop("cdb", fcdb)
+        fcsv = kw.pop("csv", fcsv)
+        ftsv = kw.pop("tsv", ftsv)
+        fxls = kw.pop("xls", fxls)
+        fmat = kw.pop("mat", fmat)
         fcsvs = kw.pop("simplecsv", fcsvs)
         ftsvs = kw.pop("simpletsv", ftsvs)
-        ftdat = kw.pop("textdata",  ftdat)
+        ftdat = kw.pop("textdata", ftdat)
 
         # Read
-        if fcsv is not None:
+        if fcdb is not None:
+            # Read CDB file
+            self.read_cdb(fcdb, **kw)
+        elif fcsv is not None:
             # Read CSV file
             self.read_csv(fcsv, **kw)
         elif ftsv is not None:
@@ -382,7 +396,7 @@ class DataKit(BaseData):
             # If reaching this point, process values
             self.process_kw_values()
 
-   # --- Copy ---
+  # *** COPY ***
     # Copy
     def copy(self):
         r"""Make a copy of a database class
@@ -398,7 +412,7 @@ class DataKit(BaseData):
             *dbcopy*: :class:`DataKit`
                 Copy of generic database
         :Versions:
-            * 2019-12-04 ``@ddalle``: Version 1.0
+            * 2019-12-04 ``@ddalle``: v1.0
         """
         # Form a new database
         dbcopy = self.__class__()
@@ -424,7 +438,7 @@ class DataKit(BaseData):
             *qdb*: ``True`` | ``False``
                 Whether or not *dbsrc* was linked
         :Versions:
-            * 2021-07-20 ``@ddalle``: Version 1.0
+            * 2021-07-20 ``@ddalle``: v1.0
         """
         # Check *dbsrc* type
         if not isinstance(dbsrc, DataKit):
@@ -454,7 +468,7 @@ class DataKit(BaseData):
             *dbcopy*: :class:`DataKit`
                 Copy of generic database
         :Versions:
-            * 2019-12-04 ``@ddalle``: Version 1.0
+            * 2019-12-04 ``@ddalle``: v1.0
         """
         # Loop through columns
         for col in self.cols:
@@ -479,7 +493,7 @@ class DataKit(BaseData):
             ``getattr(dbtarg, k)``: ``getattr(db, k, vdef)``
                 Shallow copy of attribute from *DBc* or *vdef* if necessary
         :Versions:
-            * 2019-12-04 ``@ddalle``: Version 1.0
+            * 2019-12-04 ``@ddalle``: v1.0
         """
         # Check *skip*
         if not isinstance(skip, (list, tuple)):
@@ -519,7 +533,7 @@ class DataKit(BaseData):
             ``getattr(dbtarg, k)``: ``getattr(db, k, vdef)``
                 Shallow copy of attribute from *DBc* or *vdef* if necessary
         :Versions:
-            * 2018-06-08 ``@ddalle``: Version 1.0
+            * 2018-06-08 ``@ddalle``: v1.0
             * 2019-12-04 ``@ddalle``: Copied from :class:`DBCoeff`
         """
         # Check for attribute
@@ -549,7 +563,7 @@ class DataKit(BaseData):
             *vcopy*: *v.__class__*
                 Copy of *v* (shallow or deep)
         :Versions:
-            * 2019-12-04 ``@ddalle``: Version 1.0
+            * 2019-12-04 ``@ddalle``: v1.0
         """
         # Type
         t = v.__class__
@@ -572,12 +586,8 @@ class DataKit(BaseData):
         else:
             # Shallow copy
             return copy.copy(v)
-  # >
 
-  # ==================
-  # Options
-  # ==================
-  # <
+  # *** OPTIONS ***
    # --- Column Definitions ---
     # Set a definition
     def set_defn(self, col, defn, _warnmode=0):
@@ -624,7 +634,7 @@ class DataKit(BaseData):
             *db.defns*: :class:`dict`
                 Merged with ``opts["Definitions"]``
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
             * 2020-02-10 ``@ddalle``: Removed *db.defns* effect
             * 2020-03-06 ``@ddalle``: Renamed from :func:`copy_options`
@@ -675,7 +685,7 @@ class DataKit(BaseData):
             *db.defns*: :class:`dict`
                 Merged with ``opts["Definitions"]``
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
             * 2019-12-26 ``@ddalle``: Added *db.defns* effect
             * 2020-02-13 ``@ddalle``: Split from :func:`copy_options`
             * 2020-03-06 ``@ddalle``: Renamed from :func:`copy_defns`
@@ -717,7 +727,7 @@ class DataKit(BaseData):
             *ndim*: {``0``} | :class:`int`
                 Dimension of *col* in database
         :Versions:
-            * 2020-03-12 ``@ddalle``: Version 1.0
+            * 2020-03-12 ``@ddalle``: v1.0
         """
         # Get column definition
         defn = self.get_defn(col)
@@ -759,7 +769,7 @@ class DataKit(BaseData):
             *ndim*: {``0``} | :class:`int`
                 Dimension of *col* at a single condition
         :Versions:
-            * 2019-12-27 ``@ddalle``: Version 1.0
+            * 2019-12-27 ``@ddalle``: v1.0
             * 2020-03-12 ``@ddalle``: Keyed from "Dimension"
         """
         # Get column dimension
@@ -788,7 +798,7 @@ class DataKit(BaseData):
             *ndim*: {``0``} | :class:`int`
                 Dimension of *col* in database
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Get column definition
         defn = self.get_defn(col)
@@ -819,7 +829,7 @@ class DataKit(BaseData):
             *ndim*: {``0``} | :class:`int`
                 Dimension of *col* at a single condition
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Get column definition
         defn = self.get_defn(col)
@@ -834,207 +844,8 @@ class DataKit(BaseData):
                 (col, type(ndim)))
         # Set it
         defn["Dimension"] = ndim + 1
-  # >
 
-  # ================
-  # Sources
-  # ================
-  # <
-   # --- Get Source ---
-    # Get a source by type and number
-    def get_source(self, ext=None, n=None):
-        r"""Get a source by category (and number), if possible
-
-        :Call:
-            >>> dbf = db.get_source(ext)
-            >>> dbf = db.get_source(ext, n)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *ext*: {``None``} | :class:`str`
-                Source type, by extension, to retrieve
-            *n*: {``None``} | :class:`int` >= 0
-                Source number
-        :Outputs:
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-        :Versions:
-            * 2020-02-13 ``@ddalle``: Version 1.0
-        """
-        # Get sources
-        srcs = self.__dict__.get("sources", {})
-        # Check for *n*
-        if n is None:
-            # Check for both ``None``
-            if ext is None:
-                raise ValueError("Either 'ext' or 'n' must be specified")
-            # Loop through sources
-            for name, dbf in srcs.items():
-                # Check name
-                if name.split("-")[1] == ext:
-                    # Output
-                    return dbf
-            else:
-                # No match
-                return
-        elif ext is None:
-            # Check names
-            targ = "%02i" % n
-            # Loop through sources
-            for name, dbf in srcs.items():
-                # Check name
-                if name.split("-")[0] == targ:
-                    # Output
-                    return dbf
-            else:
-                # No match
-                return
-        else:
-            # Get explicit name
-            name = "%02i-%s" % (n, ext)
-            # Check for source
-            return srcs.get(name)
-
-    # Get source, creating if necessary
-    def make_source(self, ext, cls, n=None, cols=None, save=True, **kw):
-        r"""Get or create a source by category (and number)
-
-        :Call:
-            >>> dbf = db.make_source(ext, cls)
-            >>> dbf = db.make_source(ext, cls, n=None, cols=None, **kw)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *ext*: :class:`str`
-                Source type, by extension, to retrieve
-            *cls*: :class:`type`
-                Subclass of :class:`BaseFile` to create (if needed)
-            *n*: {``None``} | :class:`int` >= 0
-                Source number to search for
-            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
-                List of data columns to include in *dbf*
-            *save*: {``True``} | ``False``
-                Option to save *dbf* in *db.sources*
-            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
-                Extra attributes of *db* to save for ``.mat`` files
-        :Outputs:
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-        :Versions:
-            * 2020-02-13 ``@ddalle``: Version 1.0
-            * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
-        """
-        # Don't use existing if *cols* is specified
-        if cols is None and kw.get("attrs") is None:
-            # Get the source
-            dbf = self.get_source(ext, n=n)
-            # Check if found
-            if dbf is not None:
-                # Done
-                return dbf
-        # Create a new one
-        dbf = self.genr8_source(ext, cls, cols=cols, **kw)
-        # Save the file interface if needed
-        if save:
-            # Name for this source
-            name = "%02i-%s" % (len(self.sources), ext)
-            # Save it
-            self.sources[name] = dbf
-        # Output
-        return dbf
-
-    # Build new source, creating if necessary
-    def genr8_source(self, ext, cls, cols=None, **kw):
-        r"""Create a new source file interface
-
-        :Call:
-            >>> dbf = db.genr8_source(ext, cls)
-            >>> dbf = db.genr8_source(ext, cls, cols=None, **kw)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *ext*: :class:`str`
-                Source type, by extension, to retrieve
-            *cls*: :class:`type`
-                Subclass of :class:`BaseFile` to create (if needed)
-            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
-                List of data columns to include in *dbf*
-            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
-                Extra attributes of *db* to save for ``.mat`` files
-        :Outputs:
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-        :Versions:
-            * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
-        """
-        # Default columns
-        if cols is None:
-            # Use listed columns
-            cols = list(self.cols)
-        # Get relevant options
-        kwcls = {"_warnmode": 0}
-        # Set values
-        kwcls["Values"] = {col: self[col] for col in cols}
-        # Explicit column list
-        kwcls["cols"] = cols
-        # Copy definitions
-        kwcls["Definitions"] = self.defns
-        # Create from class
-        dbf = cls(**kwcls)
-        # Get attributes to copy
-        attrs = kw.get("attrs")
-        # Copy them
-        self._copy_attrs(dbf, attrs)
-        # Output
-        return dbf
-
-    # Copy attributes
-    def _copy_attrs(self, dbf, attrs):
-        r"""Copy additional attributes to new "source" database
-
-        :Call:
-            >>> db._copy_attrs(dbf, attrs)
-        :Inputs:
-            *db*: :class:`DataKit`
-                Generic database
-            *dbf*: :class:`cape.dkit.basefile.BaseFile`
-                Data file interface
-            *attrs*: ``None`` | :class:`list`\ [:class:`str`]
-                List of *db* attributes to copy
-        :Versions:
-            * 2020-04-30 ``@ddalle``: Version 1.0
-        """
-        # Check for null option
-        if attrs is None:
-            return
-        # Loop through attributes
-        for attr in attrs:
-            # Get current value
-            v = self.__dict__.get(attr)
-            # Check for :class:`dict`
-            if not isinstance(v, dict):
-                # Copy attribute and move to next attribute
-                setattr(dbf, attr, copy.copy(v))
-                continue
-            # Check if this is a dict of information by column
-            if not any([col in v for col in dbf]):
-                # Just some other :class:`dict`; copy whole hting
-                setattr(dbf, attr, copy.copy(v))
-            # Initialize dict to save
-            v1 = {}
-            # Loop through cols
-            for col, vi in v.items():
-                # Check if it's a *col* in *dbf*
-                if col in dbf:
-                    v1[col] = copy.copy(vi)
-            # Save new :class:`dict`
-            setattr(dbf, attr, v1)
-  # >
-
-  # ==================
-  # I/O
-  # ==================
-  # <
+  # *** I/O ***
    # --- CSV ---
     # Read CSV file
     def read_csv(self, fname, **kw):
@@ -1060,7 +871,7 @@ class DataKit(BaseData):
         :See Also:
             * :class:`cape.dkit.csvfile.CSVFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveCSV", False))
@@ -1071,6 +882,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = CSVFile(fname, **kw)
         # Link the data
@@ -1106,7 +919,7 @@ class DataKit(BaseData):
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to write
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
             * 2020-02-14 ``@ddalle``: Uniform "sources" interface
         """
         # Get CSV file interface
@@ -1136,7 +949,7 @@ class DataKit(BaseData):
             *kw*: :class:`dict`
                 Keyword args to :func:`CSVFile.write_csv`
         :Versions:
-            * 2020-04-01 ``@ddalle``: Version 1.0
+            * 2020-04-01 ``@ddalle``: v1.0
         """
         # Get CSV file interface
         dbcsv = self.make_source("csv", CSVFile, cols=cols)
@@ -1166,7 +979,7 @@ class DataKit(BaseData):
         :See Also:
             * :class:`cape.dkit.csvfile.CSVFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
         """
         # Get option to save database
         savecsv = kw.pop("save", kw.pop("SaveCSV", False))
@@ -1177,6 +990,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = CSVSimple(fname, **kw)
         # Link the data
@@ -1186,11 +1001,7 @@ class DataKit(BaseData):
         # Apply default
         self.finish_defns(dbf.cols)
         # Save the file interface if needed
-        if savecsv:
-            # Name for this source
-            name = "%02i-csvsimple" % len(self.sources)
-            # Save it
-            self.sources[name] = dbf
+        self._save_src(dbf, "csv", savecsv)
 
    # --- TSV ---
     # Read TSV file
@@ -1217,8 +1028,8 @@ class DataKit(BaseData):
         :See Also:
             * :class:`cape.dkit.tsvfile.CSVFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0 (:func:`read_csv`)
-            * 2021-01-14 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0 (:func:`read_csv`)
+            * 2021-01-14 ``@ddalle``: v1.0
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveTSV", False))
@@ -1229,6 +1040,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = TSVFile(fname, **kw)
         # Link the data
@@ -1238,11 +1051,7 @@ class DataKit(BaseData):
         # Apply default
         self.finish_defns(dbf.cols)
         # Save the file interface if needed
-        if save:
-            # Name for this source
-            name = "%02i-tsv" % len(self.sources)
-            # Save it
-            self.sources[name] = dbf
+        self._save_src(dbf, "tsv", save)
 
     # Write dense TSV file
     def write_tsv_dense(self, fname, cols=None):
@@ -1264,8 +1073,8 @@ class DataKit(BaseData):
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to write
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0 (write_csv_dense)
-            * 2021-01-14 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0 (write_csv_dense)
+            * 2021-01-14 ``@ddalle``: v1.0
         """
         # Get TSV file interface
         dbtsv = self.make_source("tsv", TSVFile, cols=cols)
@@ -1294,8 +1103,8 @@ class DataKit(BaseData):
             *kw*: :class:`dict`
                 Keyword args to :func:`TSVFile.write_tsv`
         :Versions:
-            * 2020-04-01 ``@ddalle``: Version 1.0 (write_csv)
-            * 2021-01-14 ``@ddalle``: Version 1.0
+            * 2020-04-01 ``@ddalle``: v1.0 (write_csv)
+            * 2021-01-14 ``@ddalle``: v1.0
         """
         # Get TSV file interface
         dbtsv = self.make_source("tsv", TSVFile, cols=cols)
@@ -1325,8 +1134,8 @@ class DataKit(BaseData):
         :See Also:
             * :class:`cape.dkit.tsvfile.TSVFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0 (read_csvsimple)
-            * 2021-01-14 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0 (read_csvsimple)
+            * 2021-01-14 ``@ddalle``: v1.0
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveTSV", False))
@@ -1337,6 +1146,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = TSVSimple(fname, **kw)
         # Link the data
@@ -1346,11 +1157,7 @@ class DataKit(BaseData):
         # Apply default
         self.finish_defns(dbf.cols)
         # Save the file interface if needed
-        if save:
-            # Name for this source
-            name = "%02i-tsvsimple" % len(self.sources)
-            # Save it
-            self.sources[name] = dbf
+        self._save_src(dbf, "tsvsimple", save)
 
    # --- Text Data ---
     # Read text data fiel
@@ -1375,7 +1182,7 @@ class DataKit(BaseData):
         :See Also:
             * :class:`cape.dkit.csvfile.CSVFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
         """
         # Get option to save database
         savedat = kw.pop("save", False)
@@ -1386,6 +1193,8 @@ class DataKit(BaseData):
             # Already a file itnerface
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an insteance
             dbf = TextDataFile(fname, **kw)
         # Linke the data
@@ -1395,11 +1204,7 @@ class DataKit(BaseData):
         # Apply default
         self.finish_defns(dbf.cols)
         # Save the file interface if needed
-        if savedat:
-            # Name for this source
-            name = "%02i-textdata" % len(self.sources)
-            # Save it
-            self.sources[name] = dbf
+        self._save_src(dbf, "textdata", savedat)
 
    # --- XLS ---
     # Read XLS file
@@ -1439,7 +1244,7 @@ class DataKit(BaseData):
         :See Also:
             * :class:`cape.dkit.xls.XLSFile`
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveXLS", False))
@@ -1450,6 +1255,8 @@ class DataKit(BaseData):
             # Already a CSV database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = XLSFile(fname, **kw)
         # Link the data
@@ -1459,11 +1266,7 @@ class DataKit(BaseData):
         # Apply default
         self.finish_defns(dbf.cols)
         # Save the file interface if needed
-        if save:
-            # Name for this source
-            name = "%02i-xls" % len(self.sources)
-            # Save it
-            self.sources[name] = dbf
+        self._save_src(dbf, "xls", save)
 
     # Write XLSX file
     def write_xls(self, fname, cols=None, **kw):
@@ -1487,7 +1290,7 @@ class DataKit(BaseData):
             *kw*: :class:`dict`
                 Keyword args to :func:`CSVFile.write_csv`
         :Versions:
-            * 2020-05-21 ``@ddalle``: Version 1.0
+            * 2020-05-21 ``@ddalle``: v1.0
         """
         # Get column names per sheet
         sheetcols = kw.get("sheetcols", {})
@@ -1525,7 +1328,7 @@ class DataKit(BaseData):
         :See Also:
             * :class:`cape.dkit.mat.MATFile`
         :Versions:
-            * 2019-12-17 ``@ddalle``: Version 1.0
+            * 2019-12-17 ``@ddalle``: v1.0
         """
         # Get option to save database
         save = kw.pop("save", kw.pop("SaveMAT", False))
@@ -1536,6 +1339,8 @@ class DataKit(BaseData):
             # Already a MAT database
             dbf = fname
         else:
+            # Save file data
+            self._save_fname(fname)
             # Create an instance
             dbf = MATFile(fname, **kw)
         # Columns to keep
@@ -1577,11 +1382,7 @@ class DataKit(BaseData):
             # Otherwise link
             self.__dict__[k] = v
         # Save the file interface if needed
-        if save:
-            # Name for this source
-            name = "%02i-mat" % len(self.sources)
-            # Save it
-            self.sources[name] = dbf
+        self._save_src(dbf, "mat", save)
 
     # Write MAT file
     def write_mat(self, fname, cols=None, **kw):
@@ -1602,7 +1403,7 @@ class DataKit(BaseData):
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to write
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
         """
         # Attributes
         attrs = kw.get("attrs", ["bkpts"])
@@ -1610,6 +1411,344 @@ class DataKit(BaseData):
         dbmat = self.make_source("mat", MATFile, cols=cols, attrs=attrs)
         # Write it
         dbmat.write_mat(fname, cols=cols, attrs=attrs)
+
+   # --- CDB (CAPE DataBase) ---
+    def read_cdb(self, fcdb: Union[CapeFile, str], **kw):
+        r"""Read data from a CAPE ``cdb`` binary file
+
+        :Call:
+            >>> db.read_cdb(fname, **kw)
+            >>> db.read_cdb(dbmat, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *fname*: :class:`str`
+                Name of ``.cdb`` file to read
+            *dbmat*: :class:`CapeFile`
+                Existing file interface
+            *save*, *SaveCDB*: ``True`` | {``False``}
+                Option to save the CDB instance in *db.sources*
+        :Versions:
+            * 2025-07-05 ``@ddalle``: v1.0
+        """
+        # Get option to save database
+        save = kw.pop("save", kw.pop("SaveCDB", False))
+        # Check input type
+        if isinstance(fcdb, CapeFile):
+            # Already a MAT database
+            dbf = fcdb
+        else:
+            # Save file data
+            self._save_fname(fcdb)
+            # Create an instance
+            dbf = CapeFile(fcdb, **kw)
+        # List of columns (for finish_defns())
+        cols = []
+        # Make replacements for column names
+        for (j, col) in enumerate(dbf.cols):
+            # Check name
+            if col.startswith("."):
+                # Split leading underscore
+                col1 = col.lstrip('.')
+                # Check for a '.'
+                if '.' in col1:
+                    # Splt into parts
+                    attr, name = col1.split('.', 1)
+                    # Create attribute if needed
+                    v = self.__dict__.setdefault(attr, {})
+                    # Save them
+                    v[name] = dbf[col]
+            else:
+                # No change; save this column
+                self.save_col(col, dbf[col])
+                cols.append(col)
+        # Apply default
+        self.finish_defns(cols)
+        # Save the file interface if needed
+        self._save_src(dbf, "cdb", save)
+
+    def write_cdb(self, fname: str, cols: Optional[list] = None, **kw):
+        r"""Write data to Cape binary data format
+
+        :Call:
+            >>> db.write_cdb(fname, cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *fname*: :class:`str`
+                Name of file to write
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of columns to write
+        :Versions:
+            * 2025-07-05 ``@ddalle``: v1.0
+        """
+        # Get/create MAT file interface
+        cdb = self.genr8_cdb(cols=cols)
+        # Write it
+        cdb.write(fname)
+
+    def genr8_cdb(self, cols: Optional[list] = None) -> CapeFile:
+        r"""Create a :class:`CapeFile` instance from some or all of dkit
+
+        :Call:
+            >>> dbf = db.genr8_cdb(cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
+                Optional subset of cols
+        :Outputs:
+            *dbf*: :class:`CapeFile`
+                ``cdb`` file interface
+        :Versions:
+            * 2025-07-05 ``@ddalle``: v1.0
+        """
+        # Initialize instance
+        db = CapeFile()
+        # Default cols
+        cols = self.cols if cols is None else cols
+        # Save cols
+        for col in cols:
+            db.save_col(col, self[col])
+        # Add attributes
+        bkpts = getattr(self, "bkpts")
+        if isinstance("bkpts", dict):
+            # Loop through keys
+            for k, v in bkpts.items():
+                db.save_col(f".bkpts.{k}", v)
+        # Output
+        return db
+
+   # --- Main ---
+    def write(self, fname: Optional[str] = None, merge: bool = True):
+        r"""Write to main data format, merging any new contents
+
+        :Call:
+            >>> db.write(fname=None, merge=True)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+            *fname*: {``None``} | :class:`str`
+                File name to write (else *db.fname*)
+            *merge*: {``True``} | ``False``
+                Whether or not to merge new contens from *fname*
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Default fname
+        fname = self.get_fname_abs() if fname is None else fname
+        # Get modification time
+        mtime = 0.0 if getattr(self, "mtime") is None else self.mtime
+        # Merge
+        if merge:
+            # Check modification time
+            if os.path.isfile(fname) and os.path.getmtime(fname) > mtime:
+                # Read the file
+                db = DataKit(fname)
+                # Merge
+                self.merge(db)
+        # Get writer function
+        write_func = self._get_writer(fname)
+        # Lock and write
+        self.lock()
+        write_func(fname)
+        # Unlock database
+        self.unlock()
+
+    def _get_writer(self, fname: str) -> Callable:
+        # Get extension
+        ext = fname.rsplit('.', 1)[-1].lower()
+        # Check it
+        if ext == "csv":
+            return self.write_csv_dense
+        # Use default
+        return getattr(self, f"write_{ext}")
+
+   # --- Lock ---
+    # Write the lock file
+    def lock(self):
+        r"""Write a LOCK file for this DataKitFile
+
+        :Call:
+            >>> db.lock()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Versions:
+            * 2017-06-12 ``@ddalle``: v1.0 (``DataBook``)
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Safely lock
+        try:
+            # Open the file
+            with open(self.get_lockfile(), 'w') as fp:
+                fp.write(f"{self.get_basename()}\n")
+        except Exception:
+            pass
+
+    def get_lockfile(self) -> str:
+        r"""Get name of lock file
+
+        :Call:
+            >>> lockfile = db.get_lockfile()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Outputs:
+            *lockfile*: :class:`str`
+                Absolute path to lock file
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get base path and file name
+        basepath = self.get_rootdir()
+        basefile = self.get_basename()
+        # Combine
+        return os.path.join(basepath, f"lock.{basefile}")
+
+    # Check lock file
+    def check_lockfile(self):
+        r"""Check if lock file for this component exists
+
+        :Call:
+            >>> q = db.check_lockfile()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not corresponding LOCK file exists
+        :Versions:
+            * 2017-06-12 ``@ddalle``: v1.0 (``DataBook``)
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get the name of the lock file
+        flock = self.get_lockfile()
+        # Check if the file exists
+        if os.path.isfile(flock):
+            # Get the mod time of said file
+            tlock = os.path.getmtime(flock)
+            # Check for a stale file (using 1.5 hrs)
+            if time.time() - tlock > LOCKFILE_TIMEOUT:
+                # Stale file; not locked
+                self.unlock()
+                return False
+            else:
+                # Still locked
+                return True
+        else:
+            # File does not exist
+            return False
+
+    # Wait for lock file
+    def wait_lockfile(self):
+        r"""Wait until lock file is no longer present
+
+        :Call:
+            >>> db.wait_lockfile()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get file name
+        basename = self.get_basename()
+        # Total wait time
+        t = 0
+        while self.check_lockfile():
+            # Update wait time
+            t += LOCKFILE_INTERVAL
+            # Status update
+            sys.stdout.write(f"\r  DataKit '{basename}' locked, ")
+            sys.stdout.write(f"waiting {t} s ...")
+            sys.stdout.flush()
+            time.sleep(LOCKFILE_INTERVAL)
+        # Clean up prompt if any waiting was done
+        if t > 0:
+            print("")
+
+    # Unlock the file
+    def unlock(self):
+        r"""Delete the LOCK file if it exists
+
+        :Call:
+            >>> db.unlock()
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data container instance
+        :Versions:
+            * 2017-06-12 ``@ddalle``: v1.0 (``DataBook``)
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Name of the lock file
+        flock = self.get_lockfile()
+        # Check if it exists
+        if os.path.isfile(flock):
+            # Delete the file
+            try:
+                os.remove(flock)
+            except PermissionError:
+                print(f"PermissionError deleting\n'{flock}'")
+
+   # --- Utilities ---
+    def abspath(self, fname: str):
+        # Check for absolute file
+        if os.path.isabs(fname):
+            return fname
+        # Get reference rootdir
+        rootdir = self.get_rootdir()
+        # Add base to relative path
+        return os.path.join(rootdir, fname)
+
+    def get_rootdir(self) -> str:
+        # Get reference
+        basefile = getattr(self, "fname", None)
+        basepath = getattr(self, "fdir", None)
+        # Use dirname(basefile) > getcwd() as reference root
+        dirname = os.getcwd() if (
+            basefile is None or not os.path.isabs(basefile)
+        ) else os.path.basename(basefile)
+        # Use fdir > inferred
+        rootdir = basepath if basepath else dirname
+        return rootdir
+
+    def get_fname_abs(self) -> str:
+        # Get folder and relative file name
+        dirname = self.get_rootdir()
+        basename = self.get_basename()
+        # Output
+        return os.path.join(dirname, basename)
+
+    def get_basename(self) -> str:
+        # Get file
+        basefile = getattr(self, "fname", None)
+        # Check if used
+        if basefile is None:
+            return f"{self.__class__.__name__}.mat"
+        else:
+            return basefile
+
+    def _save_fname(self, fname: Optional[str]):
+        # Skip if no file
+        if fname is None:
+            return
+        # Ensure absolute path
+        fabs = os.path.abspath(fname)
+        # Save parts
+        self.fdir = os.path.dirname(fabs)
+        self.fname = os.path.basename(fabs)
+        # Wait for lock file
+        self.wait_lockfile()
+        # Save modification time
+        self.mtime = os.path.getmtime(fabs)
+
+    def _save_src(self, db: dict, ext: str, save: bool = False):
+        if save:
+            # Name this source
+            name = f'{len(self.sources):02d}-{ext}'
+            # Save it
+            self.sources[name] = db
 
    # --- RBF specials ---
     def infer_rbfs(self, cols, **kw):
@@ -1628,7 +1767,7 @@ class DataKit(BaseData):
             * :func:`infer_rbf`
             * :func:`create_rbf_cols`
         :Versions:
-            * 2021-09-16 ``@ddalle``: Version 1.0
+            * 2021-09-16 ``@ddalle``: v1.0
         """
         # Infer RBF for each *col*
         for col in cols:
@@ -1692,7 +1831,7 @@ class DataKit(BaseData):
             *db.response_methods[col]*: :class:`str`
                 Name of inferred response method
         :Versions:
-            * 2021-09-16 ``@ddalle``: Version 1.0
+            * 2021-09-16 ``@ddalle``: v1.0
         """
        # --- Options ---
        # --- Get values ---
@@ -1854,7 +1993,7 @@ class DataKit(BaseData):
             * :func:`infer_rbfs`
             * :func:`infer_rbf`
         :Versions:
-            * 2021-09-16 ``@ddalle``: Version 1.0
+            * 2021-09-16 ``@ddalle``: v1.0
         """
         # Loop through column list
         for col in cols:
@@ -1913,7 +2052,7 @@ class DataKit(BaseData):
             *db.response_args[col]*: :class:`list`\ [:class:`str`]
                 List of arguments for *col*
         :Versions:
-            * 2021-09-16 ``@ddalle``: Version 1.0
+            * 2021-09-16 ``@ddalle``: v1.0
         """
         # Create results
         vals = self.genr8_rbf_cols(col, **kw)
@@ -1993,7 +2132,7 @@ class DataKit(BaseData):
             *vals[col+"_xcols"]*: :class:`list`\ [:class:`str`]
                 List of arguments for *col*
         :Versions:
-            * 2021-09-15 ``@ddalle``: Version 1.0
+            * 2021-09-15 ``@ddalle``: v1.0
         """
        # --- Options ---
         # Expand option
@@ -2034,7 +2173,6 @@ class DataKit(BaseData):
        # --- Init ---
         # Initialize values
         vals = {}
-        cols = []
         # Integer code for method
         imeth = RESPONSE_METHODS.index(eval_meth)
         # Check type
@@ -2103,7 +2241,7 @@ class DataKit(BaseData):
             # Save RBF weights
             vals[col2][ia:ib] = rbf.nodes
             # Save node locations (arg values)
-            vals[col7][ia:ib,:] = rbf.xi.T
+            vals[col7][ia:ib, :] = rbf.xi.T
             # Check for map- or schedule-rbf slice col
             if eval_meth == "rbf":
                 pass
@@ -2154,9 +2292,9 @@ class DataKit(BaseData):
             *dbf*: :class:`dict` | :class:`BaseData`
                 Raw data container
         :Versions:
-            * 2019-07-24 ``@ddalle``: Version 1.0; :func:`ReadRBFCSV`
-            * 2021-06-07 ``@ddalle``: Version 2.0
-            * 2021-09-14 ``@ddalle``: Version 2.1; bug fix/testing
+            * 2019-07-24 ``@ddalle``: v1.0; :func:`ReadRBFCSV`
+            * 2021-06-07 ``@ddalle``: v2.0
+            * 2021-09-14 ``@ddalle``: v2.1; bug fix/testing
         """
        # --- Checks ---
         # Test that it's a **dict**
@@ -2213,7 +2351,7 @@ class DataKit(BaseData):
             # Check for duplication
             if col in self.cols:
                 raise ValueError(
-                    "RBF output col '%s' is already present." % coeff)
+                    "RBF output col '%s' is already present." % col)
             # Save the data
             self.save_col(col, dbf[col])
        # --- Create RBFs ---
@@ -2320,7 +2458,7 @@ class DataKit(BaseData):
         :See Also:
             * :class:`cape.dkit.csvfile.CSVFile`
         :Versions:
-            * 2021-06-17 ``@ddalle``: Version 1.0
+            * 2021-06-17 ``@ddalle``: v1.0
         """
         # Set warning mode
         kw.setdefault("_warnmode", 0)
@@ -2352,8 +2490,8 @@ class DataKit(BaseData):
                 Dictionary of coefficient translations, e.g.
                 *CAF* -> *CA*
         :Versions:
-            * 2019-07-24 ``@ddalle``: Version 1.0; :func:`WriteRBFCSV`
-            * 2021-06-09 ``@ddalle``: Version 2.0
+            * 2019-07-24 ``@ddalle``: v1.0; :func:`WriteRBFCSV`
+            * 2021-06-09 ``@ddalle``: v2.0
         """
        # --- Checks ---
         # Check input type
@@ -2417,8 +2555,6 @@ class DataKit(BaseData):
                         self.get_response_args(k), k)) +
                     ("; expected '%s'" % eval_meth))
        # --- Init ---
-        # Number of arguments
-        narg = len(eval_args)
         # Get method index
         imeth = RBF_METHODS.index(eval_meth)
         # Initialize final column list
@@ -2462,8 +2598,6 @@ class DataKit(BaseData):
             # Create values
             vals[col] = np.full(nx, imeth)
        # --- Data/Properties ---
-        # Number of columns
-        ncol = len(cols)
         # Total number of points so fart
         ny = 0
         # Loop through RBF slices (same for each *coeff*)
@@ -2544,7 +2678,7 @@ class DataKit(BaseData):
                 Argument list for *col* implied by which cols are
                 present in *db* and *vals*
         :Versions:
-            * 2021-09-16 ``@ddalle``: Version 1.0
+            * 2021-09-16 ``@ddalle``: v1.0
         """
         # Default *vals*
         if vals is None:
@@ -2614,7 +2748,7 @@ class DataKit(BaseData):
             *narg*: :class:`int`
                 Number of args to *col* response mechanism
         :Versions:
-            * 2021-09-16 ``@ddalle``: Version 1.0
+            * 2021-09-16 ``@ddalle``: v1.0
         """
         # Default *vals*
         if vals is None:
@@ -2664,7 +2798,7 @@ class DataKit(BaseData):
             *X*: :class:`np.ndarray`\ [:class:`float`]
                 2D array of arg values for all non-slice args
         :Versions:
-            * 2021-09-16 ``@ddalle``: Version 1.0
+            * 2021-09-16 ``@ddalle``: v1.0
         """
         # Default *vals*
         if vals is None:
@@ -2733,7 +2867,7 @@ class DataKit(BaseData):
             *x0*: :class:`np.ndarray`\ [:class:`float`]
                 1D array of arg values for all first (slice) arg
         :Versions:
-            * 2021-09-16 ``@ddalle``: Version 1.0
+            * 2021-09-16 ``@ddalle``: v1.0
         """
         # Default *vals*
         if vals is None:
@@ -2785,7 +2919,7 @@ class DataKit(BaseData):
             *method*: :class:`str`
                 Name of response method
         :Versions:
-            * 2021-09-16 ``@ddalle``: Version 1.0
+            * 2021-09-16 ``@ddalle``: v1.0
         """
         # Default *vals*
         if vals is None:
@@ -2806,12 +2940,198 @@ class DataKit(BaseData):
             raise ValueError("Invalid response_method code '%s'" % i_method)
         # Output
         return i_method, response_method
-  # >
 
-  # ==================
-  # Eval/Call
-  # ==================
-  # <
+   # --- Data sources ---
+    # Get a source by type and number
+    def get_source(self, ext=None, n=None):
+        r"""Get a source by category (and number), if possible
+
+        :Call:
+            >>> dbf = db.get_source(ext)
+            >>> dbf = db.get_source(ext, n)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *ext*: {``None``} | :class:`str`
+                Source type, by extension, to retrieve
+            *n*: {``None``} | :class:`int` >= 0
+                Source number
+        :Outputs:
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-02-13 ``@ddalle``: v1.0
+        """
+        # Get sources
+        srcs = self.__dict__.get("sources", {})
+        # Check for *n*
+        if n is None:
+            # Check for both ``None``
+            if ext is None:
+                raise ValueError("Either 'ext' or 'n' must be specified")
+            # Loop through sources
+            for name, dbf in srcs.items():
+                # Check name
+                if name.split("-")[1] == ext:
+                    # Output
+                    return dbf
+            else:
+                # No match
+                return
+        elif ext is None:
+            # Check names
+            targ = "%02i" % n
+            # Loop through sources
+            for name, dbf in srcs.items():
+                # Check name
+                if name.split("-")[0] == targ:
+                    # Output
+                    return dbf
+            else:
+                # No match
+                return
+        else:
+            # Get explicit name
+            name = "%02i-%s" % (n, ext)
+            # Check for source
+            return srcs.get(name)
+
+    # Get source, creating if necessary
+    def make_source(self, ext, cls, n=None, cols=None, save=True, **kw):
+        r"""Get or create a source by category (and number)
+
+        :Call:
+            >>> dbf = db.make_source(ext, cls)
+            >>> dbf = db.make_source(ext, cls, n=None, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *cls*: :class:`type`
+                Subclass of :class:`BaseFile` to create (if needed)
+            *n*: {``None``} | :class:`int` >= 0
+                Source number to search for
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of data columns to include in *dbf*
+            *save*: {``True``} | ``False``
+                Option to save *dbf* in *db.sources*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
+        :Outputs:
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-02-13 ``@ddalle``: v1.0
+            * 2020-03-06 ``@ddalle``: Rename from :func:`get_dbf`
+        """
+        # Don't use existing if *cols* is specified
+        if cols is None and kw.get("attrs") is None:
+            # Get the source
+            dbf = self.get_source(ext, n=n)
+            # Check if found
+            if dbf is not None:
+                # Done
+                return dbf
+        # Create a new one
+        dbf = self.genr8_source(ext, cls, cols=cols, **kw)
+        # Save the file interface if needed
+        if save:
+            # Name for this source
+            name = "%02i-%s" % (len(self.sources), ext)
+            # Save it
+            self.sources[name] = dbf
+        # Output
+        return dbf
+
+    # Build new source, creating if necessary
+    def genr8_source(self, ext, cls, cols=None, **kw):
+        r"""Create a new source file interface
+
+        :Call:
+            >>> dbf = db.genr8_source(ext, cls)
+            >>> dbf = db.genr8_source(ext, cls, cols=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *ext*: :class:`str`
+                Source type, by extension, to retrieve
+            *cls*: :class:`type`
+                Subclass of :class:`BaseFile` to create (if needed)
+            *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
+                List of data columns to include in *dbf*
+            *attrs*: {``None``} | :class:`list`\ [:class:`str`]
+                Extra attributes of *db* to save for ``.mat`` files
+        :Outputs:
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+        :Versions:
+            * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
+        """
+        # Default columns
+        if cols is None:
+            # Use listed columns
+            cols = list(self.cols)
+        # Get relevant options
+        kwcls = {"_warnmode": 0}
+        # Set values
+        kwcls["Values"] = {col: self[col] for col in cols}
+        # Explicit column list
+        kwcls["cols"] = cols
+        # Copy definitions
+        kwcls["Definitions"] = self.defns
+        # Create from class
+        dbf = cls(**kwcls)
+        # Get attributes to copy
+        attrs = kw.get("attrs")
+        # Copy them
+        self._copy_attrs(dbf, attrs)
+        # Output
+        return dbf
+
+    # Copy attributes
+    def _copy_attrs(self, dbf, attrs):
+        r"""Copy additional attributes to new "source" database
+
+        :Call:
+            >>> db._copy_attrs(dbf, attrs)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Generic database
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
+                Data file interface
+            *attrs*: ``None`` | :class:`list`\ [:class:`str`]
+                List of *db* attributes to copy
+        :Versions:
+            * 2020-04-30 ``@ddalle``: v1.0
+        """
+        # Check for null option
+        if attrs is None:
+            return
+        # Loop through attributes
+        for attr in attrs:
+            # Get current value
+            v = self.__dict__.get(attr)
+            # Check for :class:`dict`
+            if not isinstance(v, dict):
+                # Copy attribute and move to next attribute
+                setattr(dbf, attr, copy.copy(v))
+                continue
+            # Check if this is a dict of information by column
+            if not any([col in v for col in dbf]):
+                # Just some other :class:`dict`; copy whole hting
+                setattr(dbf, attr, copy.copy(v))
+            # Initialize dict to save
+            v1 = {}
+            # Loop through cols
+            for col, vi in v.items():
+                # Check if it's a *col* in *dbf*
+                if col in dbf:
+                    v1[col] = copy.copy(vi)
+            # Save new :class:`dict`
+            setattr(dbf, attr, v1)
+
+  # *** RESPONSE/CALL ***
    # --- Evaluation ---
     # Evaluate interpolation
     def __call__(self, *a, **kw):
@@ -2844,8 +3164,8 @@ class DataKit(BaseData):
             *V*: :class:`np.ndarray`\ [:class:`float`]
                 Array of function outputs
         :Versions:
-            * 2019-01-07 ``@ddalle``: Version 1.0
-            * 2019-12-30 ``@ddalle``: Version 2.0: map of methods
+            * 2019-01-07 ``@ddalle``: v1.0
+            * 2019-12-30 ``@ddalle``: v2.0: map of methods
         """
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
@@ -2899,8 +3219,8 @@ class DataKit(BaseData):
             *V*: :class:`np.ndarray`\ [:class:`float`]
                 Array of function outputs
         :Versions:
-            * 2019-01-07 ``@ddalle``: Version 1.0
-            * 2019-12-30 ``@ddalle``: Version 2.0: map of methods
+            * 2019-01-07 ``@ddalle``: v1.0
+            * 2019-12-30 ``@ddalle``: v2.0: map of methods
             * 2020-04-20 ``@ddalle``: Moved meat from :func:`__call__`
         """
        # --- Get coefficient name ---
@@ -3041,7 +3361,7 @@ class DataKit(BaseData):
             *V*: :class:`np.ndarray`\ [:class:`float`]
                 Multiple values matching exactly
         :Versions:
-            * 2018-12-30 ``@ddalle``: Version 1.0
+            * 2018-12-30 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
             * 2020-05-19 ``@ddalle``: Support for 2D cols
@@ -3122,7 +3442,7 @@ class DataKit(BaseData):
             *y*: :class:`float` | *db[col].__class__*
                 Value of *db[col]* at point closest to *a*
         :Versions:
-            * 2018-12-30 ``@ddalle``: Version 1.0
+            * 2018-12-30 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-04-24 ``@ddalle``: Switched args to :class:`tuple`
             * 2020-05-19 ``@ddalle``: Support for 2D cols
@@ -3185,7 +3505,7 @@ class DataKit(BaseData):
             *y*: :class:`float` | *db[col].__class__*
                 Value of *db[col]* at point closest to *a*
         :Versions:
-            * 2023-01-30 ``@ddalle``: Version 1.0
+            * 2023-01-30 ``@ddalle``: v1.0
         """
         # Get mask for this column
         mask = kw.get("mask", self.response_masks.get(col))
@@ -3272,7 +3592,7 @@ class DataKit(BaseData):
             *U*: :class:`dict`\ [:class:`float` | :class:`np.ndarray`]
                 Values of relevant UQ col(s) by name
         :Versions:
-            * 2019-03-07 ``@ddalle``: Version 1.0
+            * 2019-03-07 ``@ddalle``: v1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
        # --- Get coefficient name ---
@@ -3370,7 +3690,7 @@ class DataKit(BaseData):
             *V*: :class:`float` | :class:`np.ndarray`
                 Values of *col* as appropriate
         :Versions:
-            * 2019-03-13 ``@ddalle``: Version 1.0
+            * 2019-03-13 ``@ddalle``: v1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
        # --- Argument processing ---
@@ -3450,7 +3770,7 @@ class DataKit(BaseData):
             *v*: :class:`float`
                 Scalar evaluation of *col*
         :Versions:
-            * 2019-03-13 ``@ddalle``: Version 1.0
+            * 2019-03-13 ``@ddalle``: v1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
        # --- Argument processing ---
@@ -3498,7 +3818,7 @@ class DataKit(BaseData):
                 Smoothing factor for methods that allow inexact
                 interpolation, ``0.0`` for exact interpolation
         :Versions:
-            * 2019-01-07 ``@ddalle``: Version 1.0
+            * 2019-01-07 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-18 ``@ddalle``: Name from :func:`SetEvalMethod`
             * 2020-03-06 ``@ddalle``: Name from :func:`set_responses`
@@ -3555,9 +3875,9 @@ class DataKit(BaseData):
             *extracols*: {``None``} | :class:`set` | :class:`list`
                 Additional col names that might be used as kwargs
         :Versions:
-            * 2019-01-07 ``@ddalle``: Version 1.0
+            * 2019-01-07 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
-            * 2019-12-30 ``@ddalle``: Version 2.0; map of methods
+            * 2019-12-30 ``@ddalle``: v2.0; map of methods
             * 2020-02-18 ``@ddalle``: Name from :func:`_set_method1`
             * 2020-03-06 ``@ddalle``: Name from :func:`set_response`
             * 2020-04-24 ``@ddalle``: Add *response_arg_alternates*
@@ -3644,7 +3964,7 @@ class DataKit(BaseData):
             *use_self*: {``True``} | ``False``
                 Flag to include database in callback
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Create response_funcs dictionary
         response_funcs = self.__dict__.setdefault("response_funcs", {})
@@ -3685,7 +4005,7 @@ class DataKit(BaseData):
             *scale*: :class:`dict`\ [:class:`float`]
                 Manual scaling weights for *args* distance scaling
         :Versions:
-            * 2023-01-30 ``@ddalle``: Version 1.0
+            * 2023-01-30 ``@ddalle``: v1.0
         """
         # Create response_funcs dictionary
         response_masks = self.__dict__.setdefault("response_masks", {})
@@ -3729,7 +4049,7 @@ class DataKit(BaseData):
             *args*: :class:`list`\ [:class:`str`]
                 List of evaluation arguments
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Get arguments arg
         args = kw.pop("args", None)
@@ -3758,7 +4078,7 @@ class DataKit(BaseData):
             *args*: :class:`list`\ [:class:`str`]
                 List of evaluation arguments
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Get arguments arg
         args = kw.pop("args", None)
@@ -3787,7 +4107,7 @@ class DataKit(BaseData):
             *args*: :class:`list`\ [:class:`str`]
                 List of evaluation arguments
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Get arguments arg
         args = kw.pop("args", None)
@@ -3862,7 +4182,7 @@ class DataKit(BaseData):
             *method*: ``None`` | :class:`str`
                 Name of evaluation method for *col* or ``"_"``
         :Versions:
-            * 2019-03-13 ``@ddalle``: Version 1.0
+            * 2019-03-13 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-30 ``@ddalle``: Added default
         """
@@ -3892,7 +4212,7 @@ class DataKit(BaseData):
             *f*: ``None`` | callable
                 Callable converter
         :Versions:
-            * 2019-03-13 ``@ddalle``: Version 1.0
+            * 2019-03-13 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get converter dictionary
@@ -3923,7 +4243,7 @@ class DataKit(BaseData):
             *fn*: ``None`` | *callable*
                 Specified function for *col*
         :Versions:
-            * 2019-12-28 ``@ddalle``: Version 1.0
+            * 2019-12-28 ``@ddalle``: v1.0
         """
         # Get dictionary
         response_funcs = self.__dict__.get("response_funcs", {})
@@ -3959,7 +4279,7 @@ class DataKit(BaseData):
             *aliases*: {``{}``} | :class:`dict`
                 Alternate names for args while evaluationg *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Get attribute
         arg_aliases = self.__dict__.get("response_arg_aliases", {})
@@ -3999,7 +4319,7 @@ class DataKit(BaseData):
             *kwargs*: {``{}``} | :class:`dict`
                 Keyword arguments to add while evaluating *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Get attribute
         response_kwargs = self.__dict__.get("response_kwargs", {})
@@ -4038,7 +4358,7 @@ class DataKit(BaseData):
             *xargs*: {``[]``} | :class:`list`\ [:class:`str`]
                 List of input args to one condition of *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
             * 2020-03-27 ``@ddalle``: From *db.defns* to *db.response_xargs*
         """
         # Get attribute
@@ -4070,7 +4390,7 @@ class DataKit(BaseData):
             *xarg*: ``None`` | :class:`str`
                 Input arg to function for one condition of *col*
         :Versions:
-            * 2021-12-16 ``@ddalle``: Version 1.0
+            * 2021-12-16 ``@ddalle``: v1.0
         """
         # Get *xk* for output
         xargs = self.get_output_xargs(col)
@@ -4099,7 +4419,7 @@ class DataKit(BaseData):
             *acols*: :class:`list`\ [:class:`str`]
                 Name of aux columns required to evaluate *col*
         :Versions:
-            * 2020-03-23 ``@ddalle``: Version 1.0
+            * 2020-03-23 ``@ddalle``: v1.0
             * 2020-04-21 ``@ddalle``: Rename *eval_acols*
         """
         # Get dictionary of ecols
@@ -4139,7 +4459,7 @@ class DataKit(BaseData):
             *db.response_args*: :class:`dict`
                 Entry for *col* set to copy of *args* w/ type checks
         :Versions:
-            * 2019-12-28 ``@ddalle``: Version 1.0
+            * 2019-12-28 ``@ddalle``: v1.0
             * 2020-04-21 ``@ddalle``: Rename from :func:`set_eval_args`
         """
         # Check types
@@ -4180,7 +4500,7 @@ class DataKit(BaseData):
             *db.response_methods*: :class:`dict`
                 Entry for *col* set to *method*
         :Versions:
-            * 2019-12-28 ``@ddalle``: Version 1.0
+            * 2019-12-28 ``@ddalle``: v1.0
         """
         # Check types
         if not typeutils.isstr(col):
@@ -4215,7 +4535,7 @@ class DataKit(BaseData):
             *db.response_methods*: :class:`dict`
                 Entry for *col* set to *method*
         :Versions:
-            * 2019-12-28 ``@ddalle``: Version 1.0
+            * 2019-12-28 ``@ddalle``: v1.0
         """
         # Check types
         if not typeutils.isstr(col):
@@ -4251,7 +4571,7 @@ class DataKit(BaseData):
             *v*: :class:`float`
                 Default value of the argument to set
         :Versions:
-            * 2019-02-28 ``@ddalle``: Version 1.0
+            * 2019-02-28 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get dictionary
@@ -4273,7 +4593,7 @@ class DataKit(BaseData):
             *fn*: :class:`function`
                 Conversion function
         :Versions:
-            * 2019-02-28 ``@ddalle``: Version 1.0
+            * 2019-02-28 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Check input
@@ -4299,7 +4619,7 @@ class DataKit(BaseData):
             *aliases*: {``{}``} | :class:`dict`
                 Alternate names for args while evaluationg *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Transform any False-like thing to {}
         if not aliases:
@@ -4341,7 +4661,7 @@ class DataKit(BaseData):
             *kwargs*: {``{}``} | :class:`dict`
                 Keyword arguments to add while evaluating *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
         """
         # Transform any False-like thing to {}
         if not kwargs:
@@ -4380,7 +4700,7 @@ class DataKit(BaseData):
             *xargs*: :class:`list`\ [:class:`str`]
                 List of input args to one condition of *col*
         :Versions:
-            * 2019-12-30 ``@ddalle``: Version 1.0
+            * 2019-12-30 ``@ddalle``: v1.0
             * 2020-03-27 ``@ddalle``: From *db.defns* to *db.response_xargs*
         """
         # De-None
@@ -4416,7 +4736,7 @@ class DataKit(BaseData):
             *acols*: :class:`list`\ [:class:`str`]
                 Name of aux columns required to evaluate *col*
         :Versions:
-            * 2020-03-23 ``@ddalle``: Version 1.0
+            * 2020-03-23 ``@ddalle``: v1.0
             * 2020-04-21 ``@ddalle``: Rename *eval_acols*
         """
         # Check type
@@ -4454,7 +4774,7 @@ class DataKit(BaseData):
             *db.respone_arg_alternates[col]*: :class:`set`
                 Cols that are used by response for *col*
         :Versions:
-            * 2020-04-24 ``@ddalle``: Version 1.0
+            * 2020-04-24 ``@ddalle``: v1.0
         """
         # Handle to class
         cls = self.__class__
@@ -4516,7 +4836,7 @@ class DataKit(BaseData):
             *altcols*: :class:`set`\ [:class:`str`\
                 Cols that are used by response for *col*
         :Versions:
-            * 2020-04-24 ``@ddalle``: Version 1.0
+            * 2020-04-24 ``@ddalle``: v1.0
         """
         # Get dictionary
         arg_alts = self.__dict__.get("response_arg_alternates", {})
@@ -4547,7 +4867,7 @@ class DataKit(BaseData):
                     * ``3``: use :func:`rcall_exact`
 
         :Versions:
-            * 2020-04-24 ``@ddalle``: Version 1.0
+            * 2020-04-24 ``@ddalle``: v1.0
         """
         # Get method, if any
         method = self.get_response_method(col)
@@ -4609,7 +4929,7 @@ class DataKit(BaseData):
             *kwr*: :class:`dict`
                 Keyword args to :func:`__call__` or other methods
         :Versions:
-            * 2020-04-24 ``@ddalle``: Version 1.0
+            * 2020-04-24 ``@ddalle``: v1.0
         """
         # Check for trivial case
         if not kw:
@@ -4663,7 +4983,7 @@ class DataKit(BaseData):
             *v*: :class:`float` | :class:`np.ndarray`
                 Value of the argument, possibly converted
         :Versions:
-            * 2019-02-28 ``@ddalle``: Version 1.0
+            * 2019-02-28 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Number of direct arguments
@@ -4741,7 +5061,7 @@ class DataKit(BaseData):
                 according to *b.response_args[col]*; each entry of *X*
                 will have the same size
         :Versions:
-            * 2019-03-12 ``@ddalle``: Version 1.0
+            * 2019-03-12 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
        # --- Get column name ---
@@ -4795,7 +5115,7 @@ class DataKit(BaseData):
             *kw*: :class:`dict`
                 Keyword inputs with coefficient name removed
         :Versions:
-            * 2019-03-12 ``@ddalle``: Version 1.0
+            * 2019-03-12 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-18 ``@ddalle``: From :func:`_process_coeff`
         """
@@ -4839,7 +5159,7 @@ class DataKit(BaseData):
             *dims*: :class:`tuple`\ [:class:`int`]
                 Original dimensions of non-scalar input array
         :Versions:
-            * 2019-03-11 ``@ddalle``: Version 1.0
+            * 2019-03-11 ``@ddalle``: v1.0
             * 2019-03-14 ``@ddalle``: Added *asarray* input
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-18 ``@ddalle``: Removed ``@staticmethod``
@@ -4927,7 +5247,7 @@ class DataKit(BaseData):
             *x1*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
-            * 2019-04-19 ``@ddalle``: Version 1.0
+            * 2019-04-19 ``@ddalle``: v1.0
             * 2019-07-26 ``@ddalle``: Vectorized
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
@@ -5042,7 +5362,7 @@ class DataKit(BaseData):
             *x1*: :class:`np.ndarray`\ [:class:`float`]
                 Evaluation values for ``args[1:]`` at *i1*
         :Versions:
-            * 2019-04-19 ``@ddalle``: Version 1.0
+            * 2019-04-19 ``@ddalle``: v1.0
         """
         # Error check
         if len(args) < 2:
@@ -5123,7 +5443,7 @@ class DataKit(BaseData):
             *y*: ``None`` | :class:`float` | ``db[col].__class__``
                 Interpolated value from ``db[col]``
         :Versions:
-            * 2018-12-30 ``@ddalle``: Version 1.0
+            * 2018-12-30 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Call root method without two of the options
@@ -5159,7 +5479,7 @@ class DataKit(BaseData):
             *y*: ``None`` | :class:`float` | ``DBc[coeff].__class__``
                 Interpolated value from ``DBc[coeff]``
         :Versions:
-            * 2018-12-30 ``@ddalle``: Version 1.0
+            * 2018-12-30 ``@ddalle``: v1.0
             * 2019-04-19 ``@ddalle``: Moved from :func:`eval_multilnear`
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
@@ -5325,7 +5645,7 @@ class DataKit(BaseData):
             *y*: ``None`` | :class:`float` | ``db[col].__class__``
                 Interpolated value from ``db[col]``
         :Versions:
-            * 2019-04-19 ``@ddalle``: Version 1.0
+            * 2019-04-19 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Slice tolerance
@@ -5370,7 +5690,7 @@ class DataKit(BaseData):
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
         :Versions:
-            * 2018-12-31 ``@ddalle``: Version 1.0
+            * 2018-12-31 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get the radial basis function
@@ -5403,7 +5723,7 @@ class DataKit(BaseData):
             *f*: :class:`scipy.interpolate.rbf.Rbf`
                 Callable radial basis function
         :Versions:
-            * 2018-12-31 ``@ddalle``: Version 1.0
+            * 2018-12-31 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get the radial basis function
@@ -5455,7 +5775,7 @@ class DataKit(BaseData):
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
         :Versions:
-            * 2018-12-31 ``@ddalle``: Version 1.0
+            * 2018-12-31 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Lookup value for first variable
@@ -5491,7 +5811,7 @@ class DataKit(BaseData):
             *y*: :class:`float` | :class:`np.ndarray`
                 Interpolated value from *db[col]*
         :Versions:
-            * 2018-12-31 ``@ddalle``: Version 1.0
+            * 2018-12-31 ``@ddalle``: v1.0
         """
         # Extrapolation option
         extrap = kw.get("extrap", False)
@@ -5528,7 +5848,7 @@ class DataKit(BaseData):
             *y*: ``None`` | :class:`float` | ``DBc[coeff].__class__``
                 Interpolated value from ``DBc[coeff]``
         :Versions:
-            * 2018-12-31 ``@ddalle``: Version 1.0
+            * 2018-12-31 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Get the function
@@ -5540,12 +5860,8 @@ class DataKit(BaseData):
         else:
             # Stand-alone function
             return f(*x, **kw)
-  # >
 
-  # ===================
-  # Column Names
-  # ===================
-  # <
+  # *** COL NAMES ***
    # --- Rename ---
     # Rename a column
     def rename_col(self, col1, col2):
@@ -5561,7 +5877,7 @@ class DataKit(BaseData):
             *col2*: :class:`str`
                 Renamed title for *col1*
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
         """
         # Check if *col1* is present
         if col1 not in self:
@@ -5603,7 +5919,7 @@ class DataKit(BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: Version 1.0
+            * 2020-03-24 ``@ddalle``: v1.0
         """
         # Check for null input
         if not prefix:
@@ -5645,7 +5961,7 @@ class DataKit(BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: Version 1.0
+            * 2020-03-24 ``@ddalle``: v1.0
         """
         # Check for null input
         if not prefix:
@@ -5693,7 +6009,7 @@ class DataKit(BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: Version 1.0
+            * 2020-03-24 ``@ddalle``: v1.0
         """
         # Check for component name
         parts = col.split(".")
@@ -5720,7 +6036,7 @@ class DataKit(BaseData):
 
    # --- Suffix ---
     # Append something to the name of a column
-    def append_colname(self, col, suffix):
+    def append_colname(self, col: str, suffix: str):
         r"""Add a suffix to a column name
 
         This maintains component names, so for example if *col* is
@@ -5740,7 +6056,7 @@ class DataKit(BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: Version 1.0
+            * 2020-03-24 ``@ddalle``: v1.0
         """
         # Check for null input
         if not suffix:
@@ -5762,7 +6078,7 @@ class DataKit(BaseData):
         return newcol
 
     # Prepend something to the name of a columns
-    def rstrip_colname(self, col, suffix):
+    def rstrip_colname(self, col: str, suffix: str):
         r"""Remove a suffix from a column name
 
         This maintains component names, so for example if *col* is
@@ -5782,7 +6098,7 @@ class DataKit(BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: Version 1.0
+            * 2020-03-24 ``@ddalle``: v1.0
         """
         # Check for null input
         if not suffix:
@@ -5830,7 +6146,7 @@ class DataKit(BaseData):
             *newcol*: :class:`str`
                 Prefixed name
         :Versions:
-            * 2020-03-24 ``@ddalle``: Version 1.0
+            * 2020-03-24 ``@ddalle``: v1.0
         """
         # Check for component name
         parts = col.split(".")
@@ -5854,12 +6170,8 @@ class DataKit(BaseData):
             newcol = coeff
         # Output
         return newcol
-  # >
 
-  # ===================
-  # UQ
-  # ===================
-  # <
+  # *** UQ ***
    # --- Estimators ---
     # Entire database UQ generation
     def est_uq_db(self, db2, cols=None, **kw):
@@ -5902,8 +6214,8 @@ class DataKit(BaseData):
             *db1.uq_afuncs*: {``{}``} | :class:`dict`\ [**callable**]
                 Function to use aux cols when estimating *ucol*
         :Versions:
-            * 2019-02-15 ``@ddalle``: Version 1.0
-            * 2020-04-02 ``@ddalle``: Version 2.0
+            * 2019-02-15 ``@ddalle``: v1.0
+            * 2020-04-02 ``@ddalle``: v2.0
                 - was :func:`EstimateUQ_DB`
         """
        # --- Inputs ---
@@ -5998,7 +6310,7 @@ class DataKit(BaseData):
                 Values of *ucol* and any *nu* "extra" *uq_ecols* for
                 each window
         :Versions:
-            * 2019-02-15 ``@ddalle``: Version 1.0
+            * 2019-02-15 ``@ddalle``: v1.0
             * 2020-04-02 ``@ddalle``: v2.0, from ``EstimateUQ_coeff()``
         """
        # --- Inputs ---
@@ -6082,7 +6394,7 @@ class DataKit(BaseData):
             *U*: :class:`tuple`\ [:class:`float`]
                 Values of any "extra" *uq_ecols*
         :Versions:
-            * 2019-02-15 ``@ddalle``: Version 1.0
+            * 2019-02-15 ``@ddalle``: v1.0
             * 2020-04-02 ``@ddalle``: Second version
         """
        # --- Inputs ---
@@ -6139,7 +6451,7 @@ class DataKit(BaseData):
             *a*: :class:`tuple`\ [:class:`float`]
                 Values of any "extra" *uq_ecols*
         :Versions:
-            * 2019-02-15 ``@ddalle``: Version 1.0
+            * 2019-02-15 ``@ddalle``: v1.0
             * 2020-03-20 ``@ddalle``: Mods from :mod:`tnakit.db.db1`
         """
        # --- Statistics Options ---
@@ -6281,7 +6593,7 @@ class DataKit(BaseData):
             *I*: :class:`np.ndarray`
                 Indices of cases (relative to *test_values*) in window
         :Versions:
-            * 2019-02-13 ``@ddalle``: Version 1.0
+            * 2019-02-13 ``@ddalle``: v1.0
             * 2020-04-01 ``@ddalle``: Modified from :mod:`tnakit.db`
         """
        # --- Check bounds ---
@@ -6406,7 +6718,7 @@ class DataKit(BaseData):
             *bkpts*: :class:`dict`\ [:class:`np.ndarray`]
                 Dictionary of unique candidate values for each key
         :Versions:
-            * 2019-02-13 ``@ddalle``: Version 1.0
+            * 2019-02-13 ``@ddalle``: v1.0
             * 2020-03-20 ``@ddalle``: Migrated from :mod:`tnakit`
         """
        # --- Lookup values ---
@@ -6468,7 +6780,7 @@ class DataKit(BaseData):
             *a01*: :class:`float`
                 Value of *uargs[1]* for second window
         :Versions:
-            * 2019-02-16 ``@ddalle``: Version 1.0
+            * 2019-02-16 ``@ddalle``: v1.0
             * 2020-04-02 ``@ddalle``: Updates for :class:`DataKit`
         """
         # Get test values and test break points
@@ -6500,7 +6812,7 @@ class DataKit(BaseData):
             *ucol*: ``None`` | :class:`str`
                 Name of UQ column for *col*
         :Versions:
-            * 2019-03-13 ``@ddalle``: Version 1.0
+            * 2019-03-13 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
             * 2019-12-26 ``@ddalle``: Renamed from :func:`get_uq_coeff`
         """
@@ -6524,7 +6836,7 @@ class DataKit(BaseData):
             *ecols*: :class:`list`\ [:class:`str`]
                 Name of extra columns required to evaluate *ucol*
         :Versions:
-            * 2020-03-21 ``@ddalle``: Version 1.0
+            * 2020-03-21 ``@ddalle``: v1.0
         """
         # Get dictionary of ecols
         uq_ecols = self.__dict__.get("uq_ecols", {})
@@ -6560,7 +6872,7 @@ class DataKit(BaseData):
             *efunc*: **callable**
                 Function to evaluate *ecol*
         :Versions:
-            * 2020-03-20 ``@ddalle``: Version 1.0
+            * 2020-03-20 ``@ddalle``: v1.0
         """
         # Get dictionary of extra UQ funcs
         uq_efuncs = self.__dict__.get("uq_efuncs", {})
@@ -6582,7 +6894,7 @@ class DataKit(BaseData):
             *acols*: :class:`list`\ [:class:`str`]
                 Name of extra columns required for estimate *ucol*
         :Versions:
-            * 2020-03-23 ``@ddalle``: Version 1.0
+            * 2020-03-23 ``@ddalle``: v1.0
         """
         # Get dictionary of acols
         uq_acols = self.__dict__.get("uq_acols", {})
@@ -6618,7 +6930,7 @@ class DataKit(BaseData):
             *afunc*: **callable**
                 Function to estimate *ucol*
         :Versions:
-            * 2020-03-23 ``@ddalle``: Version 1.0
+            * 2020-03-23 ``@ddalle``: v1.0
         """
         # Get dictionary of aux UQ funcs
         uq_afuncs = self.__dict__.get("uq_afuncs", {})
@@ -6643,7 +6955,7 @@ class DataKit(BaseData):
             *db.uq_cols*: :class:`dict`
                 Entry for *col* set to *ucol*
         :Versions:
-            * 2020-03-20 ``@ddalle``: Version 1.0
+            * 2020-03-20 ``@ddalle``: v1.0
             * 2020-05-08 ``@ddalle``: Remove if *ucol* is ``None``
         """
         # Get handle to attribute
@@ -6683,7 +6995,7 @@ class DataKit(BaseData):
             *ecols*: :class:`list`\ [:class:`str`]
                 Name of extra columns required for *ucol*
         :Versions:
-            * 2020-03-21 ``@ddalle``: Version 1.0
+            * 2020-03-21 ``@ddalle``: v1.0
             * 2020-05-08 ``@ddalle``: Remove if *ecols* is ``None``
         """
         # Get dictionary of ecols
@@ -6722,7 +7034,7 @@ class DataKit(BaseData):
             *efunc*: ``None`` | **callable**
                 Function to evaluate *ecol*
         :Versions:
-            * 2020-03-21 ``@ddalle``: Version 1.0
+            * 2020-03-21 ``@ddalle``: v1.0
             * 2020-05-08 ``@ddalle``: Remove if *efunc* is ``None``
         """
         # Get dictionary of extra UQ funcs
@@ -6752,7 +7064,7 @@ class DataKit(BaseData):
             *acols*: ``None`` | :class:`list`\ [:class:`str`]
                 Name of extra columns required for estimate *ucol*
         :Versions:
-            * 2020-03-23 ``@ddalle``: Version 1.0
+            * 2020-03-23 ``@ddalle``: v1.0
             * 2020-05-08 ``@ddalle``: Remove if *acols* is ``None``
         """
         # Get dictionary of ecols
@@ -6790,7 +7102,7 @@ class DataKit(BaseData):
             *afunc*: **callable**
                 Function to estimate *ucol*
         :Versions:
-            * 2020-03-23 ``@ddalle``: Version 1.0
+            * 2020-03-23 ``@ddalle``: v1.0
             * 2020-05-08 ``@ddalle``: Remove if *afunc* is ``None``
         """
         # Get dictionary of aux UQ funcs
@@ -6804,12 +7116,8 @@ class DataKit(BaseData):
             raise TypeError("Function is not callable")
         # Get entry for *col*
         uq_afuncs[ucol] = afunc
-  # >
 
-  # ===================
-  # Increment & Deltas
-  # ===================
-  # <
+  # *** INCREMENTS & DELTAS ***
    # --- Increment ---
     # Create increment and UQ estimate for one column
     def genr8_udiff_by_rbf(self, db2, cols, scol=None, **kw):
@@ -6849,7 +7157,7 @@ class DataKit(BaseData):
             *ddb._slices*: :class:`list`\ [:class:`np.ndarray`]
                 Saved lists of indices on which smoothing is performed
         :Versions:
-            * 2020-05-08 ``@ddalle``: Version 1.0
+            * 2020-05-08 ``@ddalle``: v1.0
         """
         # Create primary (smoothed) deltas
         ddb = self.genr8_rdiff_by_rbf(db2, cols, scol=scol, **kw)
@@ -7149,7 +7457,7 @@ class DataKit(BaseData):
             *ddb[col]*: :class:`np.ndarray`
                 Smoothed difference between *db2* and *db*
         :Versions:
-            * 2020-05-08 ``@ddalle``: Version 1.0
+            * 2020-05-08 ``@ddalle``: v1.0
         """
         # Create new instance
         ddb = self.__class__()
@@ -7236,7 +7544,7 @@ class DataKit(BaseData):
             *slices*: :class:`list`\ [:class:`np.ndarray`]
                 Indices (relative to *vals*) of points in each slice
         :Versions:
-            * 2019-02-20 ``@ddalle``: Version 1.0
+            * 2019-02-20 ``@ddalle``: v1.0
             * 2020-05-07 ``@ddalle``: Fork from :class:`db1.DBCoeff`
         """
        # --- Tolerances ---
@@ -7288,12 +7596,8 @@ class DataKit(BaseData):
             slices.append(I)
         # Output
         return vals, slices
-  # >
 
-  # ===================
-  # Break Points
-  # ===================
-  # <
+  # *** BREAK POINTS ***
    # --- Breakpoint Creation ---
     # Get automatic break points
     def create_bkpts(self, cols, nmin=5, tol=1e-12, tols={}, mask=None):
@@ -7323,7 +7627,7 @@ class DataKit(BaseData):
             *db.bkpts[col]*: :class:`np.ndarray` | :class:`list`
                 Unique values of *DBc[col]* with at least *nmin* entries
         :Versions:
-            * 2018-06-08 ``@ddalle``: Version 1.0
+            * 2018-06-08 ``@ddalle``: v1.0
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
             * 2020-03-26 ``@ddalle``: Renamed, :func:`get_bkpts`
             * 2020-05-06 ``@ddalle``: Moved much to :func:`genr8_bkpts`
@@ -7365,7 +7669,7 @@ class DataKit(BaseData):
             *B*: :class:`np.ndarray` | :class:`list`
                 Unique values of *DBc[col]* with at least *nmin* entries
         :Versions:
-            * 2020-05-06 ``@ddalle``: Version 1.0
+            * 2020-05-06 ``@ddalle``: v1.0
         """
         # Check type
         if not isinstance(col, typeutils.strlike):
@@ -7435,7 +7739,7 @@ class DataKit(BaseData):
             *DBc.bkpts[key]*: :class:`np.ndarray`\ [:class:`float`]
                 Unique values of *DBc[key]* with at least *nmin* entries
         :Versions:
-            * 2018-06-29 ``@ddalle``: Version 1.0
+            * 2018-06-29 ``@ddalle``: v1.0
             * 2019-12-16 ``@ddalle``: Ported to :mod:`rdbnull`
             * 2020-03-26 ``@ddalle``: Renamed, :func:`map_bkpts`
         """
@@ -7524,7 +7828,7 @@ class DataKit(BaseData):
             *db.bkpts[col]*: :class:`list`\ [:class:`np.ndarray`]
                 Unique values of *db[col]* at each value of *scol*
         :Versions:
-            * 2018-06-29 ``@ddalle``: Version 1.0
+            * 2018-06-29 ``@ddalle``: v1.0
             * 2019-12-16 ``@ddalle``: Ported to :mod:`rdbnull`
             * 2020-03-26 ``@ddalle``: Renamed, :func:`schedule_bkpts`
         """
@@ -7637,7 +7941,7 @@ class DataKit(BaseData):
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is equal to upper bound
         :Versions:
-            * 2018-12-30 ``@ddalle``: Version 1.0
+            * 2018-12-30 ``@ddalle``: v1.0
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
         """
         # Extract values
@@ -7695,7 +7999,7 @@ class DataKit(BaseData):
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is equal to upper bound
         :Versions:
-            * 2018-04-19 ``@ddalle``: Version 1.0
+            * 2018-04-19 ``@ddalle``: v1.0
         """
         # Get potential values
         V = self._scheduled_bkpts(k, j)
@@ -7730,8 +8034,8 @@ class DataKit(BaseData):
                 Lookup fraction, ``1.0`` if *v* is equal to upper bound;
                 can be outside 0-1 bound for extrapolation
         :Versions:
-            * 2018-12-30 ``@ddalle``: Version 1.0
-            * 2019-12-16 ``@ddalle``: Version 2.0; for :mod:`rdbnull`
+            * 2018-12-30 ``@ddalle``: v1.0
+            * 2019-12-16 ``@ddalle``: v2.0; for :mod:`rdbnull`
         """
         # Get length
         n = V.size
@@ -7781,7 +8085,7 @@ class DataKit(BaseData):
             *v*: :class:`float` | :class:`np.ndarray`
                 Break point or array of break points
         :Versions:
-            * 2018-12-31 ``@ddalle``: Version 1.0
+            * 2018-12-31 ``@ddalle``: v1.0
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
         """
         # Get the break points
@@ -7832,7 +8136,7 @@ class DataKit(BaseData):
             *f*: 0 <= :class:`float` <= 1
                 Lookup fraction, ``1.0`` if *v* is equal to upper bound
         :Versions:
-            * 2018-12-30 ``@ddalle``: Version 1.0
+            * 2018-12-30 ``@ddalle``: v1.0
             * 2019-12-16 ``@ddalle``: Updated for :mod:`rdbnull`
         """
         # Get the break points
@@ -7887,7 +8191,7 @@ class DataKit(BaseData):
             *slices*: :class:`dict` (:class:`ndarray`)
                 Array of slice values for each col in *scol*
         :Versions:
-            * 2018-11-16 ``@ddalle``: Version 1.0
+            * 2018-11-16 ``@ddalle``: v1.0
         """
        # --- Slice col Checks ---
         # Check for list or string
@@ -8070,12 +8374,8 @@ class DataKit(BaseData):
                     slices[col] = np.hstack((slices[col], Xs[col]))
         # Output
         return X, slices
-  # >
 
-  # ====================
-  # Interpolation Tools
-  # ====================
-  # <
+  # *** INTERPOLATION ***
    # --- RBF construction ---
     # Regularization
     def create_global_rbfs(self, cols, args, I=None, **kw):
@@ -8100,7 +8400,7 @@ class DataKit(BaseData):
             *db.rbf[col]*: :class:`scipy.interpolate.rbf.Rbf`
                 Radial basis function for each *col* in *cols*
         :Versions:
-            * 2019-01-01 ``@ddalle``: Version 1.0
+            * 2019-01-01 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-22 ``@ddalle``: Utilize :func:`create_rbf`
         """
@@ -8152,7 +8452,7 @@ class DataKit(BaseData):
             *db.rbf[col]*: :class:`list`\ [:class:`scirbf.Rbf`]
                 List of RBFs at each slice for each *col* in *cols*
         :Versions:
-            * 2019-01-01 ``@ddalle``: Version 1.0
+            * 2019-01-01 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Check for module
@@ -8236,7 +8536,7 @@ class DataKit(BaseData):
             *rbf*: :class:`scipy.interpolate.rbf.Rbf`
                 Radial basis function for *col*
         :Versions:
-            * 2019-01-01 ``@ddalle``: Version 1.0
+            * 2019-01-01 ``@ddalle``: v1.0
             * 2019-12-17 ``@ddalle``: Ported from :mod:`tnakit`
             * 2020-02-22 ``@ddalle``: Single-*col* version
             * 2020-03-06 ``@ddalle``: Name from :funC:`create_rbf`
@@ -8282,7 +8582,7 @@ class DataKit(BaseData):
             *W*: :class:`np.ndarray`\ [:class:`float`]
                 Interpolation weights; same size as test points *a*
         :Versions:
-            * 2020-03-10 ``@ddalle``: Version 1.0
+            * 2020-03-10 ``@ddalle``: v1.0
         """
         # Check for module
         if sciint is None:
@@ -8356,12 +8656,8 @@ class DataKit(BaseData):
             W[:, k] = W1
         # Output
         return W
-  # >
 
-  # ==================
-  # Filtering
-  # ==================
-  # <
+  # *** FILTERING ***
    # --- Repeats ---
     # Remove repeats
     def filter_repeats(self, args, cols=None, **kw):
@@ -8390,7 +8686,7 @@ class DataKit(BaseData):
             *kw*: :class:`dict`
                 Additional values to use for evaluation in :func:`find`
         :Versions:
-            * 2020-05-05 ``@ddalle``: Version 1.0
+            * 2020-05-05 ``@ddalle``: v1.0
         """
        # --- Column Lists ---
         # Check types
@@ -8550,7 +8846,7 @@ class DataKit(BaseData):
                 *repeats* is an index of a case that matches for each
                 *col* in *cols*
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
         """
         # Set (force) option for db.find()
         kw["mapped"] = True
@@ -8576,16 +8872,148 @@ class DataKit(BaseData):
             anchors.add(imap[0])
         # Output
         return repeats
-  # >
 
-  # ==================
-  # Data
-  # ==================
-  # <
-   # --- Save/Add ---
+  # *** DATA ***
+   # --- Append ---
+    # Append a case of another DataKit
+    def append_db_case(self, db: "DataKit", i: int):
+        r"""Append data to each colum from one entry of another DataKit
+
+        :Call:
+            >>> db.append_db_case(db1, i)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *db1*: :class:`DataKit`
+                Data instance to append from
+            *i*: :class:`int`
+                Index of entry in *db1* to append
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Loop through columns
+        for col in db.cols:
+            self.append_col(col, db.get_values(col, i))
+
+    # Append data to multiple columns
+    def xappend(self, d: dict):
+        r"""Append data to multiple columns
+
+        This works for scalars, lists, 1D arrays, and *N*-D arrays
+
+        :Call:
+            >>> db.append_dict(d)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *d*: :class:`dict`
+                Dictionary of cols (keys) and values to append
+        :Versions:
+            * 2025-07-23 ``@ddalle``: v1.0
+        """
+        # Loop through cols of *d*
+        for col, v in d.items():
+            self.append_col(col, v)
+
+    # Append data to a column
+    def append_col(self, col: str, v: Any):
+        r"""Append *v* to the value of ``db[col]``
+
+        This works for scalars, lists, 1D arrays, and *N*-D arrays
+
+        :Call:
+            >>> db.append_col(col, v)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *col*: :class:`str`
+                Name of column to append to
+            *v*: :class:`object`
+                Appropriately-sized item (e.g. column for 2D array)
+        :Versions:
+            * 2025-07-23 ``@ddalle``: v1.0
+        """
+        # Get data
+        u = self.get(col)
+        # Check type
+        if u is None:
+            # Empty; add new data
+            self.save_col(col, v)
+        elif isinstance(u, list):
+            # Just append it
+            u.append(v)
+        elif isinstance(u, np.ndarray):
+            # Ensure array, check sizes, etc.
+            va = self._prep_append(col, v)
+            # Check for simple case
+            if u.ndim == 1:
+                # Simple append
+                self[col] = np.hstack((u, v))
+            else:
+                # Append after sampling to one-higher dimension
+                self[col] = np.hstack((u, va[..., None]))
+        else:
+            # Replace scalar
+            self[col] = v
+
+    # Prepare *v* for appending
+    def _prep_append(self, col: str, v: Any) -> np.ndarray:
+        # Get values (assume array)
+        u = self.get(col)
+        # Ensure array
+        va = np.asarray(v)
+        # Get dimensions
+        ndu = u.ndim
+        ndv = va.ndim
+        # Check
+        if ndv + 1 != ndu:
+            raise IndexError(
+                f"Cannt append {ndv}-dimensional data to "
+                f"{ndu}-dimensional array in '{col}'")
+        # Check other dimensions
+        for k in range(ndv):
+            muk = u.shape[k]
+            mvk = v.shape[k]
+            if muk != mvk:
+                raise IndexError(
+                    f"Cannot append shape {va.shape} to {u.shape} "
+                    f"in col '{col}'")
+        # Return validated array
+        return va
+
+   # --- Set ---
+    # Replace values from another entry
+    def replace_db_case(self, i: int, db: "DataKit", j: int):
+        # Loop through columns
+        for col in db.cols:
+            # Get value
+            v = db.get_values(col, j)
+            # Set it
+            self.set_values(col, v, i)
+
+    # Set value for one entry of one col
+    def set_values(self, col: str, v: Any, i: int):
+        # Get data
+        u = self.get(col)
+        # Check type
+        if u is None:
+            # Empty; add new data
+            self.save_col(col, v)
+        elif isinstance(u, list):
+            # Just append it
+            u[i] = v
+        elif isinstance(u, np.ndarray):
+            # Ensure array, check sizes, etc.
+            va = self._prep_append(col, v)
+            # Set values
+            u[..., i] = va
+        else:
+            # Replace scalar
+            self[col] = v
+
    # --- Sort ---
     # Sort by list of columns
-    def sort(self, cols=None):
+    def sort(self, cols: Optional[list] = None):
         r"""Sort (ascending) using list of *cols*
 
         :Call:
@@ -8598,11 +9026,12 @@ class DataKit(BaseData):
                 priority to the first *col*, later *cols* used as
                 tie-breakers
         :Versions:
-            * 2021-09-17 ``@ddalle``: Version 1.0
+            * 2021-09-17 ``@ddalle``: v1.0
+            * 2025-07-24 ``@ddalle``: v1.1; use *db.xcols* as default
         """
         # Default columns
-        if cols is None:
-            cols = list(self.cols)
+        cols = cols if cols else self.xcols
+        cols = cols if cols else self.cols
         # First column
         col0 = cols[0]
         # Get value
@@ -8634,7 +9063,7 @@ class DataKit(BaseData):
             self[col] = v
 
     # Sort by list of columns (get order)
-    def argsort(self, cols=None):
+    def argsort(self, cols: Optional[list] = None):
         r"""Get (ascending) sort order using list of *cols*
 
         :Call:
@@ -8650,7 +9079,7 @@ class DataKit(BaseData):
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 Ordering such that *db[cols[0]][I]* is ascending, etc.
         :Versions:
-            * 2021-09-17 ``@ddalle``: Version 1.0
+            * 2021-09-17 ``@ddalle``: v1.0
         """
         # Default columns
         if cols is None:
@@ -8679,6 +9108,121 @@ class DataKit(BaseData):
             sort_args.insert(0, v)
         # Sort
         return np.lexsort(sort_args)
+
+   # --- Delete ---
+    def delete(self, mask: np.ndarray, cols: Optional[list] = None) -> int:
+        r"""Delete one or more cases from DataKit
+
+        :Call:
+            >>> n = db.delete(mask, cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Array of indices to delete
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases deleted
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+            * 2025-07-29 ``@ddalle``: v1.1; add *n* output
+        """
+        # Default column list
+        cols = self.cols if cols is None else cols
+        # Count number of cases
+        n = 0
+        # Delete from each
+        for col in cols:
+            try:
+                nj = self.delete_col(col, mask)
+                n = max(n, nj)
+            except IndexError:
+                print(
+                    f"  Cannot delete from col '{col}' due to size mismatch")
+        # Return number of deletions
+        return n
+
+    def delete_col(self, col: str, mask: np.ndarray) -> int:
+        r"""Delete data from one column
+
+        :Call:
+            >>> n = db.delete_col(col, mask)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Array of indices to delete
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases deleted
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+            * 2025-07-29 ``@ddalle``: v1.1; add *n* output
+        """
+        # Get data
+        u = self.get_all_values(col)
+        # Check type
+        if u is None:
+            return
+        # Convert *mask* to indices
+        mask_bool = self.prep_mask(mask, col, inds=False)
+        # Select cases to **keep**, inverse of *mask_bool*
+        u = self.get_values(col, ~mask_bool)
+        # Save it
+        self[col] = u
+        # Return number of deletions
+        return np.sum(mask_bool)
+
+   # --- Merge ---
+    def merge(self, db: "DataKit", statuscol: Optional[str] = None):
+        r"""Combine data w/o duplication
+
+        This will search for matches between *db* and *dbt* using the
+        attribute *db.xcols*, so that attribute must be set.
+
+        :Call:
+            >>> db.merge(dbt, statuscol=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *dbt*: :class:`DataKit`
+                Additional data container to merge data from
+            *statuscol*: {``None``} | :class:`str`
+                Optional column name to use to decide if *db* or *dbt*
+                is newer for any case present in both instances
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Check for *xcols*
+        if not self.xcols:
+            raise ValueError("'xcols' attribute must be set in order to merge")
+        # Skip if *db* is empty
+        if len(db[self.xcols[0]]) == 0:
+            return
+        # Find matches
+        ia, ib = self.xmatch(db)
+        # Look for cases in *db* w/o match
+        maskb = db.prep_mask(ib, self.xcols[0], inds=False)
+        # Addition flag
+        flag = False
+        # Convert to indices
+        for jb in np.where(~maskb)[0]:
+            # Append that case
+            self.append_db_case(db, jb)
+            flag = True
+        # Search matching cases for updates
+        if statuscol:
+            for ja, jb in zip(ia, ib):
+                # Get values of status col
+                va = self[statuscol][ja]
+                vb = db[statuscol][jb]
+                # Replace if newer
+                if vb > va:
+                    self.replace_db_case(ja, db, jb)
+                    flag = True
+        # Sort if we've done anything
+        if flag:
+            self.sort()
 
    # --- Copy/Link ---
     # Append data
@@ -8711,7 +9255,7 @@ class DataKit(BaseData):
             *db[col]*: *dbsrc[col]*
                 Reference to *dbsrc* data for each *col*
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
         """
         # Set *append* to ``True``
         kw.setdefault("append", True)
@@ -8743,8 +9287,8 @@ class DataKit(BaseData):
             *db[col]*: *dbsrc[col]*
                 Reference to *dbsrc* data for each *col*
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
-            * 2021-09-10 ``@ddalle``: Version 1.1; *prefix* and *suffix*
+            * 2019-12-06 ``@ddalle``: v1.0
+            * 2021-09-10 ``@ddalle``: v1.1; *prefix* and *suffix*
         """
         # Check type of data set
         if not isinstance(dbsrc, dict):
@@ -8793,8 +9337,8 @@ class DataKit(BaseData):
                 v0 = self[col1]
                 # Check consistent types and combine values
                 if (
-                    isinstance(v, float)
-                    and isinstance(v0, np.ndarray) and v0.ndim == 1
+                    isinstance(v, float) and
+                    isinstance(v0, np.ndarray) and v0.ndim == 1
                 ):
                     # Special case of mismatching types
                     v = np.append(v0, v)
@@ -8864,7 +9408,7 @@ class DataKit(BaseData):
             *col*: *k* | *defnamess[0]* | *defnamess[1]* | ...
                 Name of lookup key in *db.cols*
         :Versions:
-            * 2018-06-22 ``@ddalle``: Version 1.0
+            * 2018-06-22 ``@ddalle``: v1.0
         """
         # Get default
         if (k is not None):
@@ -8929,7 +9473,7 @@ class DataKit(BaseData):
             *V*: :class:`np.ndarray` | :class:`float`
                 Array of values or scalar for column *col*
         :Versions:
-            * 2019-03-12 ``@ddalle``: Version 1.0
+            * 2019-03-12 ``@ddalle``: v1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
         """
         # Option for processing keywrods
@@ -9002,7 +9546,7 @@ class DataKit(BaseData):
             *V*: :class:`np.ndarray`
                 Values of key *k* from conditions in *a* and *kw*
         :Versions:
-            * 2019-03-12 ``@ddalle``: Version 1.0
+            * 2019-03-12 ``@ddalle``: v1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
         # Process coefficient
@@ -9047,7 +9591,7 @@ class DataKit(BaseData):
             *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
                 Database indices
         :Versions:
-            * 2019-03-13 ``@ddalle``: Version 1.0
+            * 2019-03-13 ``@ddalle``: v1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit`
         """
         # Check for direct membership
@@ -9097,7 +9641,7 @@ class DataKit(BaseData):
                 *db[col]* if available, otherwise an attempt to apply
                 *db.response_arg_converters[col]*
         :Versions:
-            * 2019-03-11 ``@ddalle``: Version 1.0
+            * 2019-03-11 ``@ddalle``: v1.0
             * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
         """
         # Check if present
@@ -9129,7 +9673,7 @@ class DataKit(BaseData):
             return None
 
     # Attempt to get values of an argument or column, with mask
-    def get_values(self, col, mask=None):
+    def get_values(self, col: str, mask: Optional[np.ndarray] = None):
         r"""Attempt to get all or some values of a specified column
 
         This will use *db.response_arg_converters* if possible.
@@ -9150,7 +9694,7 @@ class DataKit(BaseData):
                 *db[col]* if available, otherwise an attempt to apply
                 *db.response_arg_converters[col]*
         :Versions:
-            * 2020-02-21 ``@ddalle``: Version 1.0
+            * 2020-02-21 ``@ddalle``: v1.0
         """
         # Get all values
         V = self.get_all_values(col)
@@ -9203,7 +9747,7 @@ class DataKit(BaseData):
             *db[col]*: :class:`list` | :class:`np.ndarray`
                 Subset *db[col][mask]* or similar
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
         """
         # Default list of columns
         if cols is None:
@@ -9241,7 +9785,7 @@ class DataKit(BaseData):
             *db[col]*: :class:`list` | :class:`np.ndarray`
                 Subset *db[col][mask]* or similar
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
         """
         # Check for null action
         if mask is None:
@@ -9264,12 +9808,18 @@ class DataKit(BaseData):
 
    # --- Mask ---
     # Prepare mask
-    def prep_mask(self, mask, col=None, V=None):
+    def prep_mask(
+            self,
+            mask: Union[int, np.ndarray],
+            col: Optional[str] = None,
+            V: Optional[np.ndarray] = None,
+            inds: bool = True):
         r"""Prepare logical or index mask
 
         :Call:
             >>> I = db.prep_mask(mask, col=None, V=None)
             >>> I = db.prep_mask(mask_index, col=None, V=None)
+            >>> mask = db.prep_mask(mask, col=None, V=None, inds=False)
         :Inputs:
             *db*: :class:`DataKit`
                 Data container
@@ -9285,7 +9835,7 @@ class DataKit(BaseData):
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of *db[col]* to consider
         :Versions:
-            * 2020-03-09 ``@ddalle``: Version 1.0
+            * 2020-03-09 ``@ddalle``: v1.0
         """
         # Get data so size can be determined
         if V is None:
@@ -9311,20 +9861,25 @@ class DataKit(BaseData):
             dtype = mask.dtype.name
         # Filter mask
         if mask is None:
-            # Create indices
-            mask_index = np.arange(n0)
+            # Select all cases
+            mask_out = np.arange(n0) if inds else np.ones(n0, dtype="bool")
         elif dtype.startswith("bool"):
-            # Get indices
-            mask_index = np.where(mask)[0]
+            # Convert from True/False mask
+            mask_out = mask if (not inds) else np.where(mask)[0]
         elif dtype.startswith("int") or dtype.startswith("uint"):
-            # Already indices
-            mask_index = mask
+            # Convert from indices
+            if inds:
+                mask_out = mask
+            else:
+                # Initialize as all False and select the indices
+                mask_out = np.zeros(n0, dtype="bool")
+                mask_out[mask] = True
         else:
             # Bad type
             # Note: should not be reachable
             raise TypeError("Mask must have dtype 'bool' or 'int'")
         # Output
-        return mask_index
+        return mask_out
 
     # Check if mask
     def check_mask(self, mask, col=None, V=None):
@@ -9348,7 +9903,7 @@ class DataKit(BaseData):
             *q*: ``True`` | ``False``
                 Whether or not *mask* is a valid mask
         :Versions:
-            * 2020-04-21 ``@ddalle``: Version 1.0
+            * 2020-04-21 ``@ddalle``: v1.0
         """
         # Check for empty mask
         if mask is None:
@@ -9424,7 +9979,7 @@ class DataKit(BaseData):
             *V*: {``None``} | :class:`np.ndarray`
                 Array of values to test shape/values of *mask*
         :Versions:
-            * 2020-04-21 ``@ddalle``: Version 1.0
+            * 2020-04-21 ``@ddalle``: v1.0
         """
         # Check for empty mask
         if mask is None:
@@ -9509,7 +10064,7 @@ class DataKit(BaseData):
                 Indices of entries with constant (within *tol*) values
                 of each *arg*
         :Versions:
-            * 2020-05-06 ``@ddalle``: Version 1.0
+            * 2020-05-06 ``@ddalle``: v1.0
         """
        # --- Column Lists ---
         # Check arg list
@@ -9560,7 +10115,7 @@ class DataKit(BaseData):
 
    # --- Search ---
     # Find matches
-    def find(self, args, *a, **kw):
+    def find(self, args: list, *a, **kw):
         r"""Find cases that match a condition [within a tolerance]
 
         :Call:
@@ -9602,10 +10157,10 @@ class DataKit(BaseData):
             *Imap*: :class:`list`\ [:class:`np.ndarray`]
                 List of *db* indices for each test point in *J*
         :Versions:
-            * 2019-03-11 ``@ddalle``: Version 1.0 (:class:`DBCoeff`)
-            * 2019-12-26 ``@ddalle``: Version 1.0
-            * 2020-02-20 ``@ddalle``: Version 2.0; *mask*, *once* kwargs
-            * 2022-09-15 ``@ddalle``: Version 3.0; *gtcons*, etc.
+            * 2019-03-11 ``@ddalle``: v1.0 (:class:`DBCoeff`)
+            * 2019-12-26 ``@ddalle``: v1.0
+            * 2020-02-20 ``@ddalle``: v2.0; *mask*, *once* kwargs
+            * 2022-09-15 ``@ddalle``: v3.0; *gtcons*, etc.
         """
        # --- Input Checks ---
         # Find a valid argument
@@ -9625,7 +10180,8 @@ class DataKit(BaseData):
         # Overall tolerance default
         tol = kw.pop("tol", 1e-4)
         # Specific tolerances
-        tols = kw.pop("tols", {})
+        tols = kw.pop("tols", None)
+        tols = {} if tols is None else tols
         # Option for unique matches
         once = kw.pop("once", False)
         # Option for mapped matches
@@ -9793,6 +10349,43 @@ class DataKit(BaseData):
             # Return combined set of matches
             return I, J
 
+    # Match dictionary of conditions
+    def xfind(
+            self,
+            d: dict,
+            tol: float = 1e-4,
+            tols: Optional[dict] = None) -> Optional[int]:
+        r"""Find a match based on a :class:`dict` of conditions
+
+        :Call:
+            >>> i = db.xfind(d)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *d*: :class:`dict`
+                Dictionary of cols (keys) and values to search for
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+        :Outputs:
+            *i*: ``None`` | :class:`int`
+                Index of (first) matching case, if any
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Initialize inputs to find()
+        args = []
+        x = []
+        # Loop through dictionary
+        for k, v in d.items():
+            args.append(k)
+            x.append(v)
+        # Call search
+        mask, _ = self.find(args, *x, once=True, tol=tol, tols=tols)
+        # Return result
+        return None if mask.size == 0 else mask[0]
+
     # Find matches from a target
     def match(self, dbt, maskt=None, cols=None, **kw):
         r"""Find cases with matching values of specified list of cols
@@ -9829,7 +10422,7 @@ class DataKit(BaseData):
             *Imap*: :class:`list`\ [:class:`np.ndarray`]
                 List of *db* indices for each test point in *J*
         :Versions:
-            * 2020-02-20 ``@ddalle``: Version 1.0
+            * 2020-02-20 ``@ddalle``: v1.0
             * 2020-03-06 ``@ddalle``: Name from :func:`find_pairwise`
         """
         # Check types
@@ -9928,7 +10521,83 @@ class DataKit(BaseData):
             # Invert mask
             J = maskt_index[J]
         # Output
-        return I, J
+        return MatchInds(I, J)
+
+    # Find matches in target under certain assumptions
+    def xmatch(
+            self,
+            dbt: dict,
+            cols: Optional[list] = None,
+            tol: float = 1e-4,
+            tols: Optional[dict] = None) -> MatchInds:
+        r"""Find cases with matching values using *xcols* as default
+
+        :Call:
+            >>> inds = db.xmatch(dbt, cols=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`DataKit`
+                Target data set
+            *cols*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                List of cols to compare (default to *db.xcols*)
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+        :Outputs:
+            *inds.selfinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *db* that have a match in *dbt*
+            *inds.targetinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *dbt* that have a match in *db*
+        :Versions:
+            * 2020-02-20 ``@ddalle``: v1.0
+            * 2020-03-06 ``@ddalle``: Name from :func:`find_pairwise`
+        """
+        # Default column list
+        cols = cols if cols else self.xcols
+        cols = cols if cols else self.cols
+        # Default tolerance dict
+        tols = {} if tols is None else tols
+        # Call parent function
+        return self.match(dbt, cols=cols, once=True, tol=tol, tols=tols)
+
+    # Find matches in target under certain assumptions
+    def ximatch(
+            self,
+            dbt: dict,
+            j: int,
+            cols: Optional[list] = None,
+            tol: float = 1e-4,
+            tols: Optional[dict] = None) -> Optional[int]:
+        r"""Find cases with matching values using *xcols* as default
+
+        :Call:
+            >>> i = db.ximatch(dbt, j, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`DataKit`
+                Target data set
+            *cols*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                List of cols to compare (default to *db.xcols*)
+            *tol*: {``1e-4``} | :class:`float` >= 0
+                Default tolerance for all *args*
+            *tols*: {``{}``} | :class:`dict`\ [:class:`float` >= 0]
+                Dictionary of tolerances specific to arguments
+        :Outputs:
+            *i*: :class:`int` | ``None``
+                Index of case in *db* that matches *dbt[j]*, if any
+        :Versions:
+            * 2025-07-29 ``@ddalle``: v1.0
+        """
+        # Default column list
+        cols = cols if cols else self.xcols
+        cols = cols if cols else self.cols
+        # Form dictionary of conditions to match
+        d = {col: dbt[col][j] for col in cols}
+        # Call parent function
+        return self.xfind(d, tol=tol, tols=tols)
 
    # --- Statistics ---
     # Get coverage
@@ -9971,7 +10640,7 @@ class DataKit(BaseData):
             *b*: :class:`float`
                 Upper bound of coverage intervalregion
         :Versions:
-            * 2018-09-28 ``@ddalle``: Version 1.0
+            * 2018-09-28 ``@ddalle``: v1.0
             * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.dkit.fm`
         """
         # Process search kwargs
@@ -10040,7 +10709,7 @@ class DataKit(BaseData):
             *r*: :class:`float`
                 Half-width of coverage range
         :Versins:
-            * 2018-09-28 ``@ddalle``: Version 1.0
+            * 2018-09-28 ``@ddalle``: v1.0
             * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.dkit.fm`
         """
         # Process search kwargs
@@ -10103,7 +10772,7 @@ class DataKit(BaseData):
             *y*: :class:`np.ndarray`
                 1D array of integral of each column of *db[col]*
         :Versions:
-            * 2020-06-10 ``@ddalle``: Version 1.0
+            * 2020-06-10 ``@ddalle``: v1.0
 
         .. |intmethods| replace::
             {``"trapz"``} | ``"left"`` | ``"right"`` | **callable**
@@ -10147,7 +10816,7 @@ class DataKit(BaseData):
             *y*: :class:`np.ndarray`
                 1D array of integral of each column of *db[col]*
         :Versions:
-            * 2020-03-24 ``@ddalle``: Version 1.0
+            * 2020-03-24 ``@ddalle``: v1.0
             * 2020-06-02 ``@ddalle``: Added *mask*, callable *method*
 
         """
@@ -10188,7 +10857,7 @@ class DataKit(BaseData):
             *y*: :class:`np.ndarray`
                 1D array of integral of each column of *db[col]*
         :Versions:
-            * 2020-03-24 ``@ddalle``: Version 1.0
+            * 2020-03-24 ``@ddalle``: v1.0
             * 2020-06-02 ``@ddalle``: Added *mask*, callable *method*
             * 2020-06-04 ``@ddalle``: Split :func:`_genr8_integral`
         """
@@ -10285,37 +10954,33 @@ class DataKit(BaseData):
                 # Trapezoidal integration
                 if ndx == 1:
                     # Common *x* coords
-                    y[i] = np.trapz(v[:,i], x)
+                    y[i] = np.trapz(v[:, i], x)
                 else:
                     # Select *x* column
-                    y[i] = np.trapz(v[:,i], x[:,i])
+                    y[i] = np.trapz(v[:, i], x[:, i])
                 # Go to next interval
                 continue
             # Check *x* dimension
             if ndx == 2:
                 # Select column and get intervale widhtds
-                dx = np.diff(x[:,i])
+                dx = np.diff(x[:, i])
             # Check L/R
             if method == "left":
                 # Lower rectangular sum
-                y[i] = np.sum(dx * v[:,i][:-1])
+                y[i] = np.sum(dx * v[:, i][:-1])
             elif method == "right":
                 # Upper rectangular sum
-                y[i] = np.sum(dx * v[:,i][1:])
+                y[i] = np.sum(dx * v[:, i][1:])
             elif ndx == 1:
                 # Callable with common *x*
-                y[i] = method(v[:,i], x)
+                y[i] = method(v[:, i], x)
             else:
                 # Callable with custom *x*
-                y[i] = method(v[:,i], x[:,i])
+                y[i] = method(v[:, i], x[:, i])
         # Output
         return y
-  # >
 
-  # ===================
-  # Plot
-  # ===================
-  # <
+  # *** PLOT ***
    # --- Preprocessors ---
     # Process arguments to plot_scalar()
     def _prep_args_plot1(self, *a, **kw):
@@ -10345,7 +11010,7 @@ class DataKit(BaseData):
             *kw*: :class:`dict`
                 Processed keyword arguments with defaults applied
         :Versions:
-            * 2019-03-14 ``@ddalle``: Version 1.0
+            * 2019-03-14 ``@ddalle``: v1.0
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
             * 2020-03-27 ``@ddalle``: From :func:`_process_plot_args1`
         """
@@ -10389,7 +11054,6 @@ class DataKit(BaseData):
             qexact  = True
             qinterp = False
             qmark   = False
-            qindex  = True
             # Get values of arg list from *DBc* and *I*
             if arg_list:
                 # Initialize
@@ -10413,7 +11077,6 @@ class DataKit(BaseData):
             qexact  = False
             qinterp = True
             qmark   = True
-            qindex  = False
             # Find matches from *a to database points
             I, J = self.find(arg_list, *a, **kw)
        # --- Options: What to plot ---
@@ -10486,7 +11149,7 @@ class DataKit(BaseData):
             *kw*: :class:`dict`
                 Processed keyword arguments with defaults applied
         :Versions:
-            * 2020-03-27 ``@ddalle``: Version 1.0
+            * 2020-03-27 ``@ddalle``: v1.0
         """
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
@@ -10519,7 +11182,7 @@ class DataKit(BaseData):
                 # Loop through args
                 for j, arg in enumerate(args):
                     # Get arg value
-                    aj = self.get_arg_value(j, arg, *a, **kw)
+                    self.get_arg_value(j, arg, *a, **kw)
             except Exception:
                 # Didn't work; assume indices
                 qindex = True
@@ -10532,11 +11195,11 @@ class DataKit(BaseData):
         # Check data
         if qindex:
             # Get values
-            V = self.get_all_values(col)[:,I]
+            V = self.get_all_values(col)[:, I]
             # Get *x* values
             if ndimx == 2:
                 # Get *x* values for each index
-                X = self.get_all_values(xk)[:,I]
+                X = self.get_all_values(xk)[:, I]
             else:
                 # Common *x* values
                 X = self.get_all_values(xk)
@@ -10604,7 +11267,7 @@ class DataKit(BaseData):
             * :func:`DataKit.plot_linear`
             * :func:`cape.plot_mpl.plot`
         :Versions:
-            * 2020-04-20 ``@ddalle``: Version 1.0
+            * 2020-04-20 ``@ddalle``: v1.0
         """
         # Process column name and remaining coeffs
         col, a, kw = self._prep_args_colname(*a, **kw)
@@ -10660,7 +11323,7 @@ class DataKit(BaseData):
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: Version 1.0
+            * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
             * 2019-12-26 ``@ddalle``: From :mod:`tnakit.db.db1`
             * 2020-03-30 ``@ddalle``: Redocumented
@@ -10719,7 +11382,7 @@ class DataKit(BaseData):
                 # Use zeros for negative error term
                 uyeM = np.zeros_like(ye)
             # Evaluate UQ-pluts
-            if quq and ukP and ukP==ukM:
+            if quq and ukP and ukP == ukM:
                 # Copy negative terms to positive
                 uyeP = uyeM
             elif quq and ukP:
@@ -10742,7 +11405,7 @@ class DataKit(BaseData):
                 # Use zeros for negative error term
                 uyM = np.zeros_like(yv)
             # Evaluate UQ-pluts
-            if quq and ukP and ukP==ukM:
+            if quq and ukP and ukP == ukM:
                 # Copy negative terms to positive
                 uyP = uyM
             elif quq and ukP:
@@ -10853,7 +11516,7 @@ class DataKit(BaseData):
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
         :Versions:
-            * 2020-12-31 ``@ddalle``: Version 1.0
+            * 2020-12-31 ``@ddalle``: v1.0
         """
         # Get *mask* for plotting subset
         mask = kw.pop("mask", None)
@@ -10920,13 +11583,11 @@ class DataKit(BaseData):
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
         :Versions:
-            * 2020-03-30 ``@ddalle``: Version 1.0
+            * 2020-03-30 ``@ddalle``: v1.0
         """
        # --- Prep ---
         # Process column name and values to plot
         col, X, V, kw = self._prep_args_plot2(*a, **kw)
-        # Get key for *x* axis
-        xk = kw.pop("xcol", kw.pop("xk", self.get_output_xarg1(col)))
        # --- Plot Values ---
         # Check for existing handle
         h = kw.get("h")
@@ -10946,14 +11607,14 @@ class DataKit(BaseData):
             # Multiple conditions with common *x*
             for i in range(V.shape[1]):
                 # Line plot for column of *V*
-                hi = pmpl.plot(X, V[:,i], Index=i, **opts)
+                hi = pmpl.plot(X, V[:, i], Index=i, **opts)
                 # Combine plot handles
                 h.add(hi)
         else:
             # Multiple conditions with common *x*
             for i in range(V.shape[1]):
                 # Line plot for column of *V*
-                hi = pmpl.plot(X[:, i], V[:,i], Index=i, **opts)
+                hi = pmpl.plot(X[:, i], V[:, i], Index=i, **opts)
                 # combine plot handles
                 h.add(hi)
        # --- PNG ---
@@ -10994,7 +11655,7 @@ class DataKit(BaseData):
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
         :Versions:
-            * 2021-01-05 ``@ddalle``: Version 1.0; fork :func:`plot_raw`
+            * 2021-01-05 ``@ddalle``: v1.0; fork :func:`plot_raw`
         """
         # Get *mask* for plotting subset
         mask = kw.pop("mask", None)
@@ -11052,7 +11713,7 @@ class DataKit(BaseData):
             *h*: :class:`plot_mpl.MPLHandle`
                 Object of :mod:`matplotlib` handles
         :Versions:
-            * 2020-04-24 ``@ddalle``: Version 1.0
+            * 2020-04-24 ``@ddalle``: v1.0
         """
        # --- Argument Types ---
         # Process coefficient name and remaining coeffs
@@ -11158,7 +11819,7 @@ class DataKit(BaseData):
             *h.ax_img*: :class:`AxesSubplot`
                 Axes handle in wich *h.img* is shown
         :Versions:
-            * 2020-04-02 ``@ddalle``: Version 1.0
+            * 2020-04-02 ``@ddalle``: v1.0
         """
         # Get name of PNG to add
         png = self.get_col_png(col)
@@ -11251,7 +11912,7 @@ class DataKit(BaseData):
             *h.ax_seam*: :class:`AxesSubplot`
                 Axes handle in wich *h.seam* is shown
         :Versions:
-            * 2020-04-02 ``@ddalle``: Version 1.0
+            * 2020-04-02 ``@ddalle``: v1.0
         """
         # Get name of seam curve to add
         seam = self.get_col_seam(col)
@@ -11345,7 +12006,7 @@ class DataKit(BaseData):
             *fpng*: ``None`` | :class:`str`
                 Name of PNG file, if any
         :Versions:
-            * 2020-04-02 ``@ddalle``: Version 1.0
+            * 2020-04-02 ``@ddalle``: v1.0
         """
         # Check types
         if not typeutils.isstr(png):
@@ -11371,7 +12032,7 @@ class DataKit(BaseData):
             *kw*: {``{}``} | :class:`MPLOpts`
                 Options to use when showing PNG image (copied)
         :Versions:
-            * 2020-04-02 ``@ddalle``: Version 1.0
+            * 2020-04-02 ``@ddalle``: v1.0
         """
         # Get handle to kw
         png_kwargs = self.__dict__.setdefault("png_kwargs", {})
@@ -11399,7 +12060,7 @@ class DataKit(BaseData):
             *png*: ``None`` | :class:`str`
                 Name/abbreviation/tag of PNG image to use
         :Versions:
-            * 2020-04-02 ``@ddalle``: Version 1.0
+            * 2020-04-02 ``@ddalle``: v1.0
         """
         # Check types
         if not typeutils.isstr(col):
@@ -11427,7 +12088,7 @@ class DataKit(BaseData):
             *q*: ``True`` | ``False``
                 Whether or not *fig* is in *db.png_figs[png]*
         :Versions:
-            * 2020-04-01 ``@ddalle``: Version 1.0
+            * 2020-04-01 ``@ddalle``: v1.0
         """
         # Return ``False`` if *fig* is ``None``
         if fig is None:
@@ -11460,7 +12121,7 @@ class DataKit(BaseData):
             * :func:`set_png_fname`
             * :func:`set_png_kwargs`
         :Versions:
-            * 2020-04-02 ``@ddalle``: Version 1.0
+            * 2020-04-02 ``@ddalle``: v1.0
         """
         # Set file name
         self.set_png_fname(png, fpng)
@@ -11488,7 +12149,7 @@ class DataKit(BaseData):
             *db.col_pngs*: :class:`dict`
                 Entry for *col* in *cols* set to *png*
         :Versions:
-            * 2020-04-01 ``@ddalle``: Version 1.0
+            * 2020-04-01 ``@ddalle``: v1.0
         """
         # Check input
         if not isinstance(cols, (tuple, list)):
@@ -11521,7 +12182,7 @@ class DataKit(BaseData):
             *db.col_pngs*: :class:`dict`
                 Entry for *col* set to *png*
         :Versions:
-            * 2020-04-01 ``@jmeeroff``: Version 1.0
+            * 2020-04-01 ``@jmeeroff``: v1.0
         """
         # Check types
         if not typeutils.isstr(png):
@@ -11555,7 +12216,7 @@ class DataKit(BaseData):
             *db.png_fnames*: :class:`dict`
                 Entry for *png* set to *fpng*
         :Versions:
-            * 2020-03-31 ``@ddalle``: Version 1.0
+            * 2020-03-31 ``@ddalle``: v1.0
         """
         # Check types
         if not typeutils.isstr(png):
@@ -11592,7 +12253,7 @@ class DataKit(BaseData):
             *kw*: {``{}``} | :class:`dict`
                 Options to use when showing PNG image
         :Versions:
-            * 2020-04-01 ``@jmeeroff``: Version 1.0
+            * 2020-04-01 ``@jmeeroff``: v1.0
             * 2020-04-02 ``@ddalle``: Use :class:`MPLOpts`
             * 2020-05-26 ``@ddalle``: Combine existing *png_kwargs*
         """
@@ -11630,7 +12291,7 @@ class DataKit(BaseData):
             *db.png_figs[png]*: :class:`set`
                 Adds *fig* to :class:`set` if not already present
         :Versions:
-            * 2020-04-01 ``@ddalle``: Version 1.0
+            * 2020-04-01 ``@ddalle``: v1.0
         """
         # Get attribute
         png_figs = self.__dict__.setdefault("png_figs", {})
@@ -11654,7 +12315,7 @@ class DataKit(BaseData):
             *db.png_figs[png]*: :class:`set`
                 Cleared to empty :class:`set`
         :Versions:
-            * 2020-04-01 ``@ddalle``: Version 1.0
+            * 2020-04-01 ``@ddalle``: v1.0
         """
         # Get attribute
         png_figs = self.__dict__.setdefault("png_figs", {})
@@ -11679,7 +12340,7 @@ class DataKit(BaseData):
             *kw*: {``{}``} | :class:`MPLOpts`
                 Options to use when showing seam curve (copied)
         :Versions:
-            * 2020-04-03 ``@jmeeroff``: Version 1.0
+            * 2020-04-03 ``@jmeeroff``: v1.0
         """
         # Get handle to kw
         seam_kwargs = self.__dict__.setdefault("seam_kwargs", {})
@@ -11707,7 +12368,7 @@ class DataKit(BaseData):
             *seam*: :class:`str`
                 Name used to tag seam curve
         :Versions:
-            * 2020-04-03 ``@jmeeroff``: Version 1.0
+            * 2020-04-03 ``@jmeeroff``: v1.0
         """
         # Check types
         if not typeutils.isstr(col):
@@ -11735,7 +12396,7 @@ class DataKit(BaseData):
             *ycol*: :class:`str`
                 Name of *col* for seam curve *y* coords
         :Versions:
-            * 2020-03-31 ``@ddalle``: Version 1.0
+            * 2020-03-31 ``@ddalle``: v1.0
         """
         # Check types
         if not typeutils.isstr(seam):
@@ -11771,7 +12432,7 @@ class DataKit(BaseData):
             * :func:`set_seam_col`
             * :func:`set_seam_kwargs`
         :Versions:
-            * 2020-04-03 ``@ddalle``: Version 1.0
+            * 2020-04-03 ``@ddalle``: v1.0
         """
         # Read a text file
         if fseam is not None:
@@ -11801,7 +12462,7 @@ class DataKit(BaseData):
             *db.col_seams*: :class:`dict`
                 Entry for *col* in *cols* set to *seam*
         :Versions:
-            * 2020-04-02 ``@jmeeroff``: Version 1.0
+            * 2020-04-02 ``@jmeeroff``: v1.0
         """
         # Check input
         if not isinstance(cols, (list, tuple)):
@@ -11834,7 +12495,7 @@ class DataKit(BaseData):
             *db.col_seams*: :class:`dict`
                 Entry for *col* set to *png*
         :Versions:
-            * 2020-04-02 ``@jmeeroff``: Version 1.0
+            * 2020-04-02 ``@jmeeroff``: v1.0
         """
         # Check types
         if not typeutils.isstr(seam):
@@ -11870,7 +12531,7 @@ class DataKit(BaseData):
             *db.seam_cols*: :class:`dict`
                 Entry for *seam* set to (*xcol*, *ycol*)
         :Versions:
-            * 2020-03-31 ``@ddalle``: Version 1.0
+            * 2020-03-31 ``@ddalle``: v1.0
         """
         # Check types
         if not typeutils.isstr(seam):
@@ -11911,7 +12572,7 @@ class DataKit(BaseData):
             *kw*: {``{}``} | :class:`dict`
                 Options to use when showing seam curve
         :Versions:
-            * 2020-04-02 ``@jmeeroff``: Version 1.0
+            * 2020-04-02 ``@jmeeroff``: v1.0
             * 2020-05-26 ``@ddalle``: Combine existing *png_kwargs*
         """
         # Get handle to kw
@@ -11948,7 +12609,7 @@ class DataKit(BaseData):
             *db.seam_figs[seam]*: :class:`set`
                 Adds *fig* to :class:`set` if not already present
         :Versions:
-            * 2020-04-01 ``@ddalle``: Version 1.0
+            * 2020-04-01 ``@ddalle``: v1.0
         """
         # Get current handles
         figs = self.seam_figs.setdefault(seam, set())
@@ -11972,7 +12633,7 @@ class DataKit(BaseData):
             *q*: ``True`` | ``False``
                 Whether or not *fig* is in *db.seam_figs[seam]*
         :Versions:
-            * 2020-04-01 ``@ddalle``: Version 1.0
+            * 2020-04-01 ``@ddalle``: v1.0
         """
         # Get attribute
         seam_figs = self.__dict__.get("seam_figs", {})
@@ -11989,12 +12650,8 @@ class DataKit(BaseData):
     pmpl.MPLOpts._doc_keys_fn(plot_scalar, "plot", indent=12)
     pmpl.MPLOpts._doc_keys_fn(
         plot_contour, "axformat", fmt_key="axkeys", indent=12)
-  # >
 
-  # ===================
-  # Regularization
-  # ===================
-  # <
+  # *** REGULARIZATION ***
    # --- RBF ---
     # Regularization using radial basis functions
     def regularize_by_rbf(self, cols, args=None, **kw):
@@ -12032,8 +12689,8 @@ class DataKit(BaseData):
             *suffix*: :class:`str` | :class:`dict`
                 Universal suffix or *col*-specific suffixes
         :Versions:
-            * 2018-06-08 ``@ddalle``: Version 1.0
-            * 2020-02-24 ``@ddalle``: Version 2.0
+            * 2018-06-08 ``@ddalle``: v1.0
+            * 2020-02-24 ``@ddalle``: v2.0
         """
        # --- Options ---
         # Get translators
@@ -12104,8 +12761,6 @@ class DataKit(BaseData):
         # Checks
         if not isinstance(args, list):
             raise TypeError("Arg list must be 'list', got %s" % type(args))
-        # Number of input args
-        narg = len(args)
         # Check types
         for (j, arg) in enumerate(args):
             # Check type
@@ -12120,17 +12775,13 @@ class DataKit(BaseData):
         scol = kw.get("scol")
         # Check for list
         if isinstance(scol, list):
-            # Get additional slice keys
-            subcols = scol[1:]
             # Single slice key
             maincol = scol[0]
         elif scol is None:
             # No slices at all
-            subcols = []
             maincol = None
         else:
             # No additional slice keys
-            subcols = []
             maincol = scol
             # List of slice keys
             scol = [scol]
@@ -12146,8 +12797,6 @@ class DataKit(BaseData):
        # --- Full-Factorial Matrix ---
         # Get full-factorial matrix at the current slice value
         X, slices = self.get_fullfactorial(scol=scol, cols=args)
-        # Original values retained for creating masks during slices
-        X0 = {}
         # Number of output points
         nX = X[args[0]].size
        # --- Regularization ---
@@ -12182,8 +12831,8 @@ class DataKit(BaseData):
                         # Get value in fixed number of characters
                         sv = ("%6g" % m)[:6]
                         # In-place status update
-                        sys.stdout.write("    Slice %s=%s (%i/%i)\r"
-                            % (maincol, sv, i+1, nslice))
+                        sys.stdout.write(
+                            f"    Slice {maincol}={sv} ({i+1}/{nslice})\r")
                         sys.stdout.flush()
                     # Initialize mask
                     J = np.ones(nX, dtype="bool")
@@ -12192,7 +12841,7 @@ class DataKit(BaseData):
                         # Get value
                         vk = slices[k][i]
                         # Constrain
-                        J = np.logical_and(J, X[k]==vk)
+                        J = np.logical_and(J, X[k] == vk)
                     # Get indices of slice
                     I = np.where(J)[0]
                     # Create interpolant for fixed value of *skey*
@@ -12320,7 +12969,7 @@ class DataKit(BaseData):
             *v*, *verbose*: ``True`` | {``False``}
                 Verbosity flag
         :Versions:
-            * 2020-03-10 ``@ddalle``: Version 1.0
+            * 2020-03-10 ``@ddalle``: v1.0
         """
        # --- Options ---
         # Get translators
@@ -12393,8 +13042,6 @@ class DataKit(BaseData):
         # Checks
         if not isinstance(args, list):
             raise TypeError("Arg list must be 'list', got %s" % type(args))
-        # Number of input args
-        narg = len(args)
         # Check types
         for (j, arg) in enumerate(args):
             # Check type
@@ -12488,8 +13135,8 @@ class DataKit(BaseData):
                         # Get value in fixed number of characters
                         sv = ("%6g" % m)[:6]
                         # In-place status update
-                        sys.stdout.write("    Slice %s=%s (%i/%i)\r"
-                            % (maincol, sv, i+1, nslice))
+                        sys.stdout.write(
+                            f"    Slice {maincol}={sv} ({i+1}/{nslice})\r")
                         sys.stdout.flush()
                     # Initialize mask
                     J = np.ones(nX, dtype="bool")
@@ -12498,7 +13145,7 @@ class DataKit(BaseData):
                         # Get value
                         vk = slices[k][i]
                         # Constrain
-                        J = np.logical_and(J, X[k]==vk)
+                        J = np.logical_and(J, X[k] == vk)
                     # Get indices of slice
                     I = np.where(J)[0]
                     # Create tuple of input arguments test values
@@ -12514,7 +13161,7 @@ class DataKit(BaseData):
                         V[I] = np.dot(W, Y)
                     elif ndim == 2:
                         # Linear output
-                        V[:,I] = np.dot(Y, W.T)
+                        V[:, I] = np.dot(Y, W.T)
                 # Clean up prompt
                 if verbose:
                     sys.stdout.write("%72s\r" % "")
@@ -12589,7 +13236,6 @@ class DataKit(BaseData):
                 self.defns[argreg] = self._defncls(**defn)
                 # Link break points
                 bkpts[argreg] = bkpts[arg]
-  # >
 
 
 # Combine options

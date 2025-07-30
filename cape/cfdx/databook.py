@@ -413,7 +413,6 @@ class DataBookComp(DataKit):
   # Read
   # ======
   # <
-
     # Process FM data book columns
     def ProcessColumns(self):
         r"""Process column names
@@ -652,14 +651,12 @@ class DataBookComp(DataKit):
         DBc.RootDir = getattr(self, "RootDir", os.getcwd())
         # Output
         return DBc
-
   # >
 
   # ----
   # Lock
   # ----
   # <
-  # [
     # Get name of lock file
     def GetLockFile(self):
         r"""Get the name of the potential lock file
@@ -785,7 +782,6 @@ class DataBookComp(DataKit):
         if os.path.isfile(flock):
             # Delete the file
             os.remove(flock)
-  # ]
   # >
 
   # ======
@@ -4041,7 +4037,6 @@ class FMDataBook(DataBookComp):
         """
         # Read CaseResid object from PWD
         return CaseResid()
-
   # >
 
   # ======

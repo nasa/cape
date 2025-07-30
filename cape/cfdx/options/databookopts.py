@@ -878,7 +878,8 @@ _GETTER_PROPS = (
     "Translations",
     "Type",
 )
-TargetDataBookCollectionOpts.add_targgetters(_GETTER_PROPS, prefix="TargetDataBook")
+TargetDataBookCollectionOpts.add_targgetters(
+    _GETTER_PROPS, prefix="TargetDataBook")
 
 
 # Class for overall databook
@@ -1012,6 +1013,7 @@ class DataBookOpts(OptionsDict):
     }
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
+        "_default_": FMDataBookOpts,
         "FM": FMDataBookOpts,
         "IterPoint": DBIterPointOpts,
         "LineLoad": LineLoadDataBookOpts,
@@ -1259,7 +1261,7 @@ class DataBookOpts(OptionsDict):
         if check:
             self.assert_DataBookComponent(comp)
         # Use cascading options
-        return self.get_subopt(comp, opt, **kw)
+        return self._get_opt_comp(opt, comp=comp, **kw)
 
     # CompID: special default
     def get_DataBookCompID(self, comp: str, **kw):

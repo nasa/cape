@@ -98,57 +98,67 @@ from ...cfdx.options import archiveopts
 
 
 # Files to archive
-CopyFiles = [
-    "INTOUT",
-    "XINTOUT",
-    "q.avg",
-    "q.srf",
-    "x.srf",
-    {"q.[sr0-9][ae0-9][vs0-9][et0-9]*": 1},
-    {"x.[sr0-9][ae0-9][vs0-9][et0-9]*": 1},
-    {"brkset.[sr0-9][ae0-9][vs0-9][et0-9]*": 1}
-]
-# Plot3D files
-Plot3DDict = [
-    {"brkset.[0-9]*": 1},
-    {"q.[0-9]*":      1},
-    {"x.[0-9]*":      1},
-]
+CopyFiles = {
+    "INTOUT": 1,
+    "XINTOUT": 1,
+    "q.avg": 1,
+    "q.srf": 1,
+    "x.srf": 1,
+    "q.[sr0-9][ae0-9][vs0-9][et0-9]*": 1,
+    "x.[sr0-9][ae0-9][vs0-9][et0-9]*": 1,
+    "brkset.[sr0-9][ae0-9][vs0-9][et0-9]*": 1,
+    "brkset.[0-9]*": 1,
+    "q.[0-9]*": 1,
+    "x.[0-9]*": 1,
+}
 # Run output files
-RunDict = [
-    {"run": "run.[0-9frtls][0-9oeup]*"},
-    {"out": "*.out"},
-    {"SurfBC": "SurfBC*.dat"},
-    {
-        "pyover": [
-            "pyover*",
-            "case.json",
-            "conditions.json"
-        ]
+RunDict = {
+    "run": {
+        "run.[0-9frtls][0-9oeup]*": 0,
+        "*.out": 0,
+        "SurfBC*.dat": 0,
     },
-    {
-        "meshinfo": [
-            "Config.xml",
-            "grdwghts.save",
-            "mixsur.save",
-            "walldist.save"
-        ]
-    }
-]
+    "pyover": {
+        "pyover*": 0,
+        "case.json": 1,
+        "conditions.json": 1
+    },
+    "meshinfo": {
+        "Config.xml": 1,
+        "grdwghts.save": 1,
+        "mixsur.save": 1,
+        "walldist.save": 1,
+    },
+}
 
 # Skeleton
-SkeletonFiles = [
-    "case.json",
-    "conditions.json",
-    "archive.log",
-    "run.[0-9]*.inp",
-    "run.[0-9]*.[0-9]*",
-    "lineload/grid.i.triq",
-]
+SkeletonFiles = {
+    "lineload/grid.i.triq": 0,
+}
 # Tail files
-TailFiles = [
-    {"run.resid": [1, "run.tail.resid"]},
-]
+TailFiles = {
+    "run.resid": 1,
+}
+
+
+# Class for main Archive
+class ArchiveArchiveOpts(archiveopts.ArchiveArchiveOpts):
+    __slots__ = ()
+
+    _rc = {
+        "ArchiveFiles": CopyFiles,
+        "ArchiveTarGroups": RunDict,
+    }
+
+
+# Class for skeleton Archive
+class ArchiveSkeletonOpts(archiveopts.ArchiveSkeletonOpts):
+    __slots__ = ()
+
+    _rc = {
+        "PostDeleteFiles": SkeletonFiles,
+        "PostTailFiles": TailFiles,
+    }
 
 
 # Class for case management
@@ -162,7 +172,12 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
         * 2016-03-01 ``@ddalle``: v1.1; custom settings
         * 2022-10-21 ``@ddalle``: v2.0; use :mod:`cape.optdict`
     """
-    pass
+    __slots__ = ()
+
+    _sec_cls = {
+        "archive": ArchiveArchiveOpts,
+        "skeleton": ArchiveSkeletonOpts,
+    }
 
 
 # Turn dictionary into Archive options

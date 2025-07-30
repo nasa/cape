@@ -40,9 +40,9 @@ class are also available here.
 
 # Standard library
 import os
-import shutil
 
 # Third-party
+import numpy as np
 
 # Local imports
 from . import options
@@ -50,6 +50,7 @@ from . import casecntl
 from . import databook
 from . import report
 from .yamlfile import RunYAMLFile
+from .runinpfile import CartInputFile
 from ..optdict import OptionsDict
 from ..cfdx import cntl as capecntl
 from ..cfdx.cmdgen import infix_phase
@@ -60,6 +61,9 @@ _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyLavaFolder = os.path.split(_fname)[0]
+
+# Constants
+DEG = np.pi / 180.0
 
 
 # Class to read input files
@@ -92,14 +96,14 @@ class Cntl(capecntl.Cntl):
         * 2024-04-25 ``@sneuhoff``: v1.0
     """
   # === Class Attributes ===
-    _solver = "lavacurv"
-    _case_mod = casecntl
+    _name = "pylava"
+    _solver = "lava"
     _databook_mod = databook
     _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
-    _report_mod = report
+    _report_cls = report.Report
     _fjson_default = "pyLava.json"
-    # _fjson_default = "pyLava.yaml"
+    _tri_ext = "fro"
     yaml_default = "run_default.yaml"
     _zombie_files = (
         "*.out",
@@ -116,7 +120,8 @@ class Cntl(capecntl.Cntl):
             * 2024-10-01 ``sneuhoff``: v1.0
         """
         # Check if json or yaml
-        fext = fname.split('.')[-1]
+        fext = None if fname is None else fname.split('.')[-1]
+        # Check for YAML vs JSON
         if fext in ("yaml", "yml"):
             # Convert yaml to json
             fout = f"{fname}.json"
@@ -140,8 +145,13 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2024-10-09 ``@ddalle``: v1.0
         """
+        # Get solver
+        solver = self.opts.get_LAVASolver()
         # Read list of custom file control classes
-        self.ReadRunYAML()
+        if solver == "curvilinear":
+            self.ReadRunYAML()
+        elif solver == "cartesian":
+            self.ReadCartInputFile()
 
   # === Case Preparation ===
     # Prepare a case
@@ -181,7 +191,7 @@ class Cntl(capecntl.Cntl):
         # Write the PBS script.
         self.WritePBS(i)
         # Write YAML file
-        self.PrepareRunYAML(i)
+        self.PrepareInputFile(i)
 
     # Prepare the mesh for case *i* (if necessary)
     @capecntl.run_rootdir
@@ -197,50 +207,56 @@ class Cntl(capecntl.Cntl):
                 Case index
         :Versions:
             * 2024-10-10 ``@ddalle``: v1.0
+            * 2025-07-15 ``@ddalle``: v2.0; map *LAVASolver* value
         """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Create case folder if needed
-        self.make_case_folder(i)
-        # Enter the case folder
-        os.chdir(frun)
-        # ----------
-        # Copy files
-        # ----------
-        # Get the configuration folder
-        fcfg = self.opts.get_MeshConfigDir()
-        fcfg_abs = os.path.join(self.RootDir, fcfg)
-        # Get the names of the raw input files and target files
-        fmsh = self.opts.get_MeshCopyFiles(i=i)
-        # Loop through those files
-        for j in range(len(fmsh)):
-            # Original and final file names
-            f0 = os.path.join(fcfg_abs, fmsh[j])
-            f1 = os.path.split(fmsh[j])[1]
-            # Skip if full file
-            if os.path.isfile(f1):
-                continue
-            # Copy the file.
-            if os.path.isfile(f0):
-                shutil.copy(f0, f1)
-        # Get the names of input files to link
-        fmsh = self.opts.get_MeshLinkFiles(i=i)
-        # Loop through those files
-        for j in range(len(fmsh)):
-            # Original and final file names
-            f0 = os.path.join(fcfg_abs, fmsh[j])
-            f1 = os.path.split(fmsh[j])[1]
-            # Remove the file if necessary
-            if os.path.islink(f1):
-                os.remove(f1)
-            # Skip if full file
-            if os.path.isfile(f1):
-                continue
-            # Link the file.
-            if os.path.isfile(f0) or os.path.isdir(f0):
-                os.symlink(f0, f1)
+        # Check solver type
+        solver = self.opts.get_LAVASolver()
+        # Filter
+        if solver == "curvilinear":
+            self.PrepareMeshCurvilinear(i)
+        else:
+            self.PrepareMeshUnstructured(i)
+
+    # Prepare curvilinear mesh
+    def PrepareMeshCurvilinear(self, i: int):
+        r"""Copy/link mesh files into case folder
+
+        :Call:
+            >>> cntl.PrepareMeshCurvilinear(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        self.prepare_mesh_overset(i)
 
   # === Input files ===
+   # --- Main switch ---
+    def PrepareInputFile(self, i: int):
+        r"""Prepare main input file, depends on LAVA solver is in use
+
+        :Call:
+            >>> cntl.PrepareInputFile(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-07-15 ``@ddalle``: v1.0
+        """
+        # Get solver type
+        solver = self.opts.get_LAVASolver()
+        # Switch
+        if solver == "curvilinear":
+            self.PrepareRunYAML(i)
+        elif solver == "cartesian":
+            self.PrepareRunInputs(i)
+
+   # --- run.yaml ---
     # Read template YAML file
     def ReadRunYAML(self):
         r"""Read run YAML file, using template if setting is empty
@@ -344,3 +360,225 @@ class Cntl(capecntl.Cntl):
         # Set nonlinear iterations
         np = int(self.opts.get_PhaseIters())
         opts.set_lava_subopt('nonlinearsolver', 'iterations', np)
+
+   # --- run.inputs ---
+    # Read template "run.input" file
+    def ReadCartInputFile(self):
+        r"""Read LAVA-Cartesian input file, ``run.inputs``
+
+        :Call:
+            >>> cntl.ReadCartInputFile()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+        :Version:
+            * 2025-07-14 ``@ddalle``: v1.0
+        """
+        # Get name of file to read
+        fname = self.opts.get_CartInputFile()
+        # Check for it
+        if fname is None:
+            # Use template
+            fabs = os.path.join(PyLavaFolder, "templates", "run.inputs")
+        elif not os.path.isabs(fname):
+            # Absolutize
+            fabs = os.path.join(self.RootDir, fname)
+        else:
+            # Already absolute
+            fabs = fname
+        # Read it if possible
+        if os.path.isfile(fabs):
+            self.CartInputs = CartInputFile(fabs)
+
+    # Prepare "run.inputs" file
+    @capecntl.run_rootdir
+    def PrepareRunInputs(self, i: int):
+        r"""Prepare the ``run.inputs`` file for each phase of one case
+
+        :Call:
+            >>> cntl.PrepareRunYAML(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        # Set case index for options
+        self.opts.setx_i(i)
+        # Set flight conditions
+        self.PrepareRunInputsFlightConditions(i)
+        # Get user's selected file name
+        basename = "run.inputs"
+        # Get name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Enter said folder
+        os.chdir(frun)
+        # Loop through phases
+        for j in self.opts.get_PhaseSequence():
+            # Select file name for this phase
+            runfile = infix_phase(basename, j)
+            # Select arbitrary options for this phase in JSON
+            jsonrunopts = self.opts.select_runinputs_phase(j)
+            # Apply options from JSON
+            runopts = self.CartInputs
+            if runopts is not None:
+                runopts.apply_dict(jsonrunopts)
+            # Write file
+            self.CartInputs.write(runfile)
+
+    # Prepare flight conditions portion of "run.inputs"
+    def PrepareRunInputsFlightConditions(self, i: int):
+        r"""Prep the reference conditions section of LAVA-cart file
+
+        :Call:
+            >>> cntl.PrepareRunInputsFlightConditions(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-07-15 ``@ddalle``: v1.0
+        """
+        # Get properties
+        uinf = self.x.GetVelocity(i, units="m/s")
+        p = self.x.GetPressure(i, units="Pa")
+        r = self.x.GetDensity(i, units="kg/m^3")
+        t = self.x.GetTemperature(i, units="K")
+        m = self.x.GetMach(i)
+        a = self.x.GetAlpha(i)
+        b = self.x.GetBeta(i)
+        rey = self.x.GetReynoldsNumber(i, units="1/m")
+        # Get YAML interface
+        opts = self.CartInputs
+        # Get current properties to see what user intended
+        ui = opts.get_refcond("velocity")
+        pi = opts.get_refcond("pressure")
+        ri = opts.get_refcond("density")
+        ti = opts.get_refcond("temperature")
+        rei = opts.get_refcond("Re")
+        # See which flags we are expecting; need at least two
+        qre = rei is not None
+        qr = (ri is not None)
+        qp = (pi is not None) or not (qr or qre)
+        qt = (ti is not None) or not (qr and qp) or qre
+        # Check for density
+        if qr and (r is not None):
+            opts.set_density(r)
+        # Check for temperature
+        if qt and (t is not None):
+            opts.set_temperature(t)
+        # Check for pressure
+        if qp and (p is not None):
+            opts.set_pressure(p)
+        if qre and (rey is not None):
+            opts.set_refcond("Re", rey)
+        # Check for velocity magnitude
+        if ui is None:
+            # Set Mach number
+            if m is not None:
+                opts.set_mach(m)
+            # Set angles
+            if a is not None:
+                opts.set_alpha(a)
+            if b is not None:
+                opts.set_beta(b)
+        else:
+            # Calculate angle
+            ca = np.cos(a*DEG)
+            cb = np.cos(b*DEG)
+            sa = np.sin(a*DEG)
+            sb = np.sin(b*DEG)
+            # Components
+            u = uinf*ca*cb
+            v = -uinf*sb
+            w = uinf*sa*cb
+            # Set velocity
+            opts.set_refcond("velocity", [u, v, w])
+
+  # === Case Modification ===
+    # Function to apply namelist settings to a case
+    def ApplyCase(self, i: int, nPhase=None, **kw):
+        r"""Apply settings from *cntl.opts* to an individual case
+
+        This rewrites each run namelist file and the :file:`case.json`
+        file in the specified directories.
+
+        :Call:
+            >>> cntl.ApplyCase(i, nPhase=None)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                FUN3D control interface
+            *i*: :class:`int`
+                Case number
+            *nPhase*: {``None``} | positive :class:`int`
+                Last phase number (default determined by *PhaseSequence*)
+        :Versions:
+            * 2016-03-31 ``@ddalle``: v1.0
+        """
+        # Ignore cases marked PASS
+        if self.x.PASS[i] or self.x.ERROR[i]:
+            return
+        # Case function
+        self.CaseFunction(i)
+        # Read ``case.json``.
+        rc = self.read_case_json(i)
+        # Get present options
+        rco = self.opts["RunControl"]
+        # Exit if none
+        if rc is None:
+            return
+        # Get the number of phases in ``case.json``
+        nSeqC = rc.get_nSeq()
+        # Get number of phases from present options
+        nSeqO = self.opts.get_nSeq()
+        # Check for input
+        if nPhase is None:
+            # Default: inherit from pyOver.json
+            nPhase = nSeqO
+        else:
+            # Use maximum
+            nPhase = max(nSeqC, int(nPhase))
+        # Present number of iterations
+        nIter = rc.get_PhaseIters(nSeqC)
+        # Get nominal phase breaks
+        PhaseIters = self.GetPhaseBreaks()
+        # Loop through the additional phases
+        for j in range(nSeqC, nPhase):
+            # Append the new phase
+            rc["PhaseSequence"].append(j)
+            # Get iterations for this phase
+            if j >= nSeqO:
+                # Add *nIter* iterations to last phase iter
+                nj = self.opts.get_nIter(j)
+            else:
+                # Process number of *additional* iterations expected
+                nj = PhaseIters[j] - PhaseIters[j-1]
+            # Set the iteration count
+            nIter += nj
+            rc.set_PhaseIters(nIter, j)
+            # Status update
+            print("  Adding phase %s (to %s iterations)" % (j, nIter))
+        # Copy other sections
+        for k in rco:
+            # Don't copy phase and iterations
+            if k in ["PhaseIters", "PhaseSequence"]:
+                continue
+            # Otherwise, overwrite
+            rc[k] = rco[k]
+        # Write it
+        self.WriteCaseJSON(i, rc=rc)
+        # Write the conditions to a simple JSON file
+        self.WriteConditionsJSON(i)
+        # (Re)Prepare mesh in case needed
+        print("  Checking mesh preparations")
+        self.PrepareMesh(i)
+        # Rewriting phases
+        print("  Writing input files 0 to %s" % (nPhase-1))
+        self.PrepareInputFile(i)
+        # Write PBS scripts
+        nPBS = self.opts.get_nPBS()
+        print("  Writing PBS scripts 0 to %s" % (nPBS-1))
+        self.WritePBS(i)

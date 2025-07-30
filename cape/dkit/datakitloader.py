@@ -928,7 +928,7 @@ class DataKitLoader(OptionsDict):
         # Combine directories
         return os.path.join(moddir, dbsdir, dbtypedir, fname)
 
-    def get_dbfiles(self, dbname, ext):
+    def get_dbfiles(self, dbname: str, ext: str) -> list:
         r"""Get list of datakit filenames for specified type
 
         :Call:
@@ -1177,6 +1177,13 @@ class DataKitLoader(OptionsDict):
     def get_dbfiles_mat(self, dbname=None):
         return self.get_dbfiles(dbname, "mat")
 
+   # --- CDB DataKit files ---
+    def get_dbfile_cdb(self, fname=None):
+        return self.get_dbfile(fname, "cdb")
+
+    def get_dbfiles_cdb(self, dbname=None):
+        return self.get_dbfiles(dbname, "cdb")
+
     def get_dbdir_mat(self):
         return self.get_dbdir("mat")
 
@@ -1199,6 +1206,59 @@ class DataKitLoader(OptionsDict):
 
     def get_dbdir_xlsx(self):
         return self.get_dbdir("xlsx")
+
+   # --- LFC files ---
+    def genr8_lfc_filename(self, fname: str) -> str:
+        r"""Produce name of large file stub
+
+        :Call:
+            >>> flfc = repo.genr8_lfc_filename(fname)
+        :Inputs:
+            *repo*: :class:`GitRepo`
+                Interface to git repository
+            *fname*: :class:`str`
+                Name of file, either original file or metadata stub
+            *ext*: {``None``} | ``".dvc"`` | ``".lfc"``
+                Large file metadata stub file extension
+        :Outputs:
+            *flfc*: :class:`str`
+                Name of large file metadata stub file
+        :Versions:
+            * 2022-12-21 ``@ddalle``: v1.0
+        """
+        # Get working extension
+        ext = ".lfc"
+        # Get DVC file if needed
+        if not fname.endswith(ext):
+            fname += ext
+        # Output
+        return fname
+
+    def genr8_lfc_ofilename(self, fname: str) -> str:
+        r"""Produce name of original large file
+
+        This strips the ``.lfc`` or ``.dvc`` extension if necessary.
+
+        :Call:
+            >>> forig = repo.genr8_lfc_ofilename(fname)
+        :Inputs:
+            *repo*: :class:`GitRepo`
+                Interface to git repository
+            *fname*: :class:`str`
+                Name of file, either original file or metadata stub
+        :Outputs:
+            *forig*: :class:`str`
+                Name of original large file w/o LFC extension
+        :Versions:
+            * 2022-12-21 ``@ddalle``: v1.0
+        """
+        # Get working extension
+        ext = ".lfc"
+        # Get DVC file if needed
+        if fname.endswith(ext):
+            fname = fname[:-len(ext)]
+        # Output
+        return fname
 
    # --- DVC files ---
     def dvc_add(self, frel, **kw):
@@ -1446,6 +1506,78 @@ class DataKitLoader(OptionsDict):
         else:
             # Up-to-date
             return 0
+
+    def _dvc_write(self, fname: str, dvc: bool):
+        # Check option
+        if not dvc:
+            return
+        # Get true file names
+        fdvc = self.genr8_dvc_filename(fname)
+        fdat = self.genr8_dvc_ofilename(fname)
+        # Process DVC
+        if os.path.isfile(fdvc):
+            # Add the file
+            ierr = self.dvc_add(fdat)
+            if ierr:
+                print(
+                    f"Failed to dvc-add file '{os.path.basename(fdat)}'")
+            # Push the file
+            ierr = self.dvc_push(fdat)
+            if ierr:
+                print(
+                    f"Failed to dvc-push file '{os.path.basename(fdat)}'")
+
+    def genr8_dvc_filename(self, fname: str) -> str:
+        r"""Produce name of large file stub
+
+        :Call:
+            >>> flfc = repo.genr8_dvc_filename(fname)
+        :Inputs:
+            *repo*: :class:`GitRepo`
+                Interface to git repository
+            *fname*: :class:`str`
+                Name of file, either original file or metadata stub
+            *ext*: {``None``} | ``".dvc"`` | ``".lfc"``
+                Large file metadata stub file extension
+        :Outputs:
+            *flfc*: :class:`str`
+                Name of large file metadata stub file
+        :Versions:
+            * 2022-12-21 ``@ddalle``: v1.0
+        """
+        # Get working extension
+        ext = ".dvc"
+        # Get DVC file if needed
+        if not fname.endswith(ext):
+            fname += ext
+        # Output
+        return fname
+
+    def genr8_dvc_ofilename(self, fname: str) -> str:
+        r"""Produce name of original large file
+
+        This strips the ``.dvc`` extension if necessary.
+
+        :Call:
+            >>> forig = repo.genr8_lfc_ofilename(fname)
+        :Inputs:
+            *repo*: :class:`GitRepo`
+                Interface to git repository
+            *fname*: :class:`str`
+                Name of file, either original file or metadata stub
+        :Outputs:
+            *forig*: :class:`str`
+                Name of original large file w/o LFC extension
+        :Versions:
+            * 2022-12-21 ``@ddalle``: v1.0
+        """
+        # Get working extension
+        ext = ".dvc"
+        # Get DVC file if needed
+        if fname.endswith(ext):
+            fname = fname[:-len(ext)]
+        # Output
+        return fname
 
    # --- Raw data update ---
     # Main updater
@@ -2889,6 +3021,40 @@ class DataKitLoader(OptionsDict):
         # Output
         return db
 
+    def read_db_cdb(self, cls: Optional[type] = None, **kw) -> DataKit:
+        r"""Read a datakit using ``.cdb`` file type
+
+        :Call:
+            >>> db = ast.read_db_mat(fname, cls=None)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-07-03 ``@ddalle``: v1.0
+        """
+        # Get full list of file names
+        fnames = self.get_db_filenames_by_type("cdb")
+        # Combine option
+        kw["cls"] = cls
+        # Read those files
+        for j, fname in enumerate(fnames):
+            # Read with default options
+            if j == 0:
+                # Read initial database
+                db = self.read_dbfile_cdb(fname, **kw)
+            else:
+                # Get absolute path
+                fmat = self.get_dbfile_cdb(fname)
+                # Use existing database
+                db.read_mat(fmat)
+        # Output
+        return db
+
     def read_db_csv(self, cls: Optional[type] = None, **kw) -> DataKit:
         r"""Read a datakit using ``.csv`` file type
 
@@ -2980,6 +3146,65 @@ class DataKitLoader(OptionsDict):
                 kw["cols"] = cols
             # Write file if needed
             db = self.write_dbfile_csv(fname, readfunc, f=f, db=db, **kw)
+        # Return *db* in case read during process
+        return db
+
+    def write_db_cdb(
+            self,
+            readfunc: Optional[Callable] = None,
+            f: bool = True,
+            db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
+        r"""Write (all) canonical CAPE databse (``.cdb``) file(s)
+
+        :Call:
+            >>> db = ast.write_db_cdb(readfunc, f=True, **kw)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *readfunc*: {``None``} | **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+            *cols*: {``None``} | :class:`list`
+                If *dkl* has more than one file, *cols* must be a list
+                of lists specifying which columns to write to each file
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2021-09-10 ``@ddalle``: v1.0
+        """
+        # File name for CDB
+        fmats = self.get_dbfiles_cdb()
+        # Check for multiple
+        if len(fmats) > 1:
+            # Get column lists
+            cols = kw.pop("cols", None)
+            # Check
+            if cols is None:
+                raise ValueError(
+                    ("Cannot write multiple MAT files w/o 'cols' kwarg,") +
+                    ("a list of columns to write for each MAT file"))
+        else:
+            cols = kw.pop("cols", None)
+        # Default read function
+        readfunc = self._get_readfunc(readfunc)
+        # Loop through files
+        for j, fmat in enumerate(fmats):
+            # Get list of cols if needed
+            if len(fmats) > 1:
+                # Write columns for file *j*
+                kw["cols"] = cols[j]
+            else:
+                # Write main list
+                kw["cols"] = cols
+            # Write file if needed
+            db = self.write_dbfile_cdb(fmat, readfunc, f=f, db=db, **kw)
         # Return *db* in case read during process
         return db
 
@@ -3195,36 +3420,69 @@ class DataKitLoader(OptionsDict):
         # DVC option
         dvc = kw.get("dvc", False)
         # Get DVC file name
-        if fmat.endswith(".dvc"):
-            # Already a DVC stub
-            fdvc = fmat
-        else:
-            # Append ".dvc" extension
-            fdvc = fmat + ".dvc"
-        # Check if it exists
-        if f or not (os.path.isfile(fmat) or os.path.isfile(fdvc)):
-            # Read datakit from source
-            if db is None:
-                db = readfunc()
-            # Create folders as needed
-            self.prep_dirs(fmat)
-            # Write it
-            db.write_mat(fmat, **kw)
-            # Process DVC
-            if dvc or os.path.isfile(fdvc):
-                # Add the file
-                ierr = self.dvc_add(fmat)
-                if ierr:
-                    print(
-                        "Failed to dvc-add file '%s'"
-                        % os.path.basename(fmat))
-                    return db
-                # Push the file
-                ierr = self.dvc_push(fmat)
-                if ierr:
-                    print(
-                        "Failed to dvc-push file '%s'"
-                        % os.path.basename(fmat))
+        fdvc = self.genr8_dvc_filename(fmat)
+        # Check status
+        if not f and (os.path.isfile(fmat) or os.path.isfile(fdvc)):
+            return db
+        # Read datakit from source
+        if db is None:
+            db = readfunc()
+        # Create folders as needed
+        self.prep_dirs(fmat)
+        # Write it
+        db.write_mat(fmat, **kw)
+        # Process DVC
+        self._dvc_write(fmat, dvc)
+        # Return *db* in case it was read during process
+        return db
+
+    def write_dbfile_cdb(
+            self, fcdb: str,
+            readfunc: Callable,
+            f: bool = True,
+            db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
+        r"""Write a canonical db CDB (CAPE data binary) file
+
+        :Call:
+            >>> db = ast.write_dbfile_cdb(fcdb, readfunc, f=True, **kw)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *fcdb*: :class:`str`
+                Name of file to write
+            *readfunc*: **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2021-09-10 ``@ddalle``: v1.0
+            * 2021-09-15 ``@ddalle``: v1.1; check for DVC stub
+            * 2021-09-15 ``@ddalle``: v1.2; add *dvc* option
+        """
+        # DVC option
+        dvc = kw.get("dvc", False)
+        # Get DVC file name
+        fdvc = self.genr8_dvc_filename(fcdb)
+        # Check status
+        if not f and (os.path.isfile(fcdb) or os.path.isfile(fdvc)):
+            return db
+        # Read datakit from source
+        if db is None:
+            db = readfunc()
+        # Create folders as needed
+        self.prep_dirs(fcdb)
+        # Write it
+        db.write_cdb(fcdb, **kw)
+        # Process DVC
+        self._dvc_write(fcdb, dvc)
         # Return *db* in case it was read during process
         return db
 
@@ -3320,6 +3578,33 @@ class DataKitLoader(OptionsDict):
         kw.setdefault("ftype", "mat")
         # Read from db/ folder
         return self.read_dbfile(fname, "mat", **kw)
+
+    def read_dbfile_cdb(self, fname: str, **kw) -> DataKit:
+        r"""Read a ``.cdb`` file from *DB_DIR*
+
+        :Call:
+            >>> db = ast.read_dbfile_cdb(fname, **kw)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *fname*: :class:`str`
+                Name of file to read from raw data folder
+            *ftype*: {``"mat"``} | ``None`` | :class:`str`
+                Optional specifier to predetermine file type
+            *cls*: {``None``} | :class:`type`
+                Class to read *fname* other than *dkl["DATAKIT_CLS"]*
+            *kw*: :class:`dict`
+                Additional keyword arguments passed to *cls*
+        :Outputs:
+            *db*: *dkl["DATAKIT_CLS"]* | *cls*
+                DataKit instance read from *fname*
+        :Versions:
+            * 2021-06-25 ``@ddalle``: v1.0
+        """
+        # Set default file type
+        kw.setdefault("ftype", "cdb")
+        # Read from db/ folder
+        return self.read_dbfile(fname, "cdb", **kw)
 
     def read_dbfile_csv(self, fname: str, **kw) -> DataKit:
         r"""Read a ``.mat`` file from *DB_DIR*

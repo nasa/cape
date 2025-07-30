@@ -35,7 +35,7 @@ from . import cmdrun
 from . import cmdgen
 from . import pltfile
 from .. import fileutils
-from .databook import CaseResid
+from .databook import CaseFM, CaseResid
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 from ..cfdx import casecntl
@@ -119,6 +119,9 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _dex_cls = {
+        "fm": CaseFM,
+    }
 
    # --- Config ---
     def init_post(self):
@@ -343,16 +346,81 @@ class CaseRunner(casecntl.CaseRunner):
         # Only overwrite given nml if the phase adapts
         if not adpt_opt:
             return
-        # Required settings
-        vov_req = {
-            "export_to": 'solb',
-            "primitive_variables": True,
-            "x": False,
-            "y": False,
-            "z": False,
-            "turb1": True,
-            "turb2": True
-        }
+        # Check for generic gas eqn_type
+        gov = nml.get('governing_equations')
+        # Different required volume output variables needed based on eqn type
+        if gov['eqn_type'] == "generic":
+            vov_req = {
+                "export_to": 'solb',
+                "primitive_variables": False,
+                "x": False,
+                "y": False,
+                "z": False,
+                "u": True,
+                "v": True,
+                "w": True,
+                "rho_i": {
+                    "1:99": True},
+                "tt": True,
+                "tv": True,
+                "turb1": True,
+                "turb2": True
+            }
+            # Generic eqn_type requires a solb interpolant
+            # Let's check if the solb was defined in your template
+            geotyp = nml.get_opt("sampling_parameters", 'type_of_geometry')
+            # First check if sampling parameters even exists
+            if geotyp is not None:
+                if "partition" in geotyp:
+                    update_flag = 0
+                else:
+                    update_flag = 1
+            else:
+                update_flag = 1
+            # Update sampling parameters if list is none or if partition not
+            # present
+            if update_flag == 1:
+                # Check numer of sampling outputs first
+                n = nml.get_opt("sampling_parameters", "number_of_geometries")
+                # If no sampling parameters predefined, add one
+                if not n:
+                    ngeom = 1
+                else:
+                    ngeom = n + 1
+                # Set the number of geometries
+                nml.set_opt(
+                    "sampling_parameters", "number_of_geometries", ngeom)
+                # Set the type
+                nml.set_opt(
+                    "sampling_parameters", "type_of_geometry",
+                    val="partition", j=ngeom-1)
+                # Set the output frequency to last iteration
+                nml.set_opt(
+                    "sampling_parameters", "sampling_frequency",
+                    val=-1, j=ngeom-1)
+                # Set the output type
+                nml.set_opt(
+                    "sampling_parameters", "export_to",
+                    val="solb", j=ngeom-1)
+                # Set the output variable (mach for now)
+                nml.set_opt(
+                    "sampling_parameters", "variable_list",
+                    val="mach", j=ngeom-1)
+                # Set the output name
+                nml.set_opt(
+                    "sampling_parameters", "label",
+                    val='interpolant', j=ngeom-1)
+        else:
+            # Required settings
+            vov_req = {
+                "export_to": 'solb',
+                "primitive_variables": True,
+                "x": False,
+                "y": False,
+                "z": False,
+                "turb1": True,
+                "turb2": True
+            }
         # Overwrite volume output variables
         nml.pop("volume_output_variables", None)
         # Save vol output options to nml
@@ -429,6 +497,10 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read settings
         rc = self.read_case_json()
+        nml = self.read_namelist()
+        # Get eqn type
+        gov = nml.get("governing_equations")
+        eqtype = gov['eqn_type']
         # Check if adaptive
         if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
             return
@@ -451,7 +523,14 @@ class CaseRunner(casecntl.CaseRunner):
         # Set command line default required args & kws
         rc.set_RefineOpt("input", f"{proj}")
         rc.set_RefineOpt("output", f"{projb}")
-        rc.set_RefineOpt("interpolant", "mach")
+        # Interpolant needs to be solb file wit one variable for generic gas
+        if eqtype == 'generic':
+            # We have hardcoded this to be a specific name
+            interp = f'{proj}_interpolant.solb'
+        else:
+            # Default to use mach as interpolant
+            interp = "mach"
+        rc.set_RefineOpt("interpolant", interp)
         rc.set_RefineOpt("mapbc", f'{proj}.mapbc')
         rc.set_RefineOpt("run", True)
         # Run the refine loop command
@@ -1605,6 +1684,27 @@ class CaseRunner(casecntl.CaseRunner):
             os.chdir('..')
         # Output
         return nml
+
+   # --- DataBook ---
+    # Create tuple of args prior to *comp*
+    def get_dex_args_pre(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_pre()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one string, project base root name
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        proj = self.get_project_baserootname()
+        # Use it
+        return (proj,)
 
    # --- File search ---
     # Function to get restart file

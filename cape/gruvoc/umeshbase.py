@@ -12,6 +12,12 @@ import numpy as np
 # Local imports
 from . import volcomp
 from ..dkit.rdb import DataKit
+from ..convert import (
+    ReynoldsPerMeter,
+    ReynoldsPerFoot,
+    SutherlandMKS,
+    SutherlandFPS
+)
 from .errors import (
     assert_size,
     GruvocKeyError)
@@ -28,9 +34,14 @@ except ModuleNotFoundError:
     # Empty imports
     pv = None
     vtkPlane = None
+try:
+    from scipy.spatial import cKDTree
+except ModuleNotFoundError:
+    cKDTree = None
 
 
 # Class for Tecplot zones; nodes and indices
+SegmentedSlice = namedtuple("SegmentedSlice", ("nodes", "q"))
 SurfZone = namedtuple("SurfZone", ("nodes", "jnode", "tris", "quads"))
 VolumeZone = namedtuple(
     "VolumeZone", ("nodes", "jnode", "tets", "pyrs", "pris", "hexs"))
@@ -55,6 +66,14 @@ SI_SUFFIXES = {
 }
 
 # Cell edge connectivity
+NODE_COUNTS = {
+    "tris": 3,
+    "quads": 4,
+    "tets": 4,
+    "pyrs": 5,
+    "pris": 6,
+    "hexs": 8,
+}
 EDGECON = {
     "tris": np.array((
         (0, 1), (1, 2), (2, 0))
@@ -536,6 +555,126 @@ class UmeshBase(ABC):
             for i, var in enumerate(self.qvars):
                 self.pvmesh.point_data[var] = self.q[:, i]
 
+    def make_pv_skin_friction(self, bound0, mu, a, q):
+        r"""Compute skin friction using pyvista methods
+            :Call:
+            >>>surf = mesh.make_pv_skin_friction(bound0, mu, a, q)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *bound0*: "class":`int`
+                Boundary ID to begin surface extraction (meant for
+                farfield exclsion)
+            *mu*: "class":`float`
+                Dynamic viscosity (dimensional)
+            *a*: "class":`float`
+                Value for diminsionalization of velocity
+            *q*: "class":`float`
+                Dynamic pressure (dimensional)
+        :Outputs:
+            *surf*: :class:`Umesh`
+                Surface points with computed skin friction quantities
+        """
+        # Make point_ids for boundary extraction (0=volume node)
+        ids = np.full(self.nnode, 0, dtype=int)
+
+        # Get node indicies of specfic surface tris from mapbc
+        id_list = list(self.config.facenames.keys())[bound0:]
+
+        for id in id_list:
+            t_mask = self.get_tris_by_id(id)
+            n_mask = self.tris[t_mask]
+            ids[n_mask-1] = id
+
+        # Assign ids to q array
+        self.q = (np.hstack((self.q, ids[:, None])))
+        self.qvars.append('id')
+
+        # Make/re-make pyvista mesh
+        self.make_pvmesh_vol()
+
+        # Construct the velocity vector
+        u = self.pvmesh.point_data['u'] * a
+        v = self.pvmesh.point_data['v'] * a
+        w = self.pvmesh.point_data['w'] * a
+        self.pvmesh.point_data['Velocity'] = np.vstack((u, v, w)).T
+
+        # Extract the surface (only)
+        surfu = self.pvmesh.extract_values(
+            values=id_list, scalars="id", adjacent_cells=False)
+        surf = surfu.extract_surface()
+
+        # Extract surface+first cell
+        vol_first = self.pvmesh.extract_points(
+            surfu['vtkOriginalPointIds'], adjacent_cells=True)
+
+        # Compute velocity gradient at surface using first cell
+        vol_tensor = vol_first.compute_derivative(
+            scalars='Velocity', gradient=True, divergence=True,
+            progress_bar=True)
+
+        # Sample gradient and divergecne onto surface
+        surfg = surf.sample(vol_tensor)
+        # Compute surface normals
+        surfn = surfg.compute_normals(cell_normals=False, point_normals=True)
+        # Save surface normals/gradients for use
+        normals = surfn.point_data['Normals']
+        gradw = surfn.point_data['gradient']
+        divw = surfn.point_data['divergence']
+
+        # Reshape gradient to make 3x3
+        gradwr = gradw.reshape((-1, 3, 3))
+
+        # Compute the components of the viscous stress tensor
+        # tau = mu * (grad(U) + grad(U).T) - 2/3mu*(div(U))*I
+        tau_dev = mu * (gradwr + gradwr.transpose((0, 2, 1)))
+        tau_dil = -2/3 * mu * divw[:, None, None] * np.eye(3)
+        tau = tau_dev + tau_dil
+
+        # Calculate full stress vector on the wall (traction)
+        traction = np.einsum('nij,nj->ni', tau, normals)
+        # Now get the component in the normal direction
+        traction_normal_mag = np.einsum('ni,ni->n', traction, normals)
+        # Vecotorize the normal component
+        traction_normal = traction_normal_mag[:, None] * normals
+        # Subtract out the normal component to get the WSS vectors at the wall
+        wss = traction - traction_normal
+        # Comppute the wss magnitude
+        wss_magnitude = np.linalg.norm(wss, axis=1)
+
+        # Save the values to the surface grid
+        surfn.point_data['wss_magnitude'] = wss_magnitude
+        surfn.point_data['wss'] = wss
+
+        # Compute skin friction coefficient
+        # cf = Tw/q
+        cf = wss_magnitude / q
+        surfn.point_data['cf'] = cf
+
+        # Components
+        # --X--
+        tau_w_x = wss[:, 0]
+        cfx = tau_w_x/q
+        surfn.point_data['cf_x'] = cfx
+        # --X--
+        tau_w_y = wss[:, 1]
+        cfy = tau_w_y/q
+        surfn.point_data['cf_y'] = cfy
+        # --X--
+        tau_w_z = wss[:, 2]
+        cfz = tau_w_z/q
+        surfn.point_data['cf_z'] = cfz
+
+        # Remove vectors and tensors for umesh conversion
+        surfn.point_data.remove('Velocity')
+        surfn.point_data.remove('Normals')
+        surfn.point_data.remove('gradient')
+        surfn.point_data.remove('divergence')
+        surfn.point_data.remove('wss')
+
+        # Convert to Umesh and return
+        return self.__class__.from_pvmesh(surfn)
+
    # --- DataKit ---
     def genr8_datakit(self) -> DataKit:
         r"""Create a :class:`DataKit` from an unstructured mesh
@@ -587,9 +726,17 @@ class UmeshBase(ABC):
             col3 = f"{col}_ids"
             # Check if present
             if col1 in db:
+                # Get value
+                v = db[col1]
+                # Check for special types
+                nmin = NODE_COUNTS.get(col1)
+                # Fill out empty arrays; tris: (0,) -> (0, 3)
+                if nmin and isinstance(v, np.ndarray) and v.size == 0:
+                    # Create empty 2D array w/ correct shape
+                    v = np.zeros((0, nmin), dtype=v.dtype)
                 # Save data
-                setattr(mesh, col1, db[col1])
-                setattr(mesh, col2, db[col1].shape[0])
+                setattr(mesh, col1, v)
+                setattr(mesh, col2, v.shape[0])
                 if col3 in UmeshBase.__slots__:
                     setattr(mesh, col3, db.get(col3))
             else:
@@ -791,6 +938,40 @@ class UmeshBase(ABC):
         face_ids = self.get_surfzone_ids()
         # Count them
         return face_ids.size
+
+    def get_qvar(self, qvar, index=-1) -> np.ndarray:
+        r"""Get state variable in the mesh object
+
+        :Call:
+            >>> var = mesh.get_qvar()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *qvar*: :class:`str`
+                Name of q variable
+            *index*: {``-1``} | :class:`int`
+                Dimension of mesh.q that corresponds to qvar indexing
+        :Outputs:
+            *var*: :class:`np.ndarray`
+                Returns qvar array from mesh.q
+        :Versions:
+            * 2025-07-16 ``@aburkhea``: v1.0
+        """
+        # Get var list
+        varlist = self.qvars
+        # Get dimensions of q
+        ndim = self.q.ndim
+        # Translate default -1 indexing to absolute index
+        index = ndim - 1 if index == -1 else index
+        # Try to find qvar
+        try:
+            # Get index of qvar
+            i = varlist.index(qvar)
+            # Assemble smart index of q
+            ind = tuple(i if j == index else slice(None) for j in range(ndim))
+            return self.q[ind]
+        except ValueError:
+            raise ValueError(f"No '{qvar}' found in mesh.qvar")
 
    # --- Calculations (other states) ---
     def add_mach(self, gam: float = 1.4):
@@ -1727,6 +1908,403 @@ class UmeshBase(ABC):
         # Convert to Umesh and return
         return self.__class__.from_pvmesh(pvmesh)
 
+    # Interface to slice a surface
+    def slicesurf(
+            self,
+            x: np.array,
+            n: np.array,
+            comp: Optional[Union[str, int, list]] = None,
+            closed: Optional[bool] = False,
+            **kw):
+        r"""Create a slice through surface tris and quads
+
+        :Call:
+            >>> crv = mesh.slicesurf(x, n, comp=None, **kw)
+        :Inputs:
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Coordinates of the cut plane center
+            *n*: :class:`np.ndarray`\ [:class:`float`]
+                Vector normal to desired cut plane
+            *comp*: {``None``} | `str` | `list`
+                Optional name of component(s) to intersect
+            *fname*: {``None``} | `str`
+                Name of output file
+            *closed*: {``False``} | ``True``
+                Attempt to close returned edges
+        :Outputs:
+            *crv*: :class:`Umesh`
+                Unstructured mesh instance for intersect
+            *crv.nodes*: :class:`np.ndarray`\ [:class:`float`]
+                Nx3 array of node coordinates
+            *crv.edges*: :class:`np.ndarray`\ [:class:`int`]
+                Nx2 array of edge nodes, sorted into contiguous sections
+            *crv.edge_ids*: :class:`np.ndarray`\ [:class:`int`]
+                The *tri_id* or *quad_id* from which this edge came
+            *crv.q*: :class:`np.ndarray`\ [:class:`float`]
+                Values of the *mesh.q* at the *slice.nodes*
+        :Versions:
+            * 2025-05-12 ``@aburkhea``: v1.0
+        """
+        # Normalize the plane normal vector
+        n = n / np.linalg.norm(n)
+        # Get rotated points if not given
+        rpts = rotate_points_to_plane(self.nodes, x, n)
+        surfids = []
+        # If string comp, given process to surfids
+        if isinstance(comp, str):
+            # Some comp -> surfid function here eventually
+            raise NotImplementedError("String comps not supported yet")
+        elif isinstance(comp, list):
+            # Support mixed type comp (str and ints both given)
+            for _comp in comp:
+                if isinstance(comp, str):
+                    # Some comp -> surfid function here eventually
+                    raise NotImplementedError("String comps not supported yet")
+                else:
+                    # Assuming list of surfids already given
+                    surfids.extend([_comp])
+        # Default to cut everything
+        elif comp is None:
+            # Add up both tri and quad ids
+            surfids = np.unique(
+                np.hstack((self.get_tri_ids(), self.get_quad_ids())))
+        # Prep surface element cut outputs
+        edgelist = []
+        surfpts = None
+        surfvals = None
+        # Calculate boundary bounds
+        allseles = np.array([])
+        celltype = []
+        Itris = None
+        Iquads = None
+        # Get List of tris by surfid
+        for surfid in surfids:
+            _Itris = self.get_tris_by_id(surfid)
+            if Itris is None:
+                Itris = _Itris.reshape(-1, 1)
+            else:
+                Itris = np.vstack((Itris, _Itris.reshape(-1, 1)))
+        # Get List of quads by surfid
+        for surfid in surfids:
+            _Iquads = self.get_quads_by_id(surfid)
+            if Iquads is None:
+                Iquads = _Iquads.reshape(-1, 1)
+            else:
+                Iquads = np.vstack((Iquads, _Iquads.reshape(-1, 1)))
+        # Keep seperate surf element lists
+        Isurfs = {"tris": Itris, "quads": Iquads}
+        Ieles = []
+        cutinds = []
+        # For each element type
+        for ie, ename in enumerate(("tris", "quads")):
+            # Try to get element from mesh
+            _eles = self.__getattribute__(ename)
+            Isurf = Isurfs.get(ename)
+            # If no elements of this type (or none in these sids)
+            if _eles.size == 0 or Isurf.size == 0:
+                continue
+            # Fix base 1 -> base 0 indexing for eles
+            eles = _eles - 1
+            # Pad tri element inds (N,3) to stack with quads later
+            if ename == "tris":
+                eles = np.insert(eles, 3, -1, axis=1)
+            surfeles = eles[Isurf[:, 0], :]
+            # Get intersected elements
+            if ename == "tris":
+                # Get mask for elements cut by plane
+                Icut = get_intersect_elems(surfeles[:, :3], rpts[:, 2])
+            else:
+                Icut = get_intersect_elems(surfeles, rpts[:, 2])
+            # Add mask to "global" list
+            if allseles.size > 0:
+                # Stack surface elements
+                allseles = np.vstack([allseles, surfeles[Icut]])
+                _cutinds = Isurf[Icut, 0]
+                cutinds = np.concatenate([cutinds, _cutinds])
+                # Keep track of which surf elements are which type
+                _Ieles = np.ones(len(surfeles[Icut]), dtype=np.int8)*ie
+                # Append list of surf element types
+                Ieles = np.concatenate([Ieles, _Ieles])
+            else:
+                allseles = surfeles[Icut]
+                Ieles = np.ones(len(allseles), dtype=np.int8)*ie
+                cutinds = Isurf[Icut, 0]
+            celltype.extend((ename,))
+        # Prep output plane and values
+        csurfpts = None
+        csurfvals = None
+        edgetol = kw.get("edgetol", 1e-4)
+        # Get vertex intersection and values for vol. element
+        _results = self._cut_elements_vect(
+            allseles, celltype, cutinds,
+            n, x,
+            Ieles=Ieles,
+            closed=closed,
+            edgetol=edgetol)
+        # Get nodes of surface element cut plane
+        csurfpts = _results[0]
+        # Get vals of surface element cut plane
+        csurfvals = _results[1]
+        # Get edges of surface element cut plane
+        edges = np.array(_results[2])
+        # Get edges of surface element cut plane
+        cedgeids = np.array(_results[3])
+        # Assemble results for multiple surf id groups
+        if surfpts is None:
+            nsurfs = 0
+            surfpts = csurfpts
+            surfvals = csurfvals
+            edgeids = cedgeids
+        else:
+            nsurfs = surfpts.shape[0]
+            surfpts = np.vstack((surfpts, csurfpts))
+            surfvals = np.vstack((surfvals, csurfvals))
+            edgeids = np.concatenate((edgeids, cedgeids))
+        # Add cumulative edge index
+        edges = np.array(edges) + nsurfs
+        edgelist.extend(edges)
+        # Initialize output umesh of same class as self
+        omesh = self.__class__()
+        # Save outputs
+        omesh.nodes = surfpts
+        omesh.nnode = surfpts.shape[0]
+        omesh.edges = np.array(edgelist)
+        omesh.edge_ids = np.array(edgeids)
+        omesh.nedge = edgeids.size
+        omesh.qvars = list(self.qvars)
+        omesh.qinf = copy.copy(self.qinf)
+        omesh.qinfvars = copy.copy(self.qinfvars)
+        omesh.q = surfvals
+        omesh.nq = self.nq
+        # Return mesh object of just the slice
+        return omesh
+
+    # Function to cut elements on plane
+    def _cut_elements_vect(
+            self, element_vertices, ele_types, cutinds,
+            plane_normal, plane_center, Ieles=None, closed=True,
+            edgetol=1e-8):
+        r"""Cut element edges with given cut plane, generate
+            interpolated nodes, values, and edge connectivity.
+
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *element_vertices*: :class:`np.array`
+                Array of elements (defined by vertex indices) to be cut
+            *ele_types*: :class:`list`
+                List of element types to cut
+            *cutinds*: :class:`np.array`
+                Index of each element to cut
+            *plane_normal* :class:`np.array`
+                Definition of cut plane normal (3,)
+            *plane_center* :class:`np.array`
+                Definition of cut plane center (3,)
+            *Ieles*: {`None`} | :class:`np.array`
+                Array labeling each element to cut as tri/quad (0/1)
+            *closed*: {`False`} | `True`
+                Attempt to close edges list
+            *edgetol*: {`1e-4`} | :class:`float`
+                Tolerance for unique point gen (min. parametric dist.)
+        :Outputs:
+            *intersection_points*: :class:`np.array`
+                Points resulting from cut
+            *intersection_values*: :class:`np.array`
+                Interpolated values at points
+            *intersection_edges*: :class:`np.array`
+                Edges created from points
+            *intersection_ids*: :class:`np.array`
+                Uncut index of element that was cut to make edge
+        :Versions:
+            * 2025-05-13 `@aburkhea`: v1.0
+        """
+        nodes = self.nodes
+        values = self.q
+        element_vertices = np.array(element_vertices)
+        if not isinstance(ele_types, list):
+            ele_type = [ele_types]
+        plane_normal = np.asarray(plane_normal)
+        plane_center = np.asarray(plane_center)
+        # Go through each element and get vertices
+        for ie, ele_type in enumerate(ele_types):
+            # Get edge connectivity for this element
+            _edges = EDGECON[ele_type]
+            i_indices, j_indices = _edges[:, 0], _edges[:, 1]
+            # If no element types given, take all
+            if Ieles is None:
+                _ele_vertices1 = element_vertices[:, i_indices]
+                _ele_vertices2 = element_vertices[:, j_indices]
+            else:
+                Iele = Ieles == ie
+                # Calculate vertices and edges for all pairs at once
+                _ele_vertices1 = element_vertices[Iele][:, i_indices]
+                _ele_vertices2 = element_vertices[Iele][:, j_indices]
+            # Pad tris
+            if ele_type == "tris":
+                # Need to pad col
+                _ele_vertices1 = np.insert(_ele_vertices1, 3, -1, axis=1)
+                _ele_vertices2 = np.insert(_ele_vertices2, 3, -1, axis=1)
+            # Start cumulative vertices
+            if ie == 0:
+                ele_vertices1 = _ele_vertices1
+                ele_vertices2 = _ele_vertices2
+            # Append cumulative vertices
+            else:
+                ele_vertices1 = np.vstack([ele_vertices1, _ele_vertices1])
+                ele_vertices2 = np.vstack([ele_vertices2, _ele_vertices2])
+        # Get mask of -1s (padded indices)
+        Ipad = ele_vertices1 == -1
+        # Get values a vertexs
+        vertices1_values = values[ele_vertices1.flatten()]
+        vertices2_values = values[ele_vertices2.flatten()]
+        # NAN padded values
+        vertices1_values[Ipad.flatten()] = np.nan
+        vertices2_values[Ipad.flatten()] = np.nan
+        # Get nodes at vertexs
+        vertices1_nodes = nodes[ele_vertices1.flatten()]
+        vertices2_nodes = nodes[ele_vertices2.flatten()]
+        # NAN padded values
+        vertices1_nodes[Ipad.flatten()] = np.nan
+        vertices2_nodes[Ipad.flatten()] = np.nan
+        # Get edge nodes and edge values
+        edges = vertices2_nodes - vertices1_nodes
+        edges_val = vertices2_values - vertices1_values
+        # Vector from plane point to all first vertices
+        w_vectors = vertices1_nodes - plane_center
+        # Calculate dot products in bulk
+        dot_n_values = np.dot(edges, plane_normal)
+        dot_w_values = np.dot(w_vectors, plane_normal)
+        # Calculate s values safely
+        with np.errstate(divide='ignore', invalid='ignore'):
+            s_values = -dot_w_values / dot_n_values
+        # Mask out nans and non intersecting
+        Inan = ~np.isnan(s_values)
+        # Filter out 0<s<1
+        I1 = s_values <= 1.0
+        I0 = s_values >= 0.0
+        I2 = np.logical_and(I0, I1)
+        # Combine into final mask
+        II = np.logical_and(I2, Inan)
+        # Supress warnings when multiplying with nans
+        with np.testing.suppress_warnings() as sup:
+            sup.filter(RuntimeWarning)
+            # Vector intersection pts and values
+            _intersection_points = vertices1_nodes + \
+                edges*s_values.reshape(-1, 1)
+            _intersection_values = vertices1_values + \
+                edges_val*s_values.reshape(-1, 1)
+        # Get valid points/vals
+        intersection_points = _intersection_points[II]
+        intersection_values = _intersection_values[II]
+        intersection_edges = []
+        intersection_ids = []
+        # If we are cutting a surface element, assemble edges
+        if ele_type in ("tris", "quads"):
+            """Kind of a mess but for each surf ele, check the svalues
+            from interp. calc, apply various logic to reduce duplicate
+            interpolated nodes and connect edges to two points only.
+            """
+            filtered_intersection_pts = []
+            filtered_values = []
+            point_dict = {}
+            # Nan masked points from interp calc (preserve abs. order)
+            s_values[~II] = np.nan
+            count = 0
+            # Get IDs for this element type
+            ele_ids = getattr(self, f"{ele_type[:-1]}_ids")
+            # Flatten these once at the start
+            ev1f = ele_vertices1.flatten()
+            ev2f = ele_vertices2.flatten()
+            for ele in range(ele_vertices1.shape[0] - 1):
+                # Each ele has 4 nodes (tris padded)
+                i0 = ele*4
+                # Get 4 values for this element
+                svalele = s_values[i0:(i0 + 4)]
+                edge_connect = []
+                # Check each sval in element
+                for ival, sval in enumerate(svalele):
+                    # If svalue is nan we skip, (not valid intersection)
+                    if np.isnan(sval):
+                        continue
+                    # If sval == 0, pt1 on cut plane, keep it w/o duplicating
+                    elif np.isclose(sval, 0.0, atol=edgetol):
+                        # Need to save key for future ref
+                        key = tuple(sorted([ev2f[i0 + ival], ev1f[i0 + ival]]))
+                        # Either find this edge cut or save if 1st time seeing
+                        cnt = point_dict.setdefault(key, count)
+                        # If its 1st time seeing it add to filtered pts list
+                        if cnt == count:
+                            filtered_intersection_pts.append(
+                                _intersection_points[i0 + ival, :]
+                            )
+                            filtered_values.append(
+                                _intersection_values[i0 + ival, :]
+                            )
+                            count += 1
+                        # Append pt as possible connection
+                        edge_connect.append(cnt)
+                    # If sval == 1, pt2 on cut plane, keep it w/o duplicating
+                    elif np.isclose(sval, 1.0, atol=edgetol):
+                        # Need to save key for future ref
+                        key = tuple(sorted([ev2f[i0 + ival], ev1f[i0 + ival]]))
+                        # Either find this edge cut or save if 1st time seeing
+                        cnt = point_dict.setdefault(key, count)
+                        # If its 1st time seeing it add to filtered pts list
+                        if cnt == count:
+                            filtered_intersection_pts.append(
+                                _intersection_points[i0 + ival, :]
+                            )
+                            filtered_values.append(
+                                _intersection_values[i0 + ival, :]
+                            )
+                            count += 1
+                        # Append pt as possible connection
+                        edge_connect.append(cnt)
+                    # Else new point made from intersected edge
+                    elif II[i0 + ival]:
+                        # Need to save key for future ref
+                        key = tuple(sorted([ev2f[i0 + ival], ev1f[i0 + ival]]))
+                        # Need to save these too to remove duplication
+                        cnt = point_dict.setdefault(key, count)
+                        # If its 1st time seeing it add to filtered pts list
+                        if cnt == count:
+                            filtered_intersection_pts.append(
+                                _intersection_points[i0 + ival, :]
+                            )
+                            filtered_values.append(
+                                _intersection_values[i0 + ival, :]
+                            )
+                            count += 1
+                        # Should both be the same but just check
+                        edge_connect.append(cnt)
+                # Try to dedup
+                dedup_edgecon = np.unique(np.array(edge_connect))
+                # Ensure its length 2
+                if len(dedup_edgecon) == 2:
+                    intersection_edges.append(dedup_edgecon)
+                    # Preserve the element index from all elements
+                    inds_type = cutinds[ele]
+                    # Convert element index to element ID (tri/quad)
+                    ids_type = ele_ids[inds_type]
+                    intersection_ids.append(ids_type)
+            if closed:
+                # Add in the final connection to make it a closed manifold
+                pts, pt_count = np.unique(
+                    intersection_edges,
+                    return_counts=True
+                )
+                # Where pts are only referenced once (discontinuous edge)
+                mask = pt_count == 1
+                # If theres two discontinuous edges, connect them
+                if np.count_nonzero(mask) == 2:
+                    intersection_edges.append(pts[mask])
+            intersection_points = np.array(filtered_intersection_pts)
+            intersection_values = np.array(filtered_values)
+        # return unique_pts, unique_vals
+        return (
+            intersection_points, intersection_values,
+            intersection_edges, intersection_ids)
+
    # --- Surface ---
     def get_surf_nodes(self) -> np.ndarray:
         r"""Get indices (1-based) of all nodes on a surface tri/quad
@@ -1918,6 +2496,89 @@ class UmeshBase(ABC):
             return self.get_surf_nodes()
         else:
             return j
+
+    def genr8_yplus(
+            self, p, T, M,
+            L=1.0, bound0=None, R=None, gam=None,
+            mu0=None, T0=None, C=None, mks=True):
+        r"""Calculate wall normal distances
+        :Call:
+            >>> yplus = genr8_yplus(p, T, M)
+        :Inputs:
+            *p*: :class:`float`
+                Static pressure [Pa|psf]
+            *T*: :class:`float`
+                Static temperature [K|R]
+            *M*: :class:`float`
+                Mach number
+            *mks*: {``True``} | ``False``
+                Flag for unit system
+            *R*: :class:`float`
+                Gas constant [m^2/s^2*R|ft^2/s^2*R]
+            *gam*: {``1.4``} | :class:`float`
+                Ratio of specific heats
+            *mu0*: :class:`float`
+                Reference viscosity [kg/m*s|slug/ft*s]
+            *T0*: :class:`float`
+                Reference temperature [K|R]
+            *C*: :class:`float`
+                Reference temperature [K|R]
+            *L*: {``1.0``} | :class:`int`
+                Reference length [m|ft]
+            *bound0*: :class:`int`
+                First non-farfield comp id (for make_pv_skin_friction)
+        :Outputs:
+            *yplus*: :class:`np.ndarray`
+                Wall normal distances
+        :Versions:
+            * 2025-07-17 ``@aburkhea``: v1.0
+        """
+        # If mks system
+        if mks:
+            Rex = ReynoldsPerMeter(p, T, M)
+            # Viscosity
+            mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+            # Gas constant
+            if R is None: R = 287.0
+        else:
+            Rex = ReynoldsPerFoot(p, T, M)
+            # Viscosity
+            mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+            # Gas constant
+            if R is None: R = 1716.0
+        # Scale per-unit Rex
+        Re = Rex*L
+        # Ratio of specific heats
+        if gam is None: gam = 1.4
+        # Calculate density
+        rho = p / (R*T)
+        # Sound speed
+        a = np.sqrt(gam*R*T)
+        # Velocity
+        U = M*a
+        # Dynamic pressure
+        q = 0.5*p*U**2
+        # Sound speed
+        a = np.sqrt(gam*R*T)
+        # Use data-based skin friction
+        if bound0:
+            self.make_pv_skin_friction(bound0, mu, a, q)
+            Cf = self.get_qvar("cf")
+        else:
+            # Approx with Prandtl-Schlichting formula
+            Cf = (2*np.log(Re) - 0.65)**(-2.3)
+        # Wall shear stress
+        tauw = Cf*0.5*rho*U**2
+        # Friction vel
+        ustar = np.sqrt(tauw/rho)
+        # Get wall normal distances
+        nedges = self.get_surf_nearest()
+        nedges -= 1
+        ds = self.nodes[nedges[:, 0]] - self.nodes[nedges[:, 1]]
+        dn = np.sqrt(np.sum(ds**2, axis=1))
+        # Calc yplus
+        yplus = dn*rho*ustar/mu
+        return yplus
 
    # --- Volume removal ---
     def remove_volume(self):
@@ -2116,6 +2777,141 @@ class UmeshBase(ABC):
         return nsmall, ntotal
 
    # --- Edges ---
+    def follow_edges(self) -> SegmentedSlice:
+        r"""Follow edges created by a surface slice
+
+        The output is two simple arrays of spatial coordinates and state
+        variables long the edges. See also :func:`slicesurf` as this
+        method is meant to be called on the output of ``slicesurf()``.
+
+        :Call:
+            >>> seg = mesh.follow_edges()
+            >>> x, q = mesh.follow_edges()
+        :Inputs:
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Coordinates of the cut plane center
+            *n*: :class:`np.ndarray`\ [:class:`float`]
+                Vector normal to desired cut plane
+            *comp*: {``None``} | `str` | `list`
+                Optional name of component(s) to intersect
+            *fname*: {``None``} | `str`
+                Name of output file
+            *closed*: {``False``} | ``True``
+                Attempt to close returned edges
+        :Outputs:
+            *seg*: :class:`SegmentedSlice`
+                Coordinates and state variables of connected slice
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Nodal coordinates of connected slice; a row of
+                ``np.nan`` reporesents a gap in the connected slices
+            *q*: :class:`np.ndarray`\ [:class:`float`]
+                State variables; each row corresponds to row of *x*
+        :Versions:
+            * 2025-07-01 ``@ddalle``: v1.0
+        """
+        # Check for edges
+        if not self.nedge:
+            return
+        # Unpack edges
+        e = self.edges
+        ne = self.nedge
+        # Max edge index; node count
+        nn = np.max(e) + 1
+        # Count number of times each node appears
+        nj = np.full(nn, 0)
+        np.add.at(nj, e[:, 0], 1)
+        np.add.at(nj, e[:, 1], 1)
+        # Check for any triples
+        if np.max(nj) > 2:
+            # Find worst case
+            ji = np.argmax(nj)
+            raise ValueError(
+                f"Edge {ji} occurs {nj[ji]} times; can only follow edges where"
+                "each node occurs 1 or 2 times")
+        # Get indices of singly-connected nodes
+        ia, = np.where(nj == 1)
+        # Find location of each index in each column
+        j0 = np.full(nn, -1)
+        j1 = np.full(nn, -1)
+        j0[e[:, 0]] = np.arange(ne)
+        j1[e[:, 1]] = np.arange(ne)
+        # Make a copy of edge table containing only the duplicated nodes
+        e0 = e[:, 0].copy()
+        e1 = e[:, 1].copy()
+        e0[j0[j0 >= 0]] = -1
+        e1[j1[j1 >= 0]] = -1
+        # Get duplicated nodes
+        f0, = np.where(e0 >= 0)
+        f1, = np.where(e1 >= 0)
+        # Do the same thing for second apperances of node in each col
+        j0b = np.full(nn, -1)
+        j1b = np.full(nn, -1)
+        j0b[e0[f0]] = f0
+        j1b[e1[f1]] = f1
+        # Initialize mask of used edges
+        edgemask = np.ones(ne, 'bool')
+        # Initialize mask of used nodes
+        nodemask = np.ones(nn, 'bool')
+        # Block nodes that don't occur in edge table
+        nodemask[nj == 0] = False
+        # We have no quick way to detect loops at this step
+        # (Loops have to repeat one node in addition to the NaN)
+        nmaxloop = ne // 3
+        nmax = nn + 2*nmaxloop
+        # Number of edges followed
+        n = 0
+        m = 0
+        # Initialize
+        i = np.full(nmax, -1)
+        x = np.full((nmax, 3), np.nan)
+        q = np.full((nmax, self.nq), np.nan)
+        # Loop until all edges used
+        while np.any(nodemask):
+            # Find next node
+            # Loop through singly-connected nodes (if any)
+            for i0 in ia:
+                # Check if already masked
+                if nodemask[i0]:
+                    # Block this node
+                    nodemask[i0] = False
+                    # Use it
+                    break
+            else:
+                # Only loops remaining; just use first available node
+                # (Don't block it b/c we'll need to come back to it.)
+                i0 = np.where(nodemask)[0][0]
+            # Save node
+            i[n] = i0
+            n += 1
+            # Loop through this segment/loop
+            while True:
+                # Find the edge we came from
+                ji = _find_edge_i(i0, j0, j1, j0b, j1b, edgemask)
+                # Check for end of a loop or dead-end single-node
+                if ji is None:
+                    break
+                # Mark this edge as "used"
+                edgemask[ji] = False
+                # Get both nodes on this edge
+                ii = e[ji]
+                # Get the "other" one (left or right col)
+                i1 = ii[ii != i0][0]
+                # Save it
+                i[n] = i1
+                i0 = i1
+                n += 1
+                m += 1
+                # Mark node as used
+                nodemask[i0] = False
+            # Add a gap to next segment/loop
+            n += 1
+        # Find locations of actual nodes
+        mask = i >= 0
+        x[mask] = self.nodes[i[mask], :]
+        q[mask] = self.q[i[mask], :]
+        # Output
+        return SegmentedSlice(x[:n], q[:n])
+
     def build_voledges(self):
         r"""Build table of unique edges in the volume mesh
 
@@ -2170,399 +2966,6 @@ class UmeshBase(ABC):
         # Save edges
         self.edges = edges[mask]
         self.nedge = self.edges.shape[0]
-
-  # === Slicer ===
-    # Function to cut elements on plane
-    def _cut_elements_vect(
-            self, element_vertices, ele_types, cutinds,
-            plane_normal, plane_center, Ieles=None, closed=True,
-            edgetol=1e-8):
-        r"""Cut element edges with given cut plane, generate
-            interpolated nodes, values, and edge connectivity.
-
-        :Inputs:
-            *mesh*: :class:`Umesh`
-                Unstructured mesh instance
-            *element_vertices*: :class:`np.array`
-                Array of elements (defined by vertex indices) to be cut
-            *ele_types*: :class:`list`
-                List of element types to cut
-            *cutinds*: :class:`np.array`
-                Index of each element to cut
-            *plane_normal* :class:`np.array`
-                Definition of cut plane normal (3,)
-            *plane_center* :class:`np.array`
-                Definition of cut plane center (3,)
-            *Ieles*: {`None`} | :class:`np.array`
-                Array labeling each element to cut as tri/quad (0/1)
-            *closed*: {`False`} | `True`
-                Attempt to close edges list
-            *edgetol*: {`1e-4`} | :class:`float`
-                Tolerance for unique point gen (min. parametric dist.)
-        :Outputs:
-            *intersection_points*: :class:`np.array`
-                Points resulting from cut
-            *intersection_values*: :class:`np.array`
-                Interpolated values at points
-            *intersection_edges*: :class:`np.array`
-                Edges created from points
-            *intersection_ids*: :class:`np.array`
-                Uncut index of element that was cut to make edge
-        :Versions:
-            * 2025-05-13 `@aburkhea`: v1.0
-        """
-        nodes = self.nodes
-        values = self.q
-        element_vertices = np.array(element_vertices)
-        if not isinstance(ele_types, list):
-            ele_type = [ele_types]
-        plane_normal = np.asarray(plane_normal)
-        plane_center = np.asarray(plane_center)
-        # Go through each element and get vertices
-        for ie, ele_type in enumerate(ele_types):
-            # Get edge connectivity for this element
-            _edges = EDGECON[ele_type]
-            i_indices, j_indices = _edges[:, 0], _edges[:, 1]
-            # If no element types given, take all
-            if Ieles is None:
-                _ele_vertices1 = element_vertices[:, i_indices]
-                _ele_vertices2 = element_vertices[:, j_indices]
-            else:
-                Iele = Ieles == ie
-                # Calculate vertices and edges for all pairs at once
-                _ele_vertices1 = element_vertices[Iele][:, i_indices]
-                _ele_vertices2 = element_vertices[Iele][:, j_indices]
-            # Pad tris
-            if ele_type == "tris":
-                # Need to pad col
-                _ele_vertices1 = np.insert(_ele_vertices1, 3, -1, axis=1)
-                _ele_vertices2 = np.insert(_ele_vertices2, 3, -1, axis=1)
-            # Start cumulative vertices
-            if ie == 0:
-                ele_vertices1 = _ele_vertices1
-                ele_vertices2 = _ele_vertices2
-            # Append cumulative vertices
-            else:
-                ele_vertices1 = np.vstack([ele_vertices1, _ele_vertices1])
-                ele_vertices2 = np.vstack([ele_vertices2, _ele_vertices2])
-        # Get mask of -1s (padded indices)
-        Ipad = ele_vertices1 == -1
-        # Get values a vertexs
-        vertices1_values = values[ele_vertices1.flatten()]
-        vertices2_values = values[ele_vertices2.flatten()]
-        # NAN padded values
-        vertices1_values[Ipad.flatten()] = np.nan
-        vertices2_values[Ipad.flatten()] = np.nan
-        # Get nodes at vertexs
-        vertices1_nodes = nodes[ele_vertices1.flatten()]
-        vertices2_nodes = nodes[ele_vertices2.flatten()]
-        # NAN padded values
-        vertices1_nodes[Ipad.flatten()] = np.nan
-        vertices2_nodes[Ipad.flatten()] = np.nan
-        # Get edge nodes and edge values
-        edges = vertices2_nodes - vertices1_nodes
-        edges_val = vertices2_values - vertices1_values
-        # Vector from plane point to all first vertices
-        w_vectors = vertices1_nodes - plane_center
-        # Calculate dot products in bulk
-        dot_n_values = np.dot(edges, plane_normal)
-        dot_w_values = np.dot(w_vectors, plane_normal)
-        # Calculate s values safely
-        with np.errstate(divide='ignore', invalid='ignore'):
-            s_values = -dot_w_values / dot_n_values
-        # Mask out nans and non intersecting
-        Inan = ~np.isnan(s_values)
-        # Filter out 0<s<1
-        I1 = s_values <= 1.0
-        I0 = s_values >= 0.0
-        I2 = np.logical_and(I0, I1)
-        # Combine into final mask
-        II = np.logical_and(I2, Inan)
-        # Supress warnings when multiplying with nans
-        with np.testing.suppress_warnings() as sup:
-            sup.filter(RuntimeWarning)
-            # Vector intersection pts and values
-            _intersection_points = vertices1_nodes + \
-                edges*s_values.reshape(-1, 1)
-            _intersection_values = vertices1_values + \
-                edges_val*s_values.reshape(-1, 1)
-        # Get valid points/vals
-        intersection_points = _intersection_points[II]
-        intersection_values = _intersection_values[II]
-        intersection_edges = []
-        intersection_ids = []
-        # If we are cutting a surface element, assemble edges
-        if ele_type in ("tris", "quads"):
-            """Kind of a mess but for each surf ele, check the svalues
-            from interp. calc, apply various logic to reduce duplicate
-            interpolated nodes and connect edges to two points only.
-            """
-            filtered_intersection_pts = []
-            filtered_values = []
-            point_dict = {}
-            # Nan masked points from interp calc (preserve abs. order)
-            s_values[~II] = np.nan
-            count = 0
-            # Flatten these once at the start
-            ev1f = ele_vertices1.flatten()
-            ev2f = ele_vertices2.flatten()
-            for ele in range(ele_vertices1.shape[0] - 1):
-                # Each ele has 4 nodes (tris padded)
-                i0 = ele*4
-                # Get 4 values for this element
-                svalele = s_values[i0:(i0 + 4)]
-                edge_connect = []
-                # Check each sval in element
-                for ival, sval in enumerate(svalele):
-                    # If svalue is nan we skip, (not valid intersection)
-                    if np.isnan(sval):
-                        continue
-                    # If sval == 0, pt1 on cut plane, keep it w/o duplicating
-                    elif np.isclose(sval, 0.0, atol=edgetol):
-                        # Need to save key for future ref
-                        key = tuple(sorted([ev2f[i0 + ival], ev1f[i0 + ival]]))
-                        # Either find this edge cut or save if 1st time seeing
-                        cnt = point_dict.setdefault(key, count)
-                        # If its 1st time seeing it add to filtered pts list
-                        if cnt == count:
-                            filtered_intersection_pts.append(
-                                _intersection_points[i0 + ival, :]
-                            )
-                            filtered_values.append(
-                                _intersection_values[i0 + ival, :]
-                            )
-                            count += 1
-                        # Append pt as possible connection
-                        edge_connect.append(cnt)
-                    # If sval == 1, pt2 on cut plane, keep it w/o duplicating
-                    elif np.isclose(sval, 1.0, atol=edgetol):
-                        # Need to save key for future ref
-                        key = tuple(sorted([ev2f[i0 + ival], ev1f[i0 + ival]]))
-                        # Either find this edge cut or save if 1st time seeing
-                        cnt = point_dict.setdefault(key, count)
-                        # If its 1st time seeing it add to filtered pts list
-                        if cnt == count:
-                            filtered_intersection_pts.append(
-                                _intersection_points[i0 + ival, :]
-                            )
-                            filtered_values.append(
-                                _intersection_values[i0 + ival, :]
-                            )
-                            count += 1
-                        # Append pt as possible connection
-                        edge_connect.append(cnt)
-                    # Else new point made from intersected edge
-                    elif II[i0 + ival]:
-                        # Need to save key for future ref
-                        key = tuple(sorted([ev2f[i0 + ival], ev1f[i0 + ival]]))
-                        # Need to save these too to remove duplication
-                        cnt = point_dict.setdefault(key, count)
-                        # If its 1st time seeing it add to filtered pts list
-                        if cnt == count:
-                            filtered_intersection_pts.append(
-                                _intersection_points[i0 + ival, :]
-                            )
-                            filtered_values.append(
-                                _intersection_values[i0 + ival, :]
-                            )
-                            count += 1
-                        # Should both be the same but just check
-                        edge_connect.append(cnt)
-                # Try to dedup
-                dedup_edgecon = np.unique(np.array(edge_connect))
-                # Ensure its length 2
-                if len(dedup_edgecon) == 2:
-                    intersection_edges.append(dedup_edgecon)
-                    # Preserve the element index from all elements
-                    intersection_ids.append(cutinds[ele])
-            if closed:
-                # Add in the final connection to make it a closed manifold
-                pts, pt_count = np.unique(
-                    intersection_edges,
-                    return_counts=True
-                )
-                # Where pts are only referenced once (discontinuous edge)
-                mask = pt_count == 1
-                # If theres two discontinuous edges, connect them
-                if np.count_nonzero(mask) == 2:
-                    intersection_edges.append(pts[mask])
-            intersection_points = np.array(filtered_intersection_pts)
-            intersection_values = np.array(filtered_values)
-        # return unique_pts, unique_vals
-        return (intersection_points, intersection_values,
-                intersection_edges, intersection_ids)
-
-    # Interface to slice a surface
-    def slice_surf(
-            self,
-            x: np.array,
-            n: np.array,
-            comp: Optional[Union[str, int, list]] = None,
-            fname: Optional[str] = None,
-            closed: Optional[bool] = False,
-            **kw):
-        r"""
-        :Call:
-            >>> slice = mesh.slice_surf(x, n, comp=None, fname=None)
-        :Inputs:
-            *x*: :class:`np.ndarray[float]`
-                Coordinates of the cut plane center
-            *n*: :class:`np.ndarray[float]`
-                Vector normal to desired cut plane
-            *comp*: :class:`{None}` | `str` | `list`
-                Optional name of component(s) to intersect
-            *fname*: :class:`{None}` | `str`
-                Name of output file
-            *closed*: :class: `{False}` | `True`
-                Attempt to close returned edges
-        :Outputs:
-            *slice*: :class:`Umesh`
-                Unstructured mesh instance for intersect
-            *slice.nodes*: :class:`np.ndarray[float]`
-                Nx3 array of node coordinates
-            *slice.edges*: :class:`np.ndarray[int]`
-                Nx2 array of edge nodes, sorted into contiguous sections
-            *slice.edge_ids*: class:`np.ndarray[int]`
-                The *tri_id* or *quad_id* from which this edge came
-            *slice.q*: :class:`np.ndarray[float]`
-                Values of the *mesh.q* at the *slice.nodes*
-        :Versions:
-            * 2025-05-12 ``@aburkhea``: v1.0
-        """
-        # Normalize the plane normal vector
-        n = n / np.linalg.norm(n)
-        # Get rotated points if not given
-        rpts = rotate_points_to_plane(self.nodes, x, n)
-        surfids = []
-        # If string comp, given process to surfids
-        if isinstance(comp, str):
-            # Some comp -> surfid function here eventually
-            raise NotImplementedError("String comps not supported yet")
-        elif isinstance(comp, list):
-            # Support mixed type comp (str and ints both given)
-            for _comp in comp:
-                if isinstance(comp, str):
-                    # Some comp -> surfid function here eventually
-                    raise NotImplementedError("String comps not supported yet")
-                else:
-                    # Assuming list of surfids already given
-                    surfids.extend([_comp])
-        # Default to cut everything
-        elif comp is None:
-            # Add up both tri and quad ids
-            surfids = [np.unique(
-                np.concatenate(
-                    [self.get_tri_ids(),
-                     self.get_quad_ids()
-                     ]))
-            ]
-        # Prep surface element cut outputs
-        edgelist = []
-        surfpts = None
-        surfvals = None
-        for _surfids in surfids:
-            # Calculate boundary bounds
-            allseles = np.array([])
-            celltype = []
-            Itris = None
-            Iquads = None
-            # Get List of tris by surfid
-            for surfid in _surfids:
-                _Itris = self.get_tris_by_id(surfid)
-                if Itris is None:
-                    Itris = _Itris.reshape(-1, 1)
-                else:
-                    Itris = np.vstack((Itris, _Itris.reshape(-1, 1)))
-            # Get List of quads by surfid
-            for surfid in _surfids:
-                _Iquads = self.get_quads_by_id(surfid)
-                if Iquads is None:
-                    Iquads = _Iquads.reshape(-1, 1)
-                else:
-                    Iquads = np.vstack((Iquads, _Iquads.reshape(-1, 1)))
-            # Keep seperate surf element lists
-            Isurfs = {"tris": Itris, "quads": Iquads}
-            Ieles = []
-            cutinds = []
-            # For each element type
-            for ie, ename in enumerate(("tris", "quads")):
-                # Try to get element from mesh
-                _eles = self.__getattribute__(ename)
-                Isurf = Isurfs.get(ename)
-                # If no elements of this type (or none in these sids)
-                if _eles.size == 0 or Isurf.size == 0:
-                    continue
-                # Fix base 1 -> base 0 indexing for eles
-                eles = _eles - 1
-                # Pad tri element inds (N,3) to stack with quads later
-                if ename == "tris":
-                    eles = np.insert(eles, 3, -1, axis=1)
-                surfeles = eles[Isurf[:, 0], :]
-                # Get intersected elements
-                if ename == "tris":
-                    # Get mask for elements cut by plane
-                    Icut = get_intersect_elems(surfeles[:, :3], rpts[:, 2])
-                else:
-                    Icut = get_intersect_elems(surfeles, rpts[:, 2])
-                # Add mask to "global" list
-                if allseles.size > 0:
-                    # Stack surface elements
-                    allseles = np.vstack([allseles, surfeles[Icut]])
-                    _cutinds = np.where(Icut == 1)[0]
-                    cutinds = np.concatenate([cutinds, _cutinds])
-                    # Keep track of which surf elements are which type
-                    _Ieles = np.ones(len(surfeles[Icut]), dtype=np.int8)*ie
-                    # Append list of surf element types
-                    Ieles = np.concatenate([Ieles, _Ieles])
-                else:
-                    allseles = surfeles[Icut]
-                    Ieles = np.ones(len(allseles), dtype=np.int8)*ie
-                    cutinds = np.where(Icut == 1)[0]
-                celltype.extend((ename,))
-            # If no elements to cut from these surfs, move on
-            if allseles.size == 0:
-                continue
-            # Prep output plane and values
-            csurfpts = None
-            csurfvals = None
-            edgetol = kw.get("edgetol", 1e-4)
-            # Get vertex intersection and values for vol. element
-            _results = self._cut_elements_vect(
-                allseles, celltype, cutinds,
-                n, x,
-                Ieles=Ieles,
-                closed=closed,
-                edgetol=edgetol)
-            # Get nodes of surface element cut plane
-            csurfpts = _results[0]
-            # Get vals of surface element cut plane
-            csurfvals = _results[1]
-            # Get edges of surface element cut plane
-            edges = np.array(_results[2])
-            # Get edges of surface element cut plane
-            cedgeids = np.array(_results[3])
-            # Assemble results for multiple surf id groups
-            if surfpts is None:
-                nsurfs = 0
-                surfpts = csurfpts
-                surfvals = csurfvals
-                edgeids = cedgeids
-            else:
-                nsurfs = surfpts.shape[0]
-                surfpts = np.vstack((surfpts, csurfpts))
-                surfvals = np.vstack((surfvals, csurfvals))
-                edgeids = np.concatenate((edgeids, cedgeids))
-            # Add cumulative edge index
-            edges = np.array(edges) + nsurfs
-            edgelist.extend(edges)
-        # Initialize output umesh of same class as self
-        omesh = self.__class__()
-        # Save outputs
-        omesh.nodes = surfpts
-        omesh.edges = np.array(edgelist)
-        omesh.edge_ids = np.array(edgeids)
-        omesh.q = surfvals
-        return omesh
 
 
 def get_intersect_elems(eles, ptsz):
@@ -2661,14 +3064,31 @@ def compress_indices(
     # Initilialize array of new indices
     inew = np.zeros(nmax, dtype=iold.dtype)
     # Create map
-    try:
-        inew[iold - 1] = np.arange(1, nnode + 1, dtype=iold.dtype)
-    except Exception:
-        breakpoint()
+    inew[iold - 1] = np.arange(1, nnode + 1, dtype=iold.dtype)
     # Renumber nodes
     new_inds = inew[node_indices - 1]
     # Output
     return new_inds
+
+
+# Find position of node in edge table
+def _find_edge_i(i: int, j0, j1, j0b, j1b, mask):
+    # Try left column first appearance
+    j = j0[i]
+    if j >= 0 and mask[j]:
+        return j
+    # Try right column first appearance
+    j = j1[i]
+    if j >= 0 and mask[j]:
+        return j
+    # Try left column second appearance
+    j = j0b[i]
+    if j >= 0 and mask[j]:
+        return j
+    # Try right column second appearance
+    j = j1b[i]
+    if j >= 0 and mask[j]:
+        return j
 
 
 def _o_of_thousands(x: Union[float, int]) -> int:
@@ -2741,3 +3161,41 @@ def print_smallvol_table(v, j, x, y, z):
         print(fmt % (v[i], xm[i], ym[i], zm[i]))
     # Final line
     print(hline)
+
+
+def interpolate_q(smesh: UmeshBase, rmesh: UmeshBase, k=5):
+    r"""Interpolate mesh.q to another mesh.nodes w/ NN-inverse distance
+
+    :Call:
+        >>> interpolate_q(smesh, rmesh)
+    :Inputs:
+        *smesh*: :class:`Umesh`
+            Source mesh
+        *rmesh*: :class:`Umesh`
+            Receptor mesh
+        *k*: {``5``} | :class:`int`
+            Number of nearest neighbors to use
+    :Versions:
+        * 2025-07-22 ``@aburkhea``: Version 1.0
+    """
+    print("building KDtree...")
+    # Build tree
+    tree = cKDTree(smesh.nodes)
+    print("querying KDtree...")
+    # Query tree for nearest k points
+    dists, inds = tree.query(rmesh.nodes, k=k)
+    # Get indexes of matching points
+    I = dists[:, 0] < 1e-16
+    # Calculate weights
+    weights = np.zeros((rmesh.nnode, k))
+    print("interpolating...")
+    # Set matching points weights to 1 (just smesh.q -> rmesh.q)
+    weights[I, 0] = 1.0
+    # Calculate rest of the weights
+    weights[~I] = 1.0 / dists[~I]
+    # Normalize
+    weights /= weights.sum(axis=1, keepdims=True)
+    # Interpolate (stack weights to do all q at once
+    rmesh.q = np.multiply(
+        smesh.q[inds, :], np.stack([weights]*smesh.nq, axis=2)
+    ).sum(axis=1)

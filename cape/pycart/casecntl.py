@@ -32,6 +32,7 @@ from . import cmdgen
 from . import pointsensor
 from .. import fileutils
 from .archivist import CaseArchivist
+from .databook import CaseFM
 from .options.runctlopts import RunControlOpts
 from .trifile import Tri, Triq
 from .util import GetAdaptFolder, GetWorkingFolder
@@ -100,6 +101,9 @@ class CaseRunner(casecntl.CaseRunner):
     # Specific classes
     _rc_cls = RunControlOpts
     _archivist_cls = CaseArchivist
+    _dex_cls = {
+        "fm": CaseFM,
+    }
 
    # --- Runners ---
     # Run one phase appropriately
@@ -352,8 +356,6 @@ class CaseRunner(casecntl.CaseRunner):
                 PS.WriteHist()
         except Exception:
             pass
-        # Reset PhaseIters if early exit
-        self._reset_phase_iters(j)
         # Output
         return ierr
 
@@ -394,8 +396,6 @@ class CaseRunner(casecntl.CaseRunner):
             PS = pointsensor.CasePointSensor()
             PS.UpdateIterations()
             PS.WriteHist()
-        # Update phase iteration cutoffs
-        self._reset_phase_iters(j)
         # Return code
         return ierr
 

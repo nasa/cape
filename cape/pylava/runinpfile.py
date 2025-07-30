@@ -226,6 +226,40 @@ class CartInputFile(dict):
         # Get existing section
         secopts[optparts[-1]] = val
 
+    def apply_dict(self, d: dict, parent: Optional[str] = None):
+        r"""Apply a :class:`dict` of options to ``run.inputs`` interface
+
+        :Call:
+            >>. opts.apply_dict(d, parent=None)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *d*: :class:`dict`
+                Dictionary of options to apply
+            *parent*: {``None``} | :class:`str`
+                Used for recursion
+        :Versions:
+            * 2025-07-16 ``@ddalle``: v1.0
+        """
+        # Get top-level section
+        parts = [] if parent is None else parent.split('.')
+        sec = None if parent is None else parts[0]
+        # Loop through options
+        for opt, v in d.items():
+            # Check for recursion
+            if isinstance(v, dict):
+                # Increase depth of *parent*
+                nextparent = '.'.join(parts + [opt])
+                # Recurse
+                self.apply_dict(v, nextparent)
+            else:
+                # Create a nested option name if in subsection
+                subsec = ".".join(parts[1:])
+                # Append to option name
+                fullopt = f"{subsec}.{opt}" if subsec else opt
+                # Apply simple option
+                self.set_opt(sec, fullopt, v)
+
    # --- Solver control ---
     def get_nstep(self) -> int:
         r"""Get number of time steps to take
@@ -259,11 +293,11 @@ class CartInputFile(dict):
         self.set_opt("time", "number of steps", n)
 
    # --- Reference conditions ---
-    def get_alpha(self, a: float):
-        r"""Set freestream angle of attack
+    def get_alpha(self):
+        r"""Get freestream angle of attack
 
         :Call:
-            >>> opts.set_alpha(a)
+            >>> a = opts.get_alpha()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -279,7 +313,7 @@ class CartInputFile(dict):
         r"""Set freestream sideslip angle
 
         :Call:
-            >>> opts.set_beta(b)
+            >>> b = opts.set_beta()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -291,11 +325,27 @@ class CartInputFile(dict):
         """
         return self.get_refcond("beta")
 
-    def get_pressure(self) -> float:
-        r"""Set freestream static pressure
+    def get_density(self) -> float:
+        r"""Get freestream static density
 
         :Call:
-            >>> opts.set_pressure(p)
+            >>> rho = opts.get_density()
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *rho*: :class:`float`
+                Static density [kg/m^3]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("density")
+
+    def get_pressure(self) -> float:
+        r"""Get freestream static pressure
+
+        :Call:
+            >>> p = opts.get_pressure()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -308,10 +358,10 @@ class CartInputFile(dict):
         return self.get_refcond("pressure")
 
     def get_refarea(self) -> float:
-        r"""Set solution reference length
+        r"""Get solution reference area
 
         :Call:
-            >>> opts.set_reflength(aref)
+            >>> aref = opts.set_reflength()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -340,10 +390,10 @@ class CartInputFile(dict):
         return self.get_refcond("dx")
 
     def get_reflength(self) -> float:
-        r"""Set solution reference length
+        r"""Get solution reference length
 
         :Call:
-            >>> opts.set_reflength(lref)
+            >>> lref = opts.set_reflength(lref)
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -356,10 +406,10 @@ class CartInputFile(dict):
         return self.get_refcond("length")
 
     def get_temperature(self) -> float:
-        r"""Set freestream static temperature
+        r"""Get freestream static temperature
 
         :Call:
-            >>> opts.set_pressure(p)
+            >>> t = opts.get_temperature()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -375,7 +425,7 @@ class CartInputFile(dict):
         r"""Set solution reference velocity
 
         :Call:
-            >>> opts.set_uref(uref)
+            >>> uref = opts.get_uref()
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
@@ -452,6 +502,36 @@ class CartInputFile(dict):
             * 2025-05-09 ``@ddalle``: v1.0
         """
         self.set_refcond("pressure", p)
+
+    def set_density(self, r: float):
+        r"""Set freestream static density
+
+        :Call:
+            >>> opts.set_density(r)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *r*: :class:`float`
+                Static density [kg/m^3]
+        :Versions:
+            * 2025-07-15 ``@ddalle``: v1.0
+        """
+        self.set_refcond("density", r)
+
+    def set_mach(self, m: float):
+        r"""Set freestream Mach number
+
+        :Call:
+            >>> opts.set_mach(m)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *m*: :class:`float`
+                Mach number
+        :Versions:
+            * 2025-07-15 ``@ddalle``: v1.0
+        """
+        self.set_refcond("mach", m)
 
     def set_refarea(self, aref: float):
         r"""Set solution reference length
@@ -759,6 +839,7 @@ def assert_regex(c: str, regex, desc=None):
         msg1 = f"After {desc} expected to match: "
     # Show what we got
     msg3 = f"; got '{c}'"
+    breakpoint()
     # Raise an exception
     raise ValueError(msg1 + msg2 + msg3)
 
@@ -961,6 +1042,9 @@ def _next_chunk(fp: IOBase) -> str:
             # Comment encountered
             fp.readline()
             return chunk.strip()
+        elif chunk.startswith("$") and c in '{}':
+            # Allow '${mach}', for example
+            pass
         elif c in SPECIAL_CHARS:
             # Revert one character
             fp.seek(fp.tell() - 1)

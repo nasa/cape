@@ -1493,6 +1493,7 @@ class TecplotSubfigOpts(SubfigOpts):
         "FigWidth",
         "Keys",
         "Layout",
+        "VTKFiles",
         "VarSet",
     )
 
@@ -1511,6 +1512,7 @@ class TecplotSubfigOpts(SubfigOpts):
         "FigWidth": INT_TYPES,
         "Keys": dict,
         "Layout": str,
+        "VTKFIles": str,
         "VarSet": dict,
     }
 
@@ -1518,6 +1520,7 @@ class TecplotSubfigOpts(SubfigOpts):
     _optlistdepth = {
         "ColorMaps": 1,
         "ContourLevels": 1,
+        "VTKFiles": 1,
     }
 
     # Defaults
@@ -1537,6 +1540,7 @@ class TecplotSubfigOpts(SubfigOpts):
         "FigWidth": "width of output image in pixels",
         "Keys": "dict of Tecplot layout statements to customize",
         "Layout": "template Tecplot layout file",
+        "VTKFiles": "files to convert .vtk -> .plt",
         "VarSet": "variables and their values to define in Tecplot layout",
     }
 

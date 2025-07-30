@@ -57,7 +57,8 @@ from . import cmdrun
 from . import queue
 from .. import fileutils
 from .archivist import CaseArchivist
-from .casecntlbase import CaseRunnerBase, REGEX_RUNFILE
+from .casecntlbase import CaseRunnerBase
+from .casedata import CaseFM
 from .caseutils import run_rootdir
 from .cntlbase import CntlBase
 from .logger import CaseLogger
@@ -65,13 +66,19 @@ from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
 from .options.funcopts import UserFuncOpts
 from ..config import ConfigXML, SurfConfig
+from ..dkit.rdb import DataKit
 from ..errors import CapeRuntimeError
 from ..optdict import _NPEncoder
 from ..trifile import Tri
 from ..util import RangeString
 
 
-# Constants:# Log folder
+# Constants
+
+#: Regular expression for run log files written by CAPE
+REGEX_RUNFILE = re.compile("run.([0-9][0-9]+).([0-9]+)")
+
+# Log folder
 LOGDIR = "cape"
 # Name of file that marks a case as currently running
 RUNNING_FILE = "RUNNING"
@@ -155,8 +162,19 @@ class CaseRunner(CaseRunnerBase):
     :Outputs:
         *runner*: :class:`CaseRunner`
             Controller to run one case of solver
+    :Class attributes:
+        * :attr:`_archivist_cls`
+        * :attr:`_dex_cls`
+        * :attr:`_logprefix`
+        * :attr:`_modname`
+        * :attr:`_nstart_max`
+        * :attr:`_progname`
+        * :attr:`_rc_cls`
+        * :attr:`_zombie_files`
+    :Attributes:
+        * :attr:`cntl`
     """
-  # === Config ===
+  # *** CONFIG ***
    # --- Class attributes ---
     # Attributes
     __slots__ = (
@@ -178,20 +196,35 @@ class CaseRunner(CaseRunnerBase):
         "_mtime_case_json",
     )
 
-    # Maximum number of starts
+    #: :class:`int`
+    #: Maximum number of cases to start
     _nstart_max = 100
 
-    # List of files to check for recent updates
+    #: :class:`list`\ [:class:`str`]
+    #: List of file name patterns (glob) to check mod time for zombies
     _zombie_files = ["*.out"]
 
-    # Names
+    #: :class:`str`
+    #: Name of module
     _modname = "cfdx"
+    #: :class:`str`
+    #: Name of program or CFD solver
     _progname = "cfdx"
+    #: :class:`str`
+    #: Prefix for STDOUT files
     _logprefix = "run"
 
-    # Specific classes
+    #: :class:`type`
+    #: Module-specific options class
     _rc_cls = RunControlOpts
+    #: :class:`type`
+    #: Class for archiving cases
     _archivist_cls = CaseArchivist
+    #: :class:`dict`\ [:class:`type`]
+    #: Classes for reading data of various DataBook component types
+    _dex_cls = {
+        "fm": CaseFM,
+    }
 
    # --- __dunder__ ---
     def __init__(self, fdir: Optional[str] = None):
@@ -209,19 +242,44 @@ class CaseRunner(CaseRunnerBase):
             fdir = os.path.abspath(fdir)
         # Save root folder
         self.root_dir = fdir
-        # Initialize slots
+        #: :class:`cape.cfdx.cntl.Cntl` | ``None``
+        #: Run matrix controller that owns this case
         self.cntl = None
+        #: :class:`int` | ``None``
+        #: Current phase number
         self.j = None
+        #: :class:`cape.cfdx.logger.CaseLogger`
+        #: Logger instance for this case
         self.logger = None
+        #: :class:`cape.cfdx.archivist.CaseArchivist` | ``None``
+        #: Archiver instance
         self.archivist = None
+        #: :class:`int` | ``None``
+        #: Current iteration number
         self.n = None
+        #: :class:`int`
+        #: Current restart iteration
         self.nr = None
+        #: :class:`cape.cfdx.options.runctlopts.RunControlOpts`
+        #: *RunControl* options for this case
         self.rc = None
+        #: :class:`str` | ``None``
+        #: Name of current PBS/Slurm job
         self.job = None
+        #: :class:`dict`
+        #: Dictionary of job statuses
         self.jobs = None
+        #: :class:`bool`
+        #: Whether or not to check PBS/Slurm job status
         self.qstat = True
+        #: :class:`float`
+        #: Reference timer
         self.tic = None
+        #: :class:`dict` | ``None``
+        #: Dictionary of conditions for this case
         self.xi = None
+        #: :class:`int`
+        #: Return code of last system command
         self.returncode = IERR_OK
         self._mtime_case_json = 0.0
         #: :class:`list`\ [:class:`int`]
@@ -270,7 +328,7 @@ class CaseRunner(CaseRunnerBase):
         """
         pass
 
-  # === Run control ===
+  # *** RUN CONTROL ***
    # --- Start ---
     # Start case or submit
     @run_rootdir
@@ -844,7 +902,7 @@ class CaseRunner(CaseRunnerBase):
             msg += traceback.format_exc()
             self.log_verbose(msg)
 
-  # === Commands/shell/system ===
+  # *** SYSTEM INTERFACE ***
    # --- Runners (multiple-use) ---
     # Mesh generation
     def run_aflr3(self, j: int, proj: str, fmt='lb8.ugrid'):
@@ -1244,7 +1302,7 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return ierr
 
-  # === Files and Environment ===
+  # *** FILES/ENVIRONMENT ***
    # --- File prep and cleanup ---
     def prepare_files(self, j: int):
         r"""Prepare files for phase *j*
@@ -1404,6 +1462,31 @@ class CaseRunner(CaseRunnerBase):
             self.log_verbose(f"ulimit -{r} {l} (phase={j})")
         # Apply setting
         set_rlimit(r, ulim, u, j, unit)
+
+   # --- Folders ---
+    @run_rootdir
+    def mkdir(self, dirname: str):
+        r"""Create a folder (if needed); set permissions to match root
+
+        :Call:
+            >>> runner.mkdir(dirname)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *dirname*: :class:`str`
+                Name of folder to create and/or modify
+        :Versions:
+            * 2025-07-28 ``@ddalle``: v1.0
+        """
+        # Check if folder exists
+        if not os.path.isdir(dirname):
+            # Create folder
+            os.mkdir(dirname)
+        # Get permissions of parent folder and current subfolder perms
+        p1 = os.stat(self.root_dir).st_mode
+        p2 = os.stat(dirname).st_mode
+        # Match permissions to parent folder
+        os.chmod(dirname, p1 | p2)
 
    # --- File manipulation ---
     # Copy a file
@@ -2019,7 +2102,40 @@ class CaseRunner(CaseRunnerBase):
         # Return sorted by mod time
         return archivist.sort_by_mtime(list(fileset))
 
-   # --- Specific files ---
+   # --- STDOUT files ---
+    # Get name of STDOUT file
+    def get_stdout_filename(self) -> str:
+        r"""Get standard STDOUT file name, e.g. ``fun3d.out``
+
+        :Call:
+            >>> fname = runner.get_stdout_filename()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
+        return f"{self._progname}.out"
+
+    # Get name of STDOUT file
+    def get_stderr_filename(self) -> str:
+        r"""Get standard STDERR file name, e.g. ``fun3d.err``
+
+        :Call:
+            >>> fname = runner.get_stderr_filename()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
+        return f"{self._progname}.err"
 
    # --- File name patterns ---
     def get_flowviz_pat(self, stem: str) -> str:
@@ -2077,7 +2193,7 @@ class CaseRunner(CaseRunnerBase):
         # Default pattern; all Tecplot formats
         return f"{basename}\\.(?P<ext>dat|plt|szplt|tec)"
 
-  # === Flow viz and field data ===
+  # *** FLOW VIZ ***
    # --- General flow viz search ---
     @run_rootdir
     def get_flowviz_file(self, stem: str):
@@ -2090,6 +2206,7 @@ class CaseRunner(CaseRunnerBase):
         # Perform search
         return fileutils.get_latest_regex(regex, baseglob)[1]
 
+  # *** SURFACE DATA ***
    # --- Surface ---
     def get_surf_file(self):
         r"""Get latest surface file and regex match instance
@@ -2172,7 +2289,188 @@ class CaseRunner(CaseRunnerBase):
         # Use latest
         return triqfiles[-1], None, None, None
 
-  # === DataBook ===
+  # *** DATABOOK ***
+   # --- Sampling ---
+    def sample_dex(self, comp: str) -> dict:
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Check for custom sampling function
+        samplefunc = getattr(self, f"sample_dex_{typ}", None)
+        # Check if found
+        if samplefunc is None:
+            # Read the raw data (e.g. iterative history)
+            db = self.read_dex(comp)
+            # Use it (no sampling necessary)
+            return db
+        else:
+            # Call sample
+            return samplefunc(comp)
+
+    def sample_dex_fm(self, comp: str) -> dict:
+        r"""Sample a force & moment iterative history
+
+        :Call:
+            >>> d = runner.sample_dex_fm(comp)
+        :Versions:
+            * 2025-07-29 ``@ddalle``: v1.0
+        """
+        # Read the raw data (e.g. iterative history)
+        fm = self.read_dex(comp)
+        # Get run matrix instance
+        cntl = self.read_cntl()
+        # Get relevant options
+        na = cntl.opts.get_DataBookOpt(comp, "NStats")
+        nb = cntl.opts.get_DataBookOpt(comp, "NMaxStats")
+        # Sample
+        return fm.GetStats(na, nb)
+
+   # --- Readers ---
+    def read_dex(self, comp: str) -> DataKit:
+        r"""Read a data component
+
+        :Call:
+            >>> db = runner.read_dex(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Create extra args
+        args0 = self.genr8_dex_args_pre(typ)
+        args1 = self.genr8_dex_args_post(typ)
+        # Get class
+        cls = self._dex_cls[typ]
+        # Use it
+        return cls(*args0, comp, *args1)
+
+    # Create tuple of args prior to *comp*
+    def genr8_dex_args_pre(self, typ: str) -> tuple:
+        r"""Generate tuple of args before *comp* when reading data cls
+
+        This will call the function ``runner.get_dex_args_pre_{typ}()``
+        if possible, or ``runner.get_dex_args_pre()`` as a fall back. If
+        neither function exists, an empty :class:`tuple` will be
+        returned.
+
+        :Call:
+            >>> args = runner.genr8_dex_args_pre(typ)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *typ*: :class:`str`
+                DataBook component type
+        :Outputs:
+            *args*: :class:`tuple`
+                Arguments for ``_dex_cls`` instantiation
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Generate function names
+        name0 = "get_dex_args_pre"
+        name1 = f"get_dex_args_pre_{typ}"
+        # Get functions if possible
+        f0 = getattr(self, name0, None)
+        f1 = getattr(self, name1, f0)
+        # Call function if possible
+        args = () if not callable(f1) else f1()
+        # Convert scalaars
+        args = args if isinstance(args, (tuple, list)) else (args,)
+        # Output
+        return args
+
+    # Create tuple of args after *comp*
+    def genr8_dex_args_post(self, typ: str) -> tuple:
+        r"""Generate tuple of args after *comp* when reading data cls
+
+        This will call the function ``runner.get_dex_args_post_{typ}()``
+        if possible, or ``runner.get_dex_args_post()`` as a fall back.
+        If neither function exists, an empty :class:`tuple` will be
+        returned.
+
+        :Call:
+            >>> args = runner.genr8_dex_args_post(typ)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *typ*: :class:`str`
+                DataBook component type
+        :Outputs:
+            *args*: :class:`tuple`
+                Arguments for ``_dex_cls`` instantiation
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Generate function names
+        name0 = "get_dex_args_post"
+        name1 = f"get_dex_args_post_{typ}"
+        # Get functions if possible
+        f0 = getattr(self, name0, None)
+        f1 = getattr(self, name1, f0)
+        # Call function if possible
+        args = () if not callable(f1) else f1()
+        args = () if not callable(f1) else f1()
+        # Output
+        return args
+
+   # --- Status ---
+    # Get the current iteration number as applies to
+    def get_dex_iter(self, comp: str) -> int:
+        return self.get_restart_iter()
+
+   # --- Options ---
+    # Get DataBook component type
+    def get_dex_type(self, comp: str) -> str:
+        r"""Get category for a DataBook component
+
+        :Call:
+            >>> typ = runner.get_dex_type(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Outputs:
+            *typ*: :class:`str`
+                DataBook component type
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get component type
+        typ = cntl.opts.get_DataBookType(comp).lower()
+        # Output
+        return typ
+
+    # General option
+    def get_dex_opt(self, comp: str, opt: str) -> Any:
+        r"""Get general option for a DataBook component
+
+        :Call:
+            >>> v = runner.get_dex_opt(comp, opt)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+            *opt*: :class:`str`
+                Name of option to access
+        :Outputs:
+            *v*: :class:`object`
+                DataBook option value
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get component option
+        return cntl.opts.get_DataBookOpt(comp, opt)
+
    # --- Triload ---
     def write_triload_input(self, comp: str):
         r"""Write input file for ``trilaodCmd``
@@ -2302,7 +2600,7 @@ class CaseRunner(CaseRunnerBase):
             for row in rotation_matrix:
                 fp.write("%9.6f %9.6f %9.6f\n" % tuple(row))
 
-  # === Options ===
+  # *** OPTIONS ***
    # --- Case options ---
     # Get project root name
     def get_project_rootname(self, j: Optional[int] = None) -> str:
@@ -2888,7 +3186,7 @@ class CaseRunner(CaseRunnerBase):
             # Return as many files as we read
             return job_ids
 
-  # === Project/Run matrix ===
+  # *** CNTL/RUN MATRIX ***
    # --- Run matrix ---
     def get_case_index(self) -> Optional[int]:
         r"""Get index of a case in the current run matrix
@@ -3253,7 +3551,7 @@ class CaseRunner(CaseRunnerBase):
         # Return code
         return IERR_OK
 
-  # === Status ===
+  # *** STATUS ***
    # --- Status: Next action ---
     # Check if case should exit for any reason
     @run_rootdir
@@ -3365,7 +3663,6 @@ class CaseRunner(CaseRunnerBase):
             return True
 
    # --- Status: Overall ---
-
     # Check for other errors
     @run_rootdir
     def check_error(self) -> bool:
@@ -3577,6 +3874,81 @@ class CaseRunner(CaseRunnerBase):
         # Check
         return envjobid in jobids
 
+   # --- Status: Log/STDOUT files ---
+
+    # Get CAPE STDOUT files
+    @run_rootdir
+    def get_cape_stdoutfiles(self) -> list:
+        r"""Get list of STDOUT files in order they were run
+
+        :Call:
+            >>> runfiles = runner.get_cape_stdoutfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *runfiles*: :class:`list`\ [:class:`str`]
+                List of run files, in ascending order
+        :Versions:
+            * 2024-08-09 ``@ddalle``: v1.0
+            * 2025-03-21 ``@ddalle``: v1.1; use search_regex()
+        """
+        # Find all the runfiles renamed by CAPE
+        runfiles = self.search_regex("run.[0-9][0-9]+.[0-9]+")
+        # Initialize run files with metadata
+        runfile_meta = []
+        # Loop through candidates
+        for runfile in runfiles:
+            # Compare to regex
+            re_match = REGEX_RUNFILE.fullmatch(runfile)
+            # Save file name, phase, and iter
+            runfile_meta.append(
+                (runfile, int(re_match.group(1)), int(re_match.group(2))))
+        # Check for empty list
+        if len(runfile_meta) == 0:
+            return []
+        # Sort first by iter, then by phase (phase takes priority)
+        runfile_meta.sort(key=lambda x: x[2])
+        runfile_meta.sort(key=lambda x: x[1])
+        # Extract file name for each
+        return [x[0] for x in runfile_meta]
+
+    # Get CAPE STDOUT files from a certain phase
+    @run_rootdir
+    def get_phase_stdoutfiles(self, j: int) -> list:
+        r"""Get list of STDOUT files in order they were run
+
+        :Call:
+            >>> runfiles = runner.get_cape_stdoutfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *runfiles*: :class:`list`\ [:class:`str`]
+                List of run files, in ascending order
+        :Versions:
+            * 2024-08-09 ``@ddalle``: v1.0
+            * 2025-03-21 ``@ddalle``: v1.1; use search_regex()
+        """
+        # Find all the runfiles renamed by CAPE
+        runfiles = self.search_regex(f"run.{j:02d}.[0-9]+")
+        # Initialize run files with metadata
+        runfile_meta = []
+        # Loop through candidates
+        for runfile in runfiles:
+            # Compare to regex
+            re_match = REGEX_RUNFILE.fullmatch(runfile)
+            # Save file name, phase, and iter
+            runfile_meta.append(
+                (runfile, int(re_match.group(2))))
+        # Check for empty list
+        if len(runfile_meta) == 0:
+            return []
+        # Sort by iter
+        runfile_meta.sort(key=lambda x: x[1])
+        # Extract file name for each
+        return [x[0] for x in runfile_meta]
+
    # --- Status: Phase ---
     # Determine phase number
     @run_rootdir
@@ -3610,6 +3982,37 @@ class CaseRunner(CaseRunnerBase):
         # Save and return
         self.j = j
         return j
+
+    # Get phase number by only checking output files
+    @run_rootdir
+    def get_phase_simple(self, f: bool = True) -> int:
+        r"""Determine phase number, only checking output files
+
+        :Call:
+            >>> j, jlast = runner.get_phase_simple(f=True)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: {``True``} | ``False``
+                Force recalculation of phase
+        :Outputs:
+            *j*: :class:`int`
+                Phase number for current or next restart
+            *jlast*: :class:`int`
+                Last phase expected
+        :Versions:
+            * 2025-03-02 ``@ddalle``: v1.0
+        """
+        # Get list of phases
+        phases = self.get_phase_sequence()
+        # Loop through them in reverse
+        for j in reversed(phases):
+            # Check if any output files exists
+            if len(self.search_regex(f"run.{j:02d}.[0-9]+")) > 0:
+                # Found a phase that has been run
+                break
+        # Output phase
+        return j, phases[-1]
 
     # Get next phase to run
     def get_phase_next(self) -> int:
@@ -4021,6 +4424,68 @@ class CaseRunner(CaseRunnerBase):
         """
         return self.get_iter_simple(f)
 
+    # Get most recent iteration of completed run
+    @run_rootdir
+    def get_iter_completed(self) -> int:
+        r"""Detect most recent iteration from completed runs
+
+        :Call:
+            >>> n = runner.get_iter_completed()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+        """
+        # Get log files
+        logfiles = self.get_cape_stdoutfiles()
+        # Use last file
+        return 0 if len(logfiles) == 0 else int(logfiles[-1].split('.')[2])
+
+    # Get iterations of current running since last completion
+    @run_rootdir
+    def get_iter_active(self) -> int:
+        r"""Detect any iterations run since last completed phase run
+
+        :Call:
+            >>> n = runner.get_iter_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+            * 2025-04-01 ``@ddalle``: v1.1; use getx_iter() for default
+        """
+        # Default: overall minus completed
+        nc = self.get_iter_completed()
+        nt = self.getx_iter()
+        nt = 0 if nt is None else nt
+        return max(0, nt-nc)
+
+    # Get most recent observable iteration
+    def getx_iter(self) -> int:
+        r"""Calculate most recent iteration
+
+        :Call:
+            >>> n = runner.getx_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        # CFD{X} version
+        return 0
+
     # Get last iteration
     def get_last_iter(self) -> int:
         r"""Get min iteration required for a given case
@@ -4267,7 +4732,7 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return self.jobs
 
-  # === Archiving ===
+  # *** ARCHIVING ***
    # --- Archive: actions ---
     def clean(self, test: bool = False):
         r"""Run the ``--clean`` archiving action
@@ -4367,6 +4832,11 @@ class CaseRunner(CaseRunnerBase):
             return self.archivist
         # Isolate "Archive" section
         opts = self.read_archive_opts()
+        # Check for relative ArchiveDir
+        archivedir = opts.get_ArchiveFolder()
+        if not os.path.isabs(archivedir):
+            # Absolutize
+            opts.set_ArchiveFolder(os.path.join(self.root_dir, archivedir))
         # Get case name
         casename = self.get_case_name()
         # Initialize archivist
@@ -4445,7 +4915,7 @@ class CaseRunner(CaseRunnerBase):
         """
         return []
 
-  # === Logging ===
+  # *** LOGGING ***
    # --- Logging: actions ---
     def log_main(
             self,
@@ -4969,7 +5439,7 @@ class CaseRunner(CaseRunnerBase):
         """
         return self.__class__.__name__
 
-  # === Workers ===
+  # *** WORKERS ***
    # --- Driver ---
     # Start concurrent workers and then run phase
     def run_phase_main(self, j: int) -> int:

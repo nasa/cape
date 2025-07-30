@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pylava.case`: LAVACURV case control module
-=====================================================
+:mod:`cape.pylava.casecntl`: LAVA case control module
+=========================================================
 
 This module contains LAVACURV-specific versions of some of the generic
 methods from :mod:`cape.cfdx.case`.
@@ -12,6 +12,7 @@ they are available unless specifically overwritten by specific
 
 # Standard library modules
 import os
+import re
 from typing import Optional
 
 # Third-party modules
@@ -19,6 +20,7 @@ from typing import Optional
 # Local imports
 from . import cmdgen
 from .. import fileutils
+from .databook import CaseFM
 from .dataiterfile import DataIterFile
 from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
@@ -26,6 +28,7 @@ from ..cfdx import casecntl
 
 # Constants
 ITER_FILE = "data.iter"
+ITER_FILE_CART = os.path.join("monitor", "Cart.data.iter")
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -54,10 +57,13 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Names
     _modname = "pylava"
-    _progname = "lavacurv"
+    _progname = "lava"
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _dex_cls = {
+        "fm": CaseFM,
+    }
 
    # --- Config ---
     def init_post(self):
@@ -111,10 +117,19 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read case settings
         rc = self.read_case_json()
-        # Generate command
-        cmdi = cmdgen.superlava(rc, j)
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Check which command to generate
+        if solver == "curvilinear":
+            # LAVA-Curvilinear
+            cmdi = cmdgen.superlava(rc, j)
+            execname = "superlava"
+        elif solver == "cartesian":
+            # LAVA-Cartesian
+            cmdi = cmdgen.lavacart(rc, j)
+            execname = "lava"
         # Run the command
-        self.callf(cmdi, f="superlava.out", e="superlava.err")
+        self.callf(cmdi, f=f"{execname}.out", e=f"{execname}.err")
 
     # Clean up files afterwrad
     def finalize_files(self, j: int):
@@ -134,10 +149,15 @@ class CaseRunner(casecntl.CaseRunner):
         n = self.get_iter()
         # Genrate name of STDOUT log, "run.{phase}.{n}"
         fhist = "run.%02i.%i" % (j, n)
+        # Get solver
+        rc = self.read_case_json()
+        solver = rc.get_LAVASolver()
+        # Get STDOUT file name
+        stdoutbase = "superlava" if solver == "curvilinear" else "lava"
         # Rename the STDOUT file
-        if os.path.isfile("superlava.out"):
+        if os.path.isfile(f"{stdoutbase}.out"):
             # Move the file
-            os.rename("superlava.out", fhist)
+            os.rename(f"{stdoutbase}.out", fhist)
         else:
             # Create an empty file
             fileutils.touch(fhist)
@@ -178,7 +198,63 @@ class CaseRunner(casecntl.CaseRunner):
         # Read it, but only metadata
         db = self.read_data_iter(meta=True)
         # Return the last iteration
-        return db.n
+        return int(db.n + 0.99)
+
+   # --- File manipulation ---
+    def prepare_files(self, j: int):
+        r"""Prepare files for phase *j*, LAVA-specific
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2025-07-28 ``@ddalle``: v1.0
+        """
+        # Create post-processing and log folder to ensure permissions
+        self.mkdir("isosurface")
+        self.mkdir("monitor")
+        self.mkdir("restart")
+        self.mkdir("surface")
+        self.mkdir("volume")
+
+    # Link best Output files
+    @casecntl.run_rootdir
+    def link_viz(self):
+        r"""Link the most recent visualization files
+
+        :Call:
+            >>> runner.link_viz()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2025-07-25 ``@jmeeroff``: v1.0
+            * 2025-07-28 ``@ddalle``: v1.1; bug for subfolder links
+        """
+        # Visualization subfolders
+        vizdirs = ('volume', 'isosurface', 'surface')
+        # Call the archivist for grouping
+        a = self.get_archivist()
+        # Loop through viz directories
+        for vizdir in vizdirs:
+            # Go to that viz folder
+            os.chdir(self.root_dir)
+            os.chdir(vizdir)
+            # Get groups using archivist
+            vgrp = a.search_regex(r"/(.+)\.[0-9]+\.([a-z0-9]+)")
+            # Loop through keys:
+            for fnstr in vgrp.keys():
+                # Parse the filename to link to
+                parse = re.findall(r"'(.*?)'", fnstr)
+                # Append the output name and last file
+                fname = f'{parse[0]}.{parse[1]}'
+                fsrc = vgrp[fnstr][-1]
+                # Link the files
+                self.link_file(fname, fsrc)
 
    # --- Special readers ---
     # Read namelist
@@ -242,21 +318,29 @@ class CaseRunner(casecntl.CaseRunner):
         # Check history
         if db.n == 0:
             return False
-        # Read YAML file
-        yamlfile = self.read_runyaml()
-        # Maximum iterations
-        maxiters = yamlfile.get_lava_subopt("nonlinearsolver", "iterations")
-        if db.n >= maxiters:
-            return True
-        # Target convergence
-        l2conv_target = yamlfile.get_lava_subopt("nonlinearsolver", "l2conv")
-        # Apply it
-        if l2conv_target:
-            # Check reported convergence
-            return db.l2conv <= l2conv_target
-        else:
-            # No convergence test
-            return True
+        # Read options
+        rc = self.read_case_json()
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Check which command to generate
+        if solver == "curvilinear":
+            # Read YAML file
+            yamlfile = self.read_runyaml()
+            # Maximum iterations
+            maxiters = yamlfile.get_lava_subopt(
+                "nonlinearsolver", "iterations")
+            if db.n >= maxiters:
+                return True
+            # Target convergence
+            l2conv_target = yamlfile.get_lava_subopt(
+                "nonlinearsolver", "l2conv")
+            # Apply it
+            if l2conv_target:
+                # Check reported convergence
+                return db.l2conv <= l2conv_target
+            else:
+                # No convergence test
+                return False
         # Perform parent check
         q = casecntl.CaseRunner.check_complete(self)
         # Quit if not complete
@@ -283,9 +367,27 @@ class CaseRunner(casecntl.CaseRunner):
             * 2024-08-02 ``@sneuhoff``; v1.0
             * 2024-10-11 ``@ddalle``: v2.0
         """
+        # Default file names for convenience
+        fname = fname if os.path.isfile(fname) else ITER_FILE
+        fname = fname if os.path.isfile(fname) else ITER_FILE_CART
         # Check if file exists
         if os.path.isfile(fname):
             return DataIterFile(fname, meta=meta)
         else:
             # Empty instance
             return DataIterFile(None)
+
+
+# Link best viz files
+def LinkViz():
+    r"""Link the most recent viz files to fixed file names
+
+    :Call:
+        >>> LinkPLT()
+    :Versions:
+        * 2025-07-28 ``@jmeeroff``: v1.0
+    """
+    # Instantiate
+    runner = CaseRunner()
+    # Call link method
+    runner.link_viz()

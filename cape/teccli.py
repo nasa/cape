@@ -64,6 +64,7 @@ class _TecArgParser(ArgReader):
         "supersample": "Number of supersamples to make while anti-aliasing",
         "szplt": "Name of Tecplot(R) SZPLT file to convert",
         "verbose": "Increase verbosity during process",
+        "vtk": "Name of VTK file to convert",
         "width": "Image width, in pixels",
     }
 
@@ -75,6 +76,7 @@ class _TecArgParser(ArgReader):
         "plt": "PLTFILE",
         "supersample": "S",
         "szplt": "SZPLTFILE",
+        "vtk": "VTKFILE",
         "width": "WIDTH",
     }
 
@@ -152,6 +154,36 @@ class CapeSzplt2PltArgParser(_TecArgParser):
     _help_title = "Convert Tecplot(R) SZPLT -> PLT format"
 
 
+# Arguments for ``cape-vtk2plt``
+class CapeVTK2PltArgParser(_TecArgParser):
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "antialias",
+        "clean",
+        "help",
+        "o",
+        "plt",
+        "vtk",
+        "verbose",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "vtk",
+        "o",
+    )
+
+    # Required options/args
+    _nargmin = 1
+
+    # Primary aspects
+    _name = "cape-vtk2plt"
+    _help_title = "Convert VTK -> Tecplot(R) PLT format"
+
+
 # CLI functions
 def export_layout(argv: Optional[list] = None) -> int:
     r"""CLI for Tecplot(R) layout -> image export
@@ -218,5 +250,39 @@ def convert_szplt(argv: Optional[list] = None) -> int:
     # Call main function
     tecfile.convert_szplt(fszplt, fplt, **kw)
     # Return
+    return 0
+
+
+# CLI handle for vtk2plt
+def convert_vtk(argv: Optional[list] = None) -> int:
+    r"""CLI for VTK -> Tecplot(R) PLT
+
+    :Call:
+        >>> ierr = convert_vtk(argv=None)
+    :Inputs:
+        *argv*: {``None``} | :class:`list`\ [:class:`str`]
+            List of CLI args (else use ``sys.argv``)
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-07-17 ``@ddalle``: v1.0
+    """
+    # Create parser
+    parser = CapeVTK2PltArgParser()
+    # Parce CLI text
+    parser.parse(argv)
+    # Check for help message
+    if parser.get("help", False):
+        print(compile_rst(parser.genr8_help()))
+        return 0
+    # Get all named options
+    kw = parser.get_kwargs()
+    # Get mai noptions
+    fvtk = kw.pop("vtk", "tecplot.vtk")
+    fplt = kw.pop("o", None)
+    # Convert it
+    tecfile.convert_vtk(fvtk, fplt=fplt, **kw)
+    # Return code
     return 0
 

@@ -17,7 +17,6 @@
     casecntlbase
     cmdgen
     cmdrun
-    cntlbase
     databook
     lineload
     logger

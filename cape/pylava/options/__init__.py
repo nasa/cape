@@ -10,8 +10,9 @@ package, based on
 
 # Local imports
 from . import util
-from .runctlopts import RunControlOpts
 from .meshopts import MeshOpts
+from .runctlopts import RunControlOpts
+from .runinputsopts import RunInputsOpts
 from ...cfdx import options
 
 
@@ -30,25 +31,24 @@ class Options(options.Options):
         *opts*: :class:`cape.pylava.options.Options`
             Options interface
     :Versions:
-        * 2024-09-30 ``@sneuhoff``: Version 1.0
+        * 2024-09-30 ``@sneuhoff``: v1.0
     """
-   # ======================
-   # Class Attributes
-   # ======================
-   # <
+   # === Class Attributes ===
     # Additional attributes
     __slots__ = ()
 
     # Additional options
     _optlist = (
         "CartInputFile",
-        "YAML",
+        "RunInputs",
         "RunYAMLFile",
+        "YAML",
     )
 
     # Aliases
     _optmap = {
         "CartesianInputFile": "CartInputFile",
+        "CartInputs": "RunInputs",
         "RunInputFile": "CartInputFile",
         "RunYAML": "YAML",
         "YAMLFile": "RunYAMLFile",
@@ -62,20 +62,18 @@ class Options(options.Options):
 
     # Descriptions
     _rst_descriptions = {
+        "CartInputFile": "template for LAVA-Cartesion input file",
         "RunYAMLFile": "template LAVA input file (YAML/JSON)",
     }
 
     # Replaced or renewed sections
     _sec_cls = {
         "RunControl": RunControlOpts,
+        "RunInputs": RunInputsOpts,
         "Mesh": MeshOpts,
     }
-   # >
 
-   # =============
-   # Configuration
-   # =============
-   # <
+   # === Configuration ===
     # Initialization hook
     def init_post(self):
         r"""Initialization hook for :class:`Options`
@@ -94,7 +92,6 @@ class Options(options.Options):
         self = util.applyDefaults(self, defs)
         # Add extra folders to path.
         self.AddPythonPath()
-   # >
 
 
 # Add properties
