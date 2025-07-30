@@ -1013,6 +1013,7 @@ class DataBookOpts(OptionsDict):
     }
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
+        "_default_": FMDataBookOpts,
         "FM": FMDataBookOpts,
         "IterPoint": DBIterPointOpts,
         "LineLoad": LineLoadDataBookOpts,
