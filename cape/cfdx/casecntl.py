@@ -4424,6 +4424,36 @@ class CaseRunner(CaseRunnerBase):
         """
         return self.get_iter_simple(f)
 
+    # Get iteration using simpler methods
+    @run_rootdir
+    def get_iter_simple(self, f: bool = True) -> int:
+        r"""Detect most recent iteration
+
+        :Call:
+            >>> n = runner.get_iter_simple(f=True)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: {``True``} | ``False``
+                Force recalculation of phase
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+        """
+        # Check if present
+        if not (f or self.n is None):
+            # Return existing calculation
+            return self.n
+        # Get iterations previously completed
+        na = self.get_iter_completed()
+        # Get iterations run since then (currently active)
+        nb = self.get_iter_active()
+        # Add them up
+        self.n = na + nb
+        return self.n
+
     # Get most recent iteration of completed run
     @run_rootdir
     def get_iter_completed(self) -> int:
