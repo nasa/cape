@@ -1957,22 +1957,20 @@ class OptionsDict(dict):
         if parent in self and parent != sec:
             # Recurse (cascading definitions)
             return self.get_subopt(parent, opt, key, **kw)
-        elif opt == key:
-            # End of recursion for special case of opt==key
-            if parent is None:
-                # No parent; global defaults
-                ol = self.getx_optlist()
-                # Use parent default if appropriate; else name of section
-                parentval = sec if (opt not in ol) else self.get_opt(opt, **kw)
-                # Output
-                return parentval
-            else:
-                # Deepest section has *key*
-                return parent
+        elif opt == key and parent is not None:
+            # Deepest section has *key*
+            return parent
         # If *parent* not found, **then** fall back to self._rc
         # Otherwise return ``None``
         if isinstance(subopts, OptionsDict):
             return subopts.get_opt(opt, **kw)
+        # Last special case: global defaults
+        fallback = sec if (opt == key) else None
+        # Check for global default
+        ol = self.getx_optlist()
+        parentval = fallback if (opt not in ol) else self.get_opt(opt, **kw)
+        # Output
+        return parentval
 
     @expand_doc
     def get_subkey_base(self, sec: str, key: str, **kw) -> str:
