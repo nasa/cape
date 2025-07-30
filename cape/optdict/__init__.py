@@ -1960,8 +1960,12 @@ class OptionsDict(dict):
         elif opt == key:
             # End of recursion for special case of opt==key
             if parent is None:
-                # No parent; name of this section is end of recursion
-                return sec
+                # No parent; global defaults
+                ol = self.getx_optlist()
+                # Use parent default if appropriate; else name of section
+                parentval = sec if (opt not in ol) else self.get_opt(opt, **kw)
+                # Output
+                return parentval
             else:
                 # Deepest section has *key*
                 return parent
