@@ -2338,6 +2338,21 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
         """
+        ...
+
+    def read_dex_element(self, comp: str) -> DataKit:
+        r"""Read a data component
+
+        :Call:
+            >>> db = runner.read_dex(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
         # Get component type
         typ = self.get_dex_type(comp)
         # Create extra args
@@ -2416,6 +2431,8 @@ class CaseRunner(CaseRunnerBase):
         args = () if not callable(f1) else f1()
         # Output
         return args
+
+   # --- Data manipulation ---
 
    # --- Status ---
     # Get the current iteration number as applies to
