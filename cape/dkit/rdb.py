@@ -9728,7 +9728,7 @@ class DataKit(BaseData):
         return V.__getitem__(J)
 
     # Apply a mask to all columns
-    def apply_mask(self, mask, cols=None):
+    def apply_mask(self, mask: np.ndarray, cols: Optional[list] = None):
         r"""Apply a mask to one or more *cols*
 
         :Call:
@@ -9750,8 +9750,7 @@ class DataKit(BaseData):
             * 2021-09-10 ``@ddalle``: v1.0
         """
         # Default list of columns
-        if cols is None:
-            cols = self.cols
+        cols = self.cols if cols is None else cols
         # Loop through columns
         for col in cols:
             # Check validity of mask
@@ -9764,7 +9763,7 @@ class DataKit(BaseData):
             self[col] = v
 
     # Apply a mask to all columns
-    def remove_mask(self, mask, cols=None):
+    def remove_mask(self, mask: np.ndarray, cols: Optional[list] = None):
         r"""Remove cases in a mask for one or more *cols*
 
         This function is the opposite of :func:`apply_mask`
@@ -9805,6 +9804,10 @@ class DataKit(BaseData):
         pmask[mask] = False
         # Apply tyat
         self.apply_mask(pmask, cols)
+
+    # Trim based on identifier column
+    def trim_monotonic(self, col: str, cols: Optional[list] = None):
+        ...
 
    # --- Mask ---
     # Prepare mask
@@ -10113,7 +10116,7 @@ class DataKit(BaseData):
         # Output
         return sweeps
 
-   # --- Search ---
+   # --- Search: internal ---
     # Find matches
     def find(self, args: list, *a, **kw):
         r"""Find cases that match a condition [within a tolerance]
@@ -10386,6 +10389,25 @@ class DataKit(BaseData):
         # Return result
         return None if mask.size == 0 else mask[0]
 
+    # Filter to ascending iterations
+    def find_ascending(self, col: str, keep_latest: bool = True) -> np.ndarray:
+        # Get values
+        v = self.get_all_values(col)
+        # Get unique values
+        u = np.unique(v)
+        # Search for values of *u* in v
+        if keep_latest:
+            # Find values, but search from right
+            _, ia, _ = np.intersect1d(np.flip(v), u, return_indices=True)
+            # Reverse indices
+            ia = (v.size - 1) - ia
+        else:
+            # Normal find; keeps left-most
+            _, ia, _ = np.intersect1d(v, u, return_indices=True)
+        # Output
+        return ia
+
+   # --- Search: target ---
     # Find matches from a target
     def match(self, dbt, maskt=None, cols=None, **kw):
         r"""Find cases with matching values of specified list of cols
