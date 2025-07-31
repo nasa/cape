@@ -2338,20 +2338,38 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
         """
-        ...
+        # Get component(s)
+        compid = self.get_dex_opt(comp, "CompID")
+        # Convert to list if necessary
+        compids = _listify(compid)
+        # Loop through components
+        for j, compj in enumerate(compids):
+            # Read component
+            dbj = self.read_dex_element(comp, compj)
+            # Transformations
+            ...
+            # Add or initialize
+            if j == 0:
+                db = dbj
+            else:
+                db += dbj
+        # Output
+        return db
 
-    def read_dex_element(self, comp: str) -> DataKit:
-        r"""Read a data component
+    def read_dex_element(self, comp: str, compid: str) -> DataKit:
+        r"""Read one element of a data extracter component
 
         :Call:
-            >>> db = runner.read_dex(comp)
+            >>> db = runner.read_dex_element(comp, compid)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *comp*: :class:`str`
                 Name of component to read
+            *compid*: :class:`str`
+                Name of component ID (usually matches *comp*)
         :Versions:
-            * 2025-07-24 ``@ddalle``: v1.0
+            * 2025-07-30 ``@ddalle``: v1.0
         """
         # Get component type
         typ = self.get_dex_type(comp)
@@ -2360,8 +2378,15 @@ class CaseRunner(CaseRunnerBase):
         args1 = self.genr8_dex_args_post(typ)
         # Get class
         cls = self._dex_cls[typ]
-        # Use it
-        return cls(*args0, comp, *args1)
+        # Check for negative sign
+        c = -1.0 if compid.startswith('-') else 1.0
+        # Use custom clas to instantiate
+        db = cls(*args0, compid, *args1)
+        # Scale
+        if c != 1.0:
+            db *= c
+        # Output
+        return db
 
     # Create tuple of args prior to *comp*
     def genr8_dex_args_pre(self, typ: str) -> tuple:
@@ -5893,3 +5918,11 @@ def GetTriqFile(proj='Components'):
         # No TRIQ files
         return None, None, None, None
 
+
+# Convert scalar to list if necessary
+def _listify(str_or_list: Union[str, list, tuple]) -> list:
+    # Check if list
+    if isinstance(str_or_list, (list, tuple)):
+        return list(str_or_list)
+    else:
+        return [str_or_list]
