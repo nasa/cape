@@ -10599,6 +10599,43 @@ class DataKit(BaseData):
         # Call parent function
         return self.xfind(d, tol=tol, tols=tols)
 
+    # Find matches based on a single column
+    def imatch(
+            self,
+            dbt: dict,
+            col: str,
+            targcol: Optional[str] = None) -> MatchInds:
+        r"""Efficiently find matches based on a single column's values
+
+        :Call:
+            >>> inds = db.imatch(dbt, col, targcol=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`DataKit`
+                Target data set
+            *col*: :class:`str`
+                Name of column to compare
+            *targcol*: {``None``} | :class:`str`
+                Name of column in *dbt* to use; default *col*
+        :Outputs:
+            *inds.selfinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *db* that have a match in *dbt*
+            *inds.targetinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *dbt* that have a match in *db*
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Default targecol
+        colb = col if targcol is None else targcol
+        # Get values of *col* from both data sets
+        va = self.get_all_values(col)
+        vb = dbt[colb]
+        # Find intersecting values
+        _, ia, ib = np.intersect1d(va, vb, return_indices=True)
+        # Output
+        return MatchInds(ia, ib)
+
    # --- Statistics ---
     # Get coverage
     def est_cov_interval(self, dbt, col, mask=None, cov=0.95, **kw):
