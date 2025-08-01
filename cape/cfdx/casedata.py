@@ -1104,6 +1104,60 @@ class CaseData(DataKit):
             # Apply the mask; delete (and/or duplicate?) data
             self[col] = vj[mask]
 
+    # Simple mask, iters only
+    def apply_mask_iters(self, mask: np.ndarray):
+        r"""Apply a mask to simple iteration history
+
+        :Call:
+            >>> db.apply_mask_iters(mask)
+        :Inputs:
+            *db*: :class:`cape.cfdx.casedata.CaseData`
+                Single-case iterative history interface
+            *mask*: :class:`np.ndarray`\ [:class:`int` | :class:`bool`]
+                Mask of indices or booleans of which to keep
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Find appropriate columns
+        cols = self.get_cols_parent(CASE_COL_ITERS)
+        cols.append(CASE_COL_ITERS)
+        # Apply mask to each
+        for col in cols:
+            self[col] = self[col][mask]
+
+    # Find columns by parent
+    def get_cols_parent(self, col: str) -> list:
+        r"""Get columns with a given parent
+
+        :Call:
+            >>> cols = db.get_cols_by_parent(col)
+        :Inputs:
+            *db*: :class:`CaseData`
+                Iterative history data instance
+            *col*: :class:`str`
+                Name of parent column to search for
+        :Outputs:
+            *cols*: :class:`list`\ [:class:`str`]
+                List of columns with parent of *col*
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Get list of parents
+        parents = self.get(CASE_COL_PARENT, {})
+        # Get size of that parent
+        n = self[col].size
+        # Find columns by parent
+        cols = []
+        # Loop through cols
+        for colj, vj in self.items():
+            # Get parent
+            parent = parents.get(colj, "")
+            # Check
+            if (parent == col) and (len(vj) == n):
+                cols.append(colj)
+        # Output
+        return cols
+
    # --- Plot ---
     # Basic plotting function
     def PlotValue(self, c: str, col=None, n=None, **kw):
@@ -2192,6 +2246,25 @@ class CaseFM(CaseData):
    # Operations
    # ============
    # <
+    # Trim repeated iterations
+    def trim_iters(self):
+        r"""Trim any repeated iterations from history
+
+        :Call:
+            >>> db.trim_iters()
+        :Inputs:
+            *db*; :class:`cape.cfdx.casedata.CaseData`
+                Single-case iterative history
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Get iteration column
+        col = CASE_COL_ITERS
+        # Find unique ascending values (keeping last copy of duplicates)
+        mask = self.find_ascending(col, keep_last=True)
+        # Apply it
+        self.apply_mask_iters(mask)
+
     # Trim entries
     def TrimIters(self):
         r"""Trim non-ascending iterations and other problems
@@ -2419,7 +2492,7 @@ class CaseFM(CaseData):
    # =================
    # <
     # Transform force or moment reference frame
-    def TransformFM(self, topts, x, i):
+    def TransformFM(self, topts: dict, x: dict, i: int):
         r"""Transform a force and moment history
 
         Available transformations and their parameters are listed below.

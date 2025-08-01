@@ -10390,13 +10390,27 @@ class DataKit(BaseData):
         return None if mask.size == 0 else mask[0]
 
     # Filter to ascending iterations
-    def find_ascending(self, col: str, keep_latest: bool = True) -> np.ndarray:
+    def find_ascending(self, col: str, keep_last: bool = True) -> np.ndarray:
+        r"""Find indices of unique ascending values (e.g. iterations)
+
+        :Call:
+            >>> mask_index = db.find_ascending(col, keep_latest=True)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *col*: :class:`str`
+                Name of column whose values to search
+            *keep_last*: {``True``} | ``False``
+                Keep last occurence of any duplicates (else first)
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
         # Get values
         v = self.get_all_values(col)
         # Get unique values
         u = np.unique(v)
         # Search for values of *u* in v
-        if keep_latest:
+        if keep_last:
             # Find values, but search from right
             _, ia, _ = np.intersect1d(np.flip(v), u, return_indices=True)
             # Reverse indices

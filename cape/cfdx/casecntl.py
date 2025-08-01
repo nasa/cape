@@ -2417,6 +2417,34 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return args
 
+   # --- Force & Moment ---
+    def transform_dex_fm(self, comp: str, fm: CaseFM):
+        r"""Apply transformations for a force & moment data extraction
+
+        :Call:
+            >>> runner.transform_dex_fm(comp, fm)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+            *fm*: :class:`cape.cfdx.casedata.CasseFM`
+                Untransformed force & moment residual history
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Get transformations
+        transforms = self.get_dex_opt(comp, "Transformations")
+        # Exit if none
+        if not transforms:
+            return
+        # Read run matrix controller and case
+        cntl = self.read_cntl()
+        i = self.get_case_index()
+        # Loop through transformations
+        for topts in transforms:
+            fm.TransformFM(topts, cntl.x, i)
+
    # --- Status ---
     # Get the current iteration number as applies to
     def get_dex_iter(self, comp: str) -> int:
@@ -2470,6 +2498,9 @@ class CaseRunner(CaseRunnerBase):
         cntl = self.read_cntl()
         # Get component option
         return cntl.opts.get_DataBookOpt(comp, opt)
+
+    def get_dex_transformation(self, comp: str) -> np.ndarray:
+        ...
 
    # --- Triload ---
     def write_triload_input(self, comp: str):
