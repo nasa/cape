@@ -85,7 +85,14 @@ class DataExchanger(DataKit):
         for col in self.get_datacols():
             # Initialize as float
             self.init_col_like(col, 0.0)
-        # Add status columns
+        # Add integer-like status columns
+        for col in cntl.opts.get_DataBookIntCols(self.comp):
+            # Initialize as int
+            self.init_col_like(col, 0)
+        # Add float-like status columns
+        for col in cntl.opts.get_DataBookFloatCols(self.comp):
+            # Initialzie as float
+            self.init_col_like(col, 0.0)
 
     def init_col_like(self, col: str, v: Any):
         r"""Initialize a data column, if necessary
