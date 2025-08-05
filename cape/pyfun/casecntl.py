@@ -119,6 +119,7 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _resid_cls = CaseResid
     _dex_cls = {
         "fm": CaseFM,
     }

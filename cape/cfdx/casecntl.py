@@ -58,7 +58,7 @@ from . import queue
 from .. import fileutils
 from .archivist import CaseArchivist
 from .casecntlbase import CaseRunnerBase
-from .casedata import CaseFM
+from .casedata import CaseFM, CaseResid
 from .caseutils import run_rootdir
 from .cntlbase import CntlBase
 from .logger import CaseLogger
@@ -172,7 +172,19 @@ class CaseRunner(CaseRunnerBase):
         * :attr:`_rc_cls`
         * :attr:`_zombie_files`
     :Attributes:
+        * :attr:`archivist`
         * :attr:`cntl`
+        * :attr:`j`
+        * :attr:`job`
+        * :attr:`logger`
+        * :attr:`n`
+        * :attr:`nr`
+        * :attr:`rc`
+        * :attr:`resid`
+        * :attr:`returncode`
+        * :attr:`root_dir`
+        * :attr:`tic`
+        * :attr:`workers`
     """
   # *** CONFIG ***
    # --- Class attributes ---
@@ -188,6 +200,7 @@ class CaseRunner(CaseRunnerBase):
         "job",
         "jobs",
         "rc",
+        "resid",
         "returncode",
         "root_dir",
         "tic",
@@ -220,6 +233,9 @@ class CaseRunner(CaseRunnerBase):
     #: :class:`type`
     #: Class for archiving cases
     _archivist_cls = CaseArchivist
+    #: :class:`type`
+    #: Class for reading residual histories
+    _resid_cls = CaseResid
     #: :class:`dict`\ [:class:`type`]
     #: Classes for reading data of various DataBook component types
     _dex_cls = {
@@ -260,6 +276,9 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`int`
         #: Current restart iteration
         self.nr = None
+        #: :class:`cape.cfdx.casedata.CaseResid`
+        #: Residual history instance
+        self.resid = None
         #: :class:`cape.cfdx.options.runctlopts.RunControlOpts`
         #: *RunControl* options for this case
         self.rc = None
@@ -2288,6 +2307,57 @@ class CaseRunner(CaseRunnerBase):
             return None, None, None, None
         # Use latest
         return triqfiles[-1], None, None, None
+
+  # *** RESIDUALS ***
+   # --- Readers ---
+    def read_resid(self, f: bool = False, meta: bool = False) -> CaseResid:
+        r"""Read the current residual history
+
+        :Call:
+            >>> h = runner.read_resid(f=False, meta=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: ``True``| { ``False``}
+                Read residual even if one is cached
+            *meta*: ``True`` | {``False``}
+                Option to only read first and last iteration
+        :Outputs:
+            *h*: :class:`cape.cfdx.casedata.CaseResid`
+                Iterative residual history
+        :Versions:
+            * 2055-08-04 ``@ddalle``: v1.0
+        """
+        # Check for existing residual
+        h = getattr(self, "resid", None)
+        if (not f) and (h is not None):
+            return h
+        # Get class
+        cls = self._resid_cls
+        # Get arguments
+        args = self.genr8_resid_args()
+        # Call
+        h = cls(*args, meta=meta)
+        # Save
+        self.resid = h
+        # output
+        return h
+
+    def genr8_resid_args(self) -> tuple:
+        r"""Generate list of arguments to case residual class
+
+        :Call:
+            >>> args = runner.genr8_resid_args()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Arguments to :class:`CaseResid` instantiation
+        :Versions:
+            * 2025-08-04 ``@ddalle``: v1.0
+        """
+        return ()
 
   # *** DATABOOK ***
    # --- Sampling ---

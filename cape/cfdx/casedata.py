@@ -2297,7 +2297,7 @@ class CaseFM(CaseData):
             self[col] = self.get_values(col, mask)
 
     # Add components
-    def __add__(self, fm):
+    def __add__(self, fm: CaseData):
         r"""Add two iterative histories
 
         :Call:
@@ -2345,7 +2345,7 @@ class CaseFM(CaseData):
         return fm3
 
     # Add in place
-    def __iadd__(self, fm):
+    def __iadd__(self, fm: CaseData):
         r"""Add a second iterative history in place
 
         :Call:
@@ -2393,7 +2393,7 @@ class CaseFM(CaseData):
         return self
 
     # Subtract components
-    def __sub__(self, fm):
+    def __sub__(self, fm: CaseData):
         r"""Add two iterative histories
 
         :Call:
@@ -2441,7 +2441,7 @@ class CaseFM(CaseData):
         return fm3
 
     # Add in place
-    def __isub__(self, fm):
+    def __isub__(self, fm: CaseData):
         r"""Add a second iterative history in place
 
         :Call:
