@@ -162,7 +162,7 @@ class CaseData(DataKit):
 
    # --- __dunder__ ---
     # Initialization method
-    def __init__(self, **kw):
+    def __init__(self, meta: bool = False, **kw):
         r"""Initialization method
 
         :Versions:
@@ -177,7 +177,7 @@ class CaseData(DataKit):
         # Initialize base cols
         self.init_empty()
         # Initialize source file metadata
-        self.init_sourcefiles()
+        self.init_sourcefiles(meta=meta)
         # Read data if possible
         self.read()
         # Trim any repeat iters
@@ -191,17 +191,20 @@ class CaseData(DataKit):
 
    # --- I/O ---
     # Initialize file attritubets
-    def init_sourcefiles(self):
+    def init_sourcefiles(self, meta: bool = False):
         r"""Initialize file name list and metadata
 
         :Call:
-            >>> h.init_sourcefiles()
+            >>> h.init_sourcefiles(meta=False)
         :Inputs:
             *h*: :class:`CaseData`
                 Single-case iterative history instance
+            *meta*: ``True`` | {``False``}
+                Option to only read metadata (skip subiterations)
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
             * 2024-02-21 ``@ddalle``: v1.1; add subiteration hooks
+            * 2025-08-05 ``@ddalle``: v1.2; add *meta*
         """
         # Initialize iteration that's been cached
         self.iter_cache = 0
@@ -211,7 +214,7 @@ class CaseData(DataKit):
         self.save_col(CASE_COL_ITSRC, np.zeros(0, dtype="int32"))
         self.save_col(CASE_COL_PARENT, {})
         # Initialize subiterations
-        if self._has_subiters:
+        if (not meta) and self._has_subiters:
             self.save_col(CASE_COL_SUB_NAMES, [])
             self.save_col(CASE_COL_SUB_MTIME, {})
             self.save_col(CASE_COL_SUB_ITSRC, np.zeros(0, dtype="int32"))
