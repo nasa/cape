@@ -586,14 +586,17 @@ class UmeshBase(ABC):
             *surf*: :class:`Umesh`
                 Surface points with computed skin friction quantities
         """
+        # Fun3D uses Sutherland's law to compute "Laminar
+        # Bulk Velocity"
+
         # If mks system
         if mks:
-            mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+            mub = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
             # Gas constant
             if R is None:
                 R = 287.0
         else:
-            mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+            mub = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
             # Gas constant
             if R is None:
                 R = 1716.0
@@ -605,7 +608,9 @@ class UmeshBase(ABC):
         U = M*a
         # Dynamic pressure
         q = 0.5*rho*U**2
-        print(M, a, rho, q, mu)
+        # Bulk to dynamic using stokes hypothesis
+        mu = 3/2 * mub
+        print(M, a, rho, q, mub, mu)
 
         # Make a copy of the umesh object to start manipulation
         surf = self.copy().deepcopy(self)
@@ -626,6 +631,7 @@ class UmeshBase(ABC):
             scalars='Velocity', gradient=True, divergence=True,
             progress_bar=True)
 
+
         # We no longer need the first cells, so remove them
         surf.remove_volume()
         # Remake the pyvista object as a surface
@@ -634,6 +640,8 @@ class UmeshBase(ABC):
         # Compute surface normals - need polydata first
         surfg = surf.pvmesh.extract_surface().compute_normals(
             cell_normals=False, point_normals=True, progress_bar=True)
+
+        breakpoint()
         # Sample gradient and divergecne onto surface
         surfn = surfg.sample(vol_tensor, progress_bar=True)
         # Save surface normals/gradients for use
