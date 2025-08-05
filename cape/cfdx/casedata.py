@@ -3144,7 +3144,11 @@ class CaseResid(CaseData):
         return maska[mask], maskb[mask]
 
     # Number of orders of magnitude of residual drop
-    def GetNOrders(self, nStats=1, col: Optional[str] = None):
+    def GetNOrders(
+            self,
+            nStats: int = 1,
+            col: Optional[str] = None,
+            nLast: Optional[int] = None) -> float:
         r"""Get the number of orders of magnitude of residual drop
 
         :Call:
@@ -3157,12 +3161,15 @@ class CaseResid(CaseData):
             *col*: {None} | :class:`str`
                 Name of residual to analyze; default from
                 *hist._default_resid*
+            *nLast*: {``None``} | :class:`int`
+                Last iteration to include in window (default ``-1``)
         :Outputs:
-            *nOrders*: {``1``} | :class:`int`
+            *nOrders*: {``1``} | :class:`float`
                 Number of orders of magnitude of residual drop
         :Versions:
             * 2015-01-01 ``@ddalle``: v1.0
             * 2024-01-24 ``@ddalle``: v2.0; generalize w/ DataKit apprch
+            * 2025-08-05 ``@ddalle``: v2.1; add *nLast*
         """
         # Default *col*
         col = self._default_resid if col is None else col
@@ -3171,15 +3178,23 @@ class CaseResid(CaseData):
             raise KeyError(f"No residual col '{col}' found")
         # Get iters
         iters = self[CASE_COL_ITERS]
-        nIter = iters.size
-        # Ensure positive-integer nStats
-        nStats = 1 if nStats is None else nIter
-        # Process the number of usable iterations available.
-        ia = max(nIter - nStats, 0)
+        # Check for empty iteration
+        if iters.size == 0:
+            return np.float64(0.0)
+        # Max iteration involved
+        imax = np.max(iters)
+        # Get last iteration to use
+        ib = imax if nLast is None else nLast
+        # Check for negative *nLast*
+        ib = imax + ib + 1 if ib < 0 else ib
+        # Default length of window
+        nstats = 1 if nStats is None else nStats
+        # Left-hand side of window
+        ia = max(ib - nstats + 1, 0)
         # Get the maximum residual
         L2Max = np.log10(np.max(self[col]))
         # Get the average terminal residual.
-        L2End = np.log10(np.mean(self[col][ia:]))
+        L2End = np.log10(np.mean(self[col][ia:ib]))
         # Return the drop
         return L2Max - L2End
 

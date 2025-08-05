@@ -2309,6 +2309,36 @@ class CaseRunner(CaseRunnerBase):
         return triqfiles[-1], None, None, None
 
   # *** RESIDUALS ***
+   # --- Convergence ---
+    def get_n_orders(
+            self,
+            nstats: int = 1,
+            nlast: Optional[int] = None,
+            f: bool = False) -> float:
+        r"""Get current residual order of magnitude drop
+
+        :Call:
+            >>> norders = runner.get_n_orders(nstatus=1, f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nstats*: {``1``} | :class:`int`
+                Number of iterations over which to average current resid
+            *nlast*: {``None``} | :class:`int`
+                Last iteration to use in window
+            *f*: ``True``| { ``False``}
+                Read residual even if one is cached
+        :Outputs:
+            *h*: :class:`cape.cfdx.casedata.CaseResid`
+                Iterative residual history
+        :Versions:
+            * 2055-08-04 ``@ddalle``: v1.0
+        """
+        # Read residual history
+        h = self.read_resid(f, meta=True)
+        # Return the convergence depth
+        return h.GetNOrders(nstats, nLast=nlast)
+
    # --- Readers ---
     def read_resid(self, f: bool = False, meta: bool = False) -> CaseResid:
         r"""Read the current residual history
