@@ -31,7 +31,7 @@ import numpy as np
 # Local imports
 from . import cmdgen
 from .. import fileutils
-from .databook import CaseFM
+from .databook import CaseFM, CaseResid
 from ..cfdx import casecntl
 from .options.runctlopts import RunControlOpts
 from .overnmlfile import OverNamelist
@@ -122,6 +122,7 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _resid_cls = CaseResid
     _dex_cls = {
         "fm": CaseFM,
     }

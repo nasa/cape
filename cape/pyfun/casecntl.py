@@ -119,6 +119,7 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _resid_cls = CaseResid
     _dex_cls = {
         "fm": CaseFM,
     }
@@ -1700,6 +1701,26 @@ class CaseRunner(casecntl.CaseRunner):
                 Tuple of one string, project base root name
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        proj = self.get_project_baserootname()
+        # Use it
+        return (proj,)
+
+    # Create tuple of args to CaseResid
+    def genr8_resid_args(self) -> tuple:
+        r"""Get list of args to :class:`CaseResid`
+
+        :Call:
+            >>> args = runner.genr8_resid_args()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one string, project base root name
+        :Versions:
+            * 2025-08-05 ``@ddalle``: v1.0
         """
         # Get project root name
         proj = self.get_project_baserootname()

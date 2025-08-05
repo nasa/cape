@@ -9728,7 +9728,7 @@ class DataKit(BaseData):
         return V.__getitem__(J)
 
     # Apply a mask to all columns
-    def apply_mask(self, mask, cols=None):
+    def apply_mask(self, mask: np.ndarray, cols: Optional[list] = None):
         r"""Apply a mask to one or more *cols*
 
         :Call:
@@ -9750,8 +9750,7 @@ class DataKit(BaseData):
             * 2021-09-10 ``@ddalle``: v1.0
         """
         # Default list of columns
-        if cols is None:
-            cols = self.cols
+        cols = self.cols if cols is None else cols
         # Loop through columns
         for col in cols:
             # Check validity of mask
@@ -9764,7 +9763,7 @@ class DataKit(BaseData):
             self[col] = v
 
     # Apply a mask to all columns
-    def remove_mask(self, mask, cols=None):
+    def remove_mask(self, mask: np.ndarray, cols: Optional[list] = None):
         r"""Remove cases in a mask for one or more *cols*
 
         This function is the opposite of :func:`apply_mask`
@@ -9805,6 +9804,10 @@ class DataKit(BaseData):
         pmask[mask] = False
         # Apply tyat
         self.apply_mask(pmask, cols)
+
+    # Trim based on identifier column
+    def trim_monotonic(self, col: str, cols: Optional[list] = None):
+        ...
 
    # --- Mask ---
     # Prepare mask
@@ -10113,7 +10116,7 @@ class DataKit(BaseData):
         # Output
         return sweeps
 
-   # --- Search ---
+   # --- Search: internal ---
     # Find matches
     def find(self, args: list, *a, **kw):
         r"""Find cases that match a condition [within a tolerance]
@@ -10386,6 +10389,39 @@ class DataKit(BaseData):
         # Return result
         return None if mask.size == 0 else mask[0]
 
+    # Filter to ascending iterations
+    def find_ascending(self, col: str, keep_last: bool = True) -> np.ndarray:
+        r"""Find indices of unique ascending values (e.g. iterations)
+
+        :Call:
+            >>> mask_index = db.find_ascending(col, keep_latest=True)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *col*: :class:`str`
+                Name of column whose values to search
+            *keep_last*: {``True``} | ``False``
+                Keep last occurence of any duplicates (else first)
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Get values
+        v = self.get_all_values(col)
+        # Get unique values
+        u = np.unique(v)
+        # Search for values of *u* in v
+        if keep_last:
+            # Find values, but search from right
+            _, ia, _ = np.intersect1d(np.flip(v), u, return_indices=True)
+            # Reverse indices
+            ia = (v.size - 1) - ia
+        else:
+            # Normal find; keeps left-most
+            _, ia, _ = np.intersect1d(v, u, return_indices=True)
+        # Output
+        return ia
+
+   # --- Search: target ---
     # Find matches from a target
     def match(self, dbt, maskt=None, cols=None, **kw):
         r"""Find cases with matching values of specified list of cols
@@ -10598,6 +10634,43 @@ class DataKit(BaseData):
         d = {col: dbt[col][j] for col in cols}
         # Call parent function
         return self.xfind(d, tol=tol, tols=tols)
+
+    # Find matches based on a single column
+    def imatch(
+            self,
+            dbt: dict,
+            col: str,
+            targcol: Optional[str] = None) -> MatchInds:
+        r"""Efficiently find matches based on a single column's values
+
+        :Call:
+            >>> inds = db.imatch(dbt, col, targcol=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`DataKit`
+                Target data set
+            *col*: :class:`str`
+                Name of column to compare
+            *targcol*: {``None``} | :class:`str`
+                Name of column in *dbt* to use; default *col*
+        :Outputs:
+            *inds.selfinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *db* that have a match in *dbt*
+            *inds.targetinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *dbt* that have a match in *db*
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Default targecol
+        colb = col if targcol is None else targcol
+        # Get values of *col* from both data sets
+        va = self.get_all_values(col)
+        vb = dbt[colb]
+        # Find intersecting values
+        _, ia, ib = np.intersect1d(va, vb, return_indices=True)
+        # Output
+        return MatchInds(ia, ib)
 
    # --- Statistics ---
     # Get coverage

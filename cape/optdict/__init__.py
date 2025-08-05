@@ -1151,7 +1151,11 @@ class OptionsDict(dict):
             # Assemble name to use for subsection
             secname = parentname + sec
             # Otherwise initiate
-            self[sec] = seccls(self[sec], _name=secname, **kwcls)
+            try:
+                self[sec] = seccls(self[sec], _name=secname, **kwcls)
+            except Exception:
+                if w_itype != WARNMODE_NONE:
+                    raise
 
     def _init_sec_parents(self):
         # Class handle

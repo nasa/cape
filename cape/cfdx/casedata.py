@@ -162,7 +162,7 @@ class CaseData(DataKit):
 
    # --- __dunder__ ---
     # Initialization method
-    def __init__(self, **kw):
+    def __init__(self, meta: bool = False, **kw):
         r"""Initialization method
 
         :Versions:
@@ -177,7 +177,7 @@ class CaseData(DataKit):
         # Initialize base cols
         self.init_empty()
         # Initialize source file metadata
-        self.init_sourcefiles()
+        self.init_sourcefiles(meta=meta)
         # Read data if possible
         self.read()
         # Trim any repeat iters
@@ -191,17 +191,20 @@ class CaseData(DataKit):
 
    # --- I/O ---
     # Initialize file attritubets
-    def init_sourcefiles(self):
+    def init_sourcefiles(self, meta: bool = False):
         r"""Initialize file name list and metadata
 
         :Call:
-            >>> h.init_sourcefiles()
+            >>> h.init_sourcefiles(meta=False)
         :Inputs:
             *h*: :class:`CaseData`
                 Single-case iterative history instance
+            *meta*: ``True`` | {``False``}
+                Option to only read metadata (skip subiterations)
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
             * 2024-02-21 ``@ddalle``: v1.1; add subiteration hooks
+            * 2025-08-05 ``@ddalle``: v1.2; add *meta*
         """
         # Initialize iteration that's been cached
         self.iter_cache = 0
@@ -211,7 +214,7 @@ class CaseData(DataKit):
         self.save_col(CASE_COL_ITSRC, np.zeros(0, dtype="int32"))
         self.save_col(CASE_COL_PARENT, {})
         # Initialize subiterations
-        if self._has_subiters:
+        if (not meta) and self._has_subiters:
             self.save_col(CASE_COL_SUB_NAMES, [])
             self.save_col(CASE_COL_SUB_MTIME, {})
             self.save_col(CASE_COL_SUB_ITSRC, np.zeros(0, dtype="int32"))
@@ -1103,6 +1106,60 @@ class CaseData(DataKit):
                 continue
             # Apply the mask; delete (and/or duplicate?) data
             self[col] = vj[mask]
+
+    # Simple mask, iters only
+    def apply_mask_iters(self, mask: np.ndarray):
+        r"""Apply a mask to simple iteration history
+
+        :Call:
+            >>> db.apply_mask_iters(mask)
+        :Inputs:
+            *db*: :class:`cape.cfdx.casedata.CaseData`
+                Single-case iterative history interface
+            *mask*: :class:`np.ndarray`\ [:class:`int` | :class:`bool`]
+                Mask of indices or booleans of which to keep
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Find appropriate columns
+        cols = self.get_cols_parent(CASE_COL_ITERS)
+        cols.append(CASE_COL_ITERS)
+        # Apply mask to each
+        for col in cols:
+            self[col] = self[col][mask]
+
+    # Find columns by parent
+    def get_cols_parent(self, col: str) -> list:
+        r"""Get columns with a given parent
+
+        :Call:
+            >>> cols = db.get_cols_by_parent(col)
+        :Inputs:
+            *db*: :class:`CaseData`
+                Iterative history data instance
+            *col*: :class:`str`
+                Name of parent column to search for
+        :Outputs:
+            *cols*: :class:`list`\ [:class:`str`]
+                List of columns with parent of *col*
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Get list of parents
+        parents = self.get(CASE_COL_PARENT, {})
+        # Get size of that parent
+        n = self[col].size
+        # Find columns by parent
+        cols = []
+        # Loop through cols
+        for colj, vj in self.items():
+            # Get parent
+            parent = parents.get(colj, "")
+            # Check
+            if (parent == col) and (len(vj) == n):
+                cols.append(colj)
+        # Output
+        return cols
 
    # --- Plot ---
     # Basic plotting function
@@ -2192,6 +2249,25 @@ class CaseFM(CaseData):
    # Operations
    # ============
    # <
+    # Trim repeated iterations
+    def trim_iters(self):
+        r"""Trim any repeated iterations from history
+
+        :Call:
+            >>> db.trim_iters()
+        :Inputs:
+            *db*; :class:`cape.cfdx.casedata.CaseData`
+                Single-case iterative history
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Get iteration column
+        col = CASE_COL_ITERS
+        # Find unique ascending values (keeping last copy of duplicates)
+        mask = self.find_ascending(col, keep_last=True)
+        # Apply it
+        self.apply_mask_iters(mask)
+
     # Trim entries
     def TrimIters(self):
         r"""Trim non-ascending iterations and other problems
@@ -2224,7 +2300,7 @@ class CaseFM(CaseData):
             self[col] = self.get_values(col, mask)
 
     # Add components
-    def __add__(self, fm):
+    def __add__(self, fm: CaseData):
         r"""Add two iterative histories
 
         :Call:
@@ -2272,7 +2348,7 @@ class CaseFM(CaseData):
         return fm3
 
     # Add in place
-    def __iadd__(self, fm):
+    def __iadd__(self, fm: CaseData):
         r"""Add a second iterative history in place
 
         :Call:
@@ -2320,7 +2396,7 @@ class CaseFM(CaseData):
         return self
 
     # Subtract components
-    def __sub__(self, fm):
+    def __sub__(self, fm: CaseData):
         r"""Add two iterative histories
 
         :Call:
@@ -2368,7 +2444,7 @@ class CaseFM(CaseData):
         return fm3
 
     # Add in place
-    def __isub__(self, fm):
+    def __isub__(self, fm: CaseData):
         r"""Add a second iterative history in place
 
         :Call:
@@ -2419,7 +2495,7 @@ class CaseFM(CaseData):
    # =================
    # <
     # Transform force or moment reference frame
-    def TransformFM(self, topts, x, i):
+    def TransformFM(self, topts: dict, x: dict, i: int):
         r"""Transform a force and moment history
 
         Available transformations and their parameters are listed below.
@@ -3068,7 +3144,11 @@ class CaseResid(CaseData):
         return maska[mask], maskb[mask]
 
     # Number of orders of magnitude of residual drop
-    def GetNOrders(self, nStats=1, col: Optional[str] = None):
+    def GetNOrders(
+            self,
+            nStats: int = 1,
+            col: Optional[str] = None,
+            nLast: Optional[int] = None) -> float:
         r"""Get the number of orders of magnitude of residual drop
 
         :Call:
@@ -3081,12 +3161,15 @@ class CaseResid(CaseData):
             *col*: {None} | :class:`str`
                 Name of residual to analyze; default from
                 *hist._default_resid*
+            *nLast*: {``None``} | :class:`int`
+                Last iteration to include in window (default ``-1``)
         :Outputs:
-            *nOrders*: {``1``} | :class:`int`
+            *nOrders*: {``1``} | :class:`float`
                 Number of orders of magnitude of residual drop
         :Versions:
             * 2015-01-01 ``@ddalle``: v1.0
             * 2024-01-24 ``@ddalle``: v2.0; generalize w/ DataKit apprch
+            * 2025-08-05 ``@ddalle``: v2.1; add *nLast*
         """
         # Default *col*
         col = self._default_resid if col is None else col
@@ -3095,15 +3178,23 @@ class CaseResid(CaseData):
             raise KeyError(f"No residual col '{col}' found")
         # Get iters
         iters = self[CASE_COL_ITERS]
-        nIter = iters.size
-        # Ensure positive-integer nStats
-        nStats = 1 if nStats is None else nIter
-        # Process the number of usable iterations available.
-        ia = max(nIter - nStats, 0)
+        # Check for empty iteration
+        if iters.size == 0:
+            return np.float64(0.0)
+        # Max iteration involved
+        imax = np.max(iters)
+        # Get last iteration to use
+        ib = imax if nLast is None else nLast
+        # Check for negative *nLast*
+        ib = imax + ib + 1 if ib < 0 else ib
+        # Default length of window
+        nstats = 1 if nStats is None else nStats
+        # Left-hand side of window
+        ia = max(ib - nstats + 1, 0)
         # Get the maximum residual
         L2Max = np.log10(np.max(self[col]))
         # Get the average terminal residual.
-        L2End = np.log10(np.mean(self[col][ia:]))
+        L2End = np.log10(np.mean(self[col][ia:ib]))
         # Return the drop
         return L2Max - L2End
 
