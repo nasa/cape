@@ -3188,13 +3188,15 @@ class CaseResid(CaseData):
         # Check for negative *nLast*
         ib = imax + ib + 1 if ib < 0 else ib
         # Default length of window
-        nstats = 1 if nStats is None else nStats
+        nstats = 1 if nStats is None else abs(nStats)
         # Left-hand side of window
         ia = max(ib - nstats + 1, 0)
+        # Identify iterations in window
+        mask = (iters >= ia) & (iters <= ib)
         # Get the maximum residual
         L2Max = np.log10(np.max(self[col]))
         # Get the average terminal residual.
-        L2End = np.log10(np.mean(self[col][ia:ib]))
+        L2End = np.log10(np.mean(self[col][mask]))
         # Return the drop
         return L2Max - L2End
 
