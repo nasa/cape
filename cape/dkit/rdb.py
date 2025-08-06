@@ -8897,13 +8897,13 @@ class DataKit(BaseData):
             self.append_col(col, db.get_values(col, i), nref=n)
 
     # Append data to multiple columns
-    def xappend(self, d: dict):
+    def xappend(self, d: dict, nref: Optional[int] = None):
         r"""Append data to multiple columns
 
         This works for scalars, lists, 1D arrays, and *N*-D arrays
 
         :Call:
-            >>> db.append_dict(d)
+            >>> db.xappend(d)
         :Inputs:
             *db*: :class:`DataKit`
                 Data interface with response mechanisms
@@ -8912,9 +8912,35 @@ class DataKit(BaseData):
         :Versions:
             * 2025-07-23 ``@ddalle``: v1.0
         """
+        # Get current reference size
+        n = nref if nref is not None else self.get_refsize()
         # Loop through cols of *d*
         for col, v in d.items():
-            self.append_col(col, v)
+            self.append_col(col, v, nref=n)
+
+    # Append data from multi-case entry
+    def xiappend(self, x: dict, i: int, nref: Optional[int] = None):
+        r"""Append data from entry *i* of :class:`dict` *x*
+
+        This works for scalars, lists, 1D arrays, and *N*-D arrays
+
+        :Call:
+            >>> db.xiappend(x, i)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *x*: :class:`dict`
+                Dictionary of cols (keys) and values to append
+            *i*: :class:`int`
+                Index of row from *x* to append to *db*
+        :Versions:
+            * 2025-08-06 ``@ddalle``: v1.0
+        """
+        # Get current reference size
+        n = nref if nref is not None else self.get_refsize()
+        # Loop through columns of *x*
+        for col, u in x.items():
+            self.append_col(col, u[i], nref=n)
 
     # Append data to a column
     def append_col(self, col: str, v: Any, nref: Optional[int] = None):

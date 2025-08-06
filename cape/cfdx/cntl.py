@@ -3443,6 +3443,7 @@ class Cntl(CntlBase):
         # Sample the data
         d = runner.sample_dex(comp)
         # Save it to the data
+        db.xiappend(self.x, i)
         db.xappend(d)
         # Return counter
         return 1
