@@ -2394,17 +2394,28 @@ class CaseRunner(CaseRunnerBase):
     def sample_dex(self, comp: str) -> dict:
         # Get component type
         typ = self.get_dex_type(comp)
+        # Get run matrix instance
+        cntl = self.read_cntl()
         # Check for custom sampling function
         samplefunc = getattr(self, f"sample_dex_{typ}", None)
         # Check if found
         if samplefunc is None:
             # Read the raw data (e.g. iterative history)
             db = self.read_dex(comp)
-            # Use it (no sampling necessary)
-            return db
         else:
             # Call sample
-            return samplefunc(comp)
+            db = samplefunc(comp)
+        # Check special cols
+        fcols = cntl.opts.get_DataBookFloatCols(comp)
+        icols = cntl.opts.get_DataBookIntCols(comp)
+        # Add *nOrders*
+        if "nOrders" in fcols:
+            db["nOrders"] = self.get_n_orders()
+        # Add *nIter*
+        if "nIter" in icols:
+            db["nIter"] = self.get_iter()
+        # Output
+        return db
 
     def sample_dex_fm(self, comp: str) -> dict:
         r"""Sample a force & moment iterative history
@@ -2422,7 +2433,9 @@ class CaseRunner(CaseRunnerBase):
         na = cntl.opts.get_DataBookOpt(comp, "NStats")
         nb = cntl.opts.get_DataBookOpt(comp, "NMaxStats")
         # Sample
-        return fm.GetStats(na, nb)
+        s = fm.GetStats(na, nb)
+        # Output
+        return s
 
    # --- Readers ---
     # Read raw data for DataBook component
@@ -2457,7 +2470,7 @@ class CaseRunner(CaseRunnerBase):
             if j == 0:
                 db = dbj
             elif negj:
-                dbj -= dbj
+                db -= dbj
             else:
                 db += dbj
         # Output
