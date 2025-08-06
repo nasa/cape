@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 r"""
 Combine triangulations: ``pc_CombineTri.py``

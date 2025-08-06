@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
 Expand tarred Cart3D ``adapt??.tar`` archives: `pc_ExpandAdapt.py``

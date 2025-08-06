@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
 Tar Cart3D time-accurate visualization files: ``pc_TarViz.py``

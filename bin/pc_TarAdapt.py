@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
 Tar early Cart3D ``adapt??/`` folders: ``pc_TarAdapt.py``
