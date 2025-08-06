@@ -12,11 +12,15 @@ available.
 import re
 
 # Third-party
-import colorama
+try:
+    import colorama
+except ModuleNotFoundError:  # pragma no cover
+    colorama = None
 
 
 # Initialize colorama to support ANSI escape codes on Windows
-colorama.init(autoreset=True)
+if colorama is not None:
+    colorama.init(autoreset=True)
 
 # Standard regular expressions
 REGEX_DIRECTIVE = re.compile(r"\.\. +[a-z-]+::")

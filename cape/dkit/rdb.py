@@ -8891,9 +8891,11 @@ class DataKit(BaseData):
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
         """
+        # Get current reference size
+        n = self.get_refsize()
         # Loop through columns
         for col in db.cols:
-            self.append_col(col, db.get_values(col, i))
+            self.append_col(col, db.get_values(col, i), nref=n)
 
     # Append data to multiple columns
     def xappend(self, d: dict):
@@ -8916,13 +8918,13 @@ class DataKit(BaseData):
             self.append_col(col, v)
 
     # Append data to a column
-    def append_col(self, col: str, v: Any):
+    def append_col(self, col: str, v: Any, nref: Optional[int] = None):
         r"""Append *v* to the value of ``db[col]``
 
         This works for scalars, lists, 1D arrays, and *N*-D arrays
 
         :Call:
-            >>> db.append_col(col, v)
+            >>> db.append_col(col, v, nref=None)
         :Inputs:
             *db*: :class:`DataKit`
                 Data interface with response mechanisms
@@ -8930,16 +8932,24 @@ class DataKit(BaseData):
                 Name of column to append to
             *v*: :class:`object`
                 Appropriately-sized item (e.g. column for 2D array)
+            *nref*: {``None``} | :class:`int`
+                Optional reference column size
         :Versions:
             * 2025-07-23 ``@ddalle``: v1.0
+            * 2025-08-05 ``@ddalle``: v1.1; NaNs if *col* not in *db*
         """
         # Get data
         u = self.get(col)
         # Check type
         if u is None:
-            # Empty; add new data
-            self.save_col(col, v)
-        elif isinstance(u, list):
+            # Get reference size
+            n = self.get_refsize(nref)
+            # Add new column
+            self.save_col(col, self._empty_like(v, n))
+            # Try again
+            u = self.get(col)
+        # Recheck type, after initializing column
+        if isinstance(u, list):
             # Just append it
             u.append(v)
         elif isinstance(u, np.ndarray):
@@ -8955,6 +8965,34 @@ class DataKit(BaseData):
         else:
             # Replace scalar
             self[col] = v
+
+    # Create empty array
+    def _empty_like(self, v: Any, n: int):
+        # Check type of *v*
+        if isinstance(v, np.ndarray):
+            # Get data type
+            dtype = v.dtype.name
+            # Get shape
+            shape = v.shape + (n,)
+            # Initialize
+            if dtype.startswith("str"):
+                v0 = ''
+            elif dtype.startswith("int") or dtype.startswith("uint"):
+                v0 = 0
+            else:
+                v0 = np.nan
+        else:
+            # Basic 1D array otherwise
+            shape = (n,)
+            # Check type
+            if isinstance(v, (float, np.floating)):
+                v0 = np.nan
+            elif isinstance(v, (int, np.integer)):
+                v0 = 0
+            else:
+                v0 = ''
+        # Create empty array
+        return np.full(shape, v0)
 
     # Prepare *v* for appending
     def _prep_append(self, col: str, v: Any) -> np.ndarray:
@@ -9624,7 +9662,7 @@ class DataKit(BaseData):
 
    # --- Subsets ---
     # Attempt to get all values of an argument
-    def get_all_values(self, col):
+    def get_all_values(self, col: str) -> Any:
         r"""Attempt to get all values of a specified argument
 
         This will use *db.response_arg_converters* if possible.
@@ -9672,8 +9710,71 @@ class DataKit(BaseData):
             # Failed
             return None
 
+    # Get size of a column
+    def get_colsize(self, col: str) -> int:
+        r"""Get size of a column, using last dimension of arrays
+
+        :Call:
+            >>> n = db.get_colsize(col)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column
+        :Outputs:
+            *n*: :class:`int`
+                Last dimension of ``db[col]``, or ``1`` for scalar or
+                ``0`` for missing *col*
+        :Versions:
+            * 2025-08-05 ``@ddalle``: v1.0
+        """
+        # Get values
+        v = self.get_all_values(col)
+        # Check for match
+        if v is None:
+            # Missing
+            return 0
+        elif isinstance(v, (list, tuple)):
+            # Just use length
+            return len(v)
+        elif isinstance(v, np.ndarray):
+            # Use last dimension
+            return v.shape[-1]
+        else:
+            # Scalar
+            return 1
+
+    # Get current reference size
+    def get_refsize(self, nref: Optional[int] = None) -> int:
+        r"""Get size of reference column, or use user input
+
+        :Call:
+            >>> n = db.get_refsize(nref=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Database with scalar output functions
+            *nref*: {``None``} | :class:`int`
+                User-input reference size
+        :Outputs:
+            *n*: :class:`int`
+                Size of first column, or *nref*
+        :Versions:
+            * 2025-08-05 ``@ddalle``: v1.0
+        """
+        # Use input if given
+        if nref is not None:
+            return nref
+        # Check for columns
+        if len(self.cols) == 0:
+            return 0
+        # Use first column
+        return self.get_colsize(self.cols[0])
+
     # Attempt to get values of an argument or column, with mask
-    def get_values(self, col: str, mask: Optional[np.ndarray] = None):
+    def get_values(
+            self,
+            col: str,
+            mask: Optional[np.ndarray] = None) -> Any:
         r"""Attempt to get all or some values of a specified column
 
         This will use *db.response_arg_converters* if possible.

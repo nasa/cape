@@ -2394,17 +2394,28 @@ class CaseRunner(CaseRunnerBase):
     def sample_dex(self, comp: str) -> dict:
         # Get component type
         typ = self.get_dex_type(comp)
+        # Get run matrix instance
+        cntl = self.read_cntl()
         # Check for custom sampling function
         samplefunc = getattr(self, f"sample_dex_{typ}", None)
         # Check if found
         if samplefunc is None:
             # Read the raw data (e.g. iterative history)
             db = self.read_dex(comp)
-            # Use it (no sampling necessary)
-            return db
         else:
             # Call sample
-            return samplefunc(comp)
+            db = samplefunc(comp)
+        # Check special cols
+        fcols = cntl.opts.get_DataBookFloatCols(comp)
+        icols = cntl.opts.get_DataBookIntCols(comp)
+        # Add *nOrders*
+        if "nOrders" in fcols:
+            db["nOrders"] = self.get_n_orders()
+        # Add *nIter*
+        if "nIter" in icols:
+            db["nIter"] = self.get_iter()
+        # Output
+        return db
 
     def sample_dex_fm(self, comp: str) -> dict:
         r"""Sample a force & moment iterative history
@@ -2422,9 +2433,12 @@ class CaseRunner(CaseRunnerBase):
         na = cntl.opts.get_DataBookOpt(comp, "NStats")
         nb = cntl.opts.get_DataBookOpt(comp, "NMaxStats")
         # Sample
-        return fm.GetStats(na, nb)
+        s = fm.GetStats(na, nb)
+        # Output
+        return s
 
    # --- Readers ---
+    # Read raw data for DataBook component
     def read_dex(self, comp: str) -> DataKit:
         r"""Read a data component
 
@@ -2444,18 +2458,25 @@ class CaseRunner(CaseRunnerBase):
         compids = _listify(compid)
         # Loop through components
         for j, compj in enumerate(compids):
+            # Check for negative
+            negj = compj.startswith("-")
+            # Strip negative sign
+            compj = compj.lstrip('-')
             # Read component
             dbj = self.read_dex_element(comp, compj)
             # Transformations
-            ...
+            self.transform_dex(comp, dbj)
             # Add or initialize
             if j == 0:
                 db = dbj
+            elif negj:
+                db -= dbj
             else:
                 db += dbj
         # Output
         return db
 
+    # Read one element of a data extraction
     def read_dex_element(self, comp: str, compid: str) -> DataKit:
         r"""Read one element of a data extracter component
 
@@ -2478,13 +2499,8 @@ class CaseRunner(CaseRunnerBase):
         args1 = self.genr8_dex_args_post(typ)
         # Get class
         cls = self._dex_cls[typ]
-        # Check for negative sign
-        c = -1.0 if compid.startswith('-') else 1.0
         # Use custom clas to instantiate
         db = cls(*args0, compid, *args1)
-        # Scale
-        if c != 1.0:
-            db *= c
         # Output
         return db
 
@@ -2557,6 +2573,32 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return args
 
+    # Apply transformations
+    def transform_dex(self, comp: str, db: DataKit):
+        r"""Apply transformations for a data extraction component
+
+        :Call:
+            >>> runner.transform_dex(comp, db)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+            *db*: :class:`cape.dkit.rdb.DataKit`
+                Untransformed data extraction
+        :Versions:
+            * 2025-08-05 ``@ddalle``: v1.0
+        """
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Get name of transformation function
+        name = f"transform_dex_{typ}"
+        # Get function if any
+        fn = getattr(self, name, None)
+        # Call it if appropriate
+        if callable(fn):
+            fn(db)
+
    # --- Force & Moment ---
     def transform_dex_fm(self, comp: str, fm: CaseFM):
         r"""Apply transformations for a force & moment data extraction
@@ -2584,6 +2626,7 @@ class CaseRunner(CaseRunnerBase):
         # Loop through transformations
         for topts in transforms:
             fm.TransformFM(topts, cntl.x, i)
+
    # --- Data manipulation ---
 
    # --- Status ---

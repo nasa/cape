@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Extend a pyOver job and resubmit: ``po_ExtendCase.py``
 ========================================================

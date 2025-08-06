@@ -2073,7 +2073,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Got an iteration from timestep
             # We need to read iter history to check for FUN3D iteration
             # resets, e.g. at transition from RANS -> uRANS
-            hist = CaseResid(basename)
+            hist = self.read_resid()
             # In this case, default to the current phase
             jplt = self.get_phase()
             # Find the most recent time FUN3D reported *t*

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
 ``pc_UH3D2Tri.py``: Convert UH3D triangulation to Cart3D format
