@@ -10758,6 +10758,9 @@ class DataKit(BaseData):
         cols = cols if cols else self.cols
         # Form dictionary of conditions to match
         d = {col: dbt[col][j] for col in cols}
+        # Check for empty array
+        if len(d) == 0 or len(self[cols[0]]) == 0:
+            return None
         # Call parent function
         return self.xfind(d, tol=tol, tols=tols)
 

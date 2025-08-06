@@ -2434,6 +2434,10 @@ class CaseRunner(CaseRunnerBase):
         nb = cntl.opts.get_DataBookOpt(comp, "NMaxStats")
         # Sample
         s = fm.GetStats(na, nb)
+        # Eliminate *_n* cols
+        for col in list(s.keys()):
+            if col.endswith("_n"):
+                s.pop(col)
         # Output
         return s
 

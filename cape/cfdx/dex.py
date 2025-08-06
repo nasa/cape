@@ -35,6 +35,8 @@ class DataExchanger(DataKit):
 
   # *** DUNDER ***
     def __init__(self, cntl: CntlBase, comp: str):
+        # Initialize
+        DataKit.__init__(self)
         #: :class:`cape.cfdx.cntl.Cntl`
         #: Run matrix controller
         self.cntl = cntl
@@ -50,6 +52,8 @@ class DataExchanger(DataKit):
         # Absolutize
         if not os.path.isabs(self.rootdir):
             self.rootdir = os.path.join(cntl.RootDir, self.rootdir)
+        # Save for DataKit
+        self.fdir = self.rootdir
         #: :class:`list`\ [:class:`str`]
         #: List of input columns to identify unique cases
         self.xcols = self.get_xcols()
@@ -207,4 +211,19 @@ class DataExchanger(DataKit):
                 cols.append(f"{ycol}_{suffix}")
         # Output
         return cols
+
+  # *** FILES ***
+   # --- Folders ---
+    def mkdirs(self):
+        # Get components of path
+        parts = self.rootdir.split(os.sep)
+        # Cumulative path
+        dirname = parts[0] + os.sep
+        # Loop through parts
+        for part in parts[1:]:
+            # Join path
+            dirname = os.path.join(dirname, part)
+            # Create if necessary
+            if not os.path.isdir(dirname):
+                os.mkdir(dirname)
 

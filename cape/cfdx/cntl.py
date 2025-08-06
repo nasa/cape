@@ -3397,6 +3397,9 @@ class Cntl(CntlBase):
                 n += ni
         # Write updated databook
         if n:
+            # Create folders
+            db.mkdirs()
+            # Write file
             db.write()
             print(f"Added or updated {n} entries")
 

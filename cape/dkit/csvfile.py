@@ -1092,6 +1092,7 @@ class CSVFile(BaseFile, TextInterpreter):
                     print(
                         ("  [write_csv_dense] Skipping '%s' " % col) +
                         ("with size %i; expected %i" % (vj.size, nx)))
+                    continue
                 # Normal case; 1D array
                 parsedcols.append(col)
                 vals[col] = vj
