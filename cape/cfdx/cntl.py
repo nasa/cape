@@ -3380,10 +3380,10 @@ class Cntl(CntlBase):
         print(compile_rst(f"Component ``{comp}`` (type=*{typ}*)"))
         # Get indices
         inds = self.x.GetIndices(**kw)
+        # Read databook comp
+        db = self.read_dex(comp)
         # Loop through inds
         if kw.get("delete", False):
-            # Read databook comp
-            db = self.read_dex(comp)
             # Delete cases
             n = db.delete(inds)
         else:

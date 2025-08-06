@@ -2453,7 +2453,7 @@ class CaseRunner(CaseRunnerBase):
             * 2025-07-24 ``@ddalle``: v1.0
         """
         # Get component(s)
-        compid = self.get_dex_opt(comp, "CompID")
+        compid = self.get_dex_opt(comp, "CompID", vdef=comp)
         # Convert to list if necessary
         compids = _listify(compid)
         # Loop through components
@@ -2477,6 +2477,7 @@ class CaseRunner(CaseRunnerBase):
         return db
 
     # Read one element of a data extraction
+    @run_rootdir
     def read_dex_element(self, comp: str, compid: str) -> DataKit:
         r"""Read one element of a data extracter component
 
@@ -2499,6 +2500,8 @@ class CaseRunner(CaseRunnerBase):
         args1 = self.genr8_dex_args_post(typ)
         # Get class
         cls = self._dex_cls[typ]
+        # Enter working folder
+        os.chdir(self.get_working_folder())
         # Use custom clas to instantiate
         db = cls(*args0, compid, *args1)
         # Output
@@ -2597,7 +2600,7 @@ class CaseRunner(CaseRunnerBase):
         fn = getattr(self, name, None)
         # Call it if appropriate
         if callable(fn):
-            fn(db)
+            fn(comp, db)
 
    # --- Force & Moment ---
     def transform_dex_fm(self, comp: str, fm: CaseFM):
@@ -2660,11 +2663,11 @@ class CaseRunner(CaseRunnerBase):
         return typ
 
     # General option
-    def get_dex_opt(self, comp: str, opt: str) -> Any:
+    def get_dex_opt(self, comp: str, opt: str, vdef: Any = None) -> Any:
         r"""Get general option for a DataBook component
 
         :Call:
-            >>> v = runner.get_dex_opt(comp, opt)
+            >>> v = runner.get_dex_opt(comp, opt, vdef=None)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2672,6 +2675,8 @@ class CaseRunner(CaseRunnerBase):
                 Name of component to read
             *opt*: :class:`str`
                 Name of option to access
+            *vdef*: {``None``} | :class:`object`
+                Default value
         :Outputs:
             *v*: :class:`object`
                 DataBook option value
@@ -2681,7 +2686,7 @@ class CaseRunner(CaseRunnerBase):
         # Read *cntl*
         cntl = self.read_cntl()
         # Get component option
-        return cntl.opts.get_DataBookOpt(comp, opt)
+        return cntl.opts.get_DataBookOpt(comp, opt, vdef=vdef)
 
     def get_dex_transformation(self, comp: str) -> np.ndarray:
         ...

@@ -264,7 +264,6 @@ class DataKit(BaseData):
             * 2019-12-06 ``@ddalle``: v1.0
         """
         # Required attributes
-        self.xcols = None
         self.cols = []
         self.n = 0
         self.defns = {}

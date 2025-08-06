@@ -47,6 +47,9 @@ class DataExchanger(DataKit):
         #: :class:`str
         #: Path to DataBook
         self.rootdir = cntl.opts.get_DataBookFolder()
+        # Absolutize
+        if not os.path.isabs(self.rootdir):
+            self.rootdir = os.path.join(cntl.RootDir, self.rootdir)
         #: :class:`list`\ [:class:`str`]
         #: List of input columns to identify unique cases
         self.xcols = self.get_xcols()
@@ -162,7 +165,8 @@ class DataExchanger(DataKit):
             # Get data type
             dtype = x.GetKeyDType(col)
             # Check if it shows up in name
-            qname = x.defns.get("Label", False)
+            defn = x.defns.get(col, {})
+            qname = defn.get("Label", False)
             # Check if we should include this in identifier cols
             if (dtype != "str") or qname:
                 xcols.append(col)

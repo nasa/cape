@@ -1743,7 +1743,7 @@ class OptionsDict(dict):
         elif self._check_parent(opt):
             # Use fall-backs from some other interface
             v = self.getx_opt_parent(opt)
-        elif "vdef" in kw:
+        elif "vdef" in kw and kw["vdef"] is not None:
             # Use manual default
             v = kw["vdef"]
         else:
