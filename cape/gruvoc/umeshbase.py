@@ -27,6 +27,7 @@ from .surfconfig import INT_TYPES
 # Optional imports
 try:
     import pyvista as pv
+    import pyvista.core._vtk_core as _vtk
     from pyvista.core.filters import _get_output, _update_alg
     from vtkmodules.vtkCommonDataModel import vtkPlane
     from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
@@ -608,9 +609,8 @@ class UmeshBase(ABC):
         U = M*a
         # Dynamic pressure
         q = 0.5*rho*U**2
-        # Bulk to dynamic using stokes hypothesis
-        mu = 3/2 * mub
-        print(M, a, rho, q, mub, mu)
+        # I dont know where the differences are (cf_x seems off by 1.5)
+        mu = mub
 
         # Make a copy of the umesh object to start manipulation
         surf = self.copy().deepcopy(self)
@@ -627,9 +627,21 @@ class UmeshBase(ABC):
         surf.pvmesh.point_data['Velocity'] = np.vstack((u, v, w)).T
 
         # Compute velocity gradient at surface using first cell
-        vol_tensor = surf.pvmesh.compute_derivative(
-            scalars='Velocity', gradient=True, divergence=True,
-            progress_bar=True)
+        #vol_tensor = surf.pvmesh.compute_derivative(
+        #    scalars='Velocity', gradient=True, divergence=True,
+        #    progress_bar=True)
+
+        alg = _vtk.vtkGradientFilter()
+        alg.SetInputData(surf.pvmesh)
+        alg.SetInputScalars(0, 'Velocity')
+        alg.SetComputeGradient(True)
+        alg.SetResultArrayName("gradient")
+        alg.SetComputeDivergence(True)
+        alg.SetDivergenceArrayName('divergence')
+        alg.SetContributingCellOption(2)
+        alg.SetFasterApproximation(False)
+        _update_alg(alg)
+        vol_tensor = _get_output(alg)
 
 
         # We no longer need the first cells, so remove them
@@ -641,7 +653,6 @@ class UmeshBase(ABC):
         surfg = surf.pvmesh.extract_surface().compute_normals(
             cell_normals=False, point_normals=True, progress_bar=True)
 
-        breakpoint()
         # Sample gradient and divergecne onto surface
         surfn = surfg.sample(vol_tensor, progress_bar=True)
         # Save surface normals/gradients for use
@@ -692,15 +703,18 @@ class UmeshBase(ABC):
         cfz = tau_w_z/q
         surfn.point_data['cf_z'] = cfz
 
+        # Remove vectors and tensors
         surfn.point_data.remove('Velocity')
         surfn.point_data.remove('Normals')
         surfn.point_data.remove('gradient')
         surfn.point_data.remove('divergence')
         surfn.point_data.remove('wss')
 
+        # Save to umesh surface
         surf.qvars = surfn.point_data.keys()
         surf.nq = len(surf.qvars)
 
+        # Pyvista extract surf renumbers point, so q needs to be sorted
         qunsorted = np.stack(surfn.point_data.values(), axis=1)
         qsorted = np.empty_like(qunsorted)
         mask = surfn['vtkOriginalPointIds']
