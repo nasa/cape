@@ -1003,6 +1003,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "cols",
         "cons",
         "counters",
+        "dbpyfunc",
         "delete",
         "dezombie",
         "e",
