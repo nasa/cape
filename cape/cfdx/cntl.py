@@ -3448,6 +3448,8 @@ class Cntl(CntlBase):
         # Save it to the data
         db.xiappend(self.x, i)
         db.xappend(d)
+        # Remove any empty columns
+        db.delete_empty()
         # Return counter
         return 1
 

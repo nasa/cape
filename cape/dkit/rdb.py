@@ -9236,6 +9236,33 @@ class DataKit(BaseData):
         # Return number of deletions
         return np.sum(mask_bool)
 
+    def delete_empty(self):
+        r"""Remove any empty columns
+
+        :Call:
+            >>> cols = db.delete_empty()
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+        :Outputs:
+            *cols*: :class:`list`\ [:class:`str`]
+                Columns that were removed
+        :Versions:
+            * 2025-08-06 ``@ddalle``: v1.0
+        """
+        # Initialize list of removed columns
+        cols = []
+        # Loop through current cols
+        for col in list(self.cols):
+            # Check size
+            if self.get_colsize(col) == 0:
+                # Remove it
+                self.burst_col(col)
+                # Track it
+                cols.append(col)
+        # Output
+        return cols
+
    # --- Merge ---
     def merge(self, db: "DataKit", statuscol: Optional[str] = None):
         r"""Combine data w/o duplication
