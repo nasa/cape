@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Edit OVFI Namelist Family Names: ``po_MapOvfiTri.py``
 =====================================================

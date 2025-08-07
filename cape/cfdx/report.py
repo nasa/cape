@@ -824,7 +824,7 @@ class Report(object):
             # Call `qstat` if needed.
             if (sts == "INCOMP") and (n is not None):
                 # Check the current queue
-                sts = self.cntl.check_case_status(i, auto=True)
+                sts = self.cntl.check_case_status(i)
             # Get the figure list
             if n:
                 # Nominal case with some results
@@ -896,7 +896,7 @@ class Report(object):
         # Call `qstat` if needed.
         if (sts == "INCOMP") and (n is not None):
             # Check the current queue
-            sts = self.cntl.check_case_status(i, auto=True)
+            sts = self.cntl.check_case_status(i)
         # Get the figure list
         if n:
             # Nominal case with some results

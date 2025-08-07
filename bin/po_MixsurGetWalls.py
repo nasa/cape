@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Renumber MIXSUR input subsets to account for no-wall grids
 ==========================================================

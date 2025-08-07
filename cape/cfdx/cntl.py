@@ -3380,10 +3380,10 @@ class Cntl(CntlBase):
         print(compile_rst(f"Component ``{comp}`` (type=*{typ}*)"))
         # Get indices
         inds = self.x.GetIndices(**kw)
+        # Read databook comp
+        db = self.read_dex(comp)
         # Loop through inds
         if kw.get("delete", False):
-            # Read databook comp
-            db = self.read_dex(comp)
             # Delete cases
             n = db.delete(inds)
         else:
@@ -3397,6 +3397,9 @@ class Cntl(CntlBase):
                 n += ni
         # Write updated databook
         if n:
+            # Create folders
+            db.mkdirs()
+            # Write file
             db.write()
             print(f"Added or updated {n} entries")
 
@@ -3443,7 +3446,10 @@ class Cntl(CntlBase):
         # Sample the data
         d = runner.sample_dex(comp)
         # Save it to the data
+        db.xiappend(self.x, i)
         db.xappend(d)
+        # Remove any empty columns
+        db.delete_empty()
         # Return counter
         return 1
 

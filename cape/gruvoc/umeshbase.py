@@ -27,6 +27,7 @@ from .surfconfig import INT_TYPES
 # Optional imports
 try:
     import pyvista as pv
+    import pyvista.core._vtk_core as _vtk
     from pyvista.core.filters import _get_output, _update_alg
     from vtkmodules.vtkCommonDataModel import vtkPlane
     from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
@@ -555,68 +556,105 @@ class UmeshBase(ABC):
             for i, var in enumerate(self.qvars):
                 self.pvmesh.point_data[var] = self.q[:, i]
 
-    def make_pv_skin_friction(self, bound0, mu, a, q):
+    def make_pv_skin_friction(
+            self, p, T, M, R=None, gam=1.4,
+            mu0=None, T0=None, C=None, mks=True):
         r"""Compute skin friction using pyvista methods
             :Call:
-            >>>surf = mesh.make_pv_skin_friction(bound0, mu, a, q)
+            >>>surf = mesh.make_pv_skin_friction(p, T, M)
         :Inputs:
             *mesh*: :class:`Umesh`
                 Unstructured mesh instance
-            *bound0*: "class":`int`
-                Boundary ID to begin surface extraction (meant for
-                farfield exclsion)
-            *mu*: "class":`float`
-                Dynamic viscosity (dimensional)
-            *a*: "class":`float`
-                Value for diminsionalization of velocity
-            *q*: "class":`float`
-                Dynamic pressure (dimensional)
+            *p*: :class:`float`
+                Static pressure [Pa|psf]
+            *T*: :class:`float`
+                Static temperature [K|R]
+            *M*: :class:`float`
+                Mach number
+            *mks*: {``True``} | ``False``
+                Flag for unit system
+            *R*: :class:`float`
+                Gas constant [m^2/s^2*R|ft^2/s^2*R]
+            *gam*: {``1.4``} | :class:`float`
+                Ratio of specific heats
+            *mu0*: :class:`float`
+                Reference viscosity [kg/m*s|slug/ft*s]
+            *T0*: :class:`float`
+                Reference temperature [K|R]
+            *C*: :class:`float`
+                Reference temperature [K|R]
         :Outputs:
             *surf*: :class:`Umesh`
                 Surface points with computed skin friction quantities
         """
-        # Make point_ids for boundary extraction (0=volume node)
-        ids = np.full(self.nnode, 0, dtype=int)
+        # Fun3D uses Sutherland's law to compute "Laminar
+        # Bulk Velocity"
 
-        # Get node indicies of specfic surface tris from mapbc
-        id_list = list(self.config.facenames.keys())[bound0:]
+        # If mks system
+        if mks:
+            mub = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+            # Gas constant
+            if R is None:
+                R = 287.0
+        else:
+            mub = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+            # Gas constant
+            if R is None:
+                R = 1716.0
+        # Calculate density
+        rho = p / (R*T)
+        # Sound speed
+        a = np.sqrt(gam*R*T)
+        # Velocity
+        U = M*a
+        # Dynamic pressure
+        q = 0.5*rho*U**2
+        # I dont know where the differences are (cf_x seems off by 1.5)
+        mu = mub
 
-        for id in id_list:
-            t_mask = self.get_tris_by_id(id)
-            n_mask = self.tris[t_mask]
-            ids[n_mask-1] = id
+        # Make a copy of the umesh object to start manipulation
+        surf = self.copy().deepcopy(self)
 
-        # Assign ids to q array
-        self.q = (np.hstack((self.q, ids[:, None])))
-        self.qvars.append('id')
-
-        # Make/re-make pyvista mesh
-        self.make_pvmesh_vol()
+        # Remove the offbody points acn keep just the first cells from surfs
+        surf.remove_offbody()
+        surf.make_pvmesh_vol()
 
         # Construct the velocity vector
-        u = self.pvmesh.point_data['u'] * a
-        v = self.pvmesh.point_data['v'] * a
-        w = self.pvmesh.point_data['w'] * a
-        self.pvmesh.point_data['Velocity'] = np.vstack((u, v, w)).T
+        u = surf.pvmesh.point_data['u'] * a
+        v = surf.pvmesh.point_data['v'] * a
+        w = surf.pvmesh.point_data['w'] * a
 
-        # Extract the surface (only)
-        surfu = self.pvmesh.extract_values(
-            values=id_list, scalars="id", adjacent_cells=False)
-        surf = surfu.extract_surface()
-
-        # Extract surface+first cell
-        vol_first = self.pvmesh.extract_points(
-            surfu['vtkOriginalPointIds'], adjacent_cells=True)
+        surf.pvmesh.point_data['Velocity'] = np.vstack((u, v, w)).T
 
         # Compute velocity gradient at surface using first cell
-        vol_tensor = vol_first.compute_derivative(
-            scalars='Velocity', gradient=True, divergence=True,
-            progress_bar=True)
+        #vol_tensor = surf.pvmesh.compute_derivative(
+        #    scalars='Velocity', gradient=True, divergence=True,
+        #    progress_bar=True)
+
+        alg = _vtk.vtkGradientFilter()
+        alg.SetInputData(surf.pvmesh)
+        alg.SetInputScalars(0, 'Velocity')
+        alg.SetComputeGradient(True)
+        alg.SetResultArrayName("gradient")
+        alg.SetComputeDivergence(True)
+        alg.SetDivergenceArrayName('divergence')
+        alg.SetContributingCellOption(2)
+        alg.SetFasterApproximation(False)
+        _update_alg(alg)
+        vol_tensor = _get_output(alg)
+
+
+        # We no longer need the first cells, so remove them
+        surf.remove_volume()
+        # Remake the pyvista object as a surface
+        surf.make_pvmesh_surf()
+
+        # Compute surface normals - need polydata first
+        surfg = surf.pvmesh.extract_surface().compute_normals(
+            cell_normals=False, point_normals=True, progress_bar=True)
 
         # Sample gradient and divergecne onto surface
-        surfg = surf.sample(vol_tensor)
-        # Compute surface normals
-        surfn = surfg.compute_normals(cell_normals=False, point_normals=True)
+        surfn = surfg.sample(vol_tensor, progress_bar=True)
         # Save surface normals/gradients for use
         normals = surfn.point_data['Normals']
         gradw = surfn.point_data['gradient']
@@ -665,15 +703,27 @@ class UmeshBase(ABC):
         cfz = tau_w_z/q
         surfn.point_data['cf_z'] = cfz
 
-        # Remove vectors and tensors for umesh conversion
+        # Remove vectors and tensors
         surfn.point_data.remove('Velocity')
         surfn.point_data.remove('Normals')
         surfn.point_data.remove('gradient')
         surfn.point_data.remove('divergence')
         surfn.point_data.remove('wss')
 
-        # Convert to Umesh and return
-        return self.__class__.from_pvmesh(surfn)
+        # Save to umesh surface
+        surf.qvars = surfn.point_data.keys()
+        surf.nq = len(surf.qvars)
+
+        # Pyvista extract surf renumbers point, so q needs to be sorted
+        qunsorted = np.stack(surfn.point_data.values(), axis=1)
+        qsorted = np.empty_like(qunsorted)
+        mask = surfn['vtkOriginalPointIds']
+        for i in range(qunsorted.shape[1]):
+            qsorted[:, i][mask] = qunsorted[:, i]
+
+        surf.q = qsorted
+
+        return surf
 
    # --- DataKit ---
     def genr8_datakit(self) -> DataKit:

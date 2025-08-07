@@ -264,7 +264,6 @@ class DataKit(BaseData):
             * 2019-12-06 ``@ddalle``: v1.0
         """
         # Required attributes
-        self.xcols = None
         self.cols = []
         self.n = 0
         self.defns = {}
@@ -1741,7 +1740,8 @@ class DataKit(BaseData):
         # Wait for lock file
         self.wait_lockfile()
         # Save modification time
-        self.mtime = os.path.getmtime(fabs)
+        if os.path.isfile(fabs):
+            self.mtime = os.path.getmtime(fabs)
 
     def _save_src(self, db: dict, ext: str, save: bool = False):
         if save:
@@ -8891,18 +8891,20 @@ class DataKit(BaseData):
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
         """
+        # Get current reference size
+        n = self.get_refsize()
         # Loop through columns
         for col in db.cols:
-            self.append_col(col, db.get_values(col, i))
+            self.append_col(col, db.get_values(col, i), nref=n)
 
     # Append data to multiple columns
-    def xappend(self, d: dict):
+    def xappend(self, d: dict, nref: Optional[int] = None):
         r"""Append data to multiple columns
 
         This works for scalars, lists, 1D arrays, and *N*-D arrays
 
         :Call:
-            >>> db.append_dict(d)
+            >>> db.xappend(d)
         :Inputs:
             *db*: :class:`DataKit`
                 Data interface with response mechanisms
@@ -8911,18 +8913,44 @@ class DataKit(BaseData):
         :Versions:
             * 2025-07-23 ``@ddalle``: v1.0
         """
+        # Get current reference size
+        n = nref if nref is not None else self.get_refsize()
         # Loop through cols of *d*
         for col, v in d.items():
-            self.append_col(col, v)
+            self.append_col(col, v, nref=n)
+
+    # Append data from multi-case entry
+    def xiappend(self, x: dict, i: int, nref: Optional[int] = None):
+        r"""Append data from entry *i* of :class:`dict` *x*
+
+        This works for scalars, lists, 1D arrays, and *N*-D arrays
+
+        :Call:
+            >>> db.xiappend(x, i)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data interface with response mechanisms
+            *x*: :class:`dict`
+                Dictionary of cols (keys) and values to append
+            *i*: :class:`int`
+                Index of row from *x* to append to *db*
+        :Versions:
+            * 2025-08-06 ``@ddalle``: v1.0
+        """
+        # Get current reference size
+        n = nref if nref is not None else self.get_refsize()
+        # Loop through columns of *x*
+        for col, u in x.items():
+            self.append_col(col, u[i], nref=n)
 
     # Append data to a column
-    def append_col(self, col: str, v: Any):
+    def append_col(self, col: str, v: Any, nref: Optional[int] = None):
         r"""Append *v* to the value of ``db[col]``
 
         This works for scalars, lists, 1D arrays, and *N*-D arrays
 
         :Call:
-            >>> db.append_col(col, v)
+            >>> db.append_col(col, v, nref=None)
         :Inputs:
             *db*: :class:`DataKit`
                 Data interface with response mechanisms
@@ -8930,16 +8958,24 @@ class DataKit(BaseData):
                 Name of column to append to
             *v*: :class:`object`
                 Appropriately-sized item (e.g. column for 2D array)
+            *nref*: {``None``} | :class:`int`
+                Optional reference column size
         :Versions:
             * 2025-07-23 ``@ddalle``: v1.0
+            * 2025-08-05 ``@ddalle``: v1.1; NaNs if *col* not in *db*
         """
         # Get data
         u = self.get(col)
         # Check type
         if u is None:
-            # Empty; add new data
-            self.save_col(col, v)
-        elif isinstance(u, list):
+            # Get reference size
+            n = self.get_refsize(nref)
+            # Add new column
+            self.save_col(col, self._empty_like(v, n))
+            # Try again
+            u = self.get(col)
+        # Recheck type, after initializing column
+        if isinstance(u, list):
             # Just append it
             u.append(v)
         elif isinstance(u, np.ndarray):
@@ -8955,6 +8991,34 @@ class DataKit(BaseData):
         else:
             # Replace scalar
             self[col] = v
+
+    # Create empty array
+    def _empty_like(self, v: Any, n: int):
+        # Check type of *v*
+        if isinstance(v, np.ndarray):
+            # Get data type
+            dtype = v.dtype.name
+            # Get shape
+            shape = v.shape + (n,)
+            # Initialize
+            if dtype.startswith("str"):
+                v0 = ''
+            elif dtype.startswith("int") or dtype.startswith("uint"):
+                v0 = 0
+            else:
+                v0 = np.nan
+        else:
+            # Basic 1D array otherwise
+            shape = (n,)
+            # Check type
+            if isinstance(v, (float, np.floating)):
+                v0 = np.nan
+            elif isinstance(v, (int, np.integer)):
+                v0 = 0
+            else:
+                v0 = ''
+        # Create empty array
+        return np.full(shape, v0)
 
     # Prepare *v* for appending
     def _prep_append(self, col: str, v: Any) -> np.ndarray:
@@ -9172,6 +9236,33 @@ class DataKit(BaseData):
         self[col] = u
         # Return number of deletions
         return np.sum(mask_bool)
+
+    def delete_empty(self):
+        r"""Remove any empty columns
+
+        :Call:
+            >>> cols = db.delete_empty()
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+        :Outputs:
+            *cols*: :class:`list`\ [:class:`str`]
+                Columns that were removed
+        :Versions:
+            * 2025-08-06 ``@ddalle``: v1.0
+        """
+        # Initialize list of removed columns
+        cols = []
+        # Loop through current cols
+        for col in list(self.cols):
+            # Check size
+            if self.get_colsize(col) == 0:
+                # Remove it
+                self.burst_col(col)
+                # Track it
+                cols.append(col)
+        # Output
+        return cols
 
    # --- Merge ---
     def merge(self, db: "DataKit", statuscol: Optional[str] = None):
@@ -9624,7 +9715,7 @@ class DataKit(BaseData):
 
    # --- Subsets ---
     # Attempt to get all values of an argument
-    def get_all_values(self, col):
+    def get_all_values(self, col: str) -> Any:
         r"""Attempt to get all values of a specified argument
 
         This will use *db.response_arg_converters* if possible.
@@ -9672,8 +9763,71 @@ class DataKit(BaseData):
             # Failed
             return None
 
+    # Get size of a column
+    def get_colsize(self, col: str) -> int:
+        r"""Get size of a column, using last dimension of arrays
+
+        :Call:
+            >>> n = db.get_colsize(col)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column
+        :Outputs:
+            *n*: :class:`int`
+                Last dimension of ``db[col]``, or ``1`` for scalar or
+                ``0`` for missing *col*
+        :Versions:
+            * 2025-08-05 ``@ddalle``: v1.0
+        """
+        # Get values
+        v = self.get_all_values(col)
+        # Check for match
+        if v is None:
+            # Missing
+            return 0
+        elif isinstance(v, (list, tuple)):
+            # Just use length
+            return len(v)
+        elif isinstance(v, np.ndarray):
+            # Use last dimension
+            return v.shape[-1]
+        else:
+            # Scalar
+            return 1
+
+    # Get current reference size
+    def get_refsize(self, nref: Optional[int] = None) -> int:
+        r"""Get size of reference column, or use user input
+
+        :Call:
+            >>> n = db.get_refsize(nref=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Database with scalar output functions
+            *nref*: {``None``} | :class:`int`
+                User-input reference size
+        :Outputs:
+            *n*: :class:`int`
+                Size of first column, or *nref*
+        :Versions:
+            * 2025-08-05 ``@ddalle``: v1.0
+        """
+        # Use input if given
+        if nref is not None:
+            return nref
+        # Check for columns
+        if len(self.cols) == 0:
+            return 0
+        # Use first column
+        return self.get_colsize(self.cols[0])
+
     # Attempt to get values of an argument or column, with mask
-    def get_values(self, col: str, mask: Optional[np.ndarray] = None):
+    def get_values(
+            self,
+            col: str,
+            mask: Optional[np.ndarray] = None) -> Any:
         r"""Attempt to get all or some values of a specified column
 
         This will use *db.response_arg_converters* if possible.
@@ -9728,7 +9882,7 @@ class DataKit(BaseData):
         return V.__getitem__(J)
 
     # Apply a mask to all columns
-    def apply_mask(self, mask, cols=None):
+    def apply_mask(self, mask: np.ndarray, cols: Optional[list] = None):
         r"""Apply a mask to one or more *cols*
 
         :Call:
@@ -9750,8 +9904,7 @@ class DataKit(BaseData):
             * 2021-09-10 ``@ddalle``: v1.0
         """
         # Default list of columns
-        if cols is None:
-            cols = self.cols
+        cols = self.cols if cols is None else cols
         # Loop through columns
         for col in cols:
             # Check validity of mask
@@ -9764,7 +9917,7 @@ class DataKit(BaseData):
             self[col] = v
 
     # Apply a mask to all columns
-    def remove_mask(self, mask, cols=None):
+    def remove_mask(self, mask: np.ndarray, cols: Optional[list] = None):
         r"""Remove cases in a mask for one or more *cols*
 
         This function is the opposite of :func:`apply_mask`
@@ -9805,6 +9958,10 @@ class DataKit(BaseData):
         pmask[mask] = False
         # Apply tyat
         self.apply_mask(pmask, cols)
+
+    # Trim based on identifier column
+    def trim_monotonic(self, col: str, cols: Optional[list] = None):
+        ...
 
    # --- Mask ---
     # Prepare mask
@@ -10113,7 +10270,7 @@ class DataKit(BaseData):
         # Output
         return sweeps
 
-   # --- Search ---
+   # --- Search: internal ---
     # Find matches
     def find(self, args: list, *a, **kw):
         r"""Find cases that match a condition [within a tolerance]
@@ -10386,6 +10543,39 @@ class DataKit(BaseData):
         # Return result
         return None if mask.size == 0 else mask[0]
 
+    # Filter to ascending iterations
+    def find_ascending(self, col: str, keep_last: bool = True) -> np.ndarray:
+        r"""Find indices of unique ascending values (e.g. iterations)
+
+        :Call:
+            >>> mask_index = db.find_ascending(col, keep_latest=True)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data container
+            *col*: :class:`str`
+                Name of column whose values to search
+            *keep_last*: {``True``} | ``False``
+                Keep last occurence of any duplicates (else first)
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Get values
+        v = self.get_all_values(col)
+        # Get unique values
+        u = np.unique(v)
+        # Search for values of *u* in v
+        if keep_last:
+            # Find values, but search from right
+            _, ia, _ = np.intersect1d(np.flip(v), u, return_indices=True)
+            # Reverse indices
+            ia = (v.size - 1) - ia
+        else:
+            # Normal find; keeps left-most
+            _, ia, _ = np.intersect1d(v, u, return_indices=True)
+        # Output
+        return ia
+
+   # --- Search: target ---
     # Find matches from a target
     def match(self, dbt, maskt=None, cols=None, **kw):
         r"""Find cases with matching values of specified list of cols
@@ -10596,8 +10786,48 @@ class DataKit(BaseData):
         cols = cols if cols else self.cols
         # Form dictionary of conditions to match
         d = {col: dbt[col][j] for col in cols}
+        # Check for empty array
+        if len(d) == 0 or len(self[cols[0]]) == 0:
+            return None
         # Call parent function
         return self.xfind(d, tol=tol, tols=tols)
+
+    # Find matches based on a single column
+    def imatch(
+            self,
+            dbt: dict,
+            col: str,
+            targcol: Optional[str] = None) -> MatchInds:
+        r"""Efficiently find matches based on a single column's values
+
+        :Call:
+            >>> inds = db.imatch(dbt, col, targcol=None)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Data kit with response surfaces
+            *dbt*: :class:`dict` | :class:`DataKit`
+                Target data set
+            *col*: :class:`str`
+                Name of column to compare
+            *targcol*: {``None``} | :class:`str`
+                Name of column in *dbt* to use; default *col*
+        :Outputs:
+            *inds.selfinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *db* that have a match in *dbt*
+            *inds.targetinds*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases in *dbt* that have a match in *db*
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Default targecol
+        colb = col if targcol is None else targcol
+        # Get values of *col* from both data sets
+        va = self.get_all_values(col)
+        vb = dbt[colb]
+        # Find intersecting values
+        _, ia, ib = np.intersect1d(va, vb, return_indices=True)
+        # Output
+        return MatchInds(ia, ib)
 
    # --- Statistics ---
     # Get coverage

@@ -32,7 +32,7 @@ from . import cmdgen
 from . import pointsensor
 from .. import fileutils
 from .archivist import CaseArchivist
-from .databook import CaseFM
+from .databook import CaseFM, CaseResid
 from .options.runctlopts import RunControlOpts
 from .trifile import Tri, Triq
 from .util import GetAdaptFolder, GetWorkingFolder
@@ -99,8 +99,9 @@ class CaseRunner(casecntl.CaseRunner):
     _progname = "cart3d"
 
     # Specific classes
-    _rc_cls = RunControlOpts
     _archivist_cls = CaseArchivist
+    _rc_cls = RunControlOpts
+    _resid_cls = CaseResid
     _dex_cls = {
         "fm": CaseFM,
     }

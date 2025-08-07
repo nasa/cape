@@ -139,6 +139,13 @@ class FMDataBookOpts(DBCompOpts):
     # Defaults
     _rc = {
         "Cols": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+        "Transformations": [
+            {
+                "Type": "ScaleCoeffs",
+                "CLL": -1.0,
+                "CLN": -1.0
+            }
+        ],
     }
 
 
@@ -1229,7 +1236,7 @@ class DataBookOpts(OptionsDict):
             # Set parents
             self[comp].setx_parent(self)
         # Use cascading options
-        v0 = self.get_opt(opt, **kw)
+        v0 = None if opt not in self.getx_optlist() else self.get_opt(opt, **kw)
         v1 = self.get_subopt(comp, opt, **kw)
         return v0 if v1 is None else v1
 

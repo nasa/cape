@@ -119,6 +119,7 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _resid_cls = CaseResid
     _dex_cls = {
         "fm": CaseFM,
     }
@@ -1706,6 +1707,26 @@ class CaseRunner(casecntl.CaseRunner):
         # Use it
         return (proj,)
 
+    # Create tuple of args to CaseResid
+    def genr8_resid_args(self) -> tuple:
+        r"""Get list of args to :class:`CaseResid`
+
+        :Call:
+            >>> args = runner.genr8_resid_args()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one string, project base root name
+        :Versions:
+            * 2025-08-05 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        proj = self.get_project_baserootname()
+        # Use it
+        return (proj,)
+
    # --- File search ---
     # Function to get restart file
     def get_restart_file(self, j: Optional[int] = None) -> str:
@@ -2052,7 +2073,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Got an iteration from timestep
             # We need to read iter history to check for FUN3D iteration
             # resets, e.g. at transition from RANS -> uRANS
-            hist = CaseResid(basename)
+            hist = self.read_resid()
             # In this case, default to the current phase
             jplt = self.get_phase()
             # Find the most recent time FUN3D reported *t*

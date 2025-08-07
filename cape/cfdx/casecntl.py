@@ -58,7 +58,7 @@ from . import queue
 from .. import fileutils
 from .archivist import CaseArchivist
 from .casecntlbase import CaseRunnerBase
-from .casedata import CaseFM
+from .casedata import CaseFM, CaseResid
 from .caseutils import run_rootdir
 from .cntlbase import CntlBase
 from .logger import CaseLogger
@@ -172,7 +172,19 @@ class CaseRunner(CaseRunnerBase):
         * :attr:`_rc_cls`
         * :attr:`_zombie_files`
     :Attributes:
+        * :attr:`archivist`
         * :attr:`cntl`
+        * :attr:`j`
+        * :attr:`job`
+        * :attr:`logger`
+        * :attr:`n`
+        * :attr:`nr`
+        * :attr:`rc`
+        * :attr:`resid`
+        * :attr:`returncode`
+        * :attr:`root_dir`
+        * :attr:`tic`
+        * :attr:`workers`
     """
   # *** CONFIG ***
    # --- Class attributes ---
@@ -188,6 +200,7 @@ class CaseRunner(CaseRunnerBase):
         "job",
         "jobs",
         "rc",
+        "resid",
         "returncode",
         "root_dir",
         "tic",
@@ -220,6 +233,9 @@ class CaseRunner(CaseRunnerBase):
     #: :class:`type`
     #: Class for archiving cases
     _archivist_cls = CaseArchivist
+    #: :class:`type`
+    #: Class for reading residual histories
+    _resid_cls = CaseResid
     #: :class:`dict`\ [:class:`type`]
     #: Classes for reading data of various DataBook component types
     _dex_cls = {
@@ -260,6 +276,9 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`int`
         #: Current restart iteration
         self.nr = None
+        #: :class:`cape.cfdx.casedata.CaseResid`
+        #: Residual history instance
+        self.resid = None
         #: :class:`cape.cfdx.options.runctlopts.RunControlOpts`
         #: *RunControl* options for this case
         self.rc = None
@@ -2289,22 +2308,114 @@ class CaseRunner(CaseRunnerBase):
         # Use latest
         return triqfiles[-1], None, None, None
 
+  # *** RESIDUALS ***
+   # --- Convergence ---
+    def get_n_orders(
+            self,
+            nstats: int = 1,
+            nlast: Optional[int] = None,
+            f: bool = False) -> float:
+        r"""Get current residual order of magnitude drop
+
+        :Call:
+            >>> norders = runner.get_n_orders(nstatus=1, f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nstats*: {``1``} | :class:`int`
+                Number of iterations over which to average current resid
+            *nlast*: {``None``} | :class:`int`
+                Last iteration to use in window
+            *f*: ``True``| { ``False``}
+                Read residual even if one is cached
+        :Outputs:
+            *h*: :class:`cape.cfdx.casedata.CaseResid`
+                Iterative residual history
+        :Versions:
+            * 2055-08-04 ``@ddalle``: v1.0
+        """
+        # Read residual history
+        h = self.read_resid(f, meta=True)
+        # Return the convergence depth
+        return h.GetNOrders(nstats, nLast=nlast)
+
+   # --- Readers ---
+    def read_resid(self, f: bool = False, meta: bool = False) -> CaseResid:
+        r"""Read the current residual history
+
+        :Call:
+            >>> h = runner.read_resid(f=False, meta=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: ``True``| { ``False``}
+                Read residual even if one is cached
+            *meta*: ``True`` | {``False``}
+                Option to only read first and last iteration
+        :Outputs:
+            *h*: :class:`cape.cfdx.casedata.CaseResid`
+                Iterative residual history
+        :Versions:
+            * 2055-08-04 ``@ddalle``: v1.0
+        """
+        # Check for existing residual
+        h = getattr(self, "resid", None)
+        if (not f) and (h is not None):
+            return h
+        # Get class
+        cls = self._resid_cls
+        # Get arguments
+        args = self.genr8_resid_args()
+        # Call
+        h = cls(*args, meta=meta)
+        # Save
+        self.resid = h
+        # output
+        return h
+
+    def genr8_resid_args(self) -> tuple:
+        r"""Generate list of arguments to case residual class
+
+        :Call:
+            >>> args = runner.genr8_resid_args()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Arguments to :class:`CaseResid` instantiation
+        :Versions:
+            * 2025-08-04 ``@ddalle``: v1.0
+        """
+        return ()
+
   # *** DATABOOK ***
    # --- Sampling ---
     def sample_dex(self, comp: str) -> dict:
         # Get component type
         typ = self.get_dex_type(comp)
+        # Get run matrix instance
+        cntl = self.read_cntl()
         # Check for custom sampling function
         samplefunc = getattr(self, f"sample_dex_{typ}", None)
         # Check if found
         if samplefunc is None:
             # Read the raw data (e.g. iterative history)
             db = self.read_dex(comp)
-            # Use it (no sampling necessary)
-            return db
         else:
             # Call sample
-            return samplefunc(comp)
+            db = samplefunc(comp)
+        # Check special cols
+        fcols = cntl.opts.get_DataBookFloatCols(comp)
+        icols = cntl.opts.get_DataBookIntCols(comp)
+        # Add *nOrders*
+        if "nOrders" in fcols:
+            db["nOrders"] = self.get_n_orders()
+        # Add *nIter*
+        if "nIter" in icols:
+            db["nIter"] = self.get_iter()
+        # Output
+        return db
 
     def sample_dex_fm(self, comp: str) -> dict:
         r"""Sample a force & moment iterative history
@@ -2322,9 +2433,16 @@ class CaseRunner(CaseRunnerBase):
         na = cntl.opts.get_DataBookOpt(comp, "NStats")
         nb = cntl.opts.get_DataBookOpt(comp, "NMaxStats")
         # Sample
-        return fm.GetStats(na, nb)
+        s = fm.GetStats(na, nb)
+        # Eliminate *_n* cols
+        for col in list(s.keys()):
+            if col.endswith("_n"):
+                s.pop(col)
+        # Output
+        return s
 
    # --- Readers ---
+    # Read raw data for DataBook component
     def read_dex(self, comp: str) -> DataKit:
         r"""Read a data component
 
@@ -2338,6 +2456,47 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
         """
+        # Get component(s)
+        compid = self.get_dex_opt(comp, "CompID", vdef=comp)
+        # Convert to list if necessary
+        compids = _listify(compid)
+        # Loop through components
+        for j, compj in enumerate(compids):
+            # Check for negative
+            negj = compj.startswith("-")
+            # Strip negative sign
+            compj = compj.lstrip('-')
+            # Read component
+            dbj = self.read_dex_element(comp, compj)
+            # Transformations
+            self.transform_dex(comp, dbj)
+            # Add or initialize
+            if j == 0:
+                db = dbj
+            elif negj:
+                db -= dbj
+            else:
+                db += dbj
+        # Output
+        return db
+
+    # Read one element of a data extraction
+    @run_rootdir
+    def read_dex_element(self, comp: str, compid: str) -> DataKit:
+        r"""Read one element of a data extracter component
+
+        :Call:
+            >>> db = runner.read_dex_element(comp, compid)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+            *compid*: :class:`str`
+                Name of component ID (usually matches *comp*)
+        :Versions:
+            * 2025-07-30 ``@ddalle``: v1.0
+        """
         # Get component type
         typ = self.get_dex_type(comp)
         # Create extra args
@@ -2345,8 +2504,12 @@ class CaseRunner(CaseRunnerBase):
         args1 = self.genr8_dex_args_post(typ)
         # Get class
         cls = self._dex_cls[typ]
-        # Use it
-        return cls(*args0, comp, *args1)
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Use custom clas to instantiate
+        db = cls(*args0, compid, *args1)
+        # Output
+        return db
 
     # Create tuple of args prior to *comp*
     def genr8_dex_args_pre(self, typ: str) -> tuple:
@@ -2417,6 +2580,62 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return args
 
+    # Apply transformations
+    def transform_dex(self, comp: str, db: DataKit):
+        r"""Apply transformations for a data extraction component
+
+        :Call:
+            >>> runner.transform_dex(comp, db)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+            *db*: :class:`cape.dkit.rdb.DataKit`
+                Untransformed data extraction
+        :Versions:
+            * 2025-08-05 ``@ddalle``: v1.0
+        """
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Get name of transformation function
+        name = f"transform_dex_{typ}"
+        # Get function if any
+        fn = getattr(self, name, None)
+        # Call it if appropriate
+        if callable(fn):
+            fn(comp, db)
+
+   # --- Force & Moment ---
+    def transform_dex_fm(self, comp: str, fm: CaseFM):
+        r"""Apply transformations for a force & moment data extraction
+
+        :Call:
+            >>> runner.transform_dex_fm(comp, fm)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+            *fm*: :class:`cape.cfdx.casedata.CasseFM`
+                Untransformed force & moment residual history
+        :Versions:
+            * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Get transformations
+        transforms = self.get_dex_opt(comp, "Transformations")
+        # Exit if none
+        if not transforms:
+            return
+        # Read run matrix controller and case
+        cntl = self.read_cntl()
+        i = self.get_case_index()
+        # Loop through transformations
+        for topts in transforms:
+            fm.TransformFM(topts, cntl.x, i)
+
+   # --- Data manipulation ---
+
    # --- Status ---
     # Get the current iteration number as applies to
     def get_dex_iter(self, comp: str) -> int:
@@ -2448,11 +2667,11 @@ class CaseRunner(CaseRunnerBase):
         return typ
 
     # General option
-    def get_dex_opt(self, comp: str, opt: str) -> Any:
+    def get_dex_opt(self, comp: str, opt: str, vdef: Any = None) -> Any:
         r"""Get general option for a DataBook component
 
         :Call:
-            >>> v = runner.get_dex_opt(comp, opt)
+            >>> v = runner.get_dex_opt(comp, opt, vdef=None)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2460,6 +2679,8 @@ class CaseRunner(CaseRunnerBase):
                 Name of component to read
             *opt*: :class:`str`
                 Name of option to access
+            *vdef*: {``None``} | :class:`object`
+                Default value
         :Outputs:
             *v*: :class:`object`
                 DataBook option value
@@ -2469,7 +2690,10 @@ class CaseRunner(CaseRunnerBase):
         # Read *cntl*
         cntl = self.read_cntl()
         # Get component option
-        return cntl.opts.get_DataBookOpt(comp, opt)
+        return cntl.opts.get_DataBookOpt(comp, opt, vdef=vdef)
+
+    def get_dex_transformation(self, comp: str) -> np.ndarray:
+        ...
 
    # --- Triload ---
     def write_triload_input(self, comp: str):
@@ -3374,7 +3598,8 @@ class CaseRunner(CaseRunnerBase):
         # Get case index
         i = self.get_case_index()
         # Check mark
-        return cntl.x.PASS[i]
+        q = False if i is None else cntl.x.PASS[i]
+        return q
 
     def check_mark_error(self) -> bool:
         r"""Check if this case has been marked ERROR in run matrix
@@ -3395,7 +3620,8 @@ class CaseRunner(CaseRunnerBase):
         # Get case index
         i = self.get_case_index()
         # Check mark
-        return cntl.x.ERROR[i]
+        q = False if i is None else cntl.x.ERROR[i]
+        return q
 
     def read_surfconfig(self) -> Optional[SurfConfig]:
         r"""Read surface configuration map file from best source
@@ -5876,3 +6102,11 @@ def GetTriqFile(proj='Components'):
         # No TRIQ files
         return None, None, None, None
 
+
+# Convert scalar to list if necessary
+def _listify(str_or_list: Union[str, list, tuple]) -> list:
+    # Check if list
+    if isinstance(str_or_list, (list, tuple)):
+        return list(str_or_list)
+    else:
+        return [str_or_list]
