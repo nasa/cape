@@ -1740,7 +1740,8 @@ class DataKit(BaseData):
         # Wait for lock file
         self.wait_lockfile()
         # Save modification time
-        self.mtime = os.path.getmtime(fabs)
+        if os.path.isfile(fabs):
+            self.mtime = os.path.getmtime(fabs)
 
     def _save_src(self, db: dict, ext: str, save: bool = False):
         if save:

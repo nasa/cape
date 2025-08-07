@@ -3598,7 +3598,8 @@ class CaseRunner(CaseRunnerBase):
         # Get case index
         i = self.get_case_index()
         # Check mark
-        return cntl.x.PASS[i]
+        q = False if i is None else cntl.x.PASS[i]
+        return q
 
     def check_mark_error(self) -> bool:
         r"""Check if this case has been marked ERROR in run matrix
@@ -3619,7 +3620,8 @@ class CaseRunner(CaseRunnerBase):
         # Get case index
         i = self.get_case_index()
         # Check mark
-        return cntl.x.ERROR[i]
+        q = False if i is None else cntl.x.ERROR[i]
+        return q
 
     def read_surfconfig(self) -> Optional[SurfConfig]:
         r"""Read surface configuration map file from best source
