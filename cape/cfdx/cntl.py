@@ -3382,8 +3382,11 @@ class Cntl(CntlBase):
         inds = self.x.GetIndices(**kw)
         # Read databook comp
         db = self.read_dex(comp)
+        # Check for delete option
+        qdel = kw.get("delete", False)
+        qmerge = not qdel
         # Loop through inds
-        if kw.get("delete", False):
+        if qdel:
             # Find indices of matches
             dbinds, _ = db.xmatch(self.x, maskt=inds)
             # Delete cases
@@ -3402,7 +3405,7 @@ class Cntl(CntlBase):
             # Create folders
             db.mkdirs()
             # Write file
-            db.write()
+            db.write(merge=qmerge, backup=False)
             print(f"Added or updated {n} entries")
 
     # Update one case of one component
@@ -3594,20 +3597,6 @@ class Cntl(CntlBase):
         # Loop through them
         for comp in comps:
             self.update_dex_comp(comp, **kw)
-        return
-        # Apply constraints
-        I = self.x.GetIndices(**kw)
-        # Check if we are deleting or adding.
-        if kw.get('delete', False):
-            # Read the existing data book.
-            self.ReadDataBook(comp=comp)
-            # Delete cases.
-            self.DataBook.DeleteCases(I, comp=comp)
-        else:
-            # Read an empty data book
-            self.ReadDataBook(comp=[])
-            # Read the results and update as necessary.
-            self.DataBook.UpdateDataBook(I, comp=comp)
 
     # Function to collect statistics from generic-property component
     @run_rootdir

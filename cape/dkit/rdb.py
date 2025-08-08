@@ -30,6 +30,7 @@ import copy
 import difflib
 import os
 import re
+import shutil
 import sys
 import time
 from collections import namedtuple
@@ -1519,7 +1520,11 @@ class DataKit(BaseData):
         return db
 
    # --- Main ---
-    def write(self, fname: Optional[str] = None, merge: bool = True):
+    def write(
+            self,
+            fname: Optional[str] = None,
+            merge: bool = True,
+            backup: bool = False):
         r"""Write to main data format, merging any new contents
 
         :Call:
@@ -1531,8 +1536,11 @@ class DataKit(BaseData):
                 File name to write (else *db.fname*)
             *merge*: {``True``} | ``False``
                 Whether or not to merge new contens from *fname*
+            *backup*: ``True`` | {``False``}
+                Create ``"{fname}.old"`` if *fname* exists
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
+            * 2025-08-07 ``@ddalle``: v1.1; add *backup*
         """
         # Default fname
         fname = self.get_fname_abs() if fname is None else fname
@@ -1548,8 +1556,12 @@ class DataKit(BaseData):
                 self.merge(db)
         # Get writer function
         write_func = self._get_writer(fname)
-        # Lock and write
+        # Lock
         self.lock()
+        # Copy if necessary
+        if backup and os.path.isfile(fname):
+            shutil.copy(fname, f"{fname}.old")
+        # Write
         write_func(fname)
         # Unlock database
         self.unlock()
