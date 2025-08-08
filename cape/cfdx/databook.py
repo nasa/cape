@@ -834,7 +834,6 @@ class DataBookComp(DataKit):
         # Exit if no deletions
         if nj == 0:
             return nj
-
         # Report status
         print("  Removing %s entries from FM component '%s'" % (nj, comp))
         # Initialize mask of cases to keep.
@@ -938,7 +937,11 @@ class DataBookComp(DataKit):
             self.Sort()
         # Check for default file name
         if fname is None:
+            # Use current
             fname = self.fname
+        # Check if no folder
+        if os.sep not in fname:
+            fname = os.path.join(self.fdir, fname)
         # check for a previous old file.
         if os.path.isfile(fname + ".old"):
             # Remove it
@@ -4482,7 +4485,7 @@ class PyFuncDataBook(DataBookComp):
         # Opitons
         lock = kw.get("lock", False)
 
-        # Get the directory.
+        # Get the directory
         if targ is None:
             # Primary data book directory
             fdir = cntl.opts.get_DataBookFolder()
@@ -6592,11 +6595,10 @@ class DataBook(DataBookBase):
                 rdrfunc(self, comp, check=False, lock=False)
             # Perform deletions
             nj = self[comp].DeleteCases(I, comp)
-            # nj = self.DeleteCasesComp(I, comp)
             # Write the component
             if nj > 0:
                 # Write cleaned-up data book
-                self[comp].Write(unlock=True)
+                self[comp].Write(unlock=True, merge=False)
             else:
                 # Unlock
                 self[comp].Unlock()
