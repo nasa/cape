@@ -472,6 +472,26 @@ class CaseRunner(casecntl.CaseRunner):
                 f"Unable to parse iteration number from '{fname}'\n" +
                 f"Last line was:\n    {line[:20]}")
 
+   # --- DataBook ---
+    def get_dex_args_pre_fm(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_pre_fm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one string, project base root name
+        :Versions:
+            * 2025-08-08 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get prefix
+        return (cntl.GetPrefix(),)
+
    # --- Local readers ---
     # Get the namelist
     @casecntl.run_rootdir
