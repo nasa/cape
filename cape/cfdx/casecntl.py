@@ -2639,7 +2639,49 @@ class CaseRunner(CaseRunnerBase):
    # --- Status ---
     # Get the current iteration number as applies to
     def get_dex_iter(self, comp: str) -> int:
-        return self.get_restart_iter()
+        r"""Get number of iterations available for a DataBook component
+
+        :Call:
+            >>> n = runner.get_dex_iter(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-07 ``@ddalle``: v1.0
+        """
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Get specialized function name
+        funcname = f"get_dex_iter_{typ}"
+        # Check for such a function
+        func = getattr(self, funcname, None)
+        # Call it
+        if callable(func):
+            # Call specialized function
+            return func()
+        else:
+            # Fall back to *restart* iteration
+            return self.get_restart_iter()
+
+    def get_dex_iter_fm(self) -> int:
+        r"""Get number of iterations available for ``"FM"`` comps
+
+        :Call:
+            >>> n = runner.get_dex_iter_fm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-07 ``@ddalle``: v1.0
+        """
+        # Use last iteration
+        return self.get_iter()
 
    # --- Options ---
     # Get DataBook component type
@@ -3598,7 +3640,8 @@ class CaseRunner(CaseRunnerBase):
         # Get case index
         i = self.get_case_index()
         # Check mark
-        return cntl.x.PASS[i]
+        q = False if i is None else cntl.x.PASS[i]
+        return q
 
     def check_mark_error(self) -> bool:
         r"""Check if this case has been marked ERROR in run matrix
@@ -3619,7 +3662,8 @@ class CaseRunner(CaseRunnerBase):
         # Get case index
         i = self.get_case_index()
         # Check mark
-        return cntl.x.ERROR[i]
+        q = False if i is None else cntl.x.ERROR[i]
+        return q
 
     def read_surfconfig(self) -> Optional[SurfConfig]:
         r"""Read surface configuration map file from best source
