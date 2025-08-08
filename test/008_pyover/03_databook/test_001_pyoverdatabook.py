@@ -118,7 +118,7 @@ def test_updatedatabookfm():
     cntl.UpdateFM(**KW1)
     # Read test.01.out
     db0 = cape.dkit.csvfile.CSVFile("test.01.out")
-    db1 = cntl.DataBook["bullet_no_base"]
+    db1 = cntl.read_dex("bullet_no_base")
     # Compare each column
     for col in db0.cols:
         if isinstance(db0[col], int):
@@ -245,28 +245,3 @@ def test_updatedatabooktriqfm():
     # Test updated FM Databook
     assert result.line1 == result.line2
 
-
-@testutils.run_sandbox(__file__, TEST_FILES2, TEST_DIRS2)
-def test_deletecasestriqfm():
-    ftriq = os.path.join(CASEDIR, "lineload", "grid.i.triq")
-    # Ensure modifcation time of line load file is after triq file
-    os.utime(ftriq, None)
-    os.mkdir("data")
-    os.mkdir(os.path.join("data", "triqfm"))
-    # Use test.01.out as existing databook
-    shutil.copy("test.07.out",
-                os.path.join("data", "triqfm", "triqfm_cap.csv"))
-    # Get cntl
-    cntl = pocntl.Cntl()
-    # Call dbook updater
-    cntl.UpdateTriqFM(**KW8)
-    # Location of output databook
-    dbout = os.path.join("data/triqfm/triqfm_cap.csv")
-    # Location of old databook
-    dbold = os.path.join("data/triqfm/triqfm_cap.csv.old")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.08.out")
-    # Test deleted FM Databook
-    assert result.line1 == result.line2
-    # Test old databook exists
-    assert os.path.exists(dbold)

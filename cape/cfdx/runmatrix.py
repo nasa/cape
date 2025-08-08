@@ -1015,12 +1015,11 @@ class RunMatrix(dict):
         # Class of input
         kt = type(KeyType).__name__
         # Depends on the type of what we are searching for
-        if kt.startswith('str') or kt == 'unicode':
-            # Return matches
+        if isinstance(KeyType, (str, np.str_)):
+            # Return matches for single type
             return np.array(self.cols)[KT == KeyType]
-        elif kt not in ['list', 'ndarray']:
-            # Not usable
-            raise TypeError("Cannot search for keys of type '%s'" % KeyType)
+        elif not isinstance(KeyType, (list, tuple, np.ndarray)):
+            raise TypeError(f"Cannot search for keys of type '{KeyType}'")
         # Initialize list of matches to all ``False``
         U = np.zeros(len(self.cols), dtype="bool")
         # Loop through types given as input.

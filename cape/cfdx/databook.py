@@ -591,10 +591,13 @@ class DataBookComp(DataKit):
                 self.n = 0
             # Convert lists to np.array for bwds compatibility
             if self.cols:
-                for k in self.cols:
-                    if isinstance(self[k], list):
+                for k in list(self.cols):
+                    v = self.get(k)
+                    if isinstance(v, list):
                         # Initialize an empty array.
                         self[k] = np.array(self[k], dtype=str)
+                    elif v is None:
+                        self.cols.remove(k)
             # Force iCols to int
             for icol in self.iCols:
                 v = self.burst_col(icol)
