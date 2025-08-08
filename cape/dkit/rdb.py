@@ -10717,6 +10717,7 @@ class DataKit(BaseData):
     def xmatch(
             self,
             dbt: dict,
+            maskt: Optional[np.ndarray] = None,
             cols: Optional[list] = None,
             tol: float = 1e-4,
             tols: Optional[dict] = None) -> MatchInds:
@@ -10729,7 +10730,9 @@ class DataKit(BaseData):
                 Data kit with response surfaces
             *dbt*: :class:`dict` | :class:`DataKit`
                 Target data set
-            *cols*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+            *maskt*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Subset of *dbt* to consider
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
                 List of cols to compare (default to *db.xcols*)
             *tol*: {``1e-4``} | :class:`float` >= 0
                 Default tolerance for all *args*
@@ -10741,8 +10744,8 @@ class DataKit(BaseData):
             *inds.targetinds*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of cases in *dbt* that have a match in *db*
         :Versions:
-            * 2020-02-20 ``@ddalle``: v1.0
-            * 2020-03-06 ``@ddalle``: Name from :func:`find_pairwise`
+            * 2025-07-30 ``@ddalle``: v1.0
+            * 2025-08-07 ``@ddalle``: v1.1; add *maskt*
         """
         # Default column list
         cols = cols if cols else self.xcols
@@ -10750,7 +10753,8 @@ class DataKit(BaseData):
         # Default tolerance dict
         tols = {} if tols is None else tols
         # Call parent function
-        return self.match(dbt, cols=cols, once=True, tol=tol, tols=tols)
+        return self.match(
+            dbt, maskt=maskt, cols=cols, once=True, tol=tol, tols=tols)
 
     # Find matches in target under certain assumptions
     def ximatch(

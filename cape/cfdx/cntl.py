@@ -3384,8 +3384,10 @@ class Cntl(CntlBase):
         db = self.read_dex(comp)
         # Loop through inds
         if kw.get("delete", False):
+            # Find indices of matches
+            dbinds, _ = db.xmatch(self.cntl.x, maskt=inds)
             # Delete cases
-            n = db.delete(inds)
+            n = db.delete(dbinds)
         else:
             # Count cases updated
             n = 0
