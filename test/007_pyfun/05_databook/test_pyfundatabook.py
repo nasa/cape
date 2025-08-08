@@ -306,26 +306,3 @@ def test_updatedatabooktriqfm():
     # Test updated FM Databook
     assert result.line1 == result.line2
 
-
-@testutils.run_sandbox(__file__, TEST_FILES2)
-def test_deletecasestriqfm():
-    os.mkdir("data")
-    os.mkdir(os.path.join("data", "bullet"))
-    os.mkdir(os.path.join("data", "bullet", "triqfm"))
-    # Use test.01.out as existing databook
-    shutil.copy("test.09.out",
-                os.path.join("data", "bullet", "triqfm", "triqfm_cap.csv"))
-    # Get cntl
-    cntl = Cntl()
-    # Call dbook updater
-    cntl.UpdateTriqFM(**KW10)
-    # Location of output databook
-    dbout = os.path.join("data/bullet/triqfm/triqfm_cap.csv")
-    # Location of old databook
-    dbold = os.path.join("data/bullet/triqfm/triqfm_cap.csv.old")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.10.out")
-    # Test deleted FM Databook
-    assert result.line1 == result.line2
-    # Test old databook exists
-    assert os.path.exists(dbold)

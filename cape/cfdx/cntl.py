@@ -3405,7 +3405,7 @@ class Cntl(CntlBase):
             # Create folders
             db.mkdirs()
             # Write file
-            db.write(merge=qmerge, backup=False)
+            db.write(merge=qmerge, backup=True)
             print(f"Added or updated {n} entries")
 
     # Update one case of one component
