@@ -2285,12 +2285,22 @@ class CaseRunner(casecntl.CaseRunner):
         return fplt, nstats, nstrt, nplt
 
     # Get *nIter* for output file
-    def get_iter_vizfile(self, fname: str) -> int:
-        # Get pattern
-        ...
+    def infer_vizfile_niter(self, mtch) -> int:
+        r"""Determine *nIter* for a surface/volume output file
 
-    # Get *nIter* for output file
-    def _infer_iter_vizfile(self, mtch) -> int:
+        :Call:
+            >>> n = runner.infer_vizfile_niter(mtch)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *mtch*: :class:`re.Match`
+                Regular expression match object for viz file
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number for the viz file
+        :Versions:
+            * 2025-08-10 ``@ddalle``: v1.0
+        """
         # Get the timestep number, if any
         ttxt = mtch.group("t")
         # Either way, we're going to need the run log phases and iters
@@ -2318,6 +2328,96 @@ class CaseRunner(casecntl.CaseRunner):
         mask, = np.where(hist["solver_iter"] == t)
         # Use the last hit if any
         return int(t) if mask.size == 0 else int(hist["i"][mask[-1]])
+
+    # Get *nIter* for output file
+    def infer_vizfile_nstats(self, mtch) -> int:
+        r"""Determine *nStats* for a surface/volume output file
+
+        :Call:
+            >>> n = runner.infer_vizfile_nstats(mtch)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *mtch*: :class:`re.Match`
+                Regular expression match object for viz file
+        :Outputs:
+            *n*: :class:`int`
+                Number of iterations averaged in viz file
+        :Versions:
+            * 2025-08-10 ``@ddalle``: v1.0
+        """
+        # Get the timestep number, if any
+        ttxt = mtch.group("t")
+        # Either way, we're going to need the run log phases and iters
+        runlog = self.get_runlog()
+        # Convert to list for iterative backward search
+        runlist = list(runlog)
+        # Get most recent
+        if len(runlist):
+            # Get last CAPE exit
+            jlast, nlast = runlist.pop(-1)
+        else:
+            # No run logs yet
+            jlast, nlast = 0, self.get_restart_iter()
+        # Check if we found a timestep in the file name
+        if ttxt is None:
+            # The iteration is from the last CAPE exit
+            niter = nlast
+        else:
+            # Got an iteration from timestep
+            # We need to read iter history to check for FUN3D iteration
+            # resets, e.g. at transition from RANS -> uRANS
+            hist = self.read_resid()
+            # Convert timestep to integer
+            t = int(ttxt)
+            # In this case, default to the current phase
+            j = self.get_phase()
+            # Find the most recent time FUN3D reported *t*
+            mask, = np.where(hist["solver_iter"] == int(t))
+            # Use the last hit if any
+            niter = int(t) if mask.size == 0 else int(hist["i"][mask[-1]])
+            # Check if we're *after* the last output
+            if niter <= nlast:
+                # This file came from a completed run; find which
+                mask1, = np.where(niter <= runlog[:, 1])
+                # The last phase before *nplt* is the source
+                j = runlog[mask1[-1], 0]
+            else:
+                # Add the most recent exit back to the runlist
+                runlist.append((jlast, nlast))
+        # Until we find otherwise, assume there's no averaging
+        nstrt = niter
+        # Track current phase
+        jcur = j
+        # Go backwards through runlog to see where averaging started
+        while True:
+            # Read the most appropriate namelist
+            nmlj = self.read_namelist(jcur)
+            # Check for time averaging
+            tavg = nmlj.get_opt("time_avg_params", "itime_avg", vdef=0)
+            # Process time-averaging
+            if not tavg:
+                # No time-averaging; do not update *nstrt*
+                break
+            # Need the preceding exit to see where averaging started
+            if len(runlist):
+                # Get last exit
+                jcur, nlast = runlist.pop(-1)
+                nstrt = nlast + 1
+            else:
+                # Started from zero
+                nstrt = 1
+                # No previous runs to check
+                break
+            # Check if we kept stats from *previous* run
+            tprev = nmlj.get_opt(
+                "time_avg_params", "use_prior_time_avg", vdef=1)
+            # If we didn't keep prior stats; search is done
+            if not tprev:
+                break
+        # Calculate how many iterations are averaged
+        nstats = niter - nstrt + 1
+        return nstats
 
     # Search pattern for surface/volume/slice/etc files
     def genr8_vizfile_regex(self, stem: str) -> str:
