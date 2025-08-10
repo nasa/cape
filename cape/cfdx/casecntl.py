@@ -2207,10 +2207,9 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-01-24 ``@ddalle``: v1.0
         """
-        # Get project root name
-        basename = self.get_project_rootname()
-        # Default pattern; all Tecplot formats
-        return f"{basename}\\.(?P<ext>dat|plt|szplt|tec)"
+        raise NotImplementedError(
+            "CaseRunner.get_surf_regex() is not implemented for "
+            f"{self._modname}.CaseRunner")
 
   # *** FLOW VIZ ***
    # --- General flow viz search ---
@@ -2392,6 +2391,21 @@ class CaseRunner(CaseRunnerBase):
   # *** DATABOOK ***
    # --- Sampling ---
     def sample_dex(self, comp: str) -> dict:
+        r"""Sample a DataBook component (e.g. to a specific iteration)
+
+        :Call:
+            >>> d = runner.sample_dex(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read and sample
+        :Outputs:
+            *d*: :class:`dict`
+                Sampled DataBook component or raw data
+        :Versions:
+            * 2025-08-04 ``@ddalle``: v1.0
+        """
         # Get component type
         typ = self.get_dex_type(comp)
         # Get run matrix instance
@@ -2422,6 +2436,14 @@ class CaseRunner(CaseRunnerBase):
 
         :Call:
             >>> d = runner.sample_dex_fm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read and sample
+        :Outputs:
+            *d*: :class:`dict`
+                Sampled DataBook component or raw data
         :Versions:
             * 2025-07-29 ``@ddalle``: v1.0
         """
