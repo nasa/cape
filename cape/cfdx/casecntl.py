@@ -1966,6 +1966,38 @@ class CaseRunner(CaseRunnerBase):
         return self._search(pats, workdir=workdir, regex=regex)
 
     @run_rootdir
+    def match_regex(
+            self,
+            pat: str,
+            workdir: bool = False,
+            regex: bool = True,
+            links: bool = False):
+        r"""Search for files by regex; return the match info for latest
+
+        :Call:
+            >>> mtch = runner.match_regex(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
+        :Outputs:
+            *mtch*: :class:`re.Match` | ``None``
+                Match object for latest match to *pat*, if any
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        # Get matches
+        fileset = self.search_regex(pat, workdir, regex, links)
+        # Check for any
+        if len(fileset) == 0:
+            return None
+        # Mattch the latest
+        return re.fullmatch(pat, fileset[-1])
+
+    @run_rootdir
     def search_regex(
             self,
             pat: str,

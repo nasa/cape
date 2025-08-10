@@ -2289,6 +2289,36 @@ class CaseRunner(casecntl.CaseRunner):
         # Get pattern
         ...
 
+    # Get *nIter* for output file
+    def _infer_iter_vizfile(self, mtch) -> int:
+        # Get the timestep number, if any
+        ttxt = mtch.group("t")
+        # Either way, we're going to need the run log phases and iters
+        runlog = self.get_runlog()
+        # Convert to list for iterative backward search
+        runlist = list(runlog)
+        # Get most recent
+        if len(runlist):
+            # Get last CAPE exit
+            _, nlast = runlist.pop(-1)
+        else:
+            # No run logs yet
+            _, nlast = 0, self.get_restart_iter()
+        # Check if we found a timestep in the file name
+        if ttxt is None:
+            # The iteration is from the last CAPE exit
+            return nlast
+        # Got an iteration from timestep
+        # We need to read iter history to check for FUN3D iteration
+        # resets, e.g. at transition from RANS -> uRANS
+        hist = self.read_resid()
+        # Convert timestep to integer
+        t = int(ttxt)
+        # Find the most recent time FUN3D reported *t*
+        mask, = np.where(hist["solver_iter"] == t)
+        # Use the last hit if any
+        return int(t) if mask.size == 0 else int(hist["i"][mask[-1]])
+
     # Search pattern for surface/volume/slice/etc files
     def genr8_vizfile_regex(self, stem: str) -> str:
         r"""Create a regex to search for volume/surface/plane/etc file
