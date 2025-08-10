@@ -2228,7 +2228,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Got an iteration from timestep
             # We need to read iter history to check for FUN3D iteration
             # resets, e.g. at transition from RANS -> uRANS
-            hist = CaseResid(basename)
+            hist = self.read_resid()
             # In this case, default to the current phase
             jplt = self.get_phase()
             # Find the most recent time FUN3D reported *t*
@@ -2275,7 +2275,7 @@ class CaseRunner(casecntl.CaseRunner):
                 break
             # Check if we kept stats from *previous* run
             tprev = nmlj.get_opt(
-                "time_avg_params", "user_prior_time_avg", vdef=1)
+                "time_avg_params", "use_prior_time_avg", vdef=1)
             # If we didn't keep prior stats; search is done
             if not tprev:
                 break
@@ -2283,6 +2283,40 @@ class CaseRunner(casecntl.CaseRunner):
         nstats = nplt - nstrt + 1
         # Output
         return fplt, nstats, nstrt, nplt
+
+    # Get *nIter* for output file
+    def get_iter_vizfile(self, fname: str) -> int:
+        # Get pattern
+        ...
+
+    # Search pattern for surface/volume/slice/etc files
+    def genr8_vizfile_regex(self, stem: str) -> str:
+        r"""Create a regex to search for volume/surface/plane/etc file
+
+        :Call:
+            >>> pat = runner.genr8_flowviz_regex(stem)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *stem*: :class:`str`
+                Name of surface/volume/etc. file to search for
+        :Outputs:
+            *pat*: :class:`str`
+                File name regex for candidate output data files
+        :Versions:
+            * 2025-08-09 ``@ddalle``: v1.0
+        """
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
+        # Part 2 matches "_timestep2500" or ""
+        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
+        pat = (
+            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
+            "(_timestep(?P<t>[1-9][0-9]*))?" +
+            r"\.(?P<ext>dat|plt|szplt|tec)")
+        # Return it
+        return pat
 
     # Search pattern for surface output files
     def get_flowviz_regex(self, stem: str) -> str:
@@ -2305,8 +2339,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Constant stem
         stem = "tec_boundary"
         # Use general method
-        return self.get_flowviz_regex(stem)
+        return self.genr8_vizfile_regex(stem)
 
+    # Search glob for flow viz surface files
     def get_surf_pat(self) -> str:
         r"""Get glob pattern for candidate surface data files
 
