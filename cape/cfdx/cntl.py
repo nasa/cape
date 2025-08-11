@@ -3069,8 +3069,50 @@ class Cntl(CntlBase):
             n: int = 1,
             j: Optional[int] = None,
             imax: Optional[int] = None):
-        raise NotImplementedError(
-            f"ExtendCase() not implemented for {self._name} module")
+        # Ignore cases marked PASS
+        if self.x.PASS[i]:
+            return
+        # Read the ``case.json`` file
+        rc = self.read_case_json(i)
+        # Exit if none
+        if rc is None:
+            return
+        # Process phase number (can extend middle phases)
+        if j is None:
+            # Use the last phase number currently in use from "case.json"
+            j = rc.get_PhaseSequence(-1)
+        # Get the number of steps
+        nj = self.get_phase_niter(i, j)
+        # Get the current iteration count
+        ni = self.CheckCase(i)
+        # Get the current cutoff for phase *j*
+        mj = max(ni, rc.get_PhaseIters(j))
+        # Determine output number of steps
+        if imax is None:
+            # Unlimited by input; add one or more nominal runs
+            m1 = mj + n*nj
+        else:
+            # Add nominal runs but not beyond *imax*
+            m1 = min(int(imax), int(mj + n*nj))
+            # Don't go backwards, though...
+            m1 = max(mj, m1)
+        # Reset the number of steps
+        rc.set_PhaseIters(m1, j)
+        # Status update
+        print("  Phase %i: %s --> %s" % (j, mj, m1))
+        # Write new options
+        self.WriteCaseJSON(i, rc=rc)
+
+    # Get case-specific number of iterations for a phase run
+    def get_phase_niter(self, i: int, j: int) -> int:
+        # Read the setting from that case
+        rc = self.read_case_json(i)
+        # Check if found (check if run by CAPE)
+        if rc is None:
+            # Use generic result from JSON
+            return self.opts.get_PhaseIters(j)
+        # Use case-specific settings
+        return rc.get_PhaseIters(j)
 
     # Function to extend one or more cases
     def ApplyCases(self, **kw):

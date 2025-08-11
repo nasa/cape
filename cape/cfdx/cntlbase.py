@@ -2246,13 +2246,36 @@ class CntlBase(ABC):
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 CAPE main control instance
             *i*: :class:`int`
-                Run index
+                Case index
             *n*: {``1``} | positive :class:`int`
                 Add *n* times *steps* to the total iteration count
             *j*: {``None``} | :class:`int`
                 Optional phase to extend
             *imax*: {``None``} | nonnegative :class:`int`
                 Use *imax* as the maximum iteration count
+        """
+        pass
+
+    # Get case-specific number of iterations for a phase run
+    @abstractmethod
+    def get_phase_niter(self, i: int, j: int) -> int:
+        r"""Get number of steps for one call of phase *j* in case *i*
+
+        :Call:
+            >>> niter = cntl.get_Phase_inter(i, j)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *niter*: :class:`int`
+                Number of iterations for phase *j*; may be specific to
+                case *i*
+        :Versions:
+            * 2025-08-11 ``@ddalle``: v1.0
         """
         pass
 
