@@ -2014,6 +2014,26 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return ftriq, n, i0, i1
 
+    # Isolated plt -> triq converter
+    def write_triq(self, rawdatafile: str, triqfile: str):
+        # Get extension and base
+        basename, ext = rawdatafile.rsplit('.', 1)
+        # Assume we can work with original file until proven otherwise
+        ftec = rawdatafile
+        # Check for ``.szplt`` format
+        if ext == "szplt":
+            # Convert it to .plt
+            try:
+                convert_szplt(ftec)
+            except Exception:
+                print(f"  Failed to convert '{ftec}' to PLT format")
+            # Change file name
+            ftec = f"{basename}.plt"
+        # Mach number
+        mach = self.get_mach()
+        # Convert PLT file
+        pltfile.Plt2Triq(ftec, triqfile, mach=mach)
+
     # Get averaging window for triq file
     def get_triq_filestats(self) -> casecntl.IterWindow:
         r"""Get start and end of averagine window for ``.triq`` file

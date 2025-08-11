@@ -128,16 +128,27 @@ IERR_RERUN_PHASE = 16
 #:          Iteration at end of window
 IterWindow = namedtuple("IterWindow", ("ia", "ib"))
 
-#: Class for file name and iteration status
+#: Class for file search regex and iteration status
 #:
 #: :Call:
-#:     >>> fstat = FileIterStatus(mtch, n)
+#:     >>> fstat = FileSearchStatus(mtch, n)
 #: :Attributes:
 #:     *mtch*: :class:`re.Match` | ``None``
 #:         Regular expression match object for file name
 #:     *n*: :class:`int` | ``None``
 #:         (Inferred) iteration for any file found
-FileIterStatus = namedtuple("FileIterStatus", ("mtch", "n"))
+FileSearchStatus = namedtuple("FileSearchStatus", ("mtch", "n"))
+
+#: Class for file name and iteration status
+#:
+#: :Call:
+#:     >>> fstat = FileStatus(fname, n)
+#: :Attributes:
+#:     *fname*: :class:`str` | ``None``
+#:         File name
+#:     *n*: :class:`int` | ``None``
+#:         (Inferred) iteration for any file found
+FileStatus = namedtuple("FileStatus", ("fname", "n"))
 
 
 # Help message for CLI
@@ -2244,13 +2255,13 @@ class CaseRunner(CaseRunnerBase):
 
   # *** SURFACE DATA ***
    # --- Surface ---
-    def find_surf_file(self) -> FileIterStatus:
+    def find_surf_file(self) -> FileSearchStatus:
         # Find the file
         mtch = self.match_surf_file()
         # Infer iteration number
         n = self.infer_file_niter(mtch)
         # Output
-        return FileIterStatus(mtch, n)
+        return FileSearchStatus(mtch, n)
 
     def match_surf_file(self):
         r"""Get latest surface file and regex match instance
@@ -2275,14 +2286,37 @@ class CaseRunner(CaseRunnerBase):
         ...
 
    # --- TriQ ---
-    def prepare_triq(self) -> str:
-        return self.get_triq_filename()
+    def prepare_triq(self) -> FileStatus:
+        # Search for data file
+        mtch = self.match_surf_file()
+        # Get iteration thereof
+        n = self.infer_file_niter(mtch)
+        # Get name of ``.triq`` file
+        ftriq = self.genr8_triq_filename(mtch, n)
+        # Check if file exists
+        if not os.path.isfile(ftriq):
+            # Write triq file from surface data
+            self.write_triq(mtch.group(), ftriq)
+        # Return file name and status
+        return FileStatus(ftriq, n)
 
     def genr8_triq_filename(self, mtch=None, n: Optional[int] = None) -> str:
         r"""Find the name of the expected ``.triq`` file based on status
 
         :Call:
-            >>> ftriq = runner.genr8_triq_filename(mtch, n)
+            >>> ftriq = runner.genr8_triq_filename(mtch=None, n=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *mtch*: {``None``} | :mod:`re.Match`
+                Regex match object for surface data file (else call
+                :func:`CaseRunner.match_surf_file`)
+            *n*: {``None``} | :class:`int`
+                Iteration number of surface data (else call
+                :func:`CaseRunner.infer_file_niter`)
+        :Outputs:
+            *ftriq*: :class:`str`
+                Name of ``.triq`` file expected (or created) by CAPE
         :Versions:
             * 2025-08-10 ``@ddalle``: v1.0
         """
