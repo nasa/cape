@@ -68,6 +68,7 @@ from .options.funcopts import UserFuncOpts
 from ..config import ConfigXML, SurfConfig
 from ..dkit.rdb import DataKit
 from ..errors import CapeRuntimeError
+from ..gruvoc import umesh
 from ..optdict import _NPEncoder
 from ..trifile import Tri
 from ..util import RangeString
@@ -2287,6 +2288,23 @@ class CaseRunner(CaseRunnerBase):
 
    # --- TriQ ---
     def prepare_triq(self) -> FileStatus:
+        r"""Prepare the surface ``.triq`` file and return metadata
+
+        :Call:
+            >>> triqstats = runner.prepare_triq()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *triqstats*: :class:`FileStatus`
+                Surface ``.triq`` file name
+            *triqstats.fname*: :class:`str`
+                Name of ``.triq`` file (created or found)
+            *triqstats.n*: :class:`int`
+                Iteration number for *fname*
+        :Versions:
+            * 2025-08-11 ``@ddalle``: v1.0
+        """
         # Search for data file
         mtch = self.match_surf_file()
         # Get iteration thereof
@@ -2336,7 +2354,39 @@ class CaseRunner(CaseRunnerBase):
         return os.path.join(workdir, ftriq)
 
     def get_triq_filename_stem(self) -> str:
+        r"""Get the infix for surface ``.triq``  files
+
+        :Call:
+            >>> stem = runner.get_triq_filename_stem()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *stem*: :class:`str`
+                File name infix, e.g. ``"surf"`` or ``"tec_boundary"``
+        :Versions:
+            * 2025-08-11 ``@ddalle``: v1.0
+        """
         return "surf"
+
+    def write_triq(self, rawdatafile: str, triqfile: str):
+        r"""Convert CFD data file to ``.triq`` format
+
+        This enables use with Chimera Grid Tools capabilities and
+        integrates with CAPE's TriqFM tools.
+
+        :Call:
+            >>> runner.write_triq(rawdatafile, triqfile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2025-08-11 ``@ddalle``: v1.0
+        """
+        # Read the raw data file
+        mesh = umesh.Umesh(rawdatafile)
+        # Write as ``.triq``
+        mesh.write_triq(triqfile, fmt="lr4")
 
     def get_triq_filename(self) -> str:
         r"""Get latest ``.triq`` file
@@ -2353,35 +2403,6 @@ class CaseRunner(CaseRunnerBase):
             * 2025-01-29 ``@ddalle``: v1.0
         """
         return self.search_workdir("*.triq")
-
-    def get_triq_filestats(self) -> IterWindow:
-        r"""Get start and end of averagine window for ``.triq`` file
-
-        :Call:
-            >>> window = runner.get_triq_filestats(ftriq)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *ftriq*: :class:`str`
-                Name of latest ``.triq`` annotated triangulation file
-        :Outputs:
-            *window.ia*: :class:`int`
-                Iteration at start of window
-            *window.ib*: :class:`int`
-                Iteration at end of window
-        :Versions:
-            * 2025-02-12 ``@ddalle``: v1.0
-        """
-        # Default; get current iteration
-        ib = self.get_iter()
-        # Get current phase
-        j = self.get_phase_next()
-        j = 0 if j is None else j
-        # Default: get start of that phase
-        ia = self.get_phase_iters(max(0, j-1))
-        ia = 1 if j == 0 else ia
-        # Output
-        return IterWindow(ia, ib)
 
     def get_triq_file(self):
         # Get working folder
