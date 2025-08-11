@@ -128,6 +128,17 @@ IERR_RERUN_PHASE = 16
 #:          Iteration at end of window
 IterWindow = namedtuple("IterWindow", ("ia", "ib"))
 
+#: Class for file name and iteration status
+#:
+#: :Call:
+#:     >>> fstat = FileIterStatus(mtch, n)
+#: :Attributes:
+#:     *mtch*: :class:`re.Match` | ``None``
+#:         Regular expression match object for file name
+#:     *n*: :class:`int` | ``None``
+#:         (Inferred) iteration for any file found
+FileIterStatus = namedtuple("FileIterStatus", ("mtch", "n"))
+
 
 # Help message for CLI
 HELP_RUN_CFDX = r"""
@@ -2189,42 +2200,6 @@ class CaseRunner(CaseRunnerBase):
         return f"{self._progname}.err"
 
    # --- File name patterns ---
-    def get_flowviz_pat(self, stem: str) -> str:
-        # Get project root name
-        basename = self.get_project_rootname()
-        # Default patern
-        return f"{basename}*_{stem}*"
-
-    def get_flowviz_regex(self, stem: str) -> str:
-        # Get project root name
-        basename = self.get_project_rootname()
-        # Default pattern; all Tecplot formats
-        return f"{basename}_{stem}\\.(?P<ext>dat|plt|szplt|tec)"
-
-    def get_surf_pat(self) -> str:
-        r"""Get glob pattern for candidate surface data files
-
-        These can have false-positive matches because the actual search
-        will be done by regular expression. Restricting this pattern can
-        have the benefit of reducing how many files are searched by
-        regex.
-
-        :Call:
-            >>> pat = runner.get_surf_pat()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *pat*: :class:`str`
-                Glob file name pattern for candidate surface sol'n files
-        :Versions:
-            * 2025-01-24 ``@ddalle``: v1.0
-        """
-        # Get project root name
-        basename = self.get_project_rootname()
-        # Default patern
-        return f"{basename}*"
-
     def get_surf_regex(self) -> str:
         r"""Get regular expression that all surface output files match
 
@@ -2244,25 +2219,44 @@ class CaseRunner(CaseRunnerBase):
             f"{self._modname}.CaseRunner")
 
   # *** FLOW VIZ ***
-   # --- General flow viz search ---
-    @run_rootdir
-    def get_flowviz_file(self, stem: str):
-        # Enter working folder
-        os.chdir(self.get_working_folder())
-        # Get glob pattern to narrow list of files
-        baseglob = self.get_flowviz_pat(stem)
-        # Get regular expression of exact matches
-        regex = self.get_flowviz_regex(stem)
-        # Perform search
-        return fileutils.get_latest_regex(regex, baseglob)[1]
+   # --- Iteration number ---
+    def infer_file_niter(self, mtch) -> int:
+        return self.get_restart_iter()
+
+   # --- Iterations in a time-averaging window ---
+    def infer_tavg_nstats(self, n: int) -> int:
+        r"""Infer num of iters averaged for output at iteration *n*
+
+        :Call:
+            >>> nstats = runner.infer_tavg_nstats(n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *n*: :class:`int`
+                Iteration number
+        :Outputs:
+            *nstats*: :class:`int`
+                Number of iterations averaged in viz file
+        :Versions:
+            * 2025-08-10 ``@ddalle``: v1.0
+        """
+        return 1
 
   # *** SURFACE DATA ***
    # --- Surface ---
-    def get_surf_file(self):
+    def find_surf_file(self) -> FileIterStatus:
+        # Find the file
+        mtch = self.match_surf_file()
+        # Infer iteration number
+        n = self.infer_file_niter(mtch)
+        # Output
+        return FileIterStatus(mtch, n)
+
+    def match_surf_file(self):
         r"""Get latest surface file and regex match instance
 
         :Call:
-            >>> re_match = runner.get_surf_file()
+            >>> re_match = runner.match_surf_file()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2275,13 +2269,40 @@ class CaseRunner(CaseRunnerBase):
         # Get regular expression of exact matches
         pat = self.get_surf_regex()
         # Perform search
-        filelist = self.search_regex(pat, workdir=True)
-        # Check for match
-        return None if len(filelist) == 0 else re.fullmatch(pat, filelist[-1])
+        return self.match_regex(pat)
+
+    def read_surf_data(self):
+        ...
 
    # --- TriQ ---
     def prepare_triq(self) -> str:
         return self.get_triq_filename()
+
+    def genr8_triq_filename(self, mtch=None, n: Optional[int] = None) -> str:
+        r"""Find the name of the expected ``.triq`` file based on status
+
+        :Call:
+            >>> ftriq = runner.genr8_triq_filename(mtch, n)
+        :Versions:
+            * 2025-08-10 ``@ddalle``: v1.0
+        """
+        # Get default
+        mtch = mtch if mtch is not None else self.match_surf_file()
+        n = n if n is not None else self.infer_file_niter(mtch)
+        # Phase number
+        j = self.get_phase()
+        # Get project name
+        proj = self.get_project_rootname(j)
+        # Get surface file infix
+        stem = self.get_triq_filename_stem()
+        # Form pattern
+        ftriq = f"{proj}_{stem}_timestep{n}.triq"
+        # Relative to working folder
+        workdir = self.get_working_folder_()
+        return os.path.join(workdir, ftriq)
+
+    def get_triq_filename_stem(self) -> str:
+        return "surf"
 
     def get_triq_filename(self) -> str:
         r"""Get latest ``.triq`` file
@@ -2940,7 +2961,7 @@ class CaseRunner(CaseRunnerBase):
             * 2024-11-05 ``@ddalle``: v1.0
         """
         # Default
-        return "run"
+        return self._modname
 
    # --- Settings: Read  ---
     # Read ``case.json``

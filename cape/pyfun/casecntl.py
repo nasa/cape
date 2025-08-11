@@ -2284,6 +2284,10 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return fplt, nstats, nstrt, nplt
 
+    # Get *nIter* for generic data file
+    def infer_file_niter(self, mtch) -> int:
+        return self.infer_vizfile_niter(mtch)
+
     # Get *nIter* for output file
     def infer_vizfile_niter(self, mtch) -> int:
         r"""Determine *nIter* for a surface/volume output file
@@ -2454,27 +2458,14 @@ class CaseRunner(casecntl.CaseRunner):
         return pat
 
     # Search pattern for surface output files
-    def get_flowviz_regex(self, stem: str) -> str:
-        # Get root name of project
-        basename = self.get_project_baserootname()
-        # Constant stem
-        stem = "tec_boundary"
-        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
-        # Part 2 matches "_timestep2500" or ""
-        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
-        pat = (
-            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
-            "(_timestep(?P<t>[1-9][0-9]*))?" +
-            r"\.(?P<ext>dat|plt|szplt|tec)")
-        # Return it
-        return pat
-
-    # Search pattern for surface output files
     def get_surf_regex(self) -> str:
         # Constant stem
         stem = "tec_boundary"
         # Use general method
         return self.genr8_vizfile_regex(stem)
+
+    def get_triq_filename_stem(self) -> str:
+        return "tec_boundary"
 
     # Search glob for flow viz surface files
     def get_surf_pat(self) -> str:
