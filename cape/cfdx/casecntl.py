@@ -2292,6 +2292,7 @@ class CaseRunner(CaseRunnerBase):
 
         :Call:
             >>> triqstats = runner.prepare_triq()
+            >>> fname, n = runner.prepare_triq()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2763,8 +2764,6 @@ class CaseRunner(CaseRunnerBase):
         # Loop through transformations
         for topts in transforms:
             fm.TransformFM(topts, cntl.x, i)
-
-   # --- Data manipulation ---
 
    # --- Status ---
     # Get the current iteration number as applies to
