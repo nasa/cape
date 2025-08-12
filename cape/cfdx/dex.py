@@ -75,11 +75,11 @@ class DataExchanger(DataKit):
 
   # *** I/O ***
    # --- Read ---
-    def read(self, legacy: bool = False):
-        if legacy:
-            self.read_legacy()
-        else:
-            self.read_main()
+    def read(self):
+        # Read functional database
+        self.read_main()
+        # Read legacy database if needed
+        self.read_legacy()
 
     def read_main(self):
         # Absolute file
@@ -90,6 +90,16 @@ class DataExchanger(DataKit):
 
    # --- Legacy read ---
     def read_legacy(self):
+        r"""Read a legacy DataBook component if appropriate
+
+        :Call:
+            >>> db.read_legacy()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
         # Get component type
         comptype = self.comptype.lower()
         # Get function name
@@ -101,6 +111,16 @@ class DataExchanger(DataKit):
             func()
 
     def read_legacy_lineload(self):
+        r"""Read a legacy LineLoad DataBook if appropriate
+
+        :Call:
+            >>> db.read_legacy_lineload()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
         # Check if data columns were filled in
         if self["CA"].size:
             return

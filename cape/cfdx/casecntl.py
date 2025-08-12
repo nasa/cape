@@ -2667,6 +2667,30 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return db
 
+    # Preprocessing
+    def prep_dex(self, comp: str):
+        r"""Perform preprocessing tasks as needed before reading DEx
+
+        :Call:
+            >>> db = runner.prep_dex(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Create function name
+        funcname = f"prep_dex_{typ}"
+        # Get the function if applicable
+        func = getattr(self, funcname, None)
+        # Call it
+        if callable(func):
+            func(comp)
+
     # Create tuple of args prior to *comp*
     def genr8_dex_args_pre(self, typ: str) -> tuple:
         r"""Generate tuple of args before *comp* when reading data cls
@@ -2891,24 +2915,63 @@ class CaseRunner(CaseRunnerBase):
     def get_dex_transformation(self, comp: str) -> np.ndarray:
         ...
 
-   # --- Triload ---
-    def write_triload_input(self, comp: str):
-        r"""Write input file for ``trilaodCmd``
+   # --- Line Loads ---
+    @run_rootdir
+    def prep_dex_lineload(self, comp: str):
+        r"""Prepare surface, run ``triload``, before reading line loads
 
         :Call:
-            >>> runner.write_triload_input(comp)
+            >>> db = runner.prep_dex_lineload(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get name of ``.triq`` file
+        ftriq, n = self.prepare_triq()
+        # Section type
+        sec = self.get_dex_opt(comp, "SectionType")
+        # Get name of expected output file
+        fname = os.path.join("lineload", f"LineLoad_{comp}.{sec}")
+        # Cannot proceed if *ftriq* does not exist
+        if not os.path.isfile(ftriq):
+            return
+        # Check if it exists or is up-to-date
+        if os.path.isfile(fname):
+            if os.path.getmtime(fname) > os.path.getmtime(ftriq):
+                return
+        # Otherwise, create and enter ``lineload/`` folder
+        self.mkdir("lineload")
+        os.chdir("lineload")
+        # Prepare triload.i
+        self.write_triload_input(comp, ftriq)
+        # Run ``triloadCmd``
+        self.run_triload(f"triload.{comp}.i", f"triload.{comp}.o")
+
+   # --- Triload ---
+    def write_triload_input(self, comp: str, ftriq: str):
+        r"""Write input file for ``triloadCmd``
+
+        :Call:
+            >>> runner.write_triload_input(comp, ftriq)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *comp*: :class:`str`
                 Name of component
+            *ftriq*: :class:`str`
+                Name of appropriate ``.triq`` file to read from
         :Versions:
             * 2025-01-29 ``@ddalle``: v1.0
+            * 2025-08-12 ``@ddalle``: v1.1; add *ftriq* as input
         """
         # Get project name
         proj = self.get_project_rootname()
-        # Get name of triq file
-        ftriq = self.get_triq_filename()
         # Read control instance
         cntl = self.read_cntl()
         # Setting for output triq file
@@ -2948,7 +3011,7 @@ class CaseRunner(CaseRunnerBase):
         # File name
         with open(f"triload.{comp}.i", 'w') as fp:
             # Write the triq file name
-            fp.write(f"{ftriq}\n")
+            fp.write(f"../{ftriq}\n")
             # Write the prefix name
             fp.write(f"{proj}\n")
             # Write the Mach number, reference Reynolds number, and gamma
