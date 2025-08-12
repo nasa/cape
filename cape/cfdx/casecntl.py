@@ -61,7 +61,7 @@ from .casecntlbase import CaseRunnerBase
 from .casedata import CaseFM, CaseResid
 from .caseutils import run_rootdir
 from .cntlbase import CntlBase
-from .lineload import CaseLineLoad
+from .ll import CaseLineLoad
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
