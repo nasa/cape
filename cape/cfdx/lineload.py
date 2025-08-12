@@ -2867,6 +2867,7 @@ class CaseLineLoad(DataKit):
         self.comp = comp
         self.proj = proj
         self.sec = sec
+        self.cols = []
         # Options
         self.seam = kw.get('seam', False)
         # File name
@@ -2886,22 +2887,20 @@ class CaseLineLoad(DataKit):
 
   # --- I/O ---
     # Function to read a file
-    def read_lds(self, fname=None):
+    def read_lds(self, fname: str):
         r"""Read a sectional loads ``*.?lds`` file from `triloadCmd`
 
         :Call:
-            >>> ll.read_lds(fname=None)
+            >>> ll.read_lds(fname)
         :Inputs:
             *LL*: :class:`cape.cfdx.lineload.CaseLineLoads`
                 Single-case, single component, line load interface
-            *fname*: {``None``} | :class:`str`
+            *fname*: :class:`str`
                 Name of file to read
         :Versions:
             * 2015-09-15 ``@ddalle``: v1.0
             * 2025-08-11 ``@ddalle``: v2.0; was ``ReadLDS()``
         """
-        # Default file name
-        fname = self.fname if fname is None else self.fname
         # Open the file
         with open(fname, 'r') as fp:
             # Read lines until it is not a comment.
