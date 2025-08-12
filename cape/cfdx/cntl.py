@@ -3712,7 +3712,7 @@ class Cntl(CntlBase):
 
     # Update line loads
     @run_rootdir
-    def UpdateLL(self, **kw):
+    def update_ll(self, **kw):
         r"""Update one or more line load data books
 
         :Call:
@@ -3730,9 +3730,10 @@ class Cntl(CntlBase):
                 Whether or not to calculate line loads with PBS scripts
         :Versions:
             * 2016-06-07 ``@ddalle``: v1.0
-            * 2016-12-21 ``@ddalle``: v1.1; add *pbs* flag
-            * 2017-04-25 ``@ddalle``: v1.2; rm *pbs*, add *delete*
-            * 2025-08-12 ``@ddalle``: v2.0; use dex
+            * 2016-12-21 ``@ddalle``: v1.1, Add *pbs* flag
+            * 2017-04-25 ``@ddalle``: v1.2
+                - Removed *pbs*
+                - Added ``--delete``
         """
         # Get component option
         comp = kw.get("ll")
@@ -3743,6 +3744,30 @@ class Cntl(CntlBase):
         # Loop through them
         for comp in comps:
             self.update_dex_comp(comp, **kw)
+
+    @run_rootdir
+    def UpdateLL(self, **kw):
+        # Get component option
+        comp = kw.get("ll")
+        # Check for True or False
+        if comp is True:
+            # Update all components
+            comp = None
+        elif comp is False:
+            # Exit
+            return
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Read the data book handle
+        self.ReadDataBook(comp=[])
+        self.ReadConfig()
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Delete cases.
+            self.DataBook.DeleteLineLoad(I, comp=comp)
+        else:
+            # Read the results and update as necessary.
+            self.DataBook.UpdateLineLoad(I, comp=comp, conf=self.config)
 
     @run_rootdir
     def UpdateSurfCp(self, **kw):
