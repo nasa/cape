@@ -1560,7 +1560,13 @@ class DataKit(BaseData):
         self.lock()
         # Copy if necessary
         if backup and os.path.isfile(fname):
-            shutil.copy(fname, f"{fname}.old")
+            # Name of backup file
+            backupfile = f"{fname}.old"
+            # Delete previous backup
+            if os.path.isfile(backupfile):
+                os.remove(backupfile)
+            # Write current backup file
+            shutil.copy(fname, backupfile)
         # Write
         write_func(fname)
         # Unlock database
