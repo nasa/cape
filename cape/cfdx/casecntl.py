@@ -2596,7 +2596,7 @@ class CaseRunner(CaseRunnerBase):
         if typ in ("FM",):
             self.read_dex_by_element(comp)
         else:
-            self.read_dex_element(comp)
+            self.read_dex_element(comp, comp)
 
     # Read a DEx by element
     def read_dex_by_element(self, comp: str) -> DataKit:

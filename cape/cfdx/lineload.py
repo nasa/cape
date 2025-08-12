@@ -91,9 +91,6 @@ TYPE_MAP = {
     "hex": "int",
 }
 
-# Typical line load columns
-LL_COLS = ("x", "CA", "CY", "CN", "CLL", "CLM", "CLN")
-
 
 # New-style datakit
 class NewLineLoadDataBook(DataKit):

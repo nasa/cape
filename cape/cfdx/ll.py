@@ -10,6 +10,10 @@ import numpy as np
 from ..dkit.rdb import DataKit
 
 
+# Typical line load columns
+LL_COLS = ("x", "CA", "CY", "CN", "CLL", "CLM", "CLN")
+
+
 # Line load from one case
 class CaseLineLoad(DataKit):
     r"""Interface to individual sectional load from one case
