@@ -2838,13 +2838,11 @@ class CaseLineLoad(DataKit):
     :Inputs:
         *comp*: :class:`str`
             Name of component
-        *proj*: :class:`str`
+        *proj*: {``"LineLoad"``} | :class:`str`
             Prefix for sectional load output files
         *sec*: ``"clds"`` | {``"dlds"``} | ``"slds"``
             Cut type, cumulative, derivative, or sectional
-        *ext*: ``"clds"`` | {``"dlds"``} | ``"slds"`` | ``"csv"``
-            File extension
-        *fdir* {``None``} | :class:`str`
+        *dirname*: {``"lineload"``} | ``None`` | :class:`str`
             Name of sub folder to use
     :Outputs:
         *LL*: :class:`cape.cfdx.lineload.CaseLL`
