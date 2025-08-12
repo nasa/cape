@@ -1688,7 +1688,7 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- DataBook ---
     # Create tuple of args prior to *comp*
-    def get_dex_args_pre(self) -> tuple:
+    def get_dex_args_pre_fm(self) -> tuple:
         r"""Get list of args prior to component name in :class:`CaseFM`
 
         :Call:

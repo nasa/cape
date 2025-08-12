@@ -1293,7 +1293,7 @@ class CaseRunner(CaseRunnerBase):
         # Check for executable
         cmdrun.find_executable("triloadCmd", "CGT triload executable")
         # Run function and return its exit code
-        return self.callf(["triloadCmd"], i=ifile, o=ofile)
+        return self.callf(["triloadCmd"], i=ifile, f=ofile)
 
    # --- Shell/System ---
     # Run a function
@@ -2588,15 +2588,17 @@ class CaseRunner(CaseRunnerBase):
                 Name of component to read
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
-            * 2025-08-12 ``@ddalle``: v1.1; sometimes by element
+            * 2025-08-12 ``@ddalle``: v1.1; by-element; preprocess
         """
         # Get component type
         typ = self.get_dex_type(comp)
+        # Perform preprocessing if needed
+        self.prep_dex(comp)
         # Check it
         if typ in ("FM",):
-            self.read_dex_by_element(comp)
+            return self.read_dex_by_element(comp)
         else:
-            self.read_dex_element(comp, comp)
+            return self.read_dex_element(comp, comp)
 
     # Read a DEx by element
     def read_dex_by_element(self, comp: str) -> DataKit:
@@ -3013,7 +3015,7 @@ class CaseRunner(CaseRunnerBase):
             # Write the triq file name
             fp.write(f"../{ftriq}\n")
             # Write the prefix name
-            fp.write(f"{proj}\n")
+            fp.write("LineLoad\n")
             # Write the Mach number, reference Reynolds number, and gamma
             fp.write('%s %s %s\n' % (mach, rey, gam))
             # Moment center
