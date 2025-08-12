@@ -101,9 +101,33 @@ class DataExchanger(DataKit):
             func()
 
     def read_legacy_lineload(self):
-        # Read the main file (this will only have metadata)
-        self.read_main()
+        # Check if data columns were filled in
+        if self["CA"].size:
+            return
+        # Find cases that are in the legacy databook
+        ia, ib = self.xmatch(self.cntl.x)
         # Loop through cases
+        for j, i in zip(ia, ib):
+            # Get folder name
+            frun = self.cntl.x.GetFullFolderNames(i)
+            # File name
+            fdir = os.path.join(self.rootdir, "lineload", frun)
+            fcsv = os.path.join(fdir, f"LineLoad_{self.comp}.csv")
+            # Check for file
+            if not os.path.isfile(fcsv):
+                continue
+            # Read it
+            dbj = DataKit(fcsv)
+            # Initialize
+            if self["CA"].size == 0:
+                # Get number of slices
+                nx = dbj["x"].size
+                # Loop through columns
+                for col in self.get_datacols():
+                    self[col] = np.full((nx, ia.size), np.nan)
+            # Save the data
+            for col in self.get_datacols():
+                self[col][:, j] = dbj[col]
 
   # *** FILE MANAGEMENT ***
    # --- File names --

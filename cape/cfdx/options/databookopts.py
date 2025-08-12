@@ -249,7 +249,9 @@ class LineLoadDataBookOpts(DBCompOpts):
 
     # Defaults
     _rc = {
+        "Cols": ["x", "CA", "CY", "CN", "CLL", "CLM", "CLN"],
         "CutPlaneNormal": "x",
+        "FloatCols": ["XMRP", "YMRP", "ZMRP"],
         "Gauge": True,
         "Momentum": False,
         "NCut": 200,
@@ -1467,7 +1469,7 @@ class DataBookOpts(OptionsDict):
         # Get type
         typ = self.get_DataBookType(comp)
         # Check data book type
-        if typ in ["TriqFM", "TriqPoint", "PointSensor", "PyFunc"]:
+        if typ in ("LineLoad", "TriqFM", "TriqPoint", "PointSensor", "PyFunc"):
             # No iterative history
             return ['mu']
         # Others; iterative history available
