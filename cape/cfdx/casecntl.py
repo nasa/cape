@@ -61,6 +61,7 @@ from .casecntlbase import CaseRunnerBase
 from .casedata import CaseFM, CaseResid
 from .caseutils import run_rootdir
 from .cntlbase import CntlBase
+from .lineload import CaseLineLoad
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
@@ -263,6 +264,7 @@ class CaseRunner(CaseRunnerBase):
     #: Classes for reading data of various DataBook component types
     _dex_cls = {
         "fm": CaseFM,
+        "lineload": CaseLineLoad,
     }
 
    # --- __dunder__ ---
@@ -2586,6 +2588,29 @@ class CaseRunner(CaseRunnerBase):
                 Name of component to read
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
+            * 2025-08-12 ``@ddalle``: v1.1; sometimes by element
+        """
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Check it
+        if typ in ("FM",):
+            self.read_dex_by_element(comp)
+        else:
+            self.read_dex_element(comp)
+
+    # Read a DEx by element
+    def read_dex_by_element(self, comp: str) -> DataKit:
+        r"""Read a data component with multiple elements
+
+        :Call:
+            >>> db = runner.read_dex_by_element(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
         """
         # Get component(s)
         compid = self.get_dex_opt(comp, "CompID", vdef=comp)
