@@ -47,7 +47,6 @@ class CaseTriqFM(DataKit):
         # Analyze
         self.get_triq_forces()
         # Process output file
-        breakpoint()
         self.write_triq()
 
    # --- Raw data ---
@@ -607,19 +606,22 @@ class CaseTriqFM(DataKit):
             # Get format
             triqfmt = opts.get_DataBookOpts(self.comp, "TriqFormat")
             # Write the TRIQ in this format
-            triq.Write("%s.triq" % fpre, fmt=triqfmt)
+            fname = os.path.join(curdir, f"{fpre}.triq")
+            triq.Write(fname, fmt=triqfmt)
         elif fmt.lower() == "dat":
             # Create Tecplot PLT interface
             pltq = self.triq2plt(self.triq, **kw)
             # Write ASCII file
-            pltq.WriteDat("%s.dat" % fpre)
+            fname = os.path.join(curdir, f"{fpre}.dat")
+            pltq.WriteDat(fname)
             # Delete it
             del pltq
         elif fmt.lower() == "plt":
             # Create Tecplot PLT interface
             pltq = self.triq2plt(self.triq, **kw)
             # Write binary file
-            pltq.Write("%s.plt" % fpre)
+            fname = os.path.join(curdir, f"{fpre}.plt")
+            pltq.Write(fname)
             # Delete it
             del pltq
 
