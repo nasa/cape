@@ -63,6 +63,7 @@ from .caseutils import run_rootdir
 from .cntlbase import CntlBase
 from .ll import CaseLineLoad
 from .logger import CaseLogger
+from .triqfm import CaseTriqFM
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
 from .options.funcopts import UserFuncOpts
@@ -234,6 +235,7 @@ class CaseRunner(CaseRunnerBase):
         "_n_iter_surf",
         "_n_orders",
         "_n_stats_surf",
+        "_triq_file",
     )
 
     #: :class:`int`
@@ -268,6 +270,7 @@ class CaseRunner(CaseRunnerBase):
     _dex_cls = {
         "fm": CaseFM,
         "lineload": CaseLineLoad,
+        "triqfm": CaseTriqFM,
     }
 
    # --- __dunder__ ---
@@ -1302,6 +1305,106 @@ class CaseRunner(CaseRunnerBase):
         # Run function and return its exit code
         return self.callf(["triloadCmd"], i=ifile, f=ofile)
 
+    # Function to run mixsur
+    def run_mixsur_tri(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.tri`` using `mixsur` executable
+
+        :Call:
+            >>> ierr = runner.run_mixsur_tri(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Run function and use its return code
+        return self.callf(["mixsur"], i=ifile, f=ofile)
+
+    # Function to run overint
+    def run_overint_triq(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.triq`` using `overint` executable
+
+        :Call:
+            >>> ierr = runner.run_overint_triq(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Run function and use its return code
+        return self.callf(["overint"], i=ifile, f=ofile)
+
+    # Function to run usurp
+    def run_usurp_tri(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.tri`` using `usurp` executable
+
+        :Call:
+            >>> ierr = runner.run_usurp_tri(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Construct function call
+        cmdlist = ["usurp", "-v", "--watertight", "disjoin=yes"]
+        # Run function and use its return code
+        return self.callf(cmdlist, i=ifile, f=ofile)
+
+    # Function to run usurp
+    def run_usurp_triq(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.triq`` using `usurp` executable
+
+        :Call:
+            >>> ierr = runner.run_usurp_triq(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Construct function call
+        cmdlist = ["usurp", "-v", "--use-map"]
+        # Run function and use its return code
+        return self.callf(cmdlist, i=ifile, f=ofile)
+
    # --- Shell/System ---
     # Run a function
     def callf(
@@ -2321,12 +2424,15 @@ class CaseRunner(CaseRunnerBase):
         mtch = self.match_surf_file()
         # Get iteration thereof
         n = self.infer_file_niter(mtch)
-        # Cache it
-        self._n_iter_surf = n
         # Get name of ``.triq`` file
         ftriq = self.genr8_triq_filename(mtch, n)
+        # Cache it
+        self._n_iter_surf = n
+        self._triq_file = ftriq
         # Check if file exists
         if not os.path.isfile(ftriq):
+            # Log this action
+            self.log_verbose(f"Writing surface {mtch.group()} -> {ftriq}")
             # Write triq file from surface data
             self.write_triq(mtch.group(), ftriq)
         # Return file name and status
@@ -2987,9 +3093,38 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-08-12 ``@ddalle``: v1.0
         """
+        return self._get_dex_iter_surf(comp)
+
+    def get_dex_iter_triqfm(self, comp: str) -> int:
+        r"""Get number of iterations for ``"TriqFM"`` comp
+
+        :Call:
+            >>> n = runner.get_dex_iter_triqfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        return self._get_dex_iter_surf(comp)
+
+    def _get_dex_iter_surf(self, comp: str) -> int:
         # Check cache .. from previous call of prepare_triq()
         n = self._n_iter_surf
-        n = n if (n) else self.get_restart_iter()
+        # Usit if appropriate
+        if n is not None:
+            return n
+        # Search for data file
+        mtch = self.match_surf_file()
+        # Get iteration thereof
+        n = self.infer_file_niter(mtch)
+        # Save it
+        self._n_iter_surf = n
         # Output
         return n
 
@@ -3140,7 +3275,7 @@ class CaseRunner(CaseRunnerBase):
         # Enter working folder
         os.chdir(self.get_working_folder())
         # Get name of ``.triq`` file
-        ftriq, n = self.prepare_triq()
+        ftriq, _ = self.prepare_triq()
         # Section type
         sec = self.get_dex_opt(comp, "SectionType")
         # Get name of expected output file
@@ -3159,6 +3294,55 @@ class CaseRunner(CaseRunnerBase):
         self.write_triload_input(comp, ftriq)
         # Run ``triloadCmd``
         self.run_triload(f"triload.{comp}.i", f"triload.{comp}.o")
+
+   # --- TriqFM ---
+    @run_rootdir
+    def prep_dex_triqfm(self, comp: str):
+        r"""Prepare surface ``.triq`` file for TriqFM processing
+
+        :Call:
+            >>> db = runner.prep_dex_triqfm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get name of ``.triq`` file and create it if needed
+        self.prepare_triq()
+
+    # Create tuple of TriqFM dex args after to *comp*
+    def get_dex_args_post_triqfm(self) -> tuple:
+        r"""Get list of args after *comp* in :class:`CaseTriqFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_triqfm()
+            >>> ftriq, cntl, i = runner.get_dex_args_post_triqfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Tuple of args
+            *ftriq*: :class:`str`
+                Name of ``.triq`` file with surface solution data
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Run matrix controller with definitions for dex comp
+            *i*: :class:`int`
+                Index of this case in run matrix
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Read run matrix controller
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Use name of TriqFM file
+        return (self._triq_file, cntl, i)
 
    # --- Triload ---
     def write_triload_input(self, comp: str, ftriq: str):

@@ -321,6 +321,7 @@ class TriqFMDataBookOpts(DBCompOpts):
         "ConfigCompID",
         "MapTri",
         "OutputFormat",
+        "PatchMap",
         "Patches",
         "Prefix",
         "RelProjTol",
@@ -351,6 +352,7 @@ class TriqFMDataBookOpts(DBCompOpts):
         "MapTri": str,
         "OutputFormat": str,
         "OutputSurface": BOOL_TYPES,
+        "PatchMap": dict,
         "Patches": str,
         "RelProjTol": FLOAT_TYPES,
         "RelTol": FLOAT_TYPES,
@@ -359,7 +361,7 @@ class TriqFMDataBookOpts(DBCompOpts):
 
     # Specified values
     _optvals = {
-        "OutputFormat": {"dat", "plt", "dat"},
+        "OutputFormat": {"triq", "plt", "dat"},
         "TriqFormat": {"", "lr4", "lb4", "r4", "b4"},
     }
 

@@ -9036,6 +9036,8 @@ class DataKit(BaseData):
         elif isinstance(u, np.ndarray):
             # Ensure array, check sizes, etc.
             va = self._prep_append(col, v)
+            # Re-access
+            u = self[col]
             # Check for simple case
             if u.ndim == 1:
                 # Simple append
@@ -9086,9 +9088,17 @@ class DataKit(BaseData):
         ndv = va.ndim
         # Check
         if ndv + 1 != ndu:
-            raise IndexError(
-                f"Cannt append {ndv}-dimensional data to "
-                f"{ndu}-dimensional array in '{col}'")
+            # Pre-set empty arrays to correct *ndim*
+            if u.size == 0:
+                # Get shape from *va* but append a 0
+                ushape = va.shape + (0,)
+                # Initialize
+                u = np.zeros(ushape, dtype=va.dtype)
+                self[col] = u
+            else:
+                raise IndexError(
+                    f"Cannot append {ndv}-dimensional data to "
+                    f"{ndu}-dimensional array in '{col}'")
         # Check other dimensions
         for k in range(ndv):
             muk = u.shape[k]

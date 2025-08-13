@@ -149,6 +149,51 @@ class DataExchanger(DataKit):
             for col in self.get_datacols():
                 self[col][:, j] = dbj[col]
 
+    def read_legacy_triqfm(self):
+        r"""Read a legacy TriqFM DataBook if appropriate
+
+        :Call:
+            >>> db.read_legacy_triqfm()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Get list of patches
+        patches = self.cntl.opts.get_DataBookOpt(self.comp, "Patches")
+        # Get current size
+        n = self["CA"].size
+        # Get key data columns
+        ycols = self.cntl.opts.get_DataBookCols(self.comp)
+        # Loop through patches
+        for patch in patches:
+            # Check if data already present
+            if self[f"{patch}.CA"].size:
+                continue
+            # Name of data file
+            fcsv = f"triqfm_{self.comp}_{patch}.csv"
+            fabs = os.path.join(self.rootdir, "triqfm", fcsv)
+            # Check for it
+            if not os.path.isfile(fabs):
+                continue
+            # Read it
+            dbj = DataKit(fabs)
+            # Find matches
+            ia, ib = self.xmatch(dbj)
+            # Exit if no matches
+            if ia.size == 0:
+                continue
+            # Loop through data cols
+            for ycol in ycols:
+                # Full column name
+                col = f"{patch}.{ycol}"
+                # Initialize
+                self[col] = np.full(n, np.nan)
+                # Fill in matches
+                if ycol in dbj:
+                    self[col][ia] = dbj[ycol][ib]
+
   # *** FILE MANAGEMENT ***
    # --- File names --
     def get_filename(self) -> str:
@@ -356,14 +401,33 @@ class DataExchanger(DataKit):
                 List of data columns
         :Versions:
             * 2025-08-05 ``@ddalle``: v1.0
+            * 2025-08-13 ``@ddalle``: v1.1; update for TriqFM
         """
         # Initialize output
         cols = []
+        # Process main columns
+        self._get_datacols(cols)
+        # Check for special types
+        if self.comptype.lower() == "triqfm":
+            # Get list of patches
+            patches = self.cntl.opts.get_DataBookOpt(self.comp, "Patches")
+            # Loop through patches
+            for patch in patches:
+                self._get_datacols(cols, patch)
+        # Output
+        return cols
+
+    def _get_datacols(self, cols: list, prefix: str = ''):
         # Run matrix controller options
         opts = self.cntl.opts
         # Get key data columns
         ycols = opts.get_DataBookCols(self.comp)
-        cols.extend(ycols)
+        # Process main (mean value) columns
+        for ycol in ycols:
+            # Full column name
+            fullcol = ycol if (not prefix) else f"{prefix}.{ycol}"
+            # Add it
+            cols.append(fullcol)
         # Add statistics columns if anny
         for ycol in ycols:
             # Get statistics columns
@@ -374,9 +438,10 @@ class DataExchanger(DataKit):
                 if suffix == 'mu':
                     continue
                 # Full column name
-                cols.append(f"{ycol}_{suffix}")
-        # Output
-        return cols
+                maincol = f"{ycol}_{suffix}"
+                fullcol = maincol if (not prefix) else f"{prefix}.{maincol}"
+                # Add to list
+                cols.append(fullcol)
 
   # *** FILES ***
    # --- Folders ---
