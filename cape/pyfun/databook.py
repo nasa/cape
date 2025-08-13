@@ -39,15 +39,13 @@ command-line calls.
         $ pyfun --report
 
 The available components mirror those described on the template data
-book modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineload`, and
+book modules, :mod:`cape.cfdx.databook`, :mod:`cape.cfdx.lineload`, and
 :mod:`cape.cfdx.pointsensor`.  However, some data book types may not be
 implemented for all CFD solvers.
 
 :See Also:
     * :mod:`cape.cfdx.dataBook`
-    * :mod:`cape.cfdx.lineload`
     * :mod:`cape.cfdx.pointsensor`
-    * :mod:`cape.pyfun.lineload`
     * :mod:`cape.options.databookopts`
 """
 
@@ -61,7 +59,6 @@ import numpy as np
 
 # Local imports
 from . import casecntl
-from . import lineload
 from . import pointsensor
 from . import pltfile
 from ..cfdx import casedata
@@ -1313,29 +1310,6 @@ class DataBook(databook.DataBook):
     def _TargetDataBook(self, targ):
         self.Targets[targ] = TargetDataBook(
             targ, self.x, self.opts, self.RootDir)
-
-    # Local line load data book read
-    def _LineLoadDataBook(self, comp, conf=None, targ=None):
-        r"""Version-specific line load reader
-
-        :Versions:
-            * 2017-04-18 ``@ddalle``: v1.0
-        """
-        # Check for target
-        if targ is None:
-            self.LineLoads[comp] = lineload.LineLoadDataBook(
-                comp, self.cntl,
-                conf=conf, RootDir=self.RootDir, targ=self.targ)
-        else:
-            # Read as a specified target.
-            ttl = '%s\\%s' % (targ, comp)
-            # Get the keys
-            topts = self.opts.get_TargetDataBookByName(targ)
-            keys = topts.get("Keys", self.x.cols)
-            # Read the file.
-            self.LineLoads[ttl] = lineload.LineLoadDataBook(
-                comp, self.cntl, keys=keys,
-                conf=conf, RootDir=self.RootDir, targ=targ)
 
     # Read TriqPoint components
     def ReadTriqPoint(self, comp, check=False, lock=False, **kw):
