@@ -63,6 +63,7 @@ from .caseutils import run_rootdir
 from .cntlbase import CntlBase
 from .ll import CaseLineLoad
 from .logger import CaseLogger
+from .triqfm import CaseTriqFM
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
 from .options.funcopts import UserFuncOpts
@@ -269,6 +270,7 @@ class CaseRunner(CaseRunnerBase):
     _dex_cls = {
         "fm": CaseFM,
         "lineload": CaseLineLoad,
+        "triqfm": CaseTriqFM,
     }
 
    # --- __dunder__ ---
