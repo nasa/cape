@@ -234,6 +234,7 @@ class CaseRunner(CaseRunnerBase):
         "_n_iter_surf",
         "_n_orders",
         "_n_stats_surf",
+        "_triq_file",
     )
 
     #: :class:`int`
@@ -2421,12 +2422,15 @@ class CaseRunner(CaseRunnerBase):
         mtch = self.match_surf_file()
         # Get iteration thereof
         n = self.infer_file_niter(mtch)
-        # Cache it
-        self._n_iter_surf = n
         # Get name of ``.triq`` file
         ftriq = self.genr8_triq_filename(mtch, n)
+        # Cache it
+        self._n_iter_surf = n
+        self._triq_file = ftriq
         # Check if file exists
         if not os.path.isfile(ftriq):
+            # Log this action
+            self.log_verbose(f"Writing surface {mtch.group()} -> {ftriq}")
             # Write triq file from surface data
             self.write_triq(mtch.group(), ftriq)
         # Return file name and status
@@ -3087,9 +3091,38 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-08-12 ``@ddalle``: v1.0
         """
+        return self._get_dex_iter_surf(comp)
+
+    def get_dex_iter_triqfm(self, comp: str) -> int:
+        r"""Get number of iterations for ``"TriqFM"`` comp
+
+        :Call:
+            >>> n = runner.get_dex_iter_triqfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        return self._get_dex_iter_surf(comp)
+
+    def _get_dex_iter_surf(self, comp: str) -> int:
         # Check cache .. from previous call of prepare_triq()
         n = self._n_iter_surf
-        n = n if (n) else self.get_restart_iter()
+        # Usit if appropriate
+        if n is not None:
+            return n
+        # Search for data file
+        mtch = self.match_surf_file()
+        # Get iteration thereof
+        n = self.infer_file_niter(mtch)
+        # Save it
+        self._n_iter_surf = n
         # Output
         return n
 
@@ -3240,7 +3273,7 @@ class CaseRunner(CaseRunnerBase):
         # Enter working folder
         os.chdir(self.get_working_folder())
         # Get name of ``.triq`` file
-        ftriq, n = self.prepare_triq()
+        ftriq, _ = self.prepare_triq()
         # Section type
         sec = self.get_dex_opt(comp, "SectionType")
         # Get name of expected output file
@@ -3259,6 +3292,44 @@ class CaseRunner(CaseRunnerBase):
         self.write_triload_input(comp, ftriq)
         # Run ``triloadCmd``
         self.run_triload(f"triload.{comp}.i", f"triload.{comp}.o")
+
+   # --- TriqFM ---
+    @run_rootdir
+    def prep_dex_triqfm(self, comp: str):
+        r"""Prepare surface ``.triq`` file for TriqFM processing
+
+        :Call:
+            >>> db = runner.prep_dex_triqfm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get name of ``.triq`` file and create it if needed
+        self.prepare_triq()
+
+    # Create tuple of TriqFM dex args after to *comp*
+    def get_dex_args_post_triqfm(self) -> tuple:
+        r"""Get list of args after *comp* in :class:`CaseTriqFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_triqfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one string, project base root name
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Use name of TriqFM file
+        return (self._triq_file,)
 
    # --- Triload ---
     def write_triload_input(self, comp: str, ftriq: str):
