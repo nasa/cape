@@ -2517,18 +2517,18 @@ class CaseRunner(CaseRunnerBase):
 
   # *** DATABOOK ***
    # --- Sampling ---
-    def sample_dex(self, comp: str) -> dict:
+    def sample_dex(self, comp: str) -> DataKit:
         r"""Sample a DataBook component (e.g. to a specific iteration)
 
         :Call:
-            >>> d = runner.sample_dex(comp)
+            >>> db = runner.sample_dex(comp)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *comp*: :class:`str`
                 Name of component to read and sample
         :Outputs:
-            *d*: :class:`dict`
+            *db*: :class:`DataKit`
                 Sampled DataBook component or raw data
         :Versions:
             * 2025-08-04 ``@ddalle``: v1.0
@@ -2555,18 +2555,18 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return db
 
-    def sample_dex_fm(self, comp: str) -> dict:
+    def sample_dex_fm(self, comp: str) -> DataKit:
         r"""Sample a force & moment iterative history
 
         :Call:
-            >>> d = runner.sample_dex_fm(comp)
+            >>> db = runner.sample_dex_fm(comp)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *comp*: :class:`str`
                 Name of component to read and sample
         :Outputs:
-            *d*: :class:`dict`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Sampled DataBook component or raw data
         :Versions:
             * 2025-07-29 ``@ddalle``: v1.0
@@ -2584,16 +2584,19 @@ class CaseRunner(CaseRunnerBase):
         for col in list(s.keys()):
             if col.endswith("_n"):
                 s.pop(col)
+        # Convert to DataKit
+        db = DataKit()
+        db.link_data(s)
         # Output
-        return s
+        return db
 
     def _sample_n_orders(self, comp: str, db: dict):
         # Check if unncessary
         if "nOrders" in db:
             return
         # Check if present
-        if self._check_dex_ficol(comp, "nOrders"):
-            db["nOrders"] = self.get_n_orders()
+        if self._check_dex_fcol(comp, "nOrders"):
+            db.save_col("nOrders", self.get_n_orders())
 
     def _sample_n_iter(self, comp: str, db: dict):
         # Check if necessary
@@ -2601,7 +2604,7 @@ class CaseRunner(CaseRunnerBase):
             return
         # Check if requested
         if self._check_dex_icol(comp, "nIter"):
-            db["nIter"] = self.get_dex_iter(comp)
+            db.save_col("nIter", self.get_dex_iter(comp))
 
     def _sample_n_stats(self, comp: str, db: dict):
         # Check if necessary
@@ -2609,7 +2612,7 @@ class CaseRunner(CaseRunnerBase):
             return
         # Check if requested
         if self._check_dex_icol(comp, "nStats"):
-            db["nStats"] = self.get_dex_nstats(comp)
+            db.save_col("nStats", self.get_dex_nstats(comp))
 
     def _sample_xmrp(self, comp: str, db: dict):
         # Check if necessary
@@ -2620,12 +2623,12 @@ class CaseRunner(CaseRunnerBase):
             # Get *cntl*
             cntl = self.read_cntl()
             # Get *CompID* for this component
-            compid = self.get_dex_opt("CompID")
+            compid = self.get_dex_opt(comp, "CompID")
             compid = _listify(compid)[0]
             # Get *MRP*
             mrp = cntl.opts.get_RefPoint(compid)
             # Return first coord
-            db["XMRP"] = mrp[0]
+            db.save_col("XMRP", mrp[0])
 
     def _sample_ymrp(self, comp: str, db: dict):
         # Check if necessary
@@ -2636,12 +2639,12 @@ class CaseRunner(CaseRunnerBase):
             # Get *cntl*
             cntl = self.read_cntl()
             # Get *CompID* for this component
-            compid = self.get_dex_opt("CompID")
+            compid = self.get_dex_opt(comp, "CompID")
             compid = _listify(compid)[0]
             # Get *MRP*
             mrp = cntl.opts.get_RefPoint(compid)
-            # Return first coord
-            db["YMRP"] = mrp[1]
+            # Return second coord
+            db.save_col("YMRP", mrp[1])
 
     def _sample_zmrp(self, comp: str, db: dict):
         # Check if necessary
@@ -2652,12 +2655,12 @@ class CaseRunner(CaseRunnerBase):
             # Get *cntl*
             cntl = self.read_cntl()
             # Get *CompID* for this component
-            compid = self.get_dex_opt("CompID")
+            compid = self.get_dex_opt(comp, "CompID")
             compid = _listify(compid)[0]
             # Get *MRP*
             mrp = cntl.opts.get_RefPoint(compid)
-            # Return first coord
-            db["ZMRP"] = mrp[2]
+            # Return third coord
+            db.save_col("ZMRP", mrp[2])
 
     def _check_dex_fcol(self, comp: str, col: str) -> bool:
         # Read *cntl* instance
