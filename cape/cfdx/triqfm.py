@@ -29,6 +29,7 @@ class CaseTriqFM(DataKit):
    # --- Config ---
     __slots__ = (
         "cntl",
+        "cols",
         "comp",
         "compmap",
         "ftriq",
@@ -41,6 +42,8 @@ class CaseTriqFM(DataKit):
     def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
         # Save the run matrix controller
         self.cntl = cntl
+        # List of columns
+        self.cols = []
         # Save the component name
         self.comp = comp
         # Save the name of the TriQ file
@@ -136,7 +139,7 @@ class CaseTriqFM(DataKit):
         fcfg = opts.get_DataBookOpt(self.comp, "ConfigFile")
         # Absolutize as necessary
         ftri = self.cntl.abspath(ftri)
-        fcfg = self.cntl.abspath(fcfg)
+        fcfg = fcfg if fcfg is None else self.cntl.abspath(fcfg)
         # Read
         if os.path.isfile(ftri):
             self.tri = Tri(ftri, c=fcfg)
@@ -181,6 +184,10 @@ class CaseTriqFM(DataKit):
             "RelProjTol": opts.get_DataBookOpt(self.comp, "RelProjTol"),
             "compID": opts.get_DataBookOpt(self.comp, "ConfigCompID"),
         }
+        # Pop empty options
+        for k, v in dict(kw).items():
+            if v is None:
+                kw.pop(k)
         # Map the component IDs
         self.compmap = self.triq.MapTriCompID(self.tri, **kw)
 

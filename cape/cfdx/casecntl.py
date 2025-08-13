@@ -2572,6 +2572,7 @@ class CaseRunner(CaseRunnerBase):
         return self._n_orders
 
    # --- Readers ---
+    @run_rootdir
     def read_resid(self, f: bool = False, meta: bool = False) -> CaseResid:
         r"""Read the current residual history
 
