@@ -166,6 +166,8 @@ class DataKit(BaseData):
             File name; extension is used to guess data format
         *db*: :class:`DataKit`
             DataKit from which to link data and defns
+        *cdb*: {``None``} | :class:`str`
+            Explicit file name for :class:`CapeFile` read
         *csv*: {``None``} | :class:`str`
             Explicit file name for :class:`CSVFile` read
         *textdata*: {``None``} | :class:`str`
@@ -181,9 +183,6 @@ class DataKit(BaseData):
     :Outputs:
         *db*: :class:`DataKit`
             Generic database
-    :Versions:
-        * 2019-12-04 ``@ddalle``: v1.0
-        * 2020-02-19 ``@ddalle``: v1.1; was ``DBResponseNull``
     """
   # *** CLASS ATTRIBUTES ***
    # --- Options ---
@@ -258,7 +257,7 @@ class DataKit(BaseData):
 
   # *** DUNDER ***
     # Initialization method
-    def __init__(self, fname=None, **kw):
+    def __init__(self, fname: Optional[str] = None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -296,105 +295,22 @@ class DataKit(BaseData):
         self.seam_cols = {}
         self.seam_figs = {}
         self.seam_kwargs = {}
-
         # Process keyword options
         self.opts = self.process_kw(_warnmode=0, **kw)
         # Create a mapped copy for below
         kw = kwutils.map_kw(self._optscls._optmap, **kw)
-
-        # Check for null inputs
-        if (fname is None) and (not kw):
-            return
-
         # Check for *db* option
-        db = kw.get("db", fname)
-
-        # Get file name extension
-        if typeutils.isstr(fname):
-            # Get extension
-            ext = fname.split(".")[-1]
-        elif isinstance(db, DataKit):
-            # Link data from another datakit
+        db = kw.pop("db", None)
+        # Transfer *fname* -> *db* if appropriate
+        db = fname if isinstance(fname, DataKit) else db
+        fname = None if isinstance(fname, DataKit) else fname
+        # Link data
+        if isinstance(db, DataKit):
             self.link_db(db)
-            # Stop
-            return
-        elif fname is not None:
-            # Too confusing
-            raise TypeError("Non-keyword input must be ``None`` or a string")
-        else:
-            # No file extension
-            ext = None
-
-        # Initialize file name handles for each type
-        fcdb = None
-        fcsv = None
-        ftsv = None
-        fcsvs = None
-        ftsvs = None
-        ftdat = None
-        fxls = None
-        fmat = None
-        # Filter *ext*
-        if ext == "csv":
-            # Guess it's a mid-level CSV file
-            fcsv = fname
-        elif ext == "cdb":
-            # Guess it's a CAPE binary file
-            fcdb = fname
-        elif ext == "tsv":
-            # Guess it's a mid-level TSV file
-            ftsv = fname
-        elif ext == "xls":
-            # Guess it's a spreadsheet
-            fxls = fname
-        elif ext == "xlsx":
-            # Guess it's a spreadsheet
-            fxls = fname
-        elif ext == "mat":
-            # Guess it's a MATLAB file
-            fmat = fname
-        elif ext is not None:
-            # Unable to guess
-            raise ValueError(
-                "Unable to guess file type of file name '%s'" % fname)
-        # Last-check file names
-        fcdb = kw.pop("cdb", fcdb)
-        fcsv = kw.pop("csv", fcsv)
-        ftsv = kw.pop("tsv", ftsv)
-        fxls = kw.pop("xls", fxls)
-        fmat = kw.pop("mat", fmat)
-        fcsvs = kw.pop("simplecsv", fcsvs)
-        ftsvs = kw.pop("simpletsv", ftsvs)
-        ftdat = kw.pop("textdata", ftdat)
-
-        # Read
-        if fcdb is not None:
-            # Read CDB file
-            self.read_cdb(fcdb, **kw)
-        elif fcsv is not None:
-            # Read CSV file
-            self.read_csv(fcsv, **kw)
-        elif ftsv is not None:
-            # Read TSV file
-            self.read_tsv(ftsv, **kw)
-        elif fxls is not None:
-            # Read XLS file
-            self.read_xls(fxls, **kw)
-        elif fcsvs is not None:
-            # Read simple CSV file
-            self.read_csvsimple(fcsvs, **kw)
-        elif ftsvs is not None:
-            # Read simple TSV file
-            self.read_tsvsimple(ftsvs, **kw)
-        elif ftdat is not None:
-            # Read generic textual data file
-            self.read_textdata(ftdat, **kw)
-        elif fmat is not None:
-            # Read MATLAB file
-            self.read_mat(fmat, **kw)
-        else:
-            # If reaching this point, process values
-            self.process_kw_values()
+        # Read file name
+        self.read(fname, **kw)
+        # Process keyword-argument values
+        self.process_kw_values()
 
   # *** COPY ***
     # Copy
@@ -846,6 +762,98 @@ class DataKit(BaseData):
         defn["Dimension"] = ndim + 1
 
   # *** I/O ***
+   # --- Driver ---
+    def read(self, fname: Optional[str] = None, **kw):
+        r"""Read file name based on extension of keyword argument
+
+        :Call:
+            >>> db.read(fname=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data interface
+            *fname*: {``None``} | :class:`str`
+                File name; extension is used to guess data format
+            *cdb*: {``None``} | :class:`str`
+                Explicit file name for :class:`CapeFile` read
+            *csv*: {``None``} | :class:`str`
+                Explicit file name for :class:`CSVFile` read
+            *textdata*: {``None``} | :class:`str`
+                Explicit file name for :class:`TextDataFile`
+            *simplecsv*: {``None``} | :class:`str`
+                Explicit file name for :class:`CSVSimple`
+            *simpletsv*: {``None``} | :class:`str`
+                Explicit file name for :class:`TSVSimple`
+            *xls*, *xlsx*: {``None``} | :class:`str`
+                File name for :class:`XLSFile`
+            *mat*: {``None``} | :class:`str`
+                File name for :class:`MATFile`
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0; was in __init__()
+        """
+        # Check type
+        if not isinstance(fname, str) and fname is not None:
+            typnam = type(fname).__name__
+            raise TypeError(
+                f"Got type '{typnam}' for file name; expected 'str'")
+        # Get extension
+        ext = '' if fname is None else fname.split(".")[-1]
+        # Initialize file name handles for each type
+        fcdb = None
+        fcsv = None
+        ftsv = None
+        fcsvs = None
+        ftsvs = None
+        ftdat = None
+        fxls = None
+        fmat = None
+        # Filter *ext*
+        fcdb = fname if (ext == "cdb") else None
+        fcsv = fname if (ext == "csv") else None
+        fmat = fname if (ext == "mat") else None
+        ftsv = fname if (ext == "tsv") else None
+        fxls = fname if (ext in ("xls", "xlsx")) else None
+        # Check for undefined file
+        if (
+                (fname is not None) and
+                (ext not in ("cdb", "csv", "mat", "tsv", "xls", "xlsx"))
+        ):
+            raise ValueError(
+                f"Unable to guess file type for '{os.path.basename(fname)}'")
+        # Last-check file names
+        fcdb = kw.pop("cdb", fcdb)
+        fcsv = kw.pop("csv", fcsv)
+        ftsv = kw.pop("tsv", ftsv)
+        fxls = kw.pop("xls", fxls)
+        fmat = kw.pop("mat", fmat)
+        fcsvs = kw.pop("simplecsv", fcsvs)
+        ftsvs = kw.pop("simpletsv", ftsvs)
+        ftdat = kw.pop("textdata", ftdat)
+        # Read
+        if fcdb is not None:
+            # Read CDB file
+            self.read_cdb(fcdb, **kw)
+        elif fcsv is not None:
+            # Read CSV file
+            self.read_csv(fcsv, **kw)
+        elif ftsv is not None:
+            # Read TSV file
+            self.read_tsv(ftsv, **kw)
+        elif fxls is not None:
+            # Read XLS file
+            self.read_xls(fxls, **kw)
+        elif fcsvs is not None:
+            # Read simple CSV file
+            self.read_csvsimple(fcsvs, **kw)
+        elif ftsvs is not None:
+            # Read simple TSV file
+            self.read_tsvsimple(ftsvs, **kw)
+        elif ftdat is not None:
+            # Read generic textual data file
+            self.read_textdata(ftdat, **kw)
+        elif fmat is not None:
+            # Read MATLAB file
+            self.read_mat(fmat, **kw)
+
    # --- CSV ---
     # Read CSV file
     def read_csv(self, fname, **kw):
