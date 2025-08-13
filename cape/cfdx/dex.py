@@ -149,6 +149,51 @@ class DataExchanger(DataKit):
             for col in self.get_datacols():
                 self[col][:, j] = dbj[col]
 
+    def read_legacy_triqfm(self):
+        r"""Read a legacy TriqFM DataBook if appropriate
+
+        :Call:
+            >>> db.read_legacy_triqfm()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Get list of patches
+        patches = self.cntl.opts.get_DataBookOpt(self.comp, "Patches")
+        # Get current size
+        n = self["CA"].size
+        # Get key data columns
+        ycols = self.cntl.opts.get_DataBookCols(self.comp)
+        # Loop through patches
+        for patch in patches:
+            # Check if data already present
+            if self[f"{patch}.CA"].size:
+                continue
+            # Name of data file
+            fcsv = f"triqfm_{self.comp}_{patch}.csv"
+            fabs = os.path.join(self.rootdir, "triqfm", fcsv)
+            # Check for it
+            if not os.path.isfile(fabs):
+                continue
+            # Read it
+            dbj = DataKit(fabs)
+            # Find matches
+            ia, ib = self.xmatch(dbj)
+            # Exit if no matches
+            if ia.size == 0:
+                continue
+            # Loop through data cols
+            for ycol in ycols:
+                # Full column name
+                col = f"{patch}.{ycol}"
+                # Initialize
+                self[col] = np.full(n, np.nan)
+                # Fill in matches
+                if ycol in dbj:
+                    self[col][ia] = dbj[ycol][ib]
+
   # *** FILE MANAGEMENT ***
    # --- File names --
     def get_filename(self) -> str:
