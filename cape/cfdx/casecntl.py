@@ -3319,17 +3319,28 @@ class CaseRunner(CaseRunnerBase):
 
         :Call:
             >>> args = runner.get_dex_args_post_triqfm()
+            >>> ftriq, cntl, i = runner.get_dex_args_post_triqfm()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
         :Outputs:
-            *args*: :class:`tuple`\ [:class:`str`]
-                Tuple of one string, project base root name
+            *args*: :class:`tuple`
+                Tuple of args
+            *ftriq*: :class:`str`
+                Name of ``.triq`` file with surface solution data
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Run matrix controller with definitions for dex comp
+            *i*: :class:`int`
+                Index of this case in run matrix
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
         """
+        # Read run matrix controller
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
         # Use name of TriqFM file
-        return (self._triq_file,)
+        return (self._triq_file, cntl, i)
 
    # --- Triload ---
     def write_triload_input(self, comp: str, ftriq: str):
