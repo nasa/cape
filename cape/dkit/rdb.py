@@ -9165,7 +9165,7 @@ class DataKit(BaseData):
             # Get value
             v = self.get_all_values(col)
             # Get size for this column
-            nj = self.get_cols_by_tag(col)
+            nj = self.get_colsize(col)
             # Check length
             if nj != n0:
                 continue
