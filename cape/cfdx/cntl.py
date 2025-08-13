@@ -3446,6 +3446,8 @@ class Cntl(CntlBase):
         if n:
             # Create folders
             db.mkdirs()
+            # Sort the databook (by all *xcols*)
+            db.sort()
             # Write file
             db.write(merge=qmerge, backup=True)
             print(f"Added or updated {n} entries")

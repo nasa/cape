@@ -9147,6 +9147,7 @@ class DataKit(BaseData):
         :Versions:
             * 2021-09-17 ``@ddalle``: v1.0
             * 2025-07-24 ``@ddalle``: v1.1; use *db.xcols* as default
+            * 2025-08-13 ``@ddalle``: v1.2; debug 2D arrays
         """
         # Default columns
         cols = cols if cols else self.xcols
@@ -9163,8 +9164,10 @@ class DataKit(BaseData):
         for col in self.cols:
             # Get value
             v = self.get_all_values(col)
+            # Get size for this column
+            nj = self.get_cols_by_tag(col)
             # Check length
-            if len(v) != n0:
+            if nj != n0:
                 continue
             # Check type
             if isinstance(v, list):
@@ -9176,8 +9179,8 @@ class DataKit(BaseData):
                     # No sortable data
                     continue
                 else:
-                    # Sort on first axis
-                    v = v[I]
+                    # Sort on last axis
+                    v = v[..., I]
             # Save sorted values
             self[col] = v
 
