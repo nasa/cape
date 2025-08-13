@@ -68,10 +68,10 @@ class DataExchanger(DataKit):
         #: :class:`str`
         #: Name of *primary* file, may be only metadata
         self.fname = self.get_filename()
-        # Read data as requested
-        self.read()
         # Initialize any missing columns
         self.init_empty()
+        # Read data as requested
+        self.read()
 
   # *** I/O ***
    # --- Read ---
@@ -86,7 +86,7 @@ class DataExchanger(DataKit):
         absfile = os.path.join(self.rootdir, self.fname)
         # Read the file
         if os.path.isfile(absfile):
-            DataKit.__init__(self, absfile)
+            DataKit.read(self, absfile)
 
    # --- Legacy read ---
     def read_legacy(self):

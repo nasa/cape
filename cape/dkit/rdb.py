@@ -308,7 +308,7 @@ class DataKit(BaseData):
         if isinstance(db, DataKit):
             self.link_db(db)
         # Read file name
-        self.read(fname, **kw)
+        self.read_dkit(fname, **kw)
         # Process keyword-argument values
         self.process_kw_values()
 
@@ -764,6 +764,35 @@ class DataKit(BaseData):
   # *** I/O ***
    # --- Driver ---
     def read(self, fname: Optional[str] = None, **kw):
+        r"""Read file name based on extension of keyword argument
+
+        :Call:
+            >>> db.read_dkit(fname=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data interface
+            *fname*: {``None``} | :class:`str`
+                File name; extension is used to guess data format
+            *cdb*: {``None``} | :class:`str`
+                Explicit file name for :class:`CapeFile` read
+            *csv*: {``None``} | :class:`str`
+                Explicit file name for :class:`CSVFile` read
+            *textdata*: {``None``} | :class:`str`
+                Explicit file name for :class:`TextDataFile`
+            *simplecsv*: {``None``} | :class:`str`
+                Explicit file name for :class:`CSVSimple`
+            *simpletsv*: {``None``} | :class:`str`
+                Explicit file name for :class:`TSVSimple`
+            *xls*, *xlsx*: {``None``} | :class:`str`
+                File name for :class:`XLSFile`
+            *mat*: {``None``} | :class:`str`
+                File name for :class:`MATFile`
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0; was in __init__()
+        """
+        self.read_dkit(fname, **kw)
+
+    def read_dkit(self, fname: Optional[str] = None, **kw):
         r"""Read file name based on extension of keyword argument
 
         :Call:
