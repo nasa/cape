@@ -231,6 +231,9 @@ class CaseRunner(CaseRunnerBase):
         "workers",
         "xi",
         "_mtime_case_json",
+        "_n_iter_surf",
+        "_n_orders",
+        "_n_stats_surf",
     )
 
     #: :class:`int`
@@ -325,10 +328,14 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`int`
         #: Return code of last system command
         self.returncode = IERR_OK
-        self._mtime_case_json = 0.0
         #: :class:`list`\ [:class:`int`]
         #: List of concurrent worker Process IDs
         self.workers = []
+        # Set private slots
+        self._mtime_case_json = 0.0
+        self._n_iter_surf = None
+        self._n_orders = None
+        self._n_stats_surf = None
         # Other inits
         self.init_post()
 
@@ -2263,6 +2270,8 @@ class CaseRunner(CaseRunnerBase):
         mtch = self.match_surf_file()
         # Infer iteration number
         n = self.infer_file_niter(mtch)
+        # Cache it
+        self._n_iter_surf = n
         # Output
         return FileSearchStatus(mtch, n)
 
@@ -2312,6 +2321,8 @@ class CaseRunner(CaseRunnerBase):
         mtch = self.match_surf_file()
         # Get iteration thereof
         n = self.infer_file_niter(mtch)
+        # Cache it
+        self._n_iter_surf = n
         # Get name of ``.triq`` file
         ftriq = self.genr8_triq_filename(mtch, n)
         # Check if file exists
@@ -2444,10 +2455,15 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2055-08-04 ``@ddalle``: v1.0
         """
+        # Check for cache
+        n = self._n_orders
+        if n is not None:
+            return n
         # Read residual history
         h = self.read_resid(f, meta=True)
         # Return the convergence depth
-        return h.GetNOrders(nstats, nLast=nlast)
+        self._n_orders = h.GetNOrders(nstats, nLast=nlast)
+        return self._n_orders
 
    # --- Readers ---
     def read_resid(self, f: bool = False, meta: bool = False) -> CaseResid:
@@ -2516,11 +2532,10 @@ class CaseRunner(CaseRunnerBase):
                 Sampled DataBook component or raw data
         :Versions:
             * 2025-08-04 ``@ddalle``: v1.0
+            * 2025-08-12 ``@ddalle``: v1.1; sample *nStats*, *XMRP*, etc
         """
         # Get component type
         typ = self.get_dex_type(comp)
-        # Get run matrix instance
-        cntl = self.read_cntl()
         # Check for custom sampling function
         samplefunc = getattr(self, f"sample_dex_{typ}", None)
         # Check if found
@@ -2531,14 +2546,12 @@ class CaseRunner(CaseRunnerBase):
             # Call sample
             db = samplefunc(comp)
         # Check special cols
-        fcols = cntl.opts.get_DataBookFloatCols(comp)
-        icols = cntl.opts.get_DataBookIntCols(comp)
-        # Add *nOrders*
-        if "nOrders" in fcols:
-            db["nOrders"] = self.get_n_orders()
-        # Add *nIter*
-        if "nIter" in icols:
-            db["nIter"] = self.get_iter()
+        self._sample_n_iter(comp, db)
+        self._sample_n_orders(comp, db)
+        self._sample_n_stats(comp, db)
+        self._sample_xmrp(comp, db)
+        self._sample_ymrp(comp, db)
+        self._sample_zmrp(comp, db)
         # Output
         return db
 
@@ -2573,6 +2586,90 @@ class CaseRunner(CaseRunnerBase):
                 s.pop(col)
         # Output
         return s
+
+    def _sample_n_orders(self, comp: str, db: dict):
+        # Check if unncessary
+        if "nOrders" in db:
+            return
+        # Check if present
+        if self._check_dex_ficol(comp, "nOrders"):
+            db["nOrders"] = self.get_n_orders()
+
+    def _sample_n_iter(self, comp: str, db: dict):
+        # Check if necessary
+        if "nIter" in db:
+            return
+        # Check if requested
+        if self._check_dex_icol(comp, "nIter"):
+            db["nIter"] = self.get_dex_iter(comp)
+
+    def _sample_n_stats(self, comp: str, db: dict):
+        # Check if necessary
+        if "nStats" in db:
+            return
+        # Check if requested
+        if self._check_dex_icol(comp, "nStats"):
+            db["nStats"] = self.get_dex_nstats(comp)
+
+    def _sample_xmrp(self, comp: str, db: dict):
+        # Check if necessary
+        if "XMRP" in db:
+            return
+        # Check if requested
+        if self._check_dex_fcol(comp, "XMRP"):
+            # Get *cntl*
+            cntl = self.read_cntl()
+            # Get *CompID* for this component
+            compid = self.get_dex_opt("CompID")
+            compid = _listify(compid)[0]
+            # Get *MRP*
+            mrp = cntl.opts.get_RefPoint(compid)
+            # Return first coord
+            db["XMRP"] = mrp[0]
+
+    def _sample_ymrp(self, comp: str, db: dict):
+        # Check if necessary
+        if "YMRP" in db:
+            return
+        # Check if requested
+        if self._check_dex_fcol(comp, "YMRP"):
+            # Get *cntl*
+            cntl = self.read_cntl()
+            # Get *CompID* for this component
+            compid = self.get_dex_opt("CompID")
+            compid = _listify(compid)[0]
+            # Get *MRP*
+            mrp = cntl.opts.get_RefPoint(compid)
+            # Return first coord
+            db["YMRP"] = mrp[1]
+
+    def _sample_zmrp(self, comp: str, db: dict):
+        # Check if necessary
+        if "ZMRP" in db:
+            return
+        # Check if requested
+        if self._check_dex_fcol(comp, "ZMRP"):
+            # Get *cntl*
+            cntl = self.read_cntl()
+            # Get *CompID* for this component
+            compid = self.get_dex_opt("CompID")
+            compid = _listify(compid)[0]
+            # Get *MRP*
+            mrp = cntl.opts.get_RefPoint(compid)
+            # Return first coord
+            db["ZMRP"] = mrp[2]
+
+    def _check_dex_fcol(self, comp: str, col: str) -> bool:
+        # Read *cntl* instance
+        cntl = self.read_cntl()
+        # Get list of floating-point columns
+        return col in cntl.opts.get_DataBookFloatCols(comp)
+
+    def _check_dex_icol(self, comp: str, col: str) -> bool:
+        # Read *cntl* instance
+        cntl = self.read_cntl()
+        # Check list of integer columns
+        return col in cntl.opts.get_DataBookIntCols(comp)
 
    # --- Readers ---
     # Read raw data for DataBook component
@@ -2826,6 +2923,8 @@ class CaseRunner(CaseRunnerBase):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
         :Outputs:
             *n*: :class:`int`
                 Iteration count
@@ -2841,12 +2940,12 @@ class CaseRunner(CaseRunnerBase):
         # Call it
         if callable(func):
             # Call specialized function
-            return func()
+            return func(comp)
         else:
             # Fall back to *restart* iteration
             return self.get_restart_iter()
 
-    def get_dex_iter_fm(self) -> int:
+    def get_dex_iter_fm(self, comp: str) -> int:
         r"""Get number of iterations available for ``"FM"`` comps
 
         :Call:
@@ -2854,14 +2953,117 @@ class CaseRunner(CaseRunnerBase):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
         :Outputs:
             *n*: :class:`int`
                 Iteration count
         :Versions:
             * 2025-08-07 ``@ddalle``: v1.0
         """
+        # Check option
+        nlast = self.get_dex_opt(comp, "NLastStats")
+        # Default to last iteration
+        n = nlast if (nlast) else self.get_iter()
         # Use last iteration
-        return self.get_iter()
+        return n
+
+    def get_dex_iter_lineload(self, comp: str) -> int:
+        r"""Get number of iterations for ``"LineLoad"`` comp
+
+        :Call:
+            >>> n = runner.get_dex_iter_lineload()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        # Check cache .. from previous call of prepare_triq()
+        n = self._n_iter_surf
+        n = n if (n) else self.get_restart_iter()
+        # Output
+        return n
+
+   # --- Window size ---
+    def get_dex_nstats(self, comp: str) -> int:
+        r"""Get iters in averaging window for a DataBook component
+
+        :Call:
+            >>> n = db.get_nstats(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Get specialized function name
+        funcname = f"get_dex_nstats_{typ}"
+        # Check for such a function
+        func = getattr(self, funcname, None)
+        # Call it
+        if callable(func):
+            # Call specialized function
+            return func(comp)
+        else:
+            # Fall back to inference from averaging/restart options
+            n = self.get_dex_iter(comp)
+            # Infer *nStats* based on iteration
+            return self.infer_tavg_nstats(n)
+
+    def get_dex_nstats_fm(self, comp: str) -> int:
+        r"""Get averaging window iters for a ``"FM"`` DataBook component
+
+        :Call:
+            >>> n = db.get_nstats(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        return self.get_dex_opt(comp, "NStats")
+
+    def get_dex_nstats_lineload(self, comp: str) -> int:
+        r"""Get window size for a ``"LineLoad"`` DataBook component
+
+        :Call:
+            >>> n = db.get_nstats(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        # Get current iteration
+        n = self.get_dex_iter(comp)
+        # Infer *nStats* based on restart/averaging settings
+        nstats = self.infer_tavg_nstats(n)
+        # Cache it
+        self._n_stats_surf = nstats
+        return nstats
 
    # --- Options ---
     # Get DataBook component type
@@ -2972,8 +3174,6 @@ class CaseRunner(CaseRunnerBase):
             * 2025-01-29 ``@ddalle``: v1.0
             * 2025-08-12 ``@ddalle``: v1.1; add *ftriq* as input
         """
-        # Get project name
-        proj = self.get_project_rootname()
         # Read control instance
         cntl = self.read_cntl()
         # Setting for output triq file

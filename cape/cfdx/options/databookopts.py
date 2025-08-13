@@ -252,6 +252,7 @@ class LineLoadDataBookOpts(DBCompOpts):
         "Cols": ["x", "CA", "CY", "CN", "CLL", "CLM", "CLN"],
         "CutPlaneNormal": "x",
         "FloatCols": ["XMRP", "YMRP", "ZMRP"],
+        "IntCols": ["nIter", "nStats"],
         "Gauge": True,
         "Momentum": False,
         "NCut": 200,
