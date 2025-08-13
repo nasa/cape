@@ -3865,17 +3865,13 @@ class Cntl(CntlBase):
         """
         # Get component option
         comp = kw.get("triqfm")
-        # Apply constraints
-        I = self.x.GetIndices(**kw)
-        # Read the data book handle
-        self.ReadDataBook(comp=[])
-        # Check if we are deleting or adding.
-        if kw.get('delete', False):
-            # Delete cases.
-            self.DataBook.DeleteTriqFM(I, comp=comp)
-        else:
-            # Read the results and update as necessary.
-            self.DataBook.UpdateTriqFM(I, comp=comp)
+        # If *comp* is ``True``, process all options
+        comp = None if comp is True else comp
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob("TriqFM", comp)
+        # Loop through them
+        for comp in comps:
+            self.update_dex_comp(comp, **kw)
 
     # Update TriqPointGroup data book
     @run_rootdir
