@@ -356,14 +356,33 @@ class DataExchanger(DataKit):
                 List of data columns
         :Versions:
             * 2025-08-05 ``@ddalle``: v1.0
+            * 2025-08-13 ``@ddalle``: v1.1; update for TriqFM
         """
         # Initialize output
         cols = []
+        # Process main columns
+        self._get_datacols(cols)
+        # Check for special types
+        if self.comptype.lower() == "triqfm":
+            # Get list of patches
+            patches = self.cntl.opts.get_DataBookOpt(self.comp, "Patches")
+            # Loop through patches
+            for patch in patches:
+                self._get_datacols(cols, patch)
+        # Output
+        return cols
+
+    def _get_datacols(self, cols: list, prefix: str = ''):
         # Run matrix controller options
         opts = self.cntl.opts
         # Get key data columns
         ycols = opts.get_DataBookCols(self.comp)
-        cols.extend(ycols)
+        # Process main (mean value) columns
+        for ycol in ycols:
+            # Full column name
+            fullcol = ycol if (not prefix) else f"{prefix}.{ycol}"
+            # Add it
+            cols.append(fullcol)
         # Add statistics columns if anny
         for ycol in ycols:
             # Get statistics columns
@@ -374,9 +393,10 @@ class DataExchanger(DataKit):
                 if suffix == 'mu':
                     continue
                 # Full column name
-                cols.append(f"{ycol}_{suffix}")
-        # Output
-        return cols
+                maincol = f"{ycol}_{suffix}"
+                fullcol = maincol if (not prefix) else f"{prefix}.{maincol}"
+                # Add to list
+                cols.append(fullcol)
 
   # *** FILES ***
    # --- Folders ---
