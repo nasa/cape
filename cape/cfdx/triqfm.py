@@ -27,18 +27,6 @@ DEG = np.pi / 180.0
 # Main class for TriqFM cases
 class CaseTriqFM(DataKit):
    # --- Config ---
-    __slots__ = (
-        "cntl",
-        "cols",
-        "comp",
-        "compmap",
-        "ftriq",
-        "i",
-        "patches",
-        "tri",
-        "triq",
-    )
-
     def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
         # Save the run matrix controller
         self.cntl = cntl
@@ -58,6 +46,9 @@ class CaseTriqFM(DataKit):
         self.triq = None
         # Analyze
         self.get_triq_forces()
+        # Process output file
+        breakpoint()
+        self.write_triq()
 
    # --- Raw data ---
     # Read the surface solution data from this case
@@ -77,7 +68,7 @@ class CaseTriqFM(DataKit):
         """
         # Check if already read
         if self.triq is not None:
-            return
+            return self.triq
         # Check if file exists
         if not os.path.isfile(self.ftriq):
             return

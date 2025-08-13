@@ -3432,7 +3432,8 @@ class Cntl(CntlBase):
             # Find indices of matches
             dbinds, _ = db.xmatch(self.x, maskt=inds)
             # Delete cases
-            n = db.delete(dbinds)
+            if dbinds.size:
+                n = db.delete(dbinds)
         else:
             # Count cases updated
             n = 0
