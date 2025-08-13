@@ -73,8 +73,6 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     # Check for a folder we can copy MIXSUR/USURP files from
     qfomo = (ffomo is not None) and os.path.isdir(ffomo)
     # Get Q/X files
-    fqi = DB.opts.get_DataBook_QIn(DB.comp)
-    fxi = DB.opts.get_DataBook_XIn(DB.comp)
     fqo = DB.opts.get_DataBook_QOut(DB.comp)
     fxo = DB.opts.get_DataBook_XOut(DB.comp)
     # If there's no mixsur file, there's nothing we can do
@@ -96,7 +94,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     # If we're in PreprocessTriq, all x/q files are out-of-date
     for f in ["grid.in", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
         # Check if file esists
-        if os.path.islink(f): os.remove(f)
+        if os.path.islink(f):
+            os.remove(f)
    # -------------------------------------
    # Determine MIXSUR output folder status
    # -------------------------------------
@@ -135,7 +134,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         # Loop through files
         for f in fmo:
             # If file exists in `lineload/` folder, delete it
-            if os.path.isfile(f): os.remove(f)
+            if os.path.isfile(f):
+                os.remove(f)
             # Link file
             fsrc = os.path.join(ffomo, f)
             os.symlink(fsrc, f)
@@ -144,7 +144,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         # Loop through files
         for f in fus:
             # If file exists in `lineload/` folder, delete it
-            if os.path.isfile(f): os.remove(f)
+            if os.path.isfile(f):
+                os.remove(f)
             # Link file
             fsrc = os.path.join(ffomo, f)
             os.symlink(fsrc, f)

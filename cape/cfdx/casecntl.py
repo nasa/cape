@@ -1302,6 +1302,106 @@ class CaseRunner(CaseRunnerBase):
         # Run function and return its exit code
         return self.callf(["triloadCmd"], i=ifile, f=ofile)
 
+    # Function to run mixsur
+    def run_mixsur_tri(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.tri`` using `mixsur` executable
+
+        :Call:
+            >>> ierr = runner.run_mixsur_tri(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Run function and use its return code
+        return self.callf(["mixsur"], i=ifile, f=ofile)
+
+    # Function to run overint
+    def run_overint_triq(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.triq`` using `overint` executable
+
+        :Call:
+            >>> ierr = runner.run_overint_triq(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Run function and use its return code
+        return self.callf(["overint"], i=ifile, f=ofile)
+
+    # Function to run usurp
+    def run_usurp_tri(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.tri`` using `usurp` executable
+
+        :Call:
+            >>> ierr = runner.run_usurp_tri(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Construct function call
+        cmdlist = ["usurp", "-v", "--watertight", "disjoin=yes"]
+        # Run function and use its return code
+        return self.callf(cmdlist, i=ifile, f=ofile)
+
+    # Function to run usurp
+    def run_usurp_triq(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.triq`` using `usurp` executable
+
+        :Call:
+            >>> ierr = runner.run_usurp_triq(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Construct function call
+        cmdlist = ["usurp", "-v", "--use-map"]
+        # Run function and use its return code
+        return self.callf(cmdlist, i=ifile, f=ofile)
+
    # --- Shell/System ---
     # Run a function
     def callf(
