@@ -25,6 +25,7 @@ class DataExchanger(DataKit):
         "comp",
         "comptype",
         "fname",
+        "name",
         "rootdir",
         "xcols",
     )
@@ -45,6 +46,9 @@ class DataExchanger(DataKit):
     def __init__(self, cntl: CntlBase, comp: str, legacy: bool = False):
         # Initialize
         DataKit.__init__(self)
+        # Get name for this component (default to *comp*, obvsly)
+        name = cntl.opts.get_DataBookOpt(comp, "Prefix")
+        self.name = comp if (name is None) else name
         #: :class:`cape.cfdx.cntl.Cntl`
         #: Run matrix controller
         self.cntl = cntl
@@ -172,7 +176,7 @@ class DataExchanger(DataKit):
             if self[f"{patch}.CA"].size:
                 continue
             # Name of data file
-            fcsv = f"triqfm_{self.comp}_{patch}.csv"
+            fcsv = f"triqfm_{self.name}_{patch}.csv"
             fabs = os.path.join(self.rootdir, "triqfm", fcsv)
             # Check for it
             if not os.path.isfile(fabs):
@@ -217,7 +221,7 @@ class DataExchanger(DataKit):
         # Get subfolder
         dirname = self.get_subdir()
         # Combine
-        return os.path.join(dirname, f"{prefix}_{self.comp}.{ext}")
+        return os.path.join(dirname, f"{prefix}_{self.name}.{ext}")
 
    # --- Prefix ---
     def get_prefix(self) -> str:
