@@ -3451,7 +3451,9 @@ class Cntl(CntlBase):
             db.sort()
             # Write file
             db.write(merge=qmerge, backup=True)
-            print(f"Added or updated {n} entries")
+            # Status update
+            act = "Removed" if qdel else "Added or updated"
+            print(f"{act} {n} entries")
 
     # Update one case of one component
     def update_dex_case(self, comp: str, i: int) -> int:
