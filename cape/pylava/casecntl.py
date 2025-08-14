@@ -193,7 +193,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check which command to generate
         if solver == "cartesian":
             # Search for a restart file
-            pat = os.path.join("restart", "Cart.data.iter.([0-9]+)")
+            pat = self.genr8_restart_regex()
             mtch = self.match_regex(pat)
             # Check for a search result
             if mtch is None:
@@ -234,6 +234,7 @@ class CaseRunner(casecntl.CaseRunner):
         return int(db.n + 0.99)
 
    # --- File manipulation ---
+    # Prepare any input files as needed
     def prepare_files(self, j: int):
         r"""Prepare files for phase *j*, LAVA-specific
 
@@ -253,6 +254,61 @@ class CaseRunner(casecntl.CaseRunner):
         self.mkdir("restart")
         self.mkdir("surface")
         self.mkdir("volume")
+        # Automatically configure restart settings
+        self.prepare_restart(j)
+
+    # Set restart option if appropriate
+    def prepare_restart(self, j: int):
+        r"""Automatically configure a case to restart if appropriate
+
+        :Call:
+            >>> runner.prepare_restart(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        # Get settings
+        rc = self.read_case_json()
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Create function name
+        funcname = f"prepare_restart_{solver}"
+        # Get function, if any
+        func = getattr(self, funcname)
+        # Call it if possible
+        if callable(func):
+            func(j)
+
+    # Set restart option for Cart
+    def prepare_restart_cartesian(self, j: int):
+        r"""Automatically configure LAVA-Cartesian for restart
+
+        :Call:
+            >>> runner.prepare_restart_cartesian(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        # Read input file
+        opts = self.read_runinputs(j)
+        # Search for a restart file
+        restartfile = self.get_restart_file()
+        # Set it
+        opts.set_opt("solver defaults", "restart.file", restartfile)
+        # Remove it if not a restart
+        if restartfile is None:
+            # Remove restart file if previously set
+            opts["sover defaults"]["restart"].pop("file")
+        # Write
+        restartfile.write()
 
     # Link best Output files
     @casecntl.run_rootdir
@@ -288,6 +344,32 @@ class CaseRunner(casecntl.CaseRunner):
                 fsrc = vgrp[fnstr][-1]
                 # Link the files
                 self.link_file(fname, fsrc)
+
+   # --- Search ---
+    def get_restart_file(self, j: Optional[int] = None) -> Optional[str]:
+        # Get search pattern
+        pat = self.genr8_restart_regex()
+        # Search
+        mtch = self.match_regex(pat)
+        # Return it if possible
+        if mtch:
+            return mtch.group()
+
+    def genr8_restart_regex(self) -> str:
+        r"""Return a regular expression that matches all restart files
+
+        :Call:
+            >>> pat = runner.genr8_restart_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Regular expression pattern
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        return os.path.join("restart", "Cart_restart.[0-9]+.hd5")
 
    # --- Input files ---
     # Read YAML inputs
