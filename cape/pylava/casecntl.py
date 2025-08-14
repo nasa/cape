@@ -16,6 +16,7 @@ import re
 from typing import Optional
 
 # Third-party modules
+import numpy as np
 
 # Local imports
 from . import cmdgen
@@ -180,6 +181,30 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2024-09-16 ``@sneuhoff``: v1.0
         """
+        # Read options
+        rc = self.read_case_json()
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Check which command to generate
+        if solver == "cartesian":
+            # Search for a restart file
+            pat = os.path.join("restart", "Cart.data.iter.([0-9]+)")
+            mtch = self.match_regex(pat)
+            # Check for a search result
+            if mtch is None:
+                return 0
+            # Infer iteration
+            n = int(mtch.group(1))
+            # Read data.iter
+            dat = self.read_data_iter(meta=False)
+            # Locate *n* in history
+            mask, = np.where(dat["nt"] == n)
+            # Check for match
+            if mask.size == 0:
+                return 0
+            # Convert to CTU
+            return int(dat["ctu"][mask[0]] + 0.99)
+        # Fallback to current iter
         return self.getx_iter()
 
     # Get current iteration
