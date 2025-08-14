@@ -7583,7 +7583,8 @@ class Triq(TriBase):
         # State handle
         Q = self.q
         # Calculate average *Cp* (first state variable)
-        Cp = np.sum(Q[T, 0], axis=1)/3
+        cp = Q[T, 0]
+        Cp = np.sum(cp, axis=1)/3
         # Forces are inward normals
         Fp = -stackcol((Cp*N[:, 0], Cp*N[:, 1], Cp*N[:, 2]))
         # Vacuum
@@ -7799,6 +7800,9 @@ class Triq(TriBase):
         C["CLLv"] = np.sum(Mv[:, 0])
         C["CLMv"] = np.sum(Mv[:, 1])
         C["CLNv"] = np.sum(Mv[:, 2])
+        # Min/max pressures
+        C["Cp_min"] = np.min(cp)
+        C["Cp_max"] = np.max(cp)
         # Output
         return C
   # >

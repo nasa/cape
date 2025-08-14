@@ -321,6 +321,7 @@ class TriqFMDataBookOpts(DBCompOpts):
         "ConfigCompID",
         "MapTri",
         "OutputFormat",
+        "OutputSurface",
         "PatchMap",
         "Patches",
         "Prefix",

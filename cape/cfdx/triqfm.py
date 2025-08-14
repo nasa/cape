@@ -372,7 +372,12 @@ class CaseTriqFM(DataKit):
         # Get component for this patch
         patchID = self.get_patch_compid(patch)
         # Calculate forces
-        fm = triq.GetTriForces(patchID, **kwfm)
+        rawfm = triq.GetTriForces(patchID, **kwfm)
+        fm = {}
+        # Limit to requested values
+        cols = opts.get_DataBookCols(self.comp)
+        for col in cols:
+            fm[col] = rawfm[col]
         # Apply transformations
         self.apply_transformations(fm)
         # Output
