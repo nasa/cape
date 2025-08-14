@@ -3424,6 +3424,8 @@ class Cntl(CntlBase):
         inds = self.x.GetIndices(**kw)
         # Read databook comp
         db = self.read_dex(comp)
+        # Ensure folders exists
+        db.mkdirs()
         # Check for delete option
         qdel = kw.get("delete", False)
         qmerge = not qdel

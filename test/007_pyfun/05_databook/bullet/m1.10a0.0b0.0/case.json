@@ -64,7 +64,7 @@
  "qsub": false,
  "MPI": true,
  "nProc": 128,
- "RootDir": "/nobackupp28/aburkhea/cape/src/cape/test/902_pyfun/001_bullet/work",
+ "RootDir": "../..",
  "JSONFile": "pyFun.json",
  "AdaptPhase": true,
  "AdaptMethod": "refine/one",
