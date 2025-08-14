@@ -308,7 +308,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Remove restart file if previously set
             opts["sover defaults"]["restart"].pop("file")
         # Write
-        restartfile.write()
+        opts.write()
 
     # Link best Output files
     @casecntl.run_rootdir
@@ -369,7 +369,7 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2025-08-14 ``@ddalle``: v1.0
         """
-        return os.path.join("restart", "Cart_restart.[0-9]+.hd5")
+        return os.path.join("restart", "Cart_restart.([0-9]+).hdf5")
 
    # --- Input files ---
     # Read YAML inputs
