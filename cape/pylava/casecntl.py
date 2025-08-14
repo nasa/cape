@@ -51,6 +51,7 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Class attributes ---
     # Additional atributes
     __slots__ = (
+        "data_iter",
         "yamlfile",
         "yamlfile_j",
     )
@@ -78,6 +79,7 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2023-06-28 ``@ddalle``: v1.0
         """
+        self.data_iter = None
         self.yamlfile = None
         self.yamlfile_j = None
 
@@ -352,7 +354,8 @@ class CaseRunner(casecntl.CaseRunner):
     def read_data_iter(
             self,
             fname: str = ITER_FILE,
-            meta: bool = True) -> DataIterFile:
+            meta: bool = True,
+            force: bool = False) -> DataIterFile:
         r"""Read ``data.iter``, if present
 
         :Call:
@@ -364,16 +367,28 @@ class CaseRunner(casecntl.CaseRunner):
                 Name of file to read
             *meta*: {``True``} | ``False``
                 Option to only read basic info such as last iter
+            *force*: ``True`` | {``False``}
+                Reread even if cached
         :Versions:
             * 2024-08-02 ``@sneuhoff``; v1.0
             * 2024-10-11 ``@ddalle``: v2.0
+            * 2025-08-14 ``@ddalle``: v2.1; cache, *force*
         """
+        # Check cache
+        if (not force) and (self.data_iter is not None):
+            return self.data_iter
         # Default file names for convenience
         fname = fname if os.path.isfile(fname) else ITER_FILE
         fname = fname if os.path.isfile(fname) else ITER_FILE_CART
         # Check if file exists
         if os.path.isfile(fname):
-            return DataIterFile(fname, meta=meta)
+            # Read existing file
+            dat = DataIterFile(fname, meta=meta)
+            # Cache it (not *meta*)
+            if not meta:
+                self.data_iter = dat
+            # Output
+            return dat
         else:
             # Empty instance
             return DataIterFile(None)
