@@ -23,6 +23,7 @@ from . import cmdgen
 from .. import fileutils
 from .databook import CaseFM, CaseResid
 from .dataiterfile import DataIterFile
+from .runinpfile import CartInputFile
 from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
@@ -53,6 +54,8 @@ class CaseRunner(casecntl.CaseRunner):
     # Additional atributes
     __slots__ = (
         "data_iter",
+        "runinpfile",
+        "runinpfile_j",
         "yamlfile",
         "yamlfile_j",
     )
@@ -81,6 +84,8 @@ class CaseRunner(casecntl.CaseRunner):
             * 2023-06-28 ``@ddalle``: v1.0
         """
         self.data_iter = None
+        self.runinpfile = None
+        self.runinpfile_j = None
         self.yamlfile = None
         self.yamlfile_j = None
 
@@ -284,11 +289,11 @@ class CaseRunner(casecntl.CaseRunner):
                 # Link the files
                 self.link_file(fname, fsrc)
 
-   # --- Special readers ---
-    # Read namelist
+   # --- Input files ---
+    # Read YAML inputs
     @casecntl.run_rootdir
     def read_runyaml(self, j: Optional[int] = None) -> RunYAMLFile:
-        r"""Read case namelist file
+        r"""Read case's LAVA-Curvilinear input file
 
         :Call:
             >>> yamlfile = runner.read_runyaml(j=None)
@@ -324,6 +329,45 @@ class CaseRunner(casecntl.CaseRunner):
         # Return it
         return self.yamlfile
 
+    # Read Cart inputs
+    @casecntl.run_rootdir
+    def read_runinputs(self, j: Optional[int] = None) -> CartInputFile:
+        r"""Read case's LAVA-Cartesian input file
+
+        :Call:
+            >>> yamlfile = runner.read_runinputs(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *yamlfile*: :class:`CartInputFile`
+                LAVA YAML input file interface
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        # Read ``case.json`` if necessary
+        rc = self.read_case_json()
+        # Process phase number
+        if j is None and rc is not None:
+            # Default to most recent phase number
+            j = self.get_phase()
+        # Get phase of namelist previously read
+        runinpj = self.runinpfile_j
+        # Check if already read
+        if isinstance(self.runinpfile, CartInputFile):
+            if runinpj == j and j is not None:
+                # Return it!
+                return self.runinpfile
+        # Get name of file to read
+        fname = cmdgen.infix_phase("run.inputs", j)
+        # Read it
+        self.runinpfile = CartInputFile(fname)
+        # Return it
+        return self.runinpfile
+
+   # --- Special readers ---
     # Check if case is complete
     @casecntl.run_rootdir
     def check_complete(self) -> bool:
