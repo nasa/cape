@@ -475,10 +475,49 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Volume data ---
     def get_vol_regex(self) -> str:
-        return r"q.(save|restart|[0-9]+)"
+        return r"q.(avg|save|restart|[0-9]+)"
 
     def infer_file_niter(self, mtch) -> int:
         return int(checkqt(mtch.group()))
+
+   # --- Volume -> Surf ---
+    def splitmq_dex(self, comp: str):
+        # Read control interface
+        cntl = self.read_cntl()
+        # Check option
+        splitmqfile = cntl.opts.get_DataBookOpt(comp, "splitmq")
+        # Exit if no such file
+        if splitmqfile is None:
+            return
+        # Absolutize
+        splitmqfile = cntl.abspath(splitmqfile)
+        # Check for file
+        if not os.path.isfile(splitmqfile):
+            self.log_verbose(
+                f"cannot run splitmq - template '{splitmqfile}' missing")
+            return
+        # Run it
+        self.splitmq(splitmqfile)
+
+    @casecntl.run_rootdir
+    def splitmq(self, fplitmq: str):
+        # Search for latest volume and surface files
+        fqvol = self.match_regex(self.get_vol_regex())
+        fqsrf = self.match_regex(self.get_surf_regex())
+        # Check for volume data to convert
+        if fqvol is None:
+            return
+        # Check if up-to-date
+        if fqsrf is not None:
+            # Get iterations
+            tvol = checkqt(fqvol)
+            tsrf = checkqt(fqsrf)
+            if tsrf >= tvol:
+                return
+
+   # --- Surface data ---
+    def get_surf_regex(self):
+        return r"q.(srf|surf)(.[0-9]+)?"
 
    # --- DataBook ---
     def get_dex_args_pre_fm(self) -> tuple:
