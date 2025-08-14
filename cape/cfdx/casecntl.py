@@ -4217,23 +4217,39 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2024-08-26 ``@ddalle``: v1.0
         """
+        # Find folder and JSON files
+        root_dir, _ = self._get_cntl_parts()
+        # Output
+        return root_dir
+
+    def _get_cntl_parts(self) -> tuple:
+        # Get module
+        mod = self.import_cntlmod()
         # Absolute path to "case.json"
         fjson = os.path.join(self.root_dir, RC_FILE)
+        # Default root folder
+        root_def = os.path.realpath(
+            os.path.join(self.root_dir, '..', '..'))
+        root_dir = root_def
+        # Default JSON file
+        fjson_def = mod.Cntl._fjson_default
+        root_json = fjson_def
         # Try to get directly from settings
         if os.path.isfile(fjson):
             # Read case settings
             rc = self.read_case_json()
-            # Default value
-            vdef = os.path.dirname(self.root_dir)
-            vdef = os.path.dirname(vdef)
-            # Get run matrix root dir from *rc*
-            cntl_rootdir = rc.get_RootDir(vdef=vdef)
-        else:
-            # Get two levels of parent from *self.root_dir*
-            cntl_rootdir = os.path.dirname(self.root_dir)
-            cntl_rootdir = os.path.dirname(cntl_rootdir)
+            # Get root of run matrix
+            root_dir = rc.get_RootDir()
+            root_dir = root_def if root_dir is None else root_dir
+            root_dir = root_dir.replace('/', os.sep)
+            # Get JSON file
+            root_json = rc.get_JSONFile(vdef=mod.Cntl._fjson_default)
+        # Check for such a folder
+        if not os.path.isfile(os.path.join(root_dir, root_json)):
+            # Use fall-back folder
+            root_dir = root_def
         # Output
-        return cntl_rootdir
+        return root_dir, root_json
 
    # --- Cntl ---
     @run_rootdir
@@ -4255,46 +4271,29 @@ class CaseRunner(CaseRunnerBase):
         # Check if already read
         if self.cntl is not None:
             return self.cntl
+        # Get parts
+        cntl_rootdir, cntl_json = self._get_cntl_parts()
+        # Check if folder exists
+        if not os.path.isdir(cntl_rootdir):
+            return
+        # Go to root dir (@run_rootdir will return us)
+        os.chdir(cntl_rootdir)
+        # Check for run-matrix JSON file
+        if not os.path.isfile(cntl_json):
+            return
         # Get module
         mod = self.import_cntlmod()
-        # Absolute path to "case.json"
-        fjson = os.path.join(self.root_dir, RC_FILE)
-        # Try to get directly from settings
-        if os.path.isfile(fjson):
-            # Read case settings
-            rc = self.read_case_json()
-            # Default root folder
-            root_def = os.path.realpath(
-                os.path.join(self.root_dir, '..', '..'))
-            # Get root of run matrix
-            root_dir = rc.get_RootDir()
-            root_dir = root_def if root_dir is None else root_dir
-            root_dir = root_dir.replace('/', os.sep)
-            # Get JSON file
-            fjson = rc.get_JSONFile(vdef=mod.Cntl._fjson_default)
-        else:
-            # Get root dir
-            root_dir = self.get_cntl_rootdir()
-            # Default JSON file
-            fjson = mod.Cntl._fjson_default
-        # Go to root dir (@run_rootdir will return us)
-        os.chdir(root_dir)
-        # Check for run-matrix JSON file
-        if os.path.isfile(fjson):
-            # Read *cntl*
-            self.cntl = mod.Cntl(fjson)
-            # Get case index
-            i = self.get_case_index()
-            # Save the case runner to avoid re-reads
-            self.cntl.caseindex = i
-            self.cntl.caserunner = self
-            self.cntl.opts.setx_i(i)
-            # Copy jobs object
-            self.cntl.jobs = self.jobs
-            self.cntl.job = self.job
-        else:
-            # Nothing to read
-            return
+        # Read *cntl*
+        self.cntl = mod.Cntl(cntl_json)
+        # Get case index
+        i = self.get_case_index()
+        # Save the case runner to avoid re-reads
+        self.cntl.caseindex = i
+        self.cntl.caserunner = self
+        self.cntl.opts.setx_i(i)
+        # Copy jobs object
+        self.cntl.jobs = self.jobs
+        self.cntl.job = self.job
         # Output
         return self.cntl
 
