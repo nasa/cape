@@ -24,6 +24,7 @@ are available unless specifically overwritten by specific
 import glob
 import os
 import shutil
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -472,6 +473,13 @@ class CaseRunner(casecntl.CaseRunner):
                 f"Unable to parse iteration number from '{fname}'\n" +
                 f"Last line was:\n    {line[:20]}")
 
+   # --- Volume data ---
+    def get_vol_regex(self) -> str:
+        return r"q.(save|restart|[0-9]+)"
+
+    def infer_file_niter(self, mtch) -> int:
+        return int(checkqt(mtch.group()))
+
    # --- DataBook ---
     def get_dex_args_pre_fm(self) -> tuple:
         r"""Get list of args prior to component name in :class:`CaseFM`
@@ -491,6 +499,26 @@ class CaseRunner(casecntl.CaseRunner):
         cntl = self.read_cntl()
         # Get prefix
         return (cntl.GetPrefix(),)
+
+    def get_dex_iter_lineload(self, comp: str) -> int:
+        return self._get_dex_iter_vol(comp)
+
+    def get_dex_iter_triqfm(self, comp: str) -> int:
+        return self._get_dex_iter_vol(comp)
+
+    def get_dex_iter_triqpt(self, comp: str) -> int:
+        return self._get_dex_iter_vol(comp)
+
+    # Get *nStats* for a TAVG.1 file at given iter
+    def infer_tavg_nstats(
+            self, n: Optional[int] = None, fname: Optional[int] = None) -> int:
+        # Default file name
+        fname = fname if fname else self._dex_sourcefile
+        # Get iterations from the same
+        return int(checkqavg(fname))
+
+    def get_dex_nstats_lineload(self, comp: str) -> int:
+        return self._get_dex_nstats_file(self._vol_file)
 
    # --- Local readers ---
     # Get the namelist

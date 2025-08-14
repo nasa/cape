@@ -232,10 +232,10 @@ class CaseRunner(CaseRunnerBase):
         "workers",
         "xi",
         "_mtime_case_json",
-        "_n_iter_surf",
-        "_n_orders",
-        "_n_stats_surf",
-        "_triq_file",
+        "_dex_n_iter",
+        "_dex_n_orders",
+        "_dex_n_stats",
+        "_dex_triqfile",
     )
 
     #: :class:`int`
@@ -336,9 +336,12 @@ class CaseRunner(CaseRunnerBase):
         self.workers = []
         # Set private slots
         self._mtime_case_json = 0.0
-        self._n_iter_surf = None
-        self._n_orders = None
-        self._n_stats_surf = None
+        self._dex_n_iter = None
+        self._dex_n_orders = None
+        self._dex_n_stats = None
+        self._dex_triqfile = None
+        self._dex_sourcefile = None
+        self._dex_source = None
         # Other inits
         self.init_post()
 
@@ -2323,32 +2326,16 @@ class CaseRunner(CaseRunnerBase):
         """
         return f"{self._progname}.err"
 
-   # --- File name patterns ---
-    def get_surf_regex(self) -> str:
-        r"""Get regular expression that all surface output files match
-
-        :Call:
-            >>> regex = runner.get_surf_regex()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *regex*: :class:`str`
-                Regular expression that all surface sol'n files match
-        :Versions:
-            * 2025-01-24 ``@ddalle``: v1.0
-        """
-        raise NotImplementedError(
-            "CaseRunner.get_surf_regex() is not implemented for "
-            f"{self._modname}.CaseRunner")
-
   # *** FLOW VIZ ***
    # --- Iteration number ---
     def infer_file_niter(self, mtch) -> int:
         return self.get_restart_iter()
 
    # --- Iterations in a time-averaging window ---
-    def infer_tavg_nstats(self, n: int) -> int:
+    def infer_tavg_nstats(
+            self,
+            n: Optional[int] = None,
+            fname: Optional[str] = None) -> int:
         r"""Infer num of iters averaged for output at iteration *n*
 
         :Call:
@@ -2366,6 +2353,50 @@ class CaseRunner(CaseRunnerBase):
         """
         return 1
 
+  # *** VOLUME DATA ***
+   # --- Volume ---
+    def match_vol_file(self):
+        r"""Get latest volume file and regex match instance
+
+        :Call:
+            >>> re_match = runner.match_vol_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get regular expression of volume file matches
+        pat = self.get_vol_regex()
+        # Perform search
+        mtch = self.match_regex(pat)
+        # Save it
+        if mtch is not None:
+            self._dex_source = "volume"
+            self._dex_sourcefile = mtch.group()
+
+   # --- File name patterns ---
+    def get_vol_regex(self) -> str:
+        r"""Get regular expression that all volume output files match
+
+        :Call:
+            >>> regex = runner.get_vol_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *regex*: :class:`str`
+                Regular expression that all surface sol'n files match
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        raise NotImplementedError(
+            "CaseRunner.get_vol_regex() is not implemented for "
+            f"{self._modname}.CaseRunner")
+
   # *** SURFACE DATA ***
    # --- Surface ---
     def find_surf_file(self) -> FileSearchStatus:
@@ -2374,7 +2405,7 @@ class CaseRunner(CaseRunnerBase):
         # Infer iteration number
         n = self.infer_file_niter(mtch)
         # Cache it
-        self._n_iter_surf = n
+        self._dex_n_iter = n
         # Output
         return FileSearchStatus(mtch, n)
 
@@ -2395,10 +2426,35 @@ class CaseRunner(CaseRunnerBase):
         # Get regular expression of exact matches
         pat = self.get_surf_regex()
         # Perform search
-        return self.match_regex(pat)
+        mtch = self.match_regex(pat)
+        # Save file name
+        if mtch is not None:
+            self._dex_source = "surface"
+            self._dex_sourcefile = mtch.group()
+        # Output
+        return mtch
 
     def read_surf_data(self):
         ...
+
+   # --- File name patterns ---
+    def get_surf_regex(self) -> str:
+        r"""Get regular expression that all surface output files match
+
+        :Call:
+            >>> regex = runner.get_surf_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *regex*: :class:`str`
+                Regular expression that all surface sol'n files match
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        raise NotImplementedError(
+            "CaseRunner.get_surf_regex() is not implemented for "
+            f"{self._modname}.CaseRunner")
 
    # --- TriQ ---
     def prepare_triq(self) -> FileStatus:
@@ -2427,8 +2483,8 @@ class CaseRunner(CaseRunnerBase):
         # Get name of ``.triq`` file
         ftriq = self.genr8_triq_filename(mtch, n)
         # Cache it
-        self._n_iter_surf = n
-        self._triq_file = ftriq
+        self._dex_n_iter = n
+        self._dex_triqfile = ftriq
         # Check if file exists
         if not os.path.isfile(ftriq):
             # Log this action
@@ -2537,7 +2593,7 @@ class CaseRunner(CaseRunnerBase):
 
   # *** RESIDUALS ***
    # --- Convergence ---
-    def get_n_orders(
+    def get_dex_n_orders(
             self,
             nstats: int = 1,
             nlast: Optional[int] = None,
@@ -2545,7 +2601,7 @@ class CaseRunner(CaseRunnerBase):
         r"""Get current residual order of magnitude drop
 
         :Call:
-            >>> norders = runner.get_n_orders(nstatus=1, f=False)
+            >>> norders = runner.get_dex_n_orders(nstatus=1, f=False)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2562,14 +2618,14 @@ class CaseRunner(CaseRunnerBase):
             * 2055-08-04 ``@ddalle``: v1.0
         """
         # Check for cache
-        n = self._n_orders
+        n = self._dex_n_orders
         if n is not None:
             return n
         # Read residual history
         h = self.read_resid(f, meta=True)
         # Return the convergence depth
-        self._n_orders = h.GetNOrders(nstats, nLast=nlast)
-        return self._n_orders
+        self._dex_n_orders = h.GetNOrders(nstats, nLast=nlast)
+        return self._dex_n_orders
 
    # --- Readers ---
     @run_rootdir
@@ -2654,7 +2710,7 @@ class CaseRunner(CaseRunnerBase):
             db = samplefunc(comp)
         # Check special cols
         self._sample_n_iter(comp, db)
-        self._sample_n_orders(comp, db)
+        self._sample_dex_n_orders(comp, db)
         self._sample_n_stats(comp, db)
         self._sample_xmrp(comp, db)
         self._sample_ymrp(comp, db)
@@ -2697,13 +2753,13 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return db
 
-    def _sample_n_orders(self, comp: str, db: dict):
+    def _sample_dex_n_orders(self, comp: str, db: dict):
         # Check if unncessary
         if "nOrders" in db:
             return
         # Check if present
         if self._check_dex_fcol(comp, "nOrders"):
-            db.save_col("nOrders", self.get_n_orders())
+            db.save_col("nOrders", self.get_dex_n_orders())
 
     def _sample_n_iter(self, comp: str, db: dict):
         # Check if necessary
@@ -3114,18 +3170,57 @@ class CaseRunner(CaseRunnerBase):
         """
         return self._get_dex_iter_surf(comp)
 
+    def get_dex_iter_triqpoint(self, comp: str) -> int:
+        r"""Get number of iterations for ``"TriqPoint"`` comp
+
+        :Call:
+            >>> n = runner.get_dex_iter_triqpoint()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        return self._get_dex_iter_surf(comp)
+
     def _get_dex_iter_surf(self, comp: str) -> int:
         # Check cache .. from previous call of prepare_triq()
-        n = self._n_iter_surf
+        n = self._dex_n_iter
         # Usit if appropriate
         if n is not None:
             return n
         # Search for data file
         mtch = self.match_surf_file()
+        # Check for a match
+        if mtch is None:
+            return 0
         # Get iteration thereof
         n = self.infer_file_niter(mtch)
         # Save it
-        self._n_iter_surf = n
+        self._dex_n_iter = n
+        # Output
+        return n
+
+    def _get_dex_iter_vol(self, comp: str) -> int:
+        # Check cache .. from previous call of prepare_triq()
+        n = self._dex_n_iter
+        # Usit if appropriate
+        if n is not None:
+            return n
+        # Search for data file
+        mtch = self.match_vol_file()
+        # Check for a match
+        if mtch is None:
+            return 0
+        # Get iteration thereof
+        n = self.infer_file_niter(mtch)
+        # Save it
+        self._dex_n_iter = n
         # Output
         return n
 
@@ -3160,7 +3255,7 @@ class CaseRunner(CaseRunnerBase):
             # Fall back to inference from averaging/restart options
             n = self.get_dex_iter(comp)
             # Infer *nStats* based on iteration
-            return self.infer_tavg_nstats(n)
+            return self.infer_tavg_nstats(n=n)
 
     def get_dex_nstats_fm(self, comp: str) -> int:
         r"""Get averaging window iters for a ``"FM"`` DataBook component
@@ -3201,7 +3296,7 @@ class CaseRunner(CaseRunnerBase):
         # Infer *nStats* based on restart/averaging settings
         nstats = self.infer_tavg_nstats(n)
         # Cache it
-        self._n_stats_surf = nstats
+        self._dex_n_stats = nstats
         return nstats
 
    # --- Options ---
@@ -3343,7 +3438,7 @@ class CaseRunner(CaseRunnerBase):
         # Get case index
         i = self.get_case_index()
         # Use name of TriqFM file
-        return (self._triq_file, cntl, i)
+        return (self._dex_triqfile, cntl, i)
 
    # --- Triload ---
     def write_triload_input(self, comp: str, ftriq: str):

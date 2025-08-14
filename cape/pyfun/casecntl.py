@@ -2263,22 +2263,10 @@ class CaseRunner(casecntl.CaseRunner):
         return self.infer_tavg_nstats(n)
 
     # Get *nStats* for a TAVG.1 file at given iter
-    def infer_tavg_nstats(self, n: int) -> int:
-        r"""Infer num of iters averaged for output at iteration *n*
-
-        :Call:
-            >>> nstats = runner.infer_tavg_nstats(n)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *n*: :class:`int`
-                Iteration number
-        :Outputs:
-            *nstats*: :class:`int`
-                Number of iterations averaged in viz file
-        :Versions:
-            * 2025-08-10 ``@ddalle``: v1.0
-        """
+    def infer_tavg_nstats(
+            self, n: Optional[int] = None, fname: Optional[int] = None) -> int:
+        # Get current iteration
+        n = self._dex_n_iter if (n is None) else n
         # Either way, we're going to need the run log phases and iters
         runlog = self.get_runlog()
         # Convert to list for iterative backward search
