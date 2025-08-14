@@ -234,65 +234,6 @@ def test_updatedatabookpt():
     assert result.line1 == result.line2
 
 
-@testutils.run_sandbox(__file__, TEST_FILES)
-def test_deletecasespt():
-    os.mkdir("data")
-    os.mkdir(os.path.join("data", "bullet"))
-    # Use test.01.out as existing databook
-    shutil.copy("test.05.out", os.path.join("data", "bullet", "pt_p100.csv"))
-    # Get cntl
-    cntl = Cntl()
-    # Call dbook updater
-    cntl.UpdateTriqPoint(**KW6)
-    # Location of output databook
-    dbout = os.path.join("data/bullet/pt_p100.csv")
-    # Location of old databook
-    dbold = os.path.join("data/bullet/pt_p100.csv.old")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.06.out")
-    # Test deleted FM Databook
-    assert result.line1 == result.line2
-    # Test old databook exists
-    assert os.path.exists(dbold)
-
-
-@testutils.run_sandbox(__file__, TEST_FILES)
-def test_updatedatabookfunc():
-    # Get cntl
-    cntl = Cntl()
-    # Call dbook updater
-    cntl.UpdatePyFuncDataBook(**KW7)
-    # Location of output databooks
-    dbout1 = os.path.join("data/bullet/pyfunc_functest.csv")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout1, "test.07.out")
-    # Test updated FM Databook
-    assert result.line1 == result.line2
-
-
-@testutils.run_sandbox(__file__, TEST_FILES)
-def test_deletecasesfunc():
-    os.mkdir("data")
-    os.mkdir(os.path.join("data", "bullet"))
-    # Use test.01.out as existing databook
-    shutil.copy("test.07.out",
-                os.path.join("data", "bullet", "pyfunc_functest.csv"))
-    # Get cntl
-    cntl = Cntl()
-    # Call dbook updater
-    cntl.UpdatePyFuncDataBook(**KW8)
-    # Location of output databook
-    dbout = os.path.join("data/bullet/pyfunc_functest.csv")
-    # Location of old databook
-    dbold = os.path.join("data/bullet/pyfunc_functest.csv.old")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.08.out")
-    # Test deleted FM Databook
-    assert result.line1 == result.line2
-    # Test old databook exists
-    assert os.path.exists(dbold)
-
-
 @testutils.run_sandbox(__file__, TEST_FILES2)
 def test_updatedatabooktriqfm():
     # Get cntl

@@ -2377,6 +2377,8 @@ class CaseRunner(CaseRunnerBase):
         if mtch is not None:
             self._dex_source = "volume"
             self._dex_sourcefile = mtch.group()
+        # Output
+        return mtch
 
    # --- File name patterns ---
     def get_vol_regex(self) -> str:
