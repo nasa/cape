@@ -9,6 +9,7 @@ r"""
 
 # Standard library
 import os
+from typing import Optional
 
 # Third-party
 import numpy as np
@@ -182,7 +183,7 @@ class CaseTriqFM(DataKit):
         self.compmap = self.triq.MapTriCompID(self.tri, **kw)
 
     # Get componnent ID (w/i map) for a patch
-    def get_patch_compid(self, patch: str) -> str:
+    def get_patch_compid(self, patch: Optional[str]) -> str:
         r"""Get the comp name/number in the tri-map for one patch
 
         :Call:
@@ -312,16 +313,22 @@ class CaseTriqFM(DataKit):
         """
         # Initialize dictionary of composite forces
         fm = {}
+        # Use empty patch
+        patches = [None] + self.patches
+        patches = self.patches
+        patches = patches if len(patches) else [None]
         # Loop through patches
-        for j, patch in enumerate(self.patches):
+        for j, patch in enumerate(patches):
             # Calculate forces
             fmj = self.get_triq_forces_patch(patch)
             # Save values
             for k, v in fmj.items():
-                self.save_col(f"{patch}.{k}", v)
+                fullcol = k if (patch is None) else f"{patch}.{k}"
+                self.save_col(fullcol, v)
             # Initialize or accumulate
             if j == 0:
-                fm.update(fmj)
+                if patch is not None:
+                    fm.update(fmj)
                 continue
             # Combine
             for k, v in fmj.items():
@@ -337,7 +344,7 @@ class CaseTriqFM(DataKit):
             self.save_col(k, v)
 
     # Calculate forces for one patch
-    def get_triq_forces_patch(self, patch: str):
+    def get_triq_forces_patch(self, patch: Optional[str]):
         r"""Get the forces and moments on a patch
 
         :Call:

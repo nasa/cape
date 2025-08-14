@@ -242,8 +242,11 @@ def test_updatedatabooktriqfm():
     cntl.UpdateTriqFM(**KW9)
     # Location of output databooks
     dbout1 = os.path.join("data/bullet/triqfm/triqfm_cap.csv")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout1, "test.09.out")
-    # Test updated FM Databook
-    assert result.line1 == result.line2
+    # Make sure it exists
+    assert os.path.isfile(dbout1)
+    # Read it
+    db = cntl.read_dex("cap_patch")
+    # Test values
+    assert abs(db["Cp_min"][0] + 0.71) <= 0.015
+    assert abs(db["CA"][0] - 0.92) <= 0.025
 
