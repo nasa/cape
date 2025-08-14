@@ -58,9 +58,7 @@ import re
 import numpy as np
 
 # Local imports
-from . import casecntl
 from . import pointsensor
-from . import pltfile
 from ..cfdx import casedata
 from ..cfdx import databook
 from ..dkit import tsvfile
@@ -277,94 +275,6 @@ class PyFuncDataBook(databook.PyFuncDataBook):
 
 # Data book target instance
 class TargetDataBook(databook.TargetDataBook):
-    pass
-
-
-# TriqFM data book
-class TriqFMDataBook(databook.TriqFMDataBook):
-    r"""Force and moment component extracted from surface triangulation
-
-    :Call:
-        >>> DBF = TriqFMDataBook(x, opts, comp, RootDir=None)
-    :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
-            Options interface
-        *comp*: :class:`str`
-            Name of TriqFM component
-        *RootDir*: {``None``} | :class:`st`
-            Root directory for the configuration
-    :Outputs:
-        *DBF*: :class:`cape.pyfun.databook.TriqFMDataBook`
-            Instance of TriqFM data book
-    :Versions:
-        * 2017-03-28 ``@ddalle``: v1.0
-    """
-
-    # Get file
-    def GetTriqFile(self):
-        r"""Get most recent ``triq`` file and its associated iterations
-
-        :Call:
-            >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
-        :Inputs:
-            *DBF*: :class:`cape.pyfun.databook.TriqFMDataBook`
-                Instance of TriqFM data book
-        :Outputs:
-            *qtriq*: {``False``}
-                Whether or not to convert file from other format
-            *ftriq*: :class:`str`
-                Name of ``triq`` file
-            *n*: :class:`int`
-                Number of iterations included
-            *i0*: :class:`int`
-                First iteration in the averaging
-            *i1*: :class:`int`
-                Last iteration in the averaging
-        :Versions:
-            * 2016-12-19 ``@ddalle``: v1.0
-            * 2024-12-03 ``@ddalle``: v2.0; use ``CaseRunner`` method
-        """
-        # Get main retults
-        ftriq, n, i0, i1 = casecntl.GetTriqFile()
-        # Prepend that it was always found w/ new method
-        return True, ftriq, n, i0, i1
-
-    # Preprocess triq file (convert from PLT)
-    def PreprocessTriq(self, ftriq, **kw):
-        r"""Perform any necessary preprocessing to create ``triq`` file
-
-        :Call:
-            >>> DBL.PreprocessTriq(ftriq, i=None)
-        :Inputs:
-            *DBF*: :class:`cape.pyfun.databook.TriqFMDataBook`
-                Instance of TriqFM data book
-            *ftriq*: :class:`str`
-                Name of triq file
-            *i*: {``None``} | :class:`int`
-                Case index (else read from :file:`conditions.json`)
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-        """
-        # Get name of plt file
-        fplt = ftriq.rstrip('triq') + 'plt'
-        # Get case index
-        i = kw.get('i')
-        # Read Mach number
-        if i is None:
-            # Read from :file:`conditions.json`
-            mach = casecntl.ReadConditions('mach')
-        else:
-            # Get from trajectory
-            mach = self.x.GetMach(i)
-        # Output format
-        fmt = self.opts.get_DataBookTriqFormat(self.comp)
-        # Read the plt information
-        pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
-
-
-class TriqFMFaceDataBook(databook.TriqFMFaceDataBook):
     pass
 
 
@@ -1292,7 +1202,6 @@ class DataBook(databook.DataBook):
             Instance of the pyFun data book class
     """
     _fm_cls = FMDataBook
-    _triqfm_cls = TriqFMFaceDataBook
     _triqpt_cls = pointsensor.TriqPointGroupDataBook
     _ts_cls = TimeSeriesDataBook
     _prop_cls = PropDataBook
@@ -1374,47 +1283,6 @@ class DataBook(databook.DataBook):
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
-
-    # Read TriqFM components
-    def ReadTriqFM(self, comp, check=False, lock=False):
-        r"""Read a TriqFM data book if not already present
-
-        :Call:
-            >>> DB.ReadTriqFM(comp)
-        :Inputs:
-            *DB*: :class:`cape.pyfun.databook.DataBook`
-                Instance of pyFun data book class
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary
-        try:
-            self.TriqFM
-        except Exception:
-            self.TriqFM = {}
-        # Try to access the TriqFM database
-        try:
-            self.TriqFM[comp]
-            # Confirm lock if necessary.
-            if lock:
-                self.TriqFM[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqFM[comp] = TriqFMDataBook(
-                self.x, self.opts, comp,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
-
   # >
 
   # ========

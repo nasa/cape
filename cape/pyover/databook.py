@@ -63,7 +63,6 @@ import numpy as np
 from . import casecntl
 from . import pointsensor
 from . import lineload
-from .. import trifile
 from ..cfdx import databook
 from ..dkit import basedata
 
@@ -401,163 +400,6 @@ class PyFuncDataBook(databook.PyFuncDataBook):
 
 # Data book target instance
 class TargetDataBook(databook.TargetDataBook):
-    pass
-
-
-# TriqFM data book
-class TriqFMDataBook(databook.TriqFMDataBook):
-    r"""Force and moment component extracted from surface triangulation
-
-    :Call:
-        >>> DBF = TriqFMDataBook(x, opts, comp, RootDir=None)
-    :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
-            Options interface
-        *comp*: :class:`str`
-            Name of TriqFM component
-        *RootDir*: {``None``} | :class:`st`
-            Root directory for the configuration
-    :Outputs:
-        *DBF*: :class:`TriqFMDataBook`
-            Instance of TriqFM data book
-    :Versions:
-        * 2017-03-28 ``@ddalle``: v1.0
-    """
-
-    # Get file
-    def GetTriqFile(self):
-        """Get most recent ``triq`` file and its associated iterations
-
-        :Call:
-            >>> qpre, fq, n, i0, i1 = DBF.GetTriqFile()
-        :Inputs:
-            *DBL*: :class:`TriqFMDataBook`
-                Instance of TriqFM data book
-        :Outputs:
-            *qpre*: {``False``}
-                Whether or not to convert file from other format
-            *fq*: :class:`str`
-                Name of ``q`` file
-            *n*: :class:`int`
-                Number of iterations included
-            *i0*: :class:`int`
-                First iteration in the averaging
-            *i1*: :class:`int`
-                Last iteration in the averaging
-        :Versions:
-            * 2016-12-19 ``@ddalle``: Added to the module
-        """
-        # Get Q/X files
-        self.fqi = self.opts.get_DataBook_QIn(self.comp)
-        self.fxi = self.opts.get_DataBook_XIn(self.comp)
-        self.fqo = self.opts.get_DataBook_QOut(self.comp)
-        self.fxo = self.opts.get_DataBook_XOut(self.comp)
-        # Get properties of triq file
-        fq, n, i0, i1 = casecntl.GetQFile(self.fqi)
-        # Get the corresponding .triq file name
-        ftriq = os.path.join('lineload', 'grid.i.triq')
-        # Check for 'q.strt'
-        if os.path.isfile(fq):
-            # Source file exists
-            fsrc = os.path.realpath(fq)
-        else:
-            # No source just yet
-            fsrc = None
-        # Check if the TRIQ file exists
-        if fsrc and os.path.isfile(ftriq) and os.path.isfile(fsrc):
-            # Check modification dates
-            if os.path.getmtime(ftriq) < os.path.getmtime(fsrc):
-                # 'grid.i.triq' exists, but Q file is newer
-                qpre = True
-            else:
-                # Triq file exists and is up-to-date
-                qpre = False
-        else:
-            # Need to run ``overint`` to get triq file
-            qpre = True
-        # Output
-        return qpre, fq, n, i0, i1
-
-    # Read a Triq file
-    def ReadTriq(self, ftriq):
-        r"""Read a ``triq`` annotated surface triangulation
-
-        :Call:
-            >>> DBF.ReadTriq(ftriq)
-        :Inputs:
-            *DBF*: :class:`TriqFMDataBook`
-                Instance of TriqFM data book
-            *ftriq*: :class:`str`
-                Name of ``triq`` file
-        :Versions:
-            * 2017-03-29 ``@ddalle``: v1.0
-        """
-        # Check if the configuration file exists
-        if os.path.isfile(self.conf):
-            # Use that file (explicitly defined)
-            fcfg = self.conf
-        else:
-            # Check for a mixsur file
-            fmixsur = self.opts.get_DataBook_mixsur(self.comp)
-            fusurp = self.opts.get_DataBook_usurp(self.comp)
-            # De-none
-            if fmixsur is None:
-                fmixsur = ''
-            if fusurp is None:
-                fusurp = ''
-            # Make absolute
-            if not os.path.isabs(fmixsur):
-                fmixsur = os.path.join(self.RootDir, fmixsur)
-            if not os.path.isabs(fusurp):
-                fusurp = os.path.join(self.RootDir, fusurp)
-            # Read them
-            if os.path.isfile(fusurp):
-                # USURP file specified; overrides mixsur
-                fcfg = fusurp
-            elif os.path.isfile(fmixsur):
-                # Use MIXSUR file
-                fcfg = fmixsur
-            else:
-                # No config file... probably won't turn out well
-                fcfg = None
-        # Read from lineload/ folder
-        ftriq = os.path.join('lineload', 'grid.i.triq')
-        # Read using :mod:`cape`
-        self.triq = trifile.Triq(ftriq, c=fcfg)
-
-    # Preprocess triq file (convert from PLT)
-    def PreprocessTriq(self, fq, **kw):
-        r"""Perform any necessary preprocessing to create ``triq`` file
-
-        :Call:
-            >>> ftriq = DBF.PreprocessTriq(fq, qpbs=False, f=None)
-        :Inputs:
-            *DBL*: :class:`TriqFMDataBook`
-                TriqFM data book
-            *ftriq*: :class:`str`
-                Name of q file
-            *qpbs*: ``True`` | {``False``}
-                Whether or not to create a script and submit it
-            *f*: {``None``} | :class:`file`
-                File handle if writing PBS script
-        :Versions:
-            * 2016-12-20 ``@ddalle``: v1.0
-            * 2016-12-21 ``@ddalle``: Added PBS
-        """
-        # Create lineload folder if necessary
-        if not os.path.isdir('lineload'):
-            self.opts.mkdir('lineload')
-        # Enter line load folder
-        os.chdir('lineload')
-        # Add '..' to the path
-        fq = os.path.join('..', fq)
-        # Call local function
-        lineload.PreprocessTriqOverflow(self, fq)
-
-
-class TriqFMFaceDataBook(databook.TriqFMFaceDataBook):
     pass
 
 
@@ -987,7 +829,6 @@ class DataBook(databook.DataBook):
             Instance of the pyFun data book class
     """
     _fm_cls = FMDataBook
-    _triqfm_cls = TriqFMFaceDataBook
     _pt_cls = pointsensor.PointSensorGroupDataBook
     _ts_cls = TimeSeriesDataBook
     _prop_cls = PropDataBook
@@ -1000,7 +841,8 @@ class DataBook(databook.DataBook):
 
     # Local version of target
     def _TargetDataBook(self, targ):
-        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
+        self.Targets[targ] = TargetDataBook(
+            targ, self.x, self.opts, self.RootDir)
 
     # Local line load data book read
     def _LineLoadDataBook(self, comp, conf=None, targ=None):
@@ -1055,46 +897,6 @@ class DataBook(databook.DataBook):
             self.PointSensors[name] = self._pt_cls(
                 self.x, self.opts, name, RootDir=self.RootDir)
             # Return to starting location
-            os.chdir(fpwd)
-
-    # Read TriqFM components
-    def ReadTriqFM(self, comp, check=False, lock=False):
-        r"""Read a TriqFM data book if not already present
-
-        :Call:
-            >>> DB.ReadTriqFM(comp)
-        :Inputs:
-            *DB*: :class:`cape.pyfun.databook.DataBook`
-                Instance of pyFun data book class
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary
-        try:
-            self.TriqFM
-        except Exception:
-            self.TriqFM = {}
-        # Try to access the TriqFM database
-        try:
-            self.TriqFM[comp]
-            # Confirm lock if necessary.
-            if lock:
-                self.TriqFM[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqFM[comp] = TriqFMDataBook(
-                self.x, self.opts, comp,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
             os.chdir(fpwd)
 
   # ========

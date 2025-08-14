@@ -146,60 +146,6 @@ class TargetDataBook(databook.TargetDataBook):
     pass
 
 
-# TriqFM data book
-class TriqFMDataBook(databook.TriqFMDataBook):
-    r"""Force and moment component extracted from surface triangulation
-
-    :Call:
-        >>> DBF = TriqFMDataBook(x, opts, comp, RootDir=None)
-    :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix/run matrix interface
-        *opts*: :class:`cape.options.Options`
-            Options interface
-        *comp*: :class:`str`
-            Name of TriqFM component
-        *RootDir*: {``None``} | :class:`st`
-            Root directory for the configuration
-    :Outputs:
-        *DBF*: :class:`cape.pycart.databook.TriqFMDataBook`
-            Instance of TriqFM data book
-    :Versions:
-        * 2017-03-29 ``@ddalle``: v1.0
-    """
-    # Get file
-    def GetTriqFile(self):
-        r"""Get most recent ``triq`` file and its associated iterations
-
-        :Call:
-            >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
-        :Inputs:
-            *DBF*: :class:`cape.pycart.databook.TriqFMDataBook`
-                Instance of TriqFM data book
-        :Outputs:
-            *qtriq*: {``False``}
-                Whether or not to convert file from other format
-            *ftriq*: :class:`str`
-                Name of ``triq`` file
-            *n*: :class:`int`
-                Number of iterations included
-            *i0*: :class:`int`
-                First iteration in the averaging
-            *i1*: :class:`int`
-                Last iteration in the averaging
-        :Versions:
-            * 2016-12-19 ``@ddalle``: v1.0
-        """
-        # Get properties of triq file
-        ftriq, n, i0, i1 = casecntl.GetTriqFile()
-        # Output
-        return False, ftriq, n, i0, i1
-
-
-class TriqFMFaceDataBook(databook.TriqFMFaceDataBook):
-    pass
-
-
 class TimeSeriesDataBook(databook.TimeSeriesDataBook):
     # Read case residual
     def ReadCaseResid(self):
@@ -380,7 +326,6 @@ class DataBook(databook.DataBook):
         * 2015-10-16 ``@ddalle``: v1.1: subclass
     """
     _fm_cls = FMDataBook
-    _triqfm_cls = TriqFMFaceDataBook
     _pt_cls = pointsensor.PointSensorGroupDataBook
     _ts_cls = TimeSeriesDataBook
     _prop_cls = PropDataBook
@@ -477,46 +422,6 @@ class DataBook(databook.DataBook):
             # Return to starting location
             os.chdir(fpwd)
 
-    # Read TrqiFM components
-    def ReadTriqFM(self, comp, check=False, lock=False):
-        r"""Read a TriqFM data book if not already present
-
-        :Call:
-            >>> DB.ReadTriqFM(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.pycart.databook.DataBook`
-                Instance of pyCart data book class
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2017-03-29 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary
-        try:
-            self.TriqFM
-        except Exception:
-            self.TriqFM = {}
-        # Try to access the TriqFM database
-        try:
-            self.TriqFM[comp]
-            # Confirm lock
-            if lock:
-                self.TriqFM[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqFM[comp] = TriqFMDataBook(
-                self.x, self.opts, comp,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
-
     # Read point sensor (group)
     def ReadPointSensor(self, name, pts=None):
         r"""Read a point sensor group if it is not already present
@@ -604,7 +509,8 @@ class DataBook(databook.DataBook):
 
     # Local version of target
     def _TargetDataBook(self, targ):
-        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
+        self.Targets[targ] = TargetDataBook(
+            targ, self.x, self.opts, self.RootDir)
 
     # Local line load data book read
     def _LineLoadDataBook(self, comp, conf=None, targ=None):
