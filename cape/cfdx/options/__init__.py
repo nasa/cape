@@ -423,7 +423,7 @@ file that are not part of any section.
         if PBS_j:
             f.write('#PBS -j %s\n' % PBS_j)
         # Get PBS "keep" option
-        pbsk = opts.get_opt'k', j=j)
+        pbsk = opts.get_opt('k', j=j)
         if pbsk:
             f.write(f"#PBS -k {pbsk}\n")
         # Get the number of nodes, etc.
