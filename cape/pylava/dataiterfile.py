@@ -50,6 +50,7 @@ class DataIterFile(dict):
         "n",
         "l2conv",
         "strsize",
+        "t",
     )
 
     # Initialization
@@ -63,9 +64,10 @@ class DataIterFile(dict):
         self.cols = []
         self.filename = None
         self.filesize = 0
-        self.n = 0.0
+        self.n = 0
         self.l2conv = 1.0
         self.strsize = DEFAULT_STRLEN
+        self.t = 0.0
         # Check for a file
         if fname is None:
             return
@@ -145,8 +147,8 @@ class DataIterFile(dict):
         # Report "iteration" number
         if "iter" in self.cols:
             icol = "iter"
-        elif "ctu" in self.cols:
-            icol = "ctu"
+        elif "nt" in self.cols:
+            icol = "nt"
         else:
             icol = None
         # Get iterations
@@ -159,6 +161,21 @@ class DataIterFile(dict):
             n, = fromfile_lb8_f(fp, 1)
             # Selectively switch to 1-based iteration
             self.n = n + 1 if (icol == "iter") else n
+        # Report "iteration" number
+        if "ctu" in self.cols:
+            tcol = "ctu"
+        else:
+            tcol = None
+        # Get iterations
+        if tcol and (tcol in self.cols):
+            # Index of "iters" column
+            jcol = self.cols.index(tcol)
+            # Head to the last record
+            fp.seek((nrec - 1)*ncol*8 + 8*jcol, 1)
+            # Next entry is most recently reported "iteration"
+            t, = fromfile_lb8_f(fp, 1)
+            # Selectively switch to 1-based iteration
+            self.t = t
         # Report residual drop
         if "flowres" in self.cols:
             icol = "flowres"

@@ -172,7 +172,7 @@ class CaseRunner(casecntl.CaseRunner):
             fileutils.touch(fhist)
 
     # Function to get total iteration number
-    def getx_restart_iter(self):
+    def getx_restart_iter(self) -> int:
         r"""Get total iteration number of most recent flow file
 
         :Call:
@@ -200,21 +200,34 @@ class CaseRunner(casecntl.CaseRunner):
                 return 0
             # Infer iteration
             n = int(mtch.group(1))
+            return n
+        # Fallback to current iter
+        return self.getx_iter()
+
+    def get_restart_ctu(self) -> float:
+        # Read options
+        rc = self.read_case_json()
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Check which command to generate
+        if solver == "cartesian":
+            # Get iteartion
+            n = self.get_restart_iter()
             # Read data.iter
             dat = self.read_data_iter(meta=False)
             # Locate *n* in history
             mask, = np.where(dat["nt"] == n)
             # Check for match
             if mask.size == 0:
-                return 0
+                return 0.0
             # Convert to CTU
-            return int(dat["ctu"][mask[0]] + 0.99)
-        # Fallback to current iter
-        return self.getx_iter()
+            return dat["ctu"][mask[0]]
+        # Fallback
+        return 0.0
 
     # Get current iteration
     def getx_iter(self):
-        r"""Get the most recent iteration number for LAVACURV case
+        r"""Get the most recent iteration number for a LAVA case
 
         :Call:
             >>> n = runner.getx_iter()
@@ -231,7 +244,27 @@ class CaseRunner(casecntl.CaseRunner):
         # Read it, but only metadata
         db = self.read_data_iter(meta=True)
         # Return the last iteration
-        return int(db.n + 0.99)
+        return db.n
+
+    # Get current iteration
+    def get_ctu(self) -> float:
+        r"""Get the most recent iteration Char. Time Unit value
+
+        :Call:
+            >>> t = runner.get_ctu()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *t*: :class:`float`
+                Last time step (characteristic units)
+        :Versions:
+            * 2025-08-14 ``@sneuhoff``: v1.0
+        """
+        # Read it, but only metadata
+        db = self.read_data_iter(meta=True)
+        # Return the last iteration
+        return db.t
 
    # --- File manipulation ---
     # Prepare any input files as needed
@@ -505,7 +538,7 @@ class CaseRunner(casecntl.CaseRunner):
     def read_data_iter(
             self,
             fname: str = ITER_FILE,
-            meta: bool = True,
+            meta: bool = False,
             force: bool = False) -> DataIterFile:
         r"""Read ``data.iter``, if present
 
