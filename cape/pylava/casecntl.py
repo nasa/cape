@@ -435,17 +435,20 @@ class CaseRunner(casecntl.CaseRunner):
             # Go to that viz folder
             os.chdir(self.root_dir)
             os.chdir(vizdir)
+            # Form search pattern from within that folder
+            pat = os.path.join(vizdir, r"(.+)\.[0-9]+\.([a-z0-9]+)")
             # Get groups using archivist
-            vgrp = a.search_regex(r"/(.+)\.[0-9]+\.([a-z0-9]+)")
+            vgrp = a.search_regex(pat)
             # Loop through keys:
             for fnstr in vgrp.keys():
                 # Parse the filename to link to
                 parse = re.findall(r"'(.*?)'", fnstr)
                 # Append the output name and last file
                 fname = f'{parse[0]}.{parse[1]}'
-                fsrc = vgrp[fnstr][-1]
+                # Don't include relative paths in link
+                fsrc = os.path.basename(vgrp[fnstr][-1])
                 # Link the files
-                self.link_file(fname, fsrc)
+                self.link_file(fsrc, fname, f=True)
 
    # --- Search ---
     def get_restart_file(self, j: Optional[int] = None) -> Optional[str]:

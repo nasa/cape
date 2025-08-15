@@ -201,7 +201,7 @@ class CaseFM(cdbook.CaseFM):
         # Initialize data for output
         db = basedata.BaseData()
         # Identify iteration column to use
-        icol = "ctu" if "ctu" in data else "iter"
+        icol = "nt" if "nt" in data else "iter"
         # Force coeff prefix
         fpre = "c" if f"cx_{comp}" in data else "cf"
         # Save data
