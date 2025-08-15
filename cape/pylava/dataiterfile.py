@@ -171,6 +171,7 @@ class DataIterFile(dict):
             # Index of "iters" column
             jcol = self.cols.index(tcol)
             # Head to the last record
+            fp.seek(pos)
             fp.seek((nrec - 1)*ncol*8 + 8*jcol, 1)
             # Next entry is most recently reported "iteration"
             t, = fromfile_lb8_f(fp, 1)
