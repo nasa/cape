@@ -300,14 +300,16 @@ class CaseRunner(casecntl.CaseRunner):
         return 0.0
 
     # Check for exit criteria
-    def check_early_exit(self) -> bool:
+    def check_early_exit(self, j: Optional[int] = None) -> bool:
         # Get solver
         rc = self.read_case_json()
         solver = rc.get_LAVASolver()
+        # Default phase
+        j = j if (j is not None) else self.get_phase()
         # Filter
         if solver == "cartesian":
             # Check for CTU criteria
-            ctumax = self.get_ctu_max()
+            ctumax = self.get_ctu_max(j)
             if (not ctumax):
                 return False
             # Check current value
@@ -315,17 +317,17 @@ class CaseRunner(casecntl.CaseRunner):
             return bool(ctu + 0.5 >= ctumax)
         elif solver == "curvilinear":
             # Read YAML file
-            yamlfile = self.read_runyaml()
+            yamlfile = self.read_runyaml(j)
+            # Section with convergence stuff
+            sec = "nonlinearsolver"
             # Maximum iterations
-            maxiters = yamlfile.get_lava_subopt(
-                "nonlinearsolver", "iterations")
+            maxiters = yamlfile.get_lava_subopt(sec, "iterations")
             # Read data
             db = self.read_data_iter(meta=False)
             if db.n >= maxiters:
                 return True
             # Target convergence
-            l2conv_target = yamlfile.get_lava_subopt(
-                "nonlinearsolver", "l2conv")
+            l2conv_target = yamlfile.get_lava_subopt(sec, "l2conv")
             # Apply it
             if l2conv_target:
                 # Check reported convergence

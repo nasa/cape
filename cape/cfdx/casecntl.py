@@ -534,7 +534,7 @@ class CaseRunner(CaseRunnerBase):
             # Check for explicit exit
             if self.check_exit(j):
                 # Log
-                self.log_verbose("explicit exit detected")
+                self.log_verbose("exiting case loop")
                 break
             # Submit new PBS/Slurm job if appropriate
             if self.resubmit_case(j):
@@ -4578,6 +4578,8 @@ class CaseRunner(CaseRunnerBase):
                 os.remove(STOP_PHASE_FILE)
                 # Exit
                 return True
+        elif self.check_early_exit(ja):
+            ...
         else:
             # Restarting same phase
             if not rc.get_RunControlOpt("RestartSamePhase", ja):
@@ -4588,6 +4590,24 @@ class CaseRunner(CaseRunnerBase):
                 return True
         # Fall back to check_complete()
         return self.check_complete()
+
+    # Check for early exit
+    def check_early_exit(self, j: Optional[int] = None) -> bool:
+        r"""Check for solver-selected exit, e.g. convergence target hit
+
+        :Call:
+            >>> q = runner.check_early_exit(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+        :Outputs:
+            *q*: :class:`bool`
+                ``True`` if no listed files have been modified recently
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        return False
 
     # Check if case is complete
     def check_complete(self) -> bool:
@@ -4781,29 +4801,9 @@ class CaseRunner(CaseRunnerBase):
             # Update status -> DONE
             sts = "DONE"
             # Try to update the settings
-            try:
-                self.set_phase_iters(min(n, nmax), jmax)
-            except PermissionError:
-                pass
+            self.handle_early_exit(jmax)
         # Output
         return sts
-
-    # Check for early exit
-    def check_early_exit(self) -> bool:
-        r"""Check for solver-selected exit, e.g. convergence target hit
-
-        :Call:
-            >>> q = runner.check_early_exit(j=None)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *q*: :class:`bool`
-                ``True`` if no listed files have been modified recently
-        :Versions:
-            * 2025-08-14 ``@ddalle``: v1.0
-        """
-        return False
 
     # Check if case is a zombie
     @run_rootdir
@@ -5085,6 +5085,11 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-04-05 ``@ddalle``: v1.0
         """
+        # Check for early termination
+        if self.check_early_exit(j):
+            # Reduce iter cutoff if appropriate
+            self.handle_early_exit(j)
+            return True
         # Check iteration requirements
         if not self.check_phase_iters(j):
             return False
@@ -5124,6 +5129,33 @@ class CaseRunner(CaseRunnerBase):
         nreq = self.get_phase_nreq(j)
         # Check if actually run
         return nrun >= nreq
+
+    def handle_early_exit(self, j: int):
+        r"""Reduce *PhaseIters* if an early exit was detected
+
+        :Call:
+            >>> runner.handle_early_exit(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Versions:
+            * 2025-08-15 ``@ddalle``: v1.0
+        """
+        # Get current iter
+        n = self.get_iter()
+        # Get cutoff for phase *j*
+        nmax = self.get_phase_iters(j)
+        # Try to update the settings
+        try:
+            # Perform action
+            self.set_phase_iters(min(n, nmax), j)
+            # Log action
+            if n < nmax:
+                self.log_both(f"Reducing phase {j} -> {n} iters")
+        except PermissionError:
+            pass
 
     # Check if a phase is rerun-able
     def check_phase_rerunable(self, j: int) -> bool:
