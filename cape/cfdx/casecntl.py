@@ -4532,6 +4532,7 @@ class CaseRunner(CaseRunnerBase):
         Reasons a case should exit include
 
         * The case is finished.
+        * An alternate exit criteria was found (e.g. resid converged)
         * A ``CAPE-STOP-PHASE`` file was found.
         * A ``CAPE-STOP-ITER`` file was found.
         * The relevant *StartNextPhase* option is ``False``.
@@ -4578,8 +4579,6 @@ class CaseRunner(CaseRunnerBase):
                 os.remove(STOP_PHASE_FILE)
                 # Exit
                 return True
-        elif self.check_early_exit(ja):
-            ...
         else:
             # Restarting same phase
             if not rc.get_RunControlOpt("RestartSamePhase", ja):
@@ -4592,11 +4591,11 @@ class CaseRunner(CaseRunnerBase):
         return self.check_complete()
 
     # Check for early exit
-    def check_early_exit(self, j: Optional[int] = None) -> bool:
+    def check_alt_exit(self, j: Optional[int] = None) -> bool:
         r"""Check for solver-selected exit, e.g. convergence target hit
 
         :Call:
-            >>> q = runner.check_early_exit(j=None)
+            >>> q = runner.check_alt_exit(j=None)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -4797,11 +4796,11 @@ class CaseRunner(CaseRunnerBase):
             # Status update
             sts = "INCOMP" if q == '.' else "QUEUE"
         # Check for special case w/ auto early exit
-        if (sts == "INCOMP") and self.check_early_exit():
+        if (sts == "INCOMP") and self.check_alt_exit():
             # Update status -> DONE
             sts = "DONE"
             # Try to update the settings
-            self.handle_early_exit(jmax)
+            self.handle_alt_exit(jmax)
         # Output
         return sts
 
@@ -5084,11 +5083,12 @@ class CaseRunner(CaseRunnerBase):
                 Whether phase *j* looks complete
         :Versions:
             * 2025-04-05 ``@ddalle``: v1.0
+            * 2025-08-14 ``@ddalle``: v1.1; ``check_alt_exit()``
         """
         # Check for early termination
-        if self.check_early_exit(j):
+        if self.check_alt_exit(j):
             # Reduce iter cutoff if appropriate
-            self.handle_early_exit(j)
+            self.handle_alt_exit(j)
             return True
         # Check iteration requirements
         if not self.check_phase_iters(j):
@@ -5130,11 +5130,11 @@ class CaseRunner(CaseRunnerBase):
         # Check if actually run
         return nrun >= nreq
 
-    def handle_early_exit(self, j: int):
+    def handle_alt_exit(self, j: int):
         r"""Reduce *PhaseIters* if an early exit was detected
 
         :Call:
-            >>> runner.handle_early_exit(j)
+            >>> runner.handle_alt_exit(j)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver

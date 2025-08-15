@@ -300,7 +300,7 @@ class CaseRunner(casecntl.CaseRunner):
         return 0.0
 
     # Check for exit criteria
-    def check_early_exit(self, j: Optional[int] = None) -> bool:
+    def check_alt_exit(self, j: Optional[int] = None) -> bool:
         # Get solver
         rc = self.read_case_json()
         solver = rc.get_LAVASolver()
