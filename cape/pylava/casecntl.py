@@ -294,11 +294,13 @@ class CaseRunner(casecntl.CaseRunner):
             # Get option
             ctumax = opts.get_opt("time", "finish ctu")
             ctumax = 0.0 if ctumax is None else ctumax
+            # Use it
+            return ctumax
         # Fallback
         return 0.0
 
     # Check for exit criteria
-    def check_early_exit(self):
+    def check_early_exit(self) -> bool:
         # Get solver
         rc = self.read_case_json()
         solver = rc.get_LAVASolver()
@@ -310,7 +312,7 @@ class CaseRunner(casecntl.CaseRunner):
                 return False
             # Check current value
             ctu = self.get_ctu()
-            return ctu + 0.5 >= ctumax
+            return bool(ctu + 0.5 >= ctumax)
         elif solver == "curvilinear":
             # Read YAML file
             yamlfile = self.read_runyaml()
