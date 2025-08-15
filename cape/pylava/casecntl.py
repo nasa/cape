@@ -171,6 +171,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Create an empty file
             fileutils.touch(fhist)
 
+   # --- Status ---
     # Function to get total iteration number
     def getx_restart_iter(self) -> int:
         r"""Get total iteration number of most recent flow file
@@ -265,6 +266,70 @@ class CaseRunner(casecntl.CaseRunner):
         db = self.read_data_iter(meta=True)
         # Return the last iteration
         return db.t
+
+    # Get CTU cutoff
+    def get_ctu_max(self, j: Optional[int] = None) -> float:
+        r"""Get the characteristic time units cutoff for phase *j*
+
+        :Call:
+            >>> t = runner.get_ctu_max()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *t*: :class:`float`
+                Last time step (characteristic units)
+        :Versions:
+            * 2025-08-15 ``@sneuhoff``: v1.0
+        """
+        # Get solver
+        rc = self.read_case_json()
+        solver = rc.get_LAVASolver()
+        # Filter
+        if solver == "cartesian":
+            # Default phase
+            j = j if (j is not None) else self.get_phase()
+            # Read settings
+            opts = self.read_runinputs(j)
+            # Get option
+            ctumax = opts.get_opt("time", "finish ctu")
+            ctumax = 0.0 if ctumax is None else ctumax
+        # Fallback
+        return 0.0
+
+    # Check for exit criteria
+    def check_early_exit(self):
+        # Get solver
+        rc = self.read_case_json()
+        solver = rc.get_LAVASolver()
+        # Filter
+        if solver == "cartesian":
+            # Check for CTU criteria
+            ctumax = self.get_ctu_max()
+            if (not ctumax):
+                return False
+            # Check current value
+            ctu = self.get_ctu()
+            return ctu + 0.5 >= ctumax
+        elif solver == "curvilinear":
+            # Read YAML file
+            yamlfile = self.read_runyaml()
+            # Maximum iterations
+            maxiters = yamlfile.get_lava_subopt(
+                "nonlinearsolver", "iterations")
+            # Read data
+            db = self.read_data_iter(meta=False)
+            if db.n >= maxiters:
+                return True
+            # Target convergence
+            l2conv_target = yamlfile.get_lava_subopt(
+                "nonlinearsolver", "l2conv")
+            # Apply it
+            if l2conv_target:
+                # Check reported convergence
+                return db.l2conv <= l2conv_target
+        # Fallback
+        return False
 
    # --- File manipulation ---
     # Prepare any input files as needed

@@ -160,7 +160,9 @@ class DataIterFile(dict):
             # Next entry is most recently reported "iteration"
             n, = fromfile_lb8_f(fp, 1)
             # Selectively switch to 1-based iteration
-            self.n = n + 1 if (icol == "iter") else n
+            n = n + 1 if (icol == "iter") else n
+            # Save as integer
+            self.n = int(n)
         # Report "iteration" number
         if "ctu" in self.cols:
             tcol = "ctu"
