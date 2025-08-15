@@ -4776,8 +4776,34 @@ class CaseRunner(CaseRunnerBase):
             q = self.check_queue()
             # Status update
             sts = "INCOMP" if q == '.' else "QUEUE"
+        # Check for special case w/ auto early exit
+        if (sts == "INCOMP") and self.check_early_exit():
+            # Update status -> DONE
+            sts = "DONE"
+            # Try to update the settings
+            try:
+                self.set_phase_iters(min(n, nmax), jmax)
+            except PermissionError:
+                pass
         # Output
         return sts
+
+    # Check for early exit
+    def check_early_exit(self) -> bool:
+        r"""Check for solver-selected exit, e.g. convergence target hit
+
+        :Call:
+            >>> q = runner.check_early_exit(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: :class:`bool`
+                ``True`` if no listed files have been modified recently
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        return False
 
     # Check if case is a zombie
     @run_rootdir
@@ -5513,7 +5539,7 @@ class CaseRunner(CaseRunnerBase):
         r"""Get min iteration required for completion of phase *j*
 
         :Call:
-            >>> nmax = runner.get_phase_iters(j)
+            >>> n = runner.get_phase_iters(j)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -5535,6 +5561,32 @@ class CaseRunner(CaseRunnerBase):
             rc.set_opt("PhaseIters", [0])
         # Get iterations for requested phase
         return rc.get_PhaseIters(j)
+
+    # Set phase iters
+    def set_phase_iters(self, n: int, j: int):
+        r"""Set min iteration required for completion of phase *j*
+
+        :Call:
+            >>> runner.set_phase_iters(n, j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *n*: :class:`int`
+                Number of iterations
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        # (Re)read the local case.json file
+        rc = self.read_case_json()
+        # Check for null file
+        if rc is None:
+            return
+        # Set iterations for requested phase
+        rc.set_PhaseIters(n, j=j)
+        # Write modified settings
+        self.write_case_json(rc)
 
     # Get iteration at which to stop requested by user
     def get_stop_iter(self):
