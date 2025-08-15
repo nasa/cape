@@ -5771,6 +5771,8 @@ class Report(object):
             if not os.path.isfile(vtkfile):
                 print(f"   Missing VTK file '{vtkfile}'")
                 continue
+            # Default to using this file directly for PLT conversion
+            vtkrawfile = vtkfile
             # Check for link
             if os.path.islink(vtkfile):
                 # Get the real name
@@ -5780,17 +5782,19 @@ class Report(object):
                 # Relative path for link
                 vtkrelfile = os.path.relpath(vtkrealfile, vtkdir)
                 # Replace VTK link with original file
-                vtkfile = os.path.relpath(vtkrealfile, os.getcwd())
+                vtkrawfile = os.path.relpath(vtkrealfile, os.getcwd())
                 # Relative path for PLT link
                 pltrelfile = vtkrelfile.rsplit('.', 1)[0] + ".plt"
                 # Path to PLT link
                 pltlinkfile = vtkfile.rsplit('.', 1)[0] + ".plt"
+            # Convert it
+            convert_vtk(vtkrawfile)
+            # Create viz link for .plt that mirrors .vtk linke
+            if os.path.islink(vtkfile):
                 # Pre-create viz link for .plt file
                 if os.path.isfile(pltlinkfile):
                     os.remove(pltlinkfile)
                 os.symlink(pltrelfile, pltlinkfile)
-            # Convert it
-            convert_vtk(vtkfile)
 
   # === Image I/O ===
     # Function to save images in various formats
