@@ -515,6 +515,30 @@ class CaseRunner(casecntl.CaseRunner):
             if tsrf >= tvol:
                 return
 
+    @casecntl.run_rootdir
+    def prep_qvol(self, subdir: str = "lineload"):
+        # Ensure folder exists
+        if not os.path.isdir(subdir):
+            self.mkdir(subdir)
+        # Enter it
+        os.chdir(subdir)
+        # Find best volume file
+        mtch = self.match_vol_file()
+        # Get file name
+        qfile = mtch.group()
+        # Source file is in parent folder
+        srcfile = os.path.join("..", qfile)
+        absfile = os.path.realpath(srcfile)
+        # Output file name
+        dstfile = "q.vol"
+        # Check for existing file
+        if os.path.isfile(dstfile):
+            # Check if we already linked this file
+            if os.path.realpath(dstfile) == absfile:
+                return
+        # Create new link
+        self.link_file(srcfile, dstfile, f=True)
+
    # --- Surface data ---
     def get_surf_regex(self):
         return r"q.(srf|surf)(.[0-9]+)?"
