@@ -2353,6 +2353,83 @@ class CaseRunner(CaseRunnerBase):
         """
         return 1
 
+  # *** MESH ***
+   # --- Volume ---
+    def match_grid_file(self):
+        r"""Get latest volume grid and regex match instance
+
+        :Call:
+            >>> re_match = runner.match_grid_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-08-16 ``@ddalle``: v1.0
+        """
+        # Get regular expression of volume file matches
+        pat = self.get_grid_regex()
+        # Perform search
+        mtch = self.match_regex(pat)
+        # Output
+        return mtch
+
+    def match_surfgrid_file(self):
+        r"""Get latest surface grid and regex match instance
+
+        :Call:
+            >>> re_match = runner.match_surfgrid_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-08-16 ``@ddalle``: v1.0
+        """
+        # Get regular expression of volume file matches
+        pat = self.get_surfgrid_regex()
+        # Perform search
+        mtch = self.match_regex(pat)
+        # Output
+        return mtch
+
+    def get_grid_regex(self) -> str:
+        r"""Return regular expression for volume grid files
+
+        :Call:
+            >>> pat = runner.get_grid_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Regular expression search pattern
+        :Versions:
+            * 2025-08-16 ``@ddalle``: v1.0
+        """
+        return r".*\.l?[br][48]l?\.ugrid"
+
+   # --- Surface ---
+    def get_surfgrid_regex(self) -> str:
+        r"""Return regular expression for surface grid files
+
+        :Call:
+            >>> pat = runner.get_surfgrid_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Regular expression search pattern
+        :Versions:
+            * 2025-08-16 ``@ddalle``: v1.0
+        """
+        return r"x(\.([0-9]+))?\.(sur,srf,surf)"
+
   # *** VOLUME DATA ***
    # --- Volume ---
     def match_vol_file(self):

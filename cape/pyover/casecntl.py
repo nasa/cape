@@ -24,6 +24,7 @@ are available unless specifically overwritten by specific
 import glob
 import os
 import shutil
+from collections import namedtuple
 from typing import Optional
 
 # Third-party modules
@@ -54,6 +55,10 @@ twall = 0.0
 dtwall = 0.0
 # Default time avail
 twall_avail = 1e99
+
+
+# Special classes
+MeshFileMeta = namedtuple("MeshFileMeta", ("cat", "x", "q"))
 
 
 # Help message for CLI
@@ -477,10 +482,55 @@ class CaseRunner(casecntl.CaseRunner):
     def get_vol_regex(self) -> str:
         return r"q.(avg|save|restart|[0-9]+)"
 
+    def get_grid_regex(self) -> str:
+        return r"(x|grid).(in|save|restart|[0-9]+)"
+
     def infer_file_niter(self, mtch) -> int:
         return int(checkqt(mtch.group()))
 
    # --- Volume -> Surf ---
+    def find_surf_source(self) -> MeshFileMeta:
+        r"""Find latest available files with surface data
+
+        :Call:
+            >>> typ, x, q = runner.find_surf_source()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *typ*: ``"vol"`` | ``"srf"``
+                Data source type
+            *x*: :class:`str`
+                Name of surface/volume grid file
+            *q*: :class:`str`
+                Name of surface/volume solution file
+        :Versions:
+            * 2025-08-16 ``@ddalle``: v1.0
+        """
+        # Look for surface files
+        mtchqsrf = self.match_surf_file()
+        mtchxsrf = self.match_surfgrid_file()
+        # Look for volume files
+        mtchqvol = self.match_vol_file()
+        mtchxvol = self.match_grid_file()
+        # Convert to file names
+        qsrf = None if mtchqsrf is None else mtchqsrf.group()
+        xsrf = None if mtchxsrf is None else mtchxsrf.group()
+        qvol = None if mtchqvol is None else mtchqvol.group()
+        xvol = None if mtchxvol is None else mtchxvol.group()
+        # Get mod times
+        tqsrf = 0.0 if qsrf is None else os.path.getmtime(qsrf)
+        txsrf = 0.0 if xsrf is None else os.path.getmtime(xsrf)
+        tqvol = 0.0 if qvol is None else os.path.getmtime(qvol)
+        txvol = 0.0 if xvol is None else os.path.getmtime(xvol)
+        # Check for both surf files
+        if qsrf and xsrf:
+            # Check if out of date
+            if (tqsrf >= tqvol) and (txsrf >= txvol):
+                return MeshFileMeta("srf", xsrf, qsrf)
+        # Otherwise use volume
+        return MeshFileMeta("vol", xvol, qvol)
+
     def splitmq_dex(self, comp: str):
         # Read control interface
         cntl = self.read_cntl()
@@ -516,7 +566,35 @@ class CaseRunner(casecntl.CaseRunner):
                 return
 
     @casecntl.run_rootdir
+    def prep_qsave(self, subdir: str = "lineload"):
+        # Get volume and surface file
+        mtchvol = self.match_vol_file()
+        mtchsrf = self.match_surf_file()
+        # Check for ready-made surface file
+        if mtchsrf is not None:
+            # Get file names
+            qvol = mtchvol.group()
+            qsrf = mtchsrf.group()
+            # Make sure surface is newer
+            if os.path.getmtime(qsrf) >= os.path.getmtime(qvol):
+                # Use the srf file
+                self.link_file(os.path.join('..', qsrf), "q.save", f=True)
+                return
+        # Prepare volume file
+        self.prep_qvol(subdir)
+
+    @casecntl.run_rootdir
     def prep_qvol(self, subdir: str = "lineload"):
+        r"""Prepare ``q.vol`` in subdir as link to best ``q`` vol file
+
+        :Call:
+            >>> runner.prep_qvol(subdir="lineload")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2025-08-15 ``@ddalle``: v1.0
+        """
         # Ensure folder exists
         if not os.path.isdir(subdir):
             self.mkdir(subdir)
@@ -541,7 +619,10 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Surface data ---
     def get_surf_regex(self):
-        return r"q.(srf|surf)(.[0-9]+)?"
+        return r"q(\.[0-9]+)?\.(srf|sur|surf)"
+
+    def get_surfgrid_regex(self):
+        return r"x(\.[0-9]+)?\.(srf|sur|surf)"
 
    # --- DataBook ---
     def get_dex_args_pre_fm(self) -> tuple:
