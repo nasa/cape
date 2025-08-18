@@ -1242,7 +1242,9 @@ class DataBookOpts(OptionsDict):
             # Set parents
             self[comp].setx_parent(self)
         # Use cascading options
-        v0 = None if opt not in self.getx_optlist() else self.get_opt(opt, **kw)
+        v0 = (
+            None if opt not in self.getx_optlist()
+            else self.get_opt(opt, **kw))
         v1 = self.get_subopt(comp, opt, **kw)
         return v0 if v1 is None else v1
 
@@ -1572,6 +1574,7 @@ DataBookOpts.add_compgetters(_GETTER_PROPS, prefix="DataBook")
 # Normal top-level properties
 _PROPS = (
     "Components",
+    "Dir",
     "Folder",
 )
 DataBookOpts.add_properties(_PROPS, prefix="DataBook")

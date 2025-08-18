@@ -41,9 +41,16 @@ class ConfigOpts(configopts.ConfigOpts):
 
     # Types
     _opttypes = {
-        "mixsur": str,
-        "splitmq": str,
-        "usurp": str,
+        "Mixsur": str,
+        "Splitmq": str,
+        "Splitmx": str,
+        "TriqMethod": str,
+        "Usurp": str,
+    }
+
+    # Allowed values
+    _optvals = {
+        "TriqMethod": ("mixsur", "usurp"),
     }
 
     # Defaults
