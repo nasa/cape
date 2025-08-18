@@ -592,12 +592,12 @@ class UmeshBase(ABC):
 
         # If mks system
         if mks:
-            mub = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+            mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
             # Gas constant
             if R is None:
                 R = 287.0
         else:
-            mub = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+            mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
             # Gas constant
             if R is None:
                 R = 1716.0
@@ -609,8 +609,6 @@ class UmeshBase(ABC):
         U = M*a
         # Dynamic pressure
         q = 0.5*rho*U**2
-        # I dont know where the differences are (cf_x seems off by 1.5)
-        mu = mub
 
         # Make a copy of the umesh object to start manipulation
         surf = self.copy().deepcopy(self)
@@ -627,38 +625,76 @@ class UmeshBase(ABC):
         surf.pvmesh.point_data['Velocity'] = np.vstack((u, v, w)).T
 
         # Compute velocity gradient at surface using first cell
-        #vol_tensor = surf.pvmesh.compute_derivative(
-        #    scalars='Velocity', gradient=True, divergence=True,
-        #    progress_bar=True)
+        # Standard gradient method within vtk is to use all cells
+        # attached to a point. This means that the gradient at the surface
+        # included surface tris( which have v=0). VTK allows you to limit
+        # the differentiation to only higher order cells (aka prisms). To
+        # implement this, a combination of pyvista and vtk is needed.
+        # Original code:
+        # vol_tensor = surf.pvmesh.compute_derivative(
+        #     scalars='Velocity', gradient=True, divergence=True,
+        #     progress_bar=True)
 
+        # Use the gradient filter to compute the velocity gradient/divergence
         alg = _vtk.vtkGradientFilter()
+        # Input is the surface plus first cell
         alg.SetInputData(surf.pvmesh)
+        # Input scalar is the velocity field
         alg.SetInputScalars(0, 'Velocity')
+        # Enforce computation of gradient and divergence
         alg.SetComputeGradient(True)
         alg.SetResultArrayName("gradient")
         alg.SetComputeDivergence(True)
         alg.SetDivergenceArrayName('divergence')
+        # Setting SetContributingCellOption to 2 restricts diff to highest
+        # order cells
         alg.SetContributingCellOption(2)
+        # Faster approx can speed up calc at the expense of accuracy
         alg.SetFasterApproximation(False)
+        # This update function will update the filter with inputs
         _update_alg(alg)
+        # Use get output to retireve pyvista object
         vol_tensor = _get_output(alg)
 
+        # Cast gradient and divergence to umesh object for efficency
+        # Create a list of the new variables to add
+        new_vars = [
+            "divergence",
+            'dudx', 'dudy', 'dudz',
+            'dvdx', 'dvdy', 'dvdz',
+            'dwdx', 'dwdy', 'dwdz',
+        ]
+        # Use extend to add these to the end of the list of qvars
+        surf.qvars.extend(new_vars)
+        # Now use np.hstack to add values back to original umesh object
+        new_q = np.hstack(
+            (
+                surf.q,
+                vol_tensor['divergence'].reshape(-1, 1),
+                vol_tensor['gradient']
+            )
+        )
+        surf.q = new_q
 
         # We no longer need the first cells, so remove them
         surf.remove_volume()
         # Remake the pyvista object as a surface
         surf.make_pvmesh_surf()
 
+        # Add the velocity gradient tensor to the pyvista surface
+        surf.pvmesh.point_data['gradient'] = surf.q[:, -9:]
+
         # Compute surface normals - need polydata first
-        surfg = surf.pvmesh.extract_surface().compute_normals(
+        surfp = surf.pvmesh.extract_surface().compute_normals(
             cell_normals=False, point_normals=True, progress_bar=True)
 
         # Sample gradient and divergecne onto surface
-        surfn = surfg.sample(vol_tensor, progress_bar=True)
+        # surfn = surfg.sample(vol_tensor, progress_bar=True)
+
         # Save surface normals/gradients for use
-        normals = surfn.point_data['Normals']
-        gradw = surfn.point_data['gradient']
-        divw = surfn.point_data['divergence']
+        normals = surfp.point_data['Normals']
+        gradw = surfp.point_data['gradient']
+        divw = surfp.point_data['divergence']
 
         # Reshape gradient to make 3x3
         gradwr = gradw.reshape((-1, 3, 3))
@@ -681,43 +717,42 @@ class UmeshBase(ABC):
         wss_magnitude = np.linalg.norm(wss, axis=1)
 
         # Save the values to the surface grid
-        surfn.point_data['wss_magnitude'] = wss_magnitude
-        surfn.point_data['wss'] = wss
+        surfp.point_data['wss_magnitude'] = wss_magnitude
+        surfp.point_data['wss'] = wss
 
         # Compute skin friction coefficient
         # cf = Tw/q
         cf = wss_magnitude / q
-        surfn.point_data['cf'] = cf
+        surfp.point_data['cf'] = cf
 
         # Components
         # --X--
         tau_w_x = wss[:, 0]
         cfx = tau_w_x/q
-        surfn.point_data['cf_x'] = cfx
+        surfp.point_data['cf_x'] = cfx
         # --X--
         tau_w_y = wss[:, 1]
         cfy = tau_w_y/q
-        surfn.point_data['cf_y'] = cfy
+        surfp.point_data['cf_y'] = cfy
         # --X--
         tau_w_z = wss[:, 2]
         cfz = tau_w_z/q
-        surfn.point_data['cf_z'] = cfz
+        surfp.point_data['cf_z'] = cfz
 
         # Remove vectors and tensors
-        surfn.point_data.remove('Velocity')
-        surfn.point_data.remove('Normals')
-        surfn.point_data.remove('gradient')
-        surfn.point_data.remove('divergence')
-        surfn.point_data.remove('wss')
+        surfp.point_data.remove('Normals')
+        surfp.point_data.remove('gradient')
+        surfp.point_data.remove('divergence')
+        surfp.point_data.remove('wss')
 
         # Save to umesh surface
-        surf.qvars = surfn.point_data.keys()
+        surf.qvars = surfp.point_data.keys()
         surf.nq = len(surf.qvars)
 
         # Pyvista extract surf renumbers point, so q needs to be sorted
-        qunsorted = np.stack(surfn.point_data.values(), axis=1)
+        qunsorted = np.stack(surfp.point_data.values(), axis=1)
         qsorted = np.empty_like(qunsorted)
-        mask = surfn['vtkOriginalPointIds']
+        mask = surfp['vtkOriginalPointIds']
         for i in range(qunsorted.shape[1]):
             qsorted[:, i][mask] = qunsorted[:, i]
 
