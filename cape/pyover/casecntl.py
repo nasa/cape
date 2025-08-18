@@ -57,8 +57,8 @@ dtwall = 0.0
 twall_avail = 1e99
 
 
-# Special classes
-MeshFileMeta = namedtuple("MeshFileMeta", ("cat", "x", "q"))
+#: Class for solution mesh + data file names
+MeshFileMeta = namedtuple("MeshFileMeta", ("typ", "x", "q"))
 
 
 # Help message for CLI
@@ -489,6 +489,29 @@ class CaseRunner(casecntl.CaseRunner):
         return int(checkqt(mtch.group()))
 
    # --- Volume -> Surf ---
+    @casecntl.run_rootdir
+    def prepare_triq_qsave(self, subdir: str = "lineload"):
+        # Create subfolder
+        if not os.path.isdir(subdir):
+            os.mkdir(subdir)
+        # Enter it
+        os.chdir(subdir)
+        # Find surface source data
+        src = self.find_surf_source()
+        # Check type
+        if src.typ == "srf":
+            # Already a surface
+            self.link_file(os.path.join('..', src.x), "x.save", f=True)
+            self.link_file(os.path.join('..', src.q), "q.save", f=True)
+            # Done
+            return
+        # Read run matrix
+        cntl = self.read_cntl()
+        # Check for splitmq/splitmx
+        fsplitmq = cntl.opts.get_ConfigSplitmq()
+        fsplitmx = cntl.opts.get_ConfigSplitmx()
+        # Prepare volume file
+
     def find_surf_source(self) -> MeshFileMeta:
         r"""Find latest available files with surface data
 

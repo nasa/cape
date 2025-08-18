@@ -14,6 +14,7 @@ from .runctlopts import RunControlOpts
 from .overnmlopts import OverNmlOpts
 from .gridsysopts import GridSystemNmlOpts
 from .meshopts import MeshOpts
+from .configopts import ConfigOpts
 from .databookopts import DataBookOpts
 from .reportopts import ReportOpts
 from ...cfdx import options
@@ -78,6 +79,7 @@ class Options(options.Options):
 
     # Replaced or renewed sections
     _sec_cls = {
+        "Config": ConfigOpts,
         "RunControl": RunControlOpts,
         "Mesh": MeshOpts,
         "DataBook": DataBookOpts,
