@@ -36,9 +36,10 @@ except ModuleNotFoundError:
     pv = None
     vtkPlane = None
 try:
-    from scipy.spatial import cKDTree
+    from scipy.spatial import cKDTree, KDTree
 except ModuleNotFoundError:
     cKDTree = None
+    KDTree = None
 
 
 # Class for Tecplot zones; nodes and indices
@@ -656,9 +657,16 @@ class UmeshBase(ABC):
         # Use get output to retireve pyvista object
         vol_tensor = _get_output(alg)
 
+        # Lets get the first cell heights using scipy.spatial.KDTree
+        tree = KDTree(surf.nodes)
+        # Query for the distance between two closest points
+        # On the body, this should be itself and one off-body
+        distances, _ = tree.query(surf.nodes, k=2)
+
         # Cast gradient and divergence to umesh object for efficency
         # Create a list of the new variables to add
         new_vars = [
+            "distance",
             "divergence",
             'dudx', 'dudy', 'dudz',
             'dvdx', 'dvdy', 'dvdz',
@@ -670,6 +678,7 @@ class UmeshBase(ABC):
         new_q = np.hstack(
             (
                 surf.q,
+                distances[:, 1].reshape(-1, 1),
                 vol_tensor['divergence'].reshape(-1, 1),
                 vol_tensor['gradient']
             )
@@ -738,6 +747,14 @@ class UmeshBase(ABC):
         tau_w_z = wss[:, 2]
         cfz = tau_w_z/q
         surfp.point_data['cf_z'] = cfz
+
+        # Compute y-plus
+        ustar = np.sqrt(wss_magnitude/rho)
+        # Get wall normal distances
+        dn = surfp.point_data['distance']
+        # Calc yplus
+        yplus = dn*rho*ustar/mu
+        surfp.point_data['yplus'] = yplus
 
         # Remove vectors and tensors
         surfp.point_data.remove('Normals')
