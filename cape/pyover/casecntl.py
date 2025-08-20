@@ -545,6 +545,8 @@ class CaseRunner(casecntl.CaseRunner):
         # Read run matrix
         cntl = self.read_cntl()
         opts = cntl.opts
+        # Get path to fomofolder
+        fomodir = cntl.abspath(opts.get_ConfigFomoFolder())
         # Check method
         if opts.get_ConfigTriqMethod() == "usurp":
             # Get USURP input file
