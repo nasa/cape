@@ -49,6 +49,24 @@ STOP_FILE = "STOP"
 STR_TYPES = str
 
 
+# Other constants
+USURP_TRIQ_FILES = (
+    "grid.i.tri",
+    "panel_weights.dat",
+    "usurp.map",
+)
+OVERINT_TRIQ_FILES = (
+    "grid.i.tri",
+    "grid.bnd",
+    "grid.ib",
+    "grid.ibi",
+    "mixsur.fmp",
+    "grid.map",
+    "grid.nsf",
+    "grid.ptv",
+)
+
+
 # Total wall time used
 twall = 0.0
 # Time used by last phase
@@ -555,6 +573,19 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for it
             if not os.path.isfile(fabs):
                 raise FileNotFoundError(f"USURP input file '{fabs}' not found")
+            # Check for files
+            for fname in USURP_TRIQ_FILES:
+                # Candidates
+                f1 = os.path.join('..', fname)
+                f2 = os.path.join(fomodir, fname)
+                # Check for file in parent folder
+                if os.path.isfile(f1):
+                    self.link_file(f1, fname)
+                elif os.path.isfile(f2):
+                    self.link_file(f2, fname)
+                else:
+                    raise FileNotFoundError(
+                        f"USURP output file '{fname}' not found")
             # Copy it
             self.copy_file(fabs, "usurp.i")
             # Run USURP
@@ -567,6 +598,19 @@ class CaseRunner(casecntl.CaseRunner):
             if not os.path.isfile(fabs):
                 raise FileNotFoundError(
                     f"OVERINT input file '{fabs}' not found")
+            # Check for files
+            for fname in OVERINT_TRIQ_FILES:
+                # Candidates
+                f1 = os.path.join('..', fname)
+                f2 = os.path.join(fomodir, fname)
+                # Check for file in parent folder
+                if os.path.isfile(f1):
+                    self.link_file(f1, fname)
+                elif os.path.isfile(f2):
+                    self.link_file(f2, fname)
+                else:
+                    raise FileNotFoundError(
+                        f"MIXSUR output file '{fname}' not found")
             # Copy it
             self.copy_file(fabs, "overint.i")
             # Run OVERINT
