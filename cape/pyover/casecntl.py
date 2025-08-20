@@ -490,20 +490,29 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Volume -> Surf ---
     @casecntl.run_rootdir
-    def prepare_triq_qsave(self, subdir: str = "lineload"):
-        r"""Prep ``q`` and ``x`` files before creating ``grid.i.triq``
+    def prepare_triq(self, subdir: str = "lineload"):
+        r"""Prep ``q`` and ``x`` files to create ``grid.i.triq``
 
         This will first identify the most recent source files in the
         working directory and also run ``splitmq`` and ``splitmx`` if so
         prescribed.
 
         :Call:
-            >>> runner.prepare_triq_save(subdir="lineload")
+            >>> triqstats = runner.prepare_triq(subdir="lineload")
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+            *subdir*: {``"lineload"``} | :class:`str`
+                Name folder to create ``grid.i.triq`` within
+        :Outputs:
+            *triqstats*: :class:`collections.namedtuple`
+                :class:`FileStatus` of ``.triq`` file
+            *triqstats.fname*: ``"grid.i.triq"``
+                Name of ``.triq`` file (created or found)
+            *triqstats.n*: :class:`int`
+                Iteration number for *fname*
         :Versions:
-            * 2025-08-18 ``@ddalle``: v1.0
+            * 2025-08-19 ``@ddalle``: v1.0
         """
         # Create subfolder
         if not os.path.isdir(subdir):
@@ -522,6 +531,46 @@ class CaseRunner(casecntl.CaseRunner):
         # Run splitmq if necessary
         self._run_splitmq(src)
         self._run_splitmx(src)
+        # Name of output file
+        ftriq = "grid.i.triq"
+        # Get number of iterations
+        n = checkqt("q.save")
+        # Create output
+        sts = casecntl.FileStatus(ftriq, n)
+        # Check for up-to-date file
+        if os.path.isfile(ftriq):
+            if os.path.getmtime(ftriq) >= os.path.getmtime("q.save"):
+                self.log_verbose(f"grid.i.triq up-to-date at iteration {n}")
+                return sts
+        # Read run matrix
+        cntl = self.read_cntl()
+        opts = cntl.opts
+        # Check method
+        if opts.get_ConfigTriqMethod() == "usurp":
+            # Get USURP input file
+            fi = opts.get_ConfigUsurp()
+            fabs = cntl.abspath(fi)
+            # Check for it
+            if not os.path.isfile(fabs):
+                raise FileNotFoundError(f"USURP input file '{fabs}' not found")
+            # Copy it
+            self.copy_file(fabs, "usurp.i")
+            # Run USURP
+            self.run_usurp_triq("usurp.i", "usurp.o")
+        else:
+            # Get MIXSUR input file
+            fi = opts.get_ConfigMixsur()
+            fabs = cntl.abspath(fi)
+            # Check for it
+            if not os.path.isfile(fabs):
+                raise FileNotFoundError(
+                    f"OVERINT input file '{fabs}' not found")
+            # Copy it
+            self.copy_file(fabs, "overint.i")
+            # Run OVERINT
+            self.run_overint_triq("overint.i", "overint.o")
+        # Output
+        return sts
 
     def find_surf_source(self) -> MeshFileMeta:
         r"""Find latest available files with surface data

@@ -1318,7 +1318,7 @@ class CaseRunner(CaseRunnerBase):
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *ifile*: :class:`str`
-                Name of ``usurp`` input file
+                Name of ``mixsur`` input file
             *ofile*: :class:`str`
                 Name of file for ``usurp`` STDOUT
         :Outputs:
@@ -1328,7 +1328,7 @@ class CaseRunner(CaseRunnerBase):
             * 2025-08-13 ``@ddalle``: v1.0
         """
         # Check for executable
-        cmdrun.find_executable("usurp", "CGT usurp executable")
+        cmdrun.find_executable("mixsur", "CGT mixsur executable")
         # Run function and use its return code
         return self.callf(["mixsur"], i=ifile, f=ofile)
 
@@ -1352,7 +1352,7 @@ class CaseRunner(CaseRunnerBase):
             * 2025-08-13 ``@ddalle``: v1.0
         """
         # Check for executable
-        cmdrun.find_executable("usurp", "CGT usurp executable")
+        cmdrun.find_executable("overint", "CGT overint executable")
         # Run function and use its return code
         return self.callf(["overint"], i=ifile, f=ofile)
 

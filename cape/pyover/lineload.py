@@ -291,7 +291,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     # Check for ``mixsur`` or ``usurp``
     if qfusurp or qusurp:
         # Command to usurp
-        cmd = ("usurp -v --use-map < %s >& usurp.%s.o"
+        cmd = (
+            "usurp -v --use-map < %s >& usurp.%s.o"
             % (lmixsur, DB.comp))
         # Status update
         print("    %s" % cmd)
