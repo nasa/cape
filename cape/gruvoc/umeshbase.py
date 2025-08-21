@@ -847,8 +847,8 @@ class UmeshBase(ABC):
         # Now lets compute the velocity deltas of the point with its nearest
         #  neighbor
         du = udim[indicies[:, 1]]-udim[indicies[:, 0]]
-        dv = udim[indicies[:, 1]]-udim[indicies[:, 0]]
-        dw = udim[indicies[:, 1]]-udim[indicies[:, 0]]
+        dv = vdim[indicies[:, 1]]-vdim[indicies[:, 0]]
+        dw = wdim[indicies[:, 1]]-wdim[indicies[:, 0]]
         # Extend the list of qvars
         surf.qvars.extend(['distance'])
         surf.qvars.extend([f"{i}_dim" for i in vel_strings])
@@ -883,7 +883,7 @@ class UmeshBase(ABC):
         dut = surfp.point_data['du']-(dun+dvn+dwn)*normals[:, 0]
         dvt = surfp.point_data['dv']-(dun+dvn+dwn)*normals[:, 1]
         dwt = surfp.point_data['dw']-(dun+dvn+dwn)*normals[:, 2]
-        # Compute du/dbn
+        # Compute du/dn
         dudn = np.sqrt(dut**2+dvt**2+dwt**2)
         # Skin friction magnitude
         surfp.point_data['cf'] = (1/q)*mu*(dudn/surfp.point_data['distance'])
@@ -892,7 +892,7 @@ class UmeshBase(ABC):
         surfp.point_data['cfy'] = (1/q)*mu*(dvt/surfp.point_data['distance'])
         surfp.point_data['cfz'] = (1/q)*mu*(dwt/surfp.point_data['distance'])
         # Compute y-plus
-        ustar = np.sqrt(abs(dudn)/surfp.point_data['rho'])
+        ustar = np.sqrt(abs(dudn)/(rho*surfp.point_data['rho']))
         # Get wall normal distances
         dn = surfp.point_data['distance']
         # Calc yplus
