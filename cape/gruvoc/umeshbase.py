@@ -777,6 +777,142 @@ class UmeshBase(ABC):
 
         return surf
 
+    def make_skin_friction(
+            self, p, T, M, R=None, gam=1.4,
+            mu0=None, T0=None, C=None, mks=True):
+        r"""Compute skin friction
+            :Call:
+            >>>surf = mesh.make_skin_friction(p, T, M)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *p*: :class:`float`
+                Static pressure [Pa|psf]
+            *T*: :class:`float`
+                Static temperature [K|R]
+            *M*: :class:`float`
+                Mach number
+            *mks*: {``True``} | ``False``
+                Flag for unit system
+            *R*: :class:`float`
+                Gas constant [m^2/s^2*R|ft^2/s^2*R]
+            *gam*: {``1.4``} | :class:`float`
+                Ratio of specific heats
+            *mu0*: :class:`float`
+                Reference viscosity [kg/m*s|slug/ft*s]
+            *T0*: :class:`float`
+                Reference temperature [K|R]
+            *C*: :class:`float`
+                Reference temperature [K|R]
+        :Outputs:
+            *surf*: :class:`Umesh`
+                Surface points with computed skin friction quantities
+        """
+        # If mks system
+        if mks:
+            mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+            # Gas constant
+            if R is None:
+                R = 287.0
+        else:
+            mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+            # Gas constant
+            if R is None:
+                R = 1716.0
+        # Calculate density
+        rho = p / (R*T)
+        # Sound speed
+        a = np.sqrt(gam*R*T)
+        # Velocity
+        U = M*a
+        # Dynamic pressure
+        q = 0.5*rho*U**2
+        # Make a copy of the umesh object to start manipulation
+        surf = self.copy().deepcopy(self)
+        # Remove the offbody points acn keep just the first cells from surfs
+        surf.remove_offbody()
+        # List of velocity strings
+        vel_strings = ['u', 'v', 'w']
+        # Find qvar math for velocities
+        match = [i for i, s in enumerate(surf.qvars) if s in vel_strings]
+        # Dimensionalize velocities
+        udim = surf.q[:, match[0]] * a
+        vdim = surf.q[:, match[1]] * a
+        wdim = surf.q[:, match[2]] * a
+        # Lets get the first cell heights using scipy.spatial.KDTree
+        tree = KDTree(surf.nodes)
+        # Query for the distance between two closest points
+        # On the body, this should be itself and one off-body
+        distances, indicies = tree.query(surf.nodes, k=2)
+        # Now lets compute the velocity deltas of the point with its nearest
+        #  neighbor
+        du = udim[indicies[:, 1]]-udim[indicies[:, 0]]
+        dv = udim[indicies[:, 1]]-udim[indicies[:, 0]]
+        dw = udim[indicies[:, 1]]-udim[indicies[:, 0]]
+        # Extend the list of qvars
+        surf.qvars.extend(['distance'])
+        surf.qvars.extend([f"{i}_dim" for i in vel_strings])
+        surf.qvars.extend([f"d{i}" for i in vel_strings])
+        # Add dimensionalized velocities and deltas to solution array
+        surf.q = np.hstack(
+            (
+                surf.q,
+                distances[:, 1].reshape(-1, 1),
+                udim.reshape(-1, 1),
+                vdim.reshape(-1, 1),
+                wdim.reshape(-1, 1),
+                du.reshape(-1, 1),
+                dv.reshape(-1, 1),
+                dw.reshape(-1, 1),
+            )
+        )
+        # We no longer need the offbody cells, so purge
+        surf.remove_volume()
+        # Make a pvmesh instance to compute normals
+        surf.make_pvmesh_surf()
+        # Compute surface normals - need polydata first
+        surfp = surf.pvmesh.extract_surface().compute_normals(
+            cell_normals=False, point_normals=True, progress_bar=False)
+        # Save surface normals
+        normals = surfp.point_data['Normals']
+        # Compute portion of velocity delta normal to surface
+        dun = surfp.point_data['du']*normals[:, 0]
+        dvn = surfp.point_data['dv']*normals[:, 1]
+        dwn = surfp.point_data['dw']*normals[:, 2]
+        # Compute velcity delta tangential to surface
+        dut = surfp.point_data['du']-(dun+dvn+dwn)*normals[:, 0]
+        dvt = surfp.point_data['dv']-(dun+dvn+dwn)*normals[:, 1]
+        dwt = surfp.point_data['dw']-(dun+dvn+dwn)*normals[:, 2]
+        # Compute du/dbn
+        dudn = np.sqrt(dut**2+dvt**2+dwt**2)
+        # Skin friction magnitude
+        surfp.point_data['cf'] = (1/q)*mu*(dudn/surfp.point_data['distance'])
+        # Skin friction coefficients
+        surfp.point_data['cfx'] = (1/q)*mu*(dut/surfp.point_data['distance'])
+        surfp.point_data['cfy'] = (1/q)*mu*(dvt/surfp.point_data['distance'])
+        surfp.point_data['cfz'] = (1/q)*mu*(dwt/surfp.point_data['distance'])
+        # Compute y-plus
+        ustar = np.sqrt(abs(dudn)/surfp.point_data['rho'])
+        # Get wall normal distances
+        dn = surfp.point_data['distance']
+        # Calc yplus
+        yplus = dn*rho*ustar/mu
+        surfp.point_data['yplus'] = yplus
+        # Remove vectors and tensors
+        surfp.point_data.remove('Normals')
+        # Save to umesh surface
+        surf.qvars = surfp.point_data.keys()
+        surf.nq = len(surf.qvars)
+        # Pyvista extract surf renumbers points, so q needs to be sorted
+        qunsorted = np.stack(surfp.point_data.values(), axis=1)
+        qsorted = np.empty_like(qunsorted)
+        mask = surfp['vtkOriginalPointIds']
+        for i in range(qunsorted.shape[1]):
+            qsorted[:, i][mask] = qunsorted[:, i]
+        surf.q = qsorted
+        # Return the new umesh object
+        return surf
+
    # --- DataKit ---
     def genr8_datakit(self) -> DataKit:
         r"""Create a :class:`DataKit` from an unstructured mesh
@@ -2641,17 +2777,20 @@ class UmeshBase(ABC):
             # Viscosity
             mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
             # Gas constant
-            if R is None: R = 287.0
+            if R is None:
+                R = 287.0
         else:
             Rex = ReynoldsPerFoot(p, T, M)
             # Viscosity
             mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
             # Gas constant
-            if R is None: R = 1716.0
+            if R is None:
+                R = 1716.0
         # Scale per-unit Rex
         Re = Rex*L
         # Ratio of specific heats
-        if gam is None: gam = 1.4
+        if gam is None:
+            gam = 1.4
         # Calculate density
         rho = p / (R*T)
         # Sound speed
