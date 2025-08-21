@@ -49,6 +49,24 @@ STOP_FILE = "STOP"
 STR_TYPES = str
 
 
+# Other constants
+USURP_TRIQ_FILES = (
+    "grid.i.tri",
+    "panel_weights.dat",
+    "usurp.map",
+)
+OVERINT_TRIQ_FILES = (
+    "grid.i.tri",
+    "grid.bnd",
+    "grid.ib",
+    "grid.ibi",
+    "mixsur.fmp",
+    "grid.map",
+    "grid.nsf",
+    "grid.ptv",
+)
+
+
 # Total wall time used
 twall = 0.0
 # Time used by last phase
@@ -490,7 +508,30 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Volume -> Surf ---
     @casecntl.run_rootdir
-    def prepare_triq_qsave(self, subdir: str = "lineload"):
+    def prepare_triq(self, subdir: str = "lineload"):
+        r"""Prep ``q`` and ``x`` files to create ``grid.i.triq``
+
+        This will first identify the most recent source files in the
+        working directory and also run ``splitmq`` and ``splitmx`` if so
+        prescribed.
+
+        :Call:
+            >>> triqstats = runner.prepare_triq(subdir="lineload")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *subdir*: {``"lineload"``} | :class:`str`
+                Name folder to create ``grid.i.triq`` within
+        :Outputs:
+            *triqstats*: :class:`collections.namedtuple`
+                :class:`FileStatus` of ``.triq`` file
+            *triqstats.fname*: ``"grid.i.triq"``
+                Name of ``.triq`` file (created or found)
+            *triqstats.n*: :class:`int`
+                Iteration number for *fname*
+        :Versions:
+            * 2025-08-19 ``@ddalle``: v1.0
+        """
         # Create subfolder
         if not os.path.isdir(subdir):
             os.mkdir(subdir)
@@ -505,12 +546,77 @@ class CaseRunner(casecntl.CaseRunner):
             self.link_file(os.path.join('..', src.q), "q.save", f=True)
             # Done
             return
+        # Run splitmq if necessary
+        self._run_splitmq(src)
+        self._run_splitmx(src)
+        # Name of output file
+        ftriq = "grid.i.triq"
+        # Get number of iterations
+        n = checkqt("q.save")
+        # Create output
+        sts = casecntl.FileStatus(ftriq, n)
+        # Check for up-to-date file
+        if os.path.isfile(ftriq):
+            if os.path.getmtime(ftriq) >= os.path.getmtime("q.save"):
+                self.log_verbose(f"grid.i.triq up-to-date at iteration {n}")
+                return sts
         # Read run matrix
         cntl = self.read_cntl()
-        # Check for splitmq/splitmx
-        fsplitmq = cntl.opts.get_ConfigSplitmq()
-        fsplitmx = cntl.opts.get_ConfigSplitmx()
-        # Prepare volume file
+        opts = cntl.opts
+        # Get path to fomofolder
+        fomodir = cntl.abspath(opts.get_ConfigFomoFolder())
+        # Check method
+        if opts.get_ConfigTriqMethod() == "usurp":
+            # Get USURP input file
+            fi = opts.get_ConfigUsurp()
+            fabs = cntl.abspath(fi)
+            # Check for it
+            if not os.path.isfile(fabs):
+                raise FileNotFoundError(f"USURP input file '{fabs}' not found")
+            # Check for files
+            for fname in USURP_TRIQ_FILES:
+                # Candidates
+                f1 = os.path.join('..', fname)
+                f2 = os.path.join(fomodir, fname)
+                # Check for file in parent folder
+                if os.path.isfile(f1):
+                    self.link_file(f1, fname)
+                elif os.path.isfile(f2):
+                    self.link_file(f2, fname)
+                else:
+                    raise FileNotFoundError(
+                        f"USURP output file '{fname}' not found")
+            # Copy it
+            self.copy_file(fabs, "usurp.i")
+            # Run USURP
+            self.run_usurp_triq("usurp.i", "usurp.o")
+        else:
+            # Get MIXSUR input file
+            fi = opts.get_ConfigMixsur()
+            fabs = cntl.abspath(fi)
+            # Check for it
+            if not os.path.isfile(fabs):
+                raise FileNotFoundError(
+                    f"OVERINT input file '{fabs}' not found")
+            # Check for files
+            for fname in OVERINT_TRIQ_FILES:
+                # Candidates
+                f1 = os.path.join('..', fname)
+                f2 = os.path.join(fomodir, fname)
+                # Check for file in parent folder
+                if os.path.isfile(f1):
+                    self.link_file(f1, fname)
+                elif os.path.isfile(f2):
+                    self.link_file(f2, fname)
+                else:
+                    raise FileNotFoundError(
+                        f"MIXSUR output file '{fname}' not found")
+            # Copy it
+            self.copy_file(fabs, "overint.i")
+            # Run OVERINT
+            self.run_overint_triq("overint.i", "overint.o")
+        # Output
+        return sts
 
     def find_surf_source(self) -> MeshFileMeta:
         r"""Find latest available files with surface data
@@ -554,39 +660,85 @@ class CaseRunner(casecntl.CaseRunner):
         # Otherwise use volume
         return MeshFileMeta("vol", xvol, qvol)
 
-    def splitmq_dex(self, comp: str):
-        # Read control interface
+    def _run_splitmq(self, src: MeshFileMeta):
+        # Read run matrix
         cntl = self.read_cntl()
-        # Check option
-        splitmqfile = cntl.opts.get_DataBookOpt(comp, "splitmq")
-        # Exit if no such file
-        if splitmqfile is None:
-            return
-        # Absolutize
-        splitmqfile = cntl.abspath(splitmqfile)
-        # Check for file
-        if not os.path.isfile(splitmqfile):
-            self.log_verbose(
-                f"cannot run splitmq - template '{splitmqfile}' missing")
-            return
-        # Run it
-        self.splitmq(splitmqfile)
+        # Get splitmq/splitmx options
+        fsplitmq = cntl.opts.get_ConfigSplitmq()
+        # Check for splitmq
+        if fsplitmq:
+            # Absolutize
+            abssplitmq = cntl.abspath(fsplitmq)
+            # Check if it exists
+            if os.path.isfile(abssplitmq):
+                # Copy it
+                self.copy_file(abssplitmq, "splitmq.i", f=True)
+                # Link ``q`` file
+                self.link_file(os.path.join("..", src.q), "q.vol")
+                # Edit splitmq.i
+                EditSplitmqI(abssplitmq, "splitmq.i", "q.vol", "q.save")
+                # Run it
+                self.splitmq("splitmq.i")
+        # Otherwise use the volume file
+        self.link_file(os.path.join("..", src.q), "q.save")
 
-    @casecntl.run_rootdir
-    def splitmq(self, fplitmq: str):
-        # Search for latest volume and surface files
-        fqvol = self.match_regex(self.get_vol_regex())
-        fqsrf = self.match_regex(self.get_surf_regex())
-        # Check for volume data to convert
-        if fqvol is None:
-            return
-        # Check if up-to-date
-        if fqsrf is not None:
-            # Get iterations
-            tvol = checkqt(fqvol)
-            tsrf = checkqt(fqsrf)
-            if tsrf >= tvol:
+    def _run_splitmx(self, src: MeshFileMeta):
+        # Check for existing ``q.save``
+        if os.path.isfile("q.save"):
+            if checkqt("q.save") >= checkqt(src.q):
+                # Already up-to-date
+                self.log_verbose(f"{src.q} -> q.save up-to-date", parent=1)
                 return
+        # Read run matrix
+        cntl = self.read_cntl()
+        # Get splitmq/splitmx options
+        fsplitmx = cntl.opts.get_ConfigSplitmx()
+        # Check for splitmq
+        if fsplitmx:
+            # Absolutize
+            abssplitmx = cntl.abspath(fsplitmx)
+            # Check if it exists
+            if os.path.isfile(abssplitmx):
+                # Copy it
+                self.copy_file(abssplitmx, "splitmx.i", f=True)
+                # Link ``q`` file
+                self.link_file(os.path.join("..", src.x), "x.vol")
+                # Edit splitmq.i
+                EditSplitmqI(abssplitmx, "splitmx.i", "x.vol", "x.save")
+                # Run it
+                self.splitmx("splitmx.i")
+        # Otherwise use the volume file
+        self.link_file(os.path.join("..", src.x), "x.save")
+
+    def splitmq(self, fsplitmq: str = "splitmq.i"):
+        r"""Run ``splitmq`` to extract surface and second-layer sol data
+
+        :Call:
+            >>> runner.splitmq(fsplitmq="splitmq.i")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fsplitmq*: {``"splitmq.i"``} | :class:`str`
+                Name of input file
+        :Versions:
+            * 2025-08-18 ``@ddalle``: v1.0
+        """
+        self.callf("splitmq", f="splitmq.o", i=fsplitmq)
+
+    def splitmx(self, fsplitmx: str):
+        r"""Run ``splitmx`` to extract surface and second-layer grid
+
+        :Call:
+            >>> runner.splitmx(fsplitmx="splitmx.i")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fsplitmx*: {``"splitmx.i"``} | :class:`str`
+                Name of input file
+        :Versions:
+            * 2025-08-18 ``@ddalle``: v1.0
+        """
+        self.callf("splitmx", f="splitmx.o", i=fsplitmx)
 
     @casecntl.run_rootdir
     def prep_qsave(self, subdir: str = "lineload"):

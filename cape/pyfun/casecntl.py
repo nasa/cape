@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pyfun.case`: FUN3D case control module
-==================================================
+:mod:`cape.pyfun.casecntl`: FUN3D case control module
+======================================================
 
 This module contains the important function :func:`casecntl.run_fun3d`,
 which actually runs ``nodet`` or ``nodet_mpi``, along with the utilities

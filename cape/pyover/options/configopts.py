@@ -20,6 +20,7 @@ class ConfigOpts(configopts.ConfigOpts):
 
     # Additional options
     _optlist = {
+        "FomoFolder",
         "Mixsur",
         "Splitmq",
         "TriqMethod",
@@ -28,11 +29,14 @@ class ConfigOpts(configopts.ConfigOpts):
 
     # Aliases
     _optmap = {
+        "Fomo": "FomoFolder",
+        "FomoDir": "FomoFolder",
         "MixsurI": "Mixsur",
         "SplitmqI": "Splitmq",
         "SplitmxI": "Splitmx",
         "TriMethod": "TriqMethod",
         "UsurpI": "Usurp",
+        "fomo": "FomoFolder",
         "mixsur": "Mixsur",
         "splitmq": "Splitmq",
         "splitmx": "Splitmx",
