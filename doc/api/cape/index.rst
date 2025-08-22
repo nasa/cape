@@ -29,10 +29,9 @@ The :mod:`cape` module
     pltfile
     statutils
     step
-    tar
     teccli
     textutils
-    tri
+    trifile
     tricli
     units
     util
