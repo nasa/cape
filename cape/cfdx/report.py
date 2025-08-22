@@ -193,6 +193,8 @@ class Report(object):
             os.chdir("..")
             # Tar the folder if appropriate
             self.tar(f"{fdir}.tar", fdir)
+            # Remove original
+            shutil.rmtree(fdir)
         else:
             # Untar if necessary
             self.untar(f"{fdir}.tar")
