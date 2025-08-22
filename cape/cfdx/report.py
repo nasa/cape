@@ -69,13 +69,13 @@ import json
 import os
 import re
 import shutil
+import tarfile
 
 # Third-party modules
 import numpy as np
 from numpy import sqrt, sin, cos, tan, exp
 
 # Local modules
-from .. import tar
 from .cmdrun import pvpython
 from .cntlbase import CntlBase
 from ..filecntl import texfile
@@ -185,20 +185,88 @@ class Report(object):
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
         """
-        # Get archive option.
-        q = self.cntl.opts.get_ReportOpt(self.rep, "Archive")
-        # Check direction.
+        # Check direction, in/out of folder
         if fdir.startswith('..'):
-            # Check archive option.
-            if q:
-                # Tar and clean up if necessary.
-                tar.chdir_up()
-            else:
-                # Go up a folder.
-                os.chdir('..')
+            # Name of current folder
+            fdir = os.path.basename(os.getcwd())
+            # Exit
+            os.chdir("..")
+            # Tar the folder if appropriate
+            self.tar(f"{fdir}.tar", fdir)
         else:
             # Untar if necessary
-            tar.chdir_in(fdir)
+            self.untar(f"{fdir}.tar")
+            # Enter folder
+            os.chdir(fdir)
+
+    # Archive a folder
+    def tar(self, ftar: str, *a):
+        r"""Tar an archive folder if requested
+
+        :Call:
+            >>> rep.tar(ftar, *a)
+        :Inputs:
+            *rep*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
+            *ftar*: :class:`str`
+                Name of archive to create
+            *a*: :class:`tuple`\ [:class:`str`]
+                Names or patterns of files to include in archive
+        :Versions:
+            * 2015-03-07 ``@ddalle``: v1.0 (cape.tar.tar())
+            * 2019-11-07 ``@ddalle``: v1.1 (cape.tar.tar())
+            * 2025-08-22 ``@ddalle``: v1.0
+        """
+        # Get archive option
+        q = self.cntl.opts.get_ReportOpt(self.rep, "Archive")
+        # Exit if nothing to do
+        if not q:
+            return
+        # Select mode, depending on whether file exists
+        m = "a" if os.path.isfile(ftar) else "w"
+        # Open file
+        with tarfile.open(ftar, m) as tar:
+            # Expand list of files
+            fglob = []
+            # Loop through files
+            for ai in a:
+                # Loop through matches
+                for aj in glob.glob(ai):
+                    # Check if already in glob
+                    if aj in fglob:
+                        continue
+                    # Otherwise add it to archive
+                    tar.add(aj)
+                    # Add it to list
+                    fglob.append(aj)
+
+    # Untar folder
+    def untar(self, ftar: str):
+        r"""Untar an archive folder if requested
+
+        :Call:
+            >>> rep.untar(ftar)
+        :Inputs:
+            *rep*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
+            *ftar*: :class:`str`
+                Name of archive to create
+        :Versions:
+            * 2015-03-07 ``@ddalle``: v1.0 (cape.tar.tar())
+            * 2019-11-07 ``@ddalle``: v1.1 (cape.tar.tar())
+            * 2025-08-22 ``@ddalle``: v1.0
+        """
+        # Get archive option
+        q = self.cntl.opts.get_ReportOpt(self.rep, "Archive")
+        # Exit if nothing to do
+        if not q:
+            return
+        # Check for file
+        if os.path.isfile(ftar):
+            # Open tar object
+            with tarfile.open(ftar, "r") as tar:
+                # Extract all files
+                tar.extractall()
 
   # === LaTeX Files ===
    # --- Main .tex File ---
