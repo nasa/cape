@@ -64,6 +64,7 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
 
 # Standard library modules
 import ast
+import functools
 import glob
 import json
 import os
@@ -71,7 +72,7 @@ import re
 import shutil
 import tarfile
 from io import IOBase
-from typing import Any
+from typing import Any, Callable, Optional
 
 # Third-party modules
 import numpy as np
@@ -87,6 +88,52 @@ from .. import pltfile
 
 # List of math functions
 _MATH_FUNCTIONS = (sqrt, sin, cos, tan, exp)
+
+
+# Decorator for moving directories
+def run_maindir(func: Callable):
+    r"""Decorator to run a function within a specified folder
+
+    :Call:
+        >>> func = run_maindir(func)
+    :Wrapper Signature:
+        >>> v = r.func(*a, **kw)
+    :Inputs:
+        *func*: :class:`func`
+            Name of function
+        *r*: :class:`cape.cfdx.report.Report`
+            Control instance from which to use *cntl.RootDir*
+        *a*: :class:`tuple`
+            Positional args to :func:`cntl.func`
+        *kw*: :class:`dict`
+            Keyword args to :func:`cntl.func`
+    :Versions:
+        * 2025-08-23 ``@ddalle``: v1.0
+    """
+    # Declare wrapper function to change directory
+    @functools.wraps(func)
+    def wrapper_func(self, *args, **kwargs):
+        # Recall current directory
+        fpwd = os.getcwd()
+        # Go to specified directory
+        os.chdir(self.get_ReportLocation())
+        # Run the function with exception handling
+        try:
+            # Attempt to run the function
+            v = func(self, *args, **kwargs)
+        except Exception:
+            # Raise the error
+            raise
+        except KeyboardInterrupt:
+            # Raise the error
+            raise
+        finally:
+            # Go back to original folder (always)
+            os.chdir(fpwd)
+        # Return function values
+        return v
+    # Apply the wrapper
+    return wrapper_func
 
 
 # Class to interface with report generation and updating.
@@ -121,7 +168,10 @@ class Report(object):
         #: :class:`int`
         #: Current case index
         self.i = None
-        # Check for this report.
+        #: :class:`list`\ [:class:`int`]
+        #: List of cases in report
+        self.mask = []
+        # Check for this report
         if rep not in cntl.opts.get_ReportList():
             # Raise an exception
             raise KeyError("No report named '%s'" % rep)
@@ -164,6 +214,43 @@ class Report(object):
         return '<cape.cfdx.report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
+
+  # === Main ===
+    # Process list of cases
+    def find_cases(self, **kw):
+        r"""Identify list of cases to report
+
+        :Call:
+            >>> r.find_cases(**kw)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases to report
+            *re*: {``None``} | :class:`str`
+                Regular expression filter for case names
+        :Attributes:
+            *r.mask*: :class:`list`\ [:class:`int`]
+                List of cases populated according to run matrix and *kw*
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Identify cases
+        inds = self.cntl.x.GetIndices(**kw)
+        # Reset list
+        self.mask = []
+        # Check for case figures
+        if not self.HasCaseFigures():
+            return
+        # Get required number of iterations for report
+        nmin = self.get_ReportOpt("MinIter")
+        # Check cases
+        for i in inds:
+            # Get the actual iteration number.
+            n = self.cntl.CheckCase(i)
+            # Check for skip
+            if n >= nmin:
+                self.mask.append(i)
 
   # === Options ===
     # Generic option
@@ -276,6 +363,34 @@ class Report(object):
             # Enter folder
             os.chdir(fdir)
 
+    def mkdir_p(self, dirname: str, where: Optional[str] = None):
+        r"""Create a folder if necessary
+
+        :Call:
+            >>> r.mkdir_p(dirname, where=None)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *dirname*: :class:`str`
+                Name of folder (can be multilevel e.g. ``a/b``)
+            *where*: {``None``} | :class:`str`
+                Absolute path to start from (or ``os.getcwd()``)
+        :Versions:
+            * 2025-08-22 ``@ddalle``: v1.0
+        """
+        # Cannot use absolute path
+        if os.path.isabs(dirname):
+            raise ValueError(f"mkdir_p() cannot use absolute path '{dirname}'")
+        # Base path
+        curdir = os.getcwd() if where is None else where
+        # Loop through parts of *fgrp*
+        for part in dirname.split(os.sep):
+            # Accumulate
+            curdir = os.path.join(curdir, part)
+            # Create the folder if necessary
+            if not os.path.isdir(curdir):
+                os.mkdir(curdir)
+
     # Archive a folder
     def tar(self, ftar: str, *a):
         r"""Tar an archive folder if requested
@@ -348,7 +463,7 @@ class Report(object):
   # === LaTeX Files ===
    # --- Main .tex File ---
     # Write primary main file
-    def write_main(self, I: np.ndarray):
+    def write_main(self):
         # Get path to file ane name of file
         dirname = self.get_CompileDir()
         texname = self.get_LaTeXFileName()
@@ -356,10 +471,10 @@ class Report(object):
         fname = os.path.join(dirname, texname)
         # Write
         with open(fname, 'w') as fp:
-            self._write_main(fp, I)
+            self._write_main(fp)
 
     # Write file
-    def _write_main(self, fp: IOBase, I: np.ndarray):
+    def _write_main(self, fp: IOBase):
         # Main file name
         texname = self.get_LaTeXFileName()
         # Write the universal header
@@ -470,7 +585,7 @@ class Report(object):
         # Skeleton for the main part of the report.
         fp.write('%$__Cases\n')
         # Include each case
-        for i in I:
+        for i in self.mask:
             # Get name of case
             frun = self.cntl.x.GetFullFolderNames(i)
             frun = frun.replace(os.sep, '/')
@@ -822,8 +937,6 @@ class Report(object):
         compil = kw.get("compile", True)
         # If compile requested
         if compil:
-            # Write the file.
-            self.tex.Write()
             # Compile it.
             print("Compiling...")
             self.tex.Compile(False)
@@ -915,7 +1028,7 @@ class Report(object):
         os.chdir('report')
 
     # Function to update report for several cases
-    def UpdateCases(self, I=None, **kw):
+    def UpdateCases(self, I: np.ndarray, **kw):
         r"""Update several cases and add the lines to the master LaTeX file
 
         :Call:
@@ -931,20 +1044,12 @@ class Report(object):
             * 2015-03-10 ``@ddalle``: v1.0
             * 2015-05-22 ``@ddalle``: v1.1; move compile call
         """
-        # Check for use of constraints instead of direct list.
-        I = self.cntl.x.GetIndices(I=I, **kw)
-        # Clear out the lines.
-        del self.tex.Section['Cases'][1:-1]
         # Loop through those cases.
         for i in I:
             # Update the case
             self.UpdateCase(i)
-        # Update the text.
-        self.tex._updated_sections = True
-        self.tex.UpdateLines()
-        # Master file location
-        os.chdir(self.cntl.RootDir)
-        os.chdir('report')
+        # Compile folder location
+        os.chdir(self.get_ReportLocation())
 
    # --- Case/Sweep Updaters ---
     # Function to update a sweep
@@ -1121,8 +1226,20 @@ class Report(object):
         # Output
         return figs
 
+    # New function to create/update report for one case
+    @run_maindir
+    def update_case(self, i: int):
+        # Get settings
+        arc = self.get_ReportOpt("Archive")
+        loc = self.get_ReportLocation()
+        # Note @run_maindir starts us in the compile folder
+        # Get name of case
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Create folder as necessary
+        self.mkdir_p(frun)
+
     # Function to create the file for a case
-    def UpdateCase(self, i):
+    def UpdateCase(self, i: int):
         r"""Open, create if necessary, and update LaTeX file for a case
 
         :Call:
@@ -1143,7 +1260,7 @@ class Report(object):
         frun = self.cntl.x.GetFullFolderNames(i)
         # Get just the last level of case
         fgrp, fdir = os.path.split(frun)
-        # Go to the report directory if necessary.
+        # Go to the report directory if necessary
         fpwd = os.getcwd()
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
