@@ -40,6 +40,7 @@ class SingleReportOpts(OptionsDict):
         "ErrorFigures",
         "Figures",
         "Frontispiece",
+        "Location",
         "Logo",
         "MinIter",
         "Parent",
@@ -59,6 +60,7 @@ class SingleReportOpts(OptionsDict):
         "ErrorFigures": str,
         "Figures": str,
         "Frontispiece": str,
+        "Location": str,
         "Logo": str,
         "MinIter": INT_TYPES,
         "Parent": str,
@@ -68,6 +70,11 @@ class SingleReportOpts(OptionsDict):
         "Sweeps": str,
         "Title": str,
         "ZeroFigures": str,
+    }
+
+    # Allowed values
+    _optvals = {
+        "Location": ("case", "report"),
     }
 
     # List depth
@@ -83,6 +90,7 @@ class SingleReportOpts(OptionsDict):
         "Affiliation": "",
         "Archive": True,
         "Author": "",
+        "Location": "case",
         "MinIter": 0,
         "ShowCaseNumber": True,
         "Subtitle": "",
@@ -97,6 +105,7 @@ class SingleReportOpts(OptionsDict):
         "ErrorFigures": "list of figures for cases with ERROR status",
         "Figures": "list of figures in report",
         "Frontispiece": "image for repore title page",
+        "Location": "where to put report files; in case folders or report",
         "Logo": "logo for footer of each report page",
         "MinIter": "minimum iteration for report to generate",
         "Parent": "name of report from which to inherit options",
@@ -1781,12 +1790,12 @@ class ReportOpts(OptionsDict):
     _subsec_name = "report"
 
     # Option list
-    _optlist = {
+    _optlist = (
         "Figures",
         "Reports",
         "Subfigures",
         "Sweeps",
-    }
+    )
 
     # Aliases
     _optmap = {}
@@ -1851,7 +1860,7 @@ class ReportOpts(OptionsDict):
         self.sfig = None
 
    # --- Prepprocess ---
-    def preprocess_dict(self, a):
+    def preprocess_dict(self, a: dict):
         r"""Custom preprocessing for :class:`ReportOpts`
 
         Take the global ``"Archive"`` option if present and apply it to
@@ -1866,12 +1875,11 @@ class ReportOpts(OptionsDict):
                 Dictionary of options to merge into *opts*
         :Versions:
             * 2023-06-22 ``@ddalle``: v1.0
+            * 2025-08-22 ``@ddalle``: v1.1; add *Location*
         """
-        # Get "Archive" setting
+        # Get "Archive" and "Location" settings
         archive = a.pop("Archive", None)
-        # If it wasn't present, do nothing
-        if archive is None:
-            return
+        loc = a.pop("Location", None)
         # Otherwise, apply it to each section
         for k, v in a.items():
             # Check for special sections
@@ -1882,7 +1890,10 @@ class ReportOpts(OptionsDict):
             if not isinstance(v, dict):
                 continue
             # Otherwise, do set it, but don't overwrite
-            v.setdefault("Archive", archive)
+            if archive is not None:
+                v.setdefault("Archive", archive)
+            if loc is not None:
+                v.setdefault("Location", loc)
 
    # --- Lists ---
     # List of reports

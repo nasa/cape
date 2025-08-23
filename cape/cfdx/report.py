@@ -70,6 +70,8 @@ import os
 import re
 import shutil
 import tarfile
+from io import IOBase
+from typing import Any
 
 # Third-party modules
 import numpy as np
@@ -108,9 +110,6 @@ class Report(object):
         * :attr:`rep`
         * :attr:`sweeps`
         * :attr:`tex`
-    :Versions:
-        * 2015-03-10 ``@ddalle``: v1.0
-        * 2015-10-15 ``@ddalle``: v1.1; ``cfdx`` version
     """
   # === __dunder__ ===
     # Initialization method
@@ -149,8 +148,6 @@ class Report(object):
         #: :class:`cape.filecntl.texfile.Tex`
         #: Main LaTeX file interface
         self.tex = None
-        # Read the file if applicable
-        self.OpenMain()
         #: :class:`bool`
         #: Option to overwrite existing subfigures
         self.force_update = False
@@ -167,6 +164,84 @@ class Report(object):
         return '<cape.cfdx.report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
+
+  # === Options ===
+    # Generic option
+    def get_ReportOpt(self, opt: str) -> Any:
+        r"""Get value of generic *Report* option
+
+        :Call:
+            >>> v = r.get_ReportOpt(opt)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *opt*: :class:`str`
+                Name of string
+        :Outputs:
+            *v*: :class:`object`
+                Value of option
+        :Versions:
+            * 2025-08-22 ``@ddalle``: v1.0
+        """
+        return self.cntl.opts.get_ReportOpt(self.rep, opt)
+
+    # Get location folder
+    def get_ReportLocation(self) -> str:
+        r"""Get *Location* option from *Report* section
+
+        :Call:
+            >>> loc = r.get_ReportLocation()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Outputs:
+            *loc*: ``"case"`` | ``"report"``
+                Location for report figures to be stored
+        :Versions:
+            * 2025-08-22 ``@ddalle``: v1.0
+        """
+        return self.get_ReportOpt("Location")
+
+    # Get compile folder
+    def get_CompileDir(self) -> str:
+        r"""Get folder in which to compile document
+
+        :Call:
+            >>> dirname = r.get_CompileDir()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Outputs:
+            *dirname*: :class:`str`
+                Absolute path to folder containing main ``.tex`` file
+        :Versions:
+            * 2026-08-22 ``@ddalle``: v1.0
+        """
+        # Get location option
+        loc = self.get_ReportLocation()
+        # Start with root dir
+        cwd = self.cntl.RootDir
+        # Add to it
+        dirname = os.path.join(cwd, "report") if (loc == "report") else cwd
+        # Output
+        return dirname
+
+    # Get name of main TeX file
+    def get_LaTeXFileName(self) -> str:
+        r"""Get name of main LaTeX file
+
+        :Call:
+            >>> fname = r.get_LaTeXFileName()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Outputs:
+            *fname*: :class:`str`
+                Name (basename) of file to write
+        :Versions:
+            * 2026-08-22 ``@ddalle``: v1.0
+        """
+        return f"report-{self.rep}.tex"
 
   # === Folder Functions ===
     # Function to go into a folder, respecting archive option
@@ -272,6 +347,139 @@ class Report(object):
 
   # === LaTeX Files ===
    # --- Main .tex File ---
+    # Write primary main file
+    def write_main(self, I: np.ndarray):
+        # Get path to file ane name of file
+        dirname = self.get_CompileDir()
+        texname = self.get_LaTeXFileName()
+        # Combine
+        fname = os.path.join(dirname, texname)
+        # Write
+        with open(fname, 'w') as fp:
+            self._write_main(fp, I)
+
+    # Write file
+    def _write_main(self, fp: IOBase, I: np.ndarray):
+        # Main file name
+        texname = self.get_LaTeXFileName()
+        # Write the universal header
+        fp.write('%$__Class\n')
+        fp.write('\\documentclass[letter,10pt]{article}\n\n')
+        # Write the preamble.
+        fp.write('%$__Preamble\n')
+        # Margins
+        fp.write('\\usepackage[margin=0.6in,top=0.7in,headsep=0.1in,\n')
+        fp.write('    footskip=0.15in]{geometry}\n')
+        # Other packages
+        fp.write('\\usepackage{graphicx}\n')
+        fp.write('\\usepackage{caption}\n')
+        fp.write('\\usepackage{subcaption}\n')
+        fp.write('\\usepackage{hyperref}\n')
+        fp.write('\\usepackage{fancyhdr}\n')
+        fp.write('\\usepackage{amsmath}\n')
+        fp.write('\\usepackage{amssymb}\n')
+        fp.write('\\usepackage{times}\n')
+        fp.write('\\usepackage{placeins}\n')
+        fp.write('\\usepackage[usenames]{xcolor}\n')
+        fp.write('\\usepackage[T1]{fontenc}\n')
+        fp.write('\\usepackage[scaled]{beramono}\n\n')
+        # Get the title and author and etc.
+        fttl  = self.get_ReportOpt("Title")
+        fsttl = self.get_ReportOpt("Subtitle")
+        fauth = self.get_ReportOpt("Author")
+        fafl = self.get_ReportOpt("Affiliation")
+        flogo = self.get_ReportOpt("Logo")
+        ffrnt = self.get_ReportOpt("Frontispiece")
+        frest = self.get_ReportOpt("Restriction")
+        # Set the title and author.
+        fp.write('\\title{%s}\n' % fttl)
+        fp.write('\\author{%s}\n' % fauth)
+        # Format the header and footer
+        fp.write('\n\\fancypagestyle{pycart}{%\n')
+        fp.write(' \\renewcommand{\\headrulewidth}{0.4pt}%\n')
+        fp.write(' \\renewcommand{\\footrulewidth}{0.4pt}%\n')
+        fp.write(' \\fancyhf{}%\n')
+        fp.write(' \\fancyfoot[C]{\\textbf{\\textsf{%s}}}%%\n' % frest)
+        fp.write(' \\fancyfoot[R]{\\thepage}%\n')
+        # Check for a logo.
+        if flogo is not None and len(flogo) > 0:
+            fp.write(' \\fancyfoot[L]{\\raisebox{-0.32in}{%\n')
+            fp.write('  \\includegraphics[height=0.45in]{%s}}}%%\n' % flogo)
+        # Finish this primary header/footer format
+        fp.write('}\n\n')
+        # Empty header/footer format for first page
+        fp.write('\\fancypagestyle{plain}{%\n')
+        fp.write(' \\renewcommand{\\headrulewidth}{0pt}%\n')
+        fp.write(' \\renewcommand{\\footrulewidth}{0pt}%\n')
+        fp.write(' \\fancyhf{}%\n')
+        fp.write('}\n\n')
+        # Small captions if needed
+        fp.write('\\captionsetup[subfigure]{textfont=sf}\n')
+        fp.write('\\captionsetup[subfigure]{skip=0pt}\n\n')
+        # Macros for setting cases.
+        fp.write('\\newcommand{\\thecase}{}\n')
+        fp.write('\\newcommand{\\thesweep}{}\n')
+        fp.write('\\newcommand{\\setcase}[1]')
+        fp.write('{\\renewcommand{\\thecase}{#1}}\n')
+        fp.write('\\newcommand{\\setsweep}[1]')
+        fp.write('{\\renewcommand{\\thesweep}{#1}}\n')
+        # Actual document
+        fp.write('\n%$__Begin\n')
+        fp.write('\\begin{document}\n')
+        # Title page
+        fp.write('\\pagestyle{plain}\n')
+        fp.write('\\begin{titlepage}\n')
+        fp.write('\\vskip4ex\n')
+        fp.write('\\raggedleft\n')
+        # Write the title
+        fp.write('{\\Huge\\sf\\textbf{\n')
+        fp.write('%s\n' % fttl)
+        fp.write('}}\n')
+        # Write the subtitle
+        if fsttl is not None and len(fsttl) > 0:
+            fp.write('\\vskip2ex\n')
+            fp.write('{\\Large\\sf\\textit{\n')
+            fp.write('%s\n' % fsttl)
+            fp.write('}}\\par\n')
+        # Finish the title with a horizontal line
+        fp.write('\\rule{0.75\\textwidth}{1pt}\\par\n')
+        fp.write('\\vskip30ex\n')
+        # Write the author
+        fp.write('\\raggedright\n')
+        fp.write('{\\LARGE\\textrm{\n')
+        fp.write('%s%%\n' % fauth)
+        fp.write('}}\n')
+        # Write the affiliation
+        if fafl is not None and len(fafl) > 0:
+            fp.write('\\vskip2ex\n')
+            fp.write('{\\LARGE\\sf\\textbf{\n')
+            fp.write('%s\n' % fafl)
+            fp.write('}}\n')
+        # Insert the date
+        fp.write('\\vskip20ex\n')
+        fp.write('{\\LARGE\\sf\\today}\n')
+        # Insert the frontispiece
+        if ffrnt is not None and len(ffrnt) > 0:
+            fp.write('\\vskip20ex\n')
+            fp.write('\\raggedleft\n')
+            fp.write('\\includegraphics[height=2in]{%s}\n' % ffrnt)
+        # Close the tile page
+        fp.write('\\end{titlepage}\n')
+        # Skeleton for the sweep
+        fp.write('%$__Sweeps\n\n')
+        # Skeleton for the main part of the report.
+        fp.write('%$__Cases\n')
+        # Include each case
+        for i in I:
+            # Get name of case
+            frun = self.cntl.x.GetFullFolderNames(i)
+            frun = frun.replace(os.sep, '/')
+            # Include
+            fp.write("\\include{%s/%s}\n" % (frun, texname))
+        # Termination of the report
+        fp.write('\n%$__End\n')
+        fp.write('\\end{document}\n')
+
     # Function to open the master latex file for this report.
     def OpenMain(self):
         r"""Open the primary LaTeX file or write skeleton if necessary
@@ -603,6 +811,8 @@ class Report(object):
         """
         # Get list of indices.
         I = self.cntl.x.GetIndices(**kw)
+        # Write main file
+        self.write_main(I)
         # Update any sweep figures.
         self.UpdateSweeps(I)
         # Update any case-by-case figures.
