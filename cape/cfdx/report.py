@@ -81,6 +81,7 @@ from numpy import sqrt, sin, cos, tan, exp
 # Local modules
 from .cmdrun import pvpython
 from .cntlbase import CntlBase
+from ..argread.clitext import compile_rst
 from ..filecntl import texfile
 from ..filecntl.tecfile import ExportLayout, Tecscript, convert_vtk
 from .. import pltfile
@@ -88,6 +89,9 @@ from .. import pltfile
 
 # List of math functions
 _MATH_FUNCTIONS = (sqrt, sin, cos, tan, exp)
+
+# Pre-compiled regular expressions
+_RE_TEX_CHARS = re.compile(r"([#$%&_{}])")
 
 
 # Decorator for moving directories
@@ -168,6 +172,9 @@ class Report(object):
         #: :class:`int`
         #: Current case index
         self.i = None
+        #: :class:`str`
+        #: Status of current case
+        self.sts = ''
         #: :class:`list`\ [:class:`int`]
         #: List of cases in report
         self.mask = []
@@ -195,6 +202,12 @@ class Report(object):
         #: :class:`dict`\ [:class:`cape.filecntl.texfile.Tex`]
         #: Dictionary of LaTeX handles for each single-case page
         self.cases = {}
+        #: :class:`dict`\ [:class:`int`]
+        #: Dictionary of iterations run for each relevant case
+        self.casedict_n = {}
+        #: :class:`dict`\ [:class:`str`]
+        #: Dictionary of statuses for each relevant case
+        self.casedict_sts = {}
         #: :class:`cape.filecntl.texfile.Tex`
         #: Main LaTeX file interface
         self.tex = None
@@ -239,17 +252,40 @@ class Report(object):
         inds = self.cntl.x.GetIndices(**kw)
         # Reset list
         self.mask = []
+        # Get the three sets of lists
+        cfigs = self.get_ReportOpt("Figures", vdef=())
+        zfigs = self.get_ReportOpt("ZeroFigures", vdef=())
+        efigs = self.get_ReportOpt("ErrorFigures", vdef=())
+        # De-None if necessary
+        nc = 0 if cfigs is None else len(cfigs)
+        nz = 0 if zfigs is None else len(zfigs)
+        ne = 0 if efigs is None else len(efigs)
         # Check for case figures
-        if not self.HasCaseFigures():
+        if max([nc, nz, ne]) == 0:
             return
+        # Reference chars
+        yes = '✓'
+        no = '×'
+        geq = '≥'
         # Get required number of iterations for report
         nmin = self.get_ReportOpt("MinIter")
         # Check cases
         for i in inds:
+            # Get case name
+            frun = self.cntl.x.GetFullFolderNames(i)
             # Get the actual iteration number.
-            n = self.cntl.CheckCase(i)
-            # Check for skip
-            if n >= nmin:
+            n = self.get_case_n(i)
+            # Select character
+            c = yes if (n >= nmin) else no
+            c = no if ((n == 0) and (nz == 0)) else c
+            c = no if ((n > 0) and (nc == 0)) else c
+            # Select operator
+            op = geq if (n >= nmin) else '<'
+            op = '=' if ((n == 0) and (nz == 0)) else op
+            # Status update
+            print(compile_rst(f"**{c}** {frun} ({n}{op}{nmin})"))
+            # Add to list
+            if c == yes:
                 self.mask.append(i)
 
   # === Options ===
@@ -329,6 +365,61 @@ class Report(object):
             * 2026-08-22 ``@ddalle``: v1.0
         """
         return f"report-{self.rep}.tex"
+
+  # === Case Status ===
+    # Get current iteration
+    def get_case_n(self, i: int) -> Optional[int]:
+        r"""Get number of iterations for case *i*, using cache
+
+        :Call:
+            >>> n = r.get_case_n(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *n*: :class:`int`
+                Number of iterations from case *i*
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Check if cached
+        if i in self.casedict_n:
+            return self.casedict_n[i]
+        # Sample it
+        n = self.cntl.CheckCase(i)
+        # Save it
+        self.casedict_n[i] = n
+        # Return it
+        return n
+
+    # Get current status
+    def get_case_status(self, i: int) -> str:
+        r"""Get number of iterations for case *i*, using cache
+
+        :Call:
+            >>> sts = r.get_case_n(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *sts*: :class:`str`
+                Status for case *i*
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Check if cached
+        if i in self.casedict_sts:
+            return self.casedict_sts[i]
+        # Sample it
+        sts = self.cntl.check_case_status(i)
+        # Save it
+        self.casedict_sts[i] = sts
+        # Return it
+        return sts
 
   # === Folder Functions ===
     # Function to go into a folder, respecting archive option
@@ -797,7 +888,7 @@ class Report(object):
 
         # Write the header.
         f.write('\\clearpage\n')
-        f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
+        f.write('\\setcase{%s}\n' % _escape(frun))
         f.write('\\phantomsection\n')
         f.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')
         # Check if we should write the case number
@@ -926,6 +1017,8 @@ class Report(object):
         """
         # Get list of indices.
         I = self.cntl.x.GetIndices(**kw)
+        # Find cases
+        self.find_cases(**kw)
         # Write main file
         self.write_main(I)
         # Update any sweep figures.
@@ -1226,9 +1319,27 @@ class Report(object):
         # Output
         return figs
 
+    # Update overall report
+    def update_cases(self):
+        ...
+
     # New function to create/update report for one case
     @run_maindir
     def update_case(self, i: int):
+        r"""Open, create if necessary, and update LaTeX file for a case
+
+        :Call:
+            >>> r.UpdateCase(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-03-08 ``@ddalle``: v1.0
+            * 2023-10-21 ``@ddalle``: v1.1; allow arbitray depth
+            * 2025-08-23 ``@ddalle``: v2.0; allow using case folder
+        """
         # Get settings
         arc = self.get_ReportOpt("Archive")
         loc = self.get_ReportLocation()
@@ -1237,6 +1348,108 @@ class Report(object):
         frun = self.cntl.x.GetFullFolderNames(i)
         # Create folder as necessary
         self.mkdir_p(frun)
+        # Enter folder
+        os.chdir(frun)
+        # Write main file
+        self.write_case(i)
+
+    # Write case
+    def write_case(self, i: int):
+        # Get file name
+        with open(self.get_LaTeXFileName(), 'w') as fp:
+            self._write_case(i, fp)
+
+    # Write content of case LaTeX file
+    def _write_case(self, i: int, fp: IOBase):
+        # Get the name of the case
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Make sure no spilling of figures onto other pages
+        fp.write('\n\\FloatBarrier\n')
+        # Write the header.
+        fp.write('\\clearpage\n')
+        fp.write('\\setcase{%s}\n' % _escape(frun))
+        fp.write('\\phantomsection\n')
+        fp.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')
+        # Check if we should write the case number
+        if self.get_ReportOpt("ShowCaseNumber"):
+            # Add case number
+            fp.write(
+                r'\fancyhead[L]{(\textbf{Case %s}) \texttt{\thecase}}\n\n' % i)
+        else:
+            # Write case name without case number
+            fp.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
+        # Get case current iteration
+        n = self.get_case_n(i)
+        # Get max iters required for case
+        nmax = self.cntl.GetLastIter(i)
+        # Get current status
+        sts = self.get_case_status(i)
+        # Text for current iter
+        ntxt = '-' if (n is None) else str(int(n))
+        # Text for iteration status
+        fitr = f"{ntxt}/{nmax}"
+        # Form string for the status type
+        fmt = r'\color{green}' if sts == "PASS" else ''
+        fmt = r'\color{red}' if sts in ("ERROR", "FAIL") else fmt
+        fsts = r"%s\textbf{%s}" % (fmt, sts)
+        # Form the line
+        line = '\\fancyhead[R]{\\textsf{%s, \\large%s}}\n' % (fitr, fsts)
+        # Add it
+        fp.write(line)
+        # Write figures
+        self._write_figures(i, fp)
+
+    # Write figures
+    def _write_figures(self, i: int, fp: IOBase):
+        # Start section for the figures
+        fp.write('%$__Figures\n\n')
+        # Get status
+        n = self.get_case_n(i)
+        sts = self.get_case_status(i)
+        # Get the three sets of lists
+        cfigs = self.get_ReportOpt("Figures", vdef=())
+        zfigs = self.get_ReportOpt("ZeroFigures", vdef=())
+        efigs = self.get_ReportOpt("ErrorFigures", vdef=cfigs)
+        # Select appropriate figures
+        figs = efigs if (sts == "ERROR") else cfigs
+        figs = zfigs if (n == 0) else figs
+        # Loop through figures
+        for fig in figs:
+            self._write_figure(self, i, fp, fig)
+
+    def _write_figure(self, i: int, fp: IOBase, fig: str):
+        # Figure header line
+        fp.write(f"%<{fig}\n")
+        # Start the figure
+        fp.write('\\begin{figure}[!h]\n')
+        # Get the optional header
+        fhdr = self.cntl.opts.get_FigOpt(fig, "Header")
+        if fhdr:
+            # Add the header as a semitrivial subfigure.
+            fp.write('\\begin{subfigure}[t]{\\textwidth}\n')
+            fp.write('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            fp.write('\\end{subfigure}\n')
+        # Get figure alignment
+        falgn = self.cntl.opts.get_FigOpt(fig, "Alignment")
+        if falgn.lower() == "center":
+            # Centering
+            fp.write('\\centering\n')
+        # Get list of subfigures
+        sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # File name for subfigure
+            frun = self.cntl.x.GetFullFolderNames(i)
+            # Use / for folders in TeX, even in Windows
+            frun = frun.replace(os.sep, '/')
+            # File name (relative to compile root)
+            fname = f"{frun}/{sfig}.tex"
+            # Include it
+            fp.write("\\include{%s}\n" % fname)
+        # End the figure for LaTeX
+        fp.write('\\end{figure}\n')
+        # cape report end figure marker
+        fp.write('%>\n\n')
 
     # Function to create the file for a case
     def UpdateCase(self, i: int):
@@ -6242,3 +6455,14 @@ class Report(object):
             return fimg
         except Exception:
             print("    Plotting failed, probably due to a NaN.")
+
+
+# Escape text for LaTeX
+def _escape(txt: str) -> str:
+    r"""Escape a regular string to appear as-is in LaTeX
+
+    :Call:
+        >>> tex = _escape(txt)
+    """
+    # Replace single characters
+    return _RE_TEX_CHARS.replace(r'\\\1')
