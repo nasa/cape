@@ -208,6 +208,9 @@ class Report(object):
         #: :class:`dict`\ [:class:`str`]
         #: Dictionary of statuses for each relevant case
         self.casedict_sts = {}
+        #: :class:`dict`\ [:class:`str`]
+        #: Dictionary of folder names for each relevant case
+        self.casedict_name = {}
         #: :class:`cape.filecntl.texfile.Tex`
         #: Main LaTeX file interface
         self.tex = None
@@ -272,7 +275,7 @@ class Report(object):
         # Check cases
         for i in inds:
             # Get case name
-            frun = self.cntl.x.GetFullFolderNames(i)
+            frun = self.get_case_name(i)
             # Get the actual iteration number.
             n = self.get_case_n(i)
             # Select character
@@ -366,6 +369,21 @@ class Report(object):
         """
         return f"report-{self.rep}.tex"
 
+    # Get path to report folder
+    def get_figdir(self, i: int) -> str:
+        # Get location option
+        loc = self.get_ReportOpt("Location")
+        # Get compile folder
+        rootdir = self.get_CompileDir()
+        # Get case name
+        frun = self.get_case_name(i)
+        # Extra level if using 'case'
+        figdir = 'report' if (loc == 'case') else ''
+        # Fullpath
+        repdir = os.path.join(rootdir, frun, figdir).strip(os.sep)
+        # Output
+        return repdir
+
   # === Case Status ===
     # Get current iteration
     def get_case_n(self, i: int) -> Optional[int]:
@@ -420,6 +438,33 @@ class Report(object):
         self.casedict_sts[i] = sts
         # Return it
         return sts
+
+    # Get name of case
+    def get_case_name(self, i: int) -> str:
+        r"""Get case's folder name
+
+        :Call:
+            >>> frun = r.get_case_name(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *frun*: :class:`str`
+                Relative path to case *i*
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Check if cached
+        if i in self.casedict_name:
+            return self.casedict_name[i]
+        # Sample it
+        frun = self.get_case_name(i)
+        # Save it
+        self.casedict_name[i] = frun
+        # Return it
+        return frun
 
   # === Folder Functions ===
     # Function to go into a folder, respecting archive option
@@ -678,7 +723,7 @@ class Report(object):
         # Include each case
         for i in self.mask:
             # Get name of case
-            frun = self.cntl.x.GetFullFolderNames(i)
+            frun = self.get_case_name(i)
             frun = frun.replace(os.sep, '/')
             # Include
             fp.write("\\include{%s/%s}\n" % (frun, texname))
@@ -876,7 +921,7 @@ class Report(object):
             * 2015-10-15 ``@ddalle``: v1.1; ``cfdx`` version
         """
         # Get the name of the case
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Check for the ShowCase option
         qnum = self.cntl.opts.get_ReportOpt(self.rep, "ShowCaseNumber")
 
@@ -1345,13 +1390,23 @@ class Report(object):
         loc = self.get_ReportLocation()
         # Note @run_maindir starts us in the compile folder
         # Get name of case
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Create folder as necessary
         self.mkdir_p(frun)
         # Enter folder
         os.chdir(frun)
-        # Write main file
+        # Write main file; includes .tex files for each subfigure
         self.write_case(i)
+        # Get list of figures
+        figs = self.get_figlist(i)
+        # Loop through
+        for fig in figs:
+            # Get list of subfigures
+            sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
+            # Loop through those
+            for sfig in sfigs:
+                # Update .tex file (and images, if appropriate)
+                self.update_subfig(sfig, i)
 
     # Write case
     def write_case(self, i: int):
@@ -1362,7 +1417,7 @@ class Report(object):
     # Write content of case LaTeX file
     def _write_case(self, i: int, fp: IOBase):
         # Get the name of the case
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Make sure no spilling of figures onto other pages
         fp.write('\n\\FloatBarrier\n')
         # Write the header.
@@ -1403,20 +1458,13 @@ class Report(object):
     def _write_figures(self, i: int, fp: IOBase):
         # Start section for the figures
         fp.write('%$__Figures\n\n')
-        # Get status
-        n = self.get_case_n(i)
-        sts = self.get_case_status(i)
-        # Get the three sets of lists
-        cfigs = self.get_ReportOpt("Figures", vdef=())
-        zfigs = self.get_ReportOpt("ZeroFigures", vdef=())
-        efigs = self.get_ReportOpt("ErrorFigures", vdef=cfigs)
-        # Select appropriate figures
-        figs = efigs if (sts == "ERROR") else cfigs
-        figs = zfigs if (n == 0) else figs
+        # Get list of figures
+        figs = self.get_figlist(i)
         # Loop through figures
         for fig in figs:
             self._write_figure(self, i, fp, fig)
 
+    # Write single figure
     def _write_figure(self, i: int, fp: IOBase, fig: str):
         # Figure header line
         fp.write(f"%<{fig}\n")
@@ -1439,7 +1487,7 @@ class Report(object):
         # Loop through subfigs.
         for sfig in sfigs:
             # File name for subfigure
-            frun = self.cntl.x.GetFullFolderNames(i)
+            frun = self.get_case_name(i)
             # Use / for folders in TeX, even in Windows
             frun = frun.replace(os.sep, '/')
             # File name (relative to compile root)
@@ -1450,6 +1498,36 @@ class Report(object):
         fp.write('\\end{figure}\n')
         # cape report end figure marker
         fp.write('%>\n\n')
+
+    # List of figure
+    def get_figlist(self, i: int) -> list:
+        r"""Get list of figures for a report based on case's status
+
+        :Call:
+            >>> figs = r.get_figlist(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *figs*: :class:`list`\ [:class:`str`]
+                List of figure names
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Get status
+        n = self.get_case_n(i)
+        sts = self.get_case_status(i)
+        # Get the three sets of lists
+        cfigs = self.get_ReportOpt("Figures", vdef=())
+        zfigs = self.get_ReportOpt("ZeroFigures", vdef=())
+        efigs = self.get_ReportOpt("ErrorFigures", vdef=cfigs)
+        # Select appropriate figures
+        figs = efigs if (sts == "ERROR") else cfigs
+        figs = zfigs if (n == 0) else figs
+        # Return a copy
+        return list(figs)
 
     # Function to create the file for a case
     def UpdateCase(self, i: int):
@@ -1470,7 +1548,7 @@ class Report(object):
         # Checking
         # --------
         # Get the case name
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Get just the last level of case
         fgrp, fdir = os.path.split(frun)
         # Go to the report directory if necessary
@@ -3465,7 +3543,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Get the component.
@@ -3675,7 +3753,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Get the component.
@@ -4896,7 +4974,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Current status
@@ -5021,7 +5099,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Get caption.
@@ -5096,7 +5174,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Get caption.
@@ -5199,7 +5277,7 @@ class Report(object):
         # Save current folder
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Get caption
@@ -6128,6 +6206,25 @@ class Report(object):
         rc.setdefault("Subfigures", {})
         # Return the settings
         return rc
+
+    # Read the status ``report.json`` file from a case
+    def read_case_json(self, i: int) -> dict:
+        r"""Read the JSON file which contains the current statuses
+
+        :Call:
+            >>> rc = r.read_case_json(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *rc*: :class:`dict`
+                Dictionary of subfigure definitions and status
+        :Versions:
+            * 2016-10-25 ``@ddalle``: v1.0
+        """
+        ...
 
     # Write all settings
     def WriteCaseJSON(self, rc):
