@@ -264,6 +264,8 @@ class Report(object):
         # Compile if requested
         if kw.get("compile", True):
             self.compile_tex()
+        # Archive if appropriate
+        self.clean_up_cases()
 
     # Update overall report
     def update_cases(self):
@@ -1112,6 +1114,37 @@ class Report(object):
                     # Add it to list
                     fglob.append(aj)
 
+    # Tar a case
+    @run_maindir
+    def tar_case(self, i: int):
+        r"""Archive/tar one case's report, if appropriate
+
+        :Call:
+            >>> r.tar_case(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
+            *i*: :class:`int`
+                Case number
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Get figure folder
+        figdir = self.get_figdir(i)
+        # Get parent folder thereof
+        dirname, basename = os.path.split(figdir)
+        # Check for parent folder
+        if not (os.path.isdir(dirname) and os.path.isdir(figdir)):
+            return
+        # Enter folder
+        os.chdir(dirname)
+        # Name of tar file
+        ftar = f"{basename}.tar"
+        # Tar
+        self.tar(ftar, basename)
+        # Remove folder
+        shutil.rmtree(basename)
+
     # Untar folder
     def untar(self, ftar: str):
         r"""Untar an archive folder if requested
@@ -1174,7 +1207,6 @@ class Report(object):
 
   # === LaTeX Files ===
    # --- Main .tex File ---
-
     # Function to open the master latex file for this report.
     def OpenMain(self):
         r"""Open the primary LaTeX file or write skeleton if necessary
@@ -1924,7 +1956,6 @@ class Report(object):
         # Output
         return lines
 
-
     # List of figure
     def get_figlist(self, i: int) -> list:
         r"""Get list of figures for a report based on case's status
@@ -2588,6 +2619,25 @@ class Report(object):
         return False
 
   # === Cleanup ===
+    # Clean up cases
+    def clean_up_cases(self):
+        r"""Clean up case folders
+
+        :Call:
+            >>> r.clean_up_cases()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Versions:
+            * 2015-05-29 ``@ddalle``: v1.0
+        """
+        # Get "Archive" setting
+        if not self.get_ReportOpt("Archive"):
+            return
+        # Loop through cases
+        for i in self.mask:
+            self.tar_case(i)
+
     # Clean up cases
     def CleanUpCases(self, I=None, cons=[]):
         r"""Clean up case folders
