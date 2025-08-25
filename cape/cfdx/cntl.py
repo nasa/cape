@@ -2786,6 +2786,7 @@ class Cntl(CntlBase):
         if opt == "progress":
             # Get anticipated max iteration
             jmax = self.opts.get_PhaseSequence(-1)
+            jmax = 0 if (jmax is None) else jmax
             imax = self.opts.get_PhaseIters(jmax)
             # Add some padding
             ipad = str(int(1.8*imax))
