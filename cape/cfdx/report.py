@@ -255,6 +255,8 @@ class Report(object):
             * 2015-05-22 ``@ddalle``: v1.0, :func:`UpdateReport`
             * 2025-08-25 ``@ddalle``: v2.0, use *Location*
         """
+        # Set force_update setting
+        self.force_update = kw.get("force", False)
         # Find cases
         self.find_cases(**kw)
         # Write main file
@@ -281,6 +283,9 @@ class Report(object):
         """
         # Loop through cases
         for i in self.mask:
+            # Status update
+            print(compile_rst(f"``{self.get_case_name(i)}``"))
+            # Work
             self.update_case(i)
 
     # New function to create/update report for one case
@@ -303,8 +308,10 @@ class Report(object):
         # Note @run_maindir starts us in the compile folder
         # Get name of case
         frun = self.get_case_name(i)
+        # Get name of figure folder
+        ffig = self.get_figdir(i)
         # Create folder as necessary
-        self.mkdir_p(frun)
+        self.mkdir_p(ffig)
         # Untar as necessary
         self.untar_case(i)
         # Enter folder
@@ -433,7 +440,7 @@ class Report(object):
             op = geq if (n >= nmin) else '<'
             op = '=' if ((n == 0) and (nz == 0)) else op
             # Status update
-            print(compile_rst(f"**{c}** {frun} ({n}{op}{nmin})"))
+            print(compile_rst(f"``{c}`` **{frun}** ({n}{op}{nmin})"))
             # Add to list
             if c == yes:
                 self.mask.append(i)
@@ -611,8 +618,8 @@ class Report(object):
         fp.write('%$__Cases\n')
         # Include each case
         for i in self.mask:
-            # Get name of case
-            frun = self.get_case_name(i)
+            # Get path to case's figure folder
+            frun = self.get_figdir(i)
             frun = frun.replace(os.sep, '/')
             # Include
             fp.write("\\include{%s/%s}\n" % (frun, texname))
@@ -668,7 +675,7 @@ class Report(object):
         figs = self.get_figlist(i)
         # Loop through figures
         for fig in figs:
-            self._write_figure(self, i, fp, fig)
+            self._write_figure(i, fp, fig)
 
     # Write single figure
     def _write_figure(self, i: int, fp: IOBase, fig: str):
@@ -757,7 +764,7 @@ class Report(object):
             if loc == "case":
                 os.rename(fpdf, os.path.join("report", fpdf))
             # Remove .tex file
-            os.remove(ftex)
+            # os.remove(ftex)
         # Get other 'report-*.*' files.
         fglob = glob.glob(f"{fbase}.*")
         # Delete most of them
