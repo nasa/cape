@@ -157,11 +157,12 @@ class Report(object):
             Automated report interface
     :Attributes:
         * :attr:`cntl`
-        * :attr:`cases`
         * :attr:`i`
         * :attr:`rep`
-        * :attr:`sweeps`
-        * :attr:`tex`
+        * :attr:`casedict_n`
+        * :attr:`casedict_name`
+        * :attr:`casedict_sts`
+        * :attr:`mask`
     """
   # === SPECIAL/CONFIG ===
    # --- Class attributes ---
@@ -176,9 +177,6 @@ class Report(object):
         #: :class:`int`
         #: Current case index
         self.i = None
-        #: :class:`str`
-        #: Status of current case
-        self.sts = ''
         #: :class:`list`\ [:class:`int`]
         #: List of cases in report
         self.mask = []
@@ -218,8 +216,9 @@ class Report(object):
 
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
+            * 2025-08-25 ``@ddalle``: v1.1; customize class name
         """
-        return '<cape.cfdx.report("%s")>' % self.rep
+        return f'<{self.__class__.__name__}("{self.rep}")>'
     # Copy the function
     __str__ = __repr__
 
