@@ -267,7 +267,7 @@ class Report(object):
         if kw.get("compile", True):
             self.compile_tex()
         # Archive if appropriate
-        # self.clean_up_cases()
+        self.clean_up_cases()
 
     # Update overall report
     def update_cases(self):
@@ -281,6 +281,8 @@ class Report(object):
         :Versions:
             * 2025-08-23 ``@ddalle``: v1.0
         """
+        # Status update
+        print("Updating individual cases")
         # Loop through cases
         for i in self.mask:
             # Status update
@@ -407,6 +409,8 @@ class Report(object):
         :Versions:
             * 2025-08-23 ``@ddalle``: v1.0
         """
+        # Status update
+        print("Finding cases to update:")
         # Identify cases
         inds = self.cntl.x.GetIndices(**kw)
         # Reset list
@@ -441,8 +445,11 @@ class Report(object):
             # Select operator
             op = geq if (n >= nmin) else '<'
             op = '=' if ((n == 0) and (nz == 0)) else op
+            # Markup for case name
+            mark = '**' if (c == yes) else ''
             # Status update
-            print(compile_rst(f"``{c}`` **{frun}** ({n}{op}{nmin})"))
+            txt = f"``{c}`` {mark}{frun}{mark} ({n} {op} {min})"
+            print(compile_rst(txt))
             # Add to list
             if c == yes:
                 self.mask.append(i)
@@ -748,21 +755,21 @@ class Report(object):
         if shutil.which("pdflatex") is None:
             raise SystemError("No 'pdflatex' executable found")
         # Compile
-        print("Compiling ...")
+        print(f"Compiling '{ftex}'")
         i0 = call(
             ["pdflatex", "-interaction=nonstopmode", ftex],
             stdout=DEVNULL)
         # Check status
         if i0:
-            print(f"Compiling {ftex} failed with status {i0}")
+            print(f"  pdflatex failed with status {i0}")
         # Compile again
-        print("Compiling ...")
+        print(f"Compiling '{ftex}'")
         i1 = call(
             ["pdflatex", "-interaction=nonstopmode", ftex],
             stdout=DEVNULL)
         # Check status
         if i1:
-            print(f"Compiling {ftex} failed with status {i1}")
+            print(f"  pdflatex failed with status {i0}")
         # Combined return code
         ierr = i0 | i1
         # Compile option
@@ -773,8 +780,9 @@ class Report(object):
             # Move it
             if loc == "case":
                 os.rename(fpdf, os.path.join("report", fpdf))
-            # Remove .tex file
-            # os.remove(ftex)
+        # Remove .tex file
+        if ierr == 0:
+            os.remove(ftex)
         # Get other 'report-*.*' files.
         fglob = glob.glob(f"{fbase}.*")
         # Delete most of them
