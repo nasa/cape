@@ -351,7 +351,7 @@ class Report(object):
         rc = self.read_case_json(i)
         # Check current status
         n0 = self.get_subfig_status(sfig, i)
-        defn0 = self.get_subfig_status(sfig, i)
+        defn0 = self.get_subfig_defn(sfig, i)
         # Get current status
         n = self.get_case_n(i)
         defn = self.cntl.opts.get_SubfigCascade(sfig)
@@ -651,7 +651,8 @@ class Report(object):
         if self.get_ReportOpt("ShowCaseNumber"):
             # Add case number
             fp.write(
-                r'\fancyhead[L]{(\textbf{Case %s}) \texttt{\thecase}}\n\n' % i)
+                r'\fancyhead[L]{(\textbf{Case %s}) \texttt{\thecase}}' % i)
+            fp.write('\n\n')
         else:
             # Write case name without case number
             fp.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
@@ -4216,9 +4217,9 @@ class Report(object):
        # --------
        # Config
        # --------
-        # Change back to report folder.
+        # Change back to report folder
         os.chdir(fpwd)
-        # Check for a figure to write.
+        # Check for a figure to write
         if nIter >= 2:
             # Save the figure
             fimg = self.save_figure(sfig, h)
@@ -4234,7 +4235,7 @@ class Report(object):
    # --- Other DataBook Types ---
     # Function to create coefficient plot and write figure
     def SubfigPlotLineLoad(self, sfig, i, q):
-        """Create plot for a sectional loads profile
+        r"""Create plot for a sectional loads profile
 
         :Call:
             >>> lines = R.SubfigPlotLineLoad(sfig, i, q)
@@ -5630,8 +5631,8 @@ class Report(object):
 
    # --- Tecplot ---
     # Function to create coefficient plot and write figure
-    def SubfigTecplotLayout(self, sfig, i, q):
-        """Create image based on a Tecplot layout file
+    def SubfigTecplotLayout(self, sfig: str, i: int, q):
+        r"""Create image based on a Tecplot layout file
 
         :Call:
             >>> lines = R.SubfigTecplotLayout(sfig, i)
@@ -5644,13 +5645,18 @@ class Report(object):
                 Case index
         :Versions:
             * 2016-09-06 ``@ddalle``: v1.0
-            * 2016-10-05 ``@ddalle``: Added "FieldMap" option
-            * 2016-10-25 ``@ddalle``: First :mod:`cape` version
+            * 2016-10-05 ``@ddalle``: v1.1; add "FieldMap" option
+            * 2016-10-25 ``@ddalle``: v1.2; first :mod:`cape` version
+            * 2025-08-25 ``@ddalle``: v1.3; support "case" compiling
         """
         # Save current folder
         fpwd = os.getcwd()
         # Case folder
         frun = self.get_case_name(i)
+        # Path to final output
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(rootdir, figdir)
         # Extract options
         opts = self.cntl.opts
         # Get caption
@@ -5677,7 +5683,7 @@ class Report(object):
         os.chdir(self.cntl.RootDir)
         # Check if the run directory exists.
         if os.path.isdir(frun):
-            # Go there.
+            # Go there
             os.chdir(frun)
             # Get the most recent PLT files
             self.LinkVizFiles(sfig=sfig, i=i)
@@ -5764,8 +5770,8 @@ class Report(object):
             self.PrepTecplotLayoutKeys(tec, sfig, i)
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigureWidth")
-            # Figure file name.
-            fname = "%s.png" % (sfig)
+            # Output file name
+            fname = f"{sfig}.png"
             # Run Tecplot
             try:
                 # Copy the file into the current folder.
@@ -5773,7 +5779,7 @@ class Report(object):
                 # Run the layout.
                 ExportLayout(flay, fname=fname, w=wfig)
                 # Move the file
-                os.rename(fname, os.path.join(fpwd, fname))
+                os.rename(fname, os.path.join(dirname, fname))
                 # Include
                 self.includegraphics(fname, lines, i)
             except Exception:
@@ -6874,13 +6880,13 @@ class Report(object):
 
   # === Image I/O ===
     # Function to save images in various formats
-    def save_figure(self, sfig=None, h=None):
-        """Write out image files in varous formats
+    def save_figure(self, sfig: str, h: dict):
+        r"""Write out image files in varous formats
 
         :Call:
-            >>> R.save_figure(sfig, sfig, h)
+            >>> r.save_figure(sfig, sfig, h)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
+            *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -6890,32 +6896,40 @@ class Report(object):
             *fimg*: :class:`str`
                 Figure name
         :Versions:
-            * 2023-06-06 ``@jmeeroff``: First version
+            * 2023-06-06 ``@jmeeroff``: v1.0
+            * 2025-08-25 ``@ddalle``: v1.1; save to get_figdir()
         """
         # Extract options
         opts = self.cntl.opts
         # Get the file formatting
         fmt = opts.get_SubfigOpt(sfig, "Format")
         dpi = opts.get_SubfigOpt(sfig, "DPI")
+        # Get destination folder
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(self.i)
+        dirname = os.path.join(rootdir, figdir)
         # Figure name
-        fimg = '%s.%s' % (sfig, fmt)
-        fpdf = '%s.pdf' % sfig
-        # Save the figure.
+        fimg = f"{sfig}.{fmt}"
+        fpdf = f"{sfig}.pdf"
+        # Absolute paths for savefig()
+        absimg = os.path.join(dirname, fimg)
+        abspdf = os.path.join(dirname, fpdf)
+        # Save the figure
         try:
             if fmt.lower() in ['pdf']:
-                # Save as vector-based image.
-                h['fig'].savefig(fimg)
+                # Save as vector-based image only
+                h['fig'].savefig(absimg)
             elif fmt.lower() in ['svg']:
                 # Save as PDF and SVG
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
+                h['fig'].savefig(absimg)
+                h['fig'].savefig(abspdf)
                 # Use PDF in LaTex
                 fimg = fpdf
             else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-                h['fig'].savefig(fpdf)
-            # Close the figure.
+                # Save with resolution
+                h['fig'].savefig(absimg, dpi=dpi)
+                h['fig'].savefig(abspdf)
+            # Close the figure
             h['fig'].clf()
             # Return the image name
             return fimg
