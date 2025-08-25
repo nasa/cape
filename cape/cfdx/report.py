@@ -491,8 +491,15 @@ class Report(object):
         :Versions:
             * 2025-08-23 ``@ddalle``: v1.0
         """
+        # Get folders
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        # Name of file
+        ftex = self.get_LaTeXFileName()
+        # Path to file
+        absfile = os.path.join(rootdir, figdir, ftex)
         # Get file name
-        with open(self.get_LaTeXFileName(), 'w') as fp:
+        with open(absfile, 'w') as fp:
             self._write_case(i, fp)
 
     # Write file
@@ -622,7 +629,7 @@ class Report(object):
             frun = self.get_figdir(i)
             frun = frun.replace(os.sep, '/')
             # Include
-            fp.write("\\include{%s/%s}\n" % (frun, texname))
+            fp.write("\\include{%s/%s}\n" % (frun, texname[:-4]))
         # Termination of the report
         fp.write('\n%$__End\n')
         fp.write('\\end{document}\n')
@@ -704,7 +711,7 @@ class Report(object):
             # Use / for folders in TeX, even in Windows
             frun = frun.replace(os.sep, '/')
             # File name (relative to compile root)
-            fname = f"{frun}/{sfig}.tex"
+            fname = f"{frun}/{sfig}"
             # Include it
             fp.write("\\include{%s}\n" % fname)
         # End the figure for LaTeX
