@@ -162,7 +162,7 @@ class Report(object):
         * :attr:`sweeps`
         * :attr:`tex`
     """
-  # === __dunder__ ===
+   # === __dunder__ ===
     # Initialization method
     def __init__(self, cntl: CntlBase, rep: str):
         r"""Initialization method"""
@@ -231,7 +231,7 @@ class Report(object):
     # Copy the function
     __str__ = __repr__
 
-  # === Main ===
+   # === Main ===
     # Process list of cases
     def find_cases(self, **kw):
         r"""Identify list of cases to report
@@ -291,7 +291,7 @@ class Report(object):
             if c == yes:
                 self.mask.append(i)
 
-  # === Options ===
+   # === Options ===
     # Generic option
     def get_ReportOpt(self, opt: str) -> Any:
         r"""Get value of generic *Report* option
@@ -397,7 +397,7 @@ class Report(object):
         # Output
         return repdir
 
-  # === Report Status ===
+   # === Report Status ===
     # Get the existing status for a particular subfigure
     def get_subfig_status(self, sfig: str, i: int) -> Optional[int]:
         r"""Get the iteration for any existing copy of a subfigure
@@ -522,7 +522,7 @@ class Report(object):
         with open(absfile, 'w') as fp:
             json.dump(rc, fp, indent=4)
 
-  # === Case Status ===
+   # === Case Status ===
     # Get current iteration
     def get_case_n(self, i: int) -> Optional[int]:
         r"""Get number of iterations for case *i*, using cache
@@ -604,7 +604,7 @@ class Report(object):
         # Return it
         return frun
 
-  # === Folder Functions ===
+   # === Folder Functions ===
     # Function to go into a folder, respecting archive option
     def cd(self, fdir: str):
         r"""Interface to :func:`os.chdir`, respecting "Archive" option
@@ -766,7 +766,7 @@ class Report(object):
         if os.path.isfile(ftar):
             os.remove(ftar)
 
-  # === LaTeX Files ===
+   # === LaTeX Files ===
    # --- Main .tex File ---
     # Write primary main file
     def write_main(self):
@@ -1221,7 +1221,7 @@ class Report(object):
         # Update sections.
         self.cases[i].UpdateLines()
 
-  # === Update Functions ===
+   # === Update Functions ===
    # --- General Updates ---
     # Function to update report
     def UpdateReport(self, **kw):
@@ -2478,7 +2478,7 @@ class Report(object):
         # If reached this point, no update
         return False
 
-  # === Cleanup ===
+   # === Cleanup ===
     # Clean up cases
     def CleanUpCases(self, I=None, cons=[]):
         r"""Clean up case folders
@@ -2567,7 +2567,7 @@ class Report(object):
             # Go back up to report folder.
             os.chdir('..')
 
-  # === Removal ===
+   # === Removal ===
     def RemoveCases(self, I=None, cons=[], **kw):
         r"""Remove case folders or tars
 
@@ -2629,7 +2629,7 @@ class Report(object):
         # Go home.
         os.chdir(fpwd)
 
-  # === Subfigures ===
+   # === Subfigures ===
    # --- Config ---
     # Function to initialize a subfigure
     def SubfigInit(self, sfig):
@@ -6085,7 +6085,7 @@ class Report(object):
             # Edit the color map
             tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
 
-  # === Data Loaders ===
+   # === Data Loaders ===
     # Read iterative history
     def ReadCaseFM(self, comp):
         r"""Read iterative history for a component
@@ -6484,7 +6484,7 @@ class Report(object):
         """
         return Tecscript(fsrc)
 
-  # === Status Tools ===
+   # === Status Tools ===
     # Read the ``report.json`` file
     def ReadCaseJSON(self):
         r"""Read the JSON file which contains the current statuses
@@ -6545,7 +6545,7 @@ class Report(object):
         # Close the file.
         f.close()
 
-  # === Sweep Indices ===
+   # === Sweep Indices ===
     # Function to get update sweeps
     def GetSweepIndices(self, fswp, I=None, cons=[], comp=None):
         r"""Divide cases into individual sweeps
@@ -6729,7 +6729,7 @@ class Report(object):
         # Output
         return I
 
-  # === Run Folder Tools ===
+   # === Run Folder Tools ===
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
         r"""Create links to appropriate visualization files
@@ -6801,7 +6801,7 @@ class Report(object):
                     os.remove(pltlinkfile)
                 os.symlink(pltrelfile, pltlinkfile)
 
-  # === Image I/O ===
+   # === Image I/O ===
     # Function to save images in various formats
     def save_figure(self, sfig=None, h=None):
         """Write out image files in varous formats
