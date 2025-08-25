@@ -23,19 +23,12 @@ Finally, reading seam curves from individual cases utilizes the class
     * :mod:`cape.pycart.dataBook`
 """
 
-# File interface
-import os, glob
-# Basic numerics
-import numpy as np
-# Date processing
-from datetime import datetime
+# Standard libary
 
-# Utilities or advanced statistics
-from . import util
+# Third-party
+
+# Local imports
 from . import casecntl
-from .. import tar
-
-# Line load template
 from ..cfdx import lineload
 
 

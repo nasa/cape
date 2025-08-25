@@ -36,7 +36,7 @@ class CntlBase(ABC):
     _name = "cfdx"
     _solver = "cfdx"
     _databook_mod = databookbase
-    _report_mod = None
+    _report_cls = None
     _case_cls = CaseRunnerBase
     _opts_cls = None
     _fjson_default = None
@@ -1227,6 +1227,24 @@ class CntlBase(ABC):
         pass
 
   # *** REPORTING ***
+    @abstractmethod
+    def UpdateReport(self, **kw):
+        r"""Update a report
+
+        :Call:
+            >>> cntl.UpdateReport(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE main control instance
+            *report*: {``True``} | :class:`str`
+                Name of report (or first report)
+            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Indices to report
+        :Versions:
+            * 2025-08-25 ``@ddalle``: v1.0
+        """
+        pass
+
     @abstractmethod
     def ReadReport(self, rep: str):
         r"""Read a report interface

@@ -2786,6 +2786,7 @@ class Cntl(CntlBase):
         if opt == "progress":
             # Get anticipated max iteration
             jmax = self.opts.get_PhaseSequence(-1)
+            jmax = 0 if (jmax is None) else jmax
             imax = self.opts.get_PhaseIters(jmax)
             # Add some padding
             ipad = str(int(1.8*imax))
@@ -3387,6 +3388,25 @@ class Cntl(CntlBase):
         return self.x.GetCaseIndex(frun)
 
   # *** REPORTING ***
+    # Update report
+    def UpdateReport(self, **kw):
+        # Get name of report
+        reportname = kw.pop("report", True)
+        # Use first report if no name given
+        if not isinstance(reportname, str):
+            reportname = self.opts.get_ReportList()[0]
+        # Read the report
+        report = self.ReadReport(reportname)
+        # Check for force-update
+        report.force_update = kw.get("force", False)
+        # Check if asking to delete figures
+        if kw.pop("rm", False):
+            # Remove the case(s) dir(s)
+            report.RemoveCases(**kw)
+        else:
+            # Update report
+            report.update_report(**kw)
+
     # Read report
     @run_rootdir
     def ReadReport(self, rep: str) -> Report:

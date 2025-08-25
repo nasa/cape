@@ -1,0 +1,4 @@
+
+.. automodule:: cape.trifile
+   :members:
+    
