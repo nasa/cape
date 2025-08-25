@@ -72,6 +72,7 @@ import re
 import shutil
 import tarfile
 from io import IOBase
+from subprocess import call, DEVNULL
 from typing import Any, Callable, Optional
 
 # Third-party modules
@@ -162,7 +163,10 @@ class Report(object):
         * :attr:`sweeps`
         * :attr:`tex`
     """
-   # === __dunder__ ===
+  # === SPECIAL/CONFIG ===
+   # --- Class attributes ---
+
+   # --- __dunder__ ---
     # Initialization method
     def __init__(self, cntl: CntlBase, rep: str):
         r"""Initialization method"""
@@ -231,7 +235,82 @@ class Report(object):
     # Copy the function
     __str__ = __repr__
 
-   # === Main ===
+  # === Main ===
+   # --- Updaters ---
+    # Function to update report
+    @run_maindir
+    def update_report(self, **kw):
+        r"""Update a report based on the list of figures
+
+        :Call:
+            >>> r.UpdateReport(**kw)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *I*: :class:`list`\ [:class:`int`]
+                List of case indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-22 ``@ddalle``: v1.0, :func:`UpdateReport`
+            * 2025-08-25 ``@ddalle``: v2.0, use *Location*
+        """
+        # Find cases
+        self.find_cases(**kw)
+        # Write main file
+        self.write_main()
+        # Update any case-by-case figures
+        self.update_cases()
+        # Compile if requested
+        if kw.get("compile", True):
+            self.compile_tex()
+
+    # Update overall report
+    def update_cases(self):
+        # Loop through cases
+        for i in self.mask:
+            self.update_case(i)
+
+    # New function to create/update report for one case
+    @run_maindir
+    def update_case(self, i: int):
+        r"""Open, create if necessary, and update LaTeX file for a case
+
+        :Call:
+            >>> r.update_case(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-03-08 ``@ddalle``: v1.0; :func:`UpdateCase`
+            * 2023-10-21 ``@ddalle``: v1.1; allow arbitrary depth
+            * 2025-08-23 ``@ddalle``: v2.0; rename, use *Location*
+        """
+        # Note @run_maindir starts us in the compile folder
+        # Get name of case
+        frun = self.get_case_name(i)
+        # Create folder as necessary
+        self.mkdir_p(frun)
+        # Untar as necessary
+        self.untar_case(i)
+        # Enter folder
+        os.chdir(frun)
+        # Write main file; includes .tex files for each subfigure
+        self.write_case(i)
+        # Get list of figures
+        figs = self.get_figlist(i)
+        # Loop through
+        for fig in figs:
+            # Get list of subfigures
+            sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
+            # Loop through those
+            for sfig in sfigs:
+                # Update .tex file (and images, if appropriate)
+                self.update_subfig(sfig, i)
+
+   # --- Preprocessors ---
     # Process list of cases
     def find_cases(self, **kw):
         r"""Identify list of cases to report
@@ -291,7 +370,327 @@ class Report(object):
             if c == yes:
                 self.mask.append(i)
 
-   # === Options ===
+   # --- TeX writers ---
+    # Write primary main file
+    def write_main(self):
+        r"""Write the primary ``.tex`` file
+
+        :Call:
+            >>> r.write_main()
+        :Inputs:
+            *rep*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Get path to file ane name of file
+        dirname = self.get_CompileDir()
+        texname = self.get_LaTeXFileName()
+        # Combine
+        fname = os.path.join(dirname, texname)
+        # Write
+        with open(fname, 'w') as fp:
+            self._write_main(fp)
+
+    # Write case
+    def write_case(self, i: int):
+        r"""Write the primary ``.tex`` file for one case
+
+        This will write a file either
+
+        * ``{r.casedict_name[i]}/report-{r.rep}.tex``
+        * ``{r.casedict_name[i]}/report/report-{r.rep}.tex``
+
+        depending on the *Location* setting. The file includes the
+        header information for the case and the definitions of each
+        figure. The subfigures are identified via ``\include{}``
+        statements.
+
+        :Call:
+            >>> r.write_case(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Get file name
+        with open(self.get_LaTeXFileName(), 'w') as fp:
+            self._write_case(i, fp)
+
+    # Write file
+    def _write_main(self, fp: IOBase):
+        # Main file name
+        texname = self.get_LaTeXFileName()
+        # Write the universal header
+        fp.write('%$__Class\n')
+        fp.write('\\documentclass[letter,10pt]{article}\n\n')
+        # Write the preamble.
+        fp.write('%$__Preamble\n')
+        # Margins
+        fp.write('\\usepackage[margin=0.6in,top=0.7in,headsep=0.1in,\n')
+        fp.write('    footskip=0.15in]{geometry}\n')
+        # Other packages
+        fp.write('\\usepackage{graphicx}\n')
+        fp.write('\\usepackage{caption}\n')
+        fp.write('\\usepackage{subcaption}\n')
+        fp.write('\\usepackage{hyperref}\n')
+        fp.write('\\usepackage{fancyhdr}\n')
+        fp.write('\\usepackage{amsmath}\n')
+        fp.write('\\usepackage{amssymb}\n')
+        fp.write('\\usepackage{times}\n')
+        fp.write('\\usepackage{placeins}\n')
+        fp.write('\\usepackage[usenames]{xcolor}\n')
+        fp.write('\\usepackage[T1]{fontenc}\n')
+        fp.write('\\usepackage[scaled]{beramono}\n\n')
+        # Get the title and author and etc.
+        fttl  = self.get_ReportOpt("Title")
+        fsttl = self.get_ReportOpt("Subtitle")
+        fauth = self.get_ReportOpt("Author")
+        fafl = self.get_ReportOpt("Affiliation")
+        flogo = self.get_ReportOpt("Logo")
+        ffrnt = self.get_ReportOpt("Frontispiece")
+        frest = self.get_ReportOpt("Restriction")
+        # Set the title and author.
+        fp.write('\\title{%s}\n' % fttl)
+        fp.write('\\author{%s}\n' % fauth)
+        # Format the header and footer
+        fp.write('\n\\fancypagestyle{pycart}{%\n')
+        fp.write(' \\renewcommand{\\headrulewidth}{0.4pt}%\n')
+        fp.write(' \\renewcommand{\\footrulewidth}{0.4pt}%\n')
+        fp.write(' \\fancyhf{}%\n')
+        fp.write(' \\fancyfoot[C]{\\textbf{\\textsf{%s}}}%%\n' % frest)
+        fp.write(' \\fancyfoot[R]{\\thepage}%\n')
+        # Check for a logo.
+        if flogo is not None and len(flogo) > 0:
+            fp.write(' \\fancyfoot[L]{\\raisebox{-0.32in}{%\n')
+            fp.write('  \\includegraphics[height=0.45in]{%s}}}%%\n' % flogo)
+        # Finish this primary header/footer format
+        fp.write('}\n\n')
+        # Empty header/footer format for first page
+        fp.write('\\fancypagestyle{plain}{%\n')
+        fp.write(' \\renewcommand{\\headrulewidth}{0pt}%\n')
+        fp.write(' \\renewcommand{\\footrulewidth}{0pt}%\n')
+        fp.write(' \\fancyhf{}%\n')
+        fp.write('}\n\n')
+        # Small captions if needed
+        fp.write('\\captionsetup[subfigure]{textfont=sf}\n')
+        fp.write('\\captionsetup[subfigure]{skip=0pt}\n\n')
+        # Macros for setting cases.
+        fp.write('\\newcommand{\\thecase}{}\n')
+        fp.write('\\newcommand{\\thesweep}{}\n')
+        fp.write('\\newcommand{\\setcase}[1]')
+        fp.write('{\\renewcommand{\\thecase}{#1}}\n')
+        fp.write('\\newcommand{\\setsweep}[1]')
+        fp.write('{\\renewcommand{\\thesweep}{#1}}\n')
+        # Actual document
+        fp.write('\n%$__Begin\n')
+        fp.write('\\begin{document}\n')
+        # Title page
+        fp.write('\\pagestyle{plain}\n')
+        fp.write('\\begin{titlepage}\n')
+        fp.write('\\vskip4ex\n')
+        fp.write('\\raggedleft\n')
+        # Write the title
+        fp.write('{\\Huge\\sf\\textbf{\n')
+        fp.write('%s\n' % fttl)
+        fp.write('}}\n')
+        # Write the subtitle
+        if fsttl is not None and len(fsttl) > 0:
+            fp.write('\\vskip2ex\n')
+            fp.write('{\\Large\\sf\\textit{\n')
+            fp.write('%s\n' % fsttl)
+            fp.write('}}\\par\n')
+        # Finish the title with a horizontal line
+        fp.write('\\rule{0.75\\textwidth}{1pt}\\par\n')
+        fp.write('\\vskip30ex\n')
+        # Write the author
+        fp.write('\\raggedright\n')
+        fp.write('{\\LARGE\\textrm{\n')
+        fp.write('%s%%\n' % fauth)
+        fp.write('}}\n')
+        # Write the affiliation
+        if fafl is not None and len(fafl) > 0:
+            fp.write('\\vskip2ex\n')
+            fp.write('{\\LARGE\\sf\\textbf{\n')
+            fp.write('%s\n' % fafl)
+            fp.write('}}\n')
+        # Insert the date
+        fp.write('\\vskip20ex\n')
+        fp.write('{\\LARGE\\sf\\today}\n')
+        # Insert the frontispiece
+        if ffrnt is not None and len(ffrnt) > 0:
+            fp.write('\\vskip20ex\n')
+            fp.write('\\raggedleft\n')
+            fp.write('\\includegraphics[height=2in]{%s}\n' % ffrnt)
+        # Close the tile page
+        fp.write('\\end{titlepage}\n')
+        # Skeleton for the sweep
+        fp.write('%$__Sweeps\n\n')
+        # Skeleton for the main part of the report.
+        fp.write('%$__Cases\n')
+        # Include each case
+        for i in self.mask:
+            # Get name of case
+            frun = self.get_case_name(i)
+            frun = frun.replace(os.sep, '/')
+            # Include
+            fp.write("\\include{%s/%s}\n" % (frun, texname))
+        # Termination of the report
+        fp.write('\n%$__End\n')
+        fp.write('\\end{document}\n')
+
+    # Write content of case LaTeX file
+    def _write_case(self, i: int, fp: IOBase):
+        # Get the name of the case
+        frun = self.get_case_name(i)
+        # Make sure no spilling of figures onto other pages
+        fp.write('\n\\FloatBarrier\n')
+        # Write the header.
+        fp.write('\\clearpage\n')
+        fp.write('\\setcase{%s}\n' % _escape(frun))
+        fp.write('\\phantomsection\n')
+        fp.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')
+        # Check if we should write the case number
+        if self.get_ReportOpt("ShowCaseNumber"):
+            # Add case number
+            fp.write(
+                r'\fancyhead[L]{(\textbf{Case %s}) \texttt{\thecase}}\n\n' % i)
+        else:
+            # Write case name without case number
+            fp.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
+        # Get case current iteration
+        n = self.get_case_n(i)
+        # Get max iters required for case
+        nmax = self.cntl.GetLastIter(i)
+        # Get current status
+        sts = self.get_case_status(i)
+        # Text for current iter
+        ntxt = '-' if (n is None) else str(int(n))
+        # Text for iteration status
+        fitr = f"{ntxt}/{nmax}"
+        # Form string for the status type
+        fmt = r'\color{green}' if sts == "PASS" else ''
+        fmt = r'\color{red}' if sts in ("ERROR", "FAIL") else fmt
+        fsts = r"%s\textbf{%s}" % (fmt, sts)
+        # Form the line
+        line = '\\fancyhead[R]{\\textsf{%s, \\large%s}}\n' % (fitr, fsts)
+        # Add it
+        fp.write(line)
+        # Write figures
+        self._write_figures(i, fp)
+
+    # Write figures
+    def _write_figures(self, i: int, fp: IOBase):
+        # Start section for the figures
+        fp.write('%$__Figures\n\n')
+        # Get list of figures
+        figs = self.get_figlist(i)
+        # Loop through figures
+        for fig in figs:
+            self._write_figure(self, i, fp, fig)
+
+    # Write single figure
+    def _write_figure(self, i: int, fp: IOBase, fig: str):
+        # Figure header line
+        fp.write(f"%<{fig}\n")
+        # Start the figure
+        fp.write('\\begin{figure}[!h]\n')
+        # Get the optional header
+        fhdr = self.cntl.opts.get_FigOpt(fig, "Header")
+        if fhdr:
+            # Add the header as a semitrivial subfigure.
+            fp.write('\\begin{subfigure}[t]{\\textwidth}\n')
+            fp.write('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            fp.write('\\end{subfigure}\n')
+        # Get figure alignment
+        falgn = self.cntl.opts.get_FigOpt(fig, "Alignment")
+        if falgn.lower() == "center":
+            # Centering
+            fp.write('\\centering\n')
+        # Get list of subfigures
+        sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # Path to subfigures
+            frun = self.get_figdir(i)
+            # Use / for folders in TeX, even in Windows
+            frun = frun.replace(os.sep, '/')
+            # File name (relative to compile root)
+            fname = f"{frun}/{sfig}.tex"
+            # Include it
+            fp.write("\\include{%s}\n" % fname)
+        # End the figure for LaTeX
+        fp.write('\\end{figure}\n')
+        # cape report end figure marker
+        fp.write('%>\n\n')
+
+   # --- Compile ---
+    @run_maindir
+    def compile_tex(self) -> int:
+        r"""Compile the report using ``pdflatex``
+
+        :Call:
+            >>> r.compile_tex()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-25 ``@ddalle``: v1.0
+        """
+        # Get name of file
+        fbase = self.get_FileNameRoot()
+        ftex = self.get_LaTeXFileName()
+        fpdf = self.get_PDFFileName()
+        # Enusre report/ folder exists
+        self.mkdir_p("report")
+        # Check for executable
+        if shutil.which("pdflatex") is None:
+            raise SystemError("No 'pdflatex' executable found")
+        # Compile
+        print("Compiling ...")
+        i0 = call(
+            ["pdflatex", "-interaction=nonstopmode", ftex],
+            stdout=DEVNULL)
+        # Check status
+        if i0:
+            print(f"Compiling {ftex} failed with status {i0}")
+        # Compile again
+        print("Compiling ...")
+        i1 = call(
+            ["pdflatex", "-interaction=nonstopmode", ftex],
+            stdout=DEVNULL)
+        # Check status
+        if i1:
+            print(f"Compiling {ftex} failed with status {i1}")
+        # Combined return code
+        ierr = i0 | i1
+        # Compile option
+        loc = self.get_ReportLocation()
+        # Cleanup
+        print("Cleaning up")
+        if os.path.isfile(fpdf):
+            # Move it
+            if loc == "case":
+                os.rename(fpdf, os.path.join("report", fpdf))
+            # Remove .tex file
+            os.remove(ftex)
+        # Get other 'report-*.*' files.
+        fglob = glob.glob(f"{fbase}.*")
+        # Delete most of them
+        for fn in fglob:
+            # Check for the two good ones
+            if (len(fn) <= 3) or (fn[-3:] not in ('tex', 'pdf')):
+                os.remove(fn)
+        # Output
+        return ierr
+
+  # === Options ===
     # Generic option
     def get_ReportOpt(self, opt: str) -> Any:
         r"""Get value of generic *Report* option
@@ -369,6 +768,13 @@ class Report(object):
         """
         return f"report-{self.rep}.tex"
 
+    # Get name of main PDF file
+    def get_PDFFileName(self) -> str:
+        return f"report-{self.rep}.pdf"
+
+    def get_FileNameRoot(self) -> str:
+        return f"report-{self.rep}"
+
     # Get path to report folder
     def get_figdir(self, i: int) -> str:
         r"""Get path to case's figures relative to compile dir
@@ -397,7 +803,7 @@ class Report(object):
         # Output
         return repdir
 
-   # === Report Status ===
+  # === Report Status ===
     # Get the existing status for a particular subfigure
     def get_subfig_status(self, sfig: str, i: int) -> Optional[int]:
         r"""Get the iteration for any existing copy of a subfigure
@@ -522,7 +928,7 @@ class Report(object):
         with open(absfile, 'w') as fp:
             json.dump(rc, fp, indent=4)
 
-   # === Case Status ===
+  # === Case Status ===
     # Get current iteration
     def get_case_n(self, i: int) -> Optional[int]:
         r"""Get number of iterations for case *i*, using cache
@@ -604,7 +1010,7 @@ class Report(object):
         # Return it
         return frun
 
-   # === Folder Functions ===
+  # === Folder Functions ===
     # Function to go into a folder, respecting archive option
     def cd(self, fdir: str):
         r"""Interface to :func:`os.chdir`, respecting "Archive" option
@@ -766,150 +1172,8 @@ class Report(object):
         if os.path.isfile(ftar):
             os.remove(ftar)
 
-   # === LaTeX Files ===
+  # === LaTeX Files ===
    # --- Main .tex File ---
-    # Write primary main file
-    def write_main(self):
-        r"""Write the primary ``.tex`` file
-
-        :Call:
-            >>> r.write_main()
-        :Inputs:
-            *rep*: :class:`cape.cfdx.report.Report`
-                Automated report itnerface
-        :Versions:
-            * 2025-08-23 ``@ddalle``: v1.0
-        """
-        # Get path to file ane name of file
-        dirname = self.get_CompileDir()
-        texname = self.get_LaTeXFileName()
-        # Combine
-        fname = os.path.join(dirname, texname)
-        # Write
-        with open(fname, 'w') as fp:
-            self._write_main(fp)
-
-    # Write file
-    def _write_main(self, fp: IOBase):
-        # Main file name
-        texname = self.get_LaTeXFileName()
-        # Write the universal header
-        fp.write('%$__Class\n')
-        fp.write('\\documentclass[letter,10pt]{article}\n\n')
-        # Write the preamble.
-        fp.write('%$__Preamble\n')
-        # Margins
-        fp.write('\\usepackage[margin=0.6in,top=0.7in,headsep=0.1in,\n')
-        fp.write('    footskip=0.15in]{geometry}\n')
-        # Other packages
-        fp.write('\\usepackage{graphicx}\n')
-        fp.write('\\usepackage{caption}\n')
-        fp.write('\\usepackage{subcaption}\n')
-        fp.write('\\usepackage{hyperref}\n')
-        fp.write('\\usepackage{fancyhdr}\n')
-        fp.write('\\usepackage{amsmath}\n')
-        fp.write('\\usepackage{amssymb}\n')
-        fp.write('\\usepackage{times}\n')
-        fp.write('\\usepackage{placeins}\n')
-        fp.write('\\usepackage[usenames]{xcolor}\n')
-        fp.write('\\usepackage[T1]{fontenc}\n')
-        fp.write('\\usepackage[scaled]{beramono}\n\n')
-        # Get the title and author and etc.
-        fttl  = self.get_ReportOpt("Title")
-        fsttl = self.get_ReportOpt("Subtitle")
-        fauth = self.get_ReportOpt("Author")
-        fafl = self.get_ReportOpt("Affiliation")
-        flogo = self.get_ReportOpt("Logo")
-        ffrnt = self.get_ReportOpt("Frontispiece")
-        frest = self.get_ReportOpt("Restriction")
-        # Set the title and author.
-        fp.write('\\title{%s}\n' % fttl)
-        fp.write('\\author{%s}\n' % fauth)
-        # Format the header and footer
-        fp.write('\n\\fancypagestyle{pycart}{%\n')
-        fp.write(' \\renewcommand{\\headrulewidth}{0.4pt}%\n')
-        fp.write(' \\renewcommand{\\footrulewidth}{0.4pt}%\n')
-        fp.write(' \\fancyhf{}%\n')
-        fp.write(' \\fancyfoot[C]{\\textbf{\\textsf{%s}}}%%\n' % frest)
-        fp.write(' \\fancyfoot[R]{\\thepage}%\n')
-        # Check for a logo.
-        if flogo is not None and len(flogo) > 0:
-            fp.write(' \\fancyfoot[L]{\\raisebox{-0.32in}{%\n')
-            fp.write('  \\includegraphics[height=0.45in]{%s}}}%%\n' % flogo)
-        # Finish this primary header/footer format
-        fp.write('}\n\n')
-        # Empty header/footer format for first page
-        fp.write('\\fancypagestyle{plain}{%\n')
-        fp.write(' \\renewcommand{\\headrulewidth}{0pt}%\n')
-        fp.write(' \\renewcommand{\\footrulewidth}{0pt}%\n')
-        fp.write(' \\fancyhf{}%\n')
-        fp.write('}\n\n')
-        # Small captions if needed
-        fp.write('\\captionsetup[subfigure]{textfont=sf}\n')
-        fp.write('\\captionsetup[subfigure]{skip=0pt}\n\n')
-        # Macros for setting cases.
-        fp.write('\\newcommand{\\thecase}{}\n')
-        fp.write('\\newcommand{\\thesweep}{}\n')
-        fp.write('\\newcommand{\\setcase}[1]')
-        fp.write('{\\renewcommand{\\thecase}{#1}}\n')
-        fp.write('\\newcommand{\\setsweep}[1]')
-        fp.write('{\\renewcommand{\\thesweep}{#1}}\n')
-        # Actual document
-        fp.write('\n%$__Begin\n')
-        fp.write('\\begin{document}\n')
-        # Title page
-        fp.write('\\pagestyle{plain}\n')
-        fp.write('\\begin{titlepage}\n')
-        fp.write('\\vskip4ex\n')
-        fp.write('\\raggedleft\n')
-        # Write the title
-        fp.write('{\\Huge\\sf\\textbf{\n')
-        fp.write('%s\n' % fttl)
-        fp.write('}}\n')
-        # Write the subtitle
-        if fsttl is not None and len(fsttl) > 0:
-            fp.write('\\vskip2ex\n')
-            fp.write('{\\Large\\sf\\textit{\n')
-            fp.write('%s\n' % fsttl)
-            fp.write('}}\\par\n')
-        # Finish the title with a horizontal line
-        fp.write('\\rule{0.75\\textwidth}{1pt}\\par\n')
-        fp.write('\\vskip30ex\n')
-        # Write the author
-        fp.write('\\raggedright\n')
-        fp.write('{\\LARGE\\textrm{\n')
-        fp.write('%s%%\n' % fauth)
-        fp.write('}}\n')
-        # Write the affiliation
-        if fafl is not None and len(fafl) > 0:
-            fp.write('\\vskip2ex\n')
-            fp.write('{\\LARGE\\sf\\textbf{\n')
-            fp.write('%s\n' % fafl)
-            fp.write('}}\n')
-        # Insert the date
-        fp.write('\\vskip20ex\n')
-        fp.write('{\\LARGE\\sf\\today}\n')
-        # Insert the frontispiece
-        if ffrnt is not None and len(ffrnt) > 0:
-            fp.write('\\vskip20ex\n')
-            fp.write('\\raggedleft\n')
-            fp.write('\\includegraphics[height=2in]{%s}\n' % ffrnt)
-        # Close the tile page
-        fp.write('\\end{titlepage}\n')
-        # Skeleton for the sweep
-        fp.write('%$__Sweeps\n\n')
-        # Skeleton for the main part of the report.
-        fp.write('%$__Cases\n')
-        # Include each case
-        for i in self.mask:
-            # Get name of case
-            frun = self.get_case_name(i)
-            frun = frun.replace(os.sep, '/')
-            # Include
-            fp.write("\\include{%s/%s}\n" % (frun, texname))
-        # Termination of the report
-        fp.write('\n%$__End\n')
-        fp.write('\\end{document}\n')
 
     # Function to open the master latex file for this report.
     def OpenMain(self):
@@ -1221,7 +1485,7 @@ class Report(object):
         # Update sections.
         self.cases[i].UpdateLines()
 
-   # === Update Functions ===
+  # === Update Functions ===
    # --- General Updates ---
     # Function to update report
     def UpdateReport(self, **kw):
@@ -1544,49 +1808,6 @@ class Report(object):
         # Output
         return figs
 
-    # Update overall report
-    def update_cases(self):
-        ...
-
-    # New function to create/update report for one case
-    @run_maindir
-    def update_case(self, i: int):
-        r"""Open, create if necessary, and update LaTeX file for a case
-
-        :Call:
-            >>> r.UpdateCase(i)
-        :Inputs:
-            *r*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-            * 2023-10-21 ``@ddalle``: v1.1; allow arbitray depth
-            * 2025-08-23 ``@ddalle``: v2.0; allow using case folder
-        """
-        # Note @run_maindir starts us in the compile folder
-        # Get name of case
-        frun = self.get_case_name(i)
-        # Create folder as necessary
-        self.mkdir_p(frun)
-        # Untar as necessary
-        self.untar_case(i)
-        # Enter folder
-        os.chdir(frun)
-        # Write main file; includes .tex files for each subfigure
-        self.write_case(i)
-        # Get list of figures
-        figs = self.get_figlist(i)
-        # Loop through
-        for fig in figs:
-            # Get list of subfigures
-            sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
-            # Loop through those
-            for sfig in sfigs:
-                # Update .tex file (and images, if appropriate)
-                self.update_subfig(sfig, i)
-
     # Update a subfigure
     def update_subfig(self, sfig: str, i: int):
         r"""Update a subfigure
@@ -1703,118 +1924,6 @@ class Report(object):
         # Output
         return lines
 
-    # Write case
-    def write_case(self, i: int):
-        r"""Write the primary ``.tex`` file for one case
-
-        This will write a file either
-
-        * ``{r.casedict_name[i]}/report-{r.rep}.tex``
-        * ``{r.casedict_name[i]}/report/report-{r.rep}.tex``
-
-        depending on the *Location* setting. The file includes the
-        header information for the case and the definitions of each
-        figure. The subfigures are identified via ``\include{}``
-        statements.
-
-        :Call:
-            >>> r.write_case(i)
-        :Inputs:
-            *r*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2025-08-23 ``@ddalle``: v1.0
-        """
-        # Get file name
-        with open(self.get_LaTeXFileName(), 'w') as fp:
-            self._write_case(i, fp)
-
-    # Write content of case LaTeX file
-    def _write_case(self, i: int, fp: IOBase):
-        # Get the name of the case
-        frun = self.get_case_name(i)
-        # Make sure no spilling of figures onto other pages
-        fp.write('\n\\FloatBarrier\n')
-        # Write the header.
-        fp.write('\\clearpage\n')
-        fp.write('\\setcase{%s}\n' % _escape(frun))
-        fp.write('\\phantomsection\n')
-        fp.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')
-        # Check if we should write the case number
-        if self.get_ReportOpt("ShowCaseNumber"):
-            # Add case number
-            fp.write(
-                r'\fancyhead[L]{(\textbf{Case %s}) \texttt{\thecase}}\n\n' % i)
-        else:
-            # Write case name without case number
-            fp.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
-        # Get case current iteration
-        n = self.get_case_n(i)
-        # Get max iters required for case
-        nmax = self.cntl.GetLastIter(i)
-        # Get current status
-        sts = self.get_case_status(i)
-        # Text for current iter
-        ntxt = '-' if (n is None) else str(int(n))
-        # Text for iteration status
-        fitr = f"{ntxt}/{nmax}"
-        # Form string for the status type
-        fmt = r'\color{green}' if sts == "PASS" else ''
-        fmt = r'\color{red}' if sts in ("ERROR", "FAIL") else fmt
-        fsts = r"%s\textbf{%s}" % (fmt, sts)
-        # Form the line
-        line = '\\fancyhead[R]{\\textsf{%s, \\large%s}}\n' % (fitr, fsts)
-        # Add it
-        fp.write(line)
-        # Write figures
-        self._write_figures(i, fp)
-
-    # Write figures
-    def _write_figures(self, i: int, fp: IOBase):
-        # Start section for the figures
-        fp.write('%$__Figures\n\n')
-        # Get list of figures
-        figs = self.get_figlist(i)
-        # Loop through figures
-        for fig in figs:
-            self._write_figure(self, i, fp, fig)
-
-    # Write single figure
-    def _write_figure(self, i: int, fp: IOBase, fig: str):
-        # Figure header line
-        fp.write(f"%<{fig}\n")
-        # Start the figure
-        fp.write('\\begin{figure}[!h]\n')
-        # Get the optional header
-        fhdr = self.cntl.opts.get_FigOpt(fig, "Header")
-        if fhdr:
-            # Add the header as a semitrivial subfigure.
-            fp.write('\\begin{subfigure}[t]{\\textwidth}\n')
-            fp.write('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            fp.write('\\end{subfigure}\n')
-        # Get figure alignment
-        falgn = self.cntl.opts.get_FigOpt(fig, "Alignment")
-        if falgn.lower() == "center":
-            # Centering
-            fp.write('\\centering\n')
-        # Get list of subfigures
-        sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
-        # Loop through subfigs.
-        for sfig in sfigs:
-            # Path to subfigures
-            frun = self.get_figdir(i)
-            # Use / for folders in TeX, even in Windows
-            frun = frun.replace(os.sep, '/')
-            # File name (relative to compile root)
-            fname = f"{frun}/{sfig}.tex"
-            # Include it
-            fp.write("\\include{%s}\n" % fname)
-        # End the figure for LaTeX
-        fp.write('\\end{figure}\n')
-        # cape report end figure marker
-        fp.write('%>\n\n')
 
     # List of figure
     def get_figlist(self, i: int) -> list:
@@ -2478,7 +2587,7 @@ class Report(object):
         # If reached this point, no update
         return False
 
-   # === Cleanup ===
+  # === Cleanup ===
     # Clean up cases
     def CleanUpCases(self, I=None, cons=[]):
         r"""Clean up case folders
@@ -2567,7 +2676,7 @@ class Report(object):
             # Go back up to report folder.
             os.chdir('..')
 
-   # === Removal ===
+  # === Removal ===
     def RemoveCases(self, I=None, cons=[], **kw):
         r"""Remove case folders or tars
 
@@ -2629,7 +2738,7 @@ class Report(object):
         # Go home.
         os.chdir(fpwd)
 
-   # === Subfigures ===
+  # === Subfigures ===
    # --- Config ---
     # Function to initialize a subfigure
     def SubfigInit(self, sfig):
@@ -6085,7 +6194,7 @@ class Report(object):
             # Edit the color map
             tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
 
-   # === Data Loaders ===
+  # === Data Loaders ===
     # Read iterative history
     def ReadCaseFM(self, comp):
         r"""Read iterative history for a component
@@ -6484,7 +6593,7 @@ class Report(object):
         """
         return Tecscript(fsrc)
 
-   # === Status Tools ===
+  # === Status Tools ===
     # Read the ``report.json`` file
     def ReadCaseJSON(self):
         r"""Read the JSON file which contains the current statuses
@@ -6545,7 +6654,7 @@ class Report(object):
         # Close the file.
         f.close()
 
-   # === Sweep Indices ===
+  # === Sweep Indices ===
     # Function to get update sweeps
     def GetSweepIndices(self, fswp, I=None, cons=[], comp=None):
         r"""Divide cases into individual sweeps
@@ -6729,7 +6838,7 @@ class Report(object):
         # Output
         return I
 
-   # === Run Folder Tools ===
+  # === Run Folder Tools ===
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
         r"""Create links to appropriate visualization files
@@ -6801,7 +6910,7 @@ class Report(object):
                     os.remove(pltlinkfile)
                 os.symlink(pltrelfile, pltlinkfile)
 
-   # === Image I/O ===
+  # === Image I/O ===
     # Function to save images in various formats
     def save_figure(self, sfig=None, h=None):
         """Write out image files in varous formats
