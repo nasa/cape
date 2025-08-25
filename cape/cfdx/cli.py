@@ -1700,22 +1700,8 @@ def cape_report(parser: CfdxArgReader) -> int:
     """
     # Read instance
     cntl, kw = read_cntl_kwargs(parser)
-    # Get name of report
-    reportname = kw.get("report")
-    # Use first report if no name given
-    if not isinstance(reportname, str):
-        reportname = cntl.opts.get_ReportList()[0]
-    # Read the report
-    report = cntl.ReadReport(reportname)
-    # Check for force-update
-    report.force_update = kw.get("force", False)
-    # Check if asking to delete figures
-    if kw.get("rm", False):
-        # Remove the case(s) dir(s)
-        report.RemoveCases(**kw)
-    else:
-        # Update report
-        report.UpdateReport(**kw)
+    # Run command
+    cntl.UpdateReport(**kw)
     # Return code
     return IERR_OK
 
