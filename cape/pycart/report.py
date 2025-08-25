@@ -59,20 +59,16 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
 
 # Standard library
 import os
-import json
-import glob
-import shutil
 
 # Third-party modules
 import numpy as np
 
 # Local imports
-from .. import tar
 from .casecntl import LinkPLT
 from .databook import CaseFM, CaseResid
 from .trifile import Tri
 from ..cfdx import report as capereport
-from ..filecntl.tecfile import ExportLayout, Tecscript
+from ..filecntl.tecfile import Tecscript
 
 
 # Dedicated function to load pointSensor only when needed.
