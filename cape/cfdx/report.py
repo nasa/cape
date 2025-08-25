@@ -92,7 +92,7 @@ from .. import pltfile
 _MATH_FUNCTIONS = (sqrt, sin, cos, tan, exp)
 
 # Pre-compiled regular expressions
-_RE_TEX_CHARS = re.compile(r"([#$%&_{}])")
+_RE_TEX_CHARS = re.compile(r"(?<!\\)([#$%&_{}])")
 
 
 # Decorator for moving directories
@@ -6931,4 +6931,4 @@ def _escape(txt: str) -> str:
         >>> tex = _escape(txt)
     """
     # Replace single characters
-    return _RE_TEX_CHARS.sub(txt, r'\\\1')
+    return _RE_TEX_CHARS.sub(r'\\\1', txt)
