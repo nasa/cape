@@ -588,43 +588,42 @@ class UmeshBase(ABC):
             *surf*: :class:`Umesh`
                 Surface points with computed skin friction quantities
         """
-        # Fun3D uses Sutherland's law to compute "Laminar
-        # Bulk Velocity"
-
+        # Make a copy of the umesh object to start manipulation
+        surf = self.copy().deepcopy(self)
+        # Remove the offbody points acn keep just the first cells from surfs
+        surf.remove_offbody()
+        surf.make_pvmesh_vol()
+         # First find qvar index for p and rho
+        indp = surf.qvars.index('p')
+        indrho = surf.qvars.index('rho')
+        # Compute local temperature using Tlocal/Tinf=gamma*p/rho
+        Tlocal = T * gam * surf.q[:, indp]/surf.q[:, indrho]
         # If mks system
         if mks:
-            mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+            mu = SutherlandMKS(Tlocal, mu0=mu0, T0=T0, C=C)
             # Gas constant
             if R is None:
                 R = 287.0
         else:
-            mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+            mu = SutherlandFPS(Tlocal, mu0=mu0, T0=T0, C=C)
             # Gas constant
             if R is None:
                 R = 1716.0
-        # Calculate density
+        # Calculate freestream density
         rho = p / (R*T)
-        # Sound speed
+        # Sound speed [freestream]
         a = np.sqrt(gam*R*T)
-        # Velocity
+        # Velocity [freestream]
         U = M*a
-        # Dynamic pressure
+        # Freestream Dynamic pressure
         q = 0.5*rho*U**2
-
-        # Make a copy of the umesh object to start manipulation
-        surf = self.copy().deepcopy(self)
-
-        # Remove the offbody points acn keep just the first cells from surfs
-        surf.remove_offbody()
-        surf.make_pvmesh_vol()
-
+        # Save local mu
+        surf.pvmesh.point_data['mu'] = mu
         # Construct the velocity vector
         u = surf.pvmesh.point_data['u'] * a
         v = surf.pvmesh.point_data['v'] * a
         w = surf.pvmesh.point_data['w'] * a
-
         surf.pvmesh.point_data['Velocity'] = np.vstack((u, v, w)).T
-
         # Compute velocity gradient at surface using first cell
         # Standard gradient method within vtk is to use all cells
         # attached to a point. This means that the gradient at the surface
@@ -656,17 +655,16 @@ class UmeshBase(ABC):
         _update_alg(alg)
         # Use get output to retireve pyvista object
         vol_tensor = _get_output(alg)
-
         # Lets get the first cell heights using scipy.spatial.KDTree
         tree = KDTree(surf.nodes)
         # Query for the distance between two closest points
         # On the body, this should be itself and one off-body
         distances, _ = tree.query(surf.nodes, k=2)
-
         # Cast gradient and divergence to umesh object for efficency
         # Create a list of the new variables to add
         new_vars = [
             "distance",
+            "mu",
             "divergence",
             'dudx', 'dudy', 'dudz',
             'dvdx', 'dvdy', 'dvdz',
@@ -679,41 +677,33 @@ class UmeshBase(ABC):
             (
                 surf.q,
                 distances[:, 1].reshape(-1, 1),
+                vol_tensor['mu'].reshape(-1, 1),
                 vol_tensor['divergence'].reshape(-1, 1),
                 vol_tensor['gradient']
             )
         )
         surf.q = new_q
-
         # We no longer need the first cells, so remove them
         surf.remove_volume()
         # Remake the pyvista object as a surface
         surf.make_pvmesh_surf()
-
         # Add the velocity gradient tensor to the pyvista surface
         surf.pvmesh.point_data['gradient'] = surf.q[:, -9:]
-
         # Compute surface normals - need polydata first
         surfp = surf.pvmesh.extract_surface().compute_normals(
             cell_normals=False, point_normals=True, progress_bar=True)
-
-        # Sample gradient and divergecne onto surface
-        # surfn = surfg.sample(vol_tensor, progress_bar=True)
-
         # Save surface normals/gradients for use
         normals = surfp.point_data['Normals']
         gradw = surfp.point_data['gradient']
         divw = surfp.point_data['divergence']
-
+        mu = surfp.point_data['mu']
         # Reshape gradient to make 3x3
         gradwr = gradw.reshape((-1, 3, 3))
-
         # Compute the components of the viscous stress tensor
         # tau = mu * (grad(U) + grad(U).T) - 2/3mu*(div(U))*I
-        tau_dev = mu * (gradwr + gradwr.transpose((0, 2, 1)))
-        tau_dil = -2/3 * mu * divw[:, None, None] * np.eye(3)
-        tau = tau_dev + tau_dil
-
+        tau_dev = (gradwr + gradwr.transpose((0, 2, 1)))
+        tau_dil = -2/3 * divw[:, None, None] * np.eye(3)
+        tau = mu.reshape(-1, 1, 1)*tau_dev + mu.reshape(-1, 1, 1)*tau_dil
         # Calculate full stress vector on the wall (traction)
         traction = np.einsum('nij,nj->ni', tau, normals)
         # Now get the component in the normal direction
@@ -724,16 +714,13 @@ class UmeshBase(ABC):
         wss = traction - traction_normal
         # Comppute the wss magnitude
         wss_magnitude = np.linalg.norm(wss, axis=1)
-
         # Save the values to the surface grid
         surfp.point_data['wss_magnitude'] = wss_magnitude
         surfp.point_data['wss'] = wss
-
         # Compute skin friction coefficient
         # cf = Tw/q
         cf = wss_magnitude / q
         surfp.point_data['cf'] = cf
-
         # Components
         # --X--
         tau_w_x = wss[:, 0]
@@ -747,34 +734,31 @@ class UmeshBase(ABC):
         tau_w_z = wss[:, 2]
         cfz = tau_w_z/q
         surfp.point_data['cf_z'] = cfz
-
+        # Compute rho_wall
+        rhow = rho * surfp.point_data['rho']
         # Compute y-plus
-        ustar = np.sqrt(wss_magnitude/rho)
+        ustar = np.sqrt(wss_magnitude/rhow)
         # Get wall normal distances
         dn = surfp.point_data['distance']
         # Calc yplus
-        yplus = dn*rho*ustar/mu
+        yplus = dn*rhow*ustar/mu
         surfp.point_data['yplus'] = yplus
-
         # Remove vectors and tensors
         surfp.point_data.remove('Normals')
         surfp.point_data.remove('gradient')
         surfp.point_data.remove('divergence')
         surfp.point_data.remove('wss')
-
         # Save to umesh surface
         surf.qvars = surfp.point_data.keys()
         surf.nq = len(surf.qvars)
-
         # Pyvista extract surf renumbers point, so q needs to be sorted
         qunsorted = np.stack(surfp.point_data.values(), axis=1)
         qsorted = np.empty_like(qunsorted)
         mask = surfp['vtkOriginalPointIds']
         for i in range(qunsorted.shape[1]):
             qsorted[:, i][mask] = qunsorted[:, i]
-
         surf.q = qsorted
-
+        # Return a umesh object with skin friction and yplus
         return surf
 
     def make_skin_friction(
@@ -808,32 +792,37 @@ class UmeshBase(ABC):
             *surf*: :class:`Umesh`
                 Surface points with computed skin friction quantities
         """
+        # Make a copy of the umesh object to start manipulation
+        surf = self.copy().deepcopy(self)
+        # Remove the offbody points and keep just the first cells from surfs
+        surf.remove_offbody()
+        # First find qvar index for p and rho
+        indp = surf.qvars.index('p')
+        indrho = surf.qvars.index('rho')
+        # Compute local temperature using Tlocal/Tinf=gamma*p/rho
+        Tlocal = T * gam * surf.q[:, indp]/surf.q[:, indrho]
         # If mks system
         if mks:
-            mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+            mu = SutherlandMKS(Tlocal, mu0=mu0, T0=T0, C=C)
             # Gas constant
             if R is None:
                 R = 287.0
         else:
-            mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+            mu = SutherlandFPS(Tlocal, mu0=mu0, T0=T0, C=C)
             # Gas constant
             if R is None:
                 R = 1716.0
-        # Calculate density
+        # Calculate freestream density
         rho = p / (R*T)
-        # Sound speed
+        # Sound speed [freestream]
         a = np.sqrt(gam*R*T)
-        # Velocity
+        # Velocity [freestream]
         U = M*a
-        # Dynamic pressure
+        # Freestream Dynamic pressure
         q = 0.5*rho*U**2
-        # Make a copy of the umesh object to start manipulation
-        surf = self.copy().deepcopy(self)
-        # Remove the offbody points acn keep just the first cells from surfs
-        surf.remove_offbody()
         # List of velocity strings
         vel_strings = ['u', 'v', 'w']
-        # Find qvar math for velocities
+        # Find qvar index match for velocity components
         match = [i for i, s in enumerate(surf.qvars) if s in vel_strings]
         # Dimensionalize velocities
         udim = surf.q[:, match[0]] * a
@@ -849,8 +838,12 @@ class UmeshBase(ABC):
         du = udim[indicies[:, 1]]-udim[indicies[:, 0]]
         dv = vdim[indicies[:, 1]]-vdim[indicies[:, 0]]
         dw = wdim[indicies[:, 1]]-wdim[indicies[:, 0]]
+        # Get displacements
+        dx = surf.nodes[:, 0][indicies[:, 1]] - surf.nodes[:, 0][indicies[:,0]]
+        dy = surf.nodes[:, 1][indicies[:, 1]] - surf.nodes[:, 1][indicies[:,0]]
+        dz = surf.nodes[:, 2][indicies[:, 1]] - surf.nodes[:, 2][indicies[:,0]]
         # Extend the list of qvars
-        surf.qvars.extend(['distance'])
+        surf.qvars.extend(['distance1', 'dx', 'dy', 'dz', 'mu'])
         surf.qvars.extend([f"{i}_dim" for i in vel_strings])
         surf.qvars.extend([f"d{i}" for i in vel_strings])
         # Add dimensionalized velocities and deltas to solution array
@@ -858,6 +851,10 @@ class UmeshBase(ABC):
             (
                 surf.q,
                 distances[:, 1].reshape(-1, 1),
+                dx.reshape(-1, 1),
+                dy.reshape(-1, 1),
+                dz.reshape(-1, 1),
+                mu.reshape(-1, 1),
                 udim.reshape(-1, 1),
                 vdim.reshape(-1, 1),
                 wdim.reshape(-1, 1),
@@ -879,31 +876,39 @@ class UmeshBase(ABC):
         dun = surfp.point_data['du']*normals[:, 0]
         dvn = surfp.point_data['dv']*normals[:, 1]
         dwn = surfp.point_data['dw']*normals[:, 2]
-        # Compute velcity delta tangential to surface
+        # Compute velocity delta tangential to surface
         dut = surfp.point_data['du']-(dun+dvn+dwn)*normals[:, 0]
         dvt = surfp.point_data['dv']-(dun+dvn+dwn)*normals[:, 1]
         dwt = surfp.point_data['dw']-(dun+dvn+dwn)*normals[:, 2]
+        # Compute distance in wall normal direction
+        dxp = surfp.point_data['dx']
+        dyp = surfp.point_data['dy']
+        dzp = surfp.point_data['dz']
+        dn = dxp*normals[:, 0]+dyp*normals[:, 1]+dzp*normals[:, 2]
+        dn[dn == 0] = 1e-8
+        surfp.point_data['dist2'] = dn
+        # Save mu
+        mu = surfp.point_data['mu']
         # Compute du/dn
         dudn = np.sqrt(dut**2+dvt**2+dwt**2)
         # Skin friction magnitude
-        surfp.point_data['cf'] = (1/q)*mu*(dudn/surfp.point_data['distance'])
+        surfp.point_data['cf'] = (1/q)*mu*(dudn/dn)
         # Skin friction coefficients
-        surfp.point_data['cfx'] = (1/q)*mu*(dut/surfp.point_data['distance'])
-        surfp.point_data['cfy'] = (1/q)*mu*(dvt/surfp.point_data['distance'])
-        surfp.point_data['cfz'] = (1/q)*mu*(dwt/surfp.point_data['distance'])
+        surfp.point_data['cfx'] = (1/q)*mu*(dut/dn)
+        surfp.point_data['cfy'] = (1/q)*mu*(dvt/dn)
+        surfp.point_data['cfz'] = (1/q)*mu*(dwt/dn)
         # Compute y-plus
-        ustar = np.sqrt(abs(dudn)/(rho*surfp.point_data['rho']))
-        # Get wall normal distances
-        dn = surfp.point_data['distance']
+        rhow = (rho*surfp.point_data['rho'])
+        ustar = np.sqrt(mu*abs(dudn/dn)/(rhow))
         # Calc yplus
-        yplus = dn*rho*ustar/mu
+        yplus = dn*rhow*ustar/mu
         surfp.point_data['yplus'] = yplus
         # Remove vectors and tensors
         surfp.point_data.remove('Normals')
         # Save to umesh surface
         surf.qvars = surfp.point_data.keys()
         surf.nq = len(surf.qvars)
-        # Pyvista extract surf renumbers points, so q needs to be sorted
+        # Pyvista extract_surf renumbers points, so q needs to be sorted
         qunsorted = np.stack(surfp.point_data.values(), axis=1)
         qsorted = np.empty_like(qunsorted)
         mask = surfp['vtkOriginalPointIds']
