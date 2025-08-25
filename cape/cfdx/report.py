@@ -267,7 +267,7 @@ class Report(object):
         if kw.get("compile", True):
             self.compile_tex()
         # Archive if appropriate
-        self.clean_up_cases()
+        # self.clean_up_cases()
 
     # Update overall report
     def update_cases(self):
@@ -306,6 +306,8 @@ class Report(object):
             * 2025-08-23 ``@ddalle``: v2.0; rename, use *Location*
         """
         # Note @run_maindir starts us in the compile folder
+        # Set case index
+        self.i = i
         # Get name of case
         frun = self.get_case_name(i)
         # Get name of figure folder
@@ -629,7 +631,7 @@ class Report(object):
             frun = self.get_figdir(i)
             frun = frun.replace(os.sep, '/')
             # Include
-            fp.write("\\include{%s/%s}\n" % (frun, texname[:-4]))
+            fp.write("\\input{%s/%s}\n" % (frun, texname))
         # Termination of the report
         fp.write('\n%$__End\n')
         fp.write('\\end{document}\n')
@@ -711,9 +713,9 @@ class Report(object):
             # Use / for folders in TeX, even in Windows
             frun = frun.replace(os.sep, '/')
             # File name (relative to compile root)
-            fname = f"{frun}/{sfig}"
+            fname = f"{frun}/{sfig}.tex"
             # Include it
-            fp.write("\\include{%s}\n" % fname)
+            fp.write("\\input{%s}\n" % fname)
         # End the figure for LaTeX
         fp.write('\\end{figure}\n')
         # cape report end figure marker
