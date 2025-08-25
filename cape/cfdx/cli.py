@@ -1715,7 +1715,7 @@ def cape_report(parser: CfdxArgReader) -> int:
         report.RemoveCases(**kw)
     else:
         # Update report
-        report.UpdateReport(**kw)
+        report.update_report(**kw)
     # Return code
     return IERR_OK
 

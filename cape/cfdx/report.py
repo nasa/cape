@@ -121,7 +121,7 @@ def run_maindir(func: Callable):
         # Recall current directory
         fpwd = os.getcwd()
         # Go to specified directory
-        os.chdir(self.get_ReportLocation())
+        os.chdir(self.get_CompileDir())
         # Run the function with exception handling
         try:
             # Attempt to run the function
@@ -770,23 +770,25 @@ class Report(object):
 
   # === Options ===
     # Generic option
-    def get_ReportOpt(self, opt: str) -> Any:
+    def get_ReportOpt(self, opt: str, vdef=None) -> Any:
         r"""Get value of generic *Report* option
 
         :Call:
-            >>> v = r.get_ReportOpt(opt)
+            >>> v = r.get_ReportOpt(opt, vdef=None)
         :Inputs:
             *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *opt*: :class:`str`
                 Name of string
+            *vdef*: {``None``} | :class:`object`
+                Optional default value
         :Outputs:
             *v*: :class:`object`
                 Value of option
         :Versions:
             * 2025-08-22 ``@ddalle``: v1.0
         """
-        return self.cntl.opts.get_ReportOpt(self.rep, opt)
+        return self.cntl.opts.get_ReportOpt(self.rep, opt, vdef=vdef)
 
     # Get location folder
     def get_ReportLocation(self) -> str:
@@ -1113,7 +1115,7 @@ class Report(object):
         if i in self.casedict_name:
             return self.casedict_name[i]
         # Sample it
-        frun = self.get_case_name(i)
+        frun = self.cntl.x.GetFullFolderNames(i)
         # Save it
         self.casedict_name[i] = frun
         # Return it
@@ -6913,4 +6915,4 @@ def _escape(txt: str) -> str:
         >>> tex = _escape(txt)
     """
     # Replace single characters
-    return _RE_TEX_CHARS.replace(r'\\\1')
+    return _RE_TEX_CHARS.sub(txt, r'\\\1')
