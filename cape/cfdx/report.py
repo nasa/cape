@@ -704,7 +704,7 @@ class Report(object):
         falgn = self.cntl.opts.get_FigOpt(fig, "Alignment")
         if falgn.lower() == "center":
             # Centering
-            fp.write('\\centering\n')
+            fp.write('\\centering\n\n')
         # Get list of subfigures
         sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
         # Loop through subfigs.
@@ -716,7 +716,7 @@ class Report(object):
             # File name (relative to compile root)
             fname = f"{frun}/{sfig}.tex"
             # Include it
-            fp.write("\\input{%s}\n" % fname)
+            fp.write("\\input{%s}%%\n" % fname)
         # End the figure for LaTeX
         fp.write('\\end{figure}\n')
         # cape report end figure marker
