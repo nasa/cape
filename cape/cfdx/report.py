@@ -371,18 +371,156 @@ class Report(object):
 
     # Get path to report folder
     def get_figdir(self, i: int) -> str:
+        r"""Get path to case's figures relative to compile dir
+
+        :Call:
+            >>> figdir = r.get_figdir(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *figdir*: :class:`str`
+                Path to case's figure folder relative to compile folder
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
         # Get location option
         loc = self.get_ReportOpt("Location")
-        # Get compile folder
-        rootdir = self.get_CompileDir()
         # Get case name
         frun = self.get_case_name(i)
         # Extra level if using 'case'
         figdir = 'report' if (loc == 'case') else ''
         # Fullpath
-        repdir = os.path.join(rootdir, frun, figdir).strip(os.sep)
+        repdir = os.path.join(frun, figdir).strip(os.sep)
         # Output
         return repdir
+
+  # === Report Status ===
+    # Get the existing status for a particular subfigure
+    def get_subfig_status(self, sfig: str, i: int) -> Optional[int]:
+        r"""Get the iteration for any existing copy of a subfigure
+
+        :Call:
+            >>> n = r.get_subfig_status(sfig, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Iteration number of existing subfigure, else ``None``
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Read status file
+        rc = self.read_case_json(i)
+        # Get status dict
+        status = rc.get("Status", {})
+        # Get status for this subfigure
+        if isinstance(status, dict):
+            return status.get(sfig)
+
+    # Get the exact defn for a particular subfigure
+    def get_subfig_defn(self, sfig: str, i: int) -> dict:
+        r"""Get the archival defintion for existing copy of a subfigure
+
+        :Call:
+            >>> defn = r.get_subfig_defn(sfig, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *defn*: :class:`dict`
+                Definition for *sfig* in case *i*, if any
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Read status file
+        rc = self.read_case_json(i)
+        # Get definitions dict
+        defns = rc.get("Subfigures", {})
+        # Get definition for this subfigure
+        if isinstance(defns, dict):
+            return defns.get(sfig, {})
+
+    # Read the status ``report.json`` file from a case
+    def read_case_json(self, i: int) -> dict:
+        r"""Read the JSON file which contains the current statuses
+
+        :Call:
+            >>> rc = r.read_case_json(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *rc*: :class:`dict`
+                Dictionary of subfigure definitions and status
+        :Versions:
+            * 2016-10-25 ``@ddalle``: v1.0
+        """
+        # Ensure archive has been expanded
+        self.untar_case(i)
+        # Get path to report files
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(self.get_CompileDir(), figdir)
+        # Path to status file
+        absfile = os.path.join(dirname, "report.json")
+        # Default
+        if not os.path.isfile(absfile):
+            return {
+                "Status": {},
+                "Subfigures": {}
+            }
+        # Read the settings (safely)
+        with open(absfile, 'r') as fp:
+            try:
+                # Read from file
+                rc = json.load(fp)
+            except Exception:
+                # No settings read
+                rc = {}
+        # Ensure the existence of main sections
+        rc.setdefault("Status", {})
+        rc.setdefault("Subfigures", {})
+        # Return the settings
+        return rc
+
+    # Write settings
+    def write_case_json(self, i: int, rc: dict):
+        r"""Write the current status to ``report.json``
+
+        :Call:
+            >>> r.write_case_json(i, rc)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+            *rc*: :class:`dict`
+                Dictionary of subfigure definitions and status
+        :Versions:
+            * 2016-10-25 ``@ddalle``: v1.0 (WriteCaseJSON())
+            * 2025-08-24 ``@ddalle``: v1.1 add *i*
+        """
+        # Get path to report files
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(self.get_CompileDir(), figdir)
+        # Path to status file
+        absfile = os.path.join(dirname, "report.json")
+        # Write it
+        with open(absfile, 'w') as fp:
+            json.dump(rc, fp, indent=4)
 
   # === Case Status ===
     # Get current iteration
@@ -573,9 +711,9 @@ class Report(object):
         r"""Untar an archive folder if requested
 
         :Call:
-            >>> rep.untar(ftar)
+            >>> r.untar(ftar)
         :Inputs:
-            *rep*: :class:`cape.cfdx.report.Report`
+            *r*: :class:`cape.cfdx.report.Report`
                 Automated report itnerface
             *ftar*: :class:`str`
                 Name of archive to create
@@ -596,10 +734,52 @@ class Report(object):
                 # Extract all files
                 tar.extractall()
 
+    # Untar a cse
+    @run_maindir
+    def untar_case(self, i: int):
+        r"""Untar the archive of one case's report, if appropriate
+
+        :Call:
+            >>> r.untar_case(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
+            *i*: :class:`int`
+                Case number
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Get figure folder
+        figdir = self.get_figdir(i)
+        # Get parent folder thereof
+        dirname, basename = os.path.split(figdir)
+        # Check for parent folder
+        if not os.path.isdir(dirname):
+            return
+        # Enter parent folder
+        os.chdir(dirname)
+        # Name of tar file
+        ftar = f"{basename}.tar"
+        # Untar
+        self.untar(ftar)
+        # Remove it
+        if os.path.isfile(ftar):
+            os.remove(ftar)
+
   # === LaTeX Files ===
    # --- Main .tex File ---
     # Write primary main file
     def write_main(self):
+        r"""Write the primary ``.tex`` file
+
+        :Call:
+            >>> r.write_main()
+        :Inputs:
+            *rep*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
         # Get path to file ane name of file
         dirname = self.get_CompileDir()
         texname = self.get_LaTeXFileName()
@@ -1385,14 +1565,13 @@ class Report(object):
             * 2023-10-21 ``@ddalle``: v1.1; allow arbitray depth
             * 2025-08-23 ``@ddalle``: v2.0; allow using case folder
         """
-        # Get settings
-        arc = self.get_ReportOpt("Archive")
-        loc = self.get_ReportLocation()
         # Note @run_maindir starts us in the compile folder
         # Get name of case
         frun = self.get_case_name(i)
         # Create folder as necessary
         self.mkdir_p(frun)
+        # Untar as necessary
+        self.untar_case(i)
         # Enter folder
         os.chdir(frun)
         # Write main file; includes .tex files for each subfigure
@@ -1408,8 +1587,146 @@ class Report(object):
                 # Update .tex file (and images, if appropriate)
                 self.update_subfig(sfig, i)
 
+    # Update a subfigure
+    def update_subfig(self, sfig: str, i: int):
+        r"""Update a subfigure
+
+        :Call:
+            >>> r.update_subfig(sfig, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-08-25 ``@ddalle``: v1.0
+        """
+        # Get status
+        rc = self.read_case_json(i)
+        # Check current status
+        n0 = self.get_subfig_status(sfig, i)
+        defn0 = self.get_subfig_status(sfig, i)
+        # Get current status
+        n = self.get_case_n(i)
+        defn = self.cntl.opts.get_SubfigCascade(sfig)
+        # Check if the subfigure has been handled at all
+        if n0 is None:
+            # New subfigure
+            print(f"  {sfig}: New subfig at iteration {n}")
+        elif n != n0:
+            # Iteration update
+            print(f"  {sfig}: Update {n0} --> {n}")
+        elif defn != defn0:
+            # Definition changed
+            print(f"  {sfig}: Definition updated")
+        elif self.force_update:
+            # Forced update
+            print(f"  {sfig}: Update forced")
+        else:
+            # Figure up-to-date
+            return
+        # Update the figure
+        lines = self.subfig_frontend(sfig, i)
+        # Path to file
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        # Name of file
+        sfigfile = os.path.join(rootdir, figdir, f"{sfig}.tex")
+        # Write file
+        with open(sfigfile, 'w') as fp:
+            fp.write(''.join(lines))
+        # Update status
+        rc["Status"][sfig] = n
+        rc["Subfigures"][sfig] = defn
+        # Save it
+        self.write_case_json(i, rc)
+
+    # Point to the correct subfigure updater
+    def subfig_frontend(self, sfig: str, i: int) -> list:
+        r"""Switch function to find the correct subfigure function
+
+        This function may need to be defined for each CFD solver
+
+        :Call:
+            >>> lines = r.subfig_frontend(sfig, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to update
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *lines*: :class:`list`\ [:class:`str`]
+                Updated list of lines for LaTeX file
+        :Versions:
+            * 2016-10-25 ``@ddalle``: v1.0, from :func:`UpdateSubfig`
+            * 2025-08-25 ``@ddalle``: v2.0, from :func:`SubfigSwitch`
+        """
+        # Get the base type
+        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+        # Process it.
+        if btyp == 'Conditions':
+            # Get the content.
+            lines = self.SubfigConditions(sfig, i, True)
+        elif btyp == 'Summary':
+            # Get the force and/or moment summary
+            lines = self.SubfigSummary(sfig, i, True)
+        elif btyp == 'PlotCoeff':
+            # Get the force or moment history plot
+            lines = self.SubfigPlotCoeff(sfig, i, True)
+        elif btyp == 'PlotLineLoad':
+            # Plot a sectional loads plot
+            lines = self.SubfigPlotLineLoad(sfig, i, True)
+        elif btyp == 'PlotL1':
+            # Get the residual plot
+            lines = self.SubfigPlotL1(sfig, i, True)
+        elif btyp == 'PlotL2':
+            # Get the global residual plot
+            lines = self.SubfigPlotL2(sfig, i, True)
+        elif btyp == ['PlotResid', 'PlotTurbResid', 'PlotSpeciesResid']:
+            # Plot generic residual
+            lines = self.SubfigPlotResid(sfig, i, True)
+        elif btyp == 'Paraview':
+            # Get the Paraview layout view
+            lines = self.SubfigParaviewLayout(sfig, i, True)
+        elif btyp == 'Tecplot':
+            # Use a Tecplot layout
+            lines = self.SubfigTecplotLayout(sfig, i, True)
+        elif btyp == 'Image':
+            # Coy an image
+            lines = self.SubfigImage(sfig, i, True)
+        else:
+            print(f"  {sfig}: No function for subfigure type '{btyp}'")
+        # Output
+        return lines
+
     # Write case
     def write_case(self, i: int):
+        r"""Write the primary ``.tex`` file for one case
+
+        This will write a file either
+
+        * ``{r.casedict_name[i]}/report-{r.rep}.tex``
+        * ``{r.casedict_name[i]}/report/report-{r.rep}.tex``
+
+        depending on the *Location* setting. The file includes the
+        header information for the case and the definitions of each
+        figure. The subfigures are identified via ``\include{}``
+        statements.
+
+        :Call:
+            >>> r.write_case(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
         # Get file name
         with open(self.get_LaTeXFileName(), 'w') as fp:
             self._write_case(i, fp)
@@ -1486,8 +1803,8 @@ class Report(object):
         sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
         # Loop through subfigs.
         for sfig in sfigs:
-            # File name for subfigure
-            frun = self.get_case_name(i)
+            # Path to subfigures
+            frun = self.get_figdir(i)
             # Use / for folders in TeX, even in Windows
             frun = frun.replace(os.sep, '/')
             # File name (relative to compile root)
@@ -6206,25 +6523,6 @@ class Report(object):
         rc.setdefault("Subfigures", {})
         # Return the settings
         return rc
-
-    # Read the status ``report.json`` file from a case
-    def read_case_json(self, i: int) -> dict:
-        r"""Read the JSON file which contains the current statuses
-
-        :Call:
-            >>> rc = r.read_case_json(i)
-        :Inputs:
-            *r*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *rc*: :class:`dict`
-                Dictionary of subfigure definitions and status
-        :Versions:
-            * 2016-10-25 ``@ddalle``: v1.0
-        """
-        ...
 
     # Write all settings
     def WriteCaseJSON(self, rc):
