@@ -34,6 +34,7 @@ import shutil
 import sys
 import time
 from collections import namedtuple
+from io import IOBase
 from typing import Any, Callable, Optional, Union
 
 # Third-party modules
@@ -1784,6 +1785,9 @@ class DataKit(BaseData):
             return basefile
 
     def _save_fname(self, fname: Optional[str]):
+        # Check for handle
+        if isinstance(fname, IOBase):
+            fname = getattr(fname, "name", None)
         # Skip if no file
         if fname is None:
             return
