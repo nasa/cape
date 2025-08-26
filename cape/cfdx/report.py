@@ -435,7 +435,7 @@ class Report(object):
             # Markup for case name
             mark = '**' if (c == yes) else ''
             # Status update
-            txt = f"``{c}`` {mark}{frun}{mark} ({n} {op} {min})"
+            txt = f"``{c}`` {mark}{frun}{mark} ({n} {op} {nmin})"
             print(compile_rst(txt))
             # Add to list
             if c == yes:
@@ -615,6 +615,8 @@ class Report(object):
             fp.write('\\includegraphics[height=2in]{%s}\n' % fname)
         # Close the tile page
         fp.write('\\end{titlepage}\n')
+        # Use full header/footer
+        fp.write('\\pagestyle{pycart}\n\n')
         # Skeleton for the sweep
         fp.write('%$__Sweeps\n\n')
         # Skeleton for the main part of the report.
@@ -646,10 +648,10 @@ class Report(object):
             # Add case number
             fp.write(
                 r'\fancyhead[L]{(\textbf{Case %s}) \texttt{\thecase}}' % i)
-            fp.write('\n\n')
+            fp.write('\n')
         else:
             # Write case name without case number
-            fp.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
+            fp.write('\\fancyhead[L]{\\texttt{\\thecase}}\n')
         # Get case current iteration
         n = self.get_case_n(i)
         # Get max iters required for case
@@ -665,7 +667,7 @@ class Report(object):
         fmt = r'\color{red}' if sts in ("ERROR", "FAIL") else fmt
         fsts = r"%s\textbf{%s}" % (fmt, sts)
         # Form the line
-        line = '\\fancyhead[R]{\\textsf{%s, \\large%s}}\n' % (fitr, fsts)
+        line = '\\fancyhead[R]{\\textsf{%s, \\large%s}}\n\n' % (fitr, fsts)
         # Add it
         fp.write(line)
         # Write figures
@@ -674,7 +676,7 @@ class Report(object):
     # Write figures
     def _write_figures(self, i: int, fp: IOBase):
         # Start section for the figures
-        fp.write('%$__Figures\n\n')
+        fp.write('%$__Figures\n')
         # Get list of figures
         figs = self.get_figlist(i)
         # Loop through figures
