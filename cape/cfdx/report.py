@@ -435,7 +435,7 @@ class Report(object):
             # Markup for case name
             mark = '**' if (c == yes) else ''
             # Status update
-            txt = f"``{c}`` {mark}{frun}{mark} ({n} {op} {min})"
+            txt = f"``{c}`` {mark}{frun}{mark} ({n} {op} {nmin})"
             print(compile_rst(txt))
             # Add to list
             if c == yes:
