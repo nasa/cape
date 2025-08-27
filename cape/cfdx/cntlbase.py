@@ -1327,37 +1327,6 @@ class CntlBase(ABC):
         """
         pass
 
-   # --- DataBook ---
-    @abstractmethod
-    def ReadDataBook(self, comp: Optional[str] = None):
-        r"""Read the current data book
-
-        :Call:
-            >>> cntl.ReadDataBook()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-        :Versions:
-            * 2016-09-15 ``@ddalle``: v1.0
-            * 2023-05-31 ``@ddalle``: v2.0; universal ``cape.cntl``
-        """
-        pass
-
-    # Call special post-read DataBook functions
-    @abstractmethod
-    def ReadDataBookPost(self):
-        r"""Do ``py{x}`` specific init actions after reading DataBook
-
-        :Call:
-            >>> cntl.ReadDataBookPost()
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-        :Versions:
-            * 2023-05-31 ``@ddalle``: v1.0
-        """
-        pass
-
    # --- DataBook options ---
     @abstractmethod
     def get_databook_comp_nmin(self, comp: str) -> int:

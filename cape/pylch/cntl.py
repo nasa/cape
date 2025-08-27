@@ -15,7 +15,6 @@ import os
 # Local imports
 from . import options
 from . import casecntl
-from . import databook
 from .varsfile import VarsFile
 from ..cfdx import cntl
 from ..pyfun.mapbc import MapBC
@@ -27,7 +26,6 @@ class Cntl(cntl.Cntl):
     # Names
     _solver = "chem"
     # Hooks to py{x} specific modules
-    _databook_mod = databook
     # _report_cls = report.Report
     # Hooks to py{x} specific classes
     _case_cls = casecntl.CaseRunner

@@ -31,7 +31,6 @@ appropriate input files (such as ``cntl.InputCntl``).
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pycart.options.Options`
     *cntl.tri*             :class:`cape.trifile.Tri`
-    *cntl.DataBook*        :class:`cape.pycart.databook.DataBook`
     *cntl.InputCntl*       :class:`cape.pycart.inputcntlfile.InputCntl`
     *cntl.AeroCsh*         :class:`cape.pycart.aerocshfile.AeroCsh`
     ====================   =============================================
@@ -53,7 +52,6 @@ import numpy as np
 # Local imports
 from . import options
 from . import casecntl
-from . import databook
 from . import report
 from .inputcntlfile import InputCntl
 from .aerocshfile import AeroCsh
@@ -102,7 +100,6 @@ class Cntl(capecntl.Cntl):
     # Names
     _solver = "cart3d"
     # Hooks to py{x} specific modules
-    _databook_mod = databook
     _report_cls = report.Report
     # Hooks to py{x} specific classes
     _case_cls = casecntl.CaseRunner

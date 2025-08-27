@@ -49,7 +49,6 @@ import numpy as np
 
 # Local imports
 from . import casecntl
-from . import databook
 from . import queue
 from .. import console
 from .. import convert
@@ -328,7 +327,6 @@ class Cntl(CntlBase):
             Instance of CAPE control interface
     :Class attributes:
         * :attr:`_case_cls`
-        * :attr:`_databook_mod`
         * :attr:`_fjson_default`
         * :attr:`_name`
         * :attr:`_opts_cls`
@@ -365,13 +363,6 @@ class Cntl(CntlBase):
     #: :class:`str`
     _solver = "cfdx"
 
-   # --- Specific modules ---
-    #: Solver-specific module for DataBook
-    _databook_mod = databook
-
-    #: Solver-specific module for automated reports
-    _report_cls = Report
-
    # --- Specific  classes ---
     #: Solver-specific class for running cases
     #: :class:`type`
@@ -380,6 +371,9 @@ class Cntl(CntlBase):
     #: Solver-specific class for CAPE options
     #: :class:`type`
     _opts_cls = Options
+
+    #: Solver-specific module for automated reports
+    _report_cls = Report
 
    # --- Other settings ---
     #: Name of default JSON file
@@ -3526,27 +3520,6 @@ class Cntl(CntlBase):
         db.delete_empty()
         # Return counter
         return 1
-
-   # --- DataBook init ---
-    # Read the data book
-    @run_rootdir
-    def ReadDataBook(self, comp: Optional[str] = None) -> databook.DataBook:
-        # Test if already read
-        if self.DataBook is not None:
-            return
-        # Ensure list of components
-        if comp is not None and not isinstance(comp, list):
-            comp = [comp]
-        # Get DataBook class
-        databookmod = self.__class__._databook_mod
-        # Instantiate class
-        self.DataBook = databookmod.DataBook(self, comp=comp)
-        # Call any custom functions
-        self.ReadDataBookPost()
-
-    # Call special post-read DataBook functions
-    def ReadDataBookPost(self):
-        pass
 
    # --- DataBook options ---
     def get_databook_comp_nmin(self, comp: str) -> int:

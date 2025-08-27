@@ -29,7 +29,6 @@ interface (``cntl.opts``), and optionally the data book
     *cntl.x*               :class:`cape.pyfun.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pyfun.options.Options`
     *cntl.tri*             :class:`cape.pyfun.trifile.Tri`
-    *cntl.DataBook*        :class:`cape.pyfun.databook.DataBook`
     *cntl.Namelist*        :class:`cape.pyfun.namelist.Namelist`
     ====================   =============================================
 
@@ -52,7 +51,6 @@ from . import options
 from . import casecntl
 from . import mapbc
 from . import faux
-from . import databook
 from . import report
 from .namelist import Namelist
 from .rubberdatafile import RubberData
@@ -123,7 +121,6 @@ class Cntl(cntl.Cntl):
     _name = "pyfun"
     _solver = "fun3d"
     # Hooks to py{x} specific modules
-    _databook_mod = databook
     _report_cls = report.Report
     # Hooks to py{x} specific classes
     _case_cls = casecntl.CaseRunner

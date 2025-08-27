@@ -30,7 +30,6 @@ interface (``cntl.opts``), and optionally the data book
     ====================   ============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pykes.options.Options`
-    *cntl.DataBook*        :class:`cape.pykes.databook.DataBook`
     *cntl.JobXML*          :class:`cape.pykes.jobxml.JobXML`
     ====================   ============================================
 
@@ -48,7 +47,6 @@ import shutil
 
 # Local imports
 from . import casecntl
-from . import databook
 from . import options
 from . import report
 from .jobxml import JobXML
@@ -99,7 +97,6 @@ class Cntl(ccntl.Cntl):
     # Names
     _solver = "kestrel"
     # Case module
-    _databook_mod = databook
     _report_cls = report.Report
     # Options class
     _case_cls = casecntl.CaseRunner

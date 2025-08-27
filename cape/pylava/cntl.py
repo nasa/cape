@@ -29,7 +29,6 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pylava.options.Options`
-    *cntl.DataBook*        :class:`cape.pylava.databook.DataBook`
     *cntl.Namelist*        :class:`cape.pylava.namelist.Namelist`
     ====================   =============================================
 
@@ -47,7 +46,6 @@ import numpy as np
 # Local imports
 from . import options
 from . import casecntl
-from . import databook
 from . import report
 from .yamlfile import RunYAMLFile
 from .runinpfile import CartInputFile
@@ -98,7 +96,6 @@ class Cntl(capecntl.Cntl):
   # === Class Attributes ===
     _name = "pylava"
     _solver = "lava"
-    _databook_mod = databook
     _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
     _report_cls = report.Report

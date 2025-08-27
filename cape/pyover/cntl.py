@@ -29,7 +29,6 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pyover.options.Options`
-    *cntl.DataBook*        :class:`cape.pyover.databook.DataBook`
     *cntl.Namelist*        :class:`cape.pyover.namelist.Namelist`
     ====================   =============================================
 
@@ -49,7 +48,6 @@ import numpy as np
 # Local imports
 from . import options
 from . import casecntl
-from . import databook
 from . import report
 from .overnmlfile import OverNamelist
 from ..cfdx import cntl as capecntl
@@ -105,7 +103,6 @@ class Cntl(capecntl.Cntl):
     # Names
     _solver = "overflow"
     # Hooks to py{x} specific modules
-    _databook_mod = databook
     _report_cls = report.Report
     # Options class
     _case_cls = casecntl.CaseRunner
