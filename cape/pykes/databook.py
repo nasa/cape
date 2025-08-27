@@ -15,7 +15,6 @@ import re
 # Third-party imports
 
 # Local imports
-from . import casecntl
 from ..dkit import tsvfile
 from ..cfdx import databook as cdbook
 
@@ -93,96 +92,6 @@ COLNAMES_KESTREL_PROP = {
     "WallheatFlux(mass)": "qdot_mass",
     "Y+": "yplus",
 }
-
-
-class PropDataBook(cdbook.PropDataBook):
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid(self.proj)
-
-
-class PyFuncDataBook(cdbook.PyFuncDataBook):
-    pass
-
-
-# Target databook class
-class TargetDataBook(cdbook.TargetDataBook):
-    pass
-
-
-# Databook for one component
-class FMDataBook(cdbook.FMDataBook):
-    # Read case FM history
-    def ReadCase(self, comp):
-        r"""Read a :class:`CaseFM` object
-
-        :Call:
-            >>> FM = DB.ReadCaseFM(comp)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *FM*: :class:`cape.pyfun.databook.CaseFM`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseFM(self.proj, comp)
-
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid(self.proj)
-
-
-class TimeSeriesDataBook(cdbook.TimeSeriesDataBook):
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid(self.proj)
 
 
 # Iterative property history
@@ -450,69 +359,6 @@ class CaseTurbResid(CaseResid):
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_KESTREL_RESID)
         # Output
         return db
-
-
-# Aerodynamic history class
-class DataBook(cdbook.DataBook):
-    r"""Primary databook class for Kestrel
-
-    :Call:
-        >>> db = DataBook(x, opts)
-    :Inputs:
-        *x*: :class:`RunMatrix`
-            Current run matrix
-        *opts*: :class:`Options`
-            Global CAPE options instance
-    :Outputs:
-        *db*: :class:`DataBook`
-            Databook instance
-    :Versions:
-        * 21-11-08 ``@ddalle``: v1.0
-    """
-    _fm_cls = FMDataBook
-    _ts_cls = TimeSeriesDataBook
-    _prop_cls = PropDataBook
-    _pyfunc_cls = PyFuncDataBook
-  # ===========
-  # Readers
-  # ===========
-  # <
-
-    # Local version of data book
-    def _DataBook(self, targ):
-        self.Targets[targ] = DataBook(
-            self.x, self.opts, RootDir=self.RootDir, targ=targ)
-
-    # Local version of target
-    def _TargetDataBook(self, targ):
-        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
-  # >
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Current iteration status
-    def GetCurrentIter(self):
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = db.GetCurrentIter()
-        :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
-        :Outputs:
-            *n*: :class:`int` | ``None``
-                Iteration number
-        :Versions:
-            * 2021-11-08 ``@ddalle``: v1.0
-        """
-        try:
-            return casecntl.get_current_iter()
-        except Exception:
-            return None
-
-  # >
 
 
 # Normalize a column name
