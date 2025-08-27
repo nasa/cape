@@ -5,7 +5,7 @@ r"""
 The Cape module for generating automated results reports using PDFLaTeX
 provides a single class :class:`cape.cfdx.report.Report`, which creates
 a handle for the ``tex`` file and creates folders containing individual
-figures for each casecntl. The :class:`cape.cfdx.report.Report` class is
+figures for each case. The :class:`cape.cfdx.report.Report` class is
 a sort of dual-purpose object that contains a file interface using
 :class:`cape.filecntl.texfile.Tex` combined with a capability to create
 figures for each case or sweep of cases mostly based on
@@ -13,7 +13,7 @@ figures for each case or sweep of cases mostly based on
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
-that casecntl. The user defines a list of figures, each with its own
+that case. The user defines a list of figures, each with its own
 list of subfigures, and these are generated for each case in the run
 matrix (subject to any command-line constraints the user may specify).
 Types of subfigures include
@@ -80,6 +80,8 @@ import numpy as np
 from numpy import sqrt, sin, cos, tan, exp
 
 # Local modules
+from .casecntl import CaseRunner
+from .casedata import CaseFM, CaseResid
 from .cmdrun import pvpython
 from .cntlbase import CntlBase
 from ..argread.clitext import compile_rst
@@ -2963,7 +2965,7 @@ class Report(object):
             for comp in comps:
                 # Component label
                 # Read the Aero history.
-                FM = self.ReadCaseFM(comp)
+                FM = self.ReadCaseFM(i, comp)
                 # Get iters
                 iters = FM.get_values("i")
                 # Check for trivial
@@ -3288,7 +3290,7 @@ class Report(object):
             os.chdir(self.cntl.RootDir)
             os.chdir(frun)
             # Read the Aero history
-            FM = self.ReadCaseFM(comp)
+            FM = self.ReadCaseFM(i, comp)
             # Get iters
             iters = FM.get_values("i")
             # Check for missing history
@@ -4560,7 +4562,7 @@ class Report(object):
             figw = opts.get_SubfigOpt(sfig, "FigureWidth")
             figh = opts.get_SubfigOpt(sfig, "FigureHeight")
             # Read the Aero history.
-            H = self.ReadCaseResid(sfig)
+            H = self.ReadCaseResid(i)
             # Options dictionary
             kw_n = {
                 "nFirst": nPlotFirst, "nLast": nPlotLast,
@@ -5285,45 +5287,76 @@ class Report(object):
             tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
 
   # === Data Loaders ===
+    # Read case runner
+    def read_runner(self, i: int) -> CaseRunner:
+        r"""Read case control instance for case *i*
+
+        :Call:
+            >>> runner = r.read_runner(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *runner*: :class:`cape.cfdx.casecntl.CaseRunner`
+                Case control instance
+        :Versions:
+            * 2025-08-26 ``@ddalle``: v1.0
+        """
+        return self.cntl.ReadCaseRunner(i)
+
     # Read iterative history
-    def ReadCaseFM(self, comp):
+    def ReadCaseFM(self, i: int, comp: str) -> CaseFM:
         r"""Read iterative history for a component
 
         This function needs to be customized for each solver
 
         :Call:
-            >>> FM = R.ReadCaseFM(comp)
+            >>> fm = r.ReadCaseFM(i, comp)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
+            *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
+            *i*: :class:`int`
+                Case index
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` | :class:`cape.cfdx.databook.CaseFM`
+            *fm*: ``None`` | :class:`cape.cfdx.casedata.CaseFM`
                 Case iterative force & moment history for one component
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
+            * 2025-08-26 ``@ddalle``: v2.0; generalized w/ CaseRunner
         """
-        return None
+        # Read runner
+        runner = self.read_runner(i)
+        # Read component
+        return runner.read_dex(comp)
 
     # Read residual history
-    def ReadCaseResid(self, sfig=None):
+    def ReadCaseResid(self, i: int) -> CaseResid:
         r"""Read iterative residual history for a component
 
         This function needs to be customized for each solver
 
         :Call:
-            >>> hist = R.ReadCaseResid()
+            >>> hist = r.ReadCaseResid(i)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
+            *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
+            *i*: :class:`int`
+                Case index
         :Outputs:
             *hist*: ``None`` | :class:`cape.cfdx.databook.CaseResid`
                 Case iterative residual history for one case
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
+            * 2025-08-26 ``@ddalle``: v2.0; generalized w/ CaseRunner
         """
-        return None
+        # Read runner
+        runner = self.read_runner(i)
+        # Read component
+        return runner.read_resid()
 
     # Function to read generic data book component
     def ReadFM(self, comp, targ=None):

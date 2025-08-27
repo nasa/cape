@@ -63,7 +63,6 @@ import shutil
 
 # CAPE submodules
 from . import casecntl
-from .databook import CaseFM, CaseResid
 from ..cfdx import report as capereport
 from ..filecntl.tecfile import Tecscript
 
@@ -97,145 +96,9 @@ class Report(capereport.Report):
     # Copy the function
     __str__ = __repr__
 
-    # Read iterative history
-    def ReadCaseFM(self, comp):
-        """Read iterative history for a component
-
-        This function needs to be customized for each solver
-
-        :Call:
-            >>> FM = R.ReadCaseFM(comp)
-        :Inputs:
-            *R*: :class:`pyOver.report.Report`
-                Automated report interface
-            *comp*: :class:`str`
-                Name of component to read
-        :Outputs:
-            *FM*: ``None`` or :class:`cape.cfdx.databook.CaseFM` derivative
-                Case iterative force & moment history for one component
-        :Versions:
-            * 2016-02-04 ``@ddalle``: First version
-            * 2017-03-27 ``@ddalle``: Added *CompID* option
-        """
-        # Project rootname
-        proj = self.cntl.GetPrefix()
-        # Get component (note this automatically defaults to *comp*)
-        compID = self.cntl.opts.get_DataBookCompID(comp)
-        # Check for multiple components
-        if type(compID).__name__ in ['list', 'ndarray']:
-            # Read the first component
-            FM = CaseFM(proj, compID[0])
-            # Loop through remaining components
-            for compi in compID[1:]:
-                # Check for minus sign
-                if compi.startswith('-1'):
-                    # Subtract the component
-                    FM -= CaseFM(proj, compi.lstrip('-'))
-                else:
-                    # Add in the component
-                    FM += CaseFM(proj, compi)
-        else:
-            # Read the iterative history for single component
-            FM = CaseFM(proj, compID)
-        # Read the history for that component
-        return FM
-
-    # Update subfig for case
-    def SubfigSwitch(self, sfig, i, lines, q):
-        r"""Switch function to find the correct subfigure function
-
-        This function may need to be defined for each CFD solver
-
-        :Call:
-            >>> lines = R.SubfigSwitch(sfig, i, lines, q)
-        :Inputs:
-            *R*: :class:`pyOver.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of subfigure to update
-            *i*: :class:`int`
-                Case index
-            *lines*: :class:`list`\ [:class:`str`]
-                List of lines already in LaTeX file
-            *q*: ``True`` | ``False``
-                Whether or not to redraw images
-        :Outputs:
-            *lines*: :class:`list`\ [:class:`str`]
-                Updated list of lines for LaTeX file
-        :Versions:
-            * 2015-05-29 ``@ddalle``: v1.0
-            * 2016-10-25 ``@ddalle``: v1.1; was ``UpdateCaseSubfigs()``
-        """
-        # Get the base type.
-        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
-        # Process it.
-        if btyp == 'Conditions':
-            # Get the content.
-            lines += self.SubfigConditions(sfig, i, q)
-        elif btyp == 'Summary':
-            # Get the force and/or moment summary
-            lines += self.SubfigSummary(sfig, i, q)
-        elif btyp == 'PointSensorTable':
-            # Get the point sensor table summary
-            lines += self.SubfigPointSensorTable(sfig, i, q)
-        elif btyp == 'PlotCoeff':
-            # Get the force or moment history plot
-            lines += self.SubfigPlotCoeff(sfig, i, q)
-        elif btyp == 'PlotLineLoad':
-            # Get the sectional loads plot
-            lines += self.SubfigPlotLineLoad(sfig, i, q)
-        elif btyp == 'PlotPoint':
-            # Get the point sensor history plot
-            lines += self.SubfigPlotPoint(sfig, i, q)
-        elif btyp == 'PlotL2':
-            # Get the residual plot
-            lines += self.SubfigPlotL2(sfig, i, q)
-        elif btyp == 'PlotInf':
-            # Get the residual plot
-            lines += self.SubfigPlotLInf(sfig, i, q)
-        elif btyp == 'PlotResid':
-            # Plot generic residual
-            lines += self.SubfigPlotResid(sfig, i, q)
-        elif btyp == 'Tecplot':
-            # Get the Tecplot layout view
-            lines += self.SubfigTecplotLayout(sfig, i, q)
-        elif btyp == 'Image':
-            # Coy an image
-            lines += self.SubfigImage(sfig, i, q)
-        else:
-            # No type found
-            print("  %s: No function found for base type '%s'" % (sfig, btyp))
-        # Output
-        return lines
-
-    # Read residual history
-    def ReadCaseResid(self, sfig=None):
-        """Read iterative residual history for a component
-
-        This function needs to be customized for each solver
-
-        :Call:
-            >>> hist = R.ReadCaseResid()
-        :Inputs:
-            *R*: :class:`pyOver.report.Report`
-                Automated report interface
-        :Outputs:
-            *hist*: ``None`` | :class:`cape.cfdx.databook.CaseResid`
-                Case iterative residual history for one case
-        :Versions:
-            * 2016-02-04 ``@ddalle``: First version
-            * 2024-01-26 ``@ddalle``: v2.0; removed special pyover lines
-        """
-        # Project rootname
-        proj = self.cntl.GetPrefix()
-        # Initialize the residual history
-        R = CaseResid(proj)
-        # Output
-        return R
-
     # Read a Tecplot script
     def ReadTecscript(self, fsrc):
-        """Read a Tecplot script interface
+        r"""Read a Tecplot script interface
 
         :Call:
             >>> R.ReadTecscript(fsrc)
@@ -251,7 +114,7 @@ class Report(capereport.Report):
 
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
-        """Create links to appropriate visualization files
+        r"""Create links to appropriate visualization files
 
         Specifically, ``Components.i.plt`` and ``cutPlanes.plt`` or
         ``Components.i.dat`` and ``cutPlanes.dat`` are created.

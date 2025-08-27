@@ -65,8 +65,6 @@ import numpy as np
 
 # Local imports
 from .casecntl import LinkPLT
-from .databook import CaseFM, CaseResid
-from .trifile import Tri
 from ..cfdx import report as capereport
 from ..filecntl.tecfile import Tecscript
 
@@ -81,13 +79,13 @@ def ImportPointSensor():
         * 2014-12-27 ``@ddalle``: First version
     """
     # Make global variables
-    global pointSensor
+    global pointsensor
     # Check for PyPlot.
     try:
-        pointSensor
+        pointsensor
     except Exception:
         # Load the modules.
-        from . import pointSensor
+        from . import pointsensor
 
 
 # Dedicated function to load lineload only when needed.
@@ -127,78 +125,6 @@ class Report(capereport.Report):
         * 2015-03-07 ``@ddalle``: Started
         * 2015-03-10 ``@ddalle``: First version
     """
-
-    # String conversion
-    def __repr__(self):
-        """String/representation method
-
-        :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-        """
-        return '<pyCart.Report("%s")>' % self.rep
-    # Copy the function
-    __str__ = __repr__
-
-    # Read iterative history
-    def ReadCaseFM(self, comp):
-        """Read iterative history for a component
-
-        This function needs to be customized for each solver
-
-        :Call:
-            >>> FM = R.ReadCaseFM(comp)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *comp*: :class:`str`
-                Name of component to read
-        :Outputs:
-            *FM*: ``None`` or :class:`cape.cfdx.databook.CaseFM` derivative
-                Case iterative force & moment history for one component
-        :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-            * 2017-03-27 ``@ddalle``: Added *CompID* option
-        """
-        # Get component (note this automatically defaults to *comp*)
-        compID = self.cntl.opts.get_DataBookCompID(comp)
-        # Check for multiple components
-        if type(compID).__name__ in ['list', 'ndarray']:
-            # Read the first component
-            FM = CaseFM(compID[0])
-            # Loop through remaining components
-            for compi in compID[1:]:
-                # Check for minus sign
-                if compi.startswith('-1'):
-                    # Subtract the component
-                    FM -= CaseFM(compi.lstrip('-'))
-                else:
-                    # Add in the component
-                    FM += CaseFM(compi)
-        else:
-            # Read the iterative history for single component
-            FM = CaseFM(compID)
-        # Read the history for that component
-        return FM
-
-    # Read residual history
-    def ReadCaseResid(self, sfig=None):
-        """Read iterative residual history for a component
-
-        This function needs to be customized for each solver
-
-        :Call:
-            >>> hist = R.ReadCaseResid()
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-        :Outputs:
-            *hist*: ``None`` or :class:`cape.cfdx.databook.CaseResid` derivative
-                Case iterative residual history for one case
-        :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-            * 2016-02-04 ``@ddalle``: Added argument
-        """
-        return CaseResid()
 
     # Read point sensor history
     def ReadPointSensor(self):
@@ -290,230 +216,6 @@ class Report(capereport.Report):
             DBL.ReadCase(j)
         # Output the case line load
         return DBL.get(j)
-
-    # Update subfig for case
-    def SubfigSwitch(self, sfig, i, lines, q):
-        r"""Switch function to find the correct subfigure function
-
-        This function may need to be defined for each CFD solver
-
-        :Call:
-            >>> lines = R.SubfigSwitch(sfig, i, lines)
-        :Inputs:
-            *R*: :class:`pyCart.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of subfigure to update
-            *i*: :class:`int`
-                Case index
-            *lines*: :class:`list`\ [:class:`str`]
-                List of lines already in LaTeX file
-            *q*: ``True`` | ``False``
-                Whether or not to redraw images
-        :Outputs:
-            *lines*: :class:`list`\ [:class:`str`]
-                Updated list of lines for LaTeX file
-        :Versions:
-            * 2015-05-29 ``@ddalle``: First version
-            * 2016-10-25 ``@ddalle``: *UpdateFigure* -> *SubfigSwitch*
-        """
-        # Get the base type.
-        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
-        # Process it.
-        if btyp == 'Conditions':
-            # Get the content.
-            lines += self.SubfigConditions(sfig, i, q)
-        elif btyp == 'Summary':
-            # Get the force and/or moment summary
-            lines += self.SubfigSummary(sfig, i, q)
-        elif btyp == 'PointSensorTable':
-            # Get the point sensor table summary
-            lines += self.SubfigPointSensorTable(sfig, i, q)
-        elif btyp == 'PlotCoeff':
-            # Get the force or moment history plot
-            lines += self.SubfigPlotCoeff(sfig, i, q)
-        elif btyp == 'PlotLineLoad':
-            # Get the sectional loads plot
-            lines += self.SubfigPlotLineLoad(sfig, i, q)
-        elif btyp == 'PlotPoint':
-            # Get the point sensor history plot
-            lines += self.SubfigPlotPoint(sfig, i, q)
-        elif btyp == 'PlotL1':
-            # Get the residual plot
-            lines += self.SubfigPlotL1(sfig, i, q)
-        elif btyp == 'PlotResid':
-            # Plot generic residual
-            lines += self.SubfigPlotResid(sfig, i, q)
-        elif btyp == 'Tecplot3View':
-            # Get the Tecplot component view
-            lines += self.SubfigTecplot3View(sfig, i, q)
-        elif btyp == 'Tecplot':
-            # Get the Tecplot layout view
-            lines += self.SubfigTecplotLayout(sfig, i, q)
-        elif btyp == 'Paraview':
-            # Get the Paraview layout view
-            lines += self.SubfigParaviewLayout(sfig, i, q)
-        elif btyp == 'Image':
-            # Coy an image
-            lines += self.SubfigImage(sfig, i, q)
-        else:
-            print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
-        # Output
-        return lines
-
-    # Update subfig for a sweep
-    def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
-        r"""Switch function to find the correct subfigure function
-
-        This function may need to be defined for each CFD solver
-
-        :Call:
-            >>> lines = R.SubfigSwitch(sfig, fswp, I, lines, q)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of subfigure to update
-            *fswp*: :class:`str`
-                Name of sweep
-            *I*: :class:`numpy.ndarray` (:class:`list`)
-                List of case indices in the subsweep
-            *lines*: :class:`list`\ [:class:`str`]
-                List of lines already in LaTeX file
-            *q*: ``True`` | ``False``
-                Whether or not to redraw images
-        :Outputs:
-            *lines*: :class:`list`\ [:class:`str`]
-                Updated list of lines for LaTeX file
-        :Versions:
-            * 2015-05-29 ``@ddalle``: First version
-            * 2016-10-25 ``@ddalle``: First version, from :func:`UpdateSubfig`
-        """
-        # Get the base type.
-        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
-        # Process it.
-        if btyp == 'Conditions':
-            # Get the content.
-            lines += self.SubfigConditions(sfig, I, q)
-        elif btyp == 'SweepConditions':
-            # Get the variables constant in the sweep
-            lines += self.SubfigSweepConditions(sfig, fswp, I[0], q)
-        elif btyp == 'SweepCases':
-            # Get the list of cases.
-            lines += self.SubfigSweepCases(sfig, fswp, I, q)
-        elif btyp == 'SweepCoeff':
-            # Plot a coefficient sweep
-            lines += self.SubfigSweepCoeff(sfig, fswp, I, q)
-        elif btyp == 'SweepPointHist':
-            # Plot a point sensor histogram
-            lines += self.SubfigSweepPointHist(sfig, fswp, I, q)
-        elif btyp == 'ContourCoeff':
-            # Contour plot of slice results
-            lines += self.SubfigContourCoeff(sfig, fswp, I, q)
-        else:
-            # No figure found
-            print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
-        # Output
-        return lines
-
-
-    # Function to create coefficient plot and write figure
-    def SubfigTecplot3View(self, sfig, i, q):
-        r"""Create image of surface for one component using Tecplot
-
-        :Call:
-            >>> lines = R.SubfigTecplot3View(sfig, i)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of sfigure to update
-            *i*: :class:`int`
-                Case index
-            *q*: ``True`` | ``False``
-                Whether or not to redraw images
-        :Versions:
-            * 2014-03-10 ``@ddalle``: First version
-        """
-        # Save current folder.
-        fpwd = os.getcwd()
-        # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
-        # Extract options
-        opts = self.cntl.opts
-        # Get the component.
-        comp = opts.get_SubfigOpt(sfig, "Component")
-        # Get caption.
-        fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Get the vertical alignment.
-        hv = opts.get_SubfigOpt(sfig, "Position")
-        # Get subfigure width
-        wsfig = opts.get_SubfigOpt(sfig, "Width")
-        # First line.
-        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
-        fhdr = opts.get_SubfigOpt(sfig, "Header")
-        # Alignment
-        algn = opts.get_SubfigOpt(sfig, "Alignment")
-        # Set alignment.
-        if algn.lower() == "center":
-            lines.append('\\centering\n')
-        # Write the header.
-        if fhdr:
-            # Save the line
-            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-6pt\n')
-        # File name
-        fname = "%s-%s" % (sfig, comp)
-        # Check for update status
-        if not q:
-            # Check for the file
-            if os.path.isfile('%s.png' % fname):
-                # Include the graphics.
-                lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
-                    % (frun, fname))
-            # Set the caption.
-            if fcpt: lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-            # Close the subfigure.
-            lines.append('\\end{subfigure}\n')
-            # Output
-            return lines
-        # Go to the Cart3D folder
-        os.chdir(self.cntl.RootDir)
-        # Path to the triangulation
-        ftri = os.path.join(frun, 'Components.i.tri')
-        # Check for that file.
-        if not os.path.isfile(ftri):
-            # Try non-intersected file.
-            ftri = os.path.join(frun, 'Components.c.tri')
-        # Check for the triangulation file
-        if os.path.isfile(ftri):
-            # Read the triangulation file
-            tri = Tri(ftri, c=opts.get_ConfigFile())
-        else:
-            # Read the standard triangulation
-            self.cntl.ReadTri()
-            # Make sure to start from initial position.
-            self.cntl.tri = self.cart3d.tri0.Copy()
-            # Rotate for the appropriate casecntl.
-            self.cntl.PrepareTri(i)
-            # Extract the triangulation
-            tri = self.cntl.tri
-        # Create the image.
-        trifile.Tecplot3View(fname, comp)
-        # Remove the triangulation
-        os.remove('%s.tri' % fname)
-        # Go to the report case folder
-        os.chdir(fpwd)
-        # Include the graphics.
-        lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
-            % (frun, fname))
-        # Set the caption.
-        if fcpt: lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-        # Close the subfigure.
-        lines.append('\\end{subfigure}\n')
-        # Output
-        return lines
 
     # Function to plot point sensor history
     def SubfigPlotPoint(self, sfig, i, q):
