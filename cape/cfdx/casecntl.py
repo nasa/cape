@@ -2937,7 +2937,7 @@ class CaseRunner(CaseRunnerBase):
         # Perform preprocessing if needed
         self.prep_dex(comp)
         # Check it
-        if typ in ("FM",):
+        if typ in ("fm",):
             return self.read_dex_by_element(comp)
         else:
             return self.read_dex_element(comp, comp)
