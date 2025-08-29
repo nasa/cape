@@ -31,9 +31,9 @@ def test_02_run():
     # Collect aero
     cli.main(["pycart", "extract-fm", "-I", "0"])
     # Read databook
-    cntl.ReadDataBook()
+    db = cntl.read_dex("bullet_no_base")
     # Get value
-    CA = cntl.DataBook["bullet_no_base"]["CA"][0]
+    CA = db["CA"][0]
     # Test value
     assert abs(CA - 1.0) <= 0.2
 
