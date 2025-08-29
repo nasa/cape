@@ -27,6 +27,20 @@ DEG = np.pi / 180.0
 
 # Main class for TriqFM cases
 class CaseTriqFM(DataKit):
+    r"""Interface to post-processed patch loads from one case
+
+    :Call:
+        >>> db = CaseTriqFM(comp, ftriq, cntl, i)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of component
+        *ftriq*: :class:`str`
+            Name of ``.triq`` annotated surface file to read
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            Run matrix controller instance
+        *i*: :class:`int`
+            Index of this case
+    """
    # --- Config ---
     def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
         # Save the run matrix controller
@@ -689,3 +703,26 @@ class CaseTriqFM(DataKit):
         pltq = pltfile.Plt(triq=triq, CompIDs=compIDs, **kw)
         # Output
         return pltq
+
+
+# Class for TriqPoint
+class CaseTriqPoint(CaseTriqFM):
+   # --- Config ---
+    def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
+        # Save the run matrix controller
+        self.cntl = cntl
+        # List of columns
+        self.cols = []
+        # Save the component name
+        self.comp = comp
+        # Save the name of the TriQ file
+        self.ftriq = ftriq
+        # Save case index
+        self.i = i
+        # Save list of points
+        self.pts = cntl.opts.get_DataBookOpt(comp, "Points")
+        # Analyze
+        ...
+
+    # Loop through points
+    ...
