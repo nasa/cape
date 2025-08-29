@@ -122,8 +122,13 @@ def run_maindir(func: Callable):
     def wrapper_func(self, *args, **kwargs):
         # Recall current directory
         fpwd = os.getcwd()
+        # Specified root for compiling report
+        cdir = self.get_CompileDir()
+        # Create it if necessary
+        if not os.path.isdir(cdir):
+            os.mkdir(cdir)
         # Go to specified directory
-        os.chdir(self.get_CompileDir())
+        os.chdir(cdir)
         # Run the function with exception handling
         try:
             # Attempt to run the function
@@ -1960,6 +1965,7 @@ class Report(object):
             lines = self.SubfigImage(sfig, i, True)
         else:
             print(f"  {sfig}: No function for subfigure type '{btyp}'")
+            lines = []
         # Output
         return lines
 

@@ -73,6 +73,7 @@
             "poweroff"
         ],
         "poweroff": {
+            "Location": "report",
             "Figures": [
                 "fig1"
             ],

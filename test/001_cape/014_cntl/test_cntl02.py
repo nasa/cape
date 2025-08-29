@@ -35,12 +35,9 @@ def test_cntl01_multilevelcase():
     assert os.path.isdir(frun)
     # Get a report
     rep = cntl.opts.get_ReportList()[0]
-    report = cntl.ReadReport(rep)
-    # Update a case to check arbitrary-depth during report
-    report.UpdateReport(I=i)
-    # Might have to change folder manually depending on version
-    # os.chdir(cntl.RootDir)
+    # Update it
+    cntl.UpdateReport(report=rep, I=i)
     # Check to make sure the tar ball got created
-    ftar = os.path.join("report", f"{frun}.tar")
+    ftar = os.path.join(cntl.RootDir, "report", f"{frun}.tar")
     assert os.path.isfile(ftar)
 
