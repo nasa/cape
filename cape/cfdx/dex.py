@@ -218,10 +218,6 @@ class DataExchanger(DataKit):
         ycols = self.cntl.opts.get_DataBookCols(self.comp)
         # Loop through patches
         for j, pt in enumerate(pts):
-            # Check if data already present
-            if self[f"{pt}.CA"].size and j > 0:
-                # Get size
-                continue
             # Name of data file
             fcsv = f"pt_{pt}.csv"
             fabs = os.path.join(self.rootdir, fcsv)
@@ -233,7 +229,7 @@ class DataExchanger(DataKit):
             # Save conditions
             if j == 0:
                 # Size
-                n = dbj["CA"].size
+                n = dbj["x"].size
                 # Save xcols
                 for col in self.cntl.x.cols:
                     self.save_col(col, dbj[col])
