@@ -358,7 +358,7 @@ class CaseTriqFM(DataKit):
             self.save_col(k, v)
 
     # Calculate forces for one patch
-    def get_triq_forces_patch(self, patch: Optional[str]):
+    def get_triq_forces_patch(self, patch: Optional[str]) -> dict:
         r"""Get the forces and moments on a patch
 
         :Call:
@@ -721,8 +721,29 @@ class CaseTriqPoint(CaseTriqFM):
         self.i = i
         # Save list of points
         self.pts = cntl.opts.get_DataBookOpt(comp, "Points")
+        # Initialize other slots
+        self.tri = None
+        self.triq = None
         # Analyze
-        ...
+        self.interp_pts()
 
+   # --- Analysis ---
     # Loop through points
-    ...
+    def interp_pts(self):
+        # Loop through points
+        for pt in self.pts:
+            self.interp_pt(pt)
+
+    def interp_pt(self, pt: str):
+        # Get the coordinates of point *pt*
+        x = self.cntl.opts.get_Point(pt)
+        # Project to surface and interpolate
+        x0, q = self.triq.InterpSurfPoint(x)
+        # Limit to requested values
+        cols = self.cntl.opts.get_DataBookCols(self.comp)
+        # Save coordinates
+        for j, col in enumerate('xyz'):
+            if col in cols:
+                self.save_col(f"{pt}.{col}", x0[j])
+        # Save *qvars*
+        self.save_col(f"{pt}.cp", q[0])
