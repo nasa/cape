@@ -36,6 +36,7 @@ class DataExchanger(DataKit):
     _prefix_map = {
         "fm": "aero",
         "lineload": "ll",
+        "triqpoint": "triqpt",
     }
     _subdir_map = {
         "triqfm": "triqfm",
@@ -192,6 +193,59 @@ class DataExchanger(DataKit):
             for ycol in ycols:
                 # Full column name
                 col = f"{patch}.{ycol}"
+                # Initialize
+                self[col] = np.full(n, np.nan)
+                # Fill in matches
+                if ycol in dbj:
+                    self[col][ia] = dbj[ycol][ib]
+
+    def read_legacy_triqpoint(self):
+        r"""Read a legacy TriqPoint DataBook if appropriate
+
+        :Call:
+            >>> db.read_legacy_triqpoint()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        :Versions:
+            * 2025-08-29 ``@ddalle``: v1.0
+        """
+        # Get list of patches
+        pts = self.cntl.opts.get_DataBookOpt(self.comp, "Points")
+        # Get current size
+        n = 0
+        # Get key data columns
+        ycols = self.cntl.opts.get_DataBookCols(self.comp)
+        # Loop through patches
+        for j, pt in enumerate(pts):
+            # Check if data already present
+            if self[f"{pt}.CA"].size and j > 0:
+                # Get size
+                continue
+            # Name of data file
+            fcsv = f"pt_{pt}.csv"
+            fabs = os.path.join(self.rootdir, fcsv)
+            # Check for it
+            if not os.path.isfile(fabs):
+                continue
+            # Read it
+            dbj = DataKit(fabs)
+            # Save conditions
+            if j == 0:
+                # Size
+                n = dbj["CA"].size
+                # Save xcols
+                for col in self.cntl.x.cols:
+                    self.save_col(col, dbj[col])
+            # Find matches
+            ia, ib = self.xmatch(dbj)
+            # Exit if no matches
+            if ia.size == 0:
+                continue
+            # Loop through data cols
+            for ycol in ycols:
+                # Full column name
+                col = f"{pt}.{ycol}"
                 # Initialize
                 self[col] = np.full(n, np.nan)
                 # Fill in matches
@@ -418,6 +472,12 @@ class DataExchanger(DataKit):
             # Loop through patches
             for patch in patches:
                 self._get_datacols(cols, patch)
+        elif self.comptype.lower() == "triqpoint":
+            # Get list of points
+            pts = self.cntl.opts.get_DataBookOpt(self.comp, "Points")
+            # Loop through points
+            for pt in pts:
+                self._get_datacols(cols, pt)
         # Output
         return cols
 
@@ -450,6 +510,14 @@ class DataExchanger(DataKit):
   # *** FILES ***
    # --- Folders ---
     def mkdirs(self):
+        r"""Create folders as needed for DataBook component
+
+        :Call:
+            >>> db.mkdirs()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        """
         # Get components of path
         parts = self.rootdir.split(os.sep)
         # Cumulative path
