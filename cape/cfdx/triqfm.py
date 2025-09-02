@@ -33,6 +33,11 @@ DEG = np.pi / 180.0
 
 class CaseTriqBase(DataKit, metaclass=ABCMeta):
    # --- Config ---
+    __slots__ = (
+        "cntl",
+        "triq",
+    )
+
     @abstractmethod
     def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
         pass
@@ -106,7 +111,20 @@ class CaseTriqFM(CaseTriqBase):
         *i*: :class:`int`
             Index of this case
     """
-   # --- Config ---
+   # --- Class attributes ---
+    __slots__ = (
+        "cols",
+        "comp",
+        "compmap",
+        "cntl",
+        "ftriq",
+        "i",
+        "patches",
+        "tri",
+        "triq",
+    )
+
+   # --- __dunder__ ---
     def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
         # Save the run matrix controller
         self.cntl = cntl
@@ -734,6 +752,17 @@ class CaseTriqPoint(CaseTriqBase):
         *i*: :class:`int`
             Index of this case
     """
+   # --- Class attributes ---
+    __slots__ = (
+        "cols",
+        "comp",
+        "cntl",
+        "ftriq",
+        "i",
+        "pts",
+        "triq",
+    )
+
    # --- Config ---
     def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
         # Save the run matrix controller
@@ -749,7 +778,6 @@ class CaseTriqPoint(CaseTriqBase):
         # Save list of points
         self.pts = cntl.opts.get_DataBookOpt(comp, "Points")
         # Initialize other slots
-        self.tri = None
         self.triq = None
         # Analyze
         self.interp_pts()
