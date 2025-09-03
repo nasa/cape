@@ -2761,12 +2761,13 @@ class TriBase(object):
         # Loop through nodes
         for j, node in enumerate(self.Nodes):
             fp.write(f"{j+1:8d}{node[0]:16g}{node[1]:16g}{node[2]:16g}\n")
+        # Assemble tris
+        tris = np.vstack(
+            (np.arange(1, self.nTri + 1), self.Tris.T, self.CompID)).T
         # Loop through tris
-        for k, tri in enumerate(self.Tris):
-            # Get component ID for this tri
-            c = self.CompID[k]
-            # Write line
-            fp.write(f"{k+1:8d}{tri[0]:8d}{tri[1]:8d}{tri[2]:8d}{c:8d}\n")
+        for xj in tris:
+            xj.tofile(fp, sep=" ")
+            fp.write("\n")
 
    # +++ UH3D Writers +++
     # Function to write a UH3D file
