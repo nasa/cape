@@ -43,6 +43,7 @@ from .cfdx import options
 from .cfdx import volcomp
 from .config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from .cgns import CGNS
+from .gruvoc.umesh import Umesh
 from .util import stackcol
 from .splitzones import SplitZones
 
@@ -470,22 +471,16 @@ class TriBase(object):
         :Versions:
             * 2014-06-02 ``@ddalle``: v1.0
         """
-        # Get the file type
-        self.GetTriFileType(fname)
-        # Check if ASCII
-        if self.filetype == 'ascii':
-            # Read the ASCII file
-            self.ReadASCII(fname, n=n)
-        else:
-            # Read the binary file
-            self.ReadTriBin(fname)
-            # Save number of iterations included in average
-            self.n = n
-        # Ensure quads are present
-        try:
-            self.nQuad
-        except AttributeError:
-            self.nQuad = 0
+        # Read the easy way
+        tri = Umesh(tri=fname)
+        # Save parts
+        self.nQuad = 0
+        self.nTri = tri.ntri
+        self.nNode = tri.nnode
+        self.Nodes = tri.nodes
+        self.Tris = tri.tris
+        self.CompID = tri.tri_ids
+        self.n = n
 
     # Function to read a .triq file
     def ReadTriQ(self, fname, n=1):

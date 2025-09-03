@@ -3,9 +3,9 @@ r"""
 ===========================================================
 
 This module contains several classes for extracting point sensor data
-from FUN3D solutions. The database classes, :class:`TriqPointGroupDataBook` 
+from FUN3D solutions. The database classes, :class:`TriqPointGroupDataBook`
 and :class:`TriqPointDataBook`, are based on versions from the generic point
-sensor module :mod:`cape.cfdx.pointsensor`. These classes extract 
+sensor module :mod:`cape.cfdx.pointsensor`. These classes extract
 surface solution data from a FUN3D boundary output file (usually with a
 name of ``pyfun_tec_boundary_timestep1000.plt`` or similar)
 using :class:`cape.pyfun.plt` and :class:`cape.tri` by interpolating the
@@ -26,13 +26,11 @@ from FUN3D output that can be requested from ``fun3d.nml``.
 
 # Standard library
 import os
-import glob
 
 # Third party
 
 # Local modules
 from . import casecntl
-from . import mapbc
 from . import pltfile
 from ..cfdx import pointsensor as cptsensor
 from ..trifile import Triq
@@ -97,8 +95,8 @@ class TriqPointGroupDataBook(cptsensor.TriqPointGroupDataBook):
     def ReadPointSensor(self, pt):
         r"""Read a point sensor
 
-        This function needs to be customized for each derived class so 
-        that the correct class is used for each of the member data 
+        This function needs to be customized for each derived class so
+        that the correct class is used for each of the member data
         books
 
         :Call:
@@ -154,7 +152,7 @@ class TriqPointGroupDataBook(cptsensor.TriqPointGroupDataBook):
                 Case index
         :Outputs:
             *P*: :class:`dict`
-                Dictionary of state variables as requested from the 
+                Dictionary of state variables as requested from the
                 point
         :Versions:
             * 2017-10-10 ``@ddalle``: First version
@@ -199,7 +197,7 @@ class TriqPointGroupDataBook(cptsensor.TriqPointGroupDataBook):
                     j = VarList.index(col)
                 else:
                     # Not found
-                    raise KeyError("No state named '%s' found in PLT file"%col)
+                    raise KeyError(f"No state named '{col}' found in PLT file")
                 # Save the parameter
                 P[col] = q[j]
         # Output
@@ -242,7 +240,7 @@ class TriqPointGroupDataBook(cptsensor.TriqPointGroupDataBook):
 class TriqPointDataBook(cptsensor.TriqPointDataBook):
     r"""TriQ point sensor data book
 
-    Plotting methods are inherited from 
+    Plotting methods are inherited from
     :class:`cape.cfdx.databook.DataBookComp`, including
     :func:`cape.cfdx.databook.DataBookComp.PlotHist` for plotting historgrams
     of point sensor results in particular.

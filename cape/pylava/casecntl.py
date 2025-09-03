@@ -533,6 +533,7 @@ class CaseRunner(casecntl.CaseRunner):
                 LAVA YAML input file interface
         :Versions:
             * 2025-08-14 ``@ddalle``: v1.0
+            * 2025-09-03 ``@ddalle``: v1.1; check for file
         """
         # Read ``case.json`` if necessary
         rc = self.read_case_json()
@@ -549,8 +550,14 @@ class CaseRunner(casecntl.CaseRunner):
                 return self.runinpfile
         # Get name of file to read
         fname = cmdgen.infix_phase("run.inputs", j)
-        # Read it
-        self.runinpfile = CartInputFile(fname)
+        # Check for file
+        if os.path.isfile(fname):
+            # Read it
+            self.runinpfile = CartInputFile(fname)
+        else:
+            # Read from *cntl*
+            cntl = self.read_cntl()
+            return cntl.CartInputs
         # Return it
         return self.runinpfile
 

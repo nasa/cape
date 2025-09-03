@@ -63,7 +63,7 @@ from .caseutils import run_rootdir
 from .cntlbase import CntlBase
 from .ll import CaseLineLoad
 from .logger import CaseLogger
-from .triqfm import CaseTriqFM
+from .triqfm import CaseTriqFM, CaseTriqPoint
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
 from .options.funcopts import UserFuncOpts
@@ -271,6 +271,7 @@ class CaseRunner(CaseRunnerBase):
         "fm": CaseFM,
         "lineload": CaseLineLoad,
         "triqfm": CaseTriqFM,
+        "triqpoint": CaseTriqPoint,
     }
 
    # --- __dunder__ ---
@@ -2479,6 +2480,22 @@ class CaseRunner(CaseRunnerBase):
   # *** SURFACE DATA ***
    # --- Surface ---
     def find_surf_file(self) -> FileSearchStatus:
+        r"""Find CFD output file that contains the most recent surface data
+
+        :Call:
+            >>> fstat = runner.find_surf_file()
+            >>> mtch, n = runner.find_surf_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *mtch*: :class:`re.Match` | ``None``
+                Regular expression match instance
+            *n*: :class:`int`
+                Latest iteration contained in file
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
         # Find the file
         mtch = self.match_surf_file()
         # Infer iteration number
@@ -3358,7 +3375,7 @@ class CaseRunner(CaseRunnerBase):
         r"""Get window size for a ``"LineLoad"`` DataBook component
 
         :Call:
-            >>> n = db.get_nstats(comp)
+            >>> n = db.get_dex_nstats_lineload(comp)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -3377,6 +3394,44 @@ class CaseRunner(CaseRunnerBase):
         # Cache it
         self._dex_n_stats = nstats
         return nstats
+
+    def get_dex_nstats_triqfm(self, comp: str) -> int:
+        r"""Get window size for a ``"TriqFM"`` DataBook component
+
+        :Call:
+            >>> n = db.get_dex_nstats_triqfm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-29 ``@ddalle``: v1.0
+        """
+        # Same as lineload
+        return self.get_dex_nstats_lineload(comp)
+
+    def get_dex_nstats_triqpoint(self, comp: str) -> int:
+        r"""Get window size for a ``"TriqPoint"`` DataBook component
+
+        :Call:
+            >>> n = db.get_dex_nstats_triqpoint(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-29 ``@ddalle``: v1.0
+        """
+        # Same as lineload
+        return self.get_dex_nstats_lineload(comp)
 
    # --- Options ---
     # Get DataBook component type
@@ -3511,6 +3566,51 @@ class CaseRunner(CaseRunnerBase):
                 Index of this case in run matrix
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Read run matrix controller
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Use name of TriqFM file
+        return (self._dex_triqfile, cntl, i)
+
+   # --- TriqPoint ---
+    def prep_dex_triqpoint(self, comp: str):
+        r"""Prepare surface ``.triq`` file for TriqPoint processing
+
+        :Call:
+            >>> db = runner.prep_dex_triqfm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-29 ``@ddalle``: v1.0
+        """
+        self.prep_dex_triqfm(comp)
+
+    # Create tuple of TriqPoint dex args after to *comp*
+    def get_dex_args_post_triqpoint(self) -> tuple:
+        r"""Get list of args after *comp* in :class:`CaseTriqPoint`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_triqpoint()
+            >>> ftriq, cntl, i = runner.get_dex_args_post_triqpoint()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Tuple of args
+            *ftriq*: :class:`str`
+                Name of ``.triq`` file with surface solution data
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Run matrix controller with definitions for dex comp
+            *i*: :class:`int`
+                Index of this case in run matrix
+        :Versions:
+            * 2025-08-30 ``@ddalle``: v1.0
         """
         # Read run matrix controller
         cntl = self.read_cntl()

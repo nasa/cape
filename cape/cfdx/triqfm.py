@@ -2,13 +2,19 @@ r"""
 :mod:`cape.cfdx.triqfm`: Module for reading patch loads from one case
 =======================================================================
 
+This module provides classes for reading surface data from an existing
+``.triq`` file in a CFD case's main folder. It provides classes to read
+this data and then compute data products:
 
+* :class:`CaseTriqFM`: patch load forces & moments
+* :class:`CaseTriqPoint`: interpolate pressure at several points
 
 """
 
 
 # Standard library
 import os
+from abc import ABCMeta, abstractmethod
 from typing import Optional
 
 # Third-party
@@ -25,30 +31,16 @@ from ..dkit.rdb import DataKit
 DEG = np.pi / 180.0
 
 
-# Main class for TriqFM cases
-class CaseTriqFM(DataKit):
+class CaseTriqBase(DataKit, metaclass=ABCMeta):
    # --- Config ---
+    __slots__ = (
+        "cntl",
+        "triq",
+    )
+
+    @abstractmethod
     def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
-        # Save the run matrix controller
-        self.cntl = cntl
-        # List of columns
-        self.cols = []
-        # Save the component name
-        self.comp = comp
-        # Save the name of the TriQ file
-        self.ftriq = ftriq
-        # Save case index
-        self.i = i
-        # Save list of patches
-        self.patches = cntl.opts.get_DataBookOpt(comp, "Patches")
-        # Initialize other slots
-        self.compmap = None
-        self.tri = None
-        self.triq = None
-        # Analyze
-        self.get_triq_forces()
-        # Process output file
-        self.write_triq()
+        pass
 
    # --- Raw data ---
     # Read the surface solution data from this case
@@ -101,6 +93,59 @@ class CaseTriqFM(DataKit):
         fcfg = fcfg if fcfg else opts.get_ConfigFile()
         # Absolutize
         return self.cntl.abspath(fcfg)
+
+
+# Main class for TriqFM cases
+class CaseTriqFM(CaseTriqBase):
+    r"""Interface to post-processed patch loads from one case
+
+    :Call:
+        >>> db = CaseTriqFM(comp, ftriq, cntl, i)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of component
+        *ftriq*: :class:`str`
+            Name of ``.triq`` annotated surface file to read
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            Run matrix controller instance
+        *i*: :class:`int`
+            Index of this case
+    """
+   # --- Class attributes ---
+    __slots__ = (
+        "cols",
+        "comp",
+        "compmap",
+        "cntl",
+        "ftriq",
+        "i",
+        "patches",
+        "tri",
+        "triq",
+    )
+
+   # --- __dunder__ ---
+    def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
+        # Save the run matrix controller
+        self.cntl = cntl
+        # List of columns
+        self.cols = []
+        # Save the component name
+        self.comp = comp
+        # Save the name of the TriQ file
+        self.ftriq = ftriq
+        # Save case index
+        self.i = i
+        # Save list of patches
+        self.patches = cntl.opts.get_DataBookOpt(comp, "Patches")
+        # Initialize other slots
+        self.compmap = None
+        self.tri = None
+        self.triq = None
+        # Analyze
+        self.get_triq_forces()
+        # Process output file
+        self.write_triq()
 
    # --- Mapping data ---
     # Read the map file for this component
@@ -344,7 +389,7 @@ class CaseTriqFM(DataKit):
             self.save_col(k, v)
 
     # Calculate forces for one patch
-    def get_triq_forces_patch(self, patch: Optional[str]):
+    def get_triq_forces_patch(self, patch: Optional[str]) -> dict:
         r"""Get the forces and moments on a patch
 
         :Call:
@@ -689,3 +734,88 @@ class CaseTriqFM(DataKit):
         pltq = pltfile.Plt(triq=triq, CompIDs=compIDs, **kw)
         # Output
         return pltq
+
+
+# Class for TriqPoint
+class CaseTriqPoint(CaseTriqBase):
+    r"""Interface to post-processed interpolated surface pressure points
+
+    :Call:
+        >>> db = CaseTriqPoint(comp, ftriq, cntl, i)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of component
+        *ftriq*: :class:`str`
+            Name of ``.triq`` annotated surface file to read
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            Run matrix controller instance
+        *i*: :class:`int`
+            Index of this case
+    """
+   # --- Class attributes ---
+    __slots__ = (
+        "cols",
+        "comp",
+        "cntl",
+        "ftriq",
+        "i",
+        "pts",
+        "triq",
+    )
+
+   # --- Config ---
+    def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
+        # Save the run matrix controller
+        self.cntl = cntl
+        # List of columns
+        self.cols = []
+        # Save the component name
+        self.comp = comp
+        # Save the name of the TriQ file
+        self.ftriq = ftriq
+        # Save case index
+        self.i = i
+        # Save list of points
+        self.pts = cntl.opts.get_DataBookOpt(comp, "Points")
+        # Initialize other slots
+        self.triq = None
+        # Analyze
+        self.interp_pts()
+
+   # --- Analysis ---
+    # Loop through points
+    def interp_pts(self):
+        r"""Interpolate surface points
+
+        :Call:
+            >>> db.interp_pts()
+        :Versions:
+            * 2025-08-30 ``@ddalle``: v1.0
+        """
+        # Loop through points
+        for pt in self.pts:
+            self.interp_pt(pt)
+
+    def interp_pt(self, pt: str):
+        r"""Interpolate a single surface point
+
+        :Call:
+            >>> db.interp_pt(pt)
+        :Inputs:
+            *db*: :class:`CaseTriqPoint`
+                Single-case surface point interp class
+        :Versions:
+            * 2025-08-30 ``@ddalle``: v1.0
+        """
+        # Get the coordinates of point *pt*
+        x = self.cntl.opts.get_Point(pt)
+        # Project to surface and interpolate
+        x0, q = self.triq.InterpSurfPoint(x)
+        # Limit to requested values
+        cols = self.cntl.opts.get_DataBookCols(self.comp)
+        # Save coordinates
+        for j, col in enumerate('xyz'):
+            if col in cols:
+                self.save_col(f"{pt}.{col}", x0[j])
+        # Save *qvars*
+        self.save_col(f"{pt}.cp", q[0])
