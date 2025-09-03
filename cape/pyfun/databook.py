@@ -61,6 +61,7 @@ import numpy as np
 from ..cfdx import casedata
 from ..cfdx import databook
 from ..dkit import tsvfile
+from ..cfdx.casecntl import CaseRunner
 
 
 # Radian -> degree conversion
@@ -577,16 +578,31 @@ class CaseResid(databook.CaseResid):
     _has_subiters = True
 
     # Initialization method
-    def __init__(self, proj: str, **kw):
+    def __init__(self, proj: str, runner: CaseRunner, **kw):
         r"""Initialization method
 
         :Versions:
             * 2015-10-21 ``@ddalle``: v1.0
             * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
             * 2023-01-10 ``@ddalle``: v2.0; subclass to ``DataKit``
+            * 2025-09-03 ``@ddalle``: v2.1; pass in *CaseRunner*
         """
         # Save the project root name
         self.proj = proj
+        # Save the runner
+        self.runner = runner
+        # Read options
+        rc = runner.read_case_json()
+        # Get map of project name for each phase
+        self.projs = {
+            j: runner.get_project_rootname(j)
+            for j in rc.get_PhaseSequence()
+        }
+        # Get namelist for each root data file
+        self.phases = {
+            f"{runner.get_project_rootname(j)}_hist.dat": j
+            for j in rc.get_PhaseSequence()
+        }
         # Pass to parent class
         databook.CaseResid.__init__(self, **kw)
 
@@ -834,6 +850,14 @@ class CaseResid(databook.CaseResid):
         # Save residuals
         db.save_col(rcol, np.sqrt(L2squared))
 
+    # Read namelist based on on file name
+    def _read_nml(self, fname: str):
+        # Get phase
+        j = self.phases.get(fname)
+        # Get namelist
+        if j is not None:
+            return self.runner.read_namelist(j)
+
     # Function to fix iteration histories of one file
     def _fix_iter(self, db: tsvfile.TSVTecDatFile) -> float:
         r"""Fix iteration and time histories for FUN3D resets
@@ -857,18 +881,27 @@ class CaseResid(databook.CaseResid):
         ss_next = (t_solver is None) or np.isnan(t_solver[0])
         # If they're THE SAME, FUN3D will repeat the history
         if (ss_last == ss_next):
-            # Get last raw iteration reported by FUN3D
-            iraw_last = self.get_lastrawiter()
-            # Iterations to keep
-            mask = i_solver > iraw_last
-            # Check for valid mask
-            if np.any(mask):
-                # Trim them all
-                for col in db:
-                    db[col] = db[col][mask]
-                # Reset
-                i_solver = db.get(databook.CASE_COL_ITRAW)
-                t_solver = db.get(databook.CASE_COL_TRAW)
+            # Read namelists
+            nml = self._read_nml(db.fname)
+            # Attempt to get restart setting
+            if nml is None:
+                restart_read = "on"
+            else:
+                restart_read = nml.get_opt("code_run_control", "restart_read")
+            # Check restart
+            if restart_read == "on":
+                # Get last raw iteration reported by FUN3D
+                iraw_last = self.get_lastrawiter()
+                # Iterations to keep
+                mask = i_solver > iraw_last
+                # Check for valid mask
+                if np.any(mask):
+                    # Trim them all
+                    for col in db:
+                        db[col] = db[col][mask]
+                    # Reset
+                    i_solver = db.get(databook.CASE_COL_ITRAW)
+                    t_solver = db.get(databook.CASE_COL_TRAW)
         # Get current last iter
         i_last = self.get_lastiter()
         # Copy to actual

@@ -1725,7 +1725,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get project root name
         proj = self.get_project_baserootname()
         # Use it
-        return (proj,)
+        return (proj, self)
 
    # --- File search ---
     # Function to get restart file
