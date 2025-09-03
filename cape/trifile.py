@@ -135,7 +135,6 @@ def ReadTriFile(fname, fmt=None):
     # Determine whether or not to use *fmt* override of format
     fmt = fext.lower() if fmt is None else fmt
     # Read using the appropriate format
-    breakpoint()
     if fmt == 'surf':
         # AFLR3 surface file
         return Tri(surf=fname)
@@ -480,6 +479,7 @@ class TriBase(object):
         self.nNode = tri.nnode
         self.Nodes = tri.nodes
         self.Tris = tri.tris
+        self.CompID = tri.tri_ids
         self.n = n
 
     # Function to read a .triq file

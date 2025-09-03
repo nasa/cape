@@ -1218,6 +1218,7 @@ class Cntl(CntlBase):
             ext = getattr(self, "_tri_ext", "tri")
             ftri = f"{fproj}.{ext}"
             # Write it
+            print(f"  Writing '{ftri}'")
             if not os.path.isfile(ftri):
                 if ext == "fro":
                     self.tri.WriteFro(ftri)
