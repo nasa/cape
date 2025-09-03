@@ -199,6 +199,8 @@ class KeyDefnOpts(OptionsDict):
     _optmap = {
         "DType": "Value",
         "DataType": "Value",
+        "DisplayScale": "FormatMultiplier",
+        "ScaleDisplay": "FormatMultiplier",
     }
 
     # Types
