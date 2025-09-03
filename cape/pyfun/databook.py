@@ -861,12 +861,14 @@ class CaseResid(databook.CaseResid):
             iraw_last = self.get_lastrawiter()
             # Iterations to keep
             mask = i_solver > iraw_last
-            # Trim them all
-            for col in db:
-                db[col] = db[col][mask]
-            # Reset
-            i_solver = db.get(databook.CASE_COL_ITRAW)
-            t_solver = db.get(databook.CASE_COL_TRAW)
+            # Check for valid mask
+            if np.any(mask):
+                # Trim them all
+                for col in db:
+                    db[col] = db[col][mask]
+                # Reset
+                i_solver = db.get(databook.CASE_COL_ITRAW)
+                t_solver = db.get(databook.CASE_COL_TRAW)
         # Get current last iter
         i_last = self.get_lastiter()
         # Copy to actual
