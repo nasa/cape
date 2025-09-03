@@ -448,6 +448,7 @@ class Cntl(capecntl.Cntl):
         a = self.x.GetAlpha(i)
         b = self.x.GetBeta(i)
         rey = self.x.GetReynoldsNumber(i, units="1/m")
+        ainf = uinf / m
         # Get YAML interface
         opts = self.CartInputs
         # Get current properties to see what user intended
@@ -456,6 +457,7 @@ class Cntl(capecntl.Cntl):
         ri = opts.get_refcond("density")
         ti = opts.get_refcond("temperature")
         rei = opts.get_refcond("Re")
+        urefi = opts.get_refcond("urefphys")
         # See which flags we are expecting; need at least two
         qre = rei is not None
         qr = (ri is not None)
@@ -472,6 +474,9 @@ class Cntl(capecntl.Cntl):
             opts.set_pressure(p)
         if qre and (rey is not None):
             opts.set_refcond("Re", rey)
+        # Set reference velosity
+        if urefi is not None:
+            opts.set_refcond("urefphys", ainf)
         # Check for velocity magnitude
         if ui is None:
             # Set Mach number
