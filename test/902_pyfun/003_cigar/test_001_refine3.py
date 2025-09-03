@@ -58,6 +58,7 @@ def test_02_refine():
     # Check case exists
     assert os.path.isdir(case_folder)
     # Generate a report
+    os.chdir(cntl.RootDir)
     reportname = cntl.opts.get_ReportList()[0]
     report = cntl.ReadReport(reportname)
     report.UpdateReport(I=I2)
