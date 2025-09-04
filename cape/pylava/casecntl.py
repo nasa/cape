@@ -408,7 +408,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Remove it if not a restart
         if restartfile is None:
             # Remove restart file if previously set
-            opts["sover defaults"]["restart"].pop("file")
+            opts["solver defaults"]["restart"].pop("file")
         # Write
         opts.write()
 
