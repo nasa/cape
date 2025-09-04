@@ -53,6 +53,7 @@ implemented for all CFD solvers.
 import os
 import glob
 import re
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -593,16 +594,14 @@ class CaseResid(databook.CaseResid):
         self.runner = runner
         # Read options
         rc = runner.read_case_json()
-        # Get map of project name for each phase
-        self.projs = {
-            j: runner.get_project_rootname(j)
-            for j in rc.get_PhaseSequence()
-        }
         # Get namelist for each root data file
-        self.phases = {
-            f"{runner.get_project_rootname(j)}_hist.dat": j
-            for j in rc.get_PhaseSequence()
-        }
+        self.phases = {}
+        # Loop through phases
+        for j in rc.get_PhaseSequence():
+            # Get file name
+            fhist = f"{runner.get_project_rootname(j)}_hist.dat"
+            # Set it but don't overwrite
+            self.phases.setdefault(fhist, j)
         # Pass to parent class
         databook.CaseResid.__init__(self, **kw)
 
@@ -853,10 +852,29 @@ class CaseResid(databook.CaseResid):
     # Read namelist based on on file name
     def _read_nml(self, fname: str):
         # Get phase
-        j = self.phases.get(fname)
+        j = self._infer_phase(fname)
         # Get namelist
         if j is not None:
             return self.runner.read_namelist(j)
+
+    # Get phase
+    def _infer_phase(self, fname: str) -> Optional[int]:
+        # Split into parts
+        parts = fname.split('.')
+        # Check for 2 or 3
+        if len(parts) == 3:
+            # This file was copied at beginning of phase *jnext*
+            # e.g. "pyfun02_hist.04.dat"
+            jnext = int(parts[1])
+            # Get original file name, e.g. "pyfun02_hist.dat"
+            fhist_orig = f"{parts[0]}.{parts[2]}"
+            # Get phase from that file
+            j = self.phases[fhist_orig]
+            # Reset phase for that file and save current
+            self.phases[fname] = j
+            self.phases[fhist_orig] = jnext
+        # Otherwise use value from dictionary
+        return self.phases.get(fname)
 
     # Function to fix iteration histories of one file
     def _fix_iter(self, db: tsvfile.TSVTecDatFile) -> float:
