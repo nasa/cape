@@ -376,7 +376,6 @@ class XLSFile(BaseFile):
             raise ImportError("No module 'xlrd'")
         # Initialize ws
         ws = None
-
         # Check type
         if isinstance(fname, xlrd.sheet.Sheet):
             # Already a worksheet
@@ -398,7 +397,6 @@ class XLSFile(BaseFile):
             elif typeutils.isstr(sheet):
                 # Get sheet by its name
                 ws = wb.sheet_by_name(sheet)
-            
         # Read worksheet if possible, else read workbook
         if ws:
             # Read directly-specified worksheet
@@ -538,6 +536,7 @@ class XLSFile(BaseFile):
             * 2019-12-12 ``@ddalle``: First version
             * 2020-01-16 ``@ddalle``: Full scalar/array support
             * 2020-02-07 ``@ddalle``: Using :class:`XLSSheetOpts`
+            * 2025-09-04 ``@ddalle``: v1.3; add *SubCols*
         """
         # Process skip options
         opts = self.get_autoskip(ws, **kw)
@@ -547,14 +546,19 @@ class XLSFile(BaseFile):
         skipcols = opts["SkipCols"]
         skiprows = opts["SkipRows"]
         subrows = opts["SubRows"]
+        subcols = opts["SubCols"]
         maxcols = opts["MaxCols"]
-        maxrows = opts["MaxRows"]
         # Read the header row
+        col0 = ws.cell_value(skiprows, skipcols)
         header = ws.row_values(
-            skiprows, start_colx=skipcols, end_colx=maxcols)
+            skiprows, start_colx=skipcols+subcols+1, end_colx=maxcols)
+        header.insert(0, col0)
         # Read the first data row
+        v0 = ws.cell_value(skiprows+subrows+1, skipcols)
         row1 = ws.row_values(
-            skiprows + subrows + 1, start_colx=skipcols, end_colx=maxcols)
+            skiprows + subrows + 1,
+            start_colx=skipcols+subcols+1, end_colx=maxcols)
+        row1.insert(0, v0)
         # Number of cols read
         nheader = len(header)
         # Process column specification
@@ -611,8 +615,6 @@ class XLSFile(BaseFile):
         dim2 = []
         # List of data types
         dtypes = []
-        # Flag for previous array
-        array_last = False
         # Start with first column
         j = 0
         # Loop through raw header fields
@@ -1110,7 +1112,6 @@ class XLSFile(BaseFile):
         # Output
         return subcols
 
-
    # --- Data ---
     # Read data
     def read_xls_coldata(self, ws, cols, **kw):
@@ -1149,7 +1150,6 @@ class XLSFile(BaseFile):
         skiprows = opts.get_option("SkipRows")
         skipcols = opts.get_option("SkipCols")
         # Maximum option
-        maxcols = opts.get_option("MaxCols")
         maxrows = opts.get_option("MaxRows")
         # Sub-header gaps
         subcols = opts.get_option("SubCols")
@@ -1159,9 +1159,9 @@ class XLSFile(BaseFile):
         # First data row number
         irow = skiprows + subrows + 1
         # First data col number
-        icol = skipcols + subcols
+        icol = skipcols
         # Loop through columns
-        for col in cols:
+        for j, col in enumerate(cols):
             # Get data column definition
             defn = self.get_defn(col)
             # Get data class name
@@ -1207,14 +1207,16 @@ class XLSFile(BaseFile):
                     # Initialize array
                     V = np.zeros((m, colwidth), dtype=dtype)
                     # Save first column
-                    V[:,0] = V0
+                    V[:, 0] = V0
                     # Loop through other columns
                     for jcol in range(1, colwidth):
                         # Read the values
                         Vj = ws.col_values(icol+jcol, irow, end_rowx=irow+m)
                         # Save column
-                        V[:,jcol] = Vj
+                        V[:, jcol] = Vj
             # Go to next column
+            if j == 0:
+                icol += subcols
             icol += colwidth
             # Save
             self.save_col(col, V)
@@ -1492,7 +1494,6 @@ class XLSFile(BaseFile):
         # Loop through columns
         for col in cols:
             # Get formatting options...
-            
             # Translate column names
             ocol = self._translate_colname_reverse(col, trans, prefix, suffix)
             # Write header
@@ -1529,7 +1530,7 @@ class XLSFile(BaseFile):
                     # Write columns as columns
                     for j in range(v.shape[1]):
                         # Write col *j* as a column
-                        ws.write_column(irow, jcol + j, v[:,j])
+                        ws.write_column(irow, jcol + j, v[:, j])
                     # Increment column counter
                     jcol += v.shape[1]
   # >
