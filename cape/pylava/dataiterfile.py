@@ -119,6 +119,10 @@ class DataIterFile(dict):
         fsize = fp.seek(0, 2)
         # Reset position
         fp.seek(0)
+        # Check for empty file
+        if fsize == 0:
+            self.cols = []
+            return
         # Read number of variables
         ncol, = fromfile_lb4_i(fp, 1)
         # Read the number of chars in a string
