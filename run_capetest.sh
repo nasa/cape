@@ -5,7 +5,7 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/902_pyfun/003_cigar" \
+    "test/007_pyfun/05_databook" \
     --junitxml=test/junit.xml \
     --pdb \
 

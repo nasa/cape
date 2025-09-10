@@ -472,7 +472,7 @@ class TriBase(object):
             * 2014-06-02 ``@ddalle``: v1.0
         """
         # Read the easy way
-        tri = Umesh(tri=fname)
+        tri = Umesh(fname)
         # Save parts
         self.nQuad = 0
         self.nTri = tri.ntri
@@ -481,6 +481,8 @@ class TriBase(object):
         self.Tris = tri.tris
         self.CompID = tri.tri_ids
         self.n = n
+        self.nq = tri.nq
+        self.q = tri.q
 
     # Function to read a .triq file
     def ReadTriQ(self, fname, n=1):
@@ -507,8 +509,7 @@ class TriBase(object):
         :Versions:
             * 2017-01-11 ``@ddalle``: v1.0; points to :func:`ReadTri`
         """
-        # Use previous function
-        self.Read(fname, n=n)
+        self.ReadTri(fname, n)
 
     # Function to read a .tri file
     def ReadASCII(self, fname, n=1):
