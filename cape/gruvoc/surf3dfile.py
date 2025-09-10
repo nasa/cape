@@ -218,7 +218,7 @@ def _write_surf3d(
         iwrite: Callable,
         fwrite: Callable):
     # Write counts
-    iwrite(fp, np.array([mesh.ntri, mesh.nquad, mesh.nnode]))
+    iwrite(fp, np.array([[mesh.ntri, mesh.nquad, mesh.nnode]]))
     # Assemble nodes, BL spacing, and BL thickness
     x = mesh._combine_slots(
         "nodes", ("blds", "bldel"),

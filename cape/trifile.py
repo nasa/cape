@@ -2994,13 +2994,8 @@ class TriBase(object):
             self.nQuad
         except AttributeError:
             self.nQuad = 0
-        # Write the file.
-        try:
-            # Try compiled versoin
-            self.WriteSurfFast(fname)
-        except Exception:
-            # Fall back to slow version
-            self.WriteSurfSlow(fname)
+        # Write the file
+        self.WriteSurfSlow(fname)
 
     # Function to write a SURF file the old-fashioned way.
     def WriteSurfSlow(self, fname="Components.surf"):

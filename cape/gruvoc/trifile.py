@@ -255,6 +255,7 @@ def _read_tri(
     # Save parameters
     mesh.nnode = nnode
     mesh.ntri = ntri
+    mesh.nquad = 0
     # Exit if given "meta" option
     if meta:
         return

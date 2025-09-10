@@ -52,9 +52,9 @@ def test_03_fm():
     # Collect aero
     cli.main(["pyfun", "--fm", "-I", "8"])
     # Read databook
-    cntl.ReadDataBook()
+    db = cntl.read_dex("bulelt_no_base")
     # Get value
-    CA = cntl.DataBook["bullet_no_base"]["CA"][0]
+    CA = db["CA"][0]
     # Test value
     assert abs(CA - 0.46) <= 0.005
 
@@ -70,11 +70,9 @@ def test_04_pt():
     fdir = cntl.opts.get_DataBookFolder()
     # Get list of points
     ptgrp, = cntl.opts.get_DataBookByType("TriqPoint")
-    pts = cntl.opts.get_DataBookPoints(ptgrp)
-    # Test for files
-    for pt in pts:
-        ptfile = os.path.join(fdir, f"pt_{pt}.csv")
-        assert os.path.isfile(ptfile)
+    # Test for file
+    ptfile = os.path.join(fdir, f"triqpt_{ptgrp}.csv")
+    assert os.path.isfile(ptfile)
 
 
 if __name__ == "__main__":
