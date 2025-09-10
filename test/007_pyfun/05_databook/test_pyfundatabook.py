@@ -227,11 +227,14 @@ def test_updatedatabookpt():
     # Call dbook updater
     cntl.UpdateTriqPoint(**KW5)
     # Location of output databooks
-    dbout1 = os.path.join("data/bullet/pt_p100.csv")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout1, "test.05.out")
-    # Test updated FM Databook
-    assert result.line1 == result.line2
+    dbout1 = os.path.join("data", "bullet", "triqpt_pmap.csv")
+    # Make sure it exists
+    assert os.path.isfile(dbout1)
+    # Read it
+    db = cntl.read_dex("pmap")
+    # Test values
+    assert abs(db["p100.cp"][0] - 1.340) <= 0.01
+    assert abs(db["p101.cp"][0] + 0.687) <= 0.01
 
 
 @testutils.run_sandbox(__file__, TEST_FILES2)
@@ -241,7 +244,7 @@ def test_updatedatabooktriqfm():
     # Call dbook updater
     cntl.UpdateTriqFM(**KW9)
     # Location of output databooks
-    dbout1 = os.path.join("data/bullet/triqfm/triqfm_cap.csv")
+    dbout1 = os.path.join("data", "bullet", "triqfm", "triqfm_cap.csv")
     # Make sure it exists
     assert os.path.isfile(dbout1)
     # Read it

@@ -809,8 +809,10 @@ class CaseTriqPoint(CaseTriqBase):
         """
         # Get the coordinates of point *pt*
         x = self.cntl.opts.get_Point(pt)
+        # Read triangulation
+        triq = self.read_triq()
         # Project to surface and interpolate
-        x0, q = self.triq.InterpSurfPoint(x)
+        x0, q = triq.InterpSurfPoint(x)
         # Limit to requested values
         cols = self.cntl.opts.get_DataBookCols(self.comp)
         # Save coordinates
