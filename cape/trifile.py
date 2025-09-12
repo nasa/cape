@@ -473,6 +473,8 @@ class TriBase(object):
         """
         # Read the easy way
         tri = Umesh(fname)
+        # Number of states
+        nq = 0 if tri.nq is None else tri.nq
         # Save parts
         self.nQuad = 0
         self.nTri = tri.ntri
@@ -481,7 +483,7 @@ class TriBase(object):
         self.Tris = tri.tris
         self.CompID = tri.tri_ids
         self.n = n
-        self.nq = tri.nq
+        self.nq = nq
         self.q = tri.q
 
     # Function to read a .triq file
