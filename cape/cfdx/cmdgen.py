@@ -266,9 +266,8 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     # Add hostfile if given
     append_cmd_if(cmdi, host, ['--hostfile', host])
     # If using mpt executable use special perhost arg
-    if "mpt" in mpicmd:
+    if ("mpt" in mpicmd) or (mpicmd == "mpirun"):
         append_cmd_if(cmdi, perhost, ['-perhost', str(perhost)])
-    # Else use similar npernode arg
     else:
         append_cmd_if(cmdi, perhost, ['-npernode', str(perhost)])
     # Check for gpu number per host, number of MPI ranks, threads

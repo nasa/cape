@@ -3,6 +3,14 @@
 Changelog
 ********************
 
+Release 2.2.0
+=============================
+
+Behavior Changes
+-------------------
+
+*   The infrastructure for "DataBook" has been rewritten.
+
 
 Release 2.1.1
 =============================
