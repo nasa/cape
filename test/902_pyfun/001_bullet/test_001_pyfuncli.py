@@ -52,7 +52,7 @@ def test_03_fm():
     # Collect aero
     cli.main(["pyfun", "--fm", "-I", "8"])
     # Read databook
-    db = cntl.read_dex("bulelt_no_base")
+    db = cntl.read_dex("bullet_no_base")
     # Get value
     CA = db["CA"][0]
     # Test value

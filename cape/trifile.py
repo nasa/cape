@@ -428,7 +428,7 @@ class TriBase(object):
         if hasattr(self, "iTri"):
             tri.iTri = copy.copy(self.iTri)
         # Try to copy the state
-        if hasattr(self, "q"):
+        if hasattr(self, "q") and self.q is not None:
             tri.q = self.q.copy()
             tri.nq = tri.q.shape[1]
         # Try to copy the state length
