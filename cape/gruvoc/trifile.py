@@ -729,6 +729,9 @@ def _check_triq_mode(fp, little=True, record=False):
         ns = np.fromfile(fp, count=nelem_types, dtype=dtype)
         # Unpack individual sizes (implicitly checks size of *ns*)
         npt, ntri, nq = ns
+        npt = int(npt)
+        ntri = int(ntri)
+        nq = int(nq)
         # Check for negative dimensions
         if np.min(ns) < 0:
             return
