@@ -800,6 +800,27 @@ class CaseRunner(casecntl.CaseRunner):
         return r"x(\.[0-9]+)?\.(srf|sur|surf)"
 
    # --- DataBook ---
+
+    # Create tuple of args to CaseResid
+    def genr8_resid_args(self) -> tuple:
+        r"""Get list of args to :class:`CaseResid`
+
+        :Call:
+            >>> args = runner.genr8_resid_args()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one string, project base root name
+        :Versions:
+            * 2025-09-16 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get prefix
+        return (cntl.GetPrefix(),)
+
     def get_dex_args_pre_fm(self) -> tuple:
         r"""Get list of args prior to component name in :class:`CaseFM`
 
