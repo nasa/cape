@@ -488,6 +488,8 @@ def get_tri_mode_fname(
         fmt: Optional[str] = None) -> TriFileType:
     # Get format
     fmt_fname = _get_tri_mode_fname(fname, fmt)
+    # Check for invalid mode
+    fmt_fname = "ascii" if fmt_fname not in DATA_FORMATS else fmt_fname
     # Check for ASCII
     if fmt_fname == "ascii":
         return TriFileType("ascii", None, None, None, None)
