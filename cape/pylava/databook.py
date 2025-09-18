@@ -12,6 +12,7 @@ outputs tracked by the :mod:`cape` package.
 import os
 
 # Third-party imports
+from numpy import ndarray
 
 # Local imports
 from .dataiterfile import DataIterFile
@@ -107,26 +108,45 @@ class CaseFM(cdbook.CaseFM):
         # Read the data.iter
         data = DataIterFile(fname)
         # Unpack component name
-        comp = self.comp
+        comp = self.comp.lower()
         # Initialize data for output
         db = basedata.BaseData()
         # Identify iteration column to use
         icol = "nt" if "nt" in data else "iter"
         # Force coeff prefix
-        fpre = "c" if f"cx_{comp}" in data else "cf"
+        infix = '' if (f'cx_{comp}' in data or f"fx_{comp}" in data) else 'f'
         # Save data
         db.save_col("i", data[icol])
         db.save_col("solver_iter", data[icol])
-        db.save_col("CL", data[f"cl_{comp}"])
-        db.save_col("CD", data[f"cd_{comp}"])
-        db.save_col("CA", data[f"{fpre}x_{comp}"])
-        db.save_col("CY", data[f"{fpre}y_{comp}"])
-        db.save_col("CN", data[f"{fpre}z_{comp}"])
-        db.save_col("CLL", data[f"cmx_{comp}"])
-        db.save_col("CLM", data[f"cmy_{comp}"])
-        db.save_col("CLN", data[f"cmz_{comp}"])
+        # Save coefficients
+        db.save_col("CL", self.get_datacol(data, '', 'l'))
+        db.save_col("CD", self.get_datacol(data, '', 'd'))
+        db.save_col("CA", self.get_datacol(data, infix, 'x'))
+        db.save_col("CY", self.get_datacol(data, infix, 'y'))
+        db.save_col("CN", self.get_datacol(data, infix, 'z'))
+        db.save_col("CLL", self.get_datacol(data, '', 'mx', ''))
+        db.save_col("CLM", self.get_datacol(data, '', 'my', ''))
+        db.save_col("CLN", self.get_datacol(data, '', 'mz', ''))
         # Output
         return db
+
+    def get_datacol(
+            self,
+            data: dict,
+            infix: str,
+            coeff: str,
+            prefix: str = 'f') -> ndarray:
+        # Possible col names
+        col = f"{coeff}_{self.comp.lower()}"
+        col1 = f"c{infix}{col}"
+        col2 = f"{prefix}{col}"
+        # Use best
+        if col1 in data:
+            # Coefficient defined directly
+            return data[col1]
+        else:
+            # Use force
+            return data.get(col2)
 
 
 # Iterative residual history
