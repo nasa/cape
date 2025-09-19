@@ -8957,23 +8957,35 @@ class DataKit(BaseData):
             self.append_col(col, db.get_values(col, i), nref=n)
 
     # Append data to multiple columns
-    def xappend(self, d: dict, nref: Optional[int] = None):
+    def xappend(
+            self,
+            d: dict,
+            nref: Optional[int] = None,
+            update: bool = True):
         r"""Append data to multiple columns
 
         This works for scalars, lists, 1D arrays, and *N*-D arrays
 
         :Call:
-            >>> db.xappend(d)
+            >>> db.xappend(d, nref=None, update=True)
         :Inputs:
             *db*: :class:`DataKit`
                 Data interface with response mechanisms
             *d*: :class:`dict`
                 Dictionary of cols (keys) and values to append
+            *nref*: {``None``} | :class:`int`
+                Predetermined reference size
+            *update*: {``True``} | ``False``
+                Option to reduce ref size by 1
         :Versions:
             * 2025-07-23 ``@ddalle``: v1.0
+            * 2025-09-19 ``@ddalle``: v1.1; add *update*
         """
         # Get current reference size
-        n = nref if nref is not None else self.get_refsize()
+        refsize = self.get_refsize()
+        refsize = max(0, refsize - 1) if update else refsize
+        # Use user input if given
+        n = nref if nref is not None else refsize
         # Loop through cols of *d*
         for col, v in d.items():
             self.append_col(col, v, nref=n)
