@@ -2620,6 +2620,7 @@ class Report(object):
         spvars = self.cntl.opts.get_SubfigOpt(sfig, "SpecialVars")
         # Dictionary of recognized special keys
         spdict = {
+            "Altitude":           ["alt",  "GetAltitude"],
             "AngleOfAttack":      ["a",    "GetAlpha"],
             "a":                  ["a",    "GetAlpha"],
             "aoa":                ["a",    "GetAlpha"],

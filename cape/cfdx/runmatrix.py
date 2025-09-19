@@ -3608,7 +3608,7 @@ class RunMatrix(dict):
 
     # Get freestream pressure
     def GetPressure(self, i=None, units=None):
-        """Get static freestream pressure (in psf or Pa)
+        r"""Get static freestream pressure (in psf or Pa)
 
         :Call:
             >>> p = x.GetPressure(i)
@@ -3725,7 +3725,7 @@ class RunMatrix(dict):
 
     # Get freestream pressure
     def GetDynamicPressure(self, i=None, units=None):
-        """Get dynamic freestream pressure (in psf or Pa)
+        r"""Get dynamic freestream pressure (in psf or Pa)
 
         :Call:
             >>> q = x.GetDynamicPressure(i=None)
@@ -3834,7 +3834,7 @@ class RunMatrix(dict):
 
     # Get viscosity
     def GetViscosity(self, i=None, units=None):
-        """Get the dynamic viscosity for case(s) *i*
+        r"""Get the dynamic viscosity for case(s) *i*
 
         :Call:
             >>> mu = x.GetViscosity(i=None, units=None)
@@ -3938,6 +3938,46 @@ class RunMatrix(dict):
         else:
             # Apply expected units
             return p0 / mks(units)
+
+    # Get altitude
+    def GetAltitude(self, i=None, units=None):
+        r"""Get altitude to use for other state variables
+
+        :Call:
+            >>> h = x.GetAltitude(i=None, units=None)
+        :Inputs:
+            *x*: :class:`cape.runmatrix.RunMatrix`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | ``"mks"`` | ``"m"`` | ``"ft"``
+                Output units
+        :Outputs:
+            hT*: :class:`float`
+                Altitude [m | ft]
+        :Versions:
+            * 2025-09-19 ``@ddalle``: v1.0
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Search for temperature key
+        k = self.GetFirstKeyByType('altitude')
+        # Check for altitude key hit
+        if k is None:
+            # No altitude specified
+            return
+        # Check unit system
+        us = self.gas.get("UnitSystem", "fps").lower()
+        # Check default units based on input
+        if us == "mks":
+            # MKS: meters
+            udef = "m"
+        else:
+            # FPS: feet
+            udef = "ft"
+        # Get appropriately unitized value
+        return self.GetKeyValue(k, i, units=units, udef=udef)
 
    # --- Thermodynamic Properties ---
     # Get parameter from freestream state
