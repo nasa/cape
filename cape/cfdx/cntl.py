@@ -3199,7 +3199,7 @@ class Cntl(CntlBase):
         # Local function to perform deletion
         def del_folder(frun):
             # Delete the folder using :mod:`shutil`
-            shutil.rmtree(frun)
+            shutil.rmtree(frun, ignore_errors=True)
             # Status update
             print("   Deleted folder '%s'" % frun)
         # Get the case name and go there.
