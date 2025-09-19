@@ -1012,8 +1012,6 @@ class RunMatrix(dict):
         """
         # List of key types
         KT = np.array([self.defns[k]['Type'] for k in self.cols])
-        # Class of input
-        kt = type(KeyType).__name__
         # Depends on the type of what we are searching for
         if isinstance(KeyType, (str, np.str_)):
             # Return matches for single type
@@ -3061,8 +3059,8 @@ class RunMatrix(dict):
             Re = rho*U/mu
         elif kM and kT and kr:
             # Get values
-            M   = self.GetMach(i)
-            T   = self.GetTemperature(i, units="K")
+            M = self.GetMach(i)
+            T = self.GetTemperature(i, units="K")
             rho = self.GetDensity(i, units="kg/m^3")
             # Get viscosity (temperature used here)
             mu = self.GetViscosity(i, units="kg/m/s")
@@ -3072,8 +3070,8 @@ class RunMatrix(dict):
             Re = rho*U/mu
         elif kM and kp and kr:
             # Get values
-            M   = self.GetMach(i)
-            p   = self.GetDensity(i, units="Pa")
+            M = self.GetMach(i)
+            p = self.GetPressure(i, units="Pa")
             rho = self.GetDensity(i, units="kg/m^3")
             # Calculate temperature
             T = p / (rho*R)
