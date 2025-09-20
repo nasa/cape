@@ -3199,7 +3199,7 @@ class Cntl(CntlBase):
         # Local function to perform deletion
         def del_folder(frun):
             # Delete the folder using :mod:`shutil`
-            shutil.rmtree(frun)
+            shutil.rmtree(frun, ignore_errors=True)
             # Status update
             print("   Deleted folder '%s'" % frun)
         # Get the case name and go there.
@@ -4497,17 +4497,51 @@ class Cntl(CntlBase):
             return os.path.join(self.RootDir, fname_sys)
 
     # Copy files
-    @run_rootdir
     def copy_files(self, i: int):
+        r"""Copy files from *Mesh* section
+
+        This applies to both *CopyFiles* and *CopyAsFiles* in the
+        *Mesh* section. The former will copy a given file into the run
+        folder for case *i* using the base name of the original (source)
+        file. Using
+
+        .. code-block:: javascript
+
+            "Mesh": {
+                "CopyAsFiles": {
+                    "inputs/mesh-config02.ugrid": "mesh.ugrid"
+                }
+            }
+
+        will copy the file ``inputs/mesh-config02.ugrid`` into the run
+        folder but name it ``mesh.ugrid`` there.
+
+        :Call:
+            >>> cntl.copy_files(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-09-19 ``@ddalle``: v1.0
+        """
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Two categories
+        self._copy_as_files(i)
+        self._copy_files(i)
+
+    # Copy files w/o renaming
+    @run_rootdir
+    def _copy_files(self, i: int):
         # Get list of files to copy
         files = self.opts.get_CopyFiles()
         # Check for any
         if files is None or len(files) == 0:
             return
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Create case folder
-        self.make_case_folder(i)
         # Name of case folder
         frun = self.x.GetFullFolderNames(i)
         # Loop through files
@@ -4525,18 +4559,76 @@ class Cntl(CntlBase):
             # Copy file
             shutil.copy(fabs, fdest)
 
-    # Link files
+    # Copy files with renaming
     @run_rootdir
+    def _copy_as_files(self, i: int):
+        # Get dict of files to copy
+        filedict = self.opts.get_CopyAsFiles()
+        # Check for any
+        if filedict is None or len(filedict) == 0:
+            return
+        # Name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through files
+        for src, trg in filedict.items():
+            # Absolutize source
+            fabs = self.abspath(src)
+            # Destination file
+            fdest = os.path.join(self.RootDir, frun, trg)
+            # Check for overwrite
+            if os.path.isfile(fdest):
+                print(f"  Replacing file '{src}' -> '{fdest}'")
+                os.remove(fdest)
+            # Copy file
+            shutil.copy(fabs, fdest)
+
+    # Link files
     def link_files(self, i: int):
+        r"""Link files from *Mesh* section
+
+        This applies to both *LinkFiles* and *LinkAsFiles* in the
+        *Mesh* section. The former will copy a given file into the run
+        folder for case *i* using the base name of the original (source)
+        file. Using
+
+        .. code-block:: javascript
+
+            "Mesh": {
+                "LinkAsFiles": {
+                    "inputs/mesh-config02.ugrid": "mesh.ugrid"
+                }
+            }
+
+        will create a link (using the absolute path) from
+        ``inputs/mesh-config02.ugrid`` to ``mesh.ugrid`` in the case run
+        folder.
+
+        :Call:
+            >>> cntl.link_files(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-09-19 ``@ddalle``: v1.0
+        """
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Two parts
+        self._link_as_files(i)
+        self._link_files(i)
+
+    # Link files w/o renaming
+    @run_rootdir
+    def _link_files(self, i: int):
         # Get list of files to copy
         files = self.opts.get_LinkFiles()
         # Check for any
         if files is None or len(files) == 0:
             return
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Create case folder
-        self.make_case_folder(i)
         # Name of case folder
         frun = self.x.GetFullFolderNames(i)
         # Loop through files
@@ -4550,6 +4642,30 @@ class Cntl(CntlBase):
             # Check for overwrite
             if os.path.isfile(fdest):
                 raise FileExistsError(f"  Cannot copy '{fname}'; file exists")
+            # Copy file
+            os.symlink(fabs, fdest)
+
+    # Link files with renaming
+    @run_rootdir
+    def _link_as_files(self, i: int):
+        # Get dict of files to copy
+        filedict = self.opts.get_LinkAsFiles()
+        # Check for any
+        if filedict is None or len(filedict) == 0:
+            return
+        # Name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through files
+        for src, trg in filedict.items():
+            # Absolutize source
+            fabs = self.abspath(src)
+            # Destination file
+            fdest = os.path.join(self.RootDir, frun, trg)
+            # Check for overwrite
+            if os.path.isfile(fdest):
+                raise FileExistsError(
+                    f"  Cannot copy '{os.path.basename(src)}' -> "
+                    f"'{src}'; file exists")
             # Copy file
             os.symlink(fabs, fdest)
 

@@ -693,6 +693,8 @@ class Cntl(capecntl.Cntl):
             self.InputCntl.SetRungeKutta(self.opts.get_RKScheme(j))
             # Set the CFL number
             self.InputCntl.SetCFL(self.opts.get_cfl(j))
+            # Set the limiter
+            self.InputCntl.SetLimiter(self.opts.get_limiter(j))
             # Write the number of orders of magnitude for early convergence.
             self.InputCntl.SetNOrders(self.opts.get_nOrders(j))
             # Get the first-order status.

@@ -338,6 +338,10 @@ class Cntl(ccntl.Cntl):
         v = x.GetVelocity(i)
         if v is not None and (known_cond is None or "Vel" in known_cond):
             xml.set_velocity(v)
+        # Altitude
+        h = x.GetAltitude(i)
+        if h is not None:
+            xml.set_altitude(h)
         # Find all *Path* and *File* elements
         elems1 = xml.findall_iter("Path")
         elems2 = xml.findall_iter("File")

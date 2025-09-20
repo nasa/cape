@@ -27,7 +27,9 @@ class MeshOpts(OptionsDict):
 
     # List of options
     _optlist = {
+        "CopyAsFiles",
         "CopyFiles",
+        "LinkAsFiles",
         "LinkFiles",
         "MeshFile",
         "TriFile",
@@ -39,7 +41,7 @@ class MeshOpts(OptionsDict):
         "CopyFiles": 1,
         "LinkFiles": 1,
     }
-    
+
     # Defaults
     _rc = {
         "LinkMesh": False,
@@ -47,6 +49,10 @@ class MeshOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "CopyAsFiles": dict,
+        "CopyFiles": str,
+        "LinkAsFiles": dict,
+        "LinkFiles": str,
         "MeshFile": str,
         "TriFile": str,
         "LinkMesh": BOOL_TYPES,
@@ -54,7 +60,13 @@ class MeshOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "CopyAsFiles": (
+            "file(s) to copy and rename; source file is left-hand side and "
+            "target file name is right-hand side"),
         "CopyFiles": "file(s) to copy to run folder w/o changing file name",
+        "LinkAsFiles": (
+            "file(s) to link and rename; source file is left-hand side and "
+            "target file name is right-hand side"),
         "LinkFiles": "file(s) to link into run folder w/o changing file name",
         "LinkMesh": "option to link mesh file(s) instead of copying",
         "MeshFile": "original mesh file name(s)",
