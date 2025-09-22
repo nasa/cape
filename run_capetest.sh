@@ -5,7 +5,7 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/903_pyover/001_bullet" \
+    "test/001_cape/017_runmatrix" \
     --junitxml=test/junit.xml \
     --pdb \
 
