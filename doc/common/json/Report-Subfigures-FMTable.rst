@@ -4,14 +4,14 @@
 
 **Option aliases:**
 
-* *nStats* -> *NStats*
-* *nMinStats* -> *NMinStats*
-* *nMaxStats* -> *NMaxStats*
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
+* *nStats* → *NStats*
+* *nMinStats* → *NMinStats*
+* *nMaxStats* → *NMaxStats*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
 
 **Recognized options:**
 

@@ -4,12 +4,12 @@
 
 **Option aliases:**
 
-* *AxisSymmetry* -> *VectorSymmetry*
-* *CenterSymmetry* -> *VectorSymmetry*
-* *DType* -> *Value*
-* *DataType* -> *Value*
-* *DisplayScale* -> *FormatMultiplier*
-* *ScaleDisplay* -> *FormatMultiplier*
+* *AxisSymmetry* → *VectorSymmetry*
+* *CenterSymmetry* → *VectorSymmetry*
+* *DType* → *Value*
+* *DataType* → *Value*
+* *DisplayScale* → *FormatMultiplier*
+* *ScaleDisplay* → *FormatMultiplier*
 
 **Recognized options:**
 

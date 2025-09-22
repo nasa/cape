@@ -4,13 +4,13 @@
 
 **Option aliases:**
 
-* *ActiveFields* -> *ActiveFieldMaps*
-* *ActiveFieldMap* -> *ActiveFieldMaps*
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
+* *ActiveFields* → *ActiveFieldMaps*
+* *ActiveFieldMap* → *ActiveFieldMaps*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
 
 **Recognized options:**
 

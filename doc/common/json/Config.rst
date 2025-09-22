@@ -4,7 +4,7 @@
 
 **Option aliases:**
 
-* *File* -> *ConfigFile*
+* *File* → *ConfigFile*
 
 **Recognized options:**
 

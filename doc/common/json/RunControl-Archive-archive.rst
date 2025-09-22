@@ -4,12 +4,12 @@
 
 **Option aliases:**
 
-* *CopyFiles* -> *ArchiveFiles*
-* *DeleteDirs* -> *PostDeleteDirs*
-* *DeleteFiles* -> *PostDeleteFiles*
-* *TailFiles* -> *PostTailFiles*
-* *TarDirs* -> *ArchiveTarDirs*
-* *TarGroups* -> *ArchiveTarGroups*
+* *CopyFiles* → *ArchiveFiles*
+* *DeleteDirs* → *PostDeleteDirs*
+* *DeleteFiles* → *PostDeleteFiles*
+* *TailFiles* → *PostTailFiles*
+* *TarDirs* → *ArchiveTarDirs*
+* *TarGroups* → *ArchiveTarGroups*
 
 **Recognized options:**
 

@@ -4,11 +4,11 @@
 
 **Option aliases:**
 
-* *nSpecies* -> *NSpecies*
-* *DType* -> *Value*
-* *DataType* -> *Value*
-* *DisplayScale* -> *FormatMultiplier*
-* *ScaleDisplay* -> *FormatMultiplier*
+* *nSpecies* → *NSpecies*
+* *DType* → *Value*
+* *DataType* → *Value*
+* *DisplayScale* → *FormatMultiplier*
+* *ScaleDisplay* → *FormatMultiplier*
 
 **Recognized options:**
 

@@ -4,14 +4,14 @@
 
 **Option aliases:**
 
-* *Comment* -> *CommentChar*
-* *Dir* -> *Folder*
-* *RunMatrix* -> *Translations*
-* *Tolerance* -> *Tolerances*
-* *delim* -> *Delimiter*
-* *tol* -> *Tolerances*
-* *tols* -> *Tolerances*
-* *trans* -> *Translations*
+* *Comment* → *CommentChar*
+* *Dir* → *Folder*
+* *RunMatrix* → *Translations*
+* *Tolerance* → *Tolerances*
+* *delim* → *Delimiter*
+* *tol* → *Tolerances*
+* *tols* → *Tolerances*
+* *trans* → *Translations*
 
 **Recognized options:**
 

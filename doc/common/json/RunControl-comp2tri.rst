@@ -4,14 +4,14 @@
 
 **Option aliases:**
 
-* *gmptagoffset* -> *gmptagoffset*
-* *ifile* -> *i*
-* *ifiles* -> *i*
-* *keepcomps* -> *keepComps*
-* *maketags* -> *makeGMPtags*
-* *ofile* -> *o*
-* *output* -> *o*
-* *tagoffset* -> *gmpTagOffset*
+* *gmptagoffset* → *gmptagoffset*
+* *ifile* → *i*
+* *ifiles* → *i*
+* *keepcomps* → *keepComps*
+* *maketags* → *makeGMPtags*
+* *ofile* → *o*
+* *output* → *o*
+* *tagoffset* → *gmpTagOffset*
 
 **Recognized options:**
 

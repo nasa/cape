@@ -4,35 +4,35 @@
 
 **Option aliases:**
 
-* *Config* -> *ConfigFile*
-* *MapTriFile* -> *MapTri*
-* *antol* -> *AbsProjTol*
-* *atol* -> *AbsTol*
-* *cntol* -> *CompProjTol*
-* *ctol* -> *CompTol*
-* *rntol* -> *RelProjTol*
-* *rtol* -> *RelTol*
-* *Coeffs* -> *Cols*
-* *Coefficients* -> *Cols*
-* *Component* -> *CompID*
-* *NAvg* -> *nStats*
-* *NFirst* -> *NMin*
-* *NLast* -> *NLastStats*
-* *NMax* -> *NLastStats*
-* *NStatsMax* -> *NMaxStats*
-* *coeffs* -> *Cols*
-* *cols* -> *Cols*
-* *dnStats* -> *DNStats*
-* *nAvg* -> *NStats*
-* *nFirst* -> *NMin*
-* *nLast* -> *NLastStats*
-* *nLastStats* -> *NLastStats*
-* *nMax* -> *NLastStats*
-* *nMaxStats* -> *NMaxStats*
-* *nMin* -> *NMin*
-* *nStats* -> *NStats*
-* *nStatsMax* -> *NMaxStats*
-* *tagets* -> *Targets*
+* *Config* → *ConfigFile*
+* *MapTriFile* → *MapTri*
+* *antol* → *AbsProjTol*
+* *atol* → *AbsTol*
+* *cntol* → *CompProjTol*
+* *ctol* → *CompTol*
+* *rntol* → *RelProjTol*
+* *rtol* → *RelTol*
+* *Coeffs* → *Cols*
+* *Coefficients* → *Cols*
+* *Component* → *CompID*
+* *NAvg* → *nStats*
+* *NFirst* → *NMin*
+* *NLast* → *NLastStats*
+* *NMax* → *NLastStats*
+* *NStatsMax* → *NMaxStats*
+* *coeffs* → *Cols*
+* *cols* → *Cols*
+* *dnStats* → *DNStats*
+* *nAvg* → *NStats*
+* *nFirst* → *NMin*
+* *nLast* → *NLastStats*
+* *nLastStats* → *NLastStats*
+* *nMax* → *NLastStats*
+* *nMaxStats* → *NMaxStats*
+* *nMin* → *NMin*
+* *nStats* → *NStats*
+* *nStatsMax* → *NMaxStats*
+* *tagets* → *Targets*
 
 **Recognized options:**
 

@@ -6,22 +6,22 @@
 
 **Option aliases:**
 
-* *Dir* -> *Folder*
-* *NAvg* -> *nStats*
-* *NFirst* -> *NMin*
-* *NLast* -> *NLastStats*
-* *NMax* -> *NLastStats*
-* *delim* -> *Delimiter*
-* *dnStats* -> *DNStats*
-* *nAvg* -> *NStats*
-* *nFirst* -> *NMin*
-* *nLast* -> *NLastStats*
-* *nLastStats* -> *NLastStats*
-* *nMax* -> *NLastStats*
-* *nMaxStats* -> *NMaxStats*
-* *nMin* -> *NMin*
-* *nStats* -> *NStats*
-* *nStatsMax* -> *NMaxStats*
+* *Dir* → *Folder*
+* *NAvg* → *nStats*
+* *NFirst* → *NMin*
+* *NLast* → *NLastStats*
+* *NMax* → *NLastStats*
+* *delim* → *Delimiter*
+* *dnStats* → *DNStats*
+* *nAvg* → *NStats*
+* *nFirst* → *NMin*
+* *nLast* → *NLastStats*
+* *nLastStats* → *NLastStats*
+* *nMax* → *NLastStats*
+* *nMaxStats* → *NMaxStats*
+* *nMin* → *NMin*
+* *nStats* → *NStats*
+* *nStatsMax* → *NMaxStats*
 
 **Recognized options:**
 

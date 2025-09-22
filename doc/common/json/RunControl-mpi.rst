@@ -4,7 +4,7 @@
 
 **Option aliases:**
 
-* *nhost* -> *perhost*
+* *nhost* → *perhost*
 
 **Recognized options:**
 

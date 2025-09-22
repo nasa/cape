@@ -4,27 +4,27 @@
 
 **Option aliases:**
 
-* *CAPEFile* -> *JSONFile*
-* *ConcurrentPythonFuncs* -> *WorkerPythonFuncs*
-* *ConcurrentShellCmds* -> *WorkerShellCmds*
-* *Continue* -> *ContinuePhase*
-* *GPU* -> *gpu*
-* *PostCmds* -> *PostShellCmds*
-* *PostFuncs* -> *PostPythonFuncs*
-* *PostPyFuncs* -> *PostPythonFuncs*
-* *PreCmds* -> *PreShellCmds*
-* *PreFuncs* -> *PrePythonFuncs*
-* *PrePyFuncs* -> *PrePythonFuncs*
-* *Resubmit* -> *ResubmitNextPhase*
-* *WatcherCmds* -> *WorkerShellCmds*
-* *WatcherFuncs* -> *WorkerPythonFuncs*
-* *WatherTimeout* -> *WorkerTimeout*
-* *WorkerCmds* -> *WorkerShellCmds*
-* *WorkerFuncs* -> *WorkerPythonFuncs*
-* *WorkerMaxWaitTime* -> *WorkerTimeout*
-* *WorkerTimeOut* -> *WorkerTimeout*
-* *nJob* -> *NJob*
-* *sbatch* -> *slurm*
+* *CAPEFile* → *JSONFile*
+* *ConcurrentPythonFuncs* → *WorkerPythonFuncs*
+* *ConcurrentShellCmds* → *WorkerShellCmds*
+* *Continue* → *ContinuePhase*
+* *GPU* → *gpu*
+* *PostCmds* → *PostShellCmds*
+* *PostFuncs* → *PostPythonFuncs*
+* *PostPyFuncs* → *PostPythonFuncs*
+* *PreCmds* → *PreShellCmds*
+* *PreFuncs* → *PrePythonFuncs*
+* *PrePyFuncs* → *PrePythonFuncs*
+* *Resubmit* → *ResubmitNextPhase*
+* *WatcherCmds* → *WorkerShellCmds*
+* *WatcherFuncs* → *WorkerPythonFuncs*
+* *WatherTimeout* → *WorkerTimeout*
+* *WorkerCmds* → *WorkerShellCmds*
+* *WorkerFuncs* → *WorkerPythonFuncs*
+* *WorkerMaxWaitTime* → *WorkerTimeout*
+* *WorkerTimeOut* → *WorkerTimeout*
+* *nJob* → *NJob*
+* *sbatch* → *slurm*
 
 **Recognized options:**
 

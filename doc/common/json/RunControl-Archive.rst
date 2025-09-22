@@ -4,7 +4,7 @@
 
 **Option aliases:**
 
-* *progress* -> *clean*
+* *progress* → *clean*
 
 **Recognized options:**
 

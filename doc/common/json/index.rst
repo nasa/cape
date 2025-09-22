@@ -106,8 +106,8 @@ file that are not part of any section.
 
 **Option aliases:**
 
-* *Trajectory* -> *RunMatrix*
-* *nSubmit* -> *NSubmit*
+* *Trajectory* → *RunMatrix*
+* *nSubmit* → *NSubmit*
 
 **Recognized options:**
 

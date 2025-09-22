@@ -4,27 +4,27 @@
 
 **Option aliases:**
 
-* *Coeffs* -> *Cols*
-* *Coefficients* -> *Cols*
-* *Component* -> *CompID*
-* *NAvg* -> *nStats*
-* *NFirst* -> *NMin*
-* *NLast* -> *NLastStats*
-* *NMax* -> *NLastStats*
-* *NStatsMax* -> *NMaxStats*
-* *coeffs* -> *Cols*
-* *cols* -> *Cols*
-* *dnStats* -> *DNStats*
-* *nAvg* -> *NStats*
-* *nFirst* -> *NMin*
-* *nLast* -> *NLastStats*
-* *nLastStats* -> *NLastStats*
-* *nMax* -> *NLastStats*
-* *nMaxStats* -> *NMaxStats*
-* *nMin* -> *NMin*
-* *nStats* -> *NStats*
-* *nStatsMax* -> *NMaxStats*
-* *tagets* -> *Targets*
+* *Coeffs* → *Cols*
+* *Coefficients* → *Cols*
+* *Component* → *CompID*
+* *NAvg* → *nStats*
+* *NFirst* → *NMin*
+* *NLast* → *NLastStats*
+* *NMax* → *NLastStats*
+* *NStatsMax* → *NMaxStats*
+* *coeffs* → *Cols*
+* *cols* → *Cols*
+* *dnStats* → *DNStats*
+* *nAvg* → *NStats*
+* *nFirst* → *NMin*
+* *nLast* → *NLastStats*
+* *nLastStats* → *NLastStats*
+* *nMax* → *NLastStats*
+* *nMaxStats* → *NMaxStats*
+* *nMin* → *NMin*
+* *nStats* → *NStats*
+* *nStatsMax* → *NMaxStats*
+* *tagets* → *Targets*
 
 **Recognized options:**
 

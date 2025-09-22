@@ -4,10 +4,10 @@
 
 **Option aliases:**
 
-* *DType* -> *Value*
-* *DataType* -> *Value*
-* *DisplayScale* -> *FormatMultiplier*
-* *ScaleDisplay* -> *FormatMultiplier*
+* *DType* → *Value*
+* *DataType* → *Value*
+* *DisplayScale* → *FormatMultiplier*
+* *ScaleDisplay* → *FormatMultiplier*
 
 **Recognized options:**
 
