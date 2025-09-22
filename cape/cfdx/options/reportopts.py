@@ -418,7 +418,7 @@ class SubfigOpts(OptionsDict):
     __slots__ = ()
 
     # Name
-    _name = "subfigure"
+    _name = "definitions for a generic report subfigure"
 
     # Additional options
     _optlist = (
@@ -1517,7 +1517,7 @@ class TecplotSubfigOpts(SubfigOpts):
         "ActiveFieldMaps": str,
         "ColorMaps": dict,
         "ContourLevels": dict,
-        "FieldMap": (INT_TYPES, str),
+        "FieldMap": INT_TYPES + (str,),
         "FigWidth": INT_TYPES,
         "Keys": dict,
         "Layout": str,
@@ -1643,7 +1643,7 @@ class SubfigCollectionOpts(OptionsDict):
     __slots__ = ()
 
     # Name of things within this section
-    _name = "list of subfigure definitions"
+    _name = "``Subfigures``: dict of subfigure definitions"
     _subsec_name = "subfigure"
     _label = "cape-json-reportsubfigure"
 

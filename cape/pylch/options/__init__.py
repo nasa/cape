@@ -3,7 +3,7 @@ r"""
 ==============================================================
 
 This module provides defintions for and an interface to all options that
-are unique to :mod:`cape.pylcnh.
+are unique to :mod:`cape.pylch`.
 
 :See also:
     * :mod:`cape.cfdx.options`

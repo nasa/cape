@@ -16,7 +16,6 @@
     cmdrun
     databook
     faux
-    lineLoad
     mapbc
     namelist
     pointsensor
@@ -24,4 +23,3 @@
     report
     rubberdatafile
     tricli
-    util

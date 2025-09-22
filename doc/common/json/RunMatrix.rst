@@ -1,5 +1,5 @@
 -------------
-RunMatrixOpts
+``RunMatrix``
 -------------
 
 **Option aliases:**

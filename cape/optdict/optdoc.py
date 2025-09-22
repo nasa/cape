@@ -180,9 +180,14 @@ def write_rst(cls: type, fname: str, **kw):
         "recurse_sec_cls": recurse_sec_cls,
         "recurse_sec_clsmap": recurse_sec_clsmap,
     }
+    # Check for a name
+    name = getattr(cls, "_name", "")
+    # Create default title
+    secname = os.path.basename(fname).rsplit('.', 1)[0].rsplit('-', 1)[-1]
+    title = f"``{secname}``: {name}" if name else f"``{secname}``"
+    title = name if secname == "index" else title
     # Set title if appropriate
-    if "title" in kw:
-        kw_rst["title"] = kw.pop("title")
+    kw_rst["title"] = title
     # Get unique files whose source code is part of this class
     modlist = _find_cls_modfile(cls, narrow, recurse)
     # Get latest mod time

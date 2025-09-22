@@ -15,9 +15,7 @@
     options/index
     casecntl
     cmdgen
-    cmdrun
     databook
-    lineload
     overnmlfile
     plot3d
     report

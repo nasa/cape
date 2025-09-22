@@ -1,8 +1,8 @@
 .. _cape-json-reportfigure:
 
---------------------------
-list of figure definitions
---------------------------
+---------------------------------------
+``Figures``: list of figure definitions
+---------------------------------------
 
 **Recognized options:**
 

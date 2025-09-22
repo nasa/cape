@@ -4363,7 +4363,7 @@ class OptionsDict(dict):
         # 1. kw["title"]
         # 2. cls.__dict__["_name"]
         # 3. cls.__name__
-        title = cls.__dict__.get("_name", kw.get("title", cls.__name__))
+        title = kw.get("title", cls.__dict__.get("_name", cls.__name__))
         # Get label for this section
         label = cls.__dict__.get("_label", kw.get("label", ""))
         # Length of title
@@ -4431,7 +4431,7 @@ class OptionsDict(dict):
         # Loop through section map
         for secname, seccls in sec_cls_dict.items():
             # Create default title
-            sectitle = f"Options for ``{secname}`` section"
+            sectitle = f"``{secname}``"
             # Clear any previos titles
             kw.pop("title", None)
             # Set options to turn on defualt title
@@ -5224,13 +5224,10 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
             # Update remaining types
             opttypeset.difference_update(FLOAT_TYPES)
         # Convert each remaining type to a string
-        try:
-            strtypes = [
-                f":class:`{clsj.__name__}`"
-                for clsj in opttypeset
-            ]
-        except Exception:
-            breakpoint()
+        strtypes = [
+            f":class:`{clsj.__name__}`"
+            for clsj in opttypeset
+        ]
         # Add types to string
         type_parts.extend(sorted(strtypes))
     # Convert list of types to single string

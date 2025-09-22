@@ -9,7 +9,6 @@
 .. toctree::
     :maxdepth: 1
 
-    arrayutils
     kwutils
     optitem
     plot_mpl

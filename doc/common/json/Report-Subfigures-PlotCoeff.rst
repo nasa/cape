@@ -1,6 +1,6 @@
----------------------------
-iterative history subfigure
----------------------------
+------------------------------------------
+``PlotCoeff``: iterative history subfigure
+------------------------------------------
 
 **Option aliases:**
 

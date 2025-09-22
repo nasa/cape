@@ -1,8 +1,8 @@
 .. _cape-json-report:
 
----------------------------------------------
-definitions for one or more automated reports
----------------------------------------------
+---------------------------------------------------------
+``Report``: definitions for one or more automated reports
+---------------------------------------------------------
 
 **Recognized options:**
 

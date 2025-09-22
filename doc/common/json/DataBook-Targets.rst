@@ -1,6 +1,6 @@
-------------------------------
-collection of target databooks
-------------------------------
+-------------------------------------------
+``Targets``: collection of target databooks
+-------------------------------------------
 
 **Recognized options:**
 

@@ -1,3 +1,13 @@
+r"""
+:mod:`cape.gruvoc.cli`: Command-line interface for CAPE grid conversions
+=========================================================================
+
+This module defines the CLI for ``gruvoc`` and
+
+.. code-block:: console
+
+    $ python3 -m cape.gruvoc
+"""
 
 # Local imports
 from .errors import GruvocError

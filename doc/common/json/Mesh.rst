@@ -1,6 +1,6 @@
------------------------
-options for mesh inputs
------------------------
+---------------------------------
+``Mesh``: options for mesh inputs
+---------------------------------
 
 **Recognized options:**
 

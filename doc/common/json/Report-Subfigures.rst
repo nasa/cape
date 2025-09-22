@@ -1,8 +1,8 @@
 .. _cape-json-reportsubfigure:
 
------------------------------
-list of subfigure definitions
------------------------------
+-------------------------------------------------------------
+``Subfigures``: ``Subfigures``: dict of subfigure definitions
+-------------------------------------------------------------
 
 **Recognized options:**
 

@@ -1,6 +1,6 @@
--------------------------------------------
-surface configuration and reference options
--------------------------------------------
+-------------------------------------------------------
+``Config``: surface configuration and reference options
+-------------------------------------------------------
 
 **Option aliases:**
 

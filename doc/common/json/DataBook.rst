@@ -1,8 +1,8 @@
 .. _cape-json-databook:
 
-------------------------------------------------
-options for which post-processed data to collect
-------------------------------------------------
+--------------------------------------------------------------
+``DataBook``: options for which post-processed data to collect
+--------------------------------------------------------------
 
 **Option aliases:**
 
