@@ -5224,10 +5224,13 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
             # Update remaining types
             opttypeset.difference_update(FLOAT_TYPES)
         # Convert each remaining type to a string
-        strtypes = [
-            f":class:`{clsj.__name__}`"
-            for clsj in opttypeset
-        ]
+        try:
+            strtypes = [
+                f":class:`{clsj.__name__}`"
+                for clsj in opttypeset
+            ]
+        except Exception:
+            breakpoint()
         # Add types to string
         type_parts.extend(sorted(strtypes))
     # Convert list of types to single string

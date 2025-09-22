@@ -6,10 +6,12 @@ Options for ``label``
 
 * *DType* -> *Value*
 * *DataType* -> *Value*
+* *DisplayScale* -> *FormatMultiplier*
+* *ScaleDisplay* -> *FormatMultiplier*
 
 **Recognized options:**
 
-*Abbreviation*: {``''``} | :class:`str`
+*Abbreviation*: {``'_'``} | :class:`str`
     value of option "Abbreviation"
 *AbsoluteValueFormat*: {``False``} | ``True``
     value of option "AbsoluteValueFormat"
@@ -23,7 +25,11 @@ Options for ``label``
     value of option "Label"
 *NonnegativeFormat*: {``False``} | ``True``
     value of option "NonnegativeFormat"
-*SkipIfZero*: {``False``} | ``True``
+*PBSFormat*: {``None``} | :class:`str`
+    value of option "PBSFormat"
+*PBSLabel*: {``None``} | ``True`` | ``False``
+    value of option "PBSLabel"
+*SkipIfZero*: {``True``} | ``False``
     value of option "SkipIfZero"
 *Source*: {``None``} | :class:`str`
     value of option "Source"

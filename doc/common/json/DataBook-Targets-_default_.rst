@@ -1,6 +1,6 @@
--------------------
-Options for default
--------------------
+---------------------------------------------------------
+options for a target databook to use for plot comparisons
+---------------------------------------------------------
 
 **Option aliases:**
 

@@ -117,6 +117,8 @@ file that are not part of any section.
     function(s) to execute in case right before starting
 *InitFunction*: {``None``} | :class:`list`\ [:class:`str`]
     function(s) to run immediately after parsing JSON
+*ModuleNames*: {``None``} | :class:`dict`
+    dict of short names for imported modules
 *Modules*: {``None``} | :class:`list`\ [:class:`str`]
     list of Python modules to import
 *NSubmit*: {``10``} | :class:`object`
@@ -129,8 +131,6 @@ file that are not part of any section.
     folder(s) to add to Python path for custom modules
 *ShellCmds*: {``None``} | :class:`list`\ [:class:`str`]
     value of option "ShellCmds"
-*ZombieFiles*: {``['*.out']``} | :class:`list`\ [:class:`str`]
-    file name flobs to check mod time for zombie status
 *umask*: {``None``} | :class:`int` | :class:`str`
     value of option "umask"
 

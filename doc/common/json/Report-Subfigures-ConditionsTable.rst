@@ -1,6 +1,6 @@
------------------------------------------
-Options for ``ConditionsTable`` subfigure
------------------------------------------
+------------------------------
+table of run matrix conditions
+------------------------------
 
 **Option aliases:**
 

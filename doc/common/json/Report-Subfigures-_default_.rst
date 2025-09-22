@@ -1,6 +1,6 @@
------------------------------
-Options for default subfigure
------------------------------
+---------
+subfigure
+---------
 
 **Option aliases:**
 

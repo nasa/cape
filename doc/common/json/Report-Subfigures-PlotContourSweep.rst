@@ -1,6 +1,6 @@
-------------------------------------------
-Options for ``PlotContourSweep`` subfigure
-------------------------------------------
+-------------------------------------------
+contour plot of results from multiple cases
+-------------------------------------------
 
 **Option aliases:**
 

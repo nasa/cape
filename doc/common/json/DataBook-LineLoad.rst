@@ -1,6 +1,6 @@
-----------------------------------
-Options for ``LineLoad`` component
-----------------------------------
+------------------------------------------
+options for a line load databook component
+------------------------------------------
 
 **Option aliases:**
 
@@ -33,7 +33,7 @@ Options for ``LineLoad`` component
 
 **Recognized options:**
 
-*Cols*: {``[]``} | :class:`str`
+*Cols*: {``'x'``} | :class:`str`
     list of primary solver output variables to include
 *CompID*: {``None``} | :class:`object`
     surface componet(s) to use for this databook component
@@ -41,7 +41,7 @@ Options for ``LineLoad`` component
     direction to step between each cut
 *DNStats*: {``None``} | :class:`int`
     increment for candidate window sizes
-*FloatCols*: {``[]``} | :class:`str`
+*FloatCols*: {``'XMRP'``} | :class:`str`
     additional databook cols with floating-point values
 *Gauge*: {``True``} | ``False``
     option to use gauge pressures in computations

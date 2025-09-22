@@ -7,6 +7,8 @@ Options for ``SurfBC``
 * *nSpecies* -> *NSpecies*
 * *DType* -> *Value*
 * *DataType* -> *Value*
+* *DisplayScale* -> *FormatMultiplier*
+* *ScaleDisplay* -> *FormatMultiplier*
 
 **Recognized options:**
 
@@ -18,9 +20,9 @@ Options for ``SurfBC``
     value of option "AutoFlowInit"
 *BCIndex*: {``None``} | :class:`dict`
     value of option "BCIndex"
-*BCPAR1*: {``None``} | :class:`int`
+*BCPAR1*: {``None``} | :class:`int` | :class:`float`
     value of option "BCPAR1"
-*BCPAR2*: {``None``} | :class:`int`
+*BCPAR2*: {``None``} | :class:`int` | :class:`float`
     value of option "BCPAR2"
 *CompID*: {``[]``} | :class:`list`\ [:class:`dict` | :class:`str`]
     value of option "CompID"
@@ -40,6 +42,12 @@ Options for ``SurfBC``
     value of option "NSpecies"
 *NonnegativeFormat*: {``False``} | ``True``
     value of option "NonnegativeFormat"
+*PBSFormat*: {``None``} | :class:`str`
+    value of option "PBSFormat"
+*PBSLabel*: {``None``} | ``True`` | ``False``
+    value of option "PBSLabel"
+*PlenumID*: {``None``} | :class:`int`
+    value of option "PlenumID"
 *PressureCalibration*: {``1.0``} | :class:`object`
     value of option "PressureCalibration"
 *PressureOffset*: {``0.0``} | :class:`object`

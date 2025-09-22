@@ -1,6 +1,6 @@
---------------------------
-Options for default figure
---------------------------
+----------------------------------------
+report figure (collection of subfigures)
+----------------------------------------
 
 **Option aliases:**
 

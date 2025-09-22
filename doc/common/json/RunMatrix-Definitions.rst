@@ -11,6 +11,7 @@ Options for ``Definitions`` section
     :maxdepth: 1
 
     RunMatrix-Definitions-_default_
+    RunMatrix-Definitions-CaseFunction
     RunMatrix-Definitions-ConfigFunction
     RunMatrix-Definitions-ConfigRotate
     RunMatrix-Definitions-ConfigTranslate
@@ -28,6 +29,7 @@ Options for ``Definitions`` section
     RunMatrix-Definitions-V
     RunMatrix-Definitions-XMLInput
     RunMatrix-Definitions-alpha
+    RunMatrix-Definitions-altitude
     RunMatrix-Definitions-aoap
     RunMatrix-Definitions-beta
     RunMatrix-Definitions-config

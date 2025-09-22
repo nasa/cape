@@ -1,6 +1,6 @@
-----------------------------------------
-Options for ``PlotCoeffSweep`` subfigure
-----------------------------------------
+----------------------------------------------
+subfigure to plot sweep through multiple cases
+----------------------------------------------
 
 **Option aliases:**
 
@@ -35,10 +35,10 @@ Options for ``PlotCoeffSweep`` subfigure
     value of option "Alignment"
 *Caption*: {``None``} | :class:`str`
     subfigure caption
-*Coefficient*: {``None``} | :class:`object`
-    value of option "Coefficient"
-*Component*: {``None``} | :class:`object`
-    value of option "Component"
+*Coefficient*: {``None``} | :class:`str`
+    column(s) to plot iterative history of
+*Component*: {``'entire'``} | :class:`str`
+    component(s) for which to plot *Coefficient*
 *DPI*: {``150``} | :class:`int`
     dots per inch if saving as rasterized image
 *FigureHeight*: {``4.5``} | :class:`float`
@@ -51,8 +51,8 @@ Options for ``PlotCoeffSweep`` subfigure
     whether to show axes grid in background
 *GridPlotOptions*: {``{}``} | :class:`dict`
     plot options for major grid, if shown
-*KSigma*: {``None``} | :class:`object`
-    value of option "KSigma"
+*KSigma*: {``0.0``} | :class:`float`
+    multiple of sigma to plot above and below mean
 *MinMax*: {``False``} | ``True``
     option to plot min/max of value over iterative window
 *MinMaxOptions*: {``None``} | :class:`PlotCoeffSweepMinMaxPlotOpts`
@@ -77,8 +77,8 @@ Options for ``PlotCoeffSweep`` subfigure
     explicit x-coord of restriction
 *RestrictionYPosition*: {``None``} | :class:`float`
     explicit y-coord of restriction
-*SigmaPlotOptions*: {``None``} | :class:`object`
-    value of option "SigmaPlotOptions"
+*SigmaPlotOptions*: {``None``} | :class:`PlotCoeffSigmaPlotOpts`
+    plot options for standard deviation box
 *Target*: {``None``} | :class:`str`
     name of target databook to co-plot
 *TargetOptions*: {``None``} | :class:`PlotCoeffSweepTargetPlotOpts`

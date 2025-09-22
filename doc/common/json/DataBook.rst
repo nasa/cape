@@ -1,8 +1,8 @@
 .. _cape-json-databook:
 
---------------------------------
-Options for ``DataBook`` section
---------------------------------
+------------------------------------------------
+options for which post-processed data to collect
+------------------------------------------------
 
 **Option aliases:**
 
@@ -50,6 +50,7 @@ Options for ``DataBook`` section
     :maxdepth: 1
 
     DataBook-Targets
+    DataBook-_default_
     DataBook-FM
     DataBook-IterPoint
     DataBook-LineLoad

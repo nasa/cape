@@ -1,6 +1,6 @@
-------------------------------
-Options for ``Config`` section
-------------------------------
+-------------------------------------------
+surface configuration and reference options
+-------------------------------------------
 
 **Option aliases:**
 
@@ -17,9 +17,9 @@ Options for ``Config`` section
 *RefArea*: {``1.0``} | :class:`float` | :class:`dict`
     reference area [for a component]
 *RefLength*: {``1.0``} | :class:`float` | :class:`dict`
-    value of option "RefLength"
+    reference length ro moment or pitching moment
 *RefPoint*: {``0.0``} | :class:`float` | :class:`dict` | :class:`str`
-    value of option "RefPoint"
+    reference point for moment calculations
 *RefSpan*: {``None``} | :class:`float` | :class:`dict`
-    value of option "RefSpan"
+    reference length for yaw and rolling moments
 

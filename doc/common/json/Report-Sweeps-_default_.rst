@@ -1,6 +1,6 @@
--------------------
-Options for default
--------------------
+-------------------------------------------------
+definition for a condition sweep in a CAPE report
+-------------------------------------------------
 
 **Option aliases:**
 

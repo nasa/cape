@@ -1,6 +1,6 @@
------------------------------------
-Options for ``PlotCoeff`` subfigure
------------------------------------
+---------------------------
+iterative history subfigure
+---------------------------
 
 **Option aliases:**
 
@@ -52,10 +52,10 @@ Options for ``PlotCoeff`` subfigure
     subfigure caption
 *CaptionComponent*: {``None``} | :class:`str`
     explicit text for component portion of caption
-*Coefficient*: {``None``} | :class:`object`
-    value of option "Coefficient"
-*Component*: {``None``} | :class:`object`
-    value of option "Component"
+*Coefficient*: {``None``} | :class:`str`
+    column(s) to plot iterative history of
+*Component*: {``'entire'``} | :class:`str`
+    component(s) for which to plot *Coefficient*
 *DNStats*: {``None``} | :class:`int`
     interval between candidate averaging window sizes
 *DPI*: {``150``} | :class:`int`
@@ -82,8 +82,8 @@ Options for ``PlotCoeff`` subfigure
     plot options for major grid, if shown
 *KEpsilon*: {``0.0``} | :class:`float`
     multiple of iterative error to plot
-*KSigma*: {``None``} | :class:`object`
-    value of option "KSigma"
+*KSigma*: {``0.0``} | :class:`float`
+    multiple of sigma to plot above and below mean
 *MinorGrid*: {``None``} | ``True`` | ``False``
     whether to show axes minor grid
 *MinorGridPlotOptions*: {``{}``} | :class:`dict`
@@ -128,8 +128,8 @@ Options for ``PlotCoeff`` subfigure
     option to print value of standard deviation
 *SigmaFormat*: {``'%.4f'``} | :class:`object`
     printf-style flag for *ShowSigma* value
-*SigmaPlotOptions*: {``None``} | :class:`object`
-    value of option "SigmaPlotOptions"
+*SigmaPlotOptions*: {``None``} | :class:`PlotCoeffSigmaPlotOpts`
+    plot options for standard deviation box
 *TickLabelOptions*: {``None``} | :class:`dict`
     common options for ticks of both axes
 *TickLabels*: {``None``} | ``True`` | ``False``

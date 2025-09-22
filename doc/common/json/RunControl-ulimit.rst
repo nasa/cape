@@ -1,6 +1,6 @@
-------------------------------
-Options for ``ulimit`` section
-------------------------------
+-------------------------------------------
+options for ``ulimit`` environment settings
+-------------------------------------------
 
 **Option aliases:**
 
@@ -25,36 +25,36 @@ Options for ``ulimit`` section
 
 **Recognized options:**
 
-*c*: {``0``} | :class:`object`
+*c*: {``None``} | :class:`object`
     core file size limit, ``ulimit -c``
-*d*: {``'unlimited'``} | :class:`object`
+*d*: {``None``} | :class:`object`
     process data segment limit, ``ulimit -d``
-*e*: {``0``} | :class:`object`
+*e*: {``None``} | :class:`object`
     max scheduling priority, ``ulimit -e``
-*f*: {``'unlimited'``} | :class:`object`
+*f*: {``None``} | :class:`object`
     max size of files written by shell, ``ulimit -f``
-*i*: {``127556``} | :class:`object`
+*i*: {``None``} | :class:`object`
     max number of pending signals, ``ulimit -i``
-*l*: {``64``} | :class:`object`
+*l*: {``None``} | :class:`object`
     max size that may be locked into memory, ``ulimit -l``
-*m*: {``'unlimited'``} | :class:`object`
+*m*: {``None``} | :class:`object`
     max resident set size, ``ulimit -m``
-*n*: {``1024``} | :class:`object`
+*n*: {``None``} | :class:`object`
     max number of open files, ``ulimit -n``
-*p*: {``8``} | :class:`object`
+*p*: {``None``} | :class:`object`
     pipe size in 512-byte blocks, ``ulimit -p``
-*q*: {``819200``} | :class:`object`
+*q*: {``None``} | :class:`object`
     max bytes in POSIX message queues, ``ulimit -q``
-*r*: {``0``} | :class:`object`
+*r*: {``None``} | :class:`object`
     max real-time scheduling priority, ``ulimit -r``
-*s*: {``4194304``} | :class:`object`
+*s*: {``None``} | :class:`object`
     stack size limit, ``ulimit -s``
-*t*: {``'unlimited'``} | :class:`object`
+*t*: {``None``} | :class:`object`
     max amount of cpu time in s, ``ulimit -t``
-*u*: {``127812``} | :class:`object`
+*u*: {``None``} | :class:`object`
     max number of procs avail to one user, ``ulimit -u``
-*v*: {``'unlimited'``} | :class:`object`
+*v*: {``None``} | :class:`object`
     max virtual memory avail to shell, ``ulimit -v``
-*x*: {``'unlimited'``} | :class:`object`
+*x*: {``None``} | :class:`object`
     max number of file locks, ``ulimit -x``
 

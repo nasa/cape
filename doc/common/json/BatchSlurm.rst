@@ -1,9 +1,12 @@
-----------------------------------
-Options for ``BatchSlurm`` section
-----------------------------------
+------------------------------------------------
+options for Slurm job control for batch commands
+------------------------------------------------
 
 **Option aliases:**
 
+* *account* -> *A*
+* *begin* -> *b*
+* *constraint* -> *C*
 * *q* -> *p*
 * *t* -> *time*
 
@@ -11,8 +14,12 @@ Options for ``BatchSlurm`` section
 
 *A*: {``None``} | :class:`str`
     Slurm job account name
+*C*: {``None``} | :class:`str`
+    constraint(s) on Slurm job
 *N*: {``1``} | :class:`int`
     number of Slurm nodes
+*b*: {``None``} | :class:`object`
+    constraints on when to acllocate job
 *gid*: {``None``} | :class:`str`
     Slurm job group ID
 *n*: {``40``} | :class:`int`

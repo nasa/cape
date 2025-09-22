@@ -1,6 +1,6 @@
--------------------------------
-Options for ``Targets`` section
--------------------------------
+------------------------------
+collection of target databooks
+------------------------------
 
 **Recognized options:**
 

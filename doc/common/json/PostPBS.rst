@@ -20,18 +20,26 @@ Options for ``PostPBS`` section
     explicit STDERR file name
 *j*: {``'oe'``} | :class:`str`
     PBS 'join' setting
+*k*: {``None``} | :class:`str`
+    PBS 'keep' setting; live updates to STD(OUT|ERR)
+*mem*: {``None``} | :class:`int`
+    Requested cpu memory (on gpu node)
 *model*: {``None``} | :class:`str`
     model type/architecture
 *mpiprocs*: {``None``} | :class:`int`
     number of MPI processes per node
 *ncpus*: {``None``} | :class:`int`
     number of cores (roughly CPUs) per node
+*ngpus*: {``None``} | :class:`int`
+    number of gpus per node
 *o*: {``None``} | :class:`object`
     explicit STDOUT file name
 *ompthreads*: {``None``} | :class:`int`
     number of OMP threads
 *p*: {``None``} | :class:`object`
     PBS priority
+*place*: {``'excl'``} | ``'shared'``
+    Share or exclusive access to requested gpu nodes
 *q*: {``'normal'``} | :class:`str`
     PBS queue name
 *r*: {``'n'``} | ``'y'``

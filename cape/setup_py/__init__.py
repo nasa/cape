@@ -104,6 +104,7 @@ SETUP_SETTINGS = dict(
             "cape-tri2plt=cape.tricli:main_tri2plt",
             "cape-tri2surf=cape.tricli:main_tri2surf",
             "cape-uh3d2tri=cape.tricli:main_uh3d2tri",
+            "cape-vtk2plt=cape.teccli:convert_vtk",
             "cape-writell=cape.writell:main",
             "pyfun-plt2triq=cape.pyfun.tricli:main_plt2triq",
         ],

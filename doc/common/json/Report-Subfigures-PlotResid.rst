@@ -1,6 +1,6 @@
------------------------------------
-Options for ``PlotResid`` subfigure
------------------------------------
+------------------------------------
+residual iterative history subfigure
+------------------------------------
 
 **Option aliases:**
 

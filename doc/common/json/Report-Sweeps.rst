@@ -1,8 +1,8 @@
 .. _cape-json-reportsweep:
 
-------------------------------
-Options for ``Sweeps`` section
-------------------------------
+-------------------------------
+collection of sweep definitions
+-------------------------------
 
 **Recognized options:**
 

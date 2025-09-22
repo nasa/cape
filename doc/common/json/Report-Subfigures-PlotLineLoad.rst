@@ -1,6 +1,6 @@
---------------------------------------
-Options for ``PlotLineLoad`` subfigure
---------------------------------------
+-------------------
+line load subfigure
+-------------------
 
 **Option aliases:**
 

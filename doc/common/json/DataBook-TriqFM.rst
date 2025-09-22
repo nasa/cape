@@ -1,6 +1,6 @@
---------------------------------
-Options for ``TriqFM`` component
---------------------------------
+-----------------------------------------------------
+options for a patch load or triqfm databook component
+-----------------------------------------------------
 
 **Option aliases:**
 
@@ -48,6 +48,8 @@ Options for ``TriqFM`` component
     projection tolerance relative to size of component
 *CompTol*: {``None``} | :class:`float`
     tangent tolerance relative to component
+*ConfigCompID*: {``None``} | :class:`int` | :class:`str`
+    value of option "ConfigCompID"
 *ConfigFile*: {``None``} | :class:`str`
     configuration file for surface groups
 *DNStats*: {``None``} | :class:`int`
@@ -66,8 +68,12 @@ Options for ``TriqFM`` component
     first iter to consider for use in databook [for a comp]
 *NStats*: {``None``} | :class:`int`
     iterations to use in averaging window [for a comp]
-*OutputFormat*: ``'dat'`` | {``'plt'``}
+*OutputFormat*: ``'dat'`` | {``'plt'``} | ``'triq'``
     output format for component surface files
+*OutputSurface*: {``True``} | ``False``
+    whether or not to write TriqFM surface
+*PatchMap*: {``None``} | :class:`dict`
+    value of option "PatchMap"
 *Patches*: {``None``} | :class:`list`\ [:class:`str`]
     list of patches for a databook component
 *Prefix*: {``None``} | :class:`object`
@@ -80,6 +86,8 @@ Options for ``TriqFM`` component
     targets for this databook component
 *Transformations*: {``[]``} | :class:`dict`
     list of transformations applied to component
+*TriqFormat*: ``''`` | ``'b4'`` | ``'lb4'`` | {``'lr4'``} | ``'r4'``
+    value of option "TriqFormat"
 *Type*: {``'FM'``} | :class:`str`
     databook component type
 
