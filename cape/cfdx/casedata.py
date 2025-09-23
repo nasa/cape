@@ -1,4 +1,10 @@
+r"""
+:mod:`cape.cfdx.casedata`: Single-case data interfaces
+=======================================================
 
+This module provides the classes :class:`CaseFM` and
+:class:`CaseResid` that resid iterative histories of various types.
+"""
 
 # Standard library
 import os

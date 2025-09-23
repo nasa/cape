@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 :mod:`cape.pylch.databook`: Loci/CHEM data book module
-=====================================================
+========================================================
 
 This module provides interfaces to the various CFD outputs tracked by
 the :mod:`cape` package. These versions are specific to Loci/CHEM.

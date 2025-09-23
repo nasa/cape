@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.statutils`: Statistics tools
+=========================================
+
 This module includes several shorthand calls to statistical functions
 from :mod:`scipy.stats`.  The primary tool provided by this module is to
 calculate 99% (or any other fraction) coverage ranges for two data sets.

@@ -1,4 +1,4 @@
 
-.. automodule:: cape.cfdx.databook
+.. automodule:: cape.cfdx.casedata
     :members:
 
