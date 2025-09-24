@@ -23,16 +23,21 @@ libraries.
 
 """
 
-# Common third-party modules
+# Standard library
+from typing import Optional
+
+# Third-party
 import numpy as np
 
-# Statistics modules from SciPy
+# Optional third-party
 try:
     from scipy.stats import binom
     from scipy.stats import norm
     from scipy.stats import t as student
 except ImportError:
-    pass
+    binom = None
+    norm = None
+    student = None
 
 
 # Get orderered stats with confidence level
@@ -69,7 +74,11 @@ def getidx_ordered_stats(p: float, cl: float, n: int) -> float:
 
 
 # Get ordered stats
-def get_ordered_stats(V, cov=None, onesided=False, **kw):
+def get_ordered_stats(
+        V: np.ndarray,
+        cov: Optional[float] = None,
+        cl: Optional[float] = 0.5,
+        onesided: bool = False, **kw):
     r"""Calculate coverage using ordered statistics
 
     :Call:
@@ -82,6 +91,8 @@ def get_ordered_stats(V, cov=None, onesided=False, **kw):
             Array of scalar values
         *cov*: :class:`float`
             Coverage fraction, 0 < *cov* <= 1
+        *cl*: {``0.5``} | ``None`` | :class:`float`
+            Confidence level (use raw coverage if ``None``)
         *onsided*: ``True`` | {``False``}
             Option to find coverage of one-sided distribution
         *ksig*: {``None``} | :class:`float`
@@ -97,6 +108,7 @@ def get_ordered_stats(V, cov=None, onesided=False, **kw):
             Upper limit of one-sided coverage interval
     :Versions:
         * 2021-09-30 ``@ddalle``: v1.0
+        * 2025-09-24 ``@ddalle``: v1.1; add *cl*
     """
     # Get standard deviation counts
     ksig = kw.get("ksig")
@@ -128,17 +140,20 @@ def get_ordered_stats(V, cov=None, onesided=False, **kw):
     # Check for one-sided option
     if onesided:
         # Simple coverage
-        return get_ordered_upper(V, 2*cov - 1)
+        return get_ordered_upper(V, cov, cl)
     else:
         # Two-sided coverages
-        vmin = get_ordered_lower(V, cov)
-        vmax = get_ordered_upper(V, cov)
+        vmin = get_ordered_lower(V, cov, cl)
+        vmax = get_ordered_upper(V, cov, cl)
         # Output
         return vmin, vmax
 
 
 # Calculate coverage using ordered stats
-def get_ordered_lower(V, cov):
+def get_ordered_lower(
+        V: np.ndarray,
+        cov: float,
+        cl: Optional[float] = None) -> float:
     r"""Calculate value less than fraction *cov* of *V*'s values
 
     :Call:
@@ -148,6 +163,8 @@ def get_ordered_lower(V, cov):
             Array of scalar values
         *cov*: :class:`float`
             Coverage fraction, 0 < *cov* <= 1
+        *cl*: {``None``} | :class:`float`
+            Confidence level (use raw coverage if ``None``)
     :Outputs:
         *v*: :class:`float`
             Value such that ``cov*V.size`` entries in *V* are greater
@@ -155,6 +172,7 @@ def get_ordered_lower(V, cov):
             values of *V*
     :Versions:
         * 2021-09-30 ``@ddalle``: v1.0
+        * 2025-09-24 ``@ddalle``: v1.1; add *cl*
     """
     # Get size
     n = len(V)
@@ -166,7 +184,12 @@ def get_ordered_lower(V, cov):
     # Get sorted values
     U = np.sort(V)
     # Calculate indices (first exact)
-    i = cov * U.size
+    if cl is None:
+        # Simple coverage
+        i = cov * n
+    else:
+        # Account for confidence level
+        i = getidx_ordered_stats(cov, cl, n)
     # Get neighboring integer indices for interpolation
     ia = int(i)
     ib = int(np.ceil(i))
@@ -183,7 +206,10 @@ def get_ordered_lower(V, cov):
 
 
 # Calculate coverage using ordered stats
-def get_ordered_upper(V, cov):
+def get_ordered_upper(
+        V: np.ndarray,
+        cov: float,
+        cl: Optional[float] = None) -> float:
     r"""Calculate value greater than fraction *cov* of *V*'s values
 
     :Call:
@@ -193,6 +219,8 @@ def get_ordered_upper(V, cov):
             Array of scalar values
         *cov*: :class:`float`
             Coverage fraction, 0 < *cov* <= 1
+        *cl*: {``None``} | :class:`float`
+            Confidence level (use raw coverage if ``None``)
     :Outputs:
         *v*: :class:`float`
             Value such that ``cov*V.size`` entries in *V* are less than
@@ -200,6 +228,7 @@ def get_ordered_upper(V, cov):
             of *V*
     :Versions:
         * 2021-09-30 ``@ddalle``: v1.0
+        * 2025-09-24 ``@ddalle``: v1.1; add *cl*
     """
     # Get size
     n = len(V)
@@ -211,7 +240,12 @@ def get_ordered_upper(V, cov):
     # Get sorted values
     U = np.sort(V)
     # Calculate indices (first exact)
-    i = cov * U.size
+    if cl is None:
+        # Simple coverage
+        i = cov * n
+    else:
+        # Account for confidence level
+        i = getidx_ordered_stats(cov, cl, n)
     # Get neighboring integer indices for interpolation
     ia = int(i)
     ib = int(np.ceil(i))
@@ -336,6 +370,8 @@ def get_coverage(dx, cov=None, **kw):
             - use :func:`_parse_options`
             - allow 100% coverage
             - remove confusing *kcov* vs *ksig* scaling
+
+        * 2025-09-24 ``@ddalle``: v1.2; add *cl*
     """
     # Get full interval
     a, b = get_cov_interval(dx, cov=cov, **kw)
