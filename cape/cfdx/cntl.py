@@ -4498,34 +4498,6 @@ class Cntl(CntlBase):
 
     # Copy files
     def copy_files(self, i: int):
-        r"""Copy files from *Mesh* section
-
-        This applies to both *CopyFiles* and *CopyAsFiles* in the
-        *Mesh* section. The former will copy a given file into the run
-        folder for case *i* using the base name of the original (source)
-        file. Using
-
-        .. code-block:: javascript
-
-            "Mesh": {
-                "CopyAsFiles": {
-                    "inputs/mesh-config02.ugrid": "mesh.ugrid"
-                }
-            }
-
-        will copy the file ``inputs/mesh-config02.ugrid`` into the run
-        folder but name it ``mesh.ugrid`` there.
-
-        :Call:
-            >>> cntl.copy_files(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2025-09-19 ``@ddalle``: v1.0
-        """
         # Ensure case index is set
         self.opts.setx_i(i)
         # Create case folder
@@ -4584,35 +4556,6 @@ class Cntl(CntlBase):
 
     # Link files
     def link_files(self, i: int):
-        r"""Link files from *Mesh* section
-
-        This applies to both *LinkFiles* and *LinkAsFiles* in the
-        *Mesh* section. The former will copy a given file into the run
-        folder for case *i* using the base name of the original (source)
-        file. Using
-
-        .. code-block:: javascript
-
-            "Mesh": {
-                "LinkAsFiles": {
-                    "inputs/mesh-config02.ugrid": "mesh.ugrid"
-                }
-            }
-
-        will create a link (using the absolute path) from
-        ``inputs/mesh-config02.ugrid`` to ``mesh.ugrid`` in the case run
-        folder.
-
-        :Call:
-            >>> cntl.link_files(i)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Overall CAPE control instance
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2025-09-19 ``@ddalle``: v1.0
-        """
         # Ensure case index is set
         self.opts.setx_i(i)
         # Create case folder

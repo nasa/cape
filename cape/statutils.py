@@ -28,10 +28,45 @@ import numpy as np
 
 # Statistics modules from SciPy
 try:
+    from scipy.stats import binom
     from scipy.stats import norm
     from scipy.stats import t as student
 except ImportError:
     pass
+
+
+# Get orderered stats with confidence level
+def getidx_ordered_stats(p: float, cl: float, n: int) -> float:
+    r"""Get number of cases to exclude for ordered statistics w/ CL
+
+    :Call:
+        >>> m = getidx_ordered_stats(p, cl, n)
+    :Inputs:
+        *p*: :class:`float` | :class:`np.ndarray`\ [:class:`float`]
+            Coverage fraction, probability
+        *cl*: :class:`float` | :class:`np.ndarray`\ [:class:`float`]
+            Confidence interval, or array thereof
+        *n*: :class:`int`
+            Number of samples (must be scalar)
+    :Versions:
+        * 2025-09-24 ``@ddalle``: v1.0
+    """
+    # Check for lower bounds
+    if isinstance(p, (float, np.floating)) and (p < 0.5):
+        return n - getidx_ordered_stats(1-p, cl, n)
+    # Array of failure counts
+    m_excl = np.arange(n + 1)
+    m_keep = m_excl[::-1]
+    # Use binomial distribution to get p(exactly k failures)
+    p_excl = binom.pmf(m_keep, n, p)
+    # Cumulative probability
+    total_p_excl = np.cumsum(p_excl)
+    total_confidence = 1 - total_p_excl
+    # Get unique values to avoid issues with confidence < machine prec.
+    tmp, idx = np.unique(total_confidence[::-1], return_index=True)
+    # Interpolate to requested confidnece level
+    return np.interp(cl, tmp, m_excl[idx])
+
 
 # Get ordered stats
 def get_ordered_stats(V, cov=None, onesided=False, **kw):
@@ -61,7 +96,7 @@ def get_ordered_stats(V, cov=None, onesided=False, **kw):
         *vlim*: :class:`float`
             Upper limit of one-sided coverage interval
     :Versions:
-        * 2021-09-30 ``@ddalle``: Version 1.0
+        * 2021-09-30 ``@ddalle``: v1.0
     """
     # Get standard deviation counts
     ksig = kw.get("ksig")
@@ -119,7 +154,7 @@ def get_ordered_lower(V, cov):
             than or equal to *v*; may be interpolated between sorted
             values of *V*
     :Versions:
-        * 2021-09-30 ``@ddalle``: Version 1.0
+        * 2021-09-30 ``@ddalle``: v1.0
     """
     # Get size
     n = len(V)
@@ -164,7 +199,7 @@ def get_ordered_upper(V, cov):
             or equal to *v*; may be interpolated between sorted values
             of *V*
     :Versions:
-        * 2021-09-30 ``@ddalle``: Version 1.0
+        * 2021-09-30 ``@ddalle``: v1.0
     """
     # Get size
     n = len(V)
@@ -190,16 +225,16 @@ def get_ordered_upper(V, cov):
     cova = ia / float(n)
     # Interpolate ... n = 1 / (covb-cova)
     return va + n*(cov-cova)*(vb-va)
-    
+
 
 # Calculate range
 def get_range(R, cov=None, **kw):
     r"""Calculate Student's t-distribution confidence range
-        
+
     If the nominal application of the Student's t-distribution fails to
     cover a high enough fraction of the data, the bounds are extended
     until the data is covered.
-    
+
     :Call:
         >>> width = get_range(R, cov, **kw)
     :Inputs:
@@ -218,8 +253,8 @@ def get_range(R, cov=None, **kw):
         *width*: :class:`float`
             Half-width of confidence region
     :Versions:
-        * 2018-09-28 ``@ddalle``: Version 1.0
-        * 2021-09-20 ``@ddalle``: Version 1.1
+        * 2018-09-28 ``@ddalle``: v1.0
+        * 2021-09-20 ``@ddalle``: v1.1
             - use :func:`_parse_options`
             - allow 100% coverage
             - remove confusing *kcov* vs *ksig* scaling
@@ -273,11 +308,11 @@ def get_range(R, cov=None, **kw):
 # Calculate interval
 def get_coverage(dx, cov=None, **kw):
     r"""Calculate Student's *t*\ -distribution confidence range
-        
+
     If the nominal application of the Student's t-distribution fails to
     cover a high enough fraction of the data, the bounds are extended
     until *cov* (user-defined fraction) of the data is covered.
-    
+
     :Call:
         >>> width = get_coverage(dx, cov, **kw)
     :Inputs:
@@ -296,8 +331,8 @@ def get_coverage(dx, cov=None, **kw):
         *width*: :class:`float`
             Half-width of confidence region
     :Versions:
-        * 2019-02-04 ``@ddalle``: Version 1.0
-        * 2021-09-20 ``@ddalle``: Version 1.1
+        * 2019-02-04 ``@ddalle``: v1.0
+        * 2021-09-20 ``@ddalle``: v1.1
             - use :func:`_parse_options`
             - allow 100% coverage
             - remove confusing *kcov* vs *ksig* scaling
@@ -311,11 +346,11 @@ def get_coverage(dx, cov=None, **kw):
 # Calculate interval
 def get_cov_interval(dx, cov=None, **kw):
     r"""Calculate Student's *t*\ -distribution confidence range
-        
+
     If the nominal application of the Student's t-distribution fails to
     cover a high enough fraction of the data, the bounds are extended
     until *cov* (user-defined fraction) of the data is covered.
-    
+
     :Call:
         >>> a, b = get_cov_interval(dx, cov, **kw)
     :Inputs:
@@ -336,8 +371,8 @@ def get_cov_interval(dx, cov=None, **kw):
         *b*: :class:`float`
             Upper bound of coverage interval
     :Versions:
-        * 2019-02-04 ``@ddalle``: Version 1.0
-        * 2021-09-20 ``@ddalle``: Version 1.1
+        * 2019-02-04 ``@ddalle``: v1.0
+        * 2021-09-20 ``@ddalle``: v1.1
             - use :func:`_parse_options`
             - allow 100% coverage
             - remove confusing *kcov* vs *ksig* scaling
@@ -372,7 +407,7 @@ def get_cov_interval(dx, cov=None, **kw):
     b = vmu + width
    # --- Coverage Check ---
     # Filter cases that are outside bounds
-    J = np.logical_and(a<=dx, dx<=b)
+    J = np.logical_and(a <= dx, dx <= b)
     # Count cases outside the bounds
     ncov = np.count_nonzero(J)
     # Check coverage
@@ -396,7 +431,7 @@ def get_cov_interval(dx, cov=None, **kw):
 # Filter outliers
 def check_outliers_range(R, cov=None, **kw):
     r"""Find outliers in an array of ranges
-    
+
     :Call:
         >>> I = check_outliers_range(R, cov, **kw)
     :Inputs:
@@ -415,7 +450,7 @@ def check_outliers_range(R, cov=None, **kw):
         *I*: :class:`np.ndarray`\ [:class:`bool`]
             Flags for non-outlier cases,  ``False`` if case is an outlier
     :Versions:
-        * 2021-02-20 ``@ddalle``: Version 1.0
+        * 2021-02-20 ``@ddalle``: v1.0
     """
    # --- Setup ---
     # Enforce array (copy to preserve original data)
@@ -452,8 +487,8 @@ def check_outliers_range(R, cov=None, **kw):
         # Update degrees of freedom
         df = N - n1
         # Recalculate statistics
-        vmu = np.mean(dx[I])
-        vstd = np.std(dx[I])
+        vmu = np.mean(R[I])
+        vstd = np.std(R[I])
         # Find outliers
         I = R / vstd <= osig
         J = np.logical_not(I)
@@ -466,7 +501,7 @@ def check_outliers_range(R, cov=None, **kw):
 # Filter outliers
 def check_outliers(dx, cov=None, **kw):
     r"""Find outliers in a data set
-    
+
     :Call:
         >>> I = check_outliers(dx, cov, **kw)
     :Inputs:
@@ -485,8 +520,8 @@ def check_outliers(dx, cov=None, **kw):
         *I*: :class:`np.ndarray`\ [:class:`bool`]
             Flags for non-outlier cases,  ``False`` if case is an outlier
     :Versions:
-        * 2019-02-04 ``@ddalle``: Version 1.0
-        * 2021-09-20 ``@ddalle``: Version 1.1
+        * 2019-02-04 ``@ddalle``: v1.0
+        * 2021-09-20 ``@ddalle``: v1.1
             - use :func:`_parse_options`
             - allow 100% coverage
     """
