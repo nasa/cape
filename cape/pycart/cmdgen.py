@@ -141,7 +141,7 @@ def autoInputs(opts=None, j=0, **kw):
         *halfBody*: ``True`` | {``False``}
             Create a half-body mesh that starts at ``0`` for one axis
         *symmX*: ``True`` | {``False``}
-            Use *x*=0 for symmetry plane
+            Use *x*\ =0 for symmetry plane
     :Outputs:
         *cmd*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
