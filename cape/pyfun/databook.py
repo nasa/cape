@@ -217,9 +217,28 @@ class CaseFM(databook.CaseFM):
         self.runner = runner
         # Use parent initializer
         databook.CaseFM.__init__(self, comp, **kw)
+        # Apply moving-body transformations
+        self.apply_moving_body()
 
     # Get option
     def get_databook_opt(self, opt: str, vdef=None) -> Any:
+        r"""Get a *DataBook* option for the component that *fm* tracks
+
+        :Call:
+            >>> v = fm.get_databook_opt(opt, vdef=None)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *opt*: :class:`str`
+                Name of option to query
+            *vdef*: {``None``} | :class:`object`
+                Default value
+        :Outputs:
+            *v*: :class:`object`
+                Value of run matrix's *DataBook* > *fm.comp* > *opt*
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
         # Check for runner
         if self.runner is None:
             return vdef
@@ -340,10 +359,48 @@ class CaseFM(databook.CaseFM):
         # Output
         return db
 
+    # Read and apply body positions
+    def apply_moving_body(self):
+        # Check for moving-body data
+        dat = self.read_bodydat()
+        # Column name used frequently
+        tcol = databook.CASE_COL_TRAW
+        # Done if no moving-body
+        if dat is None:
+            return
+        # Initialize position cols
+        n = self[tcol].size
+        for col in dat.cols:
+            # Skip 'solver_time'
+            if col == tcol:
+                continue
+            # Initialize
+            self.save_col(col, np.zeros(n, dtype=dat[col].dtype))
+        # Find overlap
+        i, j = self.match(dat, cols=[tcol])
+        # Save data
+        for col in dat.cols:
+            # Skip 'solver_time'
+            if col == tcol:
+                continue
+            # Save data
+            self[col][i] = dat[col][j]
+
     # Read body positions
-    def read_bodydat(self) -> tsvfile.TSVTecDatFile:
+    def read_bodydat(self) -> Optional[tsvfile.TSVTecDatFile]:
         # Check body name
-        ...
+        body = self.get_databook_opt("Body")
+        # Exit if no moving body
+        if body is None:
+            return
+        # Construct file name
+        fname = f"PositionBody_{body}.dat"
+        # Check for file
+        if not os.path.isfile(fname):
+            return
+        # Read it
+        dat = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
+        return dat
 
     # Function to fix iteration histories of one file
     def _fix_iter(self, db: tsvfile.TSVTecDatFile):
