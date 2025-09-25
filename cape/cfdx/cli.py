@@ -14,6 +14,7 @@ import sys
 from typing import Optional, Union
 
 # CAPE modules
+from . import manage
 from .. import argread
 from .. import convert1to2
 from ..argread import BOOL_TYPES, INT_TYPES
@@ -100,6 +101,7 @@ class CfdxArgReader(argread.ArgReader):
         "hide": "hide-cols",
         "json": "f",
         "kill": "qdel",
+        "pattern": "pat",
         "queue": "q",
         "regex": "re",
         "scancel": "qdel",
@@ -142,6 +144,7 @@ class CfdxArgReader(argread.ArgReader):
         "marked": bool,
         "n": int,
         "passed": bool,
+        "pat": str,
         "prompt": bool,
         "prop": (bool, str),
         "pt": (bool, str),
@@ -249,6 +252,7 @@ class CfdxArgReader(argread.ArgReader):
         "ll": "Extract line load data [comps matching *PAT*] for case(s)",
         "marked": "Show only cases marked either PASS or ERROR",
         "n": "Submit at most *N* cases",
+        "pat": "Consider file names matching pattern *PAT*",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
         "prop": "Extract scalar properties [comps matching *PAT*]",
@@ -288,6 +292,7 @@ class CfdxArgReader(argread.ArgReader):
         "incremental": "[STOP_PHASE]",
         "ll": "[PAT]",
         "n": "N",
+        "pat": "PAT",
         "prop": "[PAT]",
         "pt": "[PAT]",
         "q": "QUEUE",
@@ -789,6 +794,29 @@ class CfdxExtractTriqPTArgs(_CfdxExtractArgs):
     )
 
 
+# Settings for --find-json
+class CfdxFindJSONArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-find-json"
+
+    # Description
+    _help_title = "Find CAPE JSON files"
+
+    # Arguments
+    _arglist = (
+        "pat",
+    )
+
+    # Additional options
+    _optlist = (
+        "h",
+        "pat",
+    )
+
+
 # Settings for --FAIL
 class CfdxFailArgs(_CfdxSubsetArgs):
     # No attributes
@@ -1023,6 +1051,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "ll",
         "marked",
         "n",
+        "pat",
         "pt",
         "prompt",
         "q",
@@ -1069,6 +1098,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqfm",
         "extract-triqpt",
         "fail",
+        "find-json",
         "qdel",
         "report",
         "rm",
@@ -1115,6 +1145,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqfm": CfdxExtractTriqFMArgs,
         "extract-triqpt": CfdxExtractTriqPTArgs,
         "fail": CfdxFailArgs,
+        "find-json": CfdxFindJSONArgs,
         "qdel": CfdxQdelArgs,
         "report": CfdxReportArgs,
         "rm": CfdxRemoveCasesArgs,
@@ -1662,6 +1693,31 @@ def cape_fail(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+def cape_find_json(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --find-json`` command
+
+    :Call:
+        >>> ierr == cape_find_json(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-09-25 ``@ddalle``: v1.0
+    """
+    # Parse args
+    kw = parser.get_kwargs()
+    # Find files
+    json_files = manage.find_json(kw.get("pat"))
+    # List them
+    for fname in json_files:
+        print(fname)
+    # Return code
+    return IERR_OK
+
+
 def cape_qdel(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --qdel`` command to stop PBS/Slurm cases
 
@@ -1923,6 +1979,7 @@ CMD_DICT = {
     "extract-triqfm": cape_extract_triqfm,
     "extract-triqpt": cape_extract_triqpt,
     "fail": cape_fail,
+    "find-json": cape_find_json,
     "qdel": cape_qdel,
     "report": cape_report,
     "rm": cape_rm,
