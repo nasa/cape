@@ -95,10 +95,17 @@ COLNAMES_FM = {
     "C_xv": "CAv",
     "C_yv": "CYv",
     "C_zv": "CNv",
+    "CGx": "xcg",
+    "CGy": "ycg",
+    "CGz": "zcg",
+    "Yaw": "psi",
+    "Pitch": "theta",
+    "Roll": "phi",
     "Mass flow": "mdot",
     "<greek>r</greek>": "rho",
     "p/p<sub>0</sub>": "phat",
     "p<sub>t</sub>/p<sub>0</sub>": "p0hat",
+    "Time": databook.CASE_COL_TRAW,
     "T<sub>t</sub>": "T0",
     "T<sub>RMS</sub>": "Trms",
     "Mach": "mach",
@@ -318,6 +325,11 @@ class CaseFM(databook.CaseFM):
         self._fix_iter(db)
         # Output
         return db
+
+    # Read body positions
+    def read_bodydat(self) -> tsvfile.TSVTecDatFile:
+        # Check body name
+        ...
 
     # Function to fix iteration histories of one file
     def _fix_iter(self, db: tsvfile.TSVTecDatFile):
