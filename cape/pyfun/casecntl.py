@@ -1692,7 +1692,7 @@ class CaseRunner(casecntl.CaseRunner):
         r"""Get list of args prior to component name in :class:`CaseFM`
 
         :Call:
-            >>> args = runner.get_dex_args_pre()
+            >>> args = runner.get_dex_args_pre_fm()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -1706,6 +1706,23 @@ class CaseRunner(casecntl.CaseRunner):
         proj = self.get_project_baserootname()
         # Use it
         return (proj,)
+
+    # Create tuple of args after *comp*
+    def get_dex_args_post_fm(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_fm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one arg, *runner*
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        return (self,)
 
     # Create tuple of args to CaseResid
     def genr8_resid_args(self) -> tuple:

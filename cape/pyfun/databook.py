@@ -53,7 +53,7 @@ implemented for all CFD solvers.
 import os
 import glob
 import re
-from typing import Optional
+from typing import Any, Optional
 
 # Third-party modules
 import numpy as np
@@ -202,7 +202,9 @@ class CaseFM(databook.CaseFM):
     )
 
     # Initialization method
-    def __init__(self, proj: str, comp: str, **kw):
+    def __init__(
+            self, proj: str, comp: str,
+            runner: Optional[CaseRunner] = None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -211,8 +213,20 @@ class CaseFM(databook.CaseFM):
         """
         # Get the project rootname
         self.proj = proj
+        # Save project runner
+        self.runner = runner
         # Use parent initializer
         databook.CaseFM.__init__(self, comp, **kw)
+
+    # Get option
+    def get_databook_opt(self, opt: str, vdef=None) -> Any:
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_DataBookOpt(self.comp, opt, vdef=vdef)
 
     # Get working folder for flow
     def get_flow_folder(self) -> str:
