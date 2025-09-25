@@ -1129,7 +1129,6 @@ class CaseData(DataKit):
         """
         # Find appropriate columns
         cols = self.get_cols_parent(CASE_COL_ITERS)
-        cols.append(CASE_COL_ITERS)
         # Apply mask to each
         for col in cols:
             self[col] = self[col][mask]
@@ -1160,7 +1159,7 @@ class CaseData(DataKit):
         # Loop through cols
         for colj, vj in self.items():
             # Get parent
-            parent = parents.get(colj, "")
+            parent = parents.get(colj, colj)
             # Check
             if (parent == col) and (len(vj) == n):
                 cols.append(colj)

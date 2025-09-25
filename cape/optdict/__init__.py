@@ -1901,6 +1901,7 @@ class OptionsDict(dict):
             2
             >>> opts.get_subopt("C", "c")
             3
+
         :Call:
             >>> v = opts.get_subopt(sec, opt, key="Type", **kw)
         :Inputs:
@@ -2112,6 +2113,7 @@ class OptionsDict(dict):
         self[opt] = val
 
     # Apply option to subsection, if possible
+    @expand_doc
     def set_subopt(
             self,
             sec: str,

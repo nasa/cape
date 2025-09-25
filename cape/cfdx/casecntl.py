@@ -4777,6 +4777,7 @@ class CaseRunner(CaseRunnerBase):
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *j*: {``None``} | :class:`int`
+                Phase index
         :Outputs:
             *q*: :class:`bool`
                 ``True`` if no listed files have been modified recently
@@ -6007,7 +6008,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
@@ -6027,7 +6028,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
@@ -6047,7 +6048,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
@@ -6066,7 +6067,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-20 ``@ddalle`: v1.0
+            * 2024-09-20 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
