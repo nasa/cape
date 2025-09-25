@@ -101,6 +101,7 @@ class CfdxArgReader(argread.ArgReader):
         "hide": "hide-cols",
         "json": "f",
         "kill": "qdel",
+        "minsize": "cutoff",
         "pattern": "pat",
         "queue": "q",
         "regex": "re",
@@ -127,6 +128,7 @@ class CfdxArgReader(argread.ArgReader):
         "compile": bool,
         "cons": str,
         "cmd": str,
+        "cutoff": str,
         "dbpyfunc": (bool, str),
         "delete": bool,
         "dezombie": bool,
@@ -232,6 +234,7 @@ class CfdxArgReader(argread.ArgReader):
         "cols": "Explicit list of status columns",
         "counters": "Explicit list of keys to show totals for in ``py{x} -c``",
         "cons": 'Constraints on run matrix keys, e.g. ``"mach>1.0"``',
+        "cutoff": "Min file size or count for 'large'",
         "dbpyfunc": "Extract scalar data from custom Python function",
         "delete": "Delete DataBook entries instead of adding new ones",
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
@@ -279,6 +282,7 @@ class CfdxArgReader(argread.ArgReader):
         "add-counters": "COLS",
         "cons": "CONS",
         "counters": "COLS",
+        "cutoff": "SIZE",
         "dbpyfunc": "[PAT]",
         "e": "EXEC",
         "extend": "[N_EXT]",
@@ -834,6 +838,28 @@ class CfdxFailArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for --find-large
+class CfdxFindLargeArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-find-large"
+
+    # Description
+    _help_title = "Find folders with large file size"
+
+    # Additional options
+    _optlist = (
+        "cutoff",
+    )
+
+    # Arguemnts
+    _arglist = (
+        "cutoff",
+    )
+
+
 # Settings for --qdel
 class CfdxQdelArgs(_CfdxCaseLoopArgs):
     # No attributes
@@ -1031,6 +1057,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "cols",
         "cons",
         "counters",
+        "cutoff",
         "dbpyfunc",
         "delete",
         "dezombie",
@@ -1099,6 +1126,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqpt",
         "fail",
         "find-json",
+        "find-large",
         "qdel",
         "report",
         "rm",
@@ -1146,6 +1174,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqpt": CfdxExtractTriqPTArgs,
         "fail": CfdxFailArgs,
         "find-json": CfdxFindJSONArgs,
+        "find-large": CfdxFindLargeArgs,
         "qdel": CfdxQdelArgs,
         "report": CfdxReportArgs,
         "rm": CfdxRemoveCasesArgs,
@@ -1718,6 +1747,28 @@ def cape_find_json(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+def cape_find_large(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --find-large`` command
+
+    :Call:
+        >>> ierr == cape_fail(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.find_large_cases(**kw)
+    # Return code
+    return IERR_OK
+
+
 def cape_qdel(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --qdel`` command to stop PBS/Slurm cases
 
@@ -1980,6 +2031,7 @@ CMD_DICT = {
     "extract-triqpt": cape_extract_triqpt,
     "fail": cape_fail,
     "find-json": cape_find_json,
+    "find-large": cape_find_large,
     "qdel": cape_qdel,
     "report": cape_report,
     "rm": cape_rm,

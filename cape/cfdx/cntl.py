@@ -3324,6 +3324,9 @@ class Cntl(CntlBase):
         elif opt == "queue":
             # Get PBS/Slurm queue indicator
             return self.check_case_job(i)
+        elif opt == "dirsize":
+            # Get size of folder
+            return textutils.pprint_b(self.get_dir_size(i))
         else:
             return self.x.GetValue(opt, i)
 
@@ -4750,6 +4753,15 @@ class Cntl(CntlBase):
         textutils._printf("")
         # Output
         return largecases
+
+    # Get size of folder
+    def get_dir_size(self, i: int) -> int:
+        # Get case name
+        frun = self.x.GetFullFolderNames(i)
+        # Absolute path
+        fabs = self.abspath(frun)
+        # Return size
+        return fileutils.get_dir_size(fabs)
 
   # *** LOGGING ***
     def log_main(

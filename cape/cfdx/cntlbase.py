@@ -2752,6 +2752,26 @@ class CntlBase(ABC):
         """
         pass
 
+    # Find size of folder
+    @abstractmethod
+    def get_dir_size(self, i: int) -> int:
+        r"""Get total size of case folder
+
+        :Call:
+            >>> frun = cntl.get_dir_size(i)
+        :Inputs:
+            *cutoff*: {``"100MB"``} | :class:`str` | :class:`float`
+                Cutoff for "large", string or raw number of bytes
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *frun*: :class:`str`
+                List of "large" cases by total folder size
+        :Verions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        pass
+
   # *** LOGGING ***
     @abstractmethod
     def log_main(
