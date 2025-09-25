@@ -305,7 +305,7 @@ def pprint_b(x: Union[float, int], nchar: int = 3) -> str:
     # Get number of tens (actually cuberoot(1024))
     nten = 0 if abs(x) < 1 else int(math.log(x) / math.log(10.0793684))
     # Get number of 1024s
-    nth = int(math.log(x) / math.log(1024))
+    nth = 0 if abs(x) < 1 else int(math.log(x) / math.log(1024))
     # Extra orders of magnitude; 0 for 1.23k, 1 for 12.3k, 2 for 123k
     nround = nten - 3*nth
     # Number of digits after decimal we need to retain

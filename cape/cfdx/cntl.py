@@ -4728,6 +4728,9 @@ class Cntl(CntlBase):
         largecases = []
         # Loop through them
         for frun in fruns:
+            # Skip if folder doesn't exist
+            if not os.path.isdir(frun):
+                continue
             # Print name of folder
             textutils._printf(frun)
             # Get file size
