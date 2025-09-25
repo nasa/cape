@@ -4734,18 +4734,18 @@ class Cntl(CntlBase):
         # Initialize output
         largecases = []
         # Loop through them
-        for frun in fruns:
+        for i, frun in zip(mask, fruns):
             # Skip if folder doesn't exist
             if not os.path.isdir(frun):
                 continue
             # Print name of folder
-            textutils._printf(frun)
+            textutils._printf(f"{i:6d} {frun}")
             # Get file size
             dirsize = fileutils.get_dir_size(frun)
             # Convert to label
             dirsize_nice = textutils.pprint_b(dirsize)
             # Print it
-            textutils._printf(f"{frun}: {dirsize_nice}")
+            textutils._printf(f"{i:6d} {frun}: {dirsize_nice}")
             # Check it
             if dirsize > minsize:
                 # Append to list
