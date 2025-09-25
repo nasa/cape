@@ -14,7 +14,7 @@ import re
 import time
 from collections import namedtuple
 from io import IOBase
-from typing import Optional
+from typing import Optional, Union
 
 
 # Default encoding
@@ -23,6 +23,36 @@ DEFAULT_ENCODING = "utf-8"
 
 #: Output type containing latest file name and regex match instance
 LatestRegex = namedtuple("LatestRegex", ("fname", "regmatch"))
+
+
+# Get total size of a directory
+def get_dir_size(path: str = ".") -> int:
+    r"""Get total size of a folder
+
+    :Call:
+        >>> fsize = get_dir_size(path=".")
+    :Inputs:
+        *path*: ``{'.'}`` | :class:`str`
+            Path to folder to measure
+    :Outputs:
+        *fsize*: :class:`int`
+            Total size in bytes
+    :Versions:
+        * 2025-09-25 ``@ddalle``: v1.0
+    """
+    # Initialize
+    total = 0
+    # Walk through folders
+    for dirpath, _, filenames in os.walk(path):
+        # Add up sizes of files
+        for f in filenames:
+            # Full path
+            fp = os.path.join(dirpath, f)
+            # Skip if it’s a broken symlink
+            if os.path.isfile(fp):
+                total += os.path.getsize(fp)
+    # Output
+    return total
 
 
 # Return each line w/ a regular expression
@@ -383,3 +413,41 @@ def sort_by_mtime(filelist: list) -> list:
     """
     # Sort by mod time
     return sorted(filelist, key=os.path.getmtime)
+
+
+# Expand file size to bytes
+def expand_fsize(txt: Union[int, float, str]) -> float:
+    r"""Expand short-codes for file size, ``"1kb"`` -> ``1024``
+
+    :Call:
+        >>> fsize = expand_fsize(txt)
+    :Inputs:
+        *txt*: :class:`str`
+            Short string for file size, e.g. ``"2.4GB"``
+    :Outputs:
+        *fsize*: :class:`float`
+            File size as floating-point
+    :Verions:
+        * 2025-09-25 ``@ddalle``: v1.0
+    """
+    # Check file type
+    if not isinstance(txt, str):
+        return float(txt)
+    # Strip final "B"
+    lbl = txt.rstrip('B')
+    # Get last remaining character
+    c = lbl[-1]
+    # Check for extension
+    if c in 'kMGTPE':
+        # Get exponent
+        exp = 'kMGTPE'.index(c) + 1
+        # Split
+        v = lbl[:-1]
+        # Get multiplier
+        k = 1024 ** exp
+    else:
+        # Use full string
+        v = lbl
+        k = 1
+    # Try to convert
+    return int(v) * k

@@ -2731,6 +2731,27 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- File size ---
+    # Report case size
+    @abstractmethod
+    def find_large_cases(self, cutoff: float = "100MB", **kw) -> list:
+        r"""Find large case folders
+
+        :Call:
+            >>> fruns = cntl.find_large_cases(cutoff='100MB', **kw)
+        :Inputs:
+            *cutoff*: {``"100MB"``} | :class:`str` | :class:`float`
+                Cutoff for "large", string or raw number of bytes
+            *kw*: :class:`dict`
+                Options used to subset the run matrix
+        :Outputs:
+            *fruns*: :class:`list`\ [:class:`str`]
+                List of "large" cases by total folder size
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        pass
+
   # *** LOGGING ***
     @abstractmethod
     def log_main(

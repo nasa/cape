@@ -52,6 +52,7 @@ from . import casecntl
 from . import queue
 from .. import console
 from .. import convert
+from .. import fileutils
 from .. import textutils
 from .casecntl import CaseRunner
 from .cntlbase import CntlBase
@@ -4713,6 +4714,39 @@ class Cntl(CntlBase):
             runner = self.ReadCaseRunner(i)
             # Unarchive!
             runner.unarchive(test)
+
+   # --- File size ---
+    @run_rootdir
+    def find_large_cases(self, cutoff: str = "100MB", **kw) -> list:
+        # Get cases
+        mask = self.x.GetIndices(**kw)
+        # Get folder names
+        fruns = self.x.GetFullFolderNames(mask)
+        # Expand the cutoff
+        minsize = fileutils.expand_fsize(cutoff)
+        # Initialize output
+        largecases = []
+        # Loop through them
+        for frun in fruns:
+            # Print name of folder
+            textutils._printf(frun)
+            # Get file size
+            dirsize = fileutils.get_dir_size(frun)
+            # Convert to label
+            dirsize_nice = textutils.pprint_b(dirsize)
+            # Print it
+            textutils._printf(f"{frun}: {dirsize_nice}")
+            # Check it
+            if dirsize > minsize:
+                # Append to list
+                largecases.append(frun)
+                # Keep STDOUT
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+        # Clean up prompt
+        textutils._printf("")
+        # Output
+        return largecases
 
   # *** LOGGING ***
     def log_main(
