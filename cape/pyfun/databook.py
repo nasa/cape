@@ -362,6 +362,16 @@ class CaseFM(databook.CaseFM):
 
     # Read and apply body positions
     def apply_moving_body(self):
+        r"""Read and apply any moving-body data
+
+        :Call:
+            >>> fm.apply_moving_body()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
         # Check for moving-body data
         dat = self.read_bodydat()
         # Column name used frequently
@@ -389,6 +399,19 @@ class CaseFM(databook.CaseFM):
 
     # Read body positions
     def read_bodydat(self) -> Optional[tsvfile.TSVTecDatFile]:
+        r"""Read and return any moving-body data
+
+        :Call:
+            >>> dat = fm.read_bodydat()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *dat*: :class:`cape.dkit.tsvfile.TSVTecDatFile` | ``None``
+                Moving-body position data, if relevant and found
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
         # Check body name
         body = self.get_databook_opt("Body")
         # Exit if no moving body

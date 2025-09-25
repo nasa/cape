@@ -25,7 +25,7 @@ import os
 import re
 import shutil
 import time
-from typing import Optional
+from typing import Any, Optional
 
 # Third-party modules
 import numpy as np
@@ -105,6 +105,8 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Class attributes ---
     # Additional attributes
     __slots__ = (
+        "mbnml",
+        "mbnml_j",
         "nml",
         "nml_j",
     )
@@ -1546,18 +1548,80 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read the options
         rc = self.read_case_json()
-        # Determine phase number
-        j = self.get_phase()
-        # Need the namelist to figure out planes, etc.
-        nml = self.read_namelist(j)
         # Get the project root name
-        proj = nml.get_opt('project', 'project_rootname')
+        proj = self.get_namelist_opt('project', 'project_rootname')
         # Strip suffix
         if rc.get_Dual() or rc.get_Adaptive():
             # Strip adaptive section
             proj = proj[:-2]
         # Output
         return proj
+
+    # Get generic option from namelist
+    def get_namelist_opt(
+            self, sec: str, opt: str,
+            j: Optional[int] = None,
+            i=None, vdef=None) -> Any:
+        r"""Get option from current ``fun3d.nml``
+
+        :Call:
+            >>> v = runner.get_namelist_opt(sec, opt)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *sec*: :class:`str`
+                Name of namelist section
+            *opt*: :class:`str`
+                Option name
+            *j*: {``None``} | :class:`int`
+                Phase number
+            *i*: {``None``} | :class:`int` | :class:`slice` | ``tuple``
+                Index or indices of *val* to return ``nml[sec][opt]``
+            *vdef*: {``None``} | :class:`object`
+                Default value if *opt* not present in ``nml[sec]``
+        :Outputs:
+            *v*: :class:`object`
+                Option value from ``fun3d.nml``
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        # Need the namelist to figure out planes, etc.
+        nml = self.read_namelist(j=j)
+        # Get the option
+        return nml.get_opt(sec, opt, j=i, vdef=vdef)
+
+    # Get generic moving-body namelist option
+    def get_moving_body_opt(
+            self, sec: str, opt: str,
+            j: Optional[int] = None,
+            i=None, vdef=None) -> Any:
+        r"""Get option from current ``moving_body.input``
+
+        :Call:
+            >>> v = runner.get_moving_body_opt(sec, opt)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *sec*: :class:`str`
+                Name of namelist section
+            *opt*: :class:`str`
+                Option name
+            *j*: {``None``} | :class:`int`
+                Phase number
+            *i*: {``None``} | :class:`int` | :class:`slice` | ``tuple``
+                Index or indices of *val* to return ``nml[sec][opt]``
+            *vdef*: {``None``} | :class:`object`
+                Default value if *opt* not present in ``nml[sec]``
+        :Outputs:
+            *v*: :class:`object`
+                Option value from ``fun3d.nml``
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        # Read the namelist
+        nml = self.read_moving_body(j)
+        # Get the option
+        return nml.get_opt(sec, opt, j=i, vdef=vdef)
 
     # Function to get the most recent working folder
     @casecntl.run_rootdir
@@ -1624,7 +1688,7 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Special readers ---
     # Read namelist
     @casecntl.run_rootdir
-    def read_namelist(self, j=None):
+    def read_namelist(self, j=None) -> Namelist:
         r"""Read case namelist file
 
         :Call:
@@ -1680,9 +1744,52 @@ class CaseRunner(casecntl.CaseRunner):
             return nml
         # Get the specified namelist
         nml = Namelist('fun3d.%02i.nml' % j)
-        # Exit `Flow/` folder if necessary
-        if qdual:
-            os.chdir('..')
+        # Cache it
+        self.nml = nml
+        self.nml_j = j
+        # Output
+        return nml
+
+    # Read moving_body.input namelist
+    @casecntl.run_rootdir
+    def read_moving_body(self, j: Optional[int] = None) -> Namelist:
+        r"""Read case ``moving_body.input`` namelist file
+
+        :Call:
+            >>> nml = runner.read_moving_body(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *nml*: :class:`cape.pyfun.namelist.Namelist`
+                Namelist interface
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        # Read ``case.json`` if necessary
+        rc = self.read_case_json()
+        # Process phase number
+        if j is None and rc is not None:
+            # Default to most recent phase number
+            j = self.get_phase_next()
+        # Get phase of namelist previously read
+        nmlj = self.mbnml_j
+        # Check if already read
+        if isinstance(self.mbnml, Namelist) and nmlj == j and j is not None:
+            # Return it!
+            return self.mbnml
+        # Name of file
+        fnml = f"moving_body.{j:02d}.input"
+        # Check for file
+        if not os.path.isfile(fnml):
+            return
+        # Get the specified namelist
+        nml = Namelist(fnml)
+        # Save it
+        self.mbnml = nml
+        self.mbnml_j = j
         # Output
         return nml
 
