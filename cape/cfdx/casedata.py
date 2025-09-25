@@ -2716,6 +2716,10 @@ class CaseFM(CaseData):
         # Yawing moment: axial force
         if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
             self["CLN"] += (xi[0]-x[0])/Lref*self["CY"]
+
+    # Shift the moment center for a history of points
+    def shift_mrp_array(self, dat: dict):
+        ...
    # >
 
    # ===========
