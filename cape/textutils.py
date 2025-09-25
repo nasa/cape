@@ -326,7 +326,7 @@ def _printf(txt: str):
     # Get terminal width
     wsize = shutil.get_terminal_size().columns
     # Clear prompt
-    sys.stdout.write("%*s\r" % (wsize - 1, ''))
+    sys.stdout.write("\r%*s\r" % (wsize - 1, ''))
     # Write output
     sys.stdout.write(txt)
     sys.stdout.flush()

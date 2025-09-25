@@ -94,6 +94,7 @@ COL_HEADERS = {
     "case": "Case Folder",
     "cpu-abbrev": "CPU Hours",
     "cpu-hours": "CPU Time",
+    "dirsize": "Size",
     "frun": "Config/Run Directory",
     "gpu-abbrev": "GPU Hours",
     "gpu-hours": "GPU Hours",
@@ -2849,6 +2850,9 @@ class Cntl(CntlBase):
         elif opt == "queue":
             # Queue indicator
             return 1
+        elif opt == "dirsize":
+            # Folder size
+            return 6
         else:
             # Get values
             vals = self.x.GetValue(opt, I)
