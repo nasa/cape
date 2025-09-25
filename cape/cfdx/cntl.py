@@ -3343,6 +3343,7 @@ class Cntl(CntlBase):
             # Convert to nice string
             txt = str(nfile) if (nfile < 1000) else textutils.pprint_n(nfile)
             txt = '' if (nfile < 2) else txt
+            return txt
         else:
             return self.x.GetValue(opt, i)
 

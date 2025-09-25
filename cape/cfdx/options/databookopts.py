@@ -39,6 +39,7 @@ class DBCompOpts(OptionsDict):
 
     # Recognized options
     _optlist = {
+        "Body",
         "Cols",
         "CompID",
         "DNStats",
@@ -71,6 +72,7 @@ class DBCompOpts(OptionsDict):
         "NLast": "NLastStats",
         "NMax": "NLastStats",
         "NStatsMax": "NMaxStats",
+        "body": "Body",
         "coeffs": "Cols",
         "cols": "Cols",
         "dnStats": "DNStats",
@@ -88,6 +90,7 @@ class DBCompOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "Body": (str, int),
         "Cols": str,
         "DNStats": INT_TYPES,
         "FloatCols": str,
@@ -113,6 +116,7 @@ class DBCompOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "Body": "reference body name for motion of this component",
         "Cols": "list of primary solver output variables to include",
         "CompID": "surface componet(s) to use for this databook component",
         "DNStats": "increment for candidate window sizes",
