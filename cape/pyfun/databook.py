@@ -110,6 +110,7 @@ COLNAMES_FM = {
     "T<sub>RMS</sub>": "Trms",
     "Mach": "mach",
     "Simulation Time": databook.CASE_COL_TRAW,
+    "Simulation_Time": databook.CASE_COL_TRAW,
 }
 
 # Column names for primary history, {PROJ}_hist.dat
