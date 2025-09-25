@@ -8,7 +8,8 @@ This module provides the classes :class:`CaseFM` and
 
 # Standard library
 import os
-from typing import Optional
+from collections import namedtuple
+from typing import Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -79,6 +80,10 @@ _FONT_FAMILY = [
 ]
 FONT_FAMILY = [
 ]
+
+
+# Simple point class
+Point = namedtuple("Point", ("x", "y", "z"))
 
 
 # Dedicated function to load Matplotlib only when needed.
@@ -154,6 +159,7 @@ class CaseData(DataKit):
     __slots__ = (
         "coeffs",
         "iter_cache",
+        "runner",
     )
 
     # Default column lists
@@ -168,7 +174,7 @@ class CaseData(DataKit):
 
    # --- __dunder__ ---
     # Initialization method
-    def __init__(self, meta: bool = False, **kw):
+    def __init__(self, meta: bool = False, runner=None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -194,6 +200,8 @@ class CaseData(DataKit):
         # De-None
         i0 = 0 if i0 is None else i0
         i1 = 0 if i1 is None else i1
+        # Save case runner
+        self.runner = runner
 
    # --- I/O ---
     # Initialize file attritubets
@@ -2720,6 +2728,41 @@ class CaseFM(CaseData):
     # Shift the moment center for a history of points
     def shift_mrp_array(self, dat: dict):
         ...
+
+    # Rotate a point history
+    def rotate_point_history(
+            self,
+            x: Union[float, np.ndarray],
+            y: Union[float, np.ndarray],
+            z: Union[float, np.ndarray],
+            x0: Union[float, np.ndarray],
+            y0: Union[float, np.ndarray],
+            z0: Union[float, np.ndarray]) -> Point:
+        # Get angle history
+        ph = self.get_values("phi")
+        th = self.get_values("theta")
+        ps = self.get_values("psi")
+        # Exit if not specified
+        if (ph is None) or (th is None) or (ps is None):
+            return Point(x, y, z)
+        # Calculate trig functions
+        cph = np.cos(ph*DEG)
+        sph = np.sin(ph*DEG)
+        cth = np.cos(th*DEG)
+        sth = np.sin(th*DEG)
+        cps = np.cos(ps*DEG)
+        sps = np.sin(ps*DEG)
+        # Get position relative to origin
+        dx = x - x0
+        dy = y - y0
+        dz = z - z0
+        # Rotate
+        xp = cps*cth*dx + (cps*sth*sph-sps*cph)*dy + (cps*sth*cph+sps*sph)*dz
+        yp = sps*cth*dx + (sps*sth*sph+cps*cph)*dy + (sps*sth*cph-cps*sph)*dz
+        zp = -sth*dx + cth*sph*dy + cth*cph*dz
+        # Relative to ration point
+        return Point(x0+xp, y0+yp, z0+zp)
+
    # >
 
    # ===========

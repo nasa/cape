@@ -165,7 +165,7 @@ COLNAMES_SUBHIST = {
 
 
 # Force/moment history
-class CaseFM(databook.CaseFM):
+class CaseFM(casedata.CaseFM):
     r"""Iterative force & moment histories for one case, one component
 
     This class contains methods for reading data about an the history
