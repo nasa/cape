@@ -2765,8 +2765,28 @@ class CntlBase(ABC):
             *i*: :class:`int`
                 Case index
         :Outputs:
-            *frun*: :class:`str`
-                List of "large" cases by total folder size
+            *fsize*: :class:`int`
+                Number of bytes in folder
+        :Verions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Find number of files in folder
+    @abstractmethod
+    def get_dir_files(self, i: int) -> int:
+        r"""Get total number of files in case folder
+
+        :Call:
+            >>> nfiles = cntl.get_dir_files(i)
+        :Inputs:
+            *cutoff*: {``"100MB"``} | :class:`str` | :class:`float`
+                Cutoff for "large", string or raw number of bytes
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *nfiles*: :class:`int`
+                Total number of files
         :Verions:
             * 2025-09-25 ``@ddalle``: v1.0
         """

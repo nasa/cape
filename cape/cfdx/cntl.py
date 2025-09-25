@@ -95,6 +95,7 @@ COL_HEADERS = {
     "cpu-abbrev": "CPU Hours",
     "cpu-hours": "CPU Time",
     "dirsize": "Size",
+    "files": "Files",
     "frun": "Config/Run Directory",
     "gpu-abbrev": "GPU Hours",
     "gpu-hours": "GPU Hours",
@@ -2853,6 +2854,8 @@ class Cntl(CntlBase):
         elif opt == "dirsize":
             # Folder size
             return 6
+        elif opt == "files":
+            return 5
         else:
             # Get values
             vals = self.x.GetValue(opt, I)
@@ -3334,6 +3337,12 @@ class Cntl(CntlBase):
             # Convert to nice string
             txt = '' if (fsize < 1) else textutils.pprint_b(fsize)
             return txt
+        elif opt == "files":
+            # Get number of files
+            nfile = self.get_dir_files(i)
+            # Convert to nice string
+            txt = str(nfile) if (nfile < 1000) else textutils.pprint_n(nfile)
+            txt = '' if (nfile < 2) else txt
         else:
             return self.x.GetValue(opt, i)
 
@@ -4769,6 +4778,15 @@ class Cntl(CntlBase):
         fabs = self.abspath(frun)
         # Return size
         return fileutils.get_dir_size(fabs)
+
+    # Get number of files
+    def get_dir_files(self, i: int) -> int:
+        # Get case name
+        frun = self.x.GetFullFolderNames(i)
+        # Absolute path
+        fabs = self.abspath(frun)
+        # Return size
+        return fileutils.get_dir_files(fabs)
 
   # *** LOGGING ***
     def log_main(

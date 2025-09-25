@@ -55,6 +55,34 @@ def get_dir_size(path: str = ".") -> int:
     return total
 
 
+# Get total number of files in a directory
+def get_dir_files(path: str = ".") -> int:
+    r"""Get total number of files in a folder
+
+    Both folders and broken links count toward total.
+
+    :Call:
+        >>> nfile = get_dir_files(path=".")
+    :Inputs:
+        *path*: ``{'.'}`` | :class:`str`
+            Path to folder to measure
+    :Outputs:
+        *nfile*: :class:`int`
+            Total file count (including dirs)
+    :Versions:
+        * 2025-09-25 ``@ddalle``: v1.0
+    """
+    # Initialize
+    total = 1
+    # Walk through folders
+    for _, dirnames, filenames in os.walk(path):
+        # Add number of files, even broken links
+        total += len(dirnames)
+        total += len(filenames)
+    # Output
+    return total
+
+
 # Return each line w/ a regular expression
 def grep(
         pat: str,
