@@ -13,12 +13,17 @@ and more.
 
 # Standard library
 import fnmatch
-from typing import Optional
+from typing import Optional, Union
 
 # Local imports
 from .cntl import Cntl
+from ..argread import clitext
 from ..fileutils import grep
 from ..gitutils import GitRepo
+
+
+# Default warning mode
+_WARNMODE = Cntl._warnmode_default
 
 
 # Find JSON files
@@ -61,3 +66,32 @@ def find_json(pat: Optional[str] = None) -> list:
             cape_json_files.append(candidate)
     # Output
     return cape_json_files
+
+
+# Find all large cases in repo
+def search_repo_large(
+        pat: Optional[str] = None,
+        cutoff: Union[str, float, int] = "100MB", **kw) -> dict:
+    # Initialize results
+    configs = {}
+    # Find JSON files
+    json_files = find_json(pat)
+    # Turn off warnings
+    Cntl._warnmode_default = 0
+    # Loop through
+    for json_file in json_files:
+        # Print name of JSON file
+        print(clitext.bold("json_file"))
+        # Read JSON file
+        try:
+            cntl = Cntl(json_file)
+        except Exception:
+            continue
+        # Find large files, w/ STDOUT
+        large_cases = cntl.find_large_cases(cutoff, **kw)
+        # Append to list
+        configs[json_file] = large_cases
+    # Reset warning mode
+    Cntl._warnmode_default = _WARNMODE
+    # Output
+    return configs

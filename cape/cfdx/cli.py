@@ -947,6 +947,30 @@ class CfdxRunArgs(CfdxArgReader):
     )
 
 
+# Settings for --search-large
+class CfdxSearchLargeArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-search-large"
+
+    # Description
+    _help_title = "Find large cases from all run matrices in repo"
+
+    # Additional options
+    _optlist = (
+        "pat",
+        "cutoff",
+    )
+
+    # Arguemnts
+    _arglist = (
+        "pat",
+        "cutoff",
+    )
+
+
 # Settings for --skeleton
 class CfdxSkeletonArgs(_CfdxSubsetArgs):
     # No attributes
@@ -1130,6 +1154,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "qdel",
         "report",
         "rm",
+        "search-large",
         "skeleton",
         "unarchive",
         "unmark",
@@ -1179,6 +1204,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "report": CfdxReportArgs,
         "rm": CfdxRemoveCasesArgs,
         "run": CfdxRunArgs,
+        "search-large": CfdxSearchLargeArgs,
         "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
         "unarchive": CfdxUnarchiveArgs,
@@ -1858,6 +1884,28 @@ def cape_run(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+def cape_search_large(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --search-large`` command
+
+    :Call:
+        >>> ierr == cape_search_large(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-09-25 ``@ddalle``: v1.0
+    """
+    # Parse args
+    kw = parser.get_kwargs()
+    # Find large cases
+    manage.search_repo_large(**kw)
+    # Return code
+    return IERR_OK
+
+
 def cape_skeleton(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --skeleton`` command
 
@@ -2036,6 +2084,7 @@ CMD_DICT = {
     "report": cape_report,
     "rm": cape_rm,
     "run": cape_run,
+    "search-large": cape_search_large,
     "skeleton": cape_skeleton,
     "start": cape_start,
     "unarchive": cape_unarchive,
