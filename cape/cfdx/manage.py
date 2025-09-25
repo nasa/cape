@@ -81,7 +81,7 @@ def search_repo_large(
     # Loop through
     for json_file in json_files:
         # Print name of JSON file
-        print(clitext.bold("json_file"))
+        print(clitext.bold(json_file))
         # Read JSON file
         try:
             cntl = Cntl(json_file)
