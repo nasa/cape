@@ -3330,7 +3330,10 @@ class Cntl(CntlBase):
             return self.check_case_job(i)
         elif opt == "dirsize":
             # Get size of folder
-            return textutils.pprint_b(self.get_dir_size(i))
+            fsize = self.get_dir_size(i)
+            # Convert to nice string
+            txt = '' if (fsize < 1) else textutils.pprint_b(fsize)
+            return txt
         else:
             return self.x.GetValue(opt, i)
 

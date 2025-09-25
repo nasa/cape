@@ -86,6 +86,7 @@ class CfdxArgReader(argread.ArgReader):
     _optmap = {
         "ERROR": "FAIL",
         "F": "force",
+        "add-col": "add-cols",
         "aero": "fm",
         "approve": "PASS",
         "check": "c",
