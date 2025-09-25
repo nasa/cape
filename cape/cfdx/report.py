@@ -432,6 +432,7 @@ class Report(object):
             frun = self.get_case_name(i)
             # Get the actual iteration number.
             n = self.get_case_n(i)
+            n = 0 if n is None else n
             # Select character
             c = yes if (n >= nmin) else no
             c = no if ((n == 0) and (nz == 0)) else c
