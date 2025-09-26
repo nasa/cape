@@ -2224,10 +2224,10 @@ class CaseFM(CaseData):
         :Call:
             >>> fm2 = FM1.Copy()
         :Inputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Force and moment history
         :Outputs:
-            *FM2*: :class:`cape.cfdx.databook.CaseFM`
+            *FM2*: :class:`CaseFM`
                 Copy of *FM1*
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2247,7 +2247,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.AddData(A)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
                 Matrix of forces and/or moments at *N* iterations
@@ -2472,12 +2472,12 @@ class CaseFM(CaseData):
             >>> fm3 = fm1.__add__(fm2)
             >>> fm3 = fm1 + fm2
         :Inputs:
-            *fm1*: :class:`cape.cfdx.databook.CaseFM`
+            *fm1*: :class:`CaseFM`
                 Initial force and moment iterative history
-            *fm2*: :class:`cape.cfdx.databook.CaseFM`
+            *fm2*: :class:`CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *fm1*: :class:`cape.cfdx.databook.CaseFM`
+            *fm1*: :class:`CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2520,12 +2520,12 @@ class CaseFM(CaseData):
             >>> fm1 = fm1.__iadd__(fm2)
             >>> fm1 += fm2
         :Inputs:
-            *fm1*: :class:`cape.cfdx.databook.CaseFM`
+            *fm1*: :class:`CaseFM`
                 Initial force and moment iterative history
-            *fm2*: :class:`cape.cfdx.databook.CaseFM`
+            *fm2*: :class:`CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *fm1*: :class:`cape.cfdx.databook.CaseFM`
+            *fm1*: :class:`CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2568,12 +2568,12 @@ class CaseFM(CaseData):
             >>> fm3 = FM1.__sub__(FM2)
             >>> fm3 = FM1 - FM2
         :Inputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.cfdx.databook.CaseFM`
+            *FM2*: :class:`CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2616,12 +2616,12 @@ class CaseFM(CaseData):
             >>> fm1 = fm1.__isub__(fm2)
             >>> fm1 -= fm2
         :Inputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.cfdx.databook.CaseFM`
+            *FM2*: :class:`CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2690,7 +2690,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.TransformFM(topts, x, i)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -2839,7 +2839,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.ShiftMRP(Lref, x, xi=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *Lref*: :class:`float`
                 Reference length
@@ -2874,7 +2874,21 @@ class CaseFM(CaseData):
             self["CLN"] += (xi[0]-x[0])/Lref*self["CY"]
 
     # Shift moment center for specified points
-    def shift_mrp_body(self, x0: Point, x: Point):
+    def shift_mrp_body(self):
+        r"""Shift moment [coefficient] for moving-body MRP movements
+
+        :Call:
+            >>> fm.shift_mrp_body()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Instance of the force and moment class
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Get rotation origin
+        x0 = self.get_rotation_origin()
+        # Get history of MRP
+        x = self.genr8_mrp_history()
         # Loop through suffixes
         for suffix in ('', 'p', 'v'):
             # Get force coefficients
@@ -2950,17 +2964,6 @@ class CaseFM(CaseData):
         cln += (x0-x)/lref * cy
         # Output
         return Point(cll, clm, cln)
-
-    # Shift the moment center for a history of points
-    def shift_mrp_array(self):
-        # Get original MRP
-        xmrp0, ymrp0, zmrp0 = self.get_mrp()
-        # Get iterative history thereof
-        xmrp, ymrp, zmrp = self.genr8_mrp_history()
-        # Save those
-        self.save_col("xmrp", xmrp)
-        self.save_col("ymrp", ymrp)
-        self.save_col("zmrp", zmrp)
 
     # Rotate a point history
     def rotate_point_history(
@@ -3118,7 +3121,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStatsN(nStats, nLast=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Number of iterations in window to use for statistics
@@ -3195,7 +3198,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStatsOld(nStats, nMax=None, nLast=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Minimum number of iterations in window to use for statistics
@@ -3256,7 +3259,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStatsCoeff(coeff, nStats=100, nMax=None, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
@@ -3313,7 +3316,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStats(nStats, nMax=None, nLast=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
@@ -3374,7 +3377,7 @@ class CaseFM(CaseData):
         :Call:
             >>> h = fm.PlotCoeff(c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the component force history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
@@ -3412,7 +3415,7 @@ class CaseFM(CaseData):
         :Call:
             >>> h = fm.PlotCoeffHist(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the component force history class
             *comp*: :class:`str`
                 Name of component to plot
