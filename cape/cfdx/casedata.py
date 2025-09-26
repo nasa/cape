@@ -1297,12 +1297,8 @@ class CaseData(DataKit):
         # Process inputs.
         nLast = kw.get('nLast')
         nFirst = kw.get('nFirst', 1)
-        # De-None
-        if nFirst is None:
-            nFirst = 1
-        # Check if *nFirst* is negative
-        if nFirst < 0:
-            nFirst = self[CASE_COL_ITERS][-1] + nFirst
+        nFirst = 1 if (nFirst is None) else nFirst
+        nFirst = self[CASE_COL_ITERS][-1] + nFirst if (nFirst < 0) else nFirst
         # Iterative uncertainty options
         dc = kw.get("d", 0.0)
         ksig = kw.get("k", 0.0)
@@ -1336,7 +1332,7 @@ class CaseData(DataKit):
        # Last Iter
        # ---------
         # Most likely last iteration
-        iB = xval[-1]
+        iB = iters[-1]
         # Check for an input last iter
         if nLast is not None:
             # Attempt to use requested iter.
@@ -1344,7 +1340,7 @@ class CaseData(DataKit):
                 # Using an earlier iter; make sure to use one in the hist.
                 # Find the iterations that are less than i.
                 jB = self.GetIterationIndex(nLast)
-                iB = xval[jB]
+                iB = iters[jB]
         # Get the index of *iB* in *self.i*.
         jB = self.GetIterationIndex(iB)
        # ----------
@@ -1358,14 +1354,22 @@ class CaseData(DataKit):
             n = len(iters)
         j0 = max(0, jB - n)
         # Get the starting iteration number to use.
-        i0 = max(0, xval[j0], nFirst) + 1
+        i0 = max(0, iters[j0], nFirst) + 1
+        # Make sure *iA* is in *iters* and get the index.
+        j0 = self.GetIterationIndex(i0)
+        # Reselect *i0* in case initial value was not in *self.i*.
+        i0 = iters[j0]
        # --------------
        # Averaging Iter
        # --------------
         # Get the first iteration to use in averaging.
         jA = max(j0, jB-nAvg+1)
         # Reselect *iV* in case initial value was not in *self.i*.
-        iA = xval[jA]
+        iA = iters[jA]
+        # Ssample
+        x0 = xval[j0]
+        xA = xval[jA]
+        xB = xval[jB]
        # -----------------------
        # Standard deviation plot
        # -----------------------
@@ -1394,7 +1398,7 @@ class CaseData(DataKit):
             cMin = cAvg - ksig*c_std
             cMax = cAvg + ksig*c_std
             # Plot the target window boundaries.
-            h['std'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_s)
+            h['std'] = plt.fill_between([xA, xB], [cMin]*2, [cMax]*2, **kw_s)
        # --------------------------
        # Iterative uncertainty plot
        # --------------------------
@@ -1419,7 +1423,7 @@ class CaseData(DataKit):
             cMin = cAvg - uerr*c_err
             cMax = cAvg + uerr*c_err
             # Plot the target window boundaries.
-            h['err'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_u)
+            h['err'] = plt.fill_between([xA, xB], [cMin]*2, [cMax]*2, **kw_u)
        # ---------
        # Mean plot
        # ---------
@@ -1440,8 +1444,8 @@ class CaseData(DataKit):
             kw1[k] = kw_m.get_opt(k, 1)
         # Plot the mean.
         h['mean'] = (
-            plt.plot([i0, iA], [cAvg, cAvg], **kw0) +
-            plt.plot([iA, iB], [cAvg, cAvg], **kw1))
+            plt.plot([x0, xA], [cAvg, cAvg], **kw0) +
+            plt.plot([xA, xB], [cAvg, cAvg], **kw1))
        # ----------
        # Delta plot
        # ----------
@@ -1465,11 +1469,11 @@ class CaseData(DataKit):
             cMax = cAvg+dc
             # Plot the target window boundaries.
             h['min'] = (
-                plt.plot([i0, iA], [cMin, cMin], **kw0) +
-                plt.plot([iA, iB], [cMin, cMin], **kw1))
+                plt.plot([x0, xA], [cMin, cMin], **kw0) +
+                plt.plot([xA, xB], [cMin, cMin], **kw1))
             h['max'] = (
-                plt.plot([i0, iA], [cMax, cMax], **kw0) +
-                plt.plot([iA, iB], [cMax, cMax], **kw1))
+                plt.plot([x0, xA], [cMax, cMax], **kw0) +
+                plt.plot([xA, xB], [cMax, cMax], **kw1))
        # ------------
        # Primary plot
        # ------------
@@ -1496,13 +1500,15 @@ class CaseData(DataKit):
             # Use the coefficient
             ly = c
         # Process axis labels
-        xlbl = kw.get('XLabel', 'Iteration Number')
+        xlbldef = 'Iteration Number' if (xcol == 'i') else xcol
+        xlbl = kw.get('XLabel', xlbldef)
         ylbl = kw.get('YLabel', ly)
-        # Labels.
+        # Labels
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
-        # Set the xlimits.
-        h['ax'].set_xlim((i0, 1.03*iB-0.03*i0))
+        # Set the xlimits
+        if xcol == 'i':
+            h['ax'].set_xlim((i0, 1.03*iB-0.03*i0))
         # Set figure dimensions
         if fh:
             h['fig'].set_figheight(fh)
