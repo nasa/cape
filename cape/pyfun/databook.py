@@ -53,7 +53,7 @@ implemented for all CFD solvers.
 import os
 import glob
 import re
-from typing import Any, Optional
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -220,33 +220,6 @@ class CaseFM(casedata.CaseFM):
         databook.CaseFM.__init__(self, comp, **kw)
         # Apply moving-body transformations
         self.apply_moving_body()
-
-    # Get option
-    def get_databook_opt(self, opt: str, vdef=None) -> Any:
-        r"""Get a *DataBook* option for the component that *fm* tracks
-
-        :Call:
-            >>> v = fm.get_databook_opt(opt, vdef=None)
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Force & moment iterative history
-            *opt*: :class:`str`
-                Name of option to query
-            *vdef*: {``None``} | :class:`object`
-                Default value
-        :Outputs:
-            *v*: :class:`object`
-                Value of run matrix's *DataBook* > *fm.comp* > *opt*
-        :Versions:
-            * 2025-09-25 ``@ddalle``: v1.0
-        """
-        # Check for runner
-        if self.runner is None:
-            return vdef
-        # Get *cntl*
-        cntl = self.runner.read_cntl()
-        # Get option
-        return cntl.opts.get_DataBookOpt(self.comp, opt, vdef=vdef)
 
     # Get working folder for flow
     def get_flow_folder(self) -> str:
@@ -425,6 +398,18 @@ class CaseFM(casedata.CaseFM):
         # Read it
         dat = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
         return dat
+
+    def get_rotation_origin_x(self) -> float:
+        # Check body name
+        body = self.get_databook_opt("Body")
+        # Exit if no moving body
+        if body is None:
+            return 0.0
+        # Ensure int
+        i = int(body)
+        # Get option
+        return self.runner.get_moving_body_opt(
+            "forced_motion", "rotation_origin_x", i=i-1)
 
     # Function to fix iteration histories of one file
     def _fix_iter(self, db: tsvfile.TSVTecDatFile):
