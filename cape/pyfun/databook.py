@@ -399,7 +399,21 @@ class CaseFM(casedata.CaseFM):
         dat = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
         return dat
 
+    # Get rotation origin coordinate
     def get_rotation_origin_x(self) -> float:
+        r"""Get rotation origin from moving body
+
+        :Call:
+            >>> x0 = fm.get_rotation_origin_x()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *x0*: :class:`float`
+                Coordinate of rotation point
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
         # Check body name
         body = self.get_databook_opt("Body")
         # Exit if no moving body
@@ -410,6 +424,87 @@ class CaseFM(casedata.CaseFM):
         # Get option
         return self.runner.get_moving_body_opt(
             "forced_motion", "rotation_origin_x", i=i-1)
+
+    # Get rotation origin coordinate
+    def get_rotation_origin_y(self) -> float:
+        r"""Get rotation origin from moving body
+
+        :Call:
+            >>> y0 = fm.get_rotation_origin_y()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *y0*: :class:`float`
+                Coordinate of rotation point
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check body name
+        body = self.get_databook_opt("Body")
+        # Exit if no moving body
+        if body is None:
+            return 0.0
+        # Ensure int
+        i = int(body)
+        # Get option
+        return self.runner.get_moving_body_opt(
+            "forced_motion", "rotation_origin_y", i=i-1)
+
+    # Get rotation origin coordinate
+    def get_rotation_origin_z(self) -> float:
+        r"""Get rotation origin from moving body
+
+        :Call:
+            >>> z0 = fm.get_rotation_origin_z()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *z0*: :class:`float`
+                Coordinate of rotation point
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check body name
+        body = self.get_databook_opt("Body")
+        # Exit if no moving body
+        if body is None:
+            return 0.0
+        # Ensure int
+        i = int(body)
+        # Get option
+        return self.runner.get_moving_body_opt(
+            "forced_motion", "rotation_origin_z", i=i-1)
+
+    # Get history of MRP
+    def genr8_mrp_history(self) -> casedata.Point:
+        r"""Get moment reference point history, w/ motion if applicable
+
+        :Call:
+            >>> x, y, z = fm.genr8_mrp_history()
+            >>> p = fm.genr8_mrp_history()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *y*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *z*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *p*: :class:`cape.cfdx.casedata.Point`
+                Named tuple object of *p.x*, *p.y*, *p.z*
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Get rotation origin
+        x0 = self.get_rotation_origin_x()
+        y0 = self.get_rotation_origin_y()
+        z0 = self.get_rotation_origin_z()
+        # Get MRP history, using rotations as needed
+        return self.get_mrp_history(x0, y0, z0)
 
     # Function to fix iteration histories of one file
     def _fix_iter(self, db: tsvfile.TSVTecDatFile):
