@@ -138,6 +138,8 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2023-06-28 ``@ddalle``: v1.0
         """
+        self.mbnml = None
+        self.mbnml_j = None
         self.nml = None
         self.nml_j = None
 

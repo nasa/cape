@@ -214,10 +214,10 @@ class CaseFM(casedata.CaseFM):
         """
         # Get the project rootname
         self.proj = proj
-        # Save project runner
-        self.runner = runner
         # Use parent initializer
         databook.CaseFM.__init__(self, comp, **kw)
+        # Save project runner
+        self.runner = runner
         # Apply moving-body transformations
         self.apply_moving_body()
 
