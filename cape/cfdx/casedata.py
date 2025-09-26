@@ -2873,9 +2873,94 @@ class CaseFM(CaseData):
         if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
             self["CLN"] += (xi[0]-x[0])/Lref*self["CY"]
 
+    # Shift moment center for specified points
+    def shift_mrp_body(self, x0: Point, x: Point):
+        # Loop through suffixes
+        for suffix in ('', 'p', 'v'):
+            # Get force coefficients
+            ca = self.get_values(f"CA{suffix}")
+            cy = self.get_values(f"CY{suffix}")
+            cn = self.get_values(f"CN{suffix}")
+            # Check for misses
+            if (ca is None) or (cy is None) or (cn is None):
+                continue
+            # Get moment coefficients
+            cll = self.get_values(f"CLL{suffix}")
+            clm = self.get_values(f"CLM{suffix}")
+            cln = self.get_values(f"CLN{suffix}")
+            # Check for misses
+            if (cll is None) or (clm is None) or (cln is None):
+                continue
+            # Construct "point" histories
+            f = Point(ca, cy, cn)
+            m = Point(cll, clm, cln)
+            # Transform
+            mp = self._shift_mrp(x0, x, f, m)
+            # Save
+            self.save_col(f"CLL{suffix}", mp.x)
+            self.save_col(f"CLM{suffix}", mp.y)
+            self.save_col(f"CLN{suffix}", mp.z)
+        # Loop through suffixes
+        for suffix in ('', 'p', 'v'):
+            # Get force values
+            ca = self.get_values(f"Fx{suffix}")
+            cy = self.get_values(f"Fy{suffix}")
+            cn = self.get_values(f"Fz{suffix}")
+            # Check for misses
+            if (ca is None) or (cy is None) or (cn is None):
+                continue
+            # Get moment coefficients
+            cll = self.get_values(f"Mx{suffix}")
+            clm = self.get_values(f"My{suffix}")
+            cln = self.get_values(f"Mz{suffix}")
+            # Check for misses
+            if (cll is None) or (clm is None) or (cln is None):
+                continue
+            # Construct "point" histories
+            f = Point(ca, cy, cn)
+            m = Point(cll, clm, cln)
+            # Transform
+            mp = self._shift_mrp(x0, x, f, m)
+            # Save
+            self.save_col(f"Mx{suffix}", mp.x)
+            self.save_col(f"My{suffix}", mp.y)
+            self.save_col(f"Mz{suffix}", mp.z)
+
+    def _shift_mrp(self, x0: Point, x: Point, f: Point, m: Point) -> Point:
+        # Get reference length
+        lref = self.get_lref()
+        # Unpack MRP, before and after
+        x0, y0, z0 = x0
+        x, y, z = x
+        # Unpack forces
+        ca, cy, cn = f
+        cll, clm, cln = m
+        # Copy moments
+        cll = cll.copy()
+        clm = clm.copy()
+        cln = cln.copy()
+        # Transform rolling moment
+        cll -= (z0-z)/lref * cy
+        cll += (y0-y)/lref * cn
+        # Transform pitching moment
+        clm -= (x0-x)/lref * cn
+        clm += (z0-z)/lref * ca
+        # Transform yawing moment
+        cln -= (y0-y)/lref * ca
+        cln += (x0-x)/lref * cy
+        # Output
+        return Point(cll, clm, cln)
+
     # Shift the moment center for a history of points
-    def shift_mrp_array(self, dat: dict):
-        ...
+    def shift_mrp_array(self):
+        # Get original MRP
+        xmrp0, ymrp0, zmrp0 = self.get_mrp()
+        # Get iterative history thereof
+        xmrp, ymrp, zmrp = self.genr8_mrp_history()
+        # Save those
+        self.save_col("xmrp", xmrp)
+        self.save_col("ymrp", ymrp)
+        self.save_col("zmrp", zmrp)
 
     # Rotate a point history
     def rotate_point_history(
@@ -2886,6 +2971,34 @@ class CaseFM(CaseData):
             x0: Union[float, np.ndarray],
             y0: Union[float, np.ndarray],
             z0: Union[float, np.ndarray]) -> Point:
+        r"""Rotate a point history using *phi*, *theta*, *psi*
+
+        No rotations will be performed if Euler angle columns are not
+        present in ``fm``.
+
+        :Call:
+            >>> p = fm.rotate_point_history(x, y, z, x0, y0, z0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *x*: :class:`np.ndarray` | :class:`float`
+                Pre-rotation point
+            *y*: :class:`np.ndarray` | :class:`float`
+                Pre-rotation point
+            *z*: :class:`np.ndarray` | :class:`float`
+                Pre-rotation point coord
+            *x0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+            *y0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+            *z0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+        :Outputs:
+            *p*: :class:`cape.cfdx.casedata.Point`
+                Named tuple object of *p.x*, *p.y*, *p.z* after rotation
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
         # Get angle history
         ph = self.get_values("phi")
         th = self.get_values("theta")
@@ -2911,7 +3024,85 @@ class CaseFM(CaseData):
         # Relative to ration point
         return Point(x0+xp, y0+yp, z0+zp)
 
-    def get_mrp_history(self, x0: float, y0: float, z0: float) -> Point:
+    # Get history of MRP
+    def genr8_mrp_history(self) -> Point:
+        r"""Get moment reference point history, w/ motion if applicable
+
+        :Call:
+            >>> x, y, z = fm.genr8_mrp_history()
+            >>> p = fm.genr8_mrp_history()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *y*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *z*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *p*: :class:`cape.cfdx.casedata.Point`
+                Named tuple object of *p.x*, *p.y*, *p.z*
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Get rotation origin
+        x0, y0, z0 = self.get_rotation_origin()
+        # Get MRP history, using rotations as needed
+        return self.rotate_mrp(x0, y0, z0)
+
+    # Get history of MRP
+    def get_rotation_origin(self) -> Point:
+        r"""Get rotation origin [history]
+
+        :Call:
+            >>> x, y, z = fm.get_rotation_origin()
+            >>> p = fm.genr8_mrget_rotation_origin_history()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *x*: :class:`np.ndarray` | :class:`float`
+                Coordinate of origin of rotation
+            *y*: :class:`np.ndarray` | :class:`float`
+                Coordinate of origin of rotation
+            *z*: :class:`np.ndarray` | :class:`float`
+                Coordinate of origin of rotation
+            *p*: :class:`cape.cfdx.casedata.Point`
+                Named tuple object of *p.x*, *p.y*, *p.z*
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Output
+        return Point(0.0, 0.0, 0.0)
+
+    def rotate_mrp(self, x0: float, y0: float, z0: float) -> Point:
+        r"""Get moment reference point history, w/ motion if applicable
+
+        :Call:
+            >>> x, y, z = fm.rotate_mrp(x0, y0, z0)
+            >>> p = fm.rotate_mrp(x0, y0, z0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *x0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+            *y0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+            *z0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+        :Outputs:
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *y*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *z*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *p*: :class:`cape.cfdx.casedata.Point`
+                Named tuple object of *p.x*, *p.y*, *p.z*
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
         # Get reference point
         xmrp, ymrp, zmrp = self.get_mrp()
         # Get history

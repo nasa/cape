@@ -478,33 +478,13 @@ class CaseFM(casedata.CaseFM):
             "forced_motion", "rotation_origin_z", i=i-1)
 
     # Get history of MRP
-    def genr8_mrp_history(self) -> casedata.Point:
-        r"""Get moment reference point history, w/ motion if applicable
-
-        :Call:
-            >>> x, y, z = fm.genr8_mrp_history()
-            >>> p = fm.genr8_mrp_history()
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Force & moment iterative history
-        :Outputs:
-            *x*: :class:`np.ndarray`\ [:class:`float`]
-                Iterative history of *xMRP*
-            *y*: :class:`np.ndarray`\ [:class:`float`]
-                Iterative history of *xMRP*
-            *z*: :class:`np.ndarray`\ [:class:`float`]
-                Iterative history of *xMRP*
-            *p*: :class:`cape.cfdx.casedata.Point`
-                Named tuple object of *p.x*, *p.y*, *p.z*
-        :Versions:
-            * 2025-09-26 ``@ddalle``: v1.0
-        """
+    def get_rotation_origin(self) -> casedata.Point:
         # Get rotation origin
         x0 = self.get_rotation_origin_x()
         y0 = self.get_rotation_origin_y()
         z0 = self.get_rotation_origin_z()
-        # Get MRP history, using rotations as needed
-        return self.get_mrp_history(x0, y0, z0)
+        # Output
+        return casedata.Point(x0, y0, z0)
 
     # Function to fix iteration histories of one file
     def _fix_iter(self, db: tsvfile.TSVTecDatFile):
