@@ -3340,6 +3340,8 @@ class Report(object):
                     topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
                 # Apply the transformation.
                 FM.TransformFM(topts, self.cntl.x, i)
+            # Column for the x-axis
+            xcol = opts.get_SubfigOpt(sfig, "XCol")
             # Get the manual range to show
             dc = opts.get_SubfigOpt(sfig, "Delta", k)
             # Get the multiple of standard deviation to show
@@ -3367,7 +3369,7 @@ class Report(object):
             fmt_e = opts.get_SubfigOpt(sfig, "ErrorFormat", k)
             # Draw the plot.
             h = FM.PlotCoeff(
-                coeff, n=nPlotIter,
+                coeff, xcol=xcol, n=nPlotIter,
                 nFirst=nPlotFirst, nLast=nPlotLast,
                 nStats=nStats, nMaxStats=nMax, dnStats=dn,
                 PlotOptions=kw_p, MeanOptions=kw_m,

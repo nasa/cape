@@ -1118,6 +1118,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "ShowMu",
         "ShowSigma",
         "SigmaFormat",
+        "XCol",
     )
 
     # Aliases
@@ -1138,7 +1139,8 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "nAverage": "NStats",
         "nAvg": "NStats",
         "nEpsilon": "KEpsilon",
-
+        "xcol": "XCol",
+        "xk": "XCol",
     }
 
     # Types
@@ -1161,6 +1163,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "ShowEpsilon": BOOL_TYPES,
         "ShowMu": BOOL_TYPES,
         "ShowSigma": BOOL_TYPES,
+        "XCol": str,
     }
 
     # Defaults
@@ -1175,6 +1178,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "ShowDelta": [True, False],
         "ShowEpsilon": False,
         "SigmaFormat": "%.4f",
+        "XCol": "i",
     }
 
     # Descriptions
@@ -1197,6 +1201,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "ShowMu": "option to print value of mean over window",
         "ShowSigma": "option to print value of standard deviation",
         "SigmaFormat": "printf-style flag for *ShowSigma* value",
+        "XCol": "column to use for *x*-axis",
     }
 
 
