@@ -2980,11 +2980,11 @@ class CaseFM(CaseData):
             self["CLN"] += (xi[0]-x[0])/Lref*self["CY"]
 
     # Rotate forces for moving-body
-    def rotate321_body(self):
+    def transform_fm321_body(self):
         r"""Shift moment [coefficient] for moving-body MRP movements
 
         :Call:
-            >>> fm.shift_mrp_body()
+            >>> fm.shift_mrtransform_fm321_bodyp_body()
         :Inputs:
             *fm*: :class:`CaseFM`
                 Instance of the force and moment class
