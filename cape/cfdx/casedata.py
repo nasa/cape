@@ -82,9 +82,14 @@ FONT_FAMILY = [
 ]
 
 
-# Simple point class
+#: Tuple of coordinates, *x*, *y*, *z*
 Point = namedtuple("Point", ("x", "y", "z"))
+
+#: Tuple of two components, e.g. AoA and AoS, *a*, *b*
 Pair = namedtuple("Pair", ("a", "b"))
+
+#: Pair for force and moment vector [histories], *F*, *M*
+FMPair = namedtuple("FMPair", ("F", "M"))
 
 
 # Dedicated function to load Matplotlib only when needed.
@@ -2340,6 +2345,24 @@ class CaseFM(CaseData):
 
     # Get rotated AoA and AoS
     def get_ab_history(self) -> Pair:
+        r"""Get angles of attack and sideslip, w/ moving-body
+
+        This transforms the initial *alpha*, *beta* from the run matrix
+        conditions using the Euler angles from moving-body, if present.
+
+        :Call:
+            >>> a, b = fm.get_ab_history()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *a*: :class:`np.ndarray` | :class:`float`
+                Angle of attack (history) [deg]
+            *b*: :class:`np.ndarray` | :class:`float`
+                Sideslip angle (history) [deg]
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
         # Get initial (freestream) AoA and AoS
         a = self.get_alpha()
         b = self.get_beta()
@@ -2956,6 +2979,83 @@ class CaseFM(CaseData):
         if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
             self["CLN"] += (xi[0]-x[0])/Lref*self["CY"]
 
+    # Rotate forces for moving-body
+    def rotate321_body(self):
+        r"""Shift moment [coefficient] for moving-body MRP movements
+
+        :Call:
+            >>> fm.shift_mrp_body()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Instance of the force and moment class
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Loop through suffixes
+        for suffix in ('', 'p', 'v'):
+            # Get force coefficients
+            ca = self.get_values(f"CA{suffix}")
+            cy = self.get_values(f"CY{suffix}")
+            cn = self.get_values(f"CN{suffix}")
+            # Check for misses
+            if (ca is None) or (cy is None) or (cn is None):
+                continue
+            # Construct "point" histories
+            f = Point(ca, cy, cn)
+            # Rotate forces
+            fp = self.transform_euler123(f)
+            # Save
+            self.save_col(f"CAb{suffix}", fp.x)
+            self.save_col(f"CYb{suffix}", fp.y)
+            self.save_col(f"CNb{suffix}", fp.z)
+            # Get moment coefficients
+            cll = self.get_values(f"CLLb{suffix}")
+            clm = self.get_values(f"CLMb{suffix}")
+            cln = self.get_values(f"CLNb{suffix}")
+            # Check for misses
+            if (cll is None) or (clm is None) or (cln is None):
+                continue
+            # Construct "point" histories
+            m = Point(cll, clm, cln)
+            # Transform
+            mp = self.transform_euler123(m)
+            # Rotate forces
+            fp = self.transform_euler123(f)
+            # Save
+            self.save_col(f"CLLb{suffix}", mp.x)
+            self.save_col(f"CLMb{suffix}", mp.y)
+            self.save_col(f"CLNb{suffix}", mp.z)
+        # Loop through suffixes
+        for suffix in ('', 'p', 'v'):
+            # Get force values
+            ca = self.get_values(f"Fx{suffix}")
+            cy = self.get_values(f"Fy{suffix}")
+            cn = self.get_values(f"Fz{suffix}")
+            # Check for misses
+            if (ca is None) or (cy is None) or (cn is None):
+                continue
+            # Construct "point" histories
+            f = Point(ca, cy, cn)
+            # Save
+            self.save_col(f"Fxb{suffix}", fp.x)
+            self.save_col(f"Fyb{suffix}", fp.y)
+            self.save_col(f"Fzb{suffix}", fp.z)
+            # Get moment coefficients
+            cll = self.get_values(f"Mxb{suffix}")
+            clm = self.get_values(f"Myb{suffix}")
+            cln = self.get_values(f"Mzb{suffix}")
+            # Check for misses
+            if (cll is None) or (clm is None) or (cln is None):
+                continue
+            # Construct "point" histories
+            m = Point(cll, clm, cln)
+            # Transform
+            mp = self.transform_euler123(m)
+            # Save
+            self.save_col(f"Mxb{suffix}", mp.x)
+            self.save_col(f"Myb{suffix}", mp.y)
+            self.save_col(f"Mzb{suffix}", mp.z)
+
     # Shift moment center for specified points
     def shift_mrp_body(self):
         r"""Shift moment [coefficient] for moving-body MRP movements
@@ -2994,9 +3094,9 @@ class CaseFM(CaseData):
             # Transform
             mp = self._shift_mrp(x0, x, f, m)
             # Save
-            self.save_col(f"CLL{suffix}", mp.x)
-            self.save_col(f"CLM{suffix}", mp.y)
-            self.save_col(f"CLN{suffix}", mp.z)
+            self.save_col(f"CLLb{suffix}", mp.x)
+            self.save_col(f"CLMb{suffix}", mp.y)
+            self.save_col(f"CLNb{suffix}", mp.z)
         # Loop through suffixes
         for suffix in ('', 'p', 'v'):
             # Get force values
@@ -3019,9 +3119,9 @@ class CaseFM(CaseData):
             # Transform
             mp = self._shift_mrp(x0, x, f, m)
             # Save
-            self.save_col(f"Mx{suffix}", mp.x)
-            self.save_col(f"My{suffix}", mp.y)
-            self.save_col(f"Mz{suffix}", mp.z)
+            self.save_col(f"Mxc{suffix}", mp.x)
+            self.save_col(f"Myc{suffix}", mp.y)
+            self.save_col(f"Mzc{suffix}", mp.z)
 
     def _shift_mrp(self, x0: Point, x: Point, f: Point, m: Point) -> Point:
         # Get reference length

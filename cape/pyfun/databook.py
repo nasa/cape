@@ -344,6 +344,7 @@ class CaseFM(casedata.CaseFM):
                 Force & moment iterative history
         :Versions:
             * 2025-09-25 ``@ddalle``: v1.0
+            * 2025-09-26 ``@ddalle``: v1.1; add *alpha*, *beta*0
         """
         # Check for moving-body data
         dat = self.read_bodydat()
@@ -371,9 +372,13 @@ class CaseFM(casedata.CaseFM):
             self[col][i] = dat[col][j]
         # Calculate alpha/beta in body framt
         a, b = self.get_ab_history()
-        # save them
+        # Save them
         self.save_col("alpha", a)
         self.save_col("beta", b)
+        # Apply moving-body MRP shifts
+        self.shift_mrp_body()
+        # Transform into body-frame
+        self.transform_fm321_body()
 
     # Read body positions
     def read_bodydat(self) -> Optional[tsvfile.TSVTecDatFile]:
