@@ -1192,8 +1192,8 @@ class CaseData(DataKit):
                 Case component history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
-            *col*: :class:`str` | :class:`int` | ``None``
-                Select a column by name or index
+            *xcol*: {``'i``} | :class:`str`
+                Column to plot on *x*-axis
             *n*: :class:`int`
                 Only show the last *n* iterations
             *nMin*: {``0``} | :class:`int`
@@ -1312,6 +1312,9 @@ class CaseData(DataKit):
         fh = kw.get('FigureHeight')
         # Get iterations
         iters = self.get_all_values("i")
+        # X-axis
+        xcol = kw.get("xcol", "i")
+        xval = self.get_values(xcol)
        # ------------
        # Statistics
        # ------------
@@ -1333,7 +1336,7 @@ class CaseData(DataKit):
        # Last Iter
        # ---------
         # Most likely last iteration
-        iB = iters[-1]
+        iB = xval[-1]
         # Check for an input last iter
         if nLast is not None:
             # Attempt to use requested iter.
@@ -1341,7 +1344,7 @@ class CaseData(DataKit):
                 # Using an earlier iter; make sure to use one in the hist.
                 # Find the iterations that are less than i.
                 jB = self.GetIterationIndex(nLast)
-                iB = iters[jB]
+                iB = xval[jB]
         # Get the index of *iB* in *self.i*.
         jB = self.GetIterationIndex(iB)
        # ----------
@@ -1355,18 +1358,14 @@ class CaseData(DataKit):
             n = len(iters)
         j0 = max(0, jB - n)
         # Get the starting iteration number to use.
-        i0 = max(0, iters[j0], nFirst) + 1
-        # Make sure *iA* is in *iters* and get the index.
-        j0 = self.GetIterationIndex(i0)
-        # Reselect *i0* in case initial value was not in *self.i*.
-        i0 = iters[j0]
+        i0 = max(0, xval[j0], nFirst) + 1
        # --------------
        # Averaging Iter
        # --------------
         # Get the first iteration to use in averaging.
         jA = max(j0, jB-nAvg+1)
         # Reselect *iV* in case initial value was not in *self.i*.
-        iA = iters[jA]
+        iA = xval[jA]
        # -----------------------
        # Standard deviation plot
        # -----------------------
@@ -1483,7 +1482,7 @@ class CaseData(DataKit):
             if kw["PlotOptions"][k] is not None:
                 kw_p[k] = kw["PlotOptions"][k]
         # Plot the coefficient
-        h[c] = plt.plot(iters[j0:jB+1], C[j0:jB+1], **kw_p)
+        h[c] = plt.plot(xval[j0:jB+1], C[j0:jB+1], **kw_p)
         # Get the figure and axes.
         h['fig'] = plt.gcf()
         h['ax'] = plt.gca()
