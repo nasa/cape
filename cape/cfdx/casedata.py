@@ -84,6 +84,7 @@ FONT_FAMILY = [
 
 # Simple point class
 Point = namedtuple("Point", ("x", "y", "z"))
+Pair = namedtuple("Pair", ("a", "b"))
 
 
 # Dedicated function to load Matplotlib only when needed.
@@ -2258,8 +2259,118 @@ class CaseFM(CaseData):
         """
         self.link_data(A)
 
-   # --- Options ---
+   # --- Conditions ---
+    # Get angle of attack
+    def get_alpha(self, vdef: float = 0.0) -> float:
+        r"""Get freestream angle of atack for this case
 
+        :Call:
+            >>> a = fm.get_alpha(vdef=1.0, units="mks")
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``0.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *a*: :class:`float`
+                Angle of attack [deg]
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        return self._get_runmatrix("GetAlpha", vdef)
+
+    # Get sideslip angle
+    def get_beta(self, vdef: float = 0.0) -> float:
+        r"""Get freestream sideslip angle for this case
+
+        :Call:
+            >>> b = fm.get_beta(vdef=1.0, units="mks")
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``0.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *b*: :class:`float`
+                Angle of sideslip [deg]
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        return self._get_runmatrix("GetBeta", vdef)
+
+    def get_qbar(
+            self, vdef: float = 1.0, units: Optional[str] = None) -> float:
+        r"""Get freestream dynamic pressure
+
+        :Call:
+            >>> qref = fm.get_qbar(vdef=1.0, units="mks")
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+            *units*: {``None``} | :class:`str`
+                Units for output (default is raw run matrix value)
+        :Outputs:
+            *qref*: :class:`float`
+                Dynamic pressure
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        return self._get_runmatrix("GetDynamicPressure", vdef, units)
+
+    def _get_runmatrix(
+            self,
+            fn: str,
+            vdef: Union[float, int, str] = 0.0,
+            units: Optional[str] = None) -> Union[float, int, str]:
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get case index
+        i = self.runner.get_case_index()
+        # Get method
+        func = getattr(cntl.x, fn)
+        # Check for units
+        kw = {} if (units is None) else {"units": units}
+        # Get dynamic pressure
+        return func(i, **kw)
+
+    # Get rotated AoA and AoS
+    def get_ab_history(self) -> Pair:
+        # Get initial (freestream) AoA and AoS
+        a = self.get_alpha()
+        b = self.get_beta()
+        # Get Euler angle history
+        ph = self.get_values("phi")
+        th = self.get_values("theta")
+        ps = self.get_values("psi")
+        # Exit if not specified
+        if (ph is None) or (th is None) or (ps is None):
+            # Generate histories
+            a = np.full(self[CASE_COL_ITRAW].size, a)
+            b = np.full(self[CASE_COL_ITRAW].size, b)
+            return Pair(a, b)
+        # Trig functions
+        ca = np.cos(a*DEG)
+        sa = np.sin(a*DEG)
+        cb = np.cos(b*DEG)
+        sb = np.sin(b*DEG)
+        # Get unit velocity vector in intertial frame
+        u = cb*ca
+        v = -sb
+        w = cb*sa
+        # Put unit velociy into body frame
+        ub, vb, wb = self.transform_euler123(Point(u, v, w))
+        # Convert to alpha, beta
+        alpha = np.arctan2(wb, ub) / DEG
+        beta = np.arcsin(vb) / DEG
+        # Output
+        return Pair(alpha, beta)
+
+   # --- Options ---
     # Get option: component
     def get_databook_opt(self, opt: str, vdef=None) -> Any:
         r"""Get a *DataBook* option for the component that *fm* tracks
@@ -2384,34 +2495,6 @@ class CaseFM(CaseData):
         cntl = self.runner.read_cntl()
         # Get option
         return cntl.opts.get_RefPoint(self.comp)
-
-    def get_qref(self, vdef: float = 1.0, units: Optional[str] = None) -> list:
-        r"""Get freestream dynamic pressure for this component
-
-        :Call:
-            >>> qref = fm.get_qref(vdef=1.0, units="mks")
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Force & moment iterative history
-            *vdef*: {``1.0``} | :class:`float`
-                Default value if no *fm.runner* is present
-            *units*: {``None``} | :class:`str`
-                Units for output (default is raw run matrix value)
-        :Outputs:
-            *qref*: :class:`float`
-                Dynamic pressure
-        :Versions:
-            * 2025-09-26 ``@ddalle``: v1.0
-        """
-        # Check for runner
-        if self.runner is None:
-            return vdef
-        # Get *cntl*
-        cntl = self.runner.read_cntl()
-        # Get case index
-        i = self.runner.get_case_index()
-        # Get dynamic pressure
-        return cntl.x.GetDynamicPressure(i, units=units)
 
    # --- Operations ---
     # Trim repeated iterations
@@ -3002,13 +3085,22 @@ class CaseFM(CaseData):
         :Versions:
             * 2025-09-26 ``@ddalle``: v1.0
         """
+        # Get position relative to origin
+        p = Point(x-x0, y-y0, z-z0)
+        # Rotate
+        dp = self.transform_euler321(p)
+        # Relative to ration point
+        return Point(x0+dp.x, y0+dp.y, z0+dp.z)
+
+    # Apply rotations
+    def transform_euler321(self, p: Point) -> Point:
         # Get angle history
         ph = self.get_values("phi")
         th = self.get_values("theta")
         ps = self.get_values("psi")
         # Exit if not specified
         if (ph is None) or (th is None) or (ps is None):
-            return Point(x, y, z)
+            return p
         # Calculate trig functions
         cph = np.cos(ph*DEG)
         sph = np.sin(ph*DEG)
@@ -3016,16 +3108,39 @@ class CaseFM(CaseData):
         sth = np.sin(th*DEG)
         cps = np.cos(ps*DEG)
         sps = np.sin(ps*DEG)
-        # Get position relative to origin
-        dx = x - x0
-        dy = y - y0
-        dz = z - z0
+        # Unpack point
+        x, y, z = p
         # Rotate
-        xp = cps*cth*dx + (cps*sth*sph-sps*cph)*dy + (cps*sth*cph+sps*sph)*dz
-        yp = sps*cth*dx + (sps*sth*sph+cps*cph)*dy + (sps*sth*cph-cps*sph)*dz
-        zp = -sth*dx + cth*sph*dy + cth*cph*dz
-        # Relative to ration point
-        return Point(x0+xp, y0+yp, z0+zp)
+        xp = cps*cth*x + (cps*sth*sph-sps*cph)*y + (cps*sth*cph+sps*sph)*z
+        yp = sps*cth*x + (sps*sth*sph+cps*cph)*y + (sps*sth*cph-cps*sph)*z
+        zp = -sth*x + cth*sph*y + cth*cph*z
+        # Output
+        return Point(xp, yp, zp)
+
+    # Apply rotations in opposite direction
+    def transform_euler123(self, p: Point) -> Point:
+        # Get angle history
+        ph = self.get_values("phi")
+        th = self.get_values("theta")
+        ps = self.get_values("psi")
+        # Exit if not specified
+        if (ph is None) or (th is None) or (ps is None):
+            return p
+        # Calculate trig functions
+        cph = np.cos(ph*DEG)
+        sph = np.sin(ph*DEG)
+        cth = np.cos(th*DEG)
+        sth = np.sin(th*DEG)
+        cps = np.cos(ps*DEG)
+        sps = np.sin(ps*DEG)
+        # Unpack point
+        x, y, z = p
+        # Transformations
+        xb = cps*cth*x + sps*cth*y - sth*z
+        yb = (cps*sth*sph-sps*cph)*x + (sps*sth*sph+cps*cph)*y + cth*sph*z
+        zb = (cps*sth*cph+sps*sph)*x + (sps*sth*cph-cps*sph)*y + cth*cph*z
+        # Output
+        return Point(xb, yb, zb)
 
     # Get history of MRP
     def genr8_mrp_history(self) -> Point:

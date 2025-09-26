@@ -66,7 +66,7 @@ from ..cfdx.casecntl import CaseRunner
 
 
 # Radian -> degree conversion
-deg = np.pi / 180.0
+DEG = np.pi / 180.0
 
 # Column names for FM files
 COLNAMES_FM = {
@@ -369,6 +369,11 @@ class CaseFM(casedata.CaseFM):
                 continue
             # Save data
             self[col][i] = dat[col][j]
+        # Calculate alpha/beta in body framt
+        a, b = self.get_ab_history()
+        # save them
+        self.save_col("alpha", a)
+        self.save_col("beta", b)
 
     # Read body positions
     def read_bodydat(self) -> Optional[tsvfile.TSVTecDatFile]:
