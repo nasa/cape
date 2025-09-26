@@ -1622,8 +1622,10 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read the namelist
         nml = self.read_moving_body(j)
-        # Get the option
-        return nml.get_opt(sec, opt, j=i, vdef=vdef)
+        # Check for namelist
+        v = vdef if (nml is None) else nml.get_opt(sec, opt, j=i, vdef=vdef)
+        # Output
+        return v
 
     # Function to get the most recent working folder
     @casecntl.run_rootdir

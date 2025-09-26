@@ -9,7 +9,7 @@ This module provides the classes :class:`CaseFM` and
 # Standard library
 import os
 from collections import namedtuple
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -2258,10 +2258,162 @@ class CaseFM(CaseData):
         """
         self.link_data(A)
 
-   # ============
-   # Operations
-   # ============
-   # <
+   # --- Options ---
+
+    # Get option: component
+    def get_databook_opt(self, opt: str, vdef=None) -> Any:
+        r"""Get a *DataBook* option for the component that *fm* tracks
+
+        :Call:
+            >>> v = fm.get_databook_opt(opt, vdef=None)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *opt*: :class:`str`
+                Name of option to query
+            *vdef*: {``None``} | :class:`object`
+                Default value
+        :Outputs:
+            *v*: :class:`object`
+                Value of run matrix's *DataBook* > *fm.comp* > *opt*
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_DataBookOpt(self.comp, opt, vdef=vdef)
+
+    def get_aref(self, vdef: float = 1.0) -> float:
+        r"""Get reference area for this component
+
+        :Call:
+            >>> aref = fm.get_aref(vdef=1.0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *aref*: :class:`float`
+                Reference area
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_RefArea(self.comp)
+
+    # Get configuration option
+    def get_lref(self, vdef: float = 1.0) -> float:
+        r"""Get reference length for this component
+
+        :Call:
+            >>> lref = fm.get_lref(vdef=1.0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *lref*: :class:`float`
+                Reference length
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_RefLength(self.comp)
+
+    # Get configuration option
+    def get_bref(self, vdef: float = 1.0) -> float:
+        r"""Get reference span for this component
+
+        :Call:
+            >>> bref = fm.get_bref(vdef=1.0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *bref*: :class:`float`
+                Reference span
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_RefSpan(self.comp)
+
+    def get_mrp(self, vdef: list = [0.0, 0.0, 0.0]) -> list:
+        r"""Get moment reference point for this component
+
+        :Call:
+            >>> xmrp = fm.get_mrp(vdef=[0.0, 0.0, 0.0])
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *xmrp*: [:class:`float`, :class:`float`, :class:`float`]
+                Reference point
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_RefPoint(self.comp)
+
+    def get_qref(self, vdef: float = 1.0, units: Optional[str] = None) -> list:
+        r"""Get freestream dynamic pressure for this component
+
+        :Call:
+            >>> qref = fm.get_qref(vdef=1.0, units="mks")
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+            *units*: {``None``} | :class:`str`
+                Units for output (default is raw run matrix value)
+        :Outputs:
+            *qref*: :class:`float`
+                Dynamic pressure
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get case index
+        i = self.runner.get_case_index()
+        # Get dynamic pressure
+        return cntl.x.GetDynamicPressure(i, units=units)
+
+   # --- Operations ---
     # Trim repeated iterations
     def trim_iters(self):
         r"""Trim any repeated iterations from history
@@ -2501,12 +2653,8 @@ class CaseFM(CaseData):
             self[col] -= fm[col][:n]
         # Apparently you need to output
         return self
-   # >
 
-   # =================
-   # Transformations
-   # =================
-   # <
+   # --- Transformations ---
     # Transform force or moment reference frame
     def TransformFM(self, topts: dict, x: dict, i: int):
         r"""Transform a force and moment history
@@ -2763,12 +2911,15 @@ class CaseFM(CaseData):
         # Relative to ration point
         return Point(x0+xp, y0+yp, z0+zp)
 
-   # >
+    def get_mrp_history(self, x0: float, y0: float, z0: float) -> Point:
+        # Get reference point
+        xmrp, ymrp, zmrp = self.get_mrp()
+        # Get history
+        x, y, z = self.rotate_point_history(xmrp, ymrp, zmrp, x0, y0, z0)
+        # Output
+        return Point(x, y, z)
 
-   # ===========
-   # Statistics
-   # ===========
-   # <
+   # --- Statistics ---
     # Method to get averages and standard deviations
     def GetStatsN(self, nStats=100, nLast=None):
         r"""Get mean, min, max, and standard deviation for all coefficients
@@ -3023,12 +3174,8 @@ class CaseFM(CaseData):
         s["nStats"] = ns
         # Output
         return s
-   # >
 
-   # ==========
-   # Plotting
-   # ==========
-   # <
+   # --- Plotting ---
     # Plot iterative force/moment history
     def PlotCoeff(self, c: str, n=None, **kw):
         r"""Plot a single coefficient history
@@ -3101,7 +3248,6 @@ class CaseFM(CaseData):
             * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
         """
         return self.PlotValueHist(c, nAvg=nAvg, nBin=nBin, nLast=None, **kw)
-   # >
 
 
 # Individual component: generic property
