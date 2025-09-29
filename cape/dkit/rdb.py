@@ -10870,7 +10870,7 @@ class DataKit(BaseData):
             * 2025-07-29 ``@ddalle``: v1.0
         """
         # Default column list
-        cols = cols if cols else self.xcols
+        cols = cols if cols else getattr(self, "xcols", None)
         cols = cols if cols else self.cols
         # Form dictionary of conditions to match
         d = {col: dbt[col][j] for col in cols}
