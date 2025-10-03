@@ -1299,6 +1299,11 @@ class Cntl(CntlBase):
         elif fxml.endswith(".json"):
             # Read config (JSON) file
             cfg = ConfigJSON(fxml)
+            # Check for ``.mapbc`` file to read
+            fmapbc = self.opts.get_MapBCFile(0)
+            if fmapbc:
+                # Restrict the entries of JSON file to it
+                cfg.ApplyMapBC(fmapbc)
         else:
             # Read config file
             cfg = ConfigXML(fxml)
