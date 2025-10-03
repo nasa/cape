@@ -2990,6 +2990,8 @@ class CaseRunner(CaseRunnerBase):
             # Add or initialize
             if j == 0:
                 db = dbj
+                # Save global comp name
+                db.comp = comp
             elif negj:
                 db -= dbj
             else:
