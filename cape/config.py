@@ -1612,10 +1612,8 @@ class ConfigJSON(SurfConfig):
         for j, comp in enumerate(mapbc.Names):
             # Get CompID listed in MapBC file
             i = mapbc.CompID[j]
-            # Preparation
-            self.props.setdefault(comp, {})
-            # Set the *CompID*
-            self.props[comp]["CompID"] = i
+            # Apply renumbering rules
+            self.RenumberCompID(comp, i)
 
     # Method to get CompIDs from generic input
     def GetCompID(self, face, warn: bool = False):
@@ -2215,7 +2213,7 @@ class ConfigJSON(SurfConfig):
         f.close()
 
     # Renumber a component
-    def RenumberCompID(self, face, compID):
+    def RenumberCompID(self, face: str, compID: int):
         r"""Renumber the component ID number
 
         This affects *cfg.faces* for *face* and each of its parents, and
