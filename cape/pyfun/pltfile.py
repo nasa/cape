@@ -24,11 +24,9 @@ input to ``triload`` and other post-processing based on the
 :mod:`cape.tri` module.
 
 :See also:
-    * :mod:`cape.plt`
-    * :mod:`cape.tri`
-    * :mod:`cape.pyfun.mapbc`
-    * :mod:`pc_Tri2Plt`
-    * :mod:`pc_Plt2Tri`
+    * :mod:`cape.pltfile`
+    * :mod:`cape.trifle`
+    * :mod:`cape.filecntl.mapbcfile`
 """
 
 # Standard library modules
@@ -38,8 +36,8 @@ import glob
 import numpy as np
 
 # Local imports
-from . import mapbc
 from .. import pltfile
+from ..filecntl.mapbcfile import MapBCFile
 
 
 # Convert a PLT to TRIQ
@@ -82,7 +80,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         # Make a crude attempt at sorting
         fglob.sort()
         # Import the alphabetically last one (should be the same anyway)
-        kw["mapbc"] = mapbc.MapBC(fglob[0])
+        kw["mapbc"] = MapBCFile(fglob[0])
     # Attempt to get *cp_tavg* state
     if "mach" in kw:
         plt.GetCpTAvg(float(kw["mach"]))
