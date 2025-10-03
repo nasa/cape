@@ -16,7 +16,6 @@
     cmdrun
     databook
     faux
-    mapbc
     namelist
     pointsensor
     pltfile

@@ -42,6 +42,7 @@ class are also available here.
 import os
 import re
 import shutil
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -49,13 +50,13 @@ import numpy as np
 # Local imports
 from . import options
 from . import casecntl
-from . import mapbc
 from . import faux
 from . import report
 from .namelist import Namelist
 from .rubberdatafile import RubberData
 from ..cfdx import cntl
 from ..util import RangeString
+from ..filecntl.mapbcfile import MapBCFile
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -380,7 +381,7 @@ class Cntl(cntl.Cntl):
   # === Other Files ===
     # Read the boundary condition map
     @cntl.run_rootdir
-    def ReadMapBC(self, j=0, q=True):
+    def ReadMapBC(self, j: int = 0, q: bool = True) -> Optional[MapBCFile]:
         r"""Read the FUN3D boundary condition map
 
         :Call:
@@ -395,7 +396,7 @@ class Cntl(cntl.Cntl):
         """
         # Read the file
         try:
-            BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
+            BC = MapBCFile(self.opts.get_MapBCFile(j))
         except OSError:
             return
         # Save it
@@ -405,6 +406,8 @@ class Cntl(cntl.Cntl):
         else:
             # Template
             self.MapBC0 = BC
+        # Output
+        return BC
 
     # Read the ``rubber.data`` file
     @cntl.run_rootdir

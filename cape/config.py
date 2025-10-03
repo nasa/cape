@@ -1548,8 +1548,8 @@ class ConfigJSON(SurfConfig):
         self.tree  = opts.get("Tree")
         self.order = opts.get("Order")
         # Save the major sections
-        if self.props is None: self.props = opts
-        if self.tree  is None: self.tree = opts
+        self.props = opts if self.props is None else self.props
+        self.tree = opts if self.tree is None else self.tree
         # Save
         self.opts = opts
         # Initialize component list
