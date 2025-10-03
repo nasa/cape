@@ -1630,6 +1630,11 @@ class Cntl(CntlBase):
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)
+            # Check for a ``.mapbc`` file
+            fmapbc = self.opts.get_MapBCFile()
+            # If found, renumber CompIDs and remove unused ones
+            if fmapbc:
+                self.config.ApplyMapBC(fmapbc)
 
     # Apply a config.xml translation
     def PrepareConfigTranslation(self, key: str, i: int):
