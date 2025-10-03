@@ -2231,6 +2231,8 @@ class ConfigJSON(SurfConfig):
         :Versions:
             * 2016-11-09 ``@ddalle``: v1.0
         """
+        # Ensure int (rather than possible np.int)
+        compID = int(compID)
         # Get the current component number
         compi = self.faces[face]
         # Reset it
