@@ -1616,7 +1616,7 @@ class ConfigJSON(SurfConfig):
             self.RenumberCompID(comp, i)
 
     # Method to get CompIDs from generic input
-    def GetCompID(self, face, warn: bool = False):
+    def GetCompID(self, face: str, warn: bool = False) -> list:
         r"""Return a list of component IDs from generic input
 
         :Call:
