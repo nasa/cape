@@ -130,6 +130,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 
 # CAPE modules
+from .filecntl.mapbcfile import MapBCFile
 from .util import RangeString, SplitLineGeneral
 from .cfdx.options import util
 
@@ -251,8 +252,9 @@ class ConfigXML(SurfConfig):
                 self.ProcessTransform(comp, d)
             else:
                 # Unrecognized tag
-                raise ValueError("Unrecognized tag '%s' for component '%s'" %
-                    (x.tag, comp))
+                raise ValueError(
+                    "Unrecognized tag '%s' for component '%s'" %
+                    (d.tag, comp))
             # Process any parents.
             self.AppendParent(c, compID)
 
@@ -286,8 +288,9 @@ class ConfigXML(SurfConfig):
                 self.ProcessTransform(comp, d)
             else:
                 # Unrecognized tag
-                raise ValueError("Unrecognized tag '%s' for component '%s'" %
-                    (x.tag, comp))
+                raise ValueError(
+                    "Unrecognized tag '%s' for component '%s'" %
+                    (d.tag, comp))
             # Process any parents.
             self.AppendParent(c, compID)
 
@@ -468,7 +471,8 @@ class ConfigXML(SurfConfig):
                 })
             else:
                 # Unrecognized type
-                raise ValueError("Unrecognized transform tag '%s' for '%s'" %
+                raise ValueError(
+                    "Unrecognized transform tag '%s' for '%s'" %
                     (x.tag, comp))
 
     # Function to recursively append components to parents and their parents
@@ -493,14 +497,16 @@ class ConfigXML(SurfConfig):
         # Check for a parent.
         parent = c.get("Parent")
         # Check for no parent
-        if parent is None: return
+        if parent is None:
+            return
         # Check for recursion.
         if c.get('Name') == parent:
             # Recursive parent situation
             raise ValueError('Component "%s" is its own parent.' % parent)
         elif parent not in self.Names:
             # Parent could not be found
-            raise KeyError('Component "%s" has invalid parent "%s"' %
+            raise KeyError(
+                'Component "%s" has invalid parent "%s"' %
                 (c.get("Name"), parent))
         # Initialize the parent if necessary
         self.faces.setdefault(parent, [])
@@ -602,15 +608,16 @@ class ConfigXML(SurfConfig):
         # Number of transformations currently defined
         n = len(T)
         # Default index
-        if i is None: i = n
+        if i is None:
+            i = n
         # Check if transformation *i* exists
         if i < n:
             # Transformation exists; check type
             typ = T[i].get("Type", "Rotate")
             # Check type
             if typ != "Rotate":
-                raise ValueError("Transform %s for '%s' is not a rotation"
-                    % (i, comp))
+                raise ValueError(
+                    "Transform %s for '%s' is not a rotation" % (i, comp))
         elif i > n:
             # Cannot add this rotation
             raise ValueError(
@@ -662,14 +669,15 @@ class ConfigXML(SurfConfig):
         # Number of transformations currently defined
         n = len(T)
         # Default index
-        if i is None: i = n
+        i = n if i is None else i
         # Check if transformation *i* exists
         if i < n:
             # Transformation exists; check type
             typ = T[i].get("Type", "Translate")
             # Check type
             if typ != "Translate":
-                raise ValueError("Transform %s for '%s' is not a translation"
+                raise ValueError(
+                    "Transform %s for '%s' is not a translation"
                     % (i, comp))
         elif i > n:
             # Cannot add this rotation
@@ -693,7 +701,8 @@ class ConfigXML(SurfConfig):
                 # Check if parameter in *T[i]*
                 T[i].setdefault(k, R[k])
                 # Check if we should overwrite current settings
-                if k in kw: T[i][k] = R[k]
+                if k in kw:
+                    T[i][k] = R[k]
 
     # Write the file
     def Write(self, fname=None):
@@ -786,7 +795,8 @@ class ConfigXML(SurfConfig):
             # Get the list of components in the component.
             compID = self.GetCompID(comp)
             # Check if negative
-            if any(compID) < 0: return
+            if any(compID) < 0:
+                return
             print("       %s: %s" % (comp, compID))
             # Single component
             lbl = "Face Label"
@@ -874,7 +884,8 @@ class ConfigXML(SurfConfig):
             * 2016-08-23 ``@ddalle``: v1.0
         """
         # Check if component has one or more transformations
-        if comp not in self.transform: return
+        if comp not in self.transform:
+            return
         # Write the transform tag
         f.write("    <Transform>\n")
         # Loop through transformations
@@ -893,7 +904,7 @@ class ConfigXML(SurfConfig):
                 # Convert center to string
                 if type(cent).__name__ in ['list', 'ndarray']:
                     # Ensure doubles
-                    cent = ", ".join(['%.12e'%v for v in cent])
+                    cent = ", ".join(['%.12e' % v for v in cent])
                 # Convert axis to string
                 if type(ax).__name__ in ['list', 'ndarray']:
                     # Convert to float and then string
@@ -913,7 +924,7 @@ class ConfigXML(SurfConfig):
                 # Convert center to string
                 if type(dx).__name__ in ['list', 'ndarray']:
                     # Ensure doubles
-                    dx = ", ".join(['%.12e'%v for v in dx])
+                    dx = ", ".join(['%.12e' % v for v in dx])
                 # Write values
                 f.write(' Displacement="%s"' % dx)
             # Close the element
@@ -1082,7 +1093,7 @@ class ConfigXML(SurfConfig):
         if t.startswith('int'):
             # Valid single-component ID
             return compID
-        elif (t in ['list', 'ndarray']) and (len(compID)==1):
+        elif (t in ['list', 'ndarray']) and (len(compID) == 1):
             # Valid singleton list
             return compID[0]
         else:
@@ -1219,13 +1230,14 @@ class ConfigMIXSUR(SurfConfig):
             # Save reference condition index
             comp["NREF"] = nref
             # Initialize grids
-            subs = np.zeros((nsub,8))
+            subs = np.zeros((nsub, 8))
             # Loop through subsets
             for j in range(nsub):
                 # Read the subset input
                 V = self.readline(f)
                 # Save the information
-                for i in range(8): subs[j,i] = int(V[i])
+                for i in range(8):
+                    subs[j, i] = int(V[i])
             # Save the subsets
             comp["SUBS"] = subs
             # Read the number of PRIS
@@ -1233,13 +1245,14 @@ class ConfigMIXSUR(SurfConfig):
             # Number of PRIs
             npri = int(V[0])
             # Initialize PRIs
-            pris = np.zeros((npri,2))
+            pris = np.zeros((npri, 2))
             # Loop through PRIs
             for j in range(npri):
                 # Read the subset input
                 V = self.readline(f)
                 # Save the information
-                for i in range(2): pris[j,i] = int(V[i])
+                for i in range(2):
+                    pris[j, i] = int(V[i])
             # Save PRIs
             comp["PRIS"] = pris
             # Append component
@@ -1323,7 +1336,8 @@ class ConfigMIXSUR(SurfConfig):
             # Single face
             for par in self.faces:
                 # Do not process single comps
-                if par in self.comps: continue
+                if par in self.comps:
+                    continue
                 # Check if this comp is in there
                 if comp in self.faces[par]:
                     parents.append(par)
@@ -1331,9 +1345,11 @@ class ConfigMIXSUR(SurfConfig):
             # *face* is a group
             for par in self.faces:
                 # Do not process single comps
-                if par in self.comps: continue
+                if par in self.comps:
+                    continue
                 # Do not process self
-                if par == face: continue
+                if par == face:
+                    continue
                 # Get components in *par*
                 comppar = self.faces[par]
                 # Initialize parent test
@@ -1349,7 +1365,6 @@ class ConfigMIXSUR(SurfConfig):
                     parents.append(par)
         # Save the parent list
         self.parents[face] = parents
-
 
     # Method to copy a configuration
     def Copy(self):
@@ -1412,7 +1427,8 @@ class ConfigMIXSUR(SurfConfig):
             # Read the next line
             line = f.readline()
             # Check for end-of-file (EOF)
-            if line == "": return
+            if line == "":
+                return
             # Split it
             V = SplitLineGeneral(line)
         # Output
@@ -1575,6 +1591,31 @@ class ConfigJSON(SurfConfig):
         # Return a string.
         return '<cape.ConfigJSON(nComp=%i, faces=%s)>' % (
             len(self.faces), self.faces.keys())
+
+    # Restrict to CompIDs in a MapBC file
+    def ApplyMapBC(self, fname: str):
+        r"""Read a ``.mapbc`` file and renumber components accordingly
+
+        :Call:
+            >>> cfg.ApplyMapBC(fname)
+        :Inputs:
+            *cfg*: :class:`ConfigJSON`
+                Surface configuration instance
+            *fname*: :class:`str`
+                Name of ``.mapbc`` file to read and apply
+        :Versions:
+            * 2025-10-03 ``@ddalle``: v1.0
+        """
+        # Read the ``.mapbc`` file
+        mapbc = MapBCFile(fname)
+        # Loop through names that are present
+        for j, comp in enumerate(mapbc.Names):
+            # Get CompID listed in MapBC file
+            i = mapbc.CompID[j]
+            # Preparation
+            self.props.setdefault(comp, {})
+            # Set the *CompID*
+            self.props[comp]["CompID"] = i
 
     # Method to get CompIDs from generic input
     def GetCompID(self, face, warn: bool = False):
@@ -1757,7 +1798,8 @@ class ConfigJSON(SurfConfig):
                 if f is None:
                     # Do not append
                     print(
-                        "Skipping '%s' child comp '%s'; no CompID" % (c, child))
+                        "Skipping '%s' child comp '%s'; no CompID"
+                        % (c, child))
                     continue
                 elif isinstance(f, list):
                     # Add two lists together
@@ -1952,7 +1994,8 @@ class ConfigJSON(SurfConfig):
                 # Integers are already faces
                 q = True
                 # Check for valid face
-                if compID < 0: continue
+                if compID < 0:
+                    continue
             else:
                 # Get the compID from properties
                 c = self.GetPropCompID(face)
@@ -1965,7 +2008,8 @@ class ConfigJSON(SurfConfig):
                     q = True
                     compID = compID[0]
                     # Check validity
-                    if compID < 0: continue
+                    if compID < 0:
+                        continue
                 else:
                     # One component, but from a single child
                     q = False
@@ -2133,13 +2177,14 @@ class ConfigJSON(SurfConfig):
                     # Copy from *bc*
                     aflr3bc = bc
             # Check for valid wall boundary condition
-            if (aflr3bc == 3) or (fun3dbc == False):
+            if (aflr3bc == 3) or (fun3dbc is False):
                 # This is a source; do not add it to the Fun3D BCs
                 continue
             # Set the component ID
             compID = self.GetPropCompID(face)
             # Check for negative component
-            if compID < 0: continue
+            if compID < 0:
+                continue
             # Add the component
             comps0.append(face)
             bcs[face] = fun3dbc
@@ -2233,7 +2278,8 @@ class ConfigJSON(SurfConfig):
         # Get parent
         parents = self.parents[face]
         # Check None
-        if parents is None: return
+        if parents is None:
+            return
         # Loop through parents
         for parent in parents:
             # Get the parent's face data
@@ -2242,13 +2288,15 @@ class ConfigJSON(SurfConfig):
             # Replace the parent value
             if t == 'list':
                 # Check for membership
-                if compi not in comp: continue
+                if compi not in comp:
+                    continue
                 # Make the replacement
                 comp[comp.index(compi)] = compo
             else:
                 # Check for membership
-                I = np.where(comp==compi)[0]
-                if len(I) == 0: continue
+                I = np.where(comp == compi)[0]
+                if len(I) == 0:
+                    continue
                 # Make the replacement
                 comp[I[0]] = compo
             # Recurse
@@ -2380,7 +2428,8 @@ class ConfigJSON(SurfConfig):
             return int(prop)
         elif t not in ['dict', 'odict']:
             # Not a valid type
-            raise TypeError(("Properties for component '%s' " % comp) +
+            raise TypeError(
+                ("Properties for component '%s' " % comp) +
                 "must be either a 'dict' or 'int'")
         elif "CompID" not in prop:
             # Missing property

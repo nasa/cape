@@ -1296,6 +1296,9 @@ class Cntl(CntlBase):
         if fxml is None:
             # Nothing to read
             cfg = None
+        elif fxml.endswith(".json"):
+            # Read config (JSON) file
+            cfg = ConfigJSON(fxml)
         else:
             # Read config file
             cfg = ConfigXML(fxml)
