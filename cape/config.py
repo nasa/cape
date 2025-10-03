@@ -1614,6 +1614,8 @@ class ConfigJSON(SurfConfig):
             i = mapbc.CompID[j]
             # Apply renumbering rules
             self.RenumberCompID(comp, i)
+        # Eliminate unused components
+        self.RestrictCompID(mapbc.CompID)
 
     # Method to get CompIDs from generic input
     def GetCompID(self, face: str, warn: bool = False) -> list:
