@@ -3214,9 +3214,9 @@ class CaseFM(CaseData):
         # Unpack point
         x, y, z = p
         # Rotate
-        xp = cth*cps*x + (cph*sps-sph*sth*cps)*y + (sph*sps+cph*sth*cps)*z
+        xp = cth*cps*x + (cph*sps-cph*sth*sps)*y + (sph*sps+cph*sth*cps)*z
         yp = -cth*sps*x + (cph*cps+sph*sth*sps)*y + (sph*cps-cph*sth*sps)*z
-        zp = -sth*x - cth*sph*y + cth*cph*z
+        zp = -sth*x - sph*cth*y + cth*cph*z
         # Output
         return Point(xp, yp, zp)
 
@@ -3240,7 +3240,7 @@ class CaseFM(CaseData):
         x, y, z = p
         # Transformations
         xb = cps*cth*x - sps*cth*y - sth*z
-        yb = (cph*sps-cph*sth*sps)*x + (cph*cps+sph*sth*sps)*y - cph*cth*z
+        yb = (cph*sps-sph*sth*cps)*x + (cph*cps+sph*sth*sps)*y - sph*cth*z
         zb = (sph*sps+cph*sth*cps)*x + (sph*cps-cph*sth*sps)*y + cth*cph*z
         # Output
         return Point(xb, yb, zb)
