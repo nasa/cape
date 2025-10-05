@@ -1364,8 +1364,6 @@ class CaseData(DataKit):
        # --------------
         # Get the first iteration to use in averaging.
         jA = max(j0, jB-nAvg+1)
-        # Reselect *iV* in case initial value was not in *self.i*.
-        iA = iters[jA]
         # Ssample
         x0 = xval[j0]
         xA = xval[jA]
@@ -3216,9 +3214,9 @@ class CaseFM(CaseData):
         # Unpack point
         x, y, z = p
         # Rotate
-        xp = cps*cth*x + (cps*sth*sph-sps*cph)*y + (cps*sth*cph+sps*sph)*z
-        yp = sps*cth*x + (sps*sth*sph+cps*cph)*y + (sps*sth*cph-cps*sph)*z
-        zp = -sth*x + cth*sph*y + cth*cph*z
+        xp = cth*cps*x + (cph*sps-sph*sth*cps)*y + (sph*sps+cph*sth*cps)*z
+        yp = -cth*sps*x + (cph*cps+sph*sth*sps)*y + (sph*cps-cph*sth*sps)*z
+        zp = -sth*x - cth*sph*y + cth*cph*z
         # Output
         return Point(xp, yp, zp)
 
@@ -3241,9 +3239,9 @@ class CaseFM(CaseData):
         # Unpack point
         x, y, z = p
         # Transformations
-        xb = cps*cth*x + sps*cth*y - sth*z
-        yb = (cps*sth*sph-sps*cph)*x + (sps*sth*sph+cps*cph)*y + cth*sph*z
-        zb = (cps*sth*cph+sps*sph)*x + (sps*sth*cph-cps*sph)*y + cth*cph*z
+        xb = cps*cth*x - sps*cth*y - sth*z
+        yb = (cph*sps-cph*sth*sps)*x + (cph*cps+sph*sth*sps)*y - cph*cth*z
+        zb = (sph*sps+cph*sth*cps)*x + (sph*cps-cph*sth*sps)*y + cth*cph*z
         # Output
         return Point(xb, yb, zb)
 
