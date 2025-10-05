@@ -1611,7 +1611,7 @@ class ConfigJSON(SurfConfig):
         # Loop through names that are present
         for j, comp in enumerate(mapbc.Names):
             # Get CompID listed in MapBC file
-            i = mapbc.CompID[j]
+            i = int(mapbc.CompID[j])
             # Apply renumbering rules
             self.RenumberCompID(comp, i)
         # Eliminate unused components
@@ -1901,8 +1901,10 @@ class ConfigJSON(SurfConfig):
                     # Delete the face
                     del self.faces[face]
                 else:
+                    # Convert to list[int]
+                    facelist = list(map(int, F))
                     # Use the restricted subset
-                    self.faces[face] = F
+                    self.faces[face] = facelist
 
     # Get list of components that are not parents
     def GetTriFaces(self):

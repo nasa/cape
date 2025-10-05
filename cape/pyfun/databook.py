@@ -362,7 +362,7 @@ class CaseFM(casedata.CaseFM):
             # Initialize
             self.save_col(col, np.zeros(n, dtype=dat[col].dtype))
         # Find overlap
-        i, j = self.match(dat, cols=[tcol])
+        i, j = self.match(dat, cols=[tcol], once=True)
         # Save data
         for col in dat.cols:
             # Skip 'solver_time'
@@ -370,7 +370,6 @@ class CaseFM(casedata.CaseFM):
                 continue
             # Save data
             self[col][i] = dat[col][j]
-        # Calculate alpha/beta in body framt
         a, b = self.get_ab_history()
         # Save them
         self.save_col("alpha", a)
