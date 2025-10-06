@@ -2160,7 +2160,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Mach number
         mach = self.get_mach()
         # Convert PLT file
-        pltfile.Plt2Triq(ftec, triqfile, mach=mach)
+        pltfile.Plt2Triq(ftec, triqfile, mach=mach, lr4=True)
 
     # Find boundary PLT file
     def find_plt_file(self, stem: str = "tec_boundary") -> Optional[str]:
