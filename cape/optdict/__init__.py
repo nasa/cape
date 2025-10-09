@@ -574,7 +574,7 @@ from .optitem import check_array, check_scalar
 
 # Regular expression for JSON file inclusion
 REGEX_JSON_INCLUDE = re.compile(
-    r'(?P<cmd>JSONFile\("(?P<json>[-\w.+= /\\]+)"\))')
+    r'("&include":|JSONFile\()\s*"(?P<json>[-\w.+= /\\]+)"\)?')
 # Regular expression to recognize a quote
 REGEX_QUOTE = re.compile('"(.*?)"')
 # Regular expression to strip comment to end of line
@@ -610,32 +610,9 @@ ARRAY_TYPES = (
     list,
     tuple,
     np.ndarray)
-if hasattr(np, "float128"):
-    FLOAT_TYPES = (
-        float,
-        np.float16,
-        np.float32,
-        np.float64,
-        np.float128)
-else:  # pragma no cover
-    FLOAT_TYPES = (
-        float,
-        np.float16,
-        np.float32,
-        np.float64)
-INT_TYPES = (
-    int,
-    np.int8,
-    np.int16,
-    np.int32,
-    np.int64,
-    np.uint8,
-    np.uint16,
-    np.uint32,
-    np.uint64)
-BOOL_TYPES = (
-    bool,
-    np.bool_)
+BOOL_TYPES = (bool, np.bool_)
+INT_TYPES = (int, np.integer)
+FLOAT_TYPES = (float, np.floating)
 _BOOL_TYPE_SET = set(BOOL_TYPES)
 _FLOAT_TYPE_SET = set(FLOAT_TYPES)
 _INT_TYPE_SET = set(INT_TYPES)
@@ -774,6 +751,7 @@ class OptionsDict(dict):
         "_lastwarncls",
         "_jsondir",
         "_filenames",
+        "_absfilenames",
         "_lines",
         "_code",
         "_filenos",
@@ -945,6 +923,7 @@ class OptionsDict(dict):
         # Delete/reset attributes
         self._jsondir = None
         self._filenames = None
+        self._absfilenames = None
         self._lines = None
         self._code = None
         self._filenos = None
@@ -1453,7 +1432,11 @@ class OptionsDict(dict):
             # Convert *data* to string
             json.dump(self, fp, indent=indent, cls=_NPEncoder)
 
-    def expand_jsonfile(self, fname: str, **kw):
+    def expand_jsonfile(
+            self, fname: str,
+            fileno: int = 0,
+            lineno: int = 0,
+            prefix: str = ""):
         r"""Recursively read a JSON file
 
         :Call:
@@ -1463,6 +1446,12 @@ class OptionsDict(dict):
                 Options interface
             *fname*: :class:`str`
                 Name of JSON file to read
+            *fileno*: {``0``} | :class:`int`
+                File number if included from previous file
+            *lineno*: {``0``} | :class:`int`
+                Line number at which file is included in parent file
+            *prefix*: {``""``} | :class:`str`
+                Text from first part of parent line including this file
         :Attributes:
             *opts.lines*: :class:`list`\ [:class:`str`]
                 Original code with comments
@@ -1477,12 +1466,6 @@ class OptionsDict(dict):
         :Versions:
             * 2021-12-06 ``@ddalle``: v1.0
         """
-        # Index for this file
-        fileno = kw.get("fileno", 0)
-        # Global line number for beginning of file
-        lineno = kw.get("lineno", 0)
-        # Process prefix
-        prefix = kw.get("prefix", "")
         # Initialize if necessary
         if fileno == 0:
             # Reset line-tracking attributes
@@ -1494,6 +1477,7 @@ class OptionsDict(dict):
             self._sourcelinenos = []
             # Save current folder
             self._jsondir = os.getcwd()
+            self._absfilenames = [os.path.abspath(fname)]
         # Initialize line number w/in ifle
         locallineno = 0
         # Open input file
@@ -1510,9 +1494,9 @@ class OptionsDict(dict):
                 self._linenos.append(lineno + locallineno)
                 self._sourcelinenos.append(locallineno)
                 # Strip comment
-                code = strip_comment(line)
+                linecode = strip_comment(line)
                 # Check for JSONFile()
-                match = REGEX_JSON_INCLUDE.search(code)
+                match = REGEX_JSON_INCLUDE.search(linecode)
                 # Expand include statements
                 ninclude = 0
                 while match:
@@ -1528,33 +1512,38 @@ class OptionsDict(dict):
                     fj = fj.replace("/", os.sep)
                     # Get absolute path
                     if not os.path.isabs(fj):
-                        fj = os.path.join(self._jsondir, fj)
+                        faj = os.path.join(self._jsondir, fj)
+                    # Check for multiple include
+                    if faj in self._absfilenames:
+                        raise OptdictValueError(
+                            f"Cannot include '{fj}' at line {locallineno} of "
+                            f"'{fname}'; already included previously")
                     # Indices of group
                     ia = match.start()
                     ib = match.end()
                     # Save prefix as line
-                    prefix = code[:ia] + "\n"
+                    prefix = linecode[:ia] + "\n"
                     self._lines.append(prefix)
                     self._code.append(prefix)
                     # Recurse
                     self.expand_jsonfile(
-                        fj, fileno=j,
+                        faj, fileno=j,
                         lineno=lineno+locallineno)
                     # Check for additional groups
-                    match = REGEX_JSON_INCLUDE.search(code[ib:])
+                    match = REGEX_JSON_INCLUDE.search(linecode[ib:])
                 # Save the line if no inclusions
                 if ninclude:
                     # Lines w/ >0 JSONFile() commands, append suffix
-                    self._lines[-1] += code[ib:]
-                    self._code[-1] += code[ib:]
+                    self._lines[-1] += linecode[ib:]
+                    self._code[-1] += linecode[ib:]
                 elif locallineno == 0:
                     # Save raw text and comment-stripped version
                     self._lines.append(prefix + line)
-                    self._code.append(prefix + code)
+                    self._code.append(prefix + linecode)
                 else:
                     # Save raw text and comment-stripped version
                     self._lines.append(line)
-                    self._code.append(code)
+                    self._code.append(linecode)
                 # Increment line counter
                 locallineno += 1
 
@@ -4406,7 +4395,7 @@ class OptionsDict(dict):
             lines.append("")
             # Loop through alias option map
             for opt, fullopt in optmap.items():
-                lines.append(f"* *{opt}* → *{fullopt}*")
+                lines.append(f"* *{opt}* ? *{fullopt}*")
             # Blank line
             lines.append("")
         # Header for options

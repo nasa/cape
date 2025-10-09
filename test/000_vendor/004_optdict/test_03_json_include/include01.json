@@ -1,3 +1,4 @@
 {
-    "part01": JSONFile("part01.json")
+    "part01": JSONFile("part01.json"),
+    "&include": "part02.json"
 }
