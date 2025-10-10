@@ -435,7 +435,7 @@ class DataKitLoader(OptionsDict):
         """
         # Attempt to match regex (all of *modname*)
         try:
-            match = re.match(regex + "$", modname)
+            match = re.fullmatch(regex, modname)
         except Exception:
             print(f"  Invalid regular expression '{regex}'")
             return None
@@ -505,16 +505,13 @@ class DataKitLoader(OptionsDict):
         }
         # Get regular expression list
         name_list = self.get_opt("MODULE_NAME_REGEX_LIST")
-        # Check if it's a list
-        if not isinstance(name_list, (list, tuple)):
-            # Create a singleton
-            name_list = [name_list]
+        name_list = _listify(name_list)
         # Initialize list of expanded regexes
         regex_list = []
         # Loop through raw lists
         for name in name_list:
             # Expand it and append to regular expression list
-            regex_list.append(name % grps_re)
+            regex_list.append((name % grps_re).format(**grps_re))
         # Output
         return regex_list
 
