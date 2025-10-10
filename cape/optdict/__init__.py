@@ -1817,6 +1817,14 @@ class OptionsDict(dict):
         if _depth == 0:
             # For initial pass, must be a dict
             assert_isinstance(vj, dict, "sampled dictionary")
+        elif isinstance(vj, list):
+            # Sample each element
+            vl = [
+                optitem.getel(vk, j=None, i=i, **kw)
+                for vk in vj
+            ]
+            # Use it
+            return vl
         elif not isinstance(vj, dict):
             # Otherwise, if not a dict, done
             return vj
