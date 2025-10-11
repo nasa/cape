@@ -160,27 +160,33 @@ class DataKitLoader(OptionsDict):
         self.rawdata_remotes = {}
         self.rawdata_commits = {}
         self.rawdata_sources_commit = {}
-        # Get name of calling function
-        caller_frame = sys._getframe(1)
-        caller_func = caller_frame.f_code
-        # Get module file name
-        modfile = caller_func.co_filename
-        # Get module of calling function
-        mod = inspect.getmodule(caller_frame)
-        modname = mod.__name__
+        # Get module name and module itself
+        if name is None:
+            # Get name of calling function
+            caller_frame = sys._getframe(1)
+            caller_func = caller_frame.f_code
+            # Get module file name
+            modfile = caller_func.co_filename
+            # Get module of calling function
+            mod = inspect.getmodule(caller_frame)
+            modname = getattr(mod, "__name__", "")
+        else:
+            # Use specified name
+            modname = name
+            # Get module
+            mod = sys.modules[modname]
+            # Name of module file name
+            modfile = getattr(mod, "__file__") if fname is None else fname
         # Save the module
         self.module = mod
-        # Apply defaults
-        name = modname if name is None else name
-        fname = modfile if fname is None else fname
         # Calling folder
-        fdir = os.path.dirname(fname)
+        fdir = os.path.dirname(modfile)
         # Process options
         OptionsDict.__init__(self, **kw)
         # Set options
         self.set_opt("DATAKIT_CLS", DATAKIT_CLS)
-        self.set_opt("MODULE_NAME", name)
-        self.set_opt("MODULE_FILE", fname)
+        self.set_opt("MODULE_NAME", modname)
+        self.set_opt("MODULE_FILE", modfile)
         self.set_opt("MODULE_DIR", fdir)
         # Get database (datakit) NAME
         self.create_db_name()
@@ -317,7 +323,7 @@ class DataKitLoader(OptionsDict):
             # Expand all groups
             try:
                 # Apply formatting substitutions
-                dbname = dbname_template % grps
+                dbname = (dbname_template % grps).format(**grps)
             except Exception:
                 # Missing group or something
                 print("Failed to expand DB_NAME_TEMPLATE_LIST %i:" % (i+1))
@@ -389,10 +395,10 @@ class DataKitLoader(OptionsDict):
             # Expand all groups
             try:
                 # Apply formatting substitutions
-                modname = modname_template % grps
+                modname = (modname_template % grps).format(**grps)
             except Exception:
                 # Missing group or something
-                print("Failed to expand MODULE_NAME_TEPLATE_LIST %i:" % (i+1))
+                print("Failed to expand MODULE_NAME_TEMPLATE_LIST %i:" % (i+1))
                 print("  template: %s" % modname_template)
                 print("  groups:")
                 # Print all groups
@@ -400,7 +406,7 @@ class DataKitLoader(OptionsDict):
                     print("%12s: %s [%s]" % (k, v, type(v).__name__))
                 # Raise an exception
                 raise KeyError(
-                    ("Failed to expand MODULE_NAME_TEPLATE_LIST ") +
+                    ("Failed to expand MODULE_NAME_TEMPLATE_LIST ") +
                     ("%i (1-based)" % (i+1)))
             # Save candidate module name
             modname_list.append(modname)

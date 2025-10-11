@@ -51,10 +51,6 @@ DataKit 3.0 package.
 
     --title TITLE
         Use *TITLE* as the one-line description for the package
-
-:Versions:
-    * 2021-08-24 ``@ddalle``: v1.0
-    * 2021-09-15 ``@ddalle``: v1.1; more STDOUT
 """
 
 
@@ -197,6 +193,20 @@ class VendorOptions(OptionsDict):
     }
 
 
+# Options for datakitloader section
+class DataKitLoaderOptions(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "groups",
+        "repo",
+        "module_names",
+        "db_names",
+    )
+
+
 # Options for "datakit.json"
 class QuickStartOptions(OptionsDict):
     r"""Options class for ``dkit-quickstart``
@@ -217,6 +227,7 @@ class QuickStartOptions(OptionsDict):
 
     # Allowed options
     _optlist = (
+        "datakitloader",
         "datakitloader-module",
         "meta",
         "requirements",
@@ -250,6 +261,7 @@ class QuickStartOptions(OptionsDict):
 
     # Subsections
     _sec_cls = {
+        "datakitloader": DataKitLoaderOptions,
         "vendor": VendorOptions,
     }
 
