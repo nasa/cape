@@ -218,7 +218,7 @@ class DataKitLoader(OptionsDict):
             # Use specified name
             modname = name
             # Get module
-            mod = sys.modules[modname]
+            mod = sys.modules.get(modname)
             # Name of module file name
             modfile = getattr(mod, "__file__") if fname is None else fname
         # Save the module

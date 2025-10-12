@@ -343,6 +343,8 @@ class DataKitQuickStarter:
         self.create_vendorize_json()
         # Write requirements
         self.write_requirements()
+        # Write datakitloader
+        self.write_dkitloader()
         # Prepare rawdata/ folder
         self.prepare_rawdata()
         # Return code
@@ -753,6 +755,33 @@ class DataKitQuickStarter:
         # Write to file
         with open(os.path.join(pkgdir, "requirements.json"), 'w') as fp:
             json.dump(reqs, fp, indent=4)
+
+    # Write datakit.json file based on repo settings
+    def write_dkitloader(self):
+        r"""Write ``datakit.json`` if *datakitloader* section defined
+
+        :Call:
+            >>> starter.write_dkitloader()
+        :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
+        :Versions:
+            * 2025-10-11 ``@ddalle``: v1.0
+        """
+        # Get requirements moption
+        rules = self.opts.get("datakitloader")
+        # Exit if none
+        if rules is None or len(rules) == 0:
+            return
+        # Package folder
+        pkgdir = os.path.join(self.cwd, self.pkgdir)
+        # Full path
+        fjson = os.path.join(pkgdir, "datakit.json")
+        # Status update
+        print(f"Writing file '{os.path.relpath(fjson, self.cwd)}'")
+        # Write to file
+        with open(fjson, 'w') as fp:
+            json.dump(rules, fp, indent=4)
 
     # Write the setup.py script
     def write_setup_py(self):
