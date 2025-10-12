@@ -14,7 +14,7 @@ from typing import Optional
 # Local modules
 from .. import argread
 from .. import textutils
-from .datakitloader import DataKitLoader
+from .datakitloader import DataKitLoader, DataKitLoaderOptions
 from .metautils import ModulePropDB, merge_dict
 from ..optdict import OptionsDict
 from ..tnakit import promptutils
@@ -191,20 +191,6 @@ class VendorOptions(OptionsDict):
         "hub": 1,
         "packages": 1,
     }
-
-
-# Options for datakitloader section
-class DataKitLoaderOptions(OptionsDict):
-    # No attributes
-    __slots__ = ()
-
-    # Allowed options
-    _optlist = (
-        "groups",
-        "repo",
-        "module_names",
-        "db_names",
-    )
 
 
 # Options for "datakit.json"

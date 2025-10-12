@@ -47,6 +47,50 @@ ATTR_OPTS = (
 )
 
 
+# Options for regex groups
+class DataKitRegexGroupOpts(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Types
+    _opttypes = {
+        "_default_": str
+    }
+
+
+# Options for datakitloader section
+class DataKitLoaderOptions(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "groups",
+        "repo",
+        "module_names",
+        "db_names",
+    )
+
+    # Types
+    _opttypes = {
+        "repo": str,
+        "module_names": str,
+        "db_names": str,
+    }
+
+    # Required lists
+    _optlistdepth = {
+        "repo": 1,
+        "module_names": 1,
+        "db_names": 1,
+    }
+
+    # Sections
+    _sec_cls = {
+        "groups": DataKitRegexGroupOpts,
+    }
+
+
 # Create class
 class DataKitLoader(OptionsDict):
     r"""Tool for reading datakits based on module name and file
