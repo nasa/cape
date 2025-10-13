@@ -34,6 +34,13 @@ REGEX_INT = re.compile("[0-9]+$")
 REGEX_HOST = re.compile(r"((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)$")
 REGEX_REMOTE = re.compile(r"((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)$")
 
+# Conversion regexes for module/database names
+_fmt = "[+-]?[0-9]*\\.*[0-9]*[a-zA-Z]"
+REGEX_FMT_GRP = re.compile("{([ul]-)?([a-z_]+)(:%s)?}" % _fmt)
+REGEX_HASH_GRP = re.compile(r"%\(([ul]-)?([a-z_]+)\)" + _fmt)
+REGEX_HASH2FMT = re.compile(r"%\(((?:[ul]-)?[a-z_]+)\)(" + _fmt + ")")
+REGEX_I2D = re.compile(r"{((?:[ul]-)[a-z_]+:[+-]?[0-9]*)[Ii]}")
+
 # Combined class for failed imports
 IMPORT_ERROR = (ModuleNotFoundError, ImportError)
 # List of keys to access via attribute
@@ -232,6 +239,8 @@ class DataKitLoader(OptionsDict):
         self.set_opt("MODULE_NAME", modname)
         self.set_opt("MODULE_FILE", modfile)
         self.set_opt("MODULE_DIR", fdir)
+        # Process datakit.json
+        self.read_datakit_json()
         # Get database (datakit) NAME
         self.create_db_name()
         # Save metadata
@@ -256,6 +265,59 @@ class DataKitLoader(OptionsDict):
             return self.get(name.upper())
         # Fall-back
         return super().__getattribute__(name)
+
+  # === Options ===
+    def read_datakit_json(self):
+        r"""Read options from module's ``datakit.json`` file
+
+        Alternative definition for *MODULE_NAME_LIST* and other
+        options that can be defined by kwargs
+
+        :Call:
+            >>> ast.read_datakit_json(fdir)
+        :Inputs:
+            *ast*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fdir*: :class:`strt`
+                Packge folder
+        :Versions:
+            * 2025-10-12 ``@ddalle``: v1.0
+        """
+        # Package dir
+        fdir = self.get_opt("MODULE_DIR")
+        # Name to expected file
+        fjson = os.path.join(fdir, "datakit.json")
+        # Check for file
+        if not os.path.isfile(fjson):
+            return
+        # Read the file
+        opts = DataKitLoaderOptions(fjson)
+        # Dictionary of groups from options
+        regex_groups = opts.get_opt("groups")
+        # Initialize patterns
+        modname_pats = []
+        # Initialize templates
+        modname_fmts = []
+        # Get module name format instructions
+        modname_opts = opts.get_opt("module_names")
+        # Loop through module name patterns
+        for pat in modname_opts:
+            # Remove formatting instructions; {l-org}, {dbnum:04d}
+            # map to (?P<org>{org}) and (?P<dbnum>{dbnum})
+            regex_raw = REGEX_FMT_GRP.sub(r"(?P<\2>{\2})", pat)
+            regex_raw = REGEX_HASH_GRP.sub(r"(?P<\2>{\2})", regex_raw)
+            # Insert regex patterns for each group
+            # Map {org} -> [A-Za-z][A-Za-z0-9]+, for example
+            regex_pat = regex_raw.format(**regex_groups)
+            # Replace %(l-dbname)04d -> {l-dbname:04d}
+            fmt_raw = REGEX_HASH2FMT.sub(r"{\1:\2}", pat)
+            fmt_raw = REGEX_I2D.sub(r"{\1d}", fmt_raw)
+            # Save it
+            modname_pats.append(regex_pat)
+            modname_fmts.append(fmt_raw)
+        # Save it
+        self.set_opt("MODULE_NAME_REGEX_LIST", modname_pats)
+        self.set_opt("MODULE_NAME_TEMPLATE_LIST", modname_fmts)
 
   # === MODULE_NAME --> DB_NAME ===
    # --- Create DB names ---
