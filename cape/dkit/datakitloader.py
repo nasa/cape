@@ -41,6 +41,7 @@ REGEX_HASH_GRP = re.compile(r"%\(([ul]-)?([a-z_]+)\)" + _fmt)
 REGEX_FIND_GRP = re.compile(r"({(?:[ul]-)?[a-z_]+(?::%s)?})" % _fmt)
 REGEX_HASH2FMT = re.compile(r"%\(((?:[ul]-)?[a-z_]+)\)(" + _fmt + ")")
 REGEX_I2D = re.compile(r"{((?:[ul]-)[a-z_]+:[+-]?[0-9]*)[Ii]}")
+REGEX_DOT = re.compile(r"(?<!\\)\.")
 
 # Combined class for failed imports
 IMPORT_ERROR = (ModuleNotFoundError, ImportError)
@@ -308,7 +309,8 @@ class DataKitLoader(OptionsDict):
             # Remove formatting instructions; {l-org}, {dbnum:04d}
             # map to {org}, {dbnum}
             modname_pat1 = REGEX_FMT_GRP.sub(r"{\2}", pat)
-            modname_pat = REGEX_HASH_GRP.sub(r"{\2}", modname_pat1)
+            modname_pat2 = REGEX_HASH_GRP.sub(r"{\2}", modname_pat1)
+            modname_pat = REGEX_DOT.sub(r'\.', modname_pat2)
             # Replace %(l-dbname)04d -> {l-dbname:04d}
             fmt_raw = REGEX_HASH2FMT.sub(r"{\1:\2}", pat)
             fmt_raw = REGEX_I2D.sub(r"{\1d}", fmt_raw)

@@ -59,6 +59,7 @@ from typing import Optional
 import numpy as np
 
 # Local imports
+from .. import convert
 from ..cfdx import casedata
 from ..cfdx import databook
 from ..dkit import tsvfile
@@ -344,7 +345,8 @@ class CaseFM(casedata.CaseFM):
                 Force & moment iterative history
         :Versions:
             * 2025-09-25 ``@ddalle``: v1.0
-            * 2025-09-26 ``@ddalle``: v1.1; add *alpha*, *beta*0
+            * 2025-09-26 ``@ddalle``: v1.1; add *alpha*, *beta*
+            * 2025-10-15 ``@ddalle``: v1.2; add *(aoa|phi)[pv]*
         """
         # Check for moving-body data
         dat = self.read_bodydat()
@@ -370,10 +372,18 @@ class CaseFM(casedata.CaseFM):
                 continue
             # Save data
             self[col][i] = dat[col][j]
+        # Calculate angle of attack and sideslip for each iteration
         a, b = self.get_ab_history()
+        # Calculate other variables
+        aoap, phip = convert.AlphaBeta2AlphaTPhi(a, b)
+        aoav, phiv = convert.AlphaBeta2AlphaMPhi(a, b)
         # Save them
         self.save_col("alpha", a)
         self.save_col("beta", b)
+        self.save_col("aoap", aoap)
+        self.save_col("phip", phip)
+        self.save_col("aoav", aoav)
+        self.save_col("phiv", phiv)
         # Apply moving-body MRP shifts
         self.shift_mrp_body()
         # Transform into body-frame
