@@ -3204,11 +3204,11 @@ class CaseFM(CaseData):
             return p
         # Calculate trig functions
         cph = np.cos(ph*DEG)
-        sph = np.sin(ph*DEG)
+        sph = -np.sin(ph*DEG)
         cth = np.cos(th*DEG)
         sth = np.sin(th*DEG)
         cps = np.cos(ps*DEG)
-        sps = np.sin(ps*DEG)
+        sps = -np.sin(ps*DEG)
         # Unpack point
         x, y, z = p
         # Rotate
