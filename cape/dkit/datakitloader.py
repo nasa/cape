@@ -295,6 +295,8 @@ class DataKitLoader(OptionsDict):
         opts = DataKitLoaderOptions(fjson)
         # Dictionary of groups from options
         regex_groups = opts.get_opt("groups")
+        # Save thos
+        self.set_opt("MODULE_NAME_REGEX_GROUPS", regex_groups)
         # Initialize patterns
         modname_pats = []
         # Initialize templates
@@ -304,12 +306,9 @@ class DataKitLoader(OptionsDict):
         # Loop through module name patterns
         for pat in modname_opts:
             # Remove formatting instructions; {l-org}, {dbnum:04d}
-            # map to (?P<org>{org}) and (?P<dbnum>{dbnum})
-            regex_raw = REGEX_FMT_GRP.sub(r"(?P<\2>{\2})", pat)
-            regex_raw = REGEX_HASH_GRP.sub(r"(?P<\2>{\2})", regex_raw)
-            # Insert regex patterns for each group
-            # Map {org} -> [A-Za-z][A-Za-z0-9]+, for example
-            modname_pat = regex_raw.format(**regex_groups)
+            # map to {org}, {dbnum}
+            modname_pat1 = REGEX_FMT_GRP.sub(r"{\2}", pat)
+            modname_pat = REGEX_HASH_GRP.sub(r"{\2}", modname_pat1)
             # Replace %(l-dbname)04d -> {l-dbname:04d}
             fmt_raw = REGEX_HASH2FMT.sub(r"{\1:\2}", pat)
             fmt_raw = REGEX_I2D.sub(r"{\1d}", fmt_raw)
@@ -336,12 +335,9 @@ class DataKitLoader(OptionsDict):
         # Loop through database name patterns
         for pat in dbname_opts:
             # Remove formatting instructions; {l-org}, {dbnum:04d}
-            # map to (?P<org>{org}) and (?P<dbnum>{dbnum})
-            regex_raw = REGEX_FMT_GRP.sub(r"(?P<\2>{\2})", pat)
-            regex_raw = REGEX_HASH_GRP.sub(r"(?P<\2>{\2})", regex_raw)
-            # Insert regex patterns for each group
-            # Map {org} -> [A-Za-z][A-Za-z0-9]+, for example
-            dbname_pat = regex_raw.format(**regex_groups)
+            # map to {org} and {dbnum}
+            dbname_pat1 = REGEX_FMT_GRP.sub(r"{\2}", pat)
+            dbname_pat = REGEX_HASH_GRP.sub(r"(?P<\2>{\2})", dbname_pat1)
             # Replace %(l-dbname)04d -> {l-dbname:04d}
             fmt_raw = REGEX_HASH2FMT.sub(r"{\1:\2}", pat)
             fmt_raw = REGEX_I2D.sub(r"{\1d}", fmt_raw)
@@ -664,7 +660,9 @@ class DataKitLoader(OptionsDict):
         # Loop through raw lists
         for name in name_list:
             # Expand it and append to regular expression list
-            regex_list.append((name % grps_re).format(**grps_re))
+            pat1 = name % grps_re
+            pat2 = pat1.format(**grps_re)
+            regex_list.append(pat2)
         # Output
         return regex_list
 
