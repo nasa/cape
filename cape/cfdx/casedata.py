@@ -2392,7 +2392,7 @@ class CaseFM(CaseData):
         ub, vb, wb = self.transform_euler123(Point(u, v, w))
         # Convert to alpha, beta
         alpha = np.arctan2(wb, ub) / DEG
-        beta = np.arcsin(vb) / DEG
+        beta = -np.arcsin(vb) / DEG
         # Output
         return Pair(alpha, beta)
 
@@ -2987,7 +2987,7 @@ class CaseFM(CaseData):
         r"""Shift moment [coefficient] for moving-body MRP movements
 
         :Call:
-            >>> fm.shift_mrtransform_fm321_bodyp_body()
+            >>> fm.shift_mrtransform_fm321_body()
         :Inputs:
             *fm*: :class:`CaseFM`
                 Instance of the force and moment class
@@ -3022,8 +3022,6 @@ class CaseFM(CaseData):
             m = Point(cll, clm, cln)
             # Transform
             mp = self.transform_euler123(m)
-            # Rotate forces
-            fp = self.transform_euler123(f)
             # Save
             self.save_col(f"CLLb{suffix}", mp.x)
             self.save_col(f"CLMb{suffix}", mp.y)
@@ -3231,11 +3229,11 @@ class CaseFM(CaseData):
             return p
         # Calculate trig functions
         cph = np.cos(ph*DEG)
-        sph = np.sin(ph*DEG)
+        sph = -np.sin(ph*DEG)
         cth = np.cos(th*DEG)
         sth = np.sin(th*DEG)
         cps = np.cos(ps*DEG)
-        sps = np.sin(ps*DEG)
+        sps = -np.sin(ps*DEG)
         # Unpack point
         x, y, z = p
         # Transformations

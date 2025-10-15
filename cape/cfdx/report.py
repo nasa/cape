@@ -3367,7 +3367,7 @@ class Report(object):
             fmt_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
             fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
             fmt_e = opts.get_SubfigOpt(sfig, "ErrorFormat", k)
-            # Draw the plot.
+            # Draw the plot
             h = FM.PlotCoeff(
                 coeff, xcol=xcol, n=nPlotIter,
                 nFirst=nPlotFirst, nLast=nPlotLast,
