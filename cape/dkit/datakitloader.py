@@ -34,6 +34,15 @@ REGEX_INT = re.compile("[0-9]+$")
 REGEX_HOST = re.compile(r"((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)$")
 REGEX_REMOTE = re.compile(r"((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)$")
 
+# Conversion regexes for module/database names
+_fmt = "[+-]?[0-9]*\\.*[0-9]*[a-zA-Z]"
+REGEX_FMT_GRP = re.compile("{([ul]-)?([a-z_]+)(:%s)?}" % _fmt)
+REGEX_HASH_GRP = re.compile(r"%\(([ul]-)?([a-z_]+)\)" + _fmt)
+REGEX_FIND_GRP = re.compile(r"({(?:[ul]-)?[a-z_]+(?::%s)?})" % _fmt)
+REGEX_HASH2FMT = re.compile(r"%\(((?:[ul]-)?[a-z_]+)\)(" + _fmt + ")")
+REGEX_I2D = re.compile(r"{((?:[ul]-)[a-z_]+:[+-]?[0-9]*)[Ii]}")
+REGEX_DOT = re.compile(r"(?<!\\)\.")
+
 # Combined class for failed imports
 IMPORT_ERROR = (ModuleNotFoundError, ImportError)
 # List of keys to access via attribute
@@ -45,6 +54,50 @@ ATTR_OPTS = (
     "MODULE_FILE",
     "MODULE_NAME",
 )
+
+
+# Options for regex groups
+class DataKitRegexGroupOpts(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Types
+    _opttypes = {
+        "_default_": str
+    }
+
+
+# Options for datakitloader section
+class DataKitLoaderOptions(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "groups",
+        "repo",
+        "module_names",
+        "db_names",
+    )
+
+    # Types
+    _opttypes = {
+        "repo": str,
+        "module_names": str,
+        "db_names": str,
+    }
+
+    # Required lists
+    _optlistdepth = {
+        "repo": 1,
+        "module_names": 1,
+        "db_names": 1,
+    }
+
+    # Sections
+    _sec_cls = {
+        "groups": DataKitRegexGroupOpts,
+    }
 
 
 # Create class
@@ -160,28 +213,36 @@ class DataKitLoader(OptionsDict):
         self.rawdata_remotes = {}
         self.rawdata_commits = {}
         self.rawdata_sources_commit = {}
-        # Get name of calling function
-        caller_frame = sys._getframe(1)
-        caller_func = caller_frame.f_code
-        # Get module file name
-        modfile = caller_func.co_filename
-        # Get module of calling function
-        mod = inspect.getmodule(caller_frame)
-        modname = mod.__name__
+        # Get module name and module itself
+        if name is None:
+            # Get name of calling function
+            caller_frame = sys._getframe(1)
+            caller_func = caller_frame.f_code
+            # Get module file name
+            modfile = caller_func.co_filename
+            # Get module of calling function
+            mod = inspect.getmodule(caller_frame)
+            modname = getattr(mod, "__name__", "")
+        else:
+            # Use specified name
+            modname = name
+            # Get module
+            mod = sys.modules.get(modname)
+            # Name of module file name
+            modfile = getattr(mod, "__file__") if fname is None else fname
         # Save the module
         self.module = mod
-        # Apply defaults
-        name = modname if name is None else name
-        fname = modfile if fname is None else fname
         # Calling folder
-        fdir = os.path.dirname(fname)
+        fdir = os.path.dirname(modfile)
         # Process options
         OptionsDict.__init__(self, **kw)
         # Set options
         self.set_opt("DATAKIT_CLS", DATAKIT_CLS)
-        self.set_opt("MODULE_NAME", name)
-        self.set_opt("MODULE_FILE", fname)
+        self.set_opt("MODULE_NAME", modname)
+        self.set_opt("MODULE_FILE", modfile)
         self.set_opt("MODULE_DIR", fdir)
+        # Process datakit.json
+        self.read_datakit_json()
         # Get database (datakit) NAME
         self.create_db_name()
         # Save metadata
@@ -206,6 +267,96 @@ class DataKitLoader(OptionsDict):
             return self.get(name.upper())
         # Fall-back
         return super().__getattribute__(name)
+
+  # === Options ===
+    def read_datakit_json(self):
+        r"""Read options from module's ``datakit.json`` file
+
+        Alternative definition for *MODULE_NAME_LIST* and other
+        options that can be defined by kwargs
+
+        :Call:
+            >>> ast.read_datakit_json(fdir)
+        :Inputs:
+            *ast*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fdir*: :class:`strt`
+                Packge folder
+        :Versions:
+            * 2025-10-12 ``@ddalle``: v1.0
+        """
+        # Package dir
+        fdir = self.get_opt("MODULE_DIR")
+        # Name to expected file
+        fjson = os.path.join(fdir, "datakit.json")
+        # Check for file
+        if not os.path.isfile(fjson):
+            return
+        # Read the file
+        opts = DataKitLoaderOptions(fjson)
+        # Dictionary of groups from options
+        regex_groups = opts.get_opt("groups")
+        # Save thos
+        self.set_opt("MODULE_NAME_REGEX_GROUPS", regex_groups)
+        # Initialize patterns
+        modname_pats = []
+        # Initialize templates
+        modname_fmts = []
+        # Get module name format instructions
+        modname_opts = opts.get_opt("module_names")
+        # Loop through module name patterns
+        for pat in modname_opts:
+            # Remove formatting instructions; {l-org}, {dbnum:04d}
+            # map to {org}, {dbnum}
+            modname_pat1 = REGEX_FMT_GRP.sub(r"{\2}", pat)
+            modname_pat2 = REGEX_HASH_GRP.sub(r"{\2}", modname_pat1)
+            modname_pat = REGEX_DOT.sub(r'\.', modname_pat2)
+            # Replace %(l-dbname)04d -> {l-dbname:04d}
+            fmt_raw = REGEX_HASH2FMT.sub(r"{\1:\2}", pat)
+            fmt_raw = REGEX_I2D.sub(r"{\1d}", fmt_raw)
+            # Find all the format groups in the current regex
+            fmtgrps = REGEX_FIND_GRP.findall(fmt_raw)
+            # Create a dictionary of these by group number
+            fmtdict = {str(i+1): grp for i, grp in enumerate(fmtgrps)}
+            # Replace \3 -> %(3)s
+            fmt_raw2 = re.sub(r"\\([0-9]+)", r"%(\1)s", fmt_raw)
+            # Now expand repeat groups like \1 -> original format instr
+            modname_fmt = fmt_raw2 % fmtdict
+            # Save it
+            modname_pats.append(modname_pat)
+            modname_fmts.append(modname_fmt)
+        # Save it
+        self.set_opt("MODULE_NAME_REGEX_LIST", modname_pats)
+        self.set_opt("MODULE_NAME_TEMPLATE_LIST", modname_fmts)
+        # Initialize patterns
+        dbname_pats = []
+        # Initialize templates
+        dbname_fmts = []
+        # Get database name format instructions
+        dbname_opts = opts.get_opt("db_names")
+        # Loop through database name patterns
+        for pat in dbname_opts:
+            # Remove formatting instructions; {l-org}, {dbnum:04d}
+            # map to {org} and {dbnum}
+            dbname_pat1 = REGEX_FMT_GRP.sub(r"{\2}", pat)
+            dbname_pat = REGEX_HASH_GRP.sub(r"(?P<\2>{\2})", dbname_pat1)
+            # Replace %(l-dbname)04d -> {l-dbname:04d}
+            fmt_raw = REGEX_HASH2FMT.sub(r"{\1:\2}", pat)
+            fmt_raw = REGEX_I2D.sub(r"{\1d}", fmt_raw)
+            # Find all the format groups in the current regex
+            fmtgrps = REGEX_FIND_GRP.findall(fmt_raw)
+            # Create a dictionary of these by group number
+            fmtdict = {str(i+1): grp for i, grp in enumerate(fmtgrps)}
+            # Replace \3 -> %(3)s
+            fmt_raw2 = re.sub(r"\\([0-9]+)", r"%(\1)s", fmt_raw)
+            # Now expand repeat groups like \1 -> original format instr
+            dbname_fmt = fmt_raw2 % fmtdict
+            # Save it
+            dbname_pats.append(dbname_pat)
+            dbname_fmts.append(dbname_fmt)
+        # Save it
+        self.set_opt("DB_NAME_REGEX_LIST", dbname_pats)
+        self.set_opt("DB_NAME_TEMPLATE_LIST", dbname_fmts)
 
   # === MODULE_NAME --> DB_NAME ===
    # --- Create DB names ---
@@ -317,7 +468,7 @@ class DataKitLoader(OptionsDict):
             # Expand all groups
             try:
                 # Apply formatting substitutions
-                dbname = dbname_template % grps
+                dbname = (dbname_template % grps).format(**grps)
             except Exception:
                 # Missing group or something
                 print("Failed to expand DB_NAME_TEMPLATE_LIST %i:" % (i+1))
@@ -389,10 +540,10 @@ class DataKitLoader(OptionsDict):
             # Expand all groups
             try:
                 # Apply formatting substitutions
-                modname = modname_template % grps
+                modname = (modname_template % grps).format(**grps)
             except Exception:
                 # Missing group or something
-                print("Failed to expand MODULE_NAME_TEPLATE_LIST %i:" % (i+1))
+                print("Failed to expand MODULE_NAME_TEMPLATE_LIST %i:" % (i+1))
                 print("  template: %s" % modname_template)
                 print("  groups:")
                 # Print all groups
@@ -400,7 +551,7 @@ class DataKitLoader(OptionsDict):
                     print("%12s: %s [%s]" % (k, v, type(v).__name__))
                 # Raise an exception
                 raise KeyError(
-                    ("Failed to expand MODULE_NAME_TEPLATE_LIST ") +
+                    ("Failed to expand MODULE_NAME_TEMPLATE_LIST ") +
                     ("%i (1-based)" % (i+1)))
             # Save candidate module name
             modname_list.append(modname)
@@ -435,7 +586,7 @@ class DataKitLoader(OptionsDict):
         """
         # Attempt to match regex (all of *modname*)
         try:
-            match = re.match(regex + "$", modname)
+            match = re.fullmatch(regex, modname)
         except Exception:
             print(f"  Invalid regular expression '{regex}'")
             return None
@@ -505,16 +656,15 @@ class DataKitLoader(OptionsDict):
         }
         # Get regular expression list
         name_list = self.get_opt("MODULE_NAME_REGEX_LIST")
-        # Check if it's a list
-        if not isinstance(name_list, (list, tuple)):
-            # Create a singleton
-            name_list = [name_list]
+        name_list = _listify(name_list)
         # Initialize list of expanded regexes
         regex_list = []
         # Loop through raw lists
         for name in name_list:
             # Expand it and append to regular expression list
-            regex_list.append(name % grps_re)
+            pat1 = name % grps_re
+            pat2 = pat1.format(**grps_re)
+            regex_list.append(pat2)
         # Output
         return regex_list
 
