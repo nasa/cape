@@ -2857,6 +2857,8 @@ class Cntl(CntlBase):
             return max(map(len, fruns))
         elif opt == "i":
             # Case index; avoid 0
+            if len(I) == 0:
+                return 1
             inds = np.fmax(2, I)
             return int(np.max(np.ceil(np.log10(inds))))
         elif opt == "status":
