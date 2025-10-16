@@ -298,6 +298,7 @@ class DataKitLoader(OptionsDict):
         regex_groups = opts.get_opt("groups")
         # Save thos
         self.set_opt("MODULE_NAME_REGEX_GROUPS", regex_groups)
+        self.set_opt("DB_NAME_REGEX_GROUPS", regex_groups)
         # Initialize patterns
         modname_pats = []
         # Initialize templates
@@ -699,7 +700,7 @@ class DataKitLoader(OptionsDict):
             * *DB_NAME_REGEX_STR_GROUPS*
         """
         # Attempt to match regex (all of *dbname*)
-        match = re.match(regex + "$", dbname)
+        match = re.fullmatch(regex, dbname)
         # Check for no match
         if match is None:
             return None
@@ -1040,7 +1041,7 @@ class DataKitLoader(OptionsDict):
             for modname in modname_list:
                 print("    %s" % modname)
         else:
-            print("No *modname* patterns matched *dbname*")
+            print(f"No *modname* patterns matched {dbname}")
         # Raise an exception
         raise ImportError("No module found for db '%s'" % dbname)
 
