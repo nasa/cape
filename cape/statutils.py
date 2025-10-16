@@ -50,7 +50,7 @@ def getidx_ordered_stats(p: float, cl: float, n: int) -> float:
         *p*: :class:`float` | :class:`np.ndarray`\ [:class:`float`]
             Coverage fraction, probability
         *cl*: :class:`float` | :class:`np.ndarray`\ [:class:`float`]
-            Confidence interval, or array thereof
+            Confidence level, or array thereof
         *n*: :class:`int`
             Number of samples (must be scalar)
     :Versions:

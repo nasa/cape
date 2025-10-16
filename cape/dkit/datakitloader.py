@@ -663,7 +663,10 @@ class DataKitLoader(OptionsDict):
         for name in name_list:
             # Expand it and append to regular expression list
             pat1 = name % grps_re
-            pat2 = pat1.format(**grps_re)
+            try:
+                pat2 = pat1.format(**grps_re)
+            except Exception:
+                pat2 = pat1
             regex_list.append(pat2)
         # Output
         return regex_list

@@ -364,8 +364,10 @@ class Cntl(ccntl.Cntl):
             v = self.x.GetValue(key, i)
             # Get input name
             name = self.x.defns[key].get("Name")
+            # Split
+            sec, tag = name.split('.', 1)
             # Set it
-            xml.set_input(name, v)
+            xml.set_section_item(section=sec, tag=tag, value=v)
         # Loop through phases
         for j in self.opts.get_PhaseSequence():
             # Set the restart flag according to phase
