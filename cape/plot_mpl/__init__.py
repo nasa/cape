@@ -1013,7 +1013,7 @@ def move_axes(ax, loc, margin=0.0):
         raise TypeError("Margin must be float (got %s)" % type(margin))
     # Get axes
     if ax is None:
-        ax = mpl.pltfile.gca()
+        ax = mpl.plt.gca()
     # Get current position
     xmin, ymin, w, h = ax.get_position().bounds
     # Max positions
@@ -1070,7 +1070,7 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
         raise TypeError("dy must be float (got %s)" % type(dy))
     # Get axes
     if ax is None:
-        ax = mpl.pltfile.gca()
+        ax = mpl.plt.gca()
     # Get current position
     xmin, ymin, w, h = ax.get_position().bounds
     # Set new position
@@ -1194,14 +1194,14 @@ def plot_delta(ax, vmu, **kw):
         pmin, pmax = ax.get_ylim()
         # Plot a vertical line for the min and max
         h = (
-            mpl.pltfile.plot([cmin, cmin], [pmin, pmax], **kw) +
-            mpl.pltfile.plot([cmax, cmax], [pmin, pmax], **kw))
+            mpl.plt.plot([cmin, cmin], [pmin, pmax], **kw) +
+            mpl.plt.plot([cmax, cmax], [pmin, pmax], **kw))
     else:
         pmin, pmax = ax.get_xlim()
         # Plot a horizontal line for the min and max
         h = (
-            mpl.pltfile.plot([pmin, pmax], [cmin, cmin], **kw) +
-            mpl.pltfile.plot([pmin, pmax], [cmax, cmax], **kw))
+            mpl.plt.plot([pmin, pmax], [cmin, cmin], **kw) +
+            mpl.plt.plot([pmin, pmax], [cmax, cmax], **kw))
     # Return
     return h
 
