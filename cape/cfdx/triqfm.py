@@ -746,8 +746,6 @@ class CaseTriqFM(CaseTriqBase):
             # Set those conditions
             for k in kwfm:
                 kw.setdefault(k, kwfm[k])
-        # Use map components
-        triq.Conf = self.tri.Conf
         # Perform conversion
         pltq = pltfile.Plt(triq=triq, CompIDs=compIDs, **kw)
         # Output

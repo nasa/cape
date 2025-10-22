@@ -4768,6 +4768,17 @@ class TriBase(object):
                     continue
                 # Save the component
                 cmapd.append(compmap[comp])
+            # Clear any matches from self.Conf
+            for cmapid in cmapd:
+                # Loop through Config
+                for fv, nv in dict(self.Conf).items():
+                    # Check for integers only
+                    if not isinstance(nv, INT_TYPES):
+                        continue
+                    # Check for match
+                    if nv == cmapid:
+                        self.Conf.pop(fv)
+                        break
             # Check length
             if len(cmapd) == 0:
                 # No matches
