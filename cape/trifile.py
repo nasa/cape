@@ -3996,7 +3996,7 @@ class TriBase(object):
             return self.GetConfCompID(face)
 
     # Get name of a compID
-    def GetCompName(self, compID):
+    def GetCompName(self, compID: int) -> str:
         r"""Get the name of a component by its number
 
         :Call:
