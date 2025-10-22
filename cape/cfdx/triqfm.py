@@ -23,8 +23,9 @@ import numpy as np
 # Local imports
 from .. import pltfile
 from .cntlbase import CntlBase
-from ..trifile import Tri, Triq
+from ..config import ConfigJSON
 from ..dkit.rdb import DataKit
+from ..trifile import Tri, Triq
 
 
 # Constants
@@ -57,6 +58,7 @@ class CaseTriqBase(DataKit, metaclass=ABCMeta):
                 Triangulated surface data (also stored in *db.triq*)
         :Versions:
             * 2025-08-13 ``@ddalle``: v1.0
+            * 2025-10-22 ``@ddalle``: v1.1; support ConfigJSON
         """
         # Check if already read
         if self.triq is not None:
@@ -68,6 +70,20 @@ class CaseTriqBase(DataKit, metaclass=ABCMeta):
         fcfg = self.get_configfile()
         # Read it
         self.triq = Triq(self.ftriq, c=fcfg)
+        # Check for JSON
+        if fcfg.endswith(".json"):
+            # Read config
+            cfg = ConfigJSON(fcfg)
+            # Check for ``.mapbc`` file to read
+            fmapbc = self.cntl.opts.get_MapBCFile(0)
+            # Restrict the entries of JSON file to it
+            if fmapbc:
+                # Absolutize the path
+                fabs = self.cntl.abspath(fmapbc)
+                # Limit JSON file to actually-present files
+                cfg.ApplyMapBC(fabs)
+                # Apply it
+                self.triq.config = cfg
         # Return it for convenience
         return self.triq
 
