@@ -2843,6 +2843,8 @@ class Cntl(CntlBase):
         elif opt == "frun":
             # Get folder names
             fruns = self.x.GetFullFolderNames(I)
+            if len(fruns) == 0:
+                return 1
             # Return max length
             return max(map(len, fruns))
         elif opt == "group":
