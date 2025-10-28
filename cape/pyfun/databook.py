@@ -1032,6 +1032,9 @@ class CaseResid(databook.CaseResid):
             v = db.get(col)
             # Assemble
             if v is not None:
+                nv = v.size
+                if L2squared.size > nv:
+                    L2squared = L2squared[:nv]
                 L2squared += v*v
         # Save residuals
         db.save_col(rcol, np.sqrt(L2squared))

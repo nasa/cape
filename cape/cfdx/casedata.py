@@ -590,6 +590,9 @@ class CaseData(DataKit):
         data = {}
         # Loop through cols
         for col, v in dbsub.items():
+            # Skip non-arrays
+            if not isinstance(v, np.ndarray):
+                continue
             # Create new column marking beginning of major iter
             if col == CASE_COL_SUB_ITERS:
                 # Main iteration
@@ -604,6 +607,8 @@ class CaseData(DataKit):
                 # Replace suffix
                 col0 = col.replace("_sub", "_0")
             # Save
+            if v.size != mask0.size:
+                continue
             data[col0] = v[mask0]
         # Output
         return data
