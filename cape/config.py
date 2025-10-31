@@ -1526,7 +1526,7 @@ class ConfigJSON(SurfConfig):
         *fname*: {``"Config.json"``} | :class:`str`
             Name of JSON file from which to read tree and properties
     :Outputs:
-        *cfg*: :class:`cape.config.ConfigJSON`
+        *cfg*: :class:`ConfigJSON`
             JSON-based configuration interface
     :Attributes:
         *cfg.faces*: :class:`dict`\ [:class:`list` | :class:`int`]
@@ -1624,7 +1624,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> compID = cfg.GetCompID(face)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 XML surface config instance
             *face*: :class:`str` | :class:`int` | :class:`list`
                 Component number, name, or list thereof
@@ -1672,7 +1672,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> compfacesID = cfg.GetGetFamily(face)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 XML surface config instance
             *face*: :class:`str` | :class:`int` | :class:`list`
                 Component number, name, or list thereof
@@ -1760,7 +1760,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> compID = cfg.AppendChild(c, parent=None)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
             *c*: :class:`str`
                 Name of component in "Tree" section
@@ -1856,7 +1856,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.RestrictCompID(compIDs)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
             *compIDs*: :class:`list`\ [:class:`int`]
                 List of relevant component IDs
@@ -1913,7 +1913,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> comps = cfg.GetTriFaces()
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
         :Outputs:
             *comps*: :class:`list`\ [:class:`str`]
@@ -1959,7 +1959,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.WriteXML(fname="Config.xml", name=None, source=None)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
             *fname*: {``"Config.xml"``} | :class:`str`
                 Name of file to write
@@ -2078,7 +2078,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.WriteAFLR3BC(fname)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
             *fname*: :class:`str`
                 Name of AFLR3 boundary condition file to write
@@ -2134,7 +2134,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.WriteFun3DMapBC(fname)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
             *fname*: :class:`str`
                 Name of mapbc file to write
@@ -2226,7 +2226,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.RenumberCompID(face, compID)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration
             *face*: :class:`str`
                 Name of component to rename
@@ -2268,7 +2268,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.RenumberCompIDParent(face, compi, compo)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration
             *face*: :class:`str`
                 Name of component whose parents should be renumbered
@@ -2313,7 +2313,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> comps = cfg.ResetCompIDs()
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
         :Versions:
             * 2016-11-09 ``@ddalle``: v1.0
@@ -2334,7 +2334,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> comps = cfg.SortCompIDs()
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
         :Outputs:
             *comps*: :class:`list`\ [:class:`str`]
@@ -2409,7 +2409,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> compID = cfg.GetPropCompID(comp)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
             *c*: :class:`str`
                 Name of component in "Tree" section
@@ -2449,7 +2449,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> v = cfg.GetProperty(comp, k, name=None, vdef=None)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
             *comp*: :class:`str`
                 Name of component to query
@@ -2485,6 +2485,22 @@ class ConfigJSON(SurfConfig):
 
     # Find alias
     def GetCanonicalName(self, comp: str) -> str:
+        r"""Use aliases to get preferred name for a component
+
+        :Call:
+            >>> fullname = cfg.GetCanonicalName(comp)
+        :Inputs:
+            *cfg*: :class:`ConfigJSON`
+                JSON-based configuration interface
+            *comp*: :class:`str`
+                Name or alias name of a component
+        :Outputs:
+            *name*: :class:`str`
+                Preferred name for *comp*, including *comp* if no
+                aliases are found
+        :Versions:
+            * 2025-10-31 `@ddalle``: v1.0
+        """
         # Get alias map
         aliases = self.make_alias_map()
         # Apply it
@@ -2497,7 +2513,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> aliases = cfg.make_alias_map()
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
         :Outputs:
             *aliases*: :class:`dict`\ [:class:`str`]
@@ -2520,7 +2536,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> aliases = cfg.create_alias_map()
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
         :Outputs:
             *aliases*: :class:`dict`\ [:class:`str`]
@@ -2536,21 +2552,25 @@ class ConfigJSON(SurfConfig):
             if not isinstance(prop, dict):
                 continue
             # Check for aliases
-            aliasesj = prop.get("Aliases")
+            comps = prop.get("Aliases")
+            parts = self.GetProperty(name, "PartAliases")
             # Check for any
-            if not isinstance(aliasesj, list):
+            if comps is None and parts is None:
                 continue
-            # Get part aliases
-            partaliases = self.GetProperty(name, "PartAliases")
             # Use current part as one of the aliases
             part = name.split('_', 1)[0]
-            partlist = [part]
-            # Add others if appropriate
-            if isinstance(partaliases, list):
-                partlist.extend(partaliases)
+            comp = name.split('_', 1)[-1]
+            # List-ify
+            comp_aliases = (
+                comps if isinstance(comps, list) else
+                ([comp] if comps is None else [comps]))
+            part_aliases = (
+                parts if isinstance(parts, list) else
+                ([] if parts is None else [parts]))
+            part_aliases.append(part)
             # Add all aliases
-            for part_alias in partlist:
-                for alias in aliasesj:
+            for part_alias in part_aliases:
+                for alias in comp_aliases:
                     aliases[f"{part_alias}_{alias}"] = name
         # Save it
         self._aliases = aliases
