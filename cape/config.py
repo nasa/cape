@@ -2474,7 +2474,7 @@ class ConfigJSON(SurfConfig):
         if q:
             return v
         # Loop through parents until one is reached
-        for parent in self.parents[comp]:
+        for parent in self.parents.get(comp, []):
             # Get the value from that parent (note: this may recurse)
             v = self.GetProperty(parent, k, name)
             # Check for success (otherwise try next parent if there is one)
@@ -2482,6 +2482,13 @@ class ConfigJSON(SurfConfig):
                 return v
         # If this point is reached, could not find property in any parent
         return vdef
+
+    # Find alias
+    def GetCanonicalName(self, comp: str) -> str:
+        # Get alias map
+        aliases = self.make_alias_map()
+        # Apply it
+        return aliases.get(comp, comp)
 
     # Make map of aliases
     def make_alias_map(self) -> dict:
@@ -2524,13 +2531,27 @@ class ConfigJSON(SurfConfig):
         # Initialize output
         aliases = {}
         # Loop through properties
-        for name in self.prop:
+        for name, prop in self.props.items():
+            # Check for singleton properties
+            if not isinstance(prop, dict):
+                continue
             # Check for aliases
-            aliasesj = self.GetProperty(name, "Aliases")
+            aliasesj = prop.get("Aliases")
             # Check for any
-            if isinstance(aliasesj, list):
+            if not isinstance(aliasesj, list):
+                continue
+            # Get part aliases
+            partaliases = self.GetProperty(name, "PartAliases")
+            # Use current part as one of the aliases
+            part = name.split('_', 1)[0]
+            partlist = [part]
+            # Add others if appropriate
+            if isinstance(partaliases, list):
+                partlist.extend(partaliases)
+            # Add all aliases
+            for part_alias in partlist:
                 for alias in aliasesj:
-                    aliases[alias] = name
+                    aliases[f"{part_alias}_{alias}"] = name
         # Save it
         self._aliases = aliases
         # Output
