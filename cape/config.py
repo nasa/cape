@@ -2483,6 +2483,60 @@ class ConfigJSON(SurfConfig):
         # If this point is reached, could not find property in any parent
         return vdef
 
+    # Make map of aliases
+    def make_alias_map(self) -> dict:
+        r"""Create (if necessary) and return map of component aliases
+
+        :Call:
+            >>> aliases = cfg.make_alias_map()
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration interface
+        :Outputs:
+            *aliases*: :class:`dict`\ [:class:`str`]
+                Map of canonical name for each potential alias
+        :Versions:
+            * 2025-10-31 `@ddalle``: v1.0
+        """
+        # Check for one
+        aliases = getattr(self, "_aliases", None)
+        # Return it?
+        if isinstance(aliases, dict):
+            return aliases
+        # Create it
+        return self.create_alias_map()
+
+    # Create map of aliases
+    def create_alias_map(self) -> dict:
+        r"""Create, save, and return map of component aliases
+
+        :Call:
+            >>> aliases = cfg.create_alias_map()
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration interface
+        :Outputs:
+            *aliases*: :class:`dict`\ [:class:`str`]
+                Map of canonical name for each potential alias
+        :Versions:
+            * 2025-10-31 `@ddalle``: v1.0
+        """
+        # Initialize output
+        aliases = {}
+        # Loop through properties
+        for name in self.prop:
+            # Check for aliases
+            aliasesj = self.GetProperty(name, "Aliases")
+            # Check for any
+            if isinstance(aliasesj, list):
+                for alias in aliasesj:
+                    aliases[alias] = name
+        # Save it
+        self._aliases = aliases
+        # Output
+        return aliases
+
+    # Ger property tool
     def _get_property(self, comp, k, name=None):
         # Get component properties
         opts = self.props.get(comp, {})
