@@ -4245,13 +4245,7 @@ class Cntl(CntlBase):
             # No user key
             ku = None
         # Read the existing data book
-        self.ReadDataBook(comp=[])
-        # Loop through the components
-        for comp in comps:
-            # Read the line load component
-            self.DataBook.ReadTriqFM(comp)
-            # Restrict the trajectory to cases in the databook
-            self.DataBook.TriqFM[comp][None].UpdateRunMatrix()
+        dbs = {comp: self.read_dex(comp) for comp in comps}
         # Longest component name
         maxcomp = max(map(len, comps))
         # Format to include user and format to display iteration number
@@ -4278,22 +4272,18 @@ class Cntl(CntlBase):
             # Loop through components
             for comp in comps:
                 # Get interface to component
-                DBc = self.DataBook.TriqFM[comp][None]
+                db = dbs[comp]
                 # See if it's missing
-                j = DBc.x.FindMatch(self.x, i, **kw)
+                j = db.ximatch(self.x, i)
                 # Check for missing case
                 if j is None:
                     # Missing case
                     txt += (fmtc % comp)
                     txt += "missing\n"
                     continue
-                # Otherwise, check iteration
-                try:
-                    # Get the recorded iteration number
-                    nIter = DBc["nIter"][j]
-                except KeyError:
-                    # No iteration number found
-                    nIter = nLast
+                # Get the recorded iteration number
+                nIter = db.get_values("nIter", j)
+                nIter = nLast if nIter is None else nIter
                 # Check for out-of date iteration
                 if nIter < nLast:
                     # Out-of-date case
@@ -4312,35 +4302,25 @@ class Cntl(CntlBase):
                     print("Case %s: %s" % (fmti % i, frun))
                 # Display the text
                 print(txt)
+        # Create "DataKit" copy of runmatrix
+        xdb = DataKit()
+        xdb.link_data(self.x)
+        xdb.xcols = self.x.cols
         # Loop back through the databook components
         for comp in comps:
             # Get component handle
-            DBc = self.DataBook.TriqFM[comp][None]
+            db = dbs[comp]
             # Initialize text
             txt = ""
             # Loop through database entries
-            for j in range(DBc.x.nCase):
+            for j in range(db[self.x.cols[0]].size):
                 # Check for a find in master matrix
-                i = self.x.FindMatch(DBc.x, j, **kw)
+                i = xdb.ximatch(db, j)
                 # Check for a match
                 if i is None:
                     # This case is not in the run matrix
-                    txt += (
-                        "    Extra case: %s\n"
-                        % DBc.x.GetFullFolderNames(j))
+                    txt += f"    Extra case: databook entry {j}\n"
                     continue
-                # Check for a user filter
-                if ku:
-                    # Get the user value
-                    uj = DBc[ku][j]
-                    # Strip it
-                    uj = uj.lstrip('@').lower()
-                    # Check if it's blocked
-                    if uj == "blocked":
-                        # Blocked case
-                        txt += (
-                            "    Blocked case: %s\n"
-                            % DBc.x.GetFullFolderNames(j))
             # If there is text, display the info
             if txt:
                 # Header
