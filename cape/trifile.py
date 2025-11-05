@@ -43,6 +43,7 @@ from .cfdx import options
 from .cfdx import volcomp
 from .config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from .cgns import CGNS
+from .gruvoc.umesh import Umesh
 from .util import stackcol
 from .splitzones import SplitZones
 
@@ -427,7 +428,7 @@ class TriBase(object):
         if hasattr(self, "iTri"):
             tri.iTri = copy.copy(self.iTri)
         # Try to copy the state
-        if hasattr(self, "q"):
+        if hasattr(self, "q") and self.q is not None:
             tri.q = self.q.copy()
             tri.nq = tri.q.shape[1]
         # Try to copy the state length
@@ -470,22 +471,20 @@ class TriBase(object):
         :Versions:
             * 2014-06-02 ``@ddalle``: v1.0
         """
-        # Get the file type
-        self.GetTriFileType(fname)
-        # Check if ASCII
-        if self.filetype == 'ascii':
-            # Read the ASCII file
-            self.ReadASCII(fname, n=n)
-        else:
-            # Read the binary file
-            self.ReadTriBin(fname)
-            # Save number of iterations included in average
-            self.n = n
-        # Ensure quads are present
-        try:
-            self.nQuad
-        except AttributeError:
-            self.nQuad = 0
+        # Read the easy way
+        tri = Umesh(fname)
+        # Number of states
+        nq = 0 if tri.nq is None else tri.nq
+        # Save parts
+        self.nQuad = 0
+        self.nTri = tri.ntri
+        self.nNode = tri.nnode
+        self.Nodes = tri.nodes
+        self.Tris = tri.tris
+        self.CompID = tri.tri_ids
+        self.n = n
+        self.nq = nq
+        self.q = tri.q
 
     # Function to read a .triq file
     def ReadTriQ(self, fname, n=1):
@@ -512,8 +511,7 @@ class TriBase(object):
         :Versions:
             * 2017-01-11 ``@ddalle``: v1.0; points to :func:`ReadTri`
         """
-        # Use previous function
-        self.Read(fname, n=n)
+        self.ReadTri(fname, n)
 
     # Function to read a .tri file
     def ReadASCII(self, fname, n=1):
@@ -2998,13 +2996,8 @@ class TriBase(object):
             self.nQuad
         except AttributeError:
             self.nQuad = 0
-        # Write the file.
-        try:
-            # Try compiled versoin
-            self.WriteSurfFast(fname)
-        except Exception:
-            # Fall back to slow version
-            self.WriteSurfSlow(fname)
+        # Write the file
+        self.WriteSurfSlow(fname)
 
     # Function to write a SURF file the old-fashioned way.
     def WriteSurfSlow(self, fname="Components.surf"):
@@ -4003,7 +3996,7 @@ class TriBase(object):
             return self.GetConfCompID(face)
 
     # Get name of a compID
-    def GetCompName(self, compID):
+    def GetCompName(self, compID: int) -> str:
         r"""Get the name of a component by its number
 
         :Call:
@@ -4775,6 +4768,17 @@ class TriBase(object):
                     continue
                 # Save the component
                 cmapd.append(compmap[comp])
+            # Clear any matches from self.Conf
+            for cmapid in cmapd:
+                # Loop through Config
+                for fv, nv in dict(self.Conf).items():
+                    # Check for integers only
+                    if not isinstance(nv, INT_TYPES):
+                        continue
+                    # Check for match
+                    if nv == cmapid:
+                        self.Conf.pop(fv)
+                        break
             # Check length
             if len(cmapd) == 0:
                 # No matches
@@ -7583,7 +7587,8 @@ class Triq(TriBase):
         # State handle
         Q = self.q
         # Calculate average *Cp* (first state variable)
-        Cp = np.sum(Q[T, 0], axis=1)/3
+        cp = Q[T, 0]
+        Cp = np.sum(cp, axis=1)/3
         # Forces are inward normals
         Fp = -stackcol((Cp*N[:, 0], Cp*N[:, 1], Cp*N[:, 2]))
         # Vacuum
@@ -7799,6 +7804,9 @@ class Triq(TriBase):
         C["CLLv"] = np.sum(Mv[:, 0])
         C["CLMv"] = np.sum(Mv[:, 1])
         C["CLNv"] = np.sum(Mv[:, 2])
+        # Min/max pressures
+        C["Cp_min"] = np.min(cp)
+        C["Cp_max"] = np.max(cp)
         # Output
         return C
   # >

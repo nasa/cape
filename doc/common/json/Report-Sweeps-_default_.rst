@@ -1,29 +1,29 @@
--------------------
-Options for default
--------------------
+----------------------------------------------------------------
+``_default_``: definition for a condition sweep in a CAPE report
+----------------------------------------------------------------
 
 **Option aliases:**
 
-* *EqConstraints* -> *EqCons*
-* *EqualityCons* -> *EqCons*
-* *EqualityConstraints* -> *EqCons*
-* *GlobalConstraints* -> *GlobalCons*
-* *TolConstraints* -> *TolCons*
-* *ToleranceConstraints* -> *TolCons*
-* *XAxis* -> *XCol*
-* *YAxis* -> *YCol*
-* *cols* -> *EqCons*
-* *cons* -> *GlobalCons*
-* *figs* -> *Figures*
-* *itol* -> *IndexTol*
-* *mask* -> *Indices*
-* *nmin* -> *MinCases*
-* *tols* -> *TolCons*
-* *xcol* -> *XCol*
-* *xk* -> *XCol*
-* *xkey* -> *XCol*
-* *yk* -> *YCol*
-* *ykey* -> *YCol*
+* *EqConstraints* → *EqCons*
+* *EqualityCons* → *EqCons*
+* *EqualityConstraints* → *EqCons*
+* *GlobalConstraints* → *GlobalCons*
+* *TolConstraints* → *TolCons*
+* *ToleranceConstraints* → *TolCons*
+* *XAxis* → *XCol*
+* *YAxis* → *YCol*
+* *cols* → *EqCons*
+* *cons* → *GlobalCons*
+* *figs* → *Figures*
+* *itol* → *IndexTol*
+* *mask* → *Indices*
+* *nmin* → *MinCases*
+* *tols* → *TolCons*
+* *xcol* → *XCol*
+* *xk* → *XCol*
+* *xkey* → *XCol*
+* *yk* → *YCol*
+* *ykey* → *YCol*
 
 **Recognized options:**
 

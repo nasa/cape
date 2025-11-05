@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pyfun.mapbc`: FUN3D boundary condition module
-=========================================================
+:mod:`cape.filecntl.mapbcfile`: UGRID boundary condition file interface
+========================================================================
 
 This module provides an interface to FUN3D ``.mapbc`` files, which
 specify a boundary condition and name for each component ID in the
@@ -73,16 +73,16 @@ import numpy as np
 
 
 # MapBC class
-class MapBC(object):
-    r"""FUN3D boundary condition map class
+class MapBCFile(object):
+    r"""FUN3D/UGRID boundary condition map class
 
     :Call:
-        >>> BC = MapBC(fname)
+        >>> BC = MapBCFile(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of ``mapbc`` file to read
     :Outputs:
-        *BC*: :class:`pyFun.mapbc.MapBC`
+        *BC*: :class:`MapBCFile`
             Boundary condition map instance
         *BC.n*: :class:`int`
             Number of surfaces
@@ -123,7 +123,7 @@ class MapBC(object):
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
         """
-        return "<MapBC(n=%i)>" % self.n
+        return "<MapBCFile(n=%i)>" % self.n
 
     # Read file
     def Read(self, fname):
@@ -132,7 +132,7 @@ class MapBC(object):
         :Call:
             >>> BC.Read(fname)
         :Inputs:
-            *BC*: :class:`pyFun.mapbc.MapBC`
+            *BC*: :class:`MapBCFile`
                 FUN3D boundary condition map interface
             *fname*: :class:`str`
                 File name
@@ -187,7 +187,7 @@ class MapBC(object):
             >>> surfID = BC.GetSurfID(compID, check=True, warn=False)
             >>> surfID = BC.GetSurfID(face, check=True, warn=False)
         :Inputs:
-            *BC*: :class:`pyFun.mapbc.MapBC`
+            *BC*: :class:`MapBCFile`
                 FUN3D boundary condition interface
             *compID*: :class:`int`
                 Face triangulation index
@@ -221,7 +221,7 @@ class MapBC(object):
             >>> i = BC.GetSurfID(compID, check=True, warn=False)
             >>> i = BC.GetSurfID(face, check=True, warn=False)
         :Inputs:
-            *BC*: :class:`pyFun.mapbc.MapBC`
+            *BC*: :class:`MapBCFile`
                 FUN3D boundary condition interface
             *compID*: :class:`int`
                 Face triangulation index
@@ -281,7 +281,7 @@ class MapBC(object):
             >>> compID = BC.GetCompID(compID)
             >>> compID = BC.GetCompID(face)
         :Inputs:
-            *BC*: :class:`pyFun.mapbc.MapBC`
+            *BC*: :class:`MapBCFile`
                 FUN3D boundary condition interface
             *face*: :class:`str`
                 Name of face
@@ -320,7 +320,7 @@ class MapBC(object):
             >>> BC.SetBC(compID, bc)
             >>> BC.SetBC(face, bc)
         :Inputs:
-            *BC*: :class:`pyFun.mapbc.MapBC`
+            *BC*: :class:`MapBCFile`
                 FUN3D boundary condition interface
             *compID*: :class:`int`
                 Face triangulation index
@@ -343,7 +343,7 @@ class MapBC(object):
         :Call:
             >>> BC.Write(fname=None)
         :Inputs:
-            *BC*: :class:`pyFun.mapbc.MapBC`
+            *BC*: :class:`MapBCFile`
                 FUN3D boundary condition interface
             *fname*: :class:`str` | ``None``
                 Name of file to write; defaults to *BC.fname*

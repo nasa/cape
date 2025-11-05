@@ -36,7 +36,7 @@ from .frofile import read_fro, write_fro
 from .pltfile import write_plt
 from .surfconfig import SurfConfig
 from .surf3dfile import read_surf3d, write_surf3d
-from .trifile import read_tri, write_tri, write_triq
+from .trifile import read_tri, read_triq, write_tri, write_triq
 from .ufuncfile import write_ufunc
 from .ugridfile import read_ugrid, write_ugrid
 from .uh3dfile import read_uh3d, write_uh3d
@@ -164,6 +164,7 @@ class Umesh(umeshbase.UmeshBase):
         ffro = kw.get("fro")
         fsurf = kw.get("surf")
         ftri = kw.get("tri")
+        ftriq = kw.get("triq")
         fuh3d = kw.get("uh3d")
         # Unspecified-type config file
         fcfg = kw.get("c", kw.get("config"))
@@ -184,6 +185,9 @@ class Umesh(umeshbase.UmeshBase):
         elif ftri:
             # Cart3D TRI format
             self.read_tri(ftri, meta=meta, fmt=fmt)
+        elif ftriq:
+            # Cart3D annotated TRIQ format
+            self.read_triq(ftriq, meta=meta, fmt=fmt)
         elif fuh3d:
             # UH3D mystery format
             self.read_uh3d(fuh3d, meta=meta)
@@ -240,6 +244,9 @@ class Umesh(umeshbase.UmeshBase):
             elif gridfmt.format == "tri":
                 # TRI format
                 self.read_tri(fp, meta, fmt=fmt)
+            elif gridfmt.format == "triq":
+                # TRIQ format
+                self.read_triq(fp, meta, fmt=fmt)
             elif gridfmt.format == "uh3d":
                 # UH3D format
                 self.read_uh3d(fp, meta)
@@ -285,6 +292,13 @@ class Umesh(umeshbase.UmeshBase):
             meta: bool = False,
             fmt: Optional[str] = None):
         read_tri(self, fname_or_fp, meta, fmt)
+
+    def read_triq(
+            self,
+            fname_or_fp: Union[str, IOBase],
+            meta: bool = False,
+            fmt: Optional[str] = None):
+        read_triq(self, fname_or_fp, meta, fmt)
 
     def read_ugrid(
             self,

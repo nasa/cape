@@ -1,29 +1,29 @@
---------------------------------------
-Options for ``PlotLineLoad`` subfigure
---------------------------------------
+-------------------------------------
+``PlotLineLoad``: line load subfigure
+-------------------------------------
 
 **Option aliases:**
 
-* *SeamCurves* -> *SeamCurve*
-* *SeamLocations* -> *SeamLocation*
-* *SeamCurveOptions* -> *SeamOptions*
-* *Targets* -> *Target*
-* *FigHeight* -> *FigureHeight*
-* *FigWidth* -> *FigureWidth*
-* *GridStyle* -> *GridPlotOptions*
-* *LineOptions* -> *PlotOptions*
-* *MinorGridStyle* -> *MinorGridPlotOptions*
-* *RestrictionLocation* -> *RestrictionLoc*
-* *RestrictionX* -> *RestrictionXPosition*
-* *RestrictionY* -> *RestrictionYPosition*
-* *dpi* -> *DPI*
-* *nPlotFirst* -> *NPlotFirst*
-* *nFirst* -> *NPlotFirst*
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
+* *SeamCurves* → *SeamCurve*
+* *SeamLocations* → *SeamLocation*
+* *SeamCurveOptions* → *SeamOptions*
+* *Targets* → *Target*
+* *FigHeight* → *FigureHeight*
+* *FigWidth* → *FigureWidth*
+* *GridStyle* → *GridPlotOptions*
+* *LineOptions* → *PlotOptions*
+* *MinorGridStyle* → *MinorGridPlotOptions*
+* *RestrictionLocation* → *RestrictionLoc*
+* *RestrictionX* → *RestrictionXPosition*
+* *RestrictionY* → *RestrictionYPosition*
+* *dpi* → *DPI*
+* *nPlotFirst* → *NPlotFirst*
+* *nFirst* → *NPlotFirst*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
 
 **Recognized options:**
 

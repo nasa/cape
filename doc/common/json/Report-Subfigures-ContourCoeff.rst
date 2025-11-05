@@ -1,33 +1,33 @@
---------------------------------------
-Options for ``ContourCoeff`` subfigure
---------------------------------------
+-------------------------------------------------------------
+``ContourCoeff``: contour plot of results from multiple cases
+-------------------------------------------------------------
 
 **Option aliases:**
 
-* *ColorMap* -> *ContourColorMap*
-* *PlotType* -> *LineType*
-* *XAxis* -> *XCol*
-* *YAxis* -> *YCol*
-* *xcol* -> *XCol*
-* *xk* -> *XCol*
-* *ycol* -> *YCol*
-* *yk* -> *YCol*
-* *FigHeight* -> *FigureHeight*
-* *FigWidth* -> *FigureWidth*
-* *GridStyle* -> *GridPlotOptions*
-* *LineOptions* -> *PlotOptions*
-* *MinorGridStyle* -> *MinorGridPlotOptions*
-* *RestrictionLocation* -> *RestrictionLoc*
-* *RestrictionX* -> *RestrictionXPosition*
-* *RestrictionY* -> *RestrictionYPosition*
-* *dpi* -> *DPI*
-* *nPlotFirst* -> *NPlotFirst*
-* *nFirst* -> *NPlotFirst*
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
+* *ColorMap* → *ContourColorMap*
+* *PlotType* → *LineType*
+* *XAxis* → *XCol*
+* *YAxis* → *YCol*
+* *xcol* → *XCol*
+* *xk* → *XCol*
+* *ycol* → *YCol*
+* *yk* → *YCol*
+* *FigHeight* → *FigureHeight*
+* *FigWidth* → *FigureWidth*
+* *GridStyle* → *GridPlotOptions*
+* *LineOptions* → *PlotOptions*
+* *MinorGridStyle* → *MinorGridPlotOptions*
+* *RestrictionLocation* → *RestrictionLoc*
+* *RestrictionX* → *RestrictionXPosition*
+* *RestrictionY* → *RestrictionYPosition*
+* *dpi* → *DPI*
+* *nPlotFirst* → *NPlotFirst*
+* *nFirst* → *NPlotFirst*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
 
 **Recognized options:**
 

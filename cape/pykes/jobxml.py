@@ -74,6 +74,9 @@ class JobXML(xmlfile.XMLFile):
     def get_alpha(self):
         return self.get_freestream("Alpha")
 
+    def get_altitude(self):
+        return self.get_freestream("Altitude")
+
     def get_beta(self):
         return self.get_freestream("Beta")
 
@@ -110,6 +113,9 @@ class JobXML(xmlfile.XMLFile):
 
     def set_alpha(self, alpha):
         return self.set_freestream("Alpha", alpha)
+
+    def set_altitude(self, velocity):
+        return self.set_freestream("Altitude", velocity)
 
     def set_beta(self, beta):
         return self.set_freestream("Beta", beta)
@@ -659,6 +665,7 @@ class JobXML(xmlfile.XMLFile):
 INPUTLIST_KEYS = {
     "job_name": "Kestrel job name",
     "alpha": "angle of attack",
+    "altitude": "freestream reference atmosphere altitude",
     "beta": "sideslip angle",
     "mach": "Mach number",
     "pressure": "freestream pressure",

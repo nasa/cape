@@ -13,6 +13,7 @@
     
     cntl
     casecntl
+    casedata
     caseutils
     casecntlbase
     cmdgen

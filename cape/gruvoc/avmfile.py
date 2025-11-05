@@ -242,10 +242,7 @@ def _write_avm(
     # Not sure what these float ones mean
     tofile_lb8_f(fp, np.ones(4))
     # An unusual number of zeros
-    tofile_lb4_i(fp, np.zeros(39, dtype="int32"))
-    # Write the mesh "number"
-    _write_strn(fp, "Mesh 1", 8)
-    tofile_lb4_i(fp, np.zeros(30, dtype="int32"))
+    tofile_lb4_i(fp, np.zeros(71, dtype="int32"))
     # Extract sizes
     ntria = _getattr_int(mesh, "ntri")
     nquad = _getattr_int(mesh, "nquad")
@@ -261,7 +258,7 @@ def _write_avm(
     tofile_lb4_i(fp, nface)
     tofile_lb4_i(fp, nvol)
     # Mystery information
-    tofile_lb4_i(fp, np.array([4, 6, 5]))
+    tofile_lb4_i(fp, np.array([3, 4, 4]))
     # Farfield type
     _write_strn(fp, _getattr_str(mesh, "farfield_type", DEFAULT_FARFIELD))
     # Two more ones for some reason

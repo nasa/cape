@@ -50,9 +50,9 @@ def test_03_fm():
     # Collect aero
     cli.main(["pyover", "--fm", "-I", "1"])
     # Read databook
-    cntl.ReadDataBook()
+    db = cntl.read_dex("bullet_no_base")
     # Get value
-    CN = cntl.DataBook["bullet_no_base"]["CN"][0]
+    CN = db["CN"][0]
     # Test value
     assert abs(CN - 0.21) <= 0.02
 

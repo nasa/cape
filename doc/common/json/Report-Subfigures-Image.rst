@@ -1,14 +1,14 @@
--------------------------------
-Options for ``Image`` subfigure
--------------------------------
+-------------------------------------------------
+``Image``: subfigure based on exsiting image file
+-------------------------------------------------
 
 **Option aliases:**
 
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
 
 **Recognized options:**
 

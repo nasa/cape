@@ -255,6 +255,7 @@ def _read_tri(
     # Save parameters
     mesh.nnode = nnode
     mesh.ntri = ntri
+    mesh.nquad = 0
     # Exit if given "meta" option
     if meta:
         return
@@ -487,6 +488,8 @@ def get_tri_mode_fname(
         fmt: Optional[str] = None) -> TriFileType:
     # Get format
     fmt_fname = _get_tri_mode_fname(fname, fmt)
+    # Check for invalid mode
+    fmt_fname = "ascii" if fmt_fname not in DATA_FORMATS else fmt_fname
     # Check for ASCII
     if fmt_fname == "ascii":
         return TriFileType("ascii", None, None, None, None)
@@ -728,6 +731,9 @@ def _check_triq_mode(fp, little=True, record=False):
         ns = np.fromfile(fp, count=nelem_types, dtype=dtype)
         # Unpack individual sizes (implicitly checks size of *ns*)
         npt, ntri, nq = ns
+        npt = int(npt)
+        ntri = int(ntri)
+        nq = int(nq)
         # Check for negative dimensions
         if np.min(ns) < 0:
             return

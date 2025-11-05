@@ -30,9 +30,11 @@ import copy
 import difflib
 import os
 import re
+import shutil
 import sys
 import time
 from collections import namedtuple
+from io import IOBase
 from typing import Any, Callable, Optional, Union
 
 # Third-party modules
@@ -165,6 +167,8 @@ class DataKit(BaseData):
             File name; extension is used to guess data format
         *db*: :class:`DataKit`
             DataKit from which to link data and defns
+        *cdb*: {``None``} | :class:`str`
+            Explicit file name for :class:`CapeFile` read
         *csv*: {``None``} | :class:`str`
             Explicit file name for :class:`CSVFile` read
         *textdata*: {``None``} | :class:`str`
@@ -180,9 +184,6 @@ class DataKit(BaseData):
     :Outputs:
         *db*: :class:`DataKit`
             Generic database
-    :Versions:
-        * 2019-12-04 ``@ddalle``: v1.0
-        * 2020-02-19 ``@ddalle``: v1.1; was ``DBResponseNull``
     """
   # *** CLASS ATTRIBUTES ***
    # --- Options ---
@@ -257,7 +258,7 @@ class DataKit(BaseData):
 
   # *** DUNDER ***
     # Initialization method
-    def __init__(self, fname=None, **kw):
+    def __init__(self, fname: Optional[str] = None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -295,105 +296,22 @@ class DataKit(BaseData):
         self.seam_cols = {}
         self.seam_figs = {}
         self.seam_kwargs = {}
-
         # Process keyword options
         self.opts = self.process_kw(_warnmode=0, **kw)
         # Create a mapped copy for below
         kw = kwutils.map_kw(self._optscls._optmap, **kw)
-
-        # Check for null inputs
-        if (fname is None) and (not kw):
-            return
-
         # Check for *db* option
-        db = kw.get("db", fname)
-
-        # Get file name extension
-        if typeutils.isstr(fname):
-            # Get extension
-            ext = fname.split(".")[-1]
-        elif isinstance(db, DataKit):
-            # Link data from another datakit
+        db = kw.pop("db", None)
+        # Transfer *fname* -> *db* if appropriate
+        db = fname if isinstance(fname, DataKit) else db
+        fname = None if isinstance(fname, DataKit) else fname
+        # Link data
+        if isinstance(db, DataKit):
             self.link_db(db)
-            # Stop
-            return
-        elif fname is not None:
-            # Too confusing
-            raise TypeError("Non-keyword input must be ``None`` or a string")
-        else:
-            # No file extension
-            ext = None
-
-        # Initialize file name handles for each type
-        fcdb = None
-        fcsv = None
-        ftsv = None
-        fcsvs = None
-        ftsvs = None
-        ftdat = None
-        fxls = None
-        fmat = None
-        # Filter *ext*
-        if ext == "csv":
-            # Guess it's a mid-level CSV file
-            fcsv = fname
-        elif ext == "cdb":
-            # Guess it's a CAPE binary file
-            fcdb = fname
-        elif ext == "tsv":
-            # Guess it's a mid-level TSV file
-            ftsv = fname
-        elif ext == "xls":
-            # Guess it's a spreadsheet
-            fxls = fname
-        elif ext == "xlsx":
-            # Guess it's a spreadsheet
-            fxls = fname
-        elif ext == "mat":
-            # Guess it's a MATLAB file
-            fmat = fname
-        elif ext is not None:
-            # Unable to guess
-            raise ValueError(
-                "Unable to guess file type of file name '%s'" % fname)
-        # Last-check file names
-        fcdb = kw.pop("cdb", fcdb)
-        fcsv = kw.pop("csv", fcsv)
-        ftsv = kw.pop("tsv", ftsv)
-        fxls = kw.pop("xls", fxls)
-        fmat = kw.pop("mat", fmat)
-        fcsvs = kw.pop("simplecsv", fcsvs)
-        ftsvs = kw.pop("simpletsv", ftsvs)
-        ftdat = kw.pop("textdata", ftdat)
-
-        # Read
-        if fcdb is not None:
-            # Read CDB file
-            self.read_cdb(fcdb, **kw)
-        elif fcsv is not None:
-            # Read CSV file
-            self.read_csv(fcsv, **kw)
-        elif ftsv is not None:
-            # Read TSV file
-            self.read_tsv(ftsv, **kw)
-        elif fxls is not None:
-            # Read XLS file
-            self.read_xls(fxls, **kw)
-        elif fcsvs is not None:
-            # Read simple CSV file
-            self.read_csvsimple(fcsvs, **kw)
-        elif ftsvs is not None:
-            # Read simple TSV file
-            self.read_tsvsimple(ftsvs, **kw)
-        elif ftdat is not None:
-            # Read generic textual data file
-            self.read_textdata(ftdat, **kw)
-        elif fmat is not None:
-            # Read MATLAB file
-            self.read_mat(fmat, **kw)
-        else:
-            # If reaching this point, process values
-            self.process_kw_values()
+        # Read file name
+        self.read_dkit(fname, **kw)
+        # Process keyword-argument values
+        self.process_kw_values()
 
   # *** COPY ***
     # Copy
@@ -845,6 +763,127 @@ class DataKit(BaseData):
         defn["Dimension"] = ndim + 1
 
   # *** I/O ***
+   # --- Driver ---
+    def read(self, fname: Optional[str] = None, **kw):
+        r"""Read file name based on extension of keyword argument
+
+        :Call:
+            >>> db.read_dkit(fname=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data interface
+            *fname*: {``None``} | :class:`str`
+                File name; extension is used to guess data format
+            *cdb*: {``None``} | :class:`str`
+                Explicit file name for :class:`CapeFile` read
+            *csv*: {``None``} | :class:`str`
+                Explicit file name for :class:`CSVFile` read
+            *textdata*: {``None``} | :class:`str`
+                Explicit file name for :class:`TextDataFile`
+            *simplecsv*: {``None``} | :class:`str`
+                Explicit file name for :class:`CSVSimple`
+            *simpletsv*: {``None``} | :class:`str`
+                Explicit file name for :class:`TSVSimple`
+            *xls*, *xlsx*: {``None``} | :class:`str`
+                File name for :class:`XLSFile`
+            *mat*: {``None``} | :class:`str`
+                File name for :class:`MATFile`
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0; was in __init__()
+        """
+        self.read_dkit(fname, **kw)
+
+    def read_dkit(self, fname: Optional[str] = None, **kw):
+        r"""Read file name based on extension of keyword argument
+
+        :Call:
+            >>> db.read(fname=None, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit data interface
+            *fname*: {``None``} | :class:`str`
+                File name; extension is used to guess data format
+            *cdb*: {``None``} | :class:`str`
+                Explicit file name for :class:`CapeFile` read
+            *csv*: {``None``} | :class:`str`
+                Explicit file name for :class:`CSVFile` read
+            *textdata*: {``None``} | :class:`str`
+                Explicit file name for :class:`TextDataFile`
+            *simplecsv*: {``None``} | :class:`str`
+                Explicit file name for :class:`CSVSimple`
+            *simpletsv*: {``None``} | :class:`str`
+                Explicit file name for :class:`TSVSimple`
+            *xls*, *xlsx*: {``None``} | :class:`str`
+                File name for :class:`XLSFile`
+            *mat*: {``None``} | :class:`str`
+                File name for :class:`MATFile`
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0; was in __init__()
+        """
+        # Check type
+        if not isinstance(fname, str) and fname is not None:
+            typnam = type(fname).__name__
+            raise TypeError(
+                f"Got type '{typnam}' for file name; expected 'str'")
+        # Get extension
+        ext = '' if fname is None else fname.split(".")[-1]
+        # Initialize file name handles for each type
+        fcdb = None
+        fcsv = None
+        ftsv = None
+        fcsvs = None
+        ftsvs = None
+        ftdat = None
+        fxls = None
+        fmat = None
+        # Filter *ext*
+        fcdb = fname if (ext == "cdb") else None
+        fcsv = fname if (ext == "csv") else None
+        fmat = fname if (ext == "mat") else None
+        ftsv = fname if (ext == "tsv") else None
+        fxls = fname if (ext in ("xls", "xlsx")) else None
+        # Check for undefined file
+        if (
+                (fname is not None) and
+                (ext not in ("cdb", "csv", "mat", "tsv", "xls", "xlsx"))
+        ):
+            raise ValueError(
+                f"Unable to guess file type for '{os.path.basename(fname)}'")
+        # Last-check file names
+        fcdb = kw.pop("cdb", fcdb)
+        fcsv = kw.pop("csv", fcsv)
+        ftsv = kw.pop("tsv", ftsv)
+        fxls = kw.pop("xls", fxls)
+        fmat = kw.pop("mat", fmat)
+        fcsvs = kw.pop("simplecsv", fcsvs)
+        ftsvs = kw.pop("simpletsv", ftsvs)
+        ftdat = kw.pop("textdata", ftdat)
+        # Read
+        if fcdb is not None:
+            # Read CDB file
+            self.read_cdb(fcdb, **kw)
+        elif fcsv is not None:
+            # Read CSV file
+            self.read_csv(fcsv, **kw)
+        elif ftsv is not None:
+            # Read TSV file
+            self.read_tsv(ftsv, **kw)
+        elif fxls is not None:
+            # Read XLS file
+            self.read_xls(fxls, **kw)
+        elif fcsvs is not None:
+            # Read simple CSV file
+            self.read_csvsimple(fcsvs, **kw)
+        elif ftsvs is not None:
+            # Read simple TSV file
+            self.read_tsvsimple(ftsvs, **kw)
+        elif ftdat is not None:
+            # Read generic textual data file
+            self.read_textdata(ftdat, **kw)
+        elif fmat is not None:
+            # Read MATLAB file
+            self.read_mat(fmat, **kw)
+
    # --- CSV ---
     # Read CSV file
     def read_csv(self, fname, **kw):
@@ -1519,7 +1558,11 @@ class DataKit(BaseData):
         return db
 
    # --- Main ---
-    def write(self, fname: Optional[str] = None, merge: bool = True):
+    def write(
+            self,
+            fname: Optional[str] = None,
+            merge: bool = True,
+            backup: bool = False):
         r"""Write to main data format, merging any new contents
 
         :Call:
@@ -1531,8 +1574,11 @@ class DataKit(BaseData):
                 File name to write (else *db.fname*)
             *merge*: {``True``} | ``False``
                 Whether or not to merge new contens from *fname*
+            *backup*: ``True`` | {``False``}
+                Create ``"{fname}.old"`` if *fname* exists
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
+            * 2025-08-07 ``@ddalle``: v1.1; add *backup*
         """
         # Default fname
         fname = self.get_fname_abs() if fname is None else fname
@@ -1548,8 +1594,18 @@ class DataKit(BaseData):
                 self.merge(db)
         # Get writer function
         write_func = self._get_writer(fname)
-        # Lock and write
+        # Lock
         self.lock()
+        # Copy if necessary
+        if backup and os.path.isfile(fname):
+            # Name of backup file
+            backupfile = f"{fname}.old"
+            # Delete previous backup
+            if os.path.isfile(backupfile):
+                os.remove(backupfile)
+            # Write current backup file
+            shutil.copy(fname, backupfile)
+        # Write
         write_func(fname)
         # Unlock database
         self.unlock()
@@ -1729,6 +1785,9 @@ class DataKit(BaseData):
             return basefile
 
     def _save_fname(self, fname: Optional[str]):
+        # Check for handle
+        if isinstance(fname, IOBase):
+            fname = getattr(fname, "name", None)
         # Skip if no file
         if fname is None:
             return
@@ -8898,23 +8957,35 @@ class DataKit(BaseData):
             self.append_col(col, db.get_values(col, i), nref=n)
 
     # Append data to multiple columns
-    def xappend(self, d: dict, nref: Optional[int] = None):
+    def xappend(
+            self,
+            d: dict,
+            nref: Optional[int] = None,
+            update: bool = True):
         r"""Append data to multiple columns
 
         This works for scalars, lists, 1D arrays, and *N*-D arrays
 
         :Call:
-            >>> db.xappend(d)
+            >>> db.xappend(d, nref=None, update=True)
         :Inputs:
             *db*: :class:`DataKit`
                 Data interface with response mechanisms
             *d*: :class:`dict`
                 Dictionary of cols (keys) and values to append
+            *nref*: {``None``} | :class:`int`
+                Predetermined reference size
+            *update*: {``True``} | ``False``
+                Option to reduce ref size by 1
         :Versions:
             * 2025-07-23 ``@ddalle``: v1.0
+            * 2025-09-19 ``@ddalle``: v1.1; add *update*
         """
         # Get current reference size
-        n = nref if nref is not None else self.get_refsize()
+        refsize = self.get_refsize()
+        refsize = max(0, refsize - 1) if update else refsize
+        # Use user input if given
+        n = nref if nref is not None else refsize
         # Loop through cols of *d*
         for col, v in d.items():
             self.append_col(col, v, nref=n)
@@ -8981,6 +9052,8 @@ class DataKit(BaseData):
         elif isinstance(u, np.ndarray):
             # Ensure array, check sizes, etc.
             va = self._prep_append(col, v)
+            # Re-access
+            u = self[col]
             # Check for simple case
             if u.ndim == 1:
                 # Simple append
@@ -9031,9 +9104,17 @@ class DataKit(BaseData):
         ndv = va.ndim
         # Check
         if ndv + 1 != ndu:
-            raise IndexError(
-                f"Cannt append {ndv}-dimensional data to "
-                f"{ndu}-dimensional array in '{col}'")
+            # Pre-set empty arrays to correct *ndim*
+            if u.size == 0:
+                # Get shape from *va* but append a 0
+                ushape = va.shape + (0,)
+                # Initialize
+                u = np.zeros(ushape, dtype=va.dtype)
+                self[col] = u
+            else:
+                raise IndexError(
+                    f"Cannot append {ndv}-dimensional data to "
+                    f"{ndu}-dimensional array in '{col}'")
         # Check other dimensions
         for k in range(ndv):
             muk = u.shape[k]
@@ -9092,6 +9173,7 @@ class DataKit(BaseData):
         :Versions:
             * 2021-09-17 ``@ddalle``: v1.0
             * 2025-07-24 ``@ddalle``: v1.1; use *db.xcols* as default
+            * 2025-08-13 ``@ddalle``: v1.2; debug 2D arrays
         """
         # Default columns
         cols = cols if cols else self.xcols
@@ -9108,8 +9190,10 @@ class DataKit(BaseData):
         for col in self.cols:
             # Get value
             v = self.get_all_values(col)
+            # Get size for this column
+            nj = self.get_colsize(col)
             # Check length
-            if len(v) != n0:
+            if nj != n0:
                 continue
             # Check type
             if isinstance(v, list):
@@ -9121,8 +9205,8 @@ class DataKit(BaseData):
                     # No sortable data
                     continue
                 else:
-                    # Sort on first axis
-                    v = v[I]
+                    # Sort on last axis
+                    v = v[..., I]
             # Save sorted values
             self[col] = v
 
@@ -10717,6 +10801,7 @@ class DataKit(BaseData):
     def xmatch(
             self,
             dbt: dict,
+            maskt: Optional[np.ndarray] = None,
             cols: Optional[list] = None,
             tol: float = 1e-4,
             tols: Optional[dict] = None) -> MatchInds:
@@ -10729,7 +10814,9 @@ class DataKit(BaseData):
                 Data kit with response surfaces
             *dbt*: :class:`dict` | :class:`DataKit`
                 Target data set
-            *cols*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+            *maskt*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Subset of *dbt* to consider
+            *cols*: {``None``} | :class:`list`\ [:class:`str`]
                 List of cols to compare (default to *db.xcols*)
             *tol*: {``1e-4``} | :class:`float` >= 0
                 Default tolerance for all *args*
@@ -10741,8 +10828,8 @@ class DataKit(BaseData):
             *inds.targetinds*: :class:`np.ndarray`\ [:class:`int`]
                 Indices of cases in *dbt* that have a match in *db*
         :Versions:
-            * 2020-02-20 ``@ddalle``: v1.0
-            * 2020-03-06 ``@ddalle``: Name from :func:`find_pairwise`
+            * 2025-07-30 ``@ddalle``: v1.0
+            * 2025-08-07 ``@ddalle``: v1.1; add *maskt*
         """
         # Default column list
         cols = cols if cols else self.xcols
@@ -10750,7 +10837,8 @@ class DataKit(BaseData):
         # Default tolerance dict
         tols = {} if tols is None else tols
         # Call parent function
-        return self.match(dbt, cols=cols, once=True, tol=tol, tols=tols)
+        return self.match(
+            dbt, maskt=maskt, cols=cols, once=True, tol=tol, tols=tols)
 
     # Find matches in target under certain assumptions
     def ximatch(
@@ -10782,7 +10870,7 @@ class DataKit(BaseData):
             * 2025-07-29 ``@ddalle``: v1.0
         """
         # Default column list
-        cols = cols if cols else self.xcols
+        cols = cols if cols else getattr(self, "xcols", None)
         cols = cols if cols else self.cols
         # Form dictionary of conditions to match
         d = {col: dbt[col][j] for col in cols}

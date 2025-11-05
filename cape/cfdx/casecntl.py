@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.cfdx.case`: Case control module
-==========================================
+:mod:`cape.cfdx.casecntl`: Case control module
+===============================================
 
 This module contains templates for interacting with and executing
 individual cases. Since this is one of the most highly customized
@@ -61,13 +61,16 @@ from .casecntlbase import CaseRunnerBase
 from .casedata import CaseFM, CaseResid
 from .caseutils import run_rootdir
 from .cntlbase import CntlBase
+from .ll import CaseLineLoad
 from .logger import CaseLogger
+from .triqfm import CaseTriqFM, CaseTriqPoint
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
 from .options.funcopts import UserFuncOpts
 from ..config import ConfigXML, SurfConfig
 from ..dkit.rdb import DataKit
 from ..errors import CapeRuntimeError
+from ..gruvoc import umesh
 from ..optdict import _NPEncoder
 from ..trifile import Tri
 from ..util import RangeString
@@ -127,6 +130,28 @@ IERR_RERUN_PHASE = 16
 #:      *ib*: :class:`int` | ``None``
 #:          Iteration at end of window
 IterWindow = namedtuple("IterWindow", ("ia", "ib"))
+
+#: Class for file search regex and iteration status
+#:
+#: :Call:
+#:     >>> fstat = FileSearchStatus(mtch, n)
+#: :Attributes:
+#:     *mtch*: :class:`re.Match` | ``None``
+#:         Regular expression match object for file name
+#:     *n*: :class:`int` | ``None``
+#:         (Inferred) iteration for any file found
+FileSearchStatus = namedtuple("FileSearchStatus", ("mtch", "n"))
+
+#: Class for file name and iteration status
+#:
+#: :Call:
+#:     >>> fstat = FileStatus(fname, n)
+#: :Attributes:
+#:     *fname*: :class:`str` | ``None``
+#:         File name
+#:     *n*: :class:`int` | ``None``
+#:         (Inferred) iteration for any file found
+FileStatus = namedtuple("FileStatus", ("fname", "n"))
 
 
 # Help message for CLI
@@ -207,6 +232,10 @@ class CaseRunner(CaseRunnerBase):
         "workers",
         "xi",
         "_mtime_case_json",
+        "_dex_n_iter",
+        "_dex_n_orders",
+        "_dex_n_stats",
+        "_dex_triqfile",
     )
 
     #: :class:`int`
@@ -240,6 +269,9 @@ class CaseRunner(CaseRunnerBase):
     #: Classes for reading data of various DataBook component types
     _dex_cls = {
         "fm": CaseFM,
+        "lineload": CaseLineLoad,
+        "triqfm": CaseTriqFM,
+        "triqpoint": CaseTriqPoint,
     }
 
    # --- __dunder__ ---
@@ -300,10 +332,17 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`int`
         #: Return code of last system command
         self.returncode = IERR_OK
-        self._mtime_case_json = 0.0
         #: :class:`list`\ [:class:`int`]
         #: List of concurrent worker Process IDs
         self.workers = []
+        # Set private slots
+        self._mtime_case_json = 0.0
+        self._dex_n_iter = None
+        self._dex_n_orders = None
+        self._dex_n_stats = None
+        self._dex_triqfile = None
+        self._dex_sourcefile = None
+        self._dex_source = None
         # Other inits
         self.init_post()
 
@@ -496,7 +535,7 @@ class CaseRunner(CaseRunnerBase):
             # Check for explicit exit
             if self.check_exit(j):
                 # Log
-                self.log_verbose("explicit exit detected")
+                self.log_verbose("exiting case loop")
                 break
             # Submit new PBS/Slurm job if appropriate
             if self.resubmit_case(j):
@@ -1268,7 +1307,107 @@ class CaseRunner(CaseRunnerBase):
         # Check for executable
         cmdrun.find_executable("triloadCmd", "CGT triload executable")
         # Run function and return its exit code
-        return self.callf(["triloadCmd"], i=ifile, o=ofile)
+        return self.callf(["triloadCmd"], i=ifile, f=ofile)
+
+    # Function to run mixsur
+    def run_mixsur_tri(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.tri`` using `mixsur` executable
+
+        :Call:
+            >>> ierr = runner.run_mixsur_tri(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``mixsur`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("mixsur", "CGT mixsur executable")
+        # Run function and use its return code
+        return self.callf(["mixsur"], i=ifile, f=ofile)
+
+    # Function to run overint
+    def run_overint_triq(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.triq`` using `overint` executable
+
+        :Call:
+            >>> ierr = runner.run_overint_triq(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("overint", "CGT overint executable")
+        # Run function and use its return code
+        return self.callf(["overint"], i=ifile, f=ofile)
+
+    # Function to run usurp
+    def run_usurp_tri(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.tri`` using `usurp` executable
+
+        :Call:
+            >>> ierr = runner.run_usurp_tri(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Construct function call
+        cmdlist = ["usurp", "-v", "--watertight", "disjoin=yes"]
+        # Run function and use its return code
+        return self.callf(cmdlist, i=ifile, f=ofile)
+
+    # Function to run usurp
+    def run_usurp_triq(self, ifile: str, ofile: str) -> int:
+        r"""Create ``grid.i.triq`` using `usurp` executable
+
+        :Call:
+            >>> ierr = runner.run_usurp_triq(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``usurp`` input file
+            *ofile*: :class:`str`
+                Name of file for ``usurp`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("usurp", "CGT usurp executable")
+        # Construct function call
+        cmdlist = ["usurp", "-v", "--use-map"]
+        # Run function and use its return code
+        return self.callf(cmdlist, i=ifile, f=ofile)
 
    # --- Shell/System ---
     # Run a function
@@ -1966,6 +2105,38 @@ class CaseRunner(CaseRunnerBase):
         return self._search(pats, workdir=workdir, regex=regex)
 
     @run_rootdir
+    def match_regex(
+            self,
+            pat: str,
+            workdir: bool = False,
+            regex: bool = True,
+            links: bool = False):
+        r"""Search for files by regex; return the match info for latest
+
+        :Call:
+            >>> mtch = runner.match_regex(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
+        :Outputs:
+            *mtch*: :class:`re.Match` | ``None``
+                Match object for latest match to *pat*, if any
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        # Get matches
+        fileset = self.search_regex(pat, workdir, regex, links)
+        # Check for any
+        if len(fileset) == 0:
+            return None
+        # Mattch the latest
+        return re.fullmatch(pat, fileset[-1])
+
+    @run_rootdir
     def search_regex(
             self,
             pat: str,
@@ -2156,43 +2327,213 @@ class CaseRunner(CaseRunnerBase):
         """
         return f"{self._progname}.err"
 
-   # --- File name patterns ---
-    def get_flowviz_pat(self, stem: str) -> str:
-        # Get project root name
-        basename = self.get_project_rootname()
-        # Default patern
-        return f"{basename}*_{stem}*"
+  # *** FLOW VIZ ***
+   # --- Iteration number ---
+    def infer_file_niter(self, mtch) -> int:
+        return self.get_restart_iter()
 
-    def get_flowviz_regex(self, stem: str) -> str:
-        # Get project root name
-        basename = self.get_project_rootname()
-        # Default pattern; all Tecplot formats
-        return f"{basename}_{stem}\\.(?P<ext>dat|plt|szplt|tec)"
-
-    def get_surf_pat(self) -> str:
-        r"""Get glob pattern for candidate surface data files
-
-        These can have false-positive matches because the actual search
-        will be done by regular expression. Restricting this pattern can
-        have the benefit of reducing how many files are searched by
-        regex.
+   # --- Iterations in a time-averaging window ---
+    def infer_tavg_nstats(
+            self,
+            n: Optional[int] = None,
+            fname: Optional[str] = None) -> int:
+        r"""Infer num of iters averaged for output at iteration *n*
 
         :Call:
-            >>> pat = runner.get_surf_pat()
+            >>> nstats = runner.infer_tavg_nstats(n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *n*: :class:`int`
+                Iteration number
+        :Outputs:
+            *nstats*: :class:`int`
+                Number of iterations averaged in viz file
+        :Versions:
+            * 2025-08-10 ``@ddalle``: v1.0
+        """
+        return 1
+
+  # *** MESH ***
+   # --- Volume ---
+    def match_grid_file(self):
+        r"""Get latest volume grid and regex match instance
+
+        :Call:
+            >>> re_match = runner.match_grid_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-08-16 ``@ddalle``: v1.0
+        """
+        # Get regular expression of volume file matches
+        pat = self.get_grid_regex()
+        # Perform search
+        mtch = self.match_regex(pat)
+        # Output
+        return mtch
+
+    def match_surfgrid_file(self):
+        r"""Get latest surface grid and regex match instance
+
+        :Call:
+            >>> re_match = runner.match_surfgrid_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-08-16 ``@ddalle``: v1.0
+        """
+        # Get regular expression of volume file matches
+        pat = self.get_surfgrid_regex()
+        # Perform search
+        mtch = self.match_regex(pat)
+        # Output
+        return mtch
+
+    def get_grid_regex(self) -> str:
+        r"""Return regular expression for volume grid files
+
+        :Call:
+            >>> pat = runner.get_grid_regex()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
         :Outputs:
             *pat*: :class:`str`
-                Glob file name pattern for candidate surface sol'n files
+                Regular expression search pattern
+        :Versions:
+            * 2025-08-16 ``@ddalle``: v1.0
+        """
+        return r".*\.l?[br][48]l?\.ugrid"
+
+   # --- Surface ---
+    def get_surfgrid_regex(self) -> str:
+        r"""Return regular expression for surface grid files
+
+        :Call:
+            >>> pat = runner.get_surfgrid_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Regular expression search pattern
+        :Versions:
+            * 2025-08-16 ``@ddalle``: v1.0
+        """
+        return r"x(\.([0-9]+))?\.(sur,srf,surf)"
+
+  # *** VOLUME DATA ***
+   # --- Volume ---
+    def match_vol_file(self):
+        r"""Get latest volume file and regex match instance
+
+        :Call:
+            >>> re_match = runner.match_vol_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
         :Versions:
             * 2025-01-24 ``@ddalle``: v1.0
         """
-        # Get project root name
-        basename = self.get_project_rootname()
-        # Default patern
-        return f"{basename}*"
+        # Get regular expression of volume file matches
+        pat = self.get_vol_regex()
+        # Perform search
+        mtch = self.match_regex(pat)
+        # Save it
+        if mtch is not None:
+            self._dex_source = "volume"
+            self._dex_sourcefile = mtch.group()
+        # Output
+        return mtch
 
+   # --- File name patterns ---
+    def get_vol_regex(self) -> str:
+        r"""Get regular expression that all volume output files match
+
+        :Call:
+            >>> regex = runner.get_vol_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *regex*: :class:`str`
+                Regular expression that all surface sol'n files match
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        raise NotImplementedError(
+            "CaseRunner.get_vol_regex() is not implemented for "
+            f"{self._modname}.CaseRunner")
+
+  # *** SURFACE DATA ***
+   # --- Surface ---
+    def find_surf_file(self) -> FileSearchStatus:
+        r"""Find CFD output file that contains the most recent surface data
+
+        :Call:
+            >>> fstat = runner.find_surf_file()
+            >>> mtch, n = runner.find_surf_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *mtch*: :class:`re.Match` | ``None``
+                Regular expression match instance
+            *n*: :class:`int`
+                Latest iteration contained in file
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Find the file
+        mtch = self.match_surf_file()
+        # Infer iteration number
+        n = self.infer_file_niter(mtch)
+        # Cache it
+        self._dex_n_iter = n
+        # Output
+        return FileSearchStatus(mtch, n)
+
+    def match_surf_file(self):
+        r"""Get latest surface file and regex match instance
+
+        :Call:
+            >>> re_match = runner.match_surf_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get regular expression of exact matches
+        pat = self.get_surf_regex()
+        # Perform search
+        mtch = self.match_regex(pat)
+        # Save file name
+        if mtch is not None:
+            self._dex_source = "surface"
+            self._dex_sourcefile = mtch.group()
+        # Output
+        return mtch
+
+    def read_surf_data(self):
+        ...
+
+   # --- File name patterns ---
     def get_surf_regex(self) -> str:
         r"""Get regular expression that all surface output files match
 
@@ -2207,50 +2548,117 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-01-24 ``@ddalle``: v1.0
         """
-        # Get project root name
-        basename = self.get_project_rootname()
-        # Default pattern; all Tecplot formats
-        return f"{basename}\\.(?P<ext>dat|plt|szplt|tec)"
+        raise NotImplementedError(
+            "CaseRunner.get_surf_regex() is not implemented for "
+            f"{self._modname}.CaseRunner")
 
-  # *** FLOW VIZ ***
-   # --- General flow viz search ---
-    @run_rootdir
-    def get_flowviz_file(self, stem: str):
-        # Enter working folder
-        os.chdir(self.get_working_folder())
-        # Get glob pattern to narrow list of files
-        baseglob = self.get_flowviz_pat(stem)
-        # Get regular expression of exact matches
-        regex = self.get_flowviz_regex(stem)
-        # Perform search
-        return fileutils.get_latest_regex(regex, baseglob)[1]
-
-  # *** SURFACE DATA ***
-   # --- Surface ---
-    def get_surf_file(self):
-        r"""Get latest surface file and regex match instance
+   # --- TriQ ---
+    def prepare_triq(self) -> FileStatus:
+        r"""Prepare the surface ``.triq`` file and return metadata
 
         :Call:
-            >>> re_match = runner.get_surf_file()
+            >>> triqstats = runner.prepare_triq()
+            >>> fname, n = runner.prepare_triq()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
         :Outputs:
-            *re_match*: :class:`re.Match` | ``None``
-                Regular expression groups, if any
+            *triqstats*: :class:`FileStatus`
+                Surface ``.triq`` file name
+            *triqstats.fname*: :class:`str`
+                Name of ``.triq`` file (created or found)
+            *triqstats.n*: :class:`int`
+                Iteration number for *fname*
         :Versions:
-            * 2025-01-24 ``@ddalle``: v1.0
+            * 2025-08-11 ``@ddalle``: v1.0
         """
-        # Get regular expression of exact matches
-        pat = self.get_surf_regex()
-        # Perform search
-        filelist = self.search_regex(pat, workdir=True)
-        # Check for match
-        return None if len(filelist) == 0 else re.fullmatch(pat, filelist[-1])
+        # Search for data file
+        mtch = self.match_surf_file()
+        # Get iteration thereof
+        n = self.infer_file_niter(mtch)
+        # Get name of ``.triq`` file
+        ftriq = self.genr8_triq_filename(mtch, n)
+        # Cache it
+        self._dex_n_iter = n
+        self._dex_triqfile = ftriq
+        # Check if file exists
+        if not os.path.isfile(ftriq):
+            # Log this action
+            self.log_verbose(f"Writing surface {mtch.group()} -> {ftriq}")
+            # Write triq file from surface data
+            self.write_triq(mtch.group(), ftriq)
+        # Return file name and status
+        return FileStatus(ftriq, n)
 
-   # --- TriQ ---
-    def prepare_triq(self) -> str:
-        return self.get_triq_filename()
+    def genr8_triq_filename(self, mtch=None, n: Optional[int] = None) -> str:
+        r"""Find the name of the expected ``.triq`` file based on status
+
+        :Call:
+            >>> ftriq = runner.genr8_triq_filename(mtch=None, n=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *mtch*: {``None``} | :mod:`re.Match`
+                Regex match object for surface data file (else call
+                :func:`CaseRunner.match_surf_file`)
+            *n*: {``None``} | :class:`int`
+                Iteration number of surface data (else call
+                :func:`CaseRunner.infer_file_niter`)
+        :Outputs:
+            *ftriq*: :class:`str`
+                Name of ``.triq`` file expected (or created) by CAPE
+        :Versions:
+            * 2025-08-10 ``@ddalle``: v1.0
+        """
+        # Get default
+        mtch = mtch if mtch is not None else self.match_surf_file()
+        n = n if n is not None else self.infer_file_niter(mtch)
+        # Phase number
+        j = self.get_phase()
+        # Get project name
+        proj = self.get_project_rootname(j)
+        # Get surface file infix
+        stem = self.get_triq_filename_stem()
+        # Form pattern
+        ftriq = f"{proj}_{stem}_timestep{n}.triq"
+        # Relative to working folder
+        workdir = self.get_working_folder_()
+        return os.path.join(workdir, ftriq)
+
+    def get_triq_filename_stem(self) -> str:
+        r"""Get the infix for surface ``.triq``  files
+
+        :Call:
+            >>> stem = runner.get_triq_filename_stem()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *stem*: :class:`str`
+                File name infix, e.g. ``"surf"`` or ``"tec_boundary"``
+        :Versions:
+            * 2025-08-11 ``@ddalle``: v1.0
+        """
+        return "surf"
+
+    def write_triq(self, rawdatafile: str, triqfile: str):
+        r"""Convert CFD data file to ``.triq`` format
+
+        This enables use with Chimera Grid Tools capabilities and
+        integrates with CAPE's TriqFM tools.
+
+        :Call:
+            >>> runner.write_triq(rawdatafile, triqfile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2025-08-11 ``@ddalle``: v1.0
+        """
+        # Read the raw data file
+        mesh = umesh.Umesh(rawdatafile)
+        # Write as ``.triq``
+        mesh.write_triq(triqfile, fmt="lr4")
 
     def get_triq_filename(self) -> str:
         r"""Get latest ``.triq`` file
@@ -2268,35 +2676,6 @@ class CaseRunner(CaseRunnerBase):
         """
         return self.search_workdir("*.triq")
 
-    def get_triq_filestats(self) -> IterWindow:
-        r"""Get start and end of averagine window for ``.triq`` file
-
-        :Call:
-            >>> window = runner.get_triq_filestats(ftriq)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *ftriq*: :class:`str`
-                Name of latest ``.triq`` annotated triangulation file
-        :Outputs:
-            *window.ia*: :class:`int`
-                Iteration at start of window
-            *window.ib*: :class:`int`
-                Iteration at end of window
-        :Versions:
-            * 2025-02-12 ``@ddalle``: v1.0
-        """
-        # Default; get current iteration
-        ib = self.get_iter()
-        # Get current phase
-        j = self.get_phase_next()
-        j = 0 if j is None else j
-        # Default: get start of that phase
-        ia = self.get_phase_iters(max(0, j-1))
-        ia = 1 if j == 0 else ia
-        # Output
-        return IterWindow(ia, ib)
-
     def get_triq_file(self):
         # Get working folder
         workdir = self.get_working_folder()
@@ -2310,7 +2689,7 @@ class CaseRunner(CaseRunnerBase):
 
   # *** RESIDUALS ***
    # --- Convergence ---
-    def get_n_orders(
+    def get_dex_n_orders(
             self,
             nstats: int = 1,
             nlast: Optional[int] = None,
@@ -2318,7 +2697,7 @@ class CaseRunner(CaseRunnerBase):
         r"""Get current residual order of magnitude drop
 
         :Call:
-            >>> norders = runner.get_n_orders(nstatus=1, f=False)
+            >>> norders = runner.get_dex_n_orders(nstatus=1, f=False)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2334,12 +2713,18 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2055-08-04 ``@ddalle``: v1.0
         """
+        # Check for cache
+        n = self._dex_n_orders
+        if n is not None:
+            return n
         # Read residual history
         h = self.read_resid(f, meta=True)
         # Return the convergence depth
-        return h.GetNOrders(nstats, nLast=nlast)
+        self._dex_n_orders = h.GetNOrders(nstats, nLast=nlast)
+        return self._dex_n_orders
 
    # --- Readers ---
+    @run_rootdir
     def read_resid(self, f: bool = False, meta: bool = False) -> CaseResid:
         r"""Read the current residual history
 
@@ -2391,11 +2776,25 @@ class CaseRunner(CaseRunnerBase):
 
   # *** DATABOOK ***
    # --- Sampling ---
-    def sample_dex(self, comp: str) -> dict:
+    def sample_dex(self, comp: str) -> DataKit:
+        r"""Sample a DataBook component (e.g. to a specific iteration)
+
+        :Call:
+            >>> db = runner.sample_dex(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read and sample
+        :Outputs:
+            *db*: :class:`DataKit`
+                Sampled DataBook component or raw data
+        :Versions:
+            * 2025-08-04 ``@ddalle``: v1.0
+            * 2025-08-12 ``@ddalle``: v1.1; sample *nStats*, *XMRP*, etc
+        """
         # Get component type
         typ = self.get_dex_type(comp)
-        # Get run matrix instance
-        cntl = self.read_cntl()
         # Check for custom sampling function
         samplefunc = getattr(self, f"sample_dex_{typ}", None)
         # Check if found
@@ -2406,22 +2805,28 @@ class CaseRunner(CaseRunnerBase):
             # Call sample
             db = samplefunc(comp)
         # Check special cols
-        fcols = cntl.opts.get_DataBookFloatCols(comp)
-        icols = cntl.opts.get_DataBookIntCols(comp)
-        # Add *nOrders*
-        if "nOrders" in fcols:
-            db["nOrders"] = self.get_n_orders()
-        # Add *nIter*
-        if "nIter" in icols:
-            db["nIter"] = self.get_iter()
+        self._sample_n_iter(comp, db)
+        self._sample_dex_n_orders(comp, db)
+        self._sample_n_stats(comp, db)
+        self._sample_xmrp(comp, db)
+        self._sample_ymrp(comp, db)
+        self._sample_zmrp(comp, db)
         # Output
         return db
 
-    def sample_dex_fm(self, comp: str) -> dict:
+    def sample_dex_fm(self, comp: str) -> DataKit:
         r"""Sample a force & moment iterative history
 
         :Call:
-            >>> d = runner.sample_dex_fm(comp)
+            >>> db = runner.sample_dex_fm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read and sample
+        :Outputs:
+            *db*: :class:`cape.dkit.rdb.DataKit`
+                Sampled DataBook component or raw data
         :Versions:
             * 2025-07-29 ``@ddalle``: v1.0
         """
@@ -2438,8 +2843,95 @@ class CaseRunner(CaseRunnerBase):
         for col in list(s.keys()):
             if col.endswith("_n"):
                 s.pop(col)
+        # Convert to DataKit
+        db = DataKit()
+        db.link_data(s)
         # Output
-        return s
+        return db
+
+    def _sample_dex_n_orders(self, comp: str, db: dict):
+        # Check if unncessary
+        if "nOrders" in db:
+            return
+        # Check if present
+        if self._check_dex_fcol(comp, "nOrders"):
+            db.save_col("nOrders", self.get_dex_n_orders())
+
+    def _sample_n_iter(self, comp: str, db: dict):
+        # Check if necessary
+        if "nIter" in db:
+            return
+        # Check if requested
+        if self._check_dex_icol(comp, "nIter"):
+            db.save_col("nIter", self.get_dex_iter(comp))
+
+    def _sample_n_stats(self, comp: str, db: dict):
+        # Check if necessary
+        if "nStats" in db:
+            return
+        # Check if requested
+        if self._check_dex_icol(comp, "nStats"):
+            db.save_col("nStats", self.get_dex_nstats(comp))
+
+    def _sample_xmrp(self, comp: str, db: dict):
+        # Check if necessary
+        if "XMRP" in db:
+            return
+        # Check if requested
+        if self._check_dex_fcol(comp, "XMRP"):
+            # Get *cntl*
+            cntl = self.read_cntl()
+            # Get *CompID* for this component
+            compid = self.get_dex_opt(comp, "CompID")
+            compid = _listify(compid)[0]
+            # Get *MRP*
+            mrp = cntl.opts.get_RefPoint(compid)
+            # Return first coord
+            db.save_col("XMRP", mrp[0])
+
+    def _sample_ymrp(self, comp: str, db: dict):
+        # Check if necessary
+        if "YMRP" in db:
+            return
+        # Check if requested
+        if self._check_dex_fcol(comp, "YMRP"):
+            # Get *cntl*
+            cntl = self.read_cntl()
+            # Get *CompID* for this component
+            compid = self.get_dex_opt(comp, "CompID")
+            compid = _listify(compid)[0]
+            # Get *MRP*
+            mrp = cntl.opts.get_RefPoint(compid)
+            # Return second coord
+            db.save_col("YMRP", mrp[1])
+
+    def _sample_zmrp(self, comp: str, db: dict):
+        # Check if necessary
+        if "ZMRP" in db:
+            return
+        # Check if requested
+        if self._check_dex_fcol(comp, "ZMRP"):
+            # Get *cntl*
+            cntl = self.read_cntl()
+            # Get *CompID* for this component
+            compid = self.get_dex_opt(comp, "CompID")
+            compid = _listify(compid)[0]
+            # Get *MRP*
+            mrp = cntl.opts.get_RefPoint(compid)
+            # Return third coord
+            db.save_col("ZMRP", mrp[2])
+
+    def _check_dex_fcol(self, comp: str, col: str) -> bool:
+        # Read *cntl* instance
+        cntl = self.read_cntl()
+        # Get list of floating-point columns
+        return col in cntl.opts.get_DataBookFloatCols(comp)
+
+    def _check_dex_icol(self, comp: str, col: str) -> bool:
+        # Read *cntl* instance
+        cntl = self.read_cntl()
+        # Check list of integer columns
+        return col in cntl.opts.get_DataBookIntCols(comp)
 
    # --- Readers ---
     # Read raw data for DataBook component
@@ -2455,6 +2947,31 @@ class CaseRunner(CaseRunnerBase):
                 Name of component to read
         :Versions:
             * 2025-07-24 ``@ddalle``: v1.0
+            * 2025-08-12 ``@ddalle``: v1.1; by-element; preprocess
+        """
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Perform preprocessing if needed
+        self.prep_dex(comp)
+        # Check it
+        if typ in ("fm",):
+            return self.read_dex_by_element(comp)
+        else:
+            return self.read_dex_element(comp, comp)
+
+    # Read a DEx by element
+    def read_dex_by_element(self, comp: str) -> DataKit:
+        r"""Read a data component with multiple elements
+
+        :Call:
+            >>> db = runner.read_dex_by_element(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
         """
         # Get component(s)
         compid = self.get_dex_opt(comp, "CompID", vdef=comp)
@@ -2473,6 +2990,8 @@ class CaseRunner(CaseRunnerBase):
             # Add or initialize
             if j == 0:
                 db = dbj
+                # Save global comp name
+                db.comp = comp
             elif negj:
                 db -= dbj
             else:
@@ -2510,6 +3029,30 @@ class CaseRunner(CaseRunnerBase):
         db = cls(*args0, compid, *args1)
         # Output
         return db
+
+    # Preprocessing
+    def prep_dex(self, comp: str):
+        r"""Perform preprocessing tasks as needed before reading DEx
+
+        :Call:
+            >>> db = runner.prep_dex(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        # Get component type
+        typ = self.get_dex_type(comp)
+        # Create function name
+        funcname = f"prep_dex_{typ}"
+        # Get the function if applicable
+        func = getattr(self, funcname, None)
+        # Call it
+        if callable(func):
+            func(comp)
 
     # Create tuple of args prior to *comp*
     def genr8_dex_args_pre(self, typ: str) -> tuple:
@@ -2634,12 +3177,263 @@ class CaseRunner(CaseRunnerBase):
         for topts in transforms:
             fm.TransformFM(topts, cntl.x, i)
 
-   # --- Data manipulation ---
-
    # --- Status ---
     # Get the current iteration number as applies to
     def get_dex_iter(self, comp: str) -> int:
-        return self.get_restart_iter()
+        r"""Get number of iterations available for a DataBook component
+
+        :Call:
+            >>> n = runner.get_dex_iter(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-07 ``@ddalle``: v1.0
+        """
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Get specialized function name
+        funcname = f"get_dex_iter_{typ}"
+        # Check for such a function
+        func = getattr(self, funcname, None)
+        # Call it
+        if callable(func):
+            # Call specialized function
+            return func(comp)
+        else:
+            # Fall back to *restart* iteration
+            return self.get_restart_iter()
+
+    def get_dex_iter_fm(self, comp: str) -> int:
+        r"""Get number of iterations available for ``"FM"`` comps
+
+        :Call:
+            >>> n = runner.get_dex_iter_fm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-07 ``@ddalle``: v1.0
+        """
+        # Check option
+        nlast = self.get_dex_opt(comp, "NLastStats")
+        # Default to last iteration
+        n = nlast if (nlast) else self.get_iter()
+        # Use last iteration
+        return n
+
+    def get_dex_iter_lineload(self, comp: str) -> int:
+        r"""Get number of iterations for ``"LineLoad"`` comp
+
+        :Call:
+            >>> n = runner.get_dex_iter_lineload()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        return self._get_dex_iter_surf(comp)
+
+    def get_dex_iter_triqfm(self, comp: str) -> int:
+        r"""Get number of iterations for ``"TriqFM"`` comp
+
+        :Call:
+            >>> n = runner.get_dex_iter_triqfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        return self._get_dex_iter_surf(comp)
+
+    def get_dex_iter_triqpoint(self, comp: str) -> int:
+        r"""Get number of iterations for ``"TriqPoint"`` comp
+
+        :Call:
+            >>> n = runner.get_dex_iter_triqpoint()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        return self._get_dex_iter_surf(comp)
+
+    def _get_dex_iter_surf(self, comp: str) -> int:
+        # Check cache .. from previous call of prepare_triq()
+        n = self._dex_n_iter
+        # Usit if appropriate
+        if n is not None:
+            return n
+        # Search for data file
+        mtch = self.match_surf_file()
+        # Check for a match
+        if mtch is None:
+            return 0
+        # Get iteration thereof
+        n = self.infer_file_niter(mtch)
+        # Save it
+        self._dex_n_iter = n
+        # Output
+        return n
+
+    def _get_dex_iter_vol(self, comp: str) -> int:
+        # Check cache .. from previous call of prepare_triq()
+        n = self._dex_n_iter
+        # Usit if appropriate
+        if n is not None:
+            return n
+        # Search for data file
+        mtch = self.match_vol_file()
+        # Check for a match
+        if mtch is None:
+            return 0
+        # Get iteration thereof
+        n = self.infer_file_niter(mtch)
+        # Save it
+        self._dex_n_iter = n
+        # Output
+        return n
+
+   # --- Window size ---
+    def get_dex_nstats(self, comp: str) -> int:
+        r"""Get iters in averaging window for a DataBook component
+
+        :Call:
+            >>> n = db.get_nstats(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Get specialized function name
+        funcname = f"get_dex_nstats_{typ}"
+        # Check for such a function
+        func = getattr(self, funcname, None)
+        # Call it
+        if callable(func):
+            # Call specialized function
+            return func(comp)
+        else:
+            # Fall back to inference from averaging/restart options
+            n = self.get_dex_iter(comp)
+            # Infer *nStats* based on iteration
+            return self.infer_tavg_nstats(n=n)
+
+    def get_dex_nstats_fm(self, comp: str) -> int:
+        r"""Get averaging window iters for a ``"FM"`` DataBook component
+
+        :Call:
+            >>> n = db.get_nstats(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        return self.get_dex_opt(comp, "NStats")
+
+    def get_dex_nstats_lineload(self, comp: str) -> int:
+        r"""Get window size for a ``"LineLoad"`` DataBook component
+
+        :Call:
+            >>> n = db.get_dex_nstats_lineload(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        # Get current iteration
+        n = self.get_dex_iter(comp)
+        # Infer *nStats* based on restart/averaging settings
+        nstats = self.infer_tavg_nstats(n)
+        # Cache it
+        self._dex_n_stats = nstats
+        return nstats
+
+    def get_dex_nstats_triqfm(self, comp: str) -> int:
+        r"""Get window size for a ``"TriqFM"`` DataBook component
+
+        :Call:
+            >>> n = db.get_dex_nstats_triqfm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-29 ``@ddalle``: v1.0
+        """
+        # Same as lineload
+        return self.get_dex_nstats_lineload(comp)
+
+    def get_dex_nstats_triqpoint(self, comp: str) -> int:
+        r"""Get window size for a ``"TriqPoint"`` DataBook component
+
+        :Call:
+            >>> n = db.get_dex_nstats_triqpoint(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iterations/timesteps included in averaging window
+        :Versions:
+            * 2025-08-29 ``@ddalle``: v1.0
+        """
+        # Same as lineload
+        return self.get_dex_nstats_lineload(comp)
 
    # --- Options ---
     # Get DataBook component type
@@ -2695,24 +3489,155 @@ class CaseRunner(CaseRunnerBase):
     def get_dex_transformation(self, comp: str) -> np.ndarray:
         ...
 
-   # --- Triload ---
-    def write_triload_input(self, comp: str):
-        r"""Write input file for ``trilaodCmd``
+   # --- Line Loads ---
+    @run_rootdir
+    def prep_dex_lineload(self, comp: str):
+        r"""Prepare surface, run ``triload``, before reading line loads
 
         :Call:
-            >>> runner.write_triload_input(comp)
+            >>> db = runner.prep_dex_lineload(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-12 ``@ddalle``: v1.0
+        """
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get name of ``.triq`` file
+        ftriq, _ = self.prepare_triq()
+        # Section type
+        sec = self.get_dex_opt(comp, "SectionType")
+        # Get name of expected output file
+        fname = os.path.join("lineload", f"LineLoad_{comp}.{sec}")
+        # Cannot proceed if *ftriq* does not exist
+        if not os.path.isfile(ftriq):
+            return
+        # Check if it exists or is up-to-date
+        if os.path.isfile(fname):
+            if os.path.getmtime(fname) > os.path.getmtime(ftriq):
+                return
+        # Otherwise, create and enter ``lineload/`` folder
+        self.mkdir("lineload")
+        os.chdir("lineload")
+        # Prepare triload.i
+        self.write_triload_input(comp, ftriq)
+        # Run ``triloadCmd``
+        self.run_triload(f"triload.{comp}.i", f"triload.{comp}.o")
+
+   # --- TriqFM ---
+    @run_rootdir
+    def prep_dex_triqfm(self, comp: str):
+        r"""Prepare surface ``.triq`` file for TriqFM processing
+
+        :Call:
+            >>> db = runner.prep_dex_triqfm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get name of ``.triq`` file and create it if needed
+        self.prepare_triq()
+
+    # Create tuple of TriqFM dex args after to *comp*
+    def get_dex_args_post_triqfm(self) -> tuple:
+        r"""Get list of args after *comp* in :class:`CaseTriqFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_triqfm()
+            >>> ftriq, cntl, i = runner.get_dex_args_post_triqfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Tuple of args
+            *ftriq*: :class:`str`
+                Name of ``.triq`` file with surface solution data
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Run matrix controller with definitions for dex comp
+            *i*: :class:`int`
+                Index of this case in run matrix
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Read run matrix controller
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Use name of TriqFM file
+        return (self._dex_triqfile, cntl, i)
+
+   # --- TriqPoint ---
+    def prep_dex_triqpoint(self, comp: str):
+        r"""Prepare surface ``.triq`` file for TriqPoint processing
+
+        :Call:
+            >>> db = runner.prep_dex_triqfm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-29 ``@ddalle``: v1.0
+        """
+        self.prep_dex_triqfm(comp)
+
+    # Create tuple of TriqPoint dex args after to *comp*
+    def get_dex_args_post_triqpoint(self) -> tuple:
+        r"""Get list of args after *comp* in :class:`CaseTriqPoint`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_triqpoint()
+            >>> ftriq, cntl, i = runner.get_dex_args_post_triqpoint()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Tuple of args
+            *ftriq*: :class:`str`
+                Name of ``.triq`` file with surface solution data
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Run matrix controller with definitions for dex comp
+            *i*: :class:`int`
+                Index of this case in run matrix
+        :Versions:
+            * 2025-08-30 ``@ddalle``: v1.0
+        """
+        # Read run matrix controller
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Use name of TriqFM file
+        return (self._dex_triqfile, cntl, i)
+
+   # --- Triload ---
+    def write_triload_input(self, comp: str, ftriq: str):
+        r"""Write input file for ``triloadCmd``
+
+        :Call:
+            >>> runner.write_triload_input(comp, ftriq)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *comp*: :class:`str`
                 Name of component
+            *ftriq*: :class:`str`
+                Name of appropriate ``.triq`` file to read from
         :Versions:
             * 2025-01-29 ``@ddalle``: v1.0
+            * 2025-08-12 ``@ddalle``: v1.1; add *ftriq* as input
         """
-        # Get project name
-        proj = self.get_project_rootname()
-        # Get name of triq file
-        ftriq = self.get_triq_filename()
         # Read control instance
         cntl = self.read_cntl()
         # Setting for output triq file
@@ -2752,9 +3677,9 @@ class CaseRunner(CaseRunnerBase):
         # File name
         with open(f"triload.{comp}.i", 'w') as fp:
             # Write the triq file name
-            fp.write(f"{ftriq}\n")
+            fp.write(f"../{ftriq}\n")
             # Write the prefix name
-            fp.write(f"{proj}\n")
+            fp.write("LineLoad\n")
             # Write the Mach number, reference Reynolds number, and gamma
             fp.write('%s %s %s\n' % (mach, rey, gam))
             # Moment center
@@ -2844,7 +3769,7 @@ class CaseRunner(CaseRunnerBase):
             * 2024-11-05 ``@ddalle``: v1.0
         """
         # Default
-        return "run"
+        return self._modname
 
    # --- Settings: Read  ---
     # Read ``case.json``
@@ -3471,23 +4396,39 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2024-08-26 ``@ddalle``: v1.0
         """
+        # Find folder and JSON files
+        root_dir, _ = self._get_cntl_parts()
+        # Output
+        return root_dir
+
+    def _get_cntl_parts(self) -> tuple:
+        # Get module
+        mod = self.import_cntlmod()
         # Absolute path to "case.json"
         fjson = os.path.join(self.root_dir, RC_FILE)
+        # Default root folder
+        root_def = os.path.realpath(
+            os.path.join(self.root_dir, '..', '..'))
+        root_dir = root_def
+        # Default JSON file
+        fjson_def = mod.Cntl._fjson_default
+        root_json = fjson_def
         # Try to get directly from settings
         if os.path.isfile(fjson):
             # Read case settings
             rc = self.read_case_json()
-            # Default value
-            vdef = os.path.dirname(self.root_dir)
-            vdef = os.path.dirname(vdef)
-            # Get run matrix root dir from *rc*
-            cntl_rootdir = rc.get_RootDir(vdef=vdef)
-        else:
-            # Get two levels of parent from *self.root_dir*
-            cntl_rootdir = os.path.dirname(self.root_dir)
-            cntl_rootdir = os.path.dirname(cntl_rootdir)
+            # Get root of run matrix
+            root_dir = rc.get_RootDir()
+            root_dir = root_def if root_dir is None else root_dir
+            root_dir = root_dir.replace('/', os.sep)
+            # Get JSON file
+            root_json = rc.get_JSONFile(vdef=mod.Cntl._fjson_default)
+        # Check for such a folder
+        if not os.path.isfile(os.path.join(root_dir, root_json)):
+            # Use fall-back folder
+            root_dir = root_def
         # Output
-        return cntl_rootdir
+        return root_dir, root_json
 
    # --- Cntl ---
     @run_rootdir
@@ -3509,46 +4450,29 @@ class CaseRunner(CaseRunnerBase):
         # Check if already read
         if self.cntl is not None:
             return self.cntl
+        # Get parts
+        cntl_rootdir, cntl_json = self._get_cntl_parts()
+        # Check if folder exists
+        if not os.path.isdir(cntl_rootdir):
+            return
+        # Go to root dir (@run_rootdir will return us)
+        os.chdir(cntl_rootdir)
+        # Check for run-matrix JSON file
+        if not os.path.isfile(cntl_json):
+            return
         # Get module
         mod = self.import_cntlmod()
-        # Absolute path to "case.json"
-        fjson = os.path.join(self.root_dir, RC_FILE)
-        # Try to get directly from settings
-        if os.path.isfile(fjson):
-            # Read case settings
-            rc = self.read_case_json()
-            # Default root folder
-            root_def = os.path.realpath(
-                os.path.join(self.root_dir, '..', '..'))
-            # Get root of run matrix
-            root_dir = rc.get_RootDir()
-            root_dir = root_def if root_dir is None else root_dir
-            root_dir = root_dir.replace('/', os.sep)
-            # Get JSON file
-            fjson = rc.get_JSONFile(vdef=mod.Cntl._fjson_default)
-        else:
-            # Get root dir
-            root_dir = self.get_cntl_rootdir()
-            # Default JSON file
-            fjson = mod.Cntl._fjson_default
-        # Go to root dir (@run_rootdir will return us)
-        os.chdir(root_dir)
-        # Check for run-matrix JSON file
-        if os.path.isfile(fjson):
-            # Read *cntl*
-            self.cntl = mod.Cntl(fjson)
-            # Get case index
-            i = self.get_case_index()
-            # Save the case runner to avoid re-reads
-            self.cntl.caseindex = i
-            self.cntl.caserunner = self
-            self.cntl.opts.setx_i(i)
-            # Copy jobs object
-            self.cntl.jobs = self.jobs
-            self.cntl.job = self.job
-        else:
-            # Nothing to read
-            return
+        # Read *cntl*
+        self.cntl = mod.Cntl(cntl_json)
+        # Get case index
+        i = self.get_case_index()
+        # Save the case runner to avoid re-reads
+        self.cntl.caseindex = i
+        self.cntl.caserunner = self
+        self.cntl.opts.setx_i(i)
+        # Copy jobs object
+        self.cntl.jobs = self.jobs
+        self.cntl.job = self.job
         # Output
         return self.cntl
 
@@ -3787,6 +4711,7 @@ class CaseRunner(CaseRunnerBase):
         Reasons a case should exit include
 
         * The case is finished.
+        * An alternate exit criteria was found (e.g. resid converged)
         * A ``CAPE-STOP-PHASE`` file was found.
         * A ``CAPE-STOP-ITER`` file was found.
         * The relevant *StartNextPhase* option is ``False``.
@@ -3843,6 +4768,25 @@ class CaseRunner(CaseRunnerBase):
                 return True
         # Fall back to check_complete()
         return self.check_complete()
+
+    # Check for early exit
+    def check_alt_exit(self, j: Optional[int] = None) -> bool:
+        r"""Check for solver-selected exit, e.g. convergence target hit
+
+        :Call:
+            >>> q = runner.check_alt_exit(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase index
+        :Outputs:
+            *q*: :class:`bool`
+                ``True`` if no listed files have been modified recently
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        return False
 
     # Check if case is complete
     def check_complete(self) -> bool:
@@ -4031,6 +4975,12 @@ class CaseRunner(CaseRunnerBase):
             q = self.check_queue()
             # Status update
             sts = "INCOMP" if q == '.' else "QUEUE"
+        # Check for special case w/ auto early exit
+        if (sts == "INCOMP") and self.check_alt_exit():
+            # Update status -> DONE
+            sts = "DONE"
+            # Try to update the settings
+            self.handle_alt_exit(jmax)
         # Output
         return sts
 
@@ -4313,7 +5263,13 @@ class CaseRunner(CaseRunnerBase):
                 Whether phase *j* looks complete
         :Versions:
             * 2025-04-05 ``@ddalle``: v1.0
+            * 2025-08-14 ``@ddalle``: v1.1; ``check_alt_exit()``
         """
+        # Check for early termination
+        if self.check_alt_exit(j):
+            # Reduce iter cutoff if appropriate
+            self.handle_alt_exit(j)
+            return True
         # Check iteration requirements
         if not self.check_phase_iters(j):
             return False
@@ -4353,6 +5309,33 @@ class CaseRunner(CaseRunnerBase):
         nreq = self.get_phase_nreq(j)
         # Check if actually run
         return nrun >= nreq
+
+    def handle_alt_exit(self, j: int):
+        r"""Reduce *PhaseIters* if an early exit was detected
+
+        :Call:
+            >>> runner.handle_alt_exit(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Versions:
+            * 2025-08-15 ``@ddalle``: v1.0
+        """
+        # Get current iter
+        n = self.get_iter()
+        # Get cutoff for phase *j*
+        nmax = self.get_phase_iters(j)
+        # Try to update the settings
+        try:
+            # Perform action
+            self.set_phase_iters(min(n, nmax), j)
+            # Log action
+            if n < nmax:
+                self.log_both(f"Reducing phase {j} -> {n} iters")
+        except PermissionError:
+            pass
 
     # Check if a phase is rerun-able
     def check_phase_rerunable(self, j: int) -> bool:
@@ -4768,7 +5751,7 @@ class CaseRunner(CaseRunnerBase):
         r"""Get min iteration required for completion of phase *j*
 
         :Call:
-            >>> nmax = runner.get_phase_iters(j)
+            >>> n = runner.get_phase_iters(j)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -4790,6 +5773,32 @@ class CaseRunner(CaseRunnerBase):
             rc.set_opt("PhaseIters", [0])
         # Get iterations for requested phase
         return rc.get_PhaseIters(j)
+
+    # Set phase iters
+    def set_phase_iters(self, n: int, j: int):
+        r"""Set min iteration required for completion of phase *j*
+
+        :Call:
+            >>> runner.set_phase_iters(n, j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *n*: :class:`int`
+                Number of iterations
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        # (Re)read the local case.json file
+        rc = self.read_case_json()
+        # Check for null file
+        if rc is None:
+            return
+        # Set iterations for requested phase
+        rc.set_PhaseIters(n, j=j)
+        # Write modified settings
+        self.write_case_json(rc)
 
     # Get iteration at which to stop requested by user
     def get_stop_iter(self):
@@ -5001,7 +6010,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
@@ -5021,7 +6030,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
@@ -5041,7 +6050,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
@@ -5060,7 +6069,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-20 ``@ddalle`: v1.0
+            * 2024-09-20 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()

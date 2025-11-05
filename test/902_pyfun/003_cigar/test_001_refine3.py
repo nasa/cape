@@ -39,11 +39,12 @@ def test_01_plain():
     # Generate a report
     os.chdir(cntl.RootDir)
     reportname = cntl.opts.get_ReportList()[0]
-    report = cntl.ReadReport(reportname)
-    report.UpdateReport(I=I1)
+    report = cntl.UpdateReport(I=I1)
     # Report files
-    report_png = os.path.join("report", case_folder, "mach-y0.png")
+    report_pdf = os.path.join("report", f"report-{reportname}.pdf")
+    report_png = os.path.join(case_folder, "report", "mach-y0.png")
     assert os.path.isfile(report_png)
+    assert os.path.isfile(report_pdf)
 
 
 # Test AFLR3 execution
@@ -58,12 +59,14 @@ def test_02_refine():
     # Check case exists
     assert os.path.isdir(case_folder)
     # Generate a report
+    os.chdir(cntl.RootDir)
     reportname = cntl.opts.get_ReportList()[0]
-    report = cntl.ReadReport(reportname)
-    report.UpdateReport(I=I2)
+    report = cntl.UpdateReport(I=I2)
     # Report files
-    report_png = os.path.join("report", case_folder, "mach-y0.png")
+    report_pdf = os.path.join("report", f"report-{reportname}.pdf")
+    report_png = os.path.join(case_folder, "report", "mach-y0.png")
     assert os.path.isfile(report_png)
+    assert os.path.isfile(report_pdf)
 
 
 if __name__ == "__main__":

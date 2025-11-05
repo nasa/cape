@@ -50,6 +50,7 @@ class DataIterFile(dict):
         "n",
         "l2conv",
         "strsize",
+        "t",
     )
 
     # Initialization
@@ -63,9 +64,10 @@ class DataIterFile(dict):
         self.cols = []
         self.filename = None
         self.filesize = 0
-        self.n = 0.0
+        self.n = 0
         self.l2conv = 1.0
         self.strsize = DEFAULT_STRLEN
+        self.t = 0.0
         # Check for a file
         if fname is None:
             return
@@ -117,6 +119,10 @@ class DataIterFile(dict):
         fsize = fp.seek(0, 2)
         # Reset position
         fp.seek(0)
+        # Check for empty file
+        if fsize == 0:
+            self.cols = []
+            return
         # Read number of variables
         ncol, = fromfile_lb4_i(fp, 1)
         # Read the number of chars in a string
@@ -145,8 +151,8 @@ class DataIterFile(dict):
         # Report "iteration" number
         if "iter" in self.cols:
             icol = "iter"
-        elif "ctu" in self.cols:
-            icol = "ctu"
+        elif "nt" in self.cols:
+            icol = "nt"
         else:
             icol = None
         # Get iterations
@@ -158,7 +164,25 @@ class DataIterFile(dict):
             # Next entry is most recently reported "iteration"
             n, = fromfile_lb8_f(fp, 1)
             # Selectively switch to 1-based iteration
-            self.n = n + 1 if (icol == "iter") else n
+            n = n + 1 if (icol == "iter") else n
+            # Save as integer
+            self.n = int(n)
+        # Report "iteration" number
+        if "ctu" in self.cols:
+            tcol = "ctu"
+        else:
+            tcol = None
+        # Get iterations
+        if tcol and (tcol in self.cols):
+            # Index of "iters" column
+            jcol = self.cols.index(tcol)
+            # Head to the last record
+            fp.seek(pos)
+            fp.seek((nrec - 1)*ncol*8 + 8*jcol, 1)
+            # Next entry is most recently reported "iteration"
+            t, = fromfile_lb8_f(fp, 1)
+            # Selectively switch to 1-based iteration
+            self.t = t
         # Report residual drop
         if "flowres" in self.cols:
             icol = "flowres"

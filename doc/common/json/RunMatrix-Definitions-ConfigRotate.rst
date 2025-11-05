@@ -1,13 +1,15 @@
-----------------------------
-Options for ``ConfigRotate``
-----------------------------
+---------------------------------------------------
+``ConfigRotate``: options for run matrix definition
+---------------------------------------------------
 
 **Option aliases:**
 
-* *AxisSymmetry* -> *VectorSymmetry*
-* *CenterSymmetry* -> *VectorSymmetry*
-* *DType* -> *Value*
-* *DataType* -> *Value*
+* *AxisSymmetry* → *VectorSymmetry*
+* *CenterSymmetry* → *VectorSymmetry*
+* *DType* → *Value*
+* *DataType* → *Value*
+* *DisplayScale* → *FormatMultiplier*
+* *ScaleDisplay* → *FormatMultiplier*
 
 **Recognized options:**
 
@@ -39,6 +41,10 @@ Options for ``ConfigRotate``
     value of option "Label"
 *NonnegativeFormat*: {``False``} | ``True``
     value of option "NonnegativeFormat"
+*PBSFormat*: {``None``} | :class:`str`
+    value of option "PBSFormat"
+*PBSLabel*: {``None``} | ``True`` | ``False``
+    value of option "PBSLabel"
 *Points*: {``None``} | :class:`list`\ [:class:`object`]
     value of option "Points"
 *PointsSymmetric*: {``None``} | :class:`list`\ [:class:`object`]

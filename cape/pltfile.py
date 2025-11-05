@@ -952,7 +952,7 @@ class Plt(object):
             # Append the title
             if name:
                 # Include the boundary name
-                self.Zones.append("boundary %s %s" % (compID, name))
+                self.Zones.append(name)
             else:
                 # Just use the compID in the title
                 self.Zones.append("boundary %s" % compID)

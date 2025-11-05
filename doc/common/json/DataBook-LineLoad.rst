@@ -1,39 +1,39 @@
-----------------------------------
-Options for ``LineLoad`` component
-----------------------------------
+--------------------------------------------------------
+``LineLoad``: options for a line load databook component
+--------------------------------------------------------
 
 **Option aliases:**
 
-* *Cut* -> *CutPlaneNormal*
-* *CutDir* -> *CutPlaneNormal*
-* *CutPlane* -> *CutPlaneNormal*
-* *SlicePlane* -> *CutPlaneNormal*
-* *nCut* -> *NCut*
-* *Coeffs* -> *Cols*
-* *Coefficients* -> *Cols*
-* *Component* -> *CompID*
-* *NAvg* -> *nStats*
-* *NFirst* -> *NMin*
-* *NLast* -> *NLastStats*
-* *NMax* -> *NLastStats*
-* *NStatsMax* -> *NMaxStats*
-* *coeffs* -> *Cols*
-* *cols* -> *Cols*
-* *dnStats* -> *DNStats*
-* *nAvg* -> *NStats*
-* *nFirst* -> *NMin*
-* *nLast* -> *NLastStats*
-* *nLastStats* -> *NLastStats*
-* *nMax* -> *NLastStats*
-* *nMaxStats* -> *NMaxStats*
-* *nMin* -> *NMin*
-* *nStats* -> *NStats*
-* *nStatsMax* -> *NMaxStats*
-* *tagets* -> *Targets*
+* *Cut* → *CutPlaneNormal*
+* *CutDir* → *CutPlaneNormal*
+* *CutPlane* → *CutPlaneNormal*
+* *SlicePlane* → *CutPlaneNormal*
+* *nCut* → *NCut*
+* *Coeffs* → *Cols*
+* *Coefficients* → *Cols*
+* *Component* → *CompID*
+* *NAvg* → *nStats*
+* *NFirst* → *NMin*
+* *NLast* → *NLastStats*
+* *NMax* → *NLastStats*
+* *NStatsMax* → *NMaxStats*
+* *coeffs* → *Cols*
+* *cols* → *Cols*
+* *dnStats* → *DNStats*
+* *nAvg* → *NStats*
+* *nFirst* → *NMin*
+* *nLast* → *NLastStats*
+* *nLastStats* → *NLastStats*
+* *nMax* → *NLastStats*
+* *nMaxStats* → *NMaxStats*
+* *nMin* → *NMin*
+* *nStats* → *NStats*
+* *nStatsMax* → *NMaxStats*
+* *tagets* → *Targets*
 
 **Recognized options:**
 
-*Cols*: {``[]``} | :class:`str`
+*Cols*: {``'x'``} | :class:`str`
     list of primary solver output variables to include
 *CompID*: {``None``} | :class:`object`
     surface componet(s) to use for this databook component
@@ -41,7 +41,7 @@ Options for ``LineLoad`` component
     direction to step between each cut
 *DNStats*: {``None``} | :class:`int`
     increment for candidate window sizes
-*FloatCols*: {``[]``} | :class:`str`
+*FloatCols*: {``'XMRP'``} | :class:`str`
     additional databook cols with floating-point values
 *Gauge*: {``True``} | ``False``
     option to use gauge pressures in computations

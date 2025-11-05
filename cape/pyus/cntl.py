@@ -30,7 +30,6 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
     *cntl.x*               :class:`cape.pyus.RunMatrix`
     *cntl.opts*            :class:`cape.pyus.options.Options`
-    *cntl.DataBook*        :class:`cape.pyus.databook.DataBook`
     *cntl.InputInp*        :class:`cape.pyus.inputinpfile.InputInp`
     ====================   =============================================
 

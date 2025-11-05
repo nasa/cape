@@ -207,9 +207,9 @@ def compile_rst(doc: str) -> str:
     # Simplify user names
     txt = re.sub(r"``(@\w+)``", repluid, txt)
     # Simplify bolds
-    txt = re.sub(r"\*\*(\w[\w ]*)\*\*", replemph, txt)
+    txt = re.sub(r"\*\*([^*\n]*)\*\*", replemph, txt)
     # Simplify italic
-    txt = re.sub(r"\*(\w[\w ]*)\*", replit, txt)
+    txt = re.sub(r"\*(\w[\w/ _-]*)\*", replit, txt)
     # Mark string literals
     txt = re.sub(r"``([^`\n]*)``", repllit, txt)
     # Output

@@ -1815,6 +1815,7 @@ def _axlabel(ax, lbl, pos=None, **kw):
     y = kw.pop("y", y)
     # Set transformation unless overridden
     kw.setdefault("transform", ax.transAxes)
+    kw.setdefault("label", None)
     # Create label
     h = plt.text(x, y, lbl, **kw)
     # Set a special label (used for automatic *pos*)

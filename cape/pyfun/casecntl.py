@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pyfun.case`: FUN3D case control module
-==================================================
+:mod:`cape.pyfun.casecntl`: FUN3D case control module
+======================================================
 
 This module contains the important function :func:`casecntl.run_fun3d`,
 which actually runs ``nodet`` or ``nodet_mpi``, along with the utilities
@@ -25,7 +25,7 @@ import os
 import re
 import shutil
 import time
-from typing import Optional
+from typing import Any, Optional
 
 # Third-party modules
 import numpy as np
@@ -105,6 +105,8 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Class attributes ---
     # Additional attributes
     __slots__ = (
+        "mbnml",
+        "mbnml_j",
         "nml",
         "nml_j",
     )
@@ -136,6 +138,8 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2023-06-28 ``@ddalle``: v1.0
         """
+        self.mbnml = None
+        self.mbnml_j = None
         self.nml = None
         self.nml_j = None
 
@@ -1546,18 +1550,82 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read the options
         rc = self.read_case_json()
-        # Determine phase number
-        j = self.get_phase()
-        # Need the namelist to figure out planes, etc.
-        nml = self.read_namelist(j)
         # Get the project root name
-        proj = nml.get_opt('project', 'project_rootname')
+        proj = self.get_namelist_opt('project', 'project_rootname')
         # Strip suffix
         if rc.get_Dual() or rc.get_Adaptive():
             # Strip adaptive section
             proj = proj[:-2]
         # Output
         return proj
+
+    # Get generic option from namelist
+    def get_namelist_opt(
+            self, sec: str, opt: str,
+            j: Optional[int] = None,
+            i=None, vdef=None) -> Any:
+        r"""Get option from current ``fun3d.nml``
+
+        :Call:
+            >>> v = runner.get_namelist_opt(sec, opt)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *sec*: :class:`str`
+                Name of namelist section
+            *opt*: :class:`str`
+                Option name
+            *j*: {``None``} | :class:`int`
+                Phase number
+            *i*: {``None``} | :class:`int` | :class:`slice` | ``tuple``
+                Index or indices of *val* to return ``nml[sec][opt]``
+            *vdef*: {``None``} | :class:`object`
+                Default value if *opt* not present in ``nml[sec]``
+        :Outputs:
+            *v*: :class:`object`
+                Option value from ``fun3d.nml``
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        # Need the namelist to figure out planes, etc.
+        nml = self.read_namelist(j=j)
+        # Get the option
+        return nml.get_opt(sec, opt, j=i, vdef=vdef)
+
+    # Get generic moving-body namelist option
+    def get_moving_body_opt(
+            self, sec: str, opt: str,
+            j: Optional[int] = None,
+            i=None, vdef=None) -> Any:
+        r"""Get option from current ``moving_body.input``
+
+        :Call:
+            >>> v = runner.get_moving_body_opt(sec, opt)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *sec*: :class:`str`
+                Name of namelist section
+            *opt*: :class:`str`
+                Option name
+            *j*: {``None``} | :class:`int`
+                Phase number
+            *i*: {``None``} | :class:`int` | :class:`slice` | ``tuple``
+                Index or indices of *val* to return ``nml[sec][opt]``
+            *vdef*: {``None``} | :class:`object`
+                Default value if *opt* not present in ``nml[sec]``
+        :Outputs:
+            *v*: :class:`object`
+                Option value from ``fun3d.nml``
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        # Read the namelist
+        nml = self.read_moving_body(j)
+        # Check for namelist
+        v = vdef if (nml is None) else nml.get_opt(sec, opt, j=i, vdef=vdef)
+        # Output
+        return v
 
     # Function to get the most recent working folder
     @casecntl.run_rootdir
@@ -1624,7 +1692,7 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Special readers ---
     # Read namelist
     @casecntl.run_rootdir
-    def read_namelist(self, j=None):
+    def read_namelist(self, j=None) -> Namelist:
         r"""Read case namelist file
 
         :Call:
@@ -1680,19 +1748,62 @@ class CaseRunner(casecntl.CaseRunner):
             return nml
         # Get the specified namelist
         nml = Namelist('fun3d.%02i.nml' % j)
-        # Exit `Flow/` folder if necessary
-        if qdual:
-            os.chdir('..')
+        # Cache it
+        self.nml = nml
+        self.nml_j = j
+        # Output
+        return nml
+
+    # Read moving_body.input namelist
+    @casecntl.run_rootdir
+    def read_moving_body(self, j: Optional[int] = None) -> Namelist:
+        r"""Read case ``moving_body.input`` namelist file
+
+        :Call:
+            >>> nml = runner.read_moving_body(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *nml*: :class:`cape.pyfun.namelist.Namelist`
+                Namelist interface
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        # Read ``case.json`` if necessary
+        rc = self.read_case_json()
+        # Process phase number
+        if j is None and rc is not None:
+            # Default to most recent phase number
+            j = self.get_phase_next()
+        # Get phase of namelist previously read
+        nmlj = self.mbnml_j
+        # Check if already read
+        if isinstance(self.mbnml, Namelist) and nmlj == j and j is not None:
+            # Return it!
+            return self.mbnml
+        # Name of file
+        fnml = f"moving_body.{j:02d}.input"
+        # Check for file
+        if not os.path.isfile(fnml):
+            return
+        # Get the specified namelist
+        nml = Namelist(fnml)
+        # Save it
+        self.mbnml = nml
+        self.mbnml_j = j
         # Output
         return nml
 
    # --- DataBook ---
     # Create tuple of args prior to *comp*
-    def get_dex_args_pre(self) -> tuple:
+    def get_dex_args_pre_fm(self) -> tuple:
         r"""Get list of args prior to component name in :class:`CaseFM`
 
         :Call:
-            >>> args = runner.get_dex_args_pre()
+            >>> args = runner.get_dex_args_pre_fm()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -1706,6 +1817,23 @@ class CaseRunner(casecntl.CaseRunner):
         proj = self.get_project_baserootname()
         # Use it
         return (proj,)
+
+    # Create tuple of args after *comp*
+    def get_dex_args_post_fm(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_fm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one arg, *runner*
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        return (self,)
 
     # Create tuple of args to CaseResid
     def genr8_resid_args(self) -> tuple:
@@ -1725,7 +1853,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get project root name
         proj = self.get_project_baserootname()
         # Use it
-        return (proj,)
+        return (proj, self)
 
    # --- File search ---
     # Function to get restart file
@@ -2014,118 +2142,25 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return ftriq, n, i0, i1
 
-    # Get averaging window for triq file
-    def get_triq_filestats(self) -> casecntl.IterWindow:
-        r"""Get start and end of averagine window for ``.triq`` file
-
-        :Call:
-            >>> window = runner.get_triq_filestats(ftriq)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *ftriq*: :class:`str`
-                Name of latest ``.triq`` annotated triangulation file
-        :Outputs:
-            *window.ia*: :class:`int`
-                Iteration at start of window
-            *window.ib*: :class:`int`
-                Iteration at end of window
-        :Versions:
-            * 2025-02-12 ``@ddalle``: v1.0
-        """
-        # Working here on surface
-        stem = "tec_boundary"
-        # Get root name of project
-        basename = self.get_project_baserootname()
-        # Glob for initial filter of files
-        baseglob = f"{basename}*_{stem}*"
-        # Form pattern for all possible output files
-        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
-        # Part 2 matches "_timestep2500" or ""
-        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
-        pat = (
-            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
-            "(_timestep(?P<t>[1-9][0-9]*))?" +
-            r"\.(?P<ext>dat|plt|szplt|tec)")
-        # Find appropriate PLT file (or SZPLT ...)
-        fplt, fmatch = fileutils.get_latest_regex(pat, baseglob)
-        # Check for match
-        if fplt is None:
-            return casecntl.IterWindow(None, None)
-        # Get the timestep number, if any
-        t = fmatch.group("t")
-        # Either way, we're going to need the run log phases and iters
-        runlog = self.get_runlog()
-        # Convert to list for iterative backward search
-        runlist = list(runlog)
-        # Get most recent
-        if len(runlist):
-            # Get last CAPE exit
-            jlast, nlast = runlist.pop(-1)
-        else:
-            # No run logs yet
-            jlast, nlast = 0, 0
-        # Check if we found a timestep in the file name
-        if t is None:
-            # The iteration is from the last CAPE exit
-            jplt, nplt = jlast, nlast
-        else:
-            # Got an iteration from timestep
-            # We need to read iter history to check for FUN3D iteration
-            # resets, e.g. at transition from RANS -> uRANS
-            hist = self.read_resid()
-            # In this case, default to the current phase
-            jplt = self.get_phase()
-            # Find the most recent time FUN3D reported *t*
-            mask, = np.where(hist["solver_iter"] == int(t))
-            # Use the last hit
-            if mask.size == 0:
-                # No matches? Cannot correct FUN3D's iter
-                nplt = int(t)
-            else:
-                # Read CAPE iter from last time FUN3D reported *t*
-                nplt = int(hist["i"][mask[-1]])
-                # Check if we're *after* the last output
-                if nplt <= nlast:
-                    # This file came from a completed run; find which
-                    mask1, = np.where(nplt <= runlog[:, 1])
-                    # The last phase before *nplt* is the source
-                    jplt = runlog[mask1[-1], 0]
-                else:
-                    # Add the most recent exit back to the runlist
-                    runlist.append((jlast, nlast))
-        # Until we find otherwise, assume there's no averaging
-        nstrt = nplt
-        # Track current phase
-        jcur = jplt
-        # Go backwards through runlog to see where averaging started
-        while True:
-            # Read the most appropriate namelist
-            nmlj = self.read_namelist(jcur)
-            # Check for time averaging
-            tavg = nmlj.get_opt("time_avg_params", "itime_avg", vdef=0)
-            # Process time-averaging
-            if not tavg:
-                # No time-averaging; do not update *nstrt*
-                break
-            # Need the preceding exit to see where averaging started
-            if len(runlist):
-                # Get last exit
-                jcur, nlast = runlist.pop(-1)
-                nstrt = nlast + 1
-            else:
-                # Started from zero
-                nstrt = 1
-                # No previous runs to check
-                break
-            # Check if we kept stats from *previous* run
-            tprev = nmlj.get_opt(
-                "time_avg_params", "user_prior_time_avg", vdef=1)
-            # If we didn't keep prior stats; search is done
-            if not tprev:
-                break
-        # Output
-        return casecntl.IterWindow(nstrt, nlast)
+    # Isolated plt -> triq converter
+    def write_triq(self, rawdatafile: str, triqfile: str):
+        # Get extension and base
+        basename, ext = rawdatafile.rsplit('.', 1)
+        # Assume we can work with original file until proven otherwise
+        ftec = rawdatafile
+        # Check for ``.szplt`` format
+        if ext == "szplt":
+            # Convert it to .plt
+            try:
+                convert_szplt(ftec)
+            except Exception:
+                print(f"  Failed to convert '{ftec}' to PLT format")
+            # Change file name
+            ftec = f"{basename}.plt"
+        # Mach number
+        mach = self.get_mach()
+        # Convert PLT file
+        pltfile.Plt2Triq(ftec, triqfile, mach=mach, lr4=True)
 
     # Find boundary PLT file
     def find_plt_file(self, stem: str = "tec_boundary") -> Optional[str]:
@@ -2228,7 +2263,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Got an iteration from timestep
             # We need to read iter history to check for FUN3D iteration
             # resets, e.g. at transition from RANS -> uRANS
-            hist = CaseResid(basename)
+            hist = self.read_resid()
             # In this case, default to the current phase
             jplt = self.get_phase()
             # Find the most recent time FUN3D reported *t*
@@ -2275,7 +2310,7 @@ class CaseRunner(casecntl.CaseRunner):
                 break
             # Check if we kept stats from *previous* run
             tprev = nmlj.get_opt(
-                "time_avg_params", "user_prior_time_avg", vdef=1)
+                "time_avg_params", "use_prior_time_avg", vdef=1)
             # If we didn't keep prior stats; search is done
             if not tprev:
                 break
@@ -2284,12 +2319,157 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return fplt, nstats, nstrt, nplt
 
-    # Search pattern for surface output files
-    def get_flowviz_regex(self, stem: str) -> str:
+    # Get *nIter* for generic data file
+    def infer_file_niter(self, mtch) -> int:
+        return self.infer_vizfile_niter(mtch)
+
+    # Get *nIter* for output file
+    def infer_vizfile_niter(self, mtch) -> int:
+        r"""Determine *nIter* for a surface/volume output file
+
+        :Call:
+            >>> n = runner.infer_vizfile_niter(mtch)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *mtch*: :class:`re.Match`
+                Regular expression match object for viz file
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number for the viz file
+        :Versions:
+            * 2025-08-10 ``@ddalle``: v1.0
+        """
+        # Get the timestep number, if any
+        ttxt = mtch.group("t")
+        # Either way, we're going to need the run log phases and iters
+        runlog = self.get_runlog()
+        # Convert to list for iterative backward search
+        runlist = list(runlog)
+        # Get most recent
+        if len(runlist):
+            # Get last CAPE exit
+            _, nlast = runlist.pop(-1)
+        else:
+            # No run logs yet
+            _, nlast = 0, self.get_restart_iter()
+        # Check if we found a timestep in the file name
+        if ttxt is None:
+            # The iteration is from the last CAPE exit
+            return nlast
+        # Got an iteration from timestep
+        # We need to read iter history to check for FUN3D iteration
+        # resets, e.g. at transition from RANS -> uRANS
+        hist = self.read_resid()
+        # Convert timestep to integer
+        t = int(ttxt)
+        # Find the most recent time FUN3D reported *t*
+        mask, = np.where(hist["solver_iter"] == t)
+        # Use the last hit if any
+        return int(t) if mask.size == 0 else int(hist["i"][mask[-1]])
+
+    # Get *nStats* for output file
+    def infer_vizfile_nstats(self, mtch) -> int:
+        r"""Determine *nStats* for a surface/volume output file
+
+        :Call:
+            >>> n = runner.infer_vizfile_nstats(mtch)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *mtch*: :class:`re.Match`
+                Regular expression match object for viz file
+        :Outputs:
+            *n*: :class:`int`
+                Number of iterations averaged in viz file
+        :Versions:
+            * 2025-08-10 ``@ddalle``: v1.0
+        """
+        # Get iteration
+        n = self.infer_vizfile_niter(mtch)
+        # Infer number of iterations averaged
+        return self.infer_tavg_nstats(n)
+
+    # Get *nStats* for a TAVG.1 file at given iter
+    def infer_tavg_nstats(
+            self, n: Optional[int] = None, fname: Optional[int] = None) -> int:
+        # Get current iteration
+        n = self._dex_n_iter if (n is None) else n
+        # Either way, we're going to need the run log phases and iters
+        runlog = self.get_runlog()
+        # Convert to list for iterative backward search
+        runlist = list(runlog)
+        # Get most recent
+        if len(runlist):
+            # Get last CAPE exit
+            jlast, nlast = runlist.pop(-1)
+        else:
+            # No run logs yet
+            jlast, nlast = 0, self.get_restart_iter()
+        # In this case, default to the current phase
+        j = self.get_phase()
+        # Check if we're *after* the last output
+        if n <= nlast:
+            # This file came from a completed run; find which
+            mask1, = np.where(n <= runlog[:, 1])
+            # The last phase before *nplt* is the source
+            j = runlog[mask1[-1], 0]
+        else:
+            # Add the most recent exit back to the runlist
+            runlist.append((jlast, nlast))
+        # Until we find otherwise, assume there's no averaging
+        nstrt = n
+        # Track current phase
+        jcur = j
+        # Go backwards through runlog to see where averaging started
+        while True:
+            # Read the most appropriate namelist
+            nmlj = self.read_namelist(jcur)
+            # Check for time averaging
+            tavg = nmlj.get_opt("time_avg_params", "itime_avg", vdef=0)
+            # Process time-averaging
+            if not tavg:
+                # No time-averaging; do not update *nstrt*
+                break
+            # Need the preceding exit to see where averaging started
+            if len(runlist):
+                # Get last exit
+                jcur, nlast = runlist.pop(-1)
+                nstrt = nlast + 1
+            else:
+                # Started from zero
+                nstrt = 1
+                # No previous runs to check
+                break
+            # Check if we kept stats from *previous* run
+            tprev = nmlj.get_opt(
+                "time_avg_params", "use_prior_time_avg", vdef=1)
+            # If we didn't keep prior stats; search is done
+            if not tprev:
+                break
+        # Calculate how many iterations are averaged
+        nstats = n - nstrt + 1
+        return nstats
+
+    # Search pattern for surface/volume/slice/etc files
+    def genr8_vizfile_regex(self, stem: str) -> str:
+        r"""Create a regex to search for volume/surface/plane/etc file
+
+        :Call:
+            >>> pat = runner.genr8_flowviz_regex(stem)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *stem*: :class:`str`
+                Name of surface/volume/etc. file to search for
+        :Outputs:
+            *pat*: :class:`str`
+                File name regex for candidate output data files
+        :Versions:
+            * 2025-08-09 ``@ddalle``: v1.0
+        """
         # Get root name of project
         basename = self.get_project_baserootname()
-        # Constant stem
-        stem = "tec_boundary"
         # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
         # Part 2 matches "_timestep2500" or ""
         # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
@@ -2305,8 +2485,12 @@ class CaseRunner(casecntl.CaseRunner):
         # Constant stem
         stem = "tec_boundary"
         # Use general method
-        return self.get_flowviz_regex(stem)
+        return self.genr8_vizfile_regex(stem)
 
+    def get_triq_filename_stem(self) -> str:
+        return "tec_boundary"
+
+    # Search glob for flow viz surface files
     def get_surf_pat(self) -> str:
         r"""Get glob pattern for candidate surface data files
 

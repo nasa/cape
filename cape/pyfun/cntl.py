@@ -29,7 +29,6 @@ interface (``cntl.opts``), and optionally the data book
     *cntl.x*               :class:`cape.pyfun.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pyfun.options.Options`
     *cntl.tri*             :class:`cape.pyfun.trifile.Tri`
-    *cntl.DataBook*        :class:`cape.pyfun.databook.DataBook`
     *cntl.Namelist*        :class:`cape.pyfun.namelist.Namelist`
     ====================   =============================================
 
@@ -43,6 +42,7 @@ class are also available here.
 import os
 import re
 import shutil
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -50,14 +50,13 @@ import numpy as np
 # Local imports
 from . import options
 from . import casecntl
-from . import mapbc
 from . import faux
-from . import databook
 from . import report
 from .namelist import Namelist
 from .rubberdatafile import RubberData
 from ..cfdx import cntl
 from ..util import RangeString
+from ..filecntl.mapbcfile import MapBCFile
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -123,7 +122,6 @@ class Cntl(cntl.Cntl):
     _name = "pyfun"
     _solver = "fun3d"
     # Hooks to py{x} specific modules
-    _databook_mod = databook
     _report_cls = report.Report
     # Hooks to py{x} specific classes
     _case_cls = casecntl.CaseRunner
@@ -383,7 +381,7 @@ class Cntl(cntl.Cntl):
   # === Other Files ===
     # Read the boundary condition map
     @cntl.run_rootdir
-    def ReadMapBC(self, j=0, q=True):
+    def ReadMapBC(self, j: int = 0, q: bool = True) -> Optional[MapBCFile]:
         r"""Read the FUN3D boundary condition map
 
         :Call:
@@ -398,7 +396,7 @@ class Cntl(cntl.Cntl):
         """
         # Read the file
         try:
-            BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
+            BC = MapBCFile(self.opts.get_MapBCFile(j))
         except OSError:
             return
         # Save it
@@ -408,6 +406,8 @@ class Cntl(cntl.Cntl):
         else:
             # Template
             self.MapBC0 = BC
+        # Output
+        return BC
 
     # Read the ``rubber.data`` file
     @cntl.run_rootdir
@@ -2441,6 +2441,17 @@ class Cntl(cntl.Cntl):
         return inp
 
   # === Case Modification ===
+    # Get case-specific number of iterations for a phase run
+    def get_phase_niter(self, i: int, j: int) -> int:
+        # Read the namelist
+        nml = self.ReadCaseNamelist(i, j=j)
+        # Check if a namelist was found
+        if nml is None:
+            # Use generic result from JSON
+            return self.opts.get_PhaseIters(j)
+        # Use case-specific namelist
+        return nml.get_opt("code_run_control", "steps")
+
     # Function to apply namelist settings to a case
     def ApplyCase(self, i: int, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case

@@ -1,11 +1,13 @@
---------------------
-Options for ``mach``
---------------------
+-------------------------------------------
+``mach``: options for run matrix definition
+-------------------------------------------
 
 **Option aliases:**
 
-* *DType* -> *Value*
-* *DataType* -> *Value*
+* *DType* → *Value*
+* *DataType* → *Value*
+* *DisplayScale* → *FormatMultiplier*
+* *ScaleDisplay* → *FormatMultiplier*
 
 **Recognized options:**
 
@@ -23,6 +25,10 @@ Options for ``mach``
     value of option "Label"
 *NonnegativeFormat*: {``False``} | ``True``
     value of option "NonnegativeFormat"
+*PBSFormat*: {``None``} | :class:`str`
+    value of option "PBSFormat"
+*PBSLabel*: {``None``} | ``True`` | ``False``
+    value of option "PBSLabel"
 *SkipIfZero*: {``False``} | ``True``
     value of option "SkipIfZero"
 *Source*: {``None``} | :class:`str`

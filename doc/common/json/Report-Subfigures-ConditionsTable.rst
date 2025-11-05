@@ -1,14 +1,14 @@
------------------------------------------
-Options for ``ConditionsTable`` subfigure
------------------------------------------
+---------------------------------------------------
+``ConditionsTable``: table of run matrix conditions
+---------------------------------------------------
 
 **Option aliases:**
 
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
 
 **Recognized options:**
 

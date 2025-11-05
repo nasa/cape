@@ -417,11 +417,15 @@ file that are not part of any section.
         # Write if specified
         if PBS_r:
             f.write('#PBS -r %s\n' % PBS_r)
-        # Get the option for combining STDIO/STDOUT
+        # Get the option for combining STDERR/STDOUT
         PBS_j = opts.get_opt("j", j=j)
         # Write if specified
         if PBS_j:
             f.write('#PBS -j %s\n' % PBS_j)
+        # Get PBS "keep" option
+        pbsk = opts.get_opt('k', j=j)
+        if pbsk:
+            f.write(f"#PBS -k {pbsk}\n")
         # Get the number of nodes, etc.
         nnode = opts.get_opt("select", j=j)
         ncpus = opts.get_opt("ncpus", j=j)

@@ -49,10 +49,10 @@ import numpy as np
 
 # Local imports
 from . import casecntl
-from . import databook
 from . import queue
 from .. import console
 from .. import convert
+from .. import fileutils
 from .. import textutils
 from .casecntl import CaseRunner
 from .cntlbase import CntlBase
@@ -66,6 +66,7 @@ from .runmatrix import RunMatrix
 from ..argread import ArgReader
 from ..argread.clitext import compile_rst
 from ..config import ConfigXML, ConfigJSON
+from ..dkit.rdb import DataKit
 from ..errors import assert_isinstance
 from ..optdict import WARNMODE_WARN
 from ..optdict.optitem import getel
@@ -94,6 +95,8 @@ COL_HEADERS = {
     "case": "Case Folder",
     "cpu-abbrev": "CPU Hours",
     "cpu-hours": "CPU Time",
+    "dirsize": "Size",
+    "files": "Files",
     "frun": "Config/Run Directory",
     "gpu-abbrev": "GPU Hours",
     "gpu-hours": "GPU Hours",
@@ -328,7 +331,6 @@ class Cntl(CntlBase):
             Instance of CAPE control interface
     :Class attributes:
         * :attr:`_case_cls`
-        * :attr:`_databook_mod`
         * :attr:`_fjson_default`
         * :attr:`_name`
         * :attr:`_opts_cls`
@@ -365,13 +367,6 @@ class Cntl(CntlBase):
     #: :class:`str`
     _solver = "cfdx"
 
-   # --- Specific modules ---
-    #: Solver-specific module for DataBook
-    _databook_mod = databook
-
-    #: Solver-specific module for automated reports
-    _report_cls = Report
-
    # --- Specific  classes ---
     #: Solver-specific class for running cases
     #: :class:`type`
@@ -380,6 +375,9 @@ class Cntl(CntlBase):
     #: Solver-specific class for CAPE options
     #: :class:`type`
     _opts_cls = Options
+
+    #: Solver-specific module for automated reports
+    _report_cls = Report
 
    # --- Other settings ---
     #: Name of default JSON file
@@ -1224,6 +1222,7 @@ class Cntl(CntlBase):
             ext = getattr(self, "_tri_ext", "tri")
             ftri = f"{fproj}.{ext}"
             # Write it
+            print(f"  Writing '{ftri}'")
             if not os.path.isfile(ftri):
                 if ext == "fro":
                     self.tri.WriteFro(ftri)
@@ -1297,6 +1296,14 @@ class Cntl(CntlBase):
         if fxml is None:
             # Nothing to read
             cfg = None
+        elif fxml.endswith(".json"):
+            # Read config (JSON) file
+            cfg = ConfigJSON(fxml)
+            # Check for ``.mapbc`` file to read
+            fmapbc = self.opts.get_MapBCFile(0)
+            if fmapbc:
+                # Restrict the entries of JSON file to it
+                cfg.ApplyMapBC(fmapbc)
         else:
             # Read config file
             cfg = ConfigXML(fxml)
@@ -1623,6 +1630,11 @@ class Cntl(CntlBase):
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)
+            # Check for a ``.mapbc`` file
+            fmapbc = self.opts.get_MapBCFile()
+            # If found, renumber CompIDs and remove unused ones
+            if fmapbc:
+                self.config.ApplyMapBC(fmapbc)
 
     # Apply a config.xml translation
     def PrepareConfigTranslation(self, key: str, i: int):
@@ -2786,6 +2798,7 @@ class Cntl(CntlBase):
         if opt == "progress":
             # Get anticipated max iteration
             jmax = self.opts.get_PhaseSequence(-1)
+            jmax = 0 if (jmax is None) else jmax
             imax = self.opts.get_PhaseIters(jmax)
             # Add some padding
             ipad = str(int(1.8*imax))
@@ -2830,6 +2843,8 @@ class Cntl(CntlBase):
         elif opt == "frun":
             # Get folder names
             fruns = self.x.GetFullFolderNames(I)
+            if len(fruns) == 0:
+                return 1
             # Return max length
             return max(map(len, fruns))
         elif opt == "group":
@@ -2844,6 +2859,8 @@ class Cntl(CntlBase):
             return max(map(len, fruns))
         elif opt == "i":
             # Case index; avoid 0
+            if len(I) == 0:
+                return 1
             inds = np.fmax(2, I)
             return int(np.max(np.ceil(np.log10(inds))))
         elif opt == "status":
@@ -2852,6 +2869,11 @@ class Cntl(CntlBase):
         elif opt == "queue":
             # Queue indicator
             return 1
+        elif opt == "dirsize":
+            # Folder size
+            return 6
+        elif opt == "files":
+            return 5
         else:
             # Get values
             vals = self.x.GetValue(opt, I)
@@ -3069,8 +3091,50 @@ class Cntl(CntlBase):
             n: int = 1,
             j: Optional[int] = None,
             imax: Optional[int] = None):
-        raise NotImplementedError(
-            f"ExtendCase() not implemented for {self._name} module")
+        # Ignore cases marked PASS
+        if self.x.PASS[i]:
+            return
+        # Read the ``case.json`` file
+        rc = self.read_case_json(i)
+        # Exit if none
+        if rc is None:
+            return
+        # Process phase number (can extend middle phases)
+        if j is None:
+            # Use the last phase number currently in use from "case.json"
+            j = rc.get_PhaseSequence(-1)
+        # Get the number of steps
+        nj = self.get_phase_niter(i, j)
+        # Get the current iteration count
+        ni = self.CheckCase(i)
+        # Get the current cutoff for phase *j*
+        mj = max(ni, rc.get_PhaseIters(j))
+        # Determine output number of steps
+        if imax is None:
+            # Unlimited by input; add one or more nominal runs
+            m1 = mj + n*nj
+        else:
+            # Add nominal runs but not beyond *imax*
+            m1 = min(int(imax), int(mj + n*nj))
+            # Don't go backwards, though...
+            m1 = max(mj, m1)
+        # Reset the number of steps
+        rc.set_PhaseIters(m1, j)
+        # Status update
+        print("  Phase %i: %s --> %s" % (j, mj, m1))
+        # Write new options
+        self.WriteCaseJSON(i, rc=rc)
+
+    # Get case-specific number of iterations for a phase run
+    def get_phase_niter(self, i: int, j: int) -> int:
+        # Read the setting from that case
+        rc = self.read_case_json(i)
+        # Check if found (check if run by CAPE)
+        if rc is None:
+            # Use generic result from JSON
+            return self.opts.get_PhaseIters(j)
+        # Use case-specific settings
+        return rc.get_PhaseIters(j)
 
     # Function to extend one or more cases
     def ApplyCases(self, **kw):
@@ -3161,7 +3225,7 @@ class Cntl(CntlBase):
         # Local function to perform deletion
         def del_folder(frun):
             # Delete the folder using :mod:`shutil`
-            shutil.rmtree(frun)
+            shutil.rmtree(frun, ignore_errors=True)
             # Status update
             print("   Deleted folder '%s'" % frun)
         # Get the case name and go there.
@@ -3285,6 +3349,19 @@ class Cntl(CntlBase):
         elif opt == "queue":
             # Get PBS/Slurm queue indicator
             return self.check_case_job(i)
+        elif opt == "dirsize":
+            # Get size of folder
+            fsize = self.get_dir_size(i)
+            # Convert to nice string
+            txt = '' if (fsize < 1) else textutils.pprint_b(fsize)
+            return txt
+        elif opt == "files":
+            # Get number of files
+            nfile = self.get_dir_files(i)
+            # Convert to nice string
+            txt = str(nfile) if (nfile < 1000) else textutils.pprint_n(nfile)
+            txt = '' if (nfile < 2) else txt
+            return txt
         else:
             return self.x.GetValue(opt, i)
 
@@ -3345,6 +3422,25 @@ class Cntl(CntlBase):
         return self.x.GetCaseIndex(frun)
 
   # *** REPORTING ***
+    # Update report
+    def UpdateReport(self, **kw):
+        # Get name of report
+        reportname = kw.pop("report", True)
+        # Use first report if no name given
+        if not isinstance(reportname, str):
+            reportname = self.opts.get_ReportList()[0]
+        # Read the report
+        report = self.ReadReport(reportname)
+        # Check for force-update
+        report.force_update = kw.get("force", False)
+        # Check if asking to delete figures
+        if kw.pop("rm", False):
+            # Remove the case(s) dir(s)
+            report.RemoveCases(**kw)
+        else:
+            # Update report
+            report.update_report(**kw)
+
     # Read report
     @run_rootdir
     def ReadReport(self, rep: str) -> Report:
@@ -3382,10 +3478,18 @@ class Cntl(CntlBase):
         inds = self.x.GetIndices(**kw)
         # Read databook comp
         db = self.read_dex(comp)
+        # Ensure folders exists
+        db.mkdirs()
+        # Check for delete option
+        qdel = kw.get("delete", False)
+        qmerge = not qdel
         # Loop through inds
-        if kw.get("delete", False):
+        if qdel:
+            # Find indices of matches
+            dbinds, _ = db.xmatch(self.x, maskt=inds)
             # Delete cases
-            n = db.delete(inds)
+            if dbinds.size:
+                n = db.delete(dbinds)
         else:
             # Count cases updated
             n = 0
@@ -3399,9 +3503,13 @@ class Cntl(CntlBase):
         if n:
             # Create folders
             db.mkdirs()
+            # Sort the databook (by all *xcols*)
+            db.sort()
             # Write file
-            db.write()
-            print(f"Added or updated {n} entries")
+            db.write(merge=qmerge, backup=True)
+            # Status update
+            act = "Removed" if qdel else "Added or updated"
+            print(f"{act} {n} entries")
 
     # Update one case of one component
     def update_dex_case(self, comp: str, i: int) -> int:
@@ -3452,27 +3560,6 @@ class Cntl(CntlBase):
         db.delete_empty()
         # Return counter
         return 1
-
-   # --- DataBook init ---
-    # Read the data book
-    @run_rootdir
-    def ReadDataBook(self, comp: Optional[str] = None) -> databook.DataBook:
-        # Test if already read
-        if self.DataBook is not None:
-            return
-        # Ensure list of components
-        if comp is not None and not isinstance(comp, list):
-            comp = [comp]
-        # Get DataBook class
-        databookmod = self.__class__._databook_mod
-        # Instantiate class
-        self.DataBook = databookmod.DataBook(self, comp=comp)
-        # Call any custom functions
-        self.ReadDataBookPost()
-
-    # Call special post-read DataBook functions
-    def ReadDataBookPost(self):
-        pass
 
    # --- DataBook options ---
     def get_databook_comp_nmin(self, comp: str) -> int:
@@ -3592,20 +3679,6 @@ class Cntl(CntlBase):
         # Loop through them
         for comp in comps:
             self.update_dex_comp(comp, **kw)
-        return
-        # Apply constraints
-        I = self.x.GetIndices(**kw)
-        # Check if we are deleting or adding.
-        if kw.get('delete', False):
-            # Read the existing data book.
-            self.ReadDataBook(comp=comp)
-            # Delete cases.
-            self.DataBook.DeleteCases(I, comp=comp)
-        else:
-            # Read an empty data book
-            self.ReadDataBook(comp=[])
-            # Read the results and update as necessary.
-            self.DataBook.UpdateDataBook(I, comp=comp)
 
     # Function to collect statistics from generic-property component
     @run_rootdir
@@ -3693,36 +3766,23 @@ class Cntl(CntlBase):
                 List of indices
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
-            *pbs*: ``True`` | {``False``}
-                Whether or not to calculate line loads with PBS scripts
+            *delete*: ``True`` | {``False``}
+                Option to delete entries i/o adding them
         :Versions:
             * 2016-06-07 ``@ddalle``: v1.0
-            * 2016-12-21 ``@ddalle``: v1.1, Add *pbs* flag
-            * 2017-04-25 ``@ddalle``: v1.2
-                - Removed *pbs*
-                - Added ``--delete``
+            * 2016-12-21 ``@ddalle``: v1.1; add *pbs* flag
+            * 2017-04-25 ``@ddalle``: v1.2; rm *pbs*, add *delete*
+            * 2025-08-13 ``@ddalle``; v2.0; use *dex*
         """
         # Get component option
         comp = kw.get("ll")
-        # Check for True or False
-        if comp is True:
-            # Update all components
-            comp = None
-        elif comp is False:
-            # Exit
-            return
-        # Apply constraints
-        I = self.x.GetIndices(**kw)
-        # Read the data book handle
-        self.ReadDataBook(comp=[])
-        self.ReadConfig()
-        # Check if we are deleting or adding.
-        if kw.get('delete', False):
-            # Delete cases.
-            self.DataBook.DeleteLineLoad(I, comp=comp)
-        else:
-            # Read the results and update as necessary.
-            self.DataBook.UpdateLineLoad(I, comp=comp, conf=self.config)
+        # If *comp* is ``True``, process all options
+        comp = None if comp is True else comp
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob("LineLoad", comp)
+        # Loop through them
+        for comp in comps:
+            self.update_dex_comp(comp, **kw)
 
     @run_rootdir
     def UpdateSurfCp(self, **kw):
@@ -3843,17 +3903,13 @@ class Cntl(CntlBase):
         """
         # Get component option
         comp = kw.get("triqfm")
-        # Apply constraints
-        I = self.x.GetIndices(**kw)
-        # Read the data book handle
-        self.ReadDataBook(comp=[])
-        # Check if we are deleting or adding.
-        if kw.get('delete', False):
-            # Delete cases.
-            self.DataBook.DeleteTriqFM(I, comp=comp)
-        else:
-            # Read the results and update as necessary.
-            self.DataBook.UpdateTriqFM(I, comp=comp)
+        # If *comp* is ``True``, process all options
+        comp = None if comp is True else comp
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob("TriqFM", comp)
+        # Loop through them
+        for comp in comps:
+            self.update_dex_comp(comp, **kw)
 
     # Update TriqPointGroup data book
     @run_rootdir
@@ -3876,17 +3932,13 @@ class Cntl(CntlBase):
         """
         # Get component option
         comp = kw.get("pt")
-        # Apply constraints
-        I = self.x.GetIndices(**kw)
-        # Read the data book handle
-        self.ReadDataBook(comp=[])
-        # Check if we are deleting or adding.
-        if kw.get('delete', False):
-            # Delete cases.
-            self.DataBook.DeleteTriqPoint(I, comp=comp)
-        else:
-            # Read the results and update as necessary.
-            self.DataBook.UpdateTriqPoint(I, comp=comp)
+        # If *comp* is ``True``, process all options
+        comp = None if comp is True else comp
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
+        # Loop through them
+        for comp in comps:
+            self.update_dex_comp(comp, **kw)
 
    # --- DataBook Checkers ---
     # Function to check FM component status
@@ -3929,11 +3981,7 @@ class Cntl(CntlBase):
             # No user key
             ku = None
         # Read the existing data book
-        self.ReadDataBook(comp=comps)
-        # Loop through the components
-        for comp in comps:
-            # Restrict the trajectory to cases in the databook
-            self.DataBook[comp].UpdateRunMatrix()
+        dbs = {comp: self.read_dex(comp) for comp in comps}
         # Longest component name
         maxcomp = max(map(len, comps))
         # Format to include user and format to display iteration number
@@ -3963,22 +4011,18 @@ class Cntl(CntlBase):
             # Loop through components
             for comp in comps:
                 # Get interface to component
-                DBc = self.DataBook[comp]
+                db = dbs[comp]
                 # See if it's missing
-                j = DBc.x.FindMatch(self.x, i, **kw)
+                j = db.ximatch(self.x, i)
                 # Check for missing case
                 if j is None:
                     # Missing case
                     txt += (fmtc % comp)
                     txt += "missing\n"
                     continue
-                # Otherwise, check iteration
-                try:
-                    # Get the recorded iteration number
-                    nIter = DBc["nIter"][j]
-                except KeyError:
-                    # No iteration number found
-                    nIter = nLast
+                # Get the recorded iteration number
+                nIter = db.get_values("nIter", j)
+                nIter = nLast if nIter is None else nIter
                 # Check for out-of date iteration
                 if nIter < nLast:
                     # Out-of-date case
@@ -3997,34 +4041,25 @@ class Cntl(CntlBase):
                     print("Case %s: %s" % (fmti % i, frun))
                 # Display the text
                 print(txt)
+        # Create "DataKit" copy of runmatrix
+        xdb = DataKit()
+        xdb.link_data(self.x)
+        xdb.xcols = self.x.cols
         # Loop back through the databook components
         for comp in comps:
             # Get component handle
-            DBc = self.DataBook[comp]
+            db = dbs[comp]
             # Initialize text
             txt = ""
             # Loop through database entries
-            for j in range(DBc.x.nCase):
+            for j in range(db[self.x.cols[0]].size):
                 # Check for a find in master matrix
-                i = self.x.FindMatch(DBc.x, j, **kw)
+                i = xdb.ximatch(db, j)
                 # Check for a match
                 if i is None:
                     # This case is not in the run matrix
-                    txt += (
-                        "    Extra case: %s\n" % DBc.x.GetFullFolderNames(j))
+                    txt += f"    Extra case: databook entry {j}\n"
                     continue
-                # Check for a user filter
-                if ku:
-                    # Get the user value
-                    uj = DBc[ku][j]
-                    # Strip it
-                    uj = uj.lstrip('@').lower()
-                    # Check if it's blocked
-                    if uj == "blocked":
-                        # Blocked case
-                        txt += (
-                            "    Blocked case: %s\n"
-                            % DBc.x.GetFullFolderNames(j))
             # If there is text, display the info
             if txt:
                 # Header
@@ -4069,13 +4104,7 @@ class Cntl(CntlBase):
             # No user key
             ku = None
         # Read the existing data book
-        self.ReadDataBook(comp=[])
-        # Loop through the components
-        for comp in comps:
-            # Read the line load component
-            self.DataBook.ReadLineLoad(comp)
-            # Restrict the trajectory to cases in the databook
-            self.DataBook.LineLoads[comp].UpdateRunMatrix()
+        dbs = {comp: self.read_dex(comp) for comp in comps}
         # Longest component name
         maxcomp = max(map(len, comps))
         # Format to include user and format to display iteration number
@@ -4102,22 +4131,18 @@ class Cntl(CntlBase):
             # Loop through components
             for comp in comps:
                 # Get interface to component
-                DBc = self.DataBook.LineLoads[comp]
+                db = dbs[comp]
                 # See if it's missing
-                j = DBc.x.FindMatch(self.x, i, **kw)
+                j = db.ximatch(self.x, i)
                 # Check for missing case
                 if j is None:
                     # Missing case
                     txt += (fmtc % comp)
                     txt += "missing\n"
                     continue
-                # Otherwise, check iteration
-                try:
-                    # Get the recorded iteration number
-                    nIter = DBc["nIter"][j]
-                except KeyError:
-                    # No iteration number found
-                    nIter = nLast
+                # Get the recorded iteration number
+                nIter = db.get_values("nIter", j)
+                nIter = nLast if nIter is None else nIter
                 # Check for out-of date iteration
                 if nIter < nLast:
                     # Out-of-date case
@@ -4136,35 +4161,25 @@ class Cntl(CntlBase):
                     print("Case %s: %s" % (fmti % i, frun))
                 # Display the text
                 print(txt)
+        # Create     "DataKit" copy of runmatrix
+        xdb = DataKit()
+        xdb.link_data(self.x)
+        xdb.xcols = self.x.cols
         # Loop back through the databook components
         for comp in comps:
             # Get component handle
-            DBc = self.DataBook.LineLoads[comp]
+            db = dbs[comp]
             # Initialize text
             txt = ""
             # Loop through database entries
-            for j in range(DBc.x.nCase):
+            for j in range(db[self.x.cols[0]].size):
                 # Check for a find in master matrix
-                i = self.x.FindMatch(DBc.x, j, **kw)
+                i = xdb.ximatch(db, j)
                 # Check for a match
                 if i is None:
                     # This case is not in the run matrix
-                    txt += (
-                        "    Extra case: %s\n"
-                        % DBc.x.GetFullFolderNames(j))
+                    txt += f"    Extra case: databook entry {j}\n"
                     continue
-                # Check for a user filter
-                if ku:
-                    # Get the user value
-                    uj = DBc[ku][j]
-                    # Strip it
-                    uj = uj.lstrip('@').lower()
-                    # Check if it's blocked
-                    if uj == "blocked":
-                        # Blocked case
-                        txt += (
-                            "    Blocked case: %s\n"
-                            % DBc.x.GetFullFolderNames(j))
             # If there is text, display the info
             if txt:
                 # Header
@@ -4210,13 +4225,7 @@ class Cntl(CntlBase):
             # No user key
             ku = None
         # Read the existing data book
-        self.ReadDataBook(comp=[])
-        # Loop through the components
-        for comp in comps:
-            # Read the line load component
-            self.DataBook.ReadTriqFM(comp)
-            # Restrict the trajectory to cases in the databook
-            self.DataBook.TriqFM[comp][None].UpdateRunMatrix()
+        dbs = {comp: self.read_dex(comp) for comp in comps}
         # Longest component name
         maxcomp = max(map(len, comps))
         # Format to include user and format to display iteration number
@@ -4243,22 +4252,18 @@ class Cntl(CntlBase):
             # Loop through components
             for comp in comps:
                 # Get interface to component
-                DBc = self.DataBook.TriqFM[comp][None]
+                db = dbs[comp]
                 # See if it's missing
-                j = DBc.x.FindMatch(self.x, i, **kw)
+                j = db.ximatch(self.x, i)
                 # Check for missing case
                 if j is None:
                     # Missing case
                     txt += (fmtc % comp)
                     txt += "missing\n"
                     continue
-                # Otherwise, check iteration
-                try:
-                    # Get the recorded iteration number
-                    nIter = DBc["nIter"][j]
-                except KeyError:
-                    # No iteration number found
-                    nIter = nLast
+                # Get the recorded iteration number
+                nIter = db.get_values("nIter", j)
+                nIter = nLast if nIter is None else nIter
                 # Check for out-of date iteration
                 if nIter < nLast:
                     # Out-of-date case
@@ -4277,35 +4282,25 @@ class Cntl(CntlBase):
                     print("Case %s: %s" % (fmti % i, frun))
                 # Display the text
                 print(txt)
+        # Create "DataKit" copy of runmatrix
+        xdb = DataKit()
+        xdb.link_data(self.x)
+        xdb.xcols = self.x.cols
         # Loop back through the databook components
         for comp in comps:
             # Get component handle
-            DBc = self.DataBook.TriqFM[comp][None]
+            db = dbs[comp]
             # Initialize text
             txt = ""
             # Loop through database entries
-            for j in range(DBc.x.nCase):
+            for j in range(db[self.x.cols[0]].size):
                 # Check for a find in master matrix
-                i = self.x.FindMatch(DBc.x, j, **kw)
+                i = xdb.ximatch(db, j)
                 # Check for a match
                 if i is None:
                     # This case is not in the run matrix
-                    txt += (
-                        "    Extra case: %s\n"
-                        % DBc.x.GetFullFolderNames(j))
+                    txt += f"    Extra case: databook entry {j}\n"
                     continue
-                # Check for a user filter
-                if ku:
-                    # Get the user value
-                    uj = DBc[ku][j]
-                    # Strip it
-                    uj = uj.lstrip('@').lower()
-                    # Check if it's blocked
-                    if uj == "blocked":
-                        # Blocked case
-                        txt += (
-                            "    Blocked case: %s\n"
-                            % DBc.x.GetFullFolderNames(j))
             # If there is text, display the info
             if txt:
                 # Header
@@ -4484,17 +4479,23 @@ class Cntl(CntlBase):
             return os.path.join(self.RootDir, fname_sys)
 
     # Copy files
-    @run_rootdir
     def copy_files(self, i: int):
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Two categories
+        self._copy_as_files(i)
+        self._copy_files(i)
+
+    # Copy files w/o renaming
+    @run_rootdir
+    def _copy_files(self, i: int):
         # Get list of files to copy
         files = self.opts.get_CopyFiles()
         # Check for any
         if files is None or len(files) == 0:
             return
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Create case folder
-        self.make_case_folder(i)
         # Name of case folder
         frun = self.x.GetFullFolderNames(i)
         # Loop through files
@@ -4512,18 +4513,47 @@ class Cntl(CntlBase):
             # Copy file
             shutil.copy(fabs, fdest)
 
-    # Link files
+    # Copy files with renaming
     @run_rootdir
+    def _copy_as_files(self, i: int):
+        # Get dict of files to copy
+        filedict = self.opts.get_CopyAsFiles()
+        # Check for any
+        if filedict is None or len(filedict) == 0:
+            return
+        # Name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through files
+        for src, trg in filedict.items():
+            # Absolutize source
+            fabs = self.abspath(src)
+            # Destination file
+            fdest = os.path.join(self.RootDir, frun, trg)
+            # Check for overwrite
+            if os.path.isfile(fdest):
+                print(f"  Replacing file '{src}' -> '{fdest}'")
+                os.remove(fdest)
+            # Copy file
+            shutil.copy(fabs, fdest)
+
+    # Link files
     def link_files(self, i: int):
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Two parts
+        self._link_as_files(i)
+        self._link_files(i)
+
+    # Link files w/o renaming
+    @run_rootdir
+    def _link_files(self, i: int):
         # Get list of files to copy
         files = self.opts.get_LinkFiles()
         # Check for any
         if files is None or len(files) == 0:
             return
-        # Ensure case index is set
-        self.opts.setx_i(i)
-        # Create case folder
-        self.make_case_folder(i)
         # Name of case folder
         frun = self.x.GetFullFolderNames(i)
         # Loop through files
@@ -4537,6 +4567,30 @@ class Cntl(CntlBase):
             # Check for overwrite
             if os.path.isfile(fdest):
                 raise FileExistsError(f"  Cannot copy '{fname}'; file exists")
+            # Copy file
+            os.symlink(fabs, fdest)
+
+    # Link files with renaming
+    @run_rootdir
+    def _link_as_files(self, i: int):
+        # Get dict of files to copy
+        filedict = self.opts.get_LinkAsFiles()
+        # Check for any
+        if filedict is None or len(filedict) == 0:
+            return
+        # Name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through files
+        for src, trg in filedict.items():
+            # Absolutize source
+            fabs = self.abspath(src)
+            # Destination file
+            fdest = os.path.join(self.RootDir, frun, trg)
+            # Check for overwrite
+            if os.path.isfile(fdest):
+                raise FileExistsError(
+                    f"  Cannot copy '{os.path.basename(src)}' -> "
+                    f"'{src}'; file exists")
             # Copy file
             os.symlink(fabs, fdest)
 
@@ -4641,6 +4695,60 @@ class Cntl(CntlBase):
             runner = self.ReadCaseRunner(i)
             # Unarchive!
             runner.unarchive(test)
+
+   # --- File size ---
+    @run_rootdir
+    def find_large_cases(self, cutoff: str = "100MB", **kw) -> list:
+        # Get cases
+        mask = self.x.GetIndices(**kw)
+        # Get folder names
+        fruns = self.x.GetFullFolderNames(mask)
+        # Expand the cutoff
+        minsize = fileutils.expand_fsize(cutoff)
+        # Initialize output
+        largecases = []
+        # Loop through them
+        for i, frun in zip(mask, fruns):
+            # Skip if folder doesn't exist
+            if not os.path.isdir(frun):
+                continue
+            # Print name of folder
+            textutils._printf(f"{i:6d} {frun}")
+            # Get file size
+            dirsize = fileutils.get_dir_size(frun)
+            # Convert to label
+            dirsize_nice = textutils.pprint_b(dirsize)
+            # Print it
+            textutils._printf(f"{i:6d} {frun}: {dirsize_nice}")
+            # Check it
+            if dirsize > minsize:
+                # Append to list
+                largecases.append(frun)
+                # Keep STDOUT
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+        # Clean up prompt
+        textutils._printf("")
+        # Output
+        return largecases
+
+    # Get size of folder
+    def get_dir_size(self, i: int) -> int:
+        # Get case name
+        frun = self.x.GetFullFolderNames(i)
+        # Absolute path
+        fabs = self.abspath(frun)
+        # Return size
+        return fileutils.get_dir_size(fabs)
+
+    # Get number of files
+    def get_dir_files(self, i: int) -> int:
+        # Get case name
+        frun = self.x.GetFullFolderNames(i)
+        # Absolute path
+        fabs = self.abspath(frun)
+        # Return size
+        return fileutils.get_dir_files(fabs)
 
   # *** LOGGING ***
     def log_main(

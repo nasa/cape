@@ -39,6 +39,7 @@ class DBCompOpts(OptionsDict):
 
     # Recognized options
     _optlist = {
+        "Body",
         "Cols",
         "CompID",
         "DNStats",
@@ -71,6 +72,7 @@ class DBCompOpts(OptionsDict):
         "NLast": "NLastStats",
         "NMax": "NLastStats",
         "NStatsMax": "NMaxStats",
+        "body": "Body",
         "coeffs": "Cols",
         "cols": "Cols",
         "dnStats": "DNStats",
@@ -88,6 +90,7 @@ class DBCompOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "Body": (str, int),
         "Cols": str,
         "DNStats": INT_TYPES,
         "FloatCols": str,
@@ -113,6 +116,7 @@ class DBCompOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "Body": "reference body name for motion of this component",
         "Cols": "list of primary solver output variables to include",
         "CompID": "surface componet(s) to use for this databook component",
         "DNStats": "increment for candidate window sizes",
@@ -249,7 +253,10 @@ class LineLoadDataBookOpts(DBCompOpts):
 
     # Defaults
     _rc = {
+        "Cols": ["x", "CA", "CY", "CN", "CLL", "CLM", "CLN"],
         "CutPlaneNormal": "x",
+        "FloatCols": ["XMRP", "YMRP", "ZMRP"],
+        "IntCols": ["nIter", "nStats"],
         "Gauge": True,
         "Momentum": False,
         "NCut": 200,
@@ -318,6 +325,8 @@ class TriqFMDataBookOpts(DBCompOpts):
         "ConfigCompID",
         "MapTri",
         "OutputFormat",
+        "OutputSurface",
+        "PatchMap",
         "Patches",
         "Prefix",
         "RelProjTol",
@@ -348,6 +357,7 @@ class TriqFMDataBookOpts(DBCompOpts):
         "MapTri": str,
         "OutputFormat": str,
         "OutputSurface": BOOL_TYPES,
+        "PatchMap": dict,
         "Patches": str,
         "RelProjTol": FLOAT_TYPES,
         "RelTol": FLOAT_TYPES,
@@ -356,7 +366,7 @@ class TriqFMDataBookOpts(DBCompOpts):
 
     # Specified values
     _optvals = {
-        "OutputFormat": {"dat", "plt", "dat"},
+        "OutputFormat": {"triq", "plt", "dat"},
         "TriqFormat": {"", "lr4", "lb4", "r4", "b4"},
     }
 
@@ -1236,7 +1246,9 @@ class DataBookOpts(OptionsDict):
             # Set parents
             self[comp].setx_parent(self)
         # Use cascading options
-        v0 = None if opt not in self.getx_optlist() else self.get_opt(opt, **kw)
+        v0 = (
+            None if opt not in self.getx_optlist()
+            else self.get_opt(opt, **kw))
         v1 = self.get_subopt(comp, opt, **kw)
         return v0 if v1 is None else v1
 
@@ -1467,7 +1479,7 @@ class DataBookOpts(OptionsDict):
         # Get type
         typ = self.get_DataBookType(comp)
         # Check data book type
-        if typ in ["TriqFM", "TriqPoint", "PointSensor", "PyFunc"]:
+        if typ in ("LineLoad", "TriqFM", "TriqPoint", "PointSensor", "PyFunc"):
             # No iterative history
             return ['mu']
         # Others; iterative history available
@@ -1566,6 +1578,7 @@ DataBookOpts.add_compgetters(_GETTER_PROPS, prefix="DataBook")
 # Normal top-level properties
 _PROPS = (
     "Components",
+    "Dir",
     "Folder",
 )
 DataBookOpts.add_properties(_PROPS, prefix="DataBook")

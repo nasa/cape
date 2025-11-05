@@ -15,10 +15,9 @@ import os
 # Local imports
 from . import options
 from . import casecntl
-from . import databook
 from .varsfile import VarsFile
 from ..cfdx import cntl
-from ..pyfun.mapbc import MapBC
+from ..filecntl.mapbcfile import MapBCFile
 
 
 # Primary class
@@ -27,7 +26,6 @@ class Cntl(cntl.Cntl):
     # Names
     _solver = "chem"
     # Hooks to py{x} specific modules
-    _databook_mod = databook
     # _report_cls = report.Report
     # Hooks to py{x} specific classes
     _case_cls = casecntl.CaseRunner
@@ -302,7 +300,7 @@ class Cntl(cntl.Cntl):
         if fmapbc is None:
             return
         # Read the file
-        bc = MapBC(self.opts.get_MapBCFile(j))
+        bc = MapBCFile(self.opts.get_MapBCFile(j))
         # Save it.
         if q:
             # Read to main slot.

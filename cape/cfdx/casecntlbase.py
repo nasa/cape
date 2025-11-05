@@ -43,6 +43,9 @@ class MetaCaseRunner(type):
         """
         # Initialize the new class
         cls = type.__new__(metacls, name, bases, namespace)
+        # Combine attributes
+        for clsj in bases:
+            cls.combine_dex_cls(clsj, cls)
         # Return the new class
         return cls
 

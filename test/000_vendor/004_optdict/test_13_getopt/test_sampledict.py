@@ -18,6 +18,22 @@ MYOPTS = {
         "@expr": "$mach * np.sin($aoa * $DEG)",
     },
 }
+MYOPTS1 = {
+    "n": [
+        2,
+        20,
+        {
+            "@expr": "abs($aoa) * 10"
+        }
+    ]
+}
+MYOPTS11 = {
+    "n": [
+        2,
+        20,
+        40.0
+    ]
+}
 
 # Conditions
 X = {
@@ -62,3 +78,6 @@ def test_01_sampledict():
     # Compare
     assert v0 == MYOPTS00
     assert v4 == MYOPTS40
+    # Sample with list
+    v1 = opts.sample_dict(MYOPTS1, j=None, i=1)
+    assert v1 == MYOPTS11

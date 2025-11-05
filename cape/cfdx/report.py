@@ -5,7 +5,7 @@ r"""
 The Cape module for generating automated results reports using PDFLaTeX
 provides a single class :class:`cape.cfdx.report.Report`, which creates
 a handle for the ``tex`` file and creates folders containing individual
-figures for each casecntl. The :class:`cape.cfdx.report.Report` class is
+figures for each case. The :class:`cape.cfdx.report.Report` class is
 a sort of dual-purpose object that contains a file interface using
 :class:`cape.filecntl.texfile.Tex` combined with a capability to create
 figures for each case or sweep of cases mostly based on
@@ -13,7 +13,7 @@ figures for each case or sweep of cases mostly based on
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
-that casecntl. The user defines a list of figures, each with its own
+that case. The user defines a list of figures, each with its own
 list of subfigures, and these are generated for each case in the run
 matrix (subject to any command-line constraints the user may specify).
 Types of subfigures include
@@ -64,20 +64,27 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
 
 # Standard library modules
 import ast
+import functools
 import glob
 import json
 import os
 import re
 import shutil
+import tarfile
+from io import IOBase
+from subprocess import call, DEVNULL
+from typing import Any, Callable, Optional
 
 # Third-party modules
 import numpy as np
 from numpy import sqrt, sin, cos, tan, exp
 
 # Local modules
-from .. import tar
+from .casecntl import CaseRunner
+from .casedata import CaseFM, CaseResid
 from .cmdrun import pvpython
 from .cntlbase import CntlBase
+from ..argread.clitext import compile_rst
 from ..filecntl import texfile
 from ..filecntl.tecfile import ExportLayout, Tecscript, convert_vtk
 from .. import pltfile
@@ -85,6 +92,60 @@ from .. import pltfile
 
 # List of math functions
 _MATH_FUNCTIONS = (sqrt, sin, cos, tan, exp)
+
+# Pre-compiled regular expressions
+_RE_TEX_CHARS = re.compile(r"(?<!\\)([#$%&_{}])")
+
+
+# Decorator for moving directories
+def run_maindir(func: Callable):
+    r"""Decorator to run a function within a specified folder
+
+    :Call:
+        >>> func = run_maindir(func)
+    :Wrapper Signature:
+        >>> v = r.func(*a, **kw)
+    :Inputs:
+        *func*: :class:`func`
+            Name of function
+        *r*: :class:`cape.cfdx.report.Report`
+            Control instance from which to use *cntl.RootDir*
+        *a*: :class:`tuple`
+            Positional args to :func:`cntl.func`
+        *kw*: :class:`dict`
+            Keyword args to :func:`cntl.func`
+    :Versions:
+        * 2025-08-23 ``@ddalle``: v1.0
+    """
+    # Declare wrapper function to change directory
+    @functools.wraps(func)
+    def wrapper_func(self, *args, **kwargs):
+        # Recall current directory
+        fpwd = os.getcwd()
+        # Specified root for compiling report
+        cdir = self.get_CompileDir()
+        # Create it if necessary
+        if not os.path.isdir(cdir):
+            os.mkdir(cdir)
+        # Go to specified directory
+        os.chdir(cdir)
+        # Run the function with exception handling
+        try:
+            # Attempt to run the function
+            v = func(self, *args, **kwargs)
+        except Exception:
+            # Raise the error
+            raise
+        except KeyboardInterrupt:
+            # Raise the error
+            raise
+        finally:
+            # Go back to original folder (always)
+            os.chdir(fpwd)
+        # Return function values
+        return v
+    # Apply the wrapper
+    return wrapper_func
 
 
 # Class to interface with report generation and updating.
@@ -103,16 +164,17 @@ class Report(object):
             Automated report interface
     :Attributes:
         * :attr:`cntl`
-        * :attr:`cases`
         * :attr:`i`
         * :attr:`rep`
-        * :attr:`sweeps`
-        * :attr:`tex`
-    :Versions:
-        * 2015-03-10 ``@ddalle``: v1.0
-        * 2015-10-15 ``@ddalle``: v1.1; ``cfdx`` version
+        * :attr:`casedict_n`
+        * :attr:`casedict_name`
+        * :attr:`casedict_sts`
+        * :attr:`mask`
     """
-  # === __dunder__ ===
+  # === SPECIAL/CONFIG ===
+   # --- Class attributes ---
+
+   # --- __dunder__ ---
     # Initialization method
     def __init__(self, cntl: CntlBase, rep: str):
         r"""Initialization method"""
@@ -122,20 +184,13 @@ class Report(object):
         #: :class:`int`
         #: Current case index
         self.i = None
-        # Check for this report.
+        #: :class:`list`\ [:class:`int`]
+        #: List of cases in report
+        self.mask = []
+        # Check for this report
         if rep not in cntl.opts.get_ReportList():
             # Raise an exception
             raise KeyError("No report named '%s'" % rep)
-        # Go to home folder.
-        fpwd = os.getcwd()
-        os.chdir(cntl.RootDir)
-        # Create the report folder if necessary.
-        if not os.path.isdir('report'):
-            os.mkdir('report')
-        # Set the umask.
-        os.umask(cntl.opts.get_umask())
-        # Go into the report folder.
-        os.chdir('report')
         #: :class:`str`
         #: Name of report
         self.rep = rep
@@ -146,16 +201,21 @@ class Report(object):
         #: :class:`dict`\ [:class:`cape.filecntl.texfile.Tex`]
         #: Dictionary of LaTeX handles for each single-case page
         self.cases = {}
+        #: :class:`dict`\ [:class:`int`]
+        #: Dictionary of iterations run for each relevant case
+        self.casedict_n = {}
+        #: :class:`dict`\ [:class:`str`]
+        #: Dictionary of statuses for each relevant case
+        self.casedict_sts = {}
+        #: :class:`dict`\ [:class:`str`]
+        #: Dictionary of folder names for each relevant case
+        self.casedict_name = {}
         #: :class:`cape.filecntl.texfile.Tex`
         #: Main LaTeX file interface
         self.tex = None
-        # Read the file if applicable
-        self.OpenMain()
         #: :class:`bool`
         #: Option to overwrite existing subfigures
         self.force_update = False
-        # Return
-        os.chdir(fpwd)
 
     # String conversion
     def __repr__(self):
@@ -163,12 +223,928 @@ class Report(object):
 
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
+            * 2025-08-25 ``@ddalle``: v1.1; customize class name
         """
-        return '<cape.cfdx.report("%s")>' % self.rep
+        return f'<{self.__class__.__name__}("{self.rep}")>'
     # Copy the function
     __str__ = __repr__
 
+  # === Main ===
+   # --- Updaters ---
+    # Function to update report
+    @run_maindir
+    def update_report(self, **kw):
+        r"""Update a report based on the list of figures
+
+        :Call:
+            >>> r.UpdateReport(**kw)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *I*: :class:`list`\ [:class:`int`]
+                List of case indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-22 ``@ddalle``: v1.0, :func:`UpdateReport`
+            * 2025-08-25 ``@ddalle``: v2.0, use *Location*
+        """
+        # Set force_update setting
+        self.force_update = kw.get("force", False)
+        # Find cases
+        self.find_cases(**kw)
+        # Write main file
+        self.write_main()
+        # Update any case-by-case figures
+        self.update_cases()
+        # Compile if requested
+        if kw.get("compile", True):
+            self.compile_tex()
+        # Archive if appropriate
+        self.clean_up_cases()
+
+    # Update overall report
+    def update_cases(self):
+        r"""Update images and LaTeX for multiple cases of one report
+
+        :Call:
+            >>> r.update_cases()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Status update
+        print("Updating individual cases")
+        # Loop through cases
+        for i in self.mask:
+            # Status update
+            print(compile_rst(f"``{self.get_case_name(i)}``"))
+            # Work
+            self.update_case(i)
+
+    # New function to create/update report for one case
+    @run_maindir
+    def update_case(self, i: int):
+        r"""Open, create if necessary, and update LaTeX file for a case
+
+        :Call:
+            >>> r.update_case(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-03-08 ``@ddalle``: v1.0; :func:`UpdateCase`
+            * 2023-10-21 ``@ddalle``: v1.1; allow arbitrary depth
+            * 2025-08-23 ``@ddalle``: v2.0; rename, use *Location*
+        """
+        # Note @run_maindir starts us in the compile folder
+        # Set case index
+        self.i = i
+        # Get name of case
+        frun = self.get_case_name(i)
+        # Get name of figure folder
+        ffig = self.get_figdir(i)
+        # Create folder as necessary
+        self.mkdir_p(ffig)
+        # Untar as necessary
+        self.untar_case(i)
+        # Enter folder
+        os.chdir(frun)
+        # Write main file; includes .tex files for each subfigure
+        self.write_case(i)
+        # Get list of figures
+        figs = self.get_figlist(i)
+        # Loop through
+        for fig in figs:
+            # Get list of subfigures
+            sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
+            # Loop through those
+            for sfig in sfigs:
+                # Update .tex file (and images, if appropriate)
+                self.update_subfig(sfig, i)
+
+    # Update a subfigure
+    def update_subfig(self, sfig: str, i: int):
+        r"""Update a subfigure
+
+        :Call:
+            >>> r.update_subfig(sfig, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-08-25 ``@ddalle``: v1.0
+        """
+        # Get status
+        rc = self.read_case_json(i)
+        # Check current status
+        n0 = self.get_subfig_status(sfig, i)
+        defn0 = self.get_subfig_defn(sfig, i)
+        # Get current status
+        n = self.get_case_n(i)
+        defn = self.cntl.opts.get_SubfigCascade(sfig)
+        # Check if the subfigure has been handled at all
+        if n0 is None:
+            # New subfigure
+            print(f"  {sfig}: New subfig at iteration {n}")
+        elif n != n0:
+            # Iteration update
+            print(f"  {sfig}: Update {n0} --> {n}")
+        elif defn != defn0:
+            # Definition changed
+            print(f"  {sfig}: Definition updated")
+        elif self.force_update:
+            # Forced update
+            print(f"  {sfig}: Update forced")
+        else:
+            # Figure up-to-date
+            return
+        # Update the figure
+        lines = self.subfig_frontend(sfig, i)
+        # Path to file
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        # Name of file
+        sfigfile = os.path.join(rootdir, figdir, f"{sfig}.tex")
+        # Write file
+        with open(sfigfile, 'w') as fp:
+            fp.write(''.join(lines))
+        # Update status
+        rc["Status"][sfig] = n
+        rc["Subfigures"][sfig] = defn
+        # Save it
+        self.write_case_json(i, rc)
+
+   # --- Preprocessors ---
+    # Process list of cases
+    def find_cases(self, **kw):
+        r"""Identify list of cases to report
+
+        :Call:
+            >>> r.find_cases(**kw)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *I*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Indices of cases to report
+            *re*: {``None``} | :class:`str`
+                Regular expression filter for case names
+        :Attributes:
+            *r.mask*: :class:`list`\ [:class:`int`]
+                List of cases populated according to run matrix and *kw*
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Status update
+        print("Finding cases to update:")
+        # Identify cases
+        inds = self.cntl.x.GetIndices(**kw)
+        # Reset list
+        self.mask = []
+        # Get the three sets of lists
+        cfigs = self.get_ReportOpt("Figures", vdef=())
+        zfigs = self.get_ReportOpt("ZeroFigures", vdef=())
+        efigs = self.get_ReportOpt("ErrorFigures", vdef=())
+        # De-None if necessary
+        nc = 0 if cfigs is None else len(cfigs)
+        nz = 0 if zfigs is None else len(zfigs)
+        ne = 0 if efigs is None else len(efigs)
+        # Check for case figures
+        if max([nc, nz, ne]) == 0:
+            return
+        # Reference chars
+        yes = '✓'
+        no = '×'
+        geq = '≥'
+        # Get required number of iterations for report
+        nmin = self.get_ReportOpt("MinIter")
+        # Check cases
+        for i in inds:
+            # Get case name
+            frun = self.get_case_name(i)
+            # Get the actual iteration number.
+            n = self.get_case_n(i)
+            n = 0 if n is None else n
+            # Select character
+            c = yes if (n >= nmin) else no
+            c = no if ((n == 0) and (nz == 0)) else c
+            c = no if ((n > 0) and (nc == 0)) else c
+            # Select operator
+            op = geq if (n >= nmin) else '<'
+            op = '=' if ((n == 0) and (nz == 0)) else op
+            # Markup for case name
+            mark = '**' if (c == yes) else ''
+            # Status update
+            txt = f"``{c}`` {mark}{frun}{mark} ({n} {op} {nmin})"
+            print(compile_rst(txt))
+            # Add to list
+            if c == yes:
+                self.mask.append(i)
+
+   # --- TeX writers ---
+    # Write primary main file
+    def write_main(self):
+        r"""Write the primary ``.tex`` file
+
+        :Call:
+            >>> r.write_main()
+        :Inputs:
+            *rep*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Get path to file ane name of file
+        dirname = self.get_CompileDir()
+        texname = self.get_LaTeXFileName()
+        # Combine
+        fname = os.path.join(dirname, texname)
+        # Write
+        with open(fname, 'w') as fp:
+            self._write_main(fp)
+
+    # Write case
+    def write_case(self, i: int):
+        r"""Write the primary ``.tex`` file for one case
+
+        This will write a file either
+
+        * ``{r.casedict_name[i]}/report-{r.rep}.tex``
+        * ``{r.casedict_name[i]}/report/report-{r.rep}.tex``
+
+        depending on the *Location* setting. The file includes the
+        header information for the case and the definitions of each
+        figure. The subfigures are identified via ``\include{}``
+        statements.
+
+        :Call:
+            >>> r.write_case(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Get folders
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        # Name of file
+        ftex = self.get_LaTeXFileName()
+        # Path to file
+        absfile = os.path.join(rootdir, figdir, ftex)
+        # Get file name
+        with open(absfile, 'w') as fp:
+            self._write_case(i, fp)
+
+    # Write file
+    def _write_main(self, fp: IOBase):
+        # Main file name
+        texname = self.get_LaTeXFileName()
+        # Location name
+        loc = self.get_ReportLocation()
+        # Write the universal header
+        fp.write('%$__Class\n')
+        fp.write('\\documentclass[letter,10pt]{article}\n\n')
+        # Write the preamble.
+        fp.write('%$__Preamble\n')
+        # Margins
+        fp.write('\\usepackage[margin=0.6in,top=0.7in,headsep=0.1in,\n')
+        fp.write('    footskip=0.15in]{geometry}\n')
+        # Other packages
+        fp.write('\\usepackage{graphicx}\n')
+        fp.write('\\usepackage{caption}\n')
+        fp.write('\\usepackage{subcaption}\n')
+        fp.write('\\usepackage{hyperref}\n')
+        fp.write('\\usepackage{fancyhdr}\n')
+        fp.write('\\usepackage{amsmath}\n')
+        fp.write('\\usepackage{amssymb}\n')
+        fp.write('\\usepackage{times}\n')
+        fp.write('\\usepackage{placeins}\n')
+        fp.write('\\usepackage[usenames]{xcolor}\n')
+        fp.write('\\usepackage[T1]{fontenc}\n')
+        fp.write('\\usepackage[scaled]{beramono}\n\n')
+        # Get the title and author and etc.
+        fttl  = self.get_ReportOpt("Title")
+        fsttl = self.get_ReportOpt("Subtitle")
+        fauth = self.get_ReportOpt("Author")
+        fafl = self.get_ReportOpt("Affiliation")
+        flogo = self.get_ReportOpt("Logo")
+        ffrnt = self.get_ReportOpt("Frontispiece")
+        frest = self.get_ReportOpt("Restriction")
+        # Add relative path to images if using 'case'
+        imgdir = 'report' if (loc == "case") else ''
+        # Set the title and author.
+        fp.write('\\title{%s}\n' % fttl)
+        fp.write('\\author{%s}\n' % fauth)
+        # Format the header and footer
+        fp.write('\n\\fancypagestyle{pycart}{%\n')
+        fp.write(' \\renewcommand{\\headrulewidth}{0.4pt}%\n')
+        fp.write(' \\renewcommand{\\footrulewidth}{0.4pt}%\n')
+        fp.write(' \\fancyhf{}%\n')
+        fp.write(' \\fancyfoot[C]{\\textbf{\\textsf{%s}}}%%\n' % frest)
+        fp.write(' \\fancyfoot[R]{\\thepage}%\n')
+        # Check for a logo.
+        if flogo is not None and len(flogo) > 0:
+            # Relative location
+            fname = os.path.join(imgdir, flogo).replace(os.sep, '/')
+            # Include it
+            fp.write(' \\fancyfoot[L]{\\raisebox{-0.32in}{%\n')
+            fp.write('  \\includegraphics[height=0.45in]{%s}}}%%\n' % fname)
+        # Finish this primary header/footer format
+        fp.write('}\n\n')
+        # Empty header/footer format for first page
+        fp.write('\\fancypagestyle{plain}{%\n')
+        fp.write(' \\renewcommand{\\headrulewidth}{0pt}%\n')
+        fp.write(' \\renewcommand{\\footrulewidth}{0pt}%\n')
+        fp.write(' \\fancyhf{}%\n')
+        fp.write('}\n\n')
+        # Small captions if needed
+        fp.write('\\captionsetup[subfigure]{textfont=sf}\n')
+        fp.write('\\captionsetup[subfigure]{skip=0pt}\n\n')
+        # Macros for setting cases.
+        fp.write('\\newcommand{\\thecase}{}\n')
+        fp.write('\\newcommand{\\thesweep}{}\n')
+        fp.write('\\newcommand{\\setcase}[1]')
+        fp.write('{\\renewcommand{\\thecase}{#1}}\n')
+        fp.write('\\newcommand{\\setsweep}[1]')
+        fp.write('{\\renewcommand{\\thesweep}{#1}}\n')
+        # Actual document
+        fp.write('\n%$__Begin\n')
+        fp.write('\\begin{document}\n')
+        # Title page
+        fp.write('\\pagestyle{plain}\n')
+        fp.write('\\begin{titlepage}\n')
+        fp.write('\\vskip4ex\n')
+        fp.write('\\raggedleft\n')
+        # Write the title
+        fp.write('{\\Huge\\sf\\textbf{\n')
+        fp.write('%s\n' % fttl)
+        fp.write('}}\n')
+        # Write the subtitle
+        if fsttl is not None and len(fsttl) > 0:
+            fp.write('\\vskip2ex\n')
+            fp.write('{\\Large\\sf\\textit{\n')
+            fp.write('%s\n' % fsttl)
+            fp.write('}}\\par\n')
+        # Finish the title with a horizontal line
+        fp.write('\\rule{0.75\\textwidth}{1pt}\\par\n')
+        fp.write('\\vskip30ex\n')
+        # Write the author
+        fp.write('\\raggedright\n')
+        fp.write('{\\LARGE\\textrm{\n')
+        fp.write('%s%%\n' % fauth)
+        fp.write('}}\n')
+        # Write the affiliation
+        if fafl is not None and len(fafl) > 0:
+            fp.write('\\vskip2ex\n')
+            fp.write('{\\LARGE\\sf\\textbf{\n')
+            fp.write('%s\n' % fafl)
+            fp.write('}}\n')
+        # Insert the date
+        fp.write('\\vskip20ex\n')
+        fp.write('{\\LARGE\\sf\\today}\n')
+        # Insert the frontispiece
+        if ffrnt is not None and len(ffrnt) > 0:
+            # Relative location
+            fname = os.path.join(imgdir, ffrnt).replace(os.sep, '/')
+            # Include it
+            fp.write('\\vskip20ex\n')
+            fp.write('\\raggedleft\n')
+            fp.write('\\includegraphics[height=2in]{%s}\n' % fname)
+        # Close the tile page
+        fp.write('\\end{titlepage}\n')
+        # Use full header/footer
+        fp.write('\\pagestyle{pycart}\n\n')
+        # Skeleton for the sweep
+        fp.write('%$__Sweeps\n\n')
+        # Skeleton for the main part of the report.
+        fp.write('%$__Cases\n')
+        # Include each case
+        for i in self.mask:
+            # Get path to case's figure folder
+            frun = self.get_figdir(i)
+            frun = frun.replace(os.sep, '/')
+            # Include
+            fp.write("\\input{%s/%s}\n" % (frun, texname))
+        # Termination of the report
+        fp.write('\n%$__End\n')
+        fp.write('\\end{document}\n')
+
+    # Write content of case LaTeX file
+    def _write_case(self, i: int, fp: IOBase):
+        # Get the name of the case
+        frun = self.get_case_name(i)
+        # Make sure no spilling of figures onto other pages
+        fp.write('\n\\FloatBarrier\n')
+        # Write the header.
+        fp.write('\\clearpage\n')
+        fp.write('\\setcase{%s}\n' % _escape(frun))
+        fp.write('\\phantomsection\n')
+        fp.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')
+        # Check if we should write the case number
+        if self.get_ReportOpt("ShowCaseNumber"):
+            # Add case number
+            fp.write(
+                r'\fancyhead[L]{(\textbf{Case %s}) \texttt{\thecase}}' % i)
+            fp.write('\n')
+        else:
+            # Write case name without case number
+            fp.write('\\fancyhead[L]{\\texttt{\\thecase}}\n')
+        # Get case current iteration
+        n = self.get_case_n(i)
+        # Get max iters required for case
+        nmax = self.cntl.GetLastIter(i)
+        # Get current status
+        sts = self.get_case_status(i)
+        # Text for current iter
+        ntxt = '-' if (n is None) else str(int(n))
+        # Text for iteration status
+        fitr = f"{ntxt}/{nmax}"
+        # Form string for the status type
+        fmt = r'\color{green}' if sts == "PASS" else ''
+        fmt = r'\color{red}' if sts in ("ERROR", "FAIL") else fmt
+        fsts = r"%s\textbf{%s}" % (fmt, sts)
+        # Form the line
+        line = '\\fancyhead[R]{\\textsf{%s, \\large%s}}\n\n' % (fitr, fsts)
+        # Add it
+        fp.write(line)
+        # Write figures
+        self._write_figures(i, fp)
+
+    # Write figures
+    def _write_figures(self, i: int, fp: IOBase):
+        # Start section for the figures
+        fp.write('%$__Figures\n')
+        # Get list of figures
+        figs = self.get_figlist(i)
+        # Loop through figures
+        for fig in figs:
+            self._write_figure(i, fp, fig)
+
+    # Write single figure
+    def _write_figure(self, i: int, fp: IOBase, fig: str):
+        # Figure header line
+        fp.write(f"%<{fig}\n")
+        # Start the figure
+        fp.write('\\begin{figure}[!h]\n')
+        # Get the optional header
+        fhdr = self.cntl.opts.get_FigOpt(fig, "Header")
+        if fhdr:
+            # Add the header as a semitrivial subfigure.
+            fp.write('\\begin{subfigure}[t]{\\textwidth}\n')
+            fp.write('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            fp.write('\\end{subfigure}\n')
+        # Get figure alignment
+        falgn = self.cntl.opts.get_FigOpt(fig, "Alignment")
+        if falgn.lower() == "center":
+            # Centering
+            fp.write('\\centering\n\n')
+        # Get list of subfigures
+        sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # Path to subfigures
+            frun = self.get_figdir(i)
+            # Use / for folders in TeX, even in Windows
+            frun = frun.replace(os.sep, '/')
+            # File name (relative to compile root)
+            fname = f"{frun}/{sfig}.tex"
+            # Include it
+            fp.write("\\input{%s}%%\n" % fname)
+        # End the figure for LaTeX
+        fp.write('\\end{figure}\n')
+        # cape report end figure marker
+        fp.write('%>\n\n')
+
+   # --- Compile ---
+    @run_maindir
+    def compile_tex(self) -> int:
+        r"""Compile the report using ``pdflatex``
+
+        :Call:
+            >>> r.compile_tex()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-08-25 ``@ddalle``: v1.0
+        """
+        # Get name of file
+        fbase = self.get_FileNameRoot()
+        ftex = self.get_LaTeXFileName()
+        fpdf = self.get_PDFFileName()
+        # Enusre report/ folder exists
+        self.mkdir_p("report")
+        # Check for executable
+        if shutil.which("pdflatex") is None:
+            raise SystemError("No 'pdflatex' executable found")
+        # Compile
+        print(f"Compiling '{ftex}'")
+        i0 = call(
+            ["pdflatex", "-interaction=nonstopmode", ftex],
+            stdout=DEVNULL)
+        # Check status
+        if i0:
+            print(f"  pdflatex failed with status {i0}")
+        # Compile again
+        print(f"Compiling '{ftex}'")
+        i1 = call(
+            ["pdflatex", "-interaction=nonstopmode", ftex],
+            stdout=DEVNULL)
+        # Check status
+        if i1:
+            print(f"  pdflatex failed with status {i0}")
+        # Combined return code
+        ierr = i0 | i1
+        # Compile option
+        loc = self.get_ReportLocation()
+        # Cleanup
+        print("Cleaning up")
+        if os.path.isfile(fpdf):
+            # Move it
+            if loc == "case":
+                os.rename(fpdf, os.path.join("report", fpdf))
+        # Remove .tex file
+        if ierr == 0:
+            os.remove(ftex)
+        # Get other 'report-*.*' files.
+        fglob = glob.glob(f"{fbase}.*")
+        # Delete most of them
+        for fn in fglob:
+            # Check for the two good ones
+            if (len(fn) <= 3) or (fn[-3:] not in ('tex', 'pdf')):
+                os.remove(fn)
+        # Output
+        return ierr
+
+  # === Options ===
+    # Generic option
+    def get_ReportOpt(self, opt: str, vdef=None) -> Any:
+        r"""Get value of generic *Report* option
+
+        :Call:
+            >>> v = r.get_ReportOpt(opt, vdef=None)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *opt*: :class:`str`
+                Name of string
+            *vdef*: {``None``} | :class:`object`
+                Optional default value
+        :Outputs:
+            *v*: :class:`object`
+                Value of option
+        :Versions:
+            * 2025-08-22 ``@ddalle``: v1.0
+        """
+        return self.cntl.opts.get_ReportOpt(self.rep, opt, vdef=vdef)
+
+    # Get location folder
+    def get_ReportLocation(self) -> str:
+        r"""Get *Location* option from *Report* section
+
+        :Call:
+            >>> loc = r.get_ReportLocation()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Outputs:
+            *loc*: ``"case"`` | ``"report"``
+                Location for report figures to be stored
+        :Versions:
+            * 2025-08-22 ``@ddalle``: v1.0
+        """
+        return self.get_ReportOpt("Location")
+
+    # Get compile folder
+    def get_CompileDir(self) -> str:
+        r"""Get folder in which to compile document
+
+        :Call:
+            >>> dirname = r.get_CompileDir()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Outputs:
+            *dirname*: :class:`str`
+                Absolute path to folder containing main ``.tex`` file
+        :Versions:
+            * 2026-08-22 ``@ddalle``: v1.0
+        """
+        # Get location option
+        loc = self.get_ReportLocation()
+        # Start with root dir
+        cwd = self.cntl.RootDir
+        # Add to it
+        dirname = os.path.join(cwd, "report") if (loc == "report") else cwd
+        # Output
+        return dirname
+
+    # Get name of main TeX file
+    def get_LaTeXFileName(self) -> str:
+        r"""Get name of main LaTeX file
+
+        :Call:
+            >>> fname = r.get_LaTeXFileName()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Outputs:
+            *fname*: :class:`str`
+                Name (basename) of file to write
+        :Versions:
+            * 2026-08-22 ``@ddalle``: v1.0
+        """
+        return f"report-{self.rep}.tex"
+
+    # Get name of main PDF file
+    def get_PDFFileName(self) -> str:
+        return f"report-{self.rep}.pdf"
+
+    def get_FileNameRoot(self) -> str:
+        return f"report-{self.rep}"
+
+    # Get path to report folder
+    def get_figdir(self, i: int) -> str:
+        r"""Get path to case's figures relative to compile dir
+
+        :Call:
+            >>> figdir = r.get_figdir(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *figdir*: :class:`str`
+                Path to case's figure folder relative to compile folder
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Get location option
+        loc = self.get_ReportOpt("Location")
+        # Get case name
+        frun = self.get_case_name(i)
+        # Extra level if using 'case'
+        figdir = 'report' if (loc == 'case') else ''
+        # Fullpath
+        repdir = os.path.join(frun, figdir).strip(os.sep)
+        # Output
+        return repdir
+
+    # List of figures
+    def get_figlist(self, i: int) -> list:
+        r"""Get list of figures for a report based on case's status
+
+        :Call:
+            >>> figs = r.get_figlist(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *figs*: :class:`list`\ [:class:`str`]
+                List of figure names
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Get status
+        n = self.get_case_n(i)
+        sts = self.get_case_status(i)
+        # Get the three sets of lists
+        cfigs = self.get_ReportOpt("Figures", vdef=())
+        zfigs = self.get_ReportOpt("ZeroFigures", vdef=())
+        efigs = self.get_ReportOpt("ErrorFigures", vdef=cfigs)
+        # Select appropriate figures
+        figs = efigs if (sts == "ERROR") else cfigs
+        figs = zfigs if (n == 0) else figs
+        # Return a copy
+        return list(figs)
+
+  # === Status ===
+   # --- Report status ---
+    # Get the existing status for a particular subfigure
+    def get_subfig_status(self, sfig: str, i: int) -> Optional[int]:
+        r"""Get the iteration for any existing copy of a subfigure
+
+        :Call:
+            >>> n = r.get_subfig_status(sfig, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Iteration number of existing subfigure, else ``None``
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Read status file
+        rc = self.read_case_json(i)
+        # Get status dict
+        status = rc.get("Status", {})
+        # Get status for this subfigure
+        if isinstance(status, dict):
+            return status.get(sfig)
+
+    # Get the exact defn for a particular subfigure
+    def get_subfig_defn(self, sfig: str, i: int) -> dict:
+        r"""Get the archival defintion for existing copy of a subfigure
+
+        :Call:
+            >>> defn = r.get_subfig_defn(sfig, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *defn*: :class:`dict`
+                Definition for *sfig* in case *i*, if any
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Read status file
+        rc = self.read_case_json(i)
+        # Get definitions dict
+        defns = rc.get("Subfigures", {})
+        # Get definition for this subfigure
+        if isinstance(defns, dict):
+            return defns.get(sfig, {})
+
+    # Read the status ``report.json`` file from a case
+    def read_case_json(self, i: int) -> dict:
+        r"""Read the JSON file which contains the current statuses
+
+        :Call:
+            >>> rc = r.read_case_json(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *rc*: :class:`dict`
+                Dictionary of subfigure definitions and status
+        :Versions:
+            * 2016-10-25 ``@ddalle``: v1.0
+        """
+        # Ensure archive has been expanded
+        self.untar_case(i)
+        # Get path to report files
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(self.get_CompileDir(), figdir)
+        # Path to status file
+        absfile = os.path.join(dirname, "report.json")
+        # Default
+        if not os.path.isfile(absfile):
+            return {
+                "Status": {},
+                "Subfigures": {}
+            }
+        # Read the settings (safely)
+        with open(absfile, 'r') as fp:
+            try:
+                # Read from file
+                rc = json.load(fp)
+            except Exception:
+                # No settings read
+                rc = {}
+        # Ensure the existence of main sections
+        rc.setdefault("Status", {})
+        rc.setdefault("Subfigures", {})
+        # Return the settings
+        return rc
+
+    # Write settings
+    def write_case_json(self, i: int, rc: dict):
+        r"""Write the current status to ``report.json``
+
+        :Call:
+            >>> r.write_case_json(i, rc)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+            *rc*: :class:`dict`
+                Dictionary of subfigure definitions and status
+        :Versions:
+            * 2016-10-25 ``@ddalle``: v1.0 (WriteCaseJSON())
+            * 2025-08-24 ``@ddalle``: v1.1 add *i*
+        """
+        # Get path to report files
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(self.get_CompileDir(), figdir)
+        # Path to status file
+        absfile = os.path.join(dirname, "report.json")
+        # Write it
+        with open(absfile, 'w') as fp:
+            json.dump(rc, fp, indent=4)
+
+   # --- Case status ---
+    # Get current iteration
+    def get_case_n(self, i: int) -> Optional[int]:
+        r"""Get number of iterations for case *i*, using cache
+
+        :Call:
+            >>> n = r.get_case_n(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *n*: :class:`int`
+                Number of iterations from case *i*
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Check if cached
+        if i in self.casedict_n:
+            return self.casedict_n[i]
+        # Sample it
+        n = self.cntl.CheckCase(i)
+        # Save it
+        self.casedict_n[i] = n
+        # Return it
+        return n
+
+    # Get current status
+    def get_case_status(self, i: int) -> str:
+        r"""Get number of iterations for case *i*, using cache
+
+        :Call:
+            >>> sts = r.get_case_n(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *sts*: :class:`str`
+                Status for case *i*
+        :Versions:
+            * 2025-08-23 ``@ddalle``: v1.0
+        """
+        # Check if cached
+        if i in self.casedict_sts:
+            return self.casedict_sts[i]
+        # Sample it
+        sts = self.cntl.check_case_status(i)
+        # Save it
+        self.casedict_sts[i] = sts
+        # Return it
+        return sts
+
+    # Get name of case
+    def get_case_name(self, i: int) -> str:
+        r"""Get case's folder name
+
+        :Call:
+            >>> frun = r.get_case_name(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *frun*: :class:`str`
+                Relative path to case *i*
+        :Versions:
+            * 2025-08-24 ``@ddalle``: v1.0
+        """
+        # Check if cached
+        if i in self.casedict_name:
+            return self.casedict_name[i]
+        # Sample it
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Save it
+        self.casedict_name[i] = frun
+        # Return it
+        return frun
+
   # === Folder Functions ===
+   # --- Basic ---
     # Function to go into a folder, respecting archive option
     def cd(self, fdir: str):
         r"""Interface to :func:`os.chdir`, respecting "Archive" option
@@ -185,417 +1161,185 @@ class Report(object):
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
         """
-        # Get archive option.
-        q = self.cntl.opts.get_ReportOpt(self.rep, "Archive")
-        # Check direction.
+        # Check direction, in/out of folder
         if fdir.startswith('..'):
-            # Check archive option.
-            if q:
-                # Tar and clean up if necessary.
-                tar.chdir_up()
-            else:
-                # Go up a folder.
-                os.chdir('..')
+            # Name of current folder
+            fdir = os.path.basename(os.getcwd())
+            # Exit
+            os.chdir("..")
+            # Tar the folder if appropriate
+            self.tar(f"{fdir}.tar", fdir)
+            # Remove original
+            shutil.rmtree(fdir)
         else:
             # Untar if necessary
-            tar.chdir_in(fdir)
+            self.untar(f"{fdir}.tar")
+            # Enter folder
+            os.chdir(fdir)
 
-  # === LaTeX Files ===
-   # --- Main .tex File ---
-    # Function to open the master latex file for this report.
-    def OpenMain(self):
-        r"""Open the primary LaTeX file or write skeleton if necessary
+    def mkdir_p(self, dirname: str, where: Optional[str] = None):
+        r"""Create a folder if necessary
 
         :Call:
-            >>> R.OpenMain()
+            >>> r.mkdir_p(dirname, where=None)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
+            *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
+            *dirname*: :class:`str`
+                Name of folder (can be multilevel e.g. ``a/b``)
+            *where*: {``None``} | :class:`str`
+                Absolute path to start from (or ``os.getcwd()``)
         :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
+            * 2025-08-22 ``@ddalle``: v1.0
         """
-        # Get and save the report file name.
-        self.fname = 'report-' + self.rep + '.tex'
-        # Go to the report folder.
-        fpwd = os.getcwd()
-        os.chdir(self.cntl.RootDir)
-        os.chdir('report')
-        # Check for the file and create if necessary.
-        if not os.path.isfile(self.fname):
-            self.WriteSkeleton()
-        # Open the interface to the master LaTeX file.
-        self.tex = texfile.Tex(self.fname)
-        # Check quality.
-        if len(self.tex.SectionNames) < 5:
-            raise IOError("Bad LaTeX file '%s'" % self.fname)
-        # Return
-        os.chdir(fpwd)
+        # Cannot use absolute path
+        if os.path.isabs(dirname):
+            raise ValueError(f"mkdir_p() cannot use absolute path '{dirname}'")
+        # Base path
+        curdir = os.getcwd() if where is None else where
+        # Loop through parts of *fgrp*
+        for part in dirname.split(os.sep):
+            # Accumulate
+            curdir = os.path.join(curdir, part)
+            # Create the folder if necessary
+            if not os.path.isdir(curdir):
+                os.mkdir(curdir)
 
-    # Function to create the skeleton for a master LaTeX file
-    def WriteSkeleton(self):
-        r"""Create and write preamble for master LaTeX file for report
+   # --- Tar/Archive ---
+    # Archive a folder
+    def tar(self, ftar: str, *a):
+        r"""Tar an archive folder if requested
 
         :Call:
-            >>> R.WriteSkeleton()
+            >>> rep.tar(ftar, *a)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
+            *rep*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
+            *ftar*: :class:`str`
+                Name of archive to create
+            *a*: :class:`tuple`\ [:class:`str`]
+                Names or patterns of files to include in archive
         :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
+            * 2015-03-07 ``@ddalle``: v1.0 (cape.tar.tar())
+            * 2019-11-07 ``@ddalle``: v1.1 (cape.tar.tar())
+            * 2025-08-22 ``@ddalle``: v1.0
         """
-        # Go to the report folder.
-        fpwd = os.getcwd()
-        os.chdir(self.cntl.RootDir)
-        os.chdir('report')
-        # Create the file (delete if necessary)
-        f = open(self.fname, 'w')
-        # Write the universal header.
-        f.write('%$__Class\n')
-        f.write('\\documentclass[letter,10pt]{article}\n\n')
-        # Write the preamble.
-        f.write('%$__Preamble\n')
-        # Margins
-        f.write('\\usepackage[margin=0.6in,top=0.7in,headsep=0.1in,\n')
-        f.write('    footskip=0.15in]{geometry}\n')
-        # Other packages
-        f.write('\\usepackage{graphicx}\n')
-        f.write('\\usepackage{caption}\n')
-        f.write('\\usepackage{subcaption}\n')
-        f.write('\\usepackage{hyperref}\n')
-        f.write('\\usepackage{fancyhdr}\n')
-        f.write('\\usepackage{amsmath}\n')
-        f.write('\\usepackage{amssymb}\n')
-        f.write('\\usepackage{times}\n')
-        f.write('\\usepackage{placeins}\n')
-        f.write('\\usepackage[usenames]{xcolor}\n')
-        f.write('\\usepackage[T1]{fontenc}\n')
-        f.write('\\usepackage[scaled]{beramono}\n\n')
+        # Get archive option
+        q = self.cntl.opts.get_ReportOpt(self.rep, "Archive")
+        # Exit if nothing to do
+        if not q:
+            return
+        # Select mode, depending on whether file exists
+        m = "a" if os.path.isfile(ftar) else "w"
+        # Open file
+        with tarfile.open(ftar, m) as tar:
+            # Expand list of files
+            fglob = []
+            # Loop through files
+            for ai in a:
+                # Loop through matches
+                for aj in glob.glob(ai):
+                    # Check if already in glob
+                    if aj in fglob:
+                        continue
+                    # Otherwise add it to archive
+                    tar.add(aj)
+                    # Add it to list
+                    fglob.append(aj)
 
-        # Get the title and author and etc.
-        fttl  = self.cntl.opts.get_ReportOpt(self.rep, "Title")
-        fsttl = self.cntl.opts.get_ReportOpt(self.rep, "Subtitle")
-        fauth = self.cntl.opts.get_ReportOpt(self.rep, "Author")
-        fafl  = self.cntl.opts.get_ReportOpt(self.rep, "Affiliation")
-        flogo = self.cntl.opts.get_ReportOpt(self.rep, "Logo")
-        ffrnt = self.cntl.opts.get_ReportOpt(self.rep, "Frontispiece")
-        frest = self.cntl.opts.get_ReportOpt(self.rep, "Restriction")
-        # Set the title and author.
-        f.write('\\title{%s}\n'  % fttl)
-        f.write('\\author{%s}\n' % fauth)
-
-        # Format the header and footer
-        f.write('\n\\fancypagestyle{pycart}{%\n')
-        f.write(' \\renewcommand{\\headrulewidth}{0.4pt}%\n')
-        f.write(' \\renewcommand{\\footrulewidth}{0.4pt}%\n')
-        f.write(' \\fancyhf{}%\n')
-        f.write(' \\fancyfoot[C]{\\textbf{\\textsf{%s}}}%%\n' % frest)
-        f.write(' \\fancyfoot[R]{\\thepage}%\n')
-        # Check for a logo.
-        if flogo is not None and len(flogo) > 0:
-            f.write(' \\fancyfoot[L]{\\raisebox{-0.32in}{%\n')
-            f.write('  \\includegraphics[height=0.45in]{%s}}}%%\n' % flogo)
-        # Finish this primary header/footer format
-        f.write('}\n\n')
-        # Empty header/footer format for first page
-        f.write('\\fancypagestyle{plain}{%\n')
-        f.write(' \\renewcommand{\\headrulewidth}{0pt}%\n')
-        f.write(' \\renewcommand{\\footrulewidth}{0pt}%\n')
-        f.write(' \\fancyhf{}%\n')
-        f.write('}\n\n')
-
-        # Small captions if needed
-        f.write('\\captionsetup[subfigure]{textfont=sf}\n')
-        f.write('\\captionsetup[subfigure]{skip=0pt}\n\n')
-
-        # Macros for setting cases.
-        f.write('\\newcommand{\\thecase}{}\n')
-        f.write('\\newcommand{\\thesweep}{}\n')
-        f.write('\\newcommand{\\setcase}[1]{\\renewcommand{\\thecase}{#1}}\n')
-        f.write(
-            '\\newcommand{\\setsweep}[1]{\\renewcommand{\\thesweep}{#1}}\n')
-
-        # Actual document
-        f.write('\n%$__Begin\n')
-        f.write('\\begin{document}\n')
-
-        # Title page
-        f.write('\\pagestyle{plain}\n')
-        f.write('\\begin{titlepage}\n')
-        f.write('\\vskip4ex\n')
-        f.write('\\raggedleft\n')
-        # Write the title
-        f.write('{\\Huge\\sf\\textbf{\n')
-        f.write('%s\n' % fttl)
-        f.write('}}\n')
-        # Write the subtitle
-        if fsttl is not None and len(fsttl) > 0:
-            f.write('\\vskip2ex\n')
-            f.write('{\\Large\\sf\\textit{\n')
-            f.write('%s\n' % fsttl)
-            f.write('}}\\par\n')
-        # Finish the title with a horizontal line
-        f.write('\\rule{0.75\\textwidth}{1pt}\\par\n')
-        f.write('\\vskip30ex\n')
-        # Write the author
-        f.write('\\raggedright\n')
-        f.write('{\\LARGE\\textrm{\n')
-        f.write('%s%%\n' % fauth)
-        f.write('}}\n')
-        # Write the affiliation
-        if fafl is not None and len(fafl) > 0:
-            f.write('\\vskip2ex\n')
-            f.write('{\\LARGE\\sf\\textbf{\n')
-            f.write('%s\n' % fafl)
-            f.write('}}\n')
-        # Insert the date
-        f.write('\\vskip20ex\n')
-        f.write('{\\LARGE\\sf\\today}\n')
-        # Insert the frontispiece
-        if ffrnt is not None and len(ffrnt) > 0:
-            f.write('\\vskip20ex\n')
-            f.write('\\raggedleft\n')
-            f.write('\\includegraphics[height=2in]{%s}\n' % ffrnt)
-        # Close the tile page
-        f.write('\\end{titlepage}\n')
-        f.write('\\pagestyle{pycart}\n\n')
-
-        # Skeleton for the sweep
-        f.write('%$__Sweeps\n\n')
-
-        # Skeleton for the main part of the report.
-        f.write('%$__Cases\n')
-
-        # Termination of the report
-        f.write('\n%$__End\n')
-        f.write('\\end{document}\n')
-
-        # Close the file.
-        f.close()
-
-        # Return
-        os.chdir(fpwd)
-
-   # --- Folder .tex Files ---
-    # Function to write skeleton for a casecntl.
-    def WriteCaseSkeleton(self, i):
-        r"""Initialize LaTeX file for case *i*
+    # Tar a case
+    @run_maindir
+    def tar_case(self, i: int):
+        r"""Archive/tar one case's report, if appropriate
 
         :Call:
-            >>> R.WriteCaseSkeleton(i, frun)
+            >>> r.tar_case(i)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
             *i*: :class:`int`
-                Case index
+                Case number
         :Versions:
-            * 2014-03-08 ``@ddalle``: v1.0
-            * 2015-10-15 ``@ddalle``: v1.1; ``cfdx`` version
+            * 2025-08-24 ``@ddalle``: v1.0
         """
-        # Get the name of the case
-        frun = self.cntl.x.GetFullFolderNames(i)
-        # Check for the ShowCase option
-        qnum = self.cntl.opts.get_ReportOpt(self.rep, "ShowCaseNumber")
+        # Get figure folder
+        figdir = self.get_figdir(i)
+        # Get parent folder thereof
+        dirname, basename = os.path.split(figdir)
+        # Check for parent folder
+        if not (os.path.isdir(dirname) and os.path.isdir(figdir)):
+            return
+        # Enter folder
+        os.chdir(dirname)
+        # Name of tar file
+        ftar = f"{basename}.tar"
+        # Tar
+        self.tar(ftar, basename)
+        # Remove folder
+        shutil.rmtree(basename)
 
-        # Create the file (delete if necessary)
-        f = open(self.fname, 'w')
-
-        # Make sure no spilling of figures onto other pages
-        f.write('\n\\FloatBarrier\n')
-
-        # Write the header.
-        f.write('\\clearpage\n')
-        f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
-        f.write('\\phantomsection\n')
-        f.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')
-        # Check if we should write the case number
-        if qnum:
-            # Add case number
-            f.write(
-                '\\fancyhead[L]{(\\textbf{Case %s}) \\texttt{\\thecase}}\n\n'
-                % i)
-        else:
-            # Write case name without case number
-            f.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
-
-        # Empty section for the figures
-        f.write('%$__Figures\n')
-        f.write('\n')
-
-        # Close the file.
-        f.close()
-
-    # Function to write skeleton for a sweep
-    def WriteSweepSkeleton(self, fswp, i):
-        r"""Initialize LaTeX file for sweep *fswp* beginning w/ case *i*
+    # Untar folder
+    def untar(self, ftar: str):
+        r"""Untar an archive folder if requested
 
         :Call:
-            >>> R.WriteSweepSkeleton(fswp, i)
+            >>> r.untar(ftar)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *i*: :class:`int`
-                Case index
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
+            *ftar*: :class:`str`
+                Name of archive to create
         :Versions:
-            * 2015-05-29 ``@ddalle``: v1.0
-            * 2015-10-15 ``@ddalle``: Generic version
+            * 2015-03-07 ``@ddalle``: v1.0 (cape.tar.tar())
+            * 2019-11-07 ``@ddalle``: v1.1 (cape.tar.tar())
+            * 2025-08-22 ``@ddalle``: v1.0
         """
-        # Get the name of the casecntl.
-        frun = self.cntl.DataBook.x.GetFullFolderNames(i)
+        # Get archive option
+        q = self.cntl.opts.get_ReportOpt(self.rep, "Archive")
+        # Exit if nothing to do
+        if not q:
+            return
+        # Check for file
+        if os.path.isfile(ftar):
+            # Open tar object
+            with tarfile.open(ftar, "r") as tar:
+                # Extract all files
+                tar.extractall()
 
-        # Create the file (delete if necessary)
-        f = open(self.fname, 'w')
-
-        # Write the header.
-        f.write('\n\\clearpage\n')
-        f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
-        f.write('\\setsweep{%s}\n' % fswp)
-        f.write('\\phantomsection\n')
-        f.write('\\fancyhead[L]{\\texttt{\\thesweep/\\thecase}}\n')
-        f.write('\\fancyhead[R]{}\n\n')
-
-        # Set the table of contents entry.
-        f.write('\\addcontentsline{toc}{section}')
-        f.write('{\\texttt{\\thesweep/\\thecase}}\n')
-
-        # Empty section for the figures
-        f.write('%$__Figures\n')
-        f.write('\n')
-
-        # Close the file.
-        f.close()
-
-    # Function to set the upper-right header
-    def SetHeaderStatus(self, i):
-        r"""Set header to state iteration progress and summary status
+    # Untar a cse
+    @run_maindir
+    def untar_case(self, i: int):
+        r"""Untar the archive of one case's report, if appropriate
 
         :Call:
-            >>> R.SetHeaderStatus(i)
+            >>> r.untar_case(i)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report itnerface
             *i*: :class:`int`
-                Case index
+                Case number
         :Versions:
-            * 2014-03-08 ``@ddalle``: v1.0
+            * 2025-08-24 ``@ddalle``: v1.0
         """
-        # Get case current iteration
-        n = self.cntl.CheckCase(i)
-        # Get case number of required iterations
-        nMax = self.cntl.GetLastIter(i)
-        # Get status
-        sts = self.cntl.check_case_status(i)
-        # Form iteration string
-        if n is None:
-            # Unknown.
-            fitr = '-/%s' % self.cntl.opts.get_PhaseIters(-1)
-        elif int(n) == n:
-            # Use an integer iteration number
-            fitr = '%i/%s' % (int(n), nMax)
-        else:
-            # Use the values.
-            fitr = '%s/%s' % (n, nMax)
-        # Form string for the status type
-        if sts == "PASS":
-            # Set green
-            fsts = '\\color{green}\\textbf{PASS}'
-        elif sts == "ERROR":
-            # Set red
-            fsts = '\\color{red}\\textbf{ERROR}'
-        else:
-            # No color (black)
-            fsts = '\\textbf{%s}' % sts
-        # Form the line.
-        line = '\\fancyhead[R]{\\textsf{%s, \\large%s}}\n' % (fitr, fsts)
-        # Put the line into the text.
-        self.cases[i].ReplaceOrAddLineToSectionStartsWith(
-            '_header', '\\fancyhead[R]', line, -1)
-        # Update sections.
-        self.cases[i].UpdateLines()
+        # Get figure folder
+        figdir = self.get_figdir(i)
+        # Get parent folder thereof
+        dirname, basename = os.path.split(figdir)
+        # Check for parent folder
+        if not os.path.isdir(dirname):
+            return
+        # Enter parent folder
+        os.chdir(dirname)
+        # Name of tar file
+        ftar = f"{basename}.tar"
+        # Untar
+        self.untar(ftar)
+        # Remove it
+        if os.path.isfile(ftar):
+            os.remove(ftar)
 
   # === Update Functions ===
    # --- General Updates ---
-    # Function to update report
-    def UpdateReport(self, **kw):
-        r"""Update a report based on the list of figures
-
-        :Call:
-            >>> R.UpdateReport(I)
-            >>> R.UpdateReport(cons=[])
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *I*: :class:`list`\ [:class:`int`]
-                List of case indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints to define what cases to update
-        :Versions:
-            * 2015-05-22 ``@ddalle``: v1.0
-        """
-        # Get list of indices.
-        I = self.cntl.x.GetIndices(**kw)
-        # Update any sweep figures.
-        self.UpdateSweeps(I)
-        # Update any case-by-case figures.
-        if self.HasCaseFigures():
-            self.UpdateCases(I)
-        # Check for no compile
-        compil = kw.get("compile", True)
-        # If compile requested
-        if compil:
-            # Write the file.
-            self.tex.Write()
-            # Compile it.
-            print("Compiling...")
-            self.tex.Compile(False)
-            # Need to compile twice for links
-            print("Compiling...")
-            self.tex.Compile(False)
-        # Clean up
-        print("Cleaning up...")
-        # Clean up sweeps
-        self.CleanUpSweeps(I=I)
-        # Clean up cases
-        if self.HasCaseFigures():
-            self.CleanUpCases(I=I)
-        # Get other 'report-*.*' files.
-        fglob = glob.glob('%s*' % self.fname[:-3])
-        # Delete most of them
-        for f in fglob:
-            # Check for the two good ones
-            if f[-3:] in ('tex', 'pdf'):
-                continue
-            # Else remove it
-            os.remove(f)
-        # Return to top-level folder
-        os.chdir(self.cntl.RootDir)
-
-    # Check for any case figures
-    def HasCaseFigures(self):
-        r"""Check if there are any case figures for this report
-
-        :Call:
-            >>> q = R.HasCaseFigures()
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-        :Outputs:
-            *q*: :class:`bool`
-                Whether any of report's figure lists has nonzero length
-        :Versions:
-            * 2015-06-03 ``@ddalle``: v1.0
-            * 2025-05-15 ``@ddalle``: v1.1; fix for fig lists == None
-        """
-        # Get the three sets of lists.
-        cfigs = self.cntl.opts.get_ReportOpt(self.rep, "Figures", vdef=())
-        zfigs = self.cntl.opts.get_ReportOpt(self.rep, "ZeroFigures", vdef=())
-        efigs = self.cntl.opts.get_ReportOpt(self.rep, "ErrorFigures", vdef=())
-        # De-None if necessary
-        nc = 0 if cfigs is None else len(cfigs)
-        nz = 0 if zfigs is None else len(zfigs)
-        ne = 0 if efigs is None else len(efigs)
-        # Check if any of them have nozero length
-        return (nc > 0) or (nz > 0) or (ne > 0)
-
     # Function to update sweeps
     def UpdateSweeps(self, I=None, cons=[], **kw):
         r"""Update pages of the report related to data book sweeps
@@ -627,38 +1371,6 @@ class Report(object):
         for fswp in fswps:
             # Update the figure.
             self.UpdateSweep(fswp, I=I, cons=cons)
-        # Update the text.
-        self.tex._updated_sections = True
-        self.tex.UpdateLines()
-        # Master file location
-        os.chdir(self.cntl.RootDir)
-        os.chdir('report')
-
-    # Function to update report for several cases
-    def UpdateCases(self, I=None, **kw):
-        r"""Update several cases and add the lines to the master LaTeX file
-
-        :Call:
-            >>> R.UpdateCases(I=None, **kw)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *I*: :class:`list`\ [:class:`int`]
-                List of case indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints to define what cases to update
-        :Versions:
-            * 2015-03-10 ``@ddalle``: v1.0
-            * 2015-05-22 ``@ddalle``: v1.1; move compile call
-        """
-        # Check for use of constraints instead of direct list.
-        I = self.cntl.x.GetIndices(I=I, **kw)
-        # Clear out the lines.
-        del self.tex.Section['Cases'][1:-1]
-        # Loop through those cases.
-        for i in I:
-            # Update the case
-            self.UpdateCase(i)
         # Update the text.
         self.tex._updated_sections = True
         self.tex.UpdateLines()
@@ -841,425 +1553,7 @@ class Report(object):
         # Output
         return figs
 
-    # Function to create the file for a case
-    def UpdateCase(self, i):
-        r"""Open, create if necessary, and update LaTeX file for a case
-
-        :Call:
-            >>> R.UpdateCase(i)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-            * 2023-10-21 ``@ddalle``: v1.1; allow arbitray depth
-        """
-        # --------
-        # Checking
-        # --------
-        # Get the case name
-        frun = self.cntl.x.GetFullFolderNames(i)
-        # Get just the last level of case
-        fgrp, fdir = os.path.split(frun)
-        # Go to the report directory if necessary.
-        fpwd = os.getcwd()
-        os.chdir(self.cntl.RootDir)
-        os.chdir('report')
-        # Loop through parts of *fgrp*
-        for fpart in fgrp.split(os.sep):
-            # Create the folder if necessary
-            if not os.path.isdir(fpart):
-                os.mkdir(fpart)
-            # Enter the folder
-            os.chdir(fpart)
-        # Create the case folder if necessary.
-        if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fdir)):
-            os.mkdir(fdir)
-        # Go into the folder.
-        self.cd(fdir)
-        # ------------
-        # Status check
-        # ------------
-        # Get the actual iteration number.
-        n = self.cntl.CheckCase(i)
-        # Get required number of iterations for report
-        nMin = self.cntl.opts.get_ReportOpt(self.rep, "MinIter")
-        # Move on if iteration count not yet achieved
-        if (nMin is not None) and ((n is None) or (n < nMin)):
-            # Go home and quit.
-            os.chdir(fpwd)
-            return
-        # Check status.
-        sts = self.cntl.check_case_status(i)
-        # Call `qstat` if needed.
-        if (sts == "INCOMP") and (n is not None):
-            # Check the current queue
-            sts = self.cntl.check_case_status(i)
-        # Get the figure list
-        if n:
-            # Nominal case with some results
-            figs = self.cntl.opts.get_ReportOpt(self.rep, "Figures")
-        elif sts == "ERROR":
-            # Get the figures for FAILed cases
-            figs = self.cntl.opts.get_ReportErrorFigures(self.rep)
-        else:
-            # No FAIL file, but no iterations
-            figs = self.cntl.opts.get_ReportOpt(self.rep, "ZeroFigures")
-        # If no figures to run; exit.
-        if (figs is None) or (len(figs) == 0):
-            # Go home and quit.
-            os.chdir(fpwd)
-            return
-        # Add the line to the master LaTeX file.
-        self.tex.Section['Cases'].insert(
-            -1, '\\input{%s/%s/%s}\n' % (fgrp, fdir, self.fname))
-        # Status update
-        print('%s/%s' % (fgrp, fdir))
-        # -------------
-        # Initial setup
-        # -------------
-        # Save case number
-        self.i = i
-        # Check for the file
-        if not os.path.isfile(self.fname):
-            # Make the skeleton file.
-            self.WriteCaseSkeleton(i)
-        # Open it.
-        self.cases[i] = texfile.Tex(self.fname)
-        # Set the iteration number and status header.
-        self.SetHeaderStatus(i)
-        # -------
-        # Figures
-        # -------
-        # Save the subfigures
-        self.SaveSubfigs(i)
-        # Loop through figures.
-        for fig in figs:
-            self.UpdateFigure(fig, i)
-        # -----
-        # Write
-        # -----
-        # Write the updated lines.
-        self.cases[i].Write()
-        # Go home.
-        os.chdir(fpwd)
-
    # --- Figure/Subfigure Updaters ---
-    # Function to save the subfigures
-    def SaveSubfigs(self, i, fswp=None):
-        r"""Save the current text of subfigures
-
-        :Call:
-            >>> R.SaveSubfigs(i)
-            >>> R.SaveSubfigs(I, fswp)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *i*: :class:`int`
-                Case index
-            *I*: :class:`numpy.ndarray`\ [:class:`int`]
-                List of case indices
-            *fswp*: :class:`str`
-                Name of sweep
-        :Attributes:
-            *R.subfigs*: :class:`dict`\ [:class:`list`]
-                List of LaTeX lines in each subfigure by name
-        :Versions:
-            * 2017-05-27 ``@ddalle``: v1.0
-        """
-        # -----
-        # Setup
-        # -----
-        # Check for sweep
-        if fswp is None:
-            # Handle for the case file.
-            tx = self.cases[i]
-        else:
-            # Transfer variable names
-            I = i
-            i = I[0]
-            # Handle for the subsweep file
-            tx = self.sweeps[fswp][i]
-        # Initialize holder
-        self.subfigs = {}
-        # Find line numbers of start and end of each subfig
-        sfiga = tx.GetIndexStartsWith("\\begin{subfigure}")
-        sfigb = tx.GetIndexStartsWith("\\end{subfigure}")
-        # Initialize number of subfigs
-        nsfig = 0
-        # List of figures
-        figs = self.GetFigureList(i, fswp=fswp)
-        # Loop through figs
-        for fig in figs:
-            # Loop through subfigs
-            for sfig in self.cntl.opts.get_FigOpt(fig, "Subfigures"):
-                # Check if the subfigure existed
-                if nsfig >= len(sfiga):
-                    # No subfigure yet
-                    self.subfigs[sfig] = []
-                    continue
-                # Save lines
-                self.subfigs[sfig] = tx.lines[sfiga[nsfig]:sfigb[nsfig]+1]
-                # Increase count
-                nsfig += 1
-
-    # Function to write a figure.
-    def UpdateFigure(self, fig, i, fswp=None):
-        r"""Write the figure and update the contents as needed for *fig*
-
-        :Call:
-            >>> R.UpdateFigure(fig, i)
-            >>> R.UpdateFigure(fig, I, fswp)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *fig*: :class:`str`
-                Name of figure to update
-            *i*: :class:`int`
-                Case index
-            *I*: :class:`numpy.ndarray`\ [:class:`int`]
-                List of case indices
-            *fswp*: :class:`str`
-                Name of sweep
-        :Versions:
-            * 2014-03-08 ``@ddalle``: v1.0
-            * 2015-05-29 ``@ddalle``: v1.1; include sweeps
-            * 2016-10-25 ``@ddalle``: v1.2; add checks
-        """
-        # -----
-        # Setup
-        # -----
-        # Check for sweep
-        if fswp is None:
-            # Handle for the case file.
-            tx = self.cases[i]
-            tf = tx.Section['Figures']
-        else:
-            # Transfer variable names.
-            I = i
-            i = I[0]
-            # Handle for the subsweep file.
-            tx = self.sweeps[fswp][i]
-            tf = tx.Section['Figures']
-        # Figure header line
-        ffig = '%%<%s\n' % fig
-        # Check for the figure.
-        if ffig in tf:
-            # Get the location.
-            ifig = tf.index(ffig)
-            # Get the location of the end of the figure.
-            ofig = ifig + tf[ifig:].index('%>\n')
-            # Delete those lines (to be replaced).
-            del tf[ifig:(ofig+1)]
-        else:
-            # Insert the figure right before the end.
-            ifig = len(tf) - 1
-        # --------------
-        # Initialization
-        # --------------
-        # Initialize lines
-        lines = []
-        # Write the header line.
-        lines.append(ffig)
-        # Start the figure.
-        lines.append('\\begin{figure}[!h]\n')
-        # Get the optional header
-        fhdr = self.cntl.opts.get_FigOpt(fig, "Header")
-        if fhdr:
-            # Add the header as a semitrivial subfigure.
-            lines.append('\\begin{subfigure}[t]{\\textwidth}\n')
-            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\end{subfigure}\n')
-        # Get figure alignment
-        falgn = self.cntl.opts.get_FigOpt(fig, "Alignment")
-        if falgn.lower() == "center":
-            # Centering
-            lines.append('\\centering\n')
-        # -------
-        # Subfigs
-        # -------
-        # Update the subfigures.
-        if fswp is None:
-            # Update case subfigures
-            lines += self.UpdateCaseSubfigs(fig, i)
-        else:
-            # Update sweep subfigures
-            lines += self.UpdateSweepSubfigs(fig, fswp, I)
-        # -------
-        # Cleanup
-        # -------
-        # End the figure for LaTeX
-        lines.append('\\end{figure}\n')
-        # cape report end figure marker
-        lines.append('%>\n\n')
-        # Add the lines to the section.
-        for line in lines:
-            tf.insert(ifig, line)
-            ifig += 1
-        # Update the section
-        tx.Section['Figures'] = tf
-        tx._updated_sections = True
-        # Synchronize the document
-        tx.UpdateLines()
-
-    # Update subfig for case
-    def UpdateCaseSubfigs(self, fig, i):
-        r"""Update subfigures for a case figure *fig*
-
-        :Call:
-            >>> lines = R.UpdateCaseSubfigs(fig, i)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *fig*: :class:`str`
-                Name of figure to update
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *lines*: :class:`list`\ [:class:`str`]
-                List of lines for LaTeX file
-        :Versions:
-            * 2015-05-29 ``@ddalle``: v1.0
-        """
-        # Get list of subfigures.
-        sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
-        # Initialize lines
-        lines = []
-        # Get status
-        n = self.cntl.CheckCase(i)
-        # Read settings
-        rc = self.ReadCaseJSON()
-        # Loop through subfigs.
-        for sfig in sfigs:
-            # Check the status (also prints status update)
-            q = self.CheckSubfigStatus(sfig, rc, n)
-            # Use a separate function to find the right updater
-            lines = self.SubfigSwitch(sfig, i, lines, q)
-            # Update the settings
-            rc["Status"][sfig] = n
-            rc["Subfigures"][sfig] = self.cntl.opts.get_SubfigCascade(sfig)
-        # Write the new settings
-        self.WriteCaseJSON(rc)
-        # Output
-        return lines
-
-    # Check status of a subfigure and give status update
-    def CheckSubfigStatus(self, sfig, rc, n):
-        r"""Check whether or not to update a subfigure and print status
-
-        :Call:
-            >>> q = R.CheckSubfigStatus(sfig, rc, n)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of subfigure to check
-            *rc*: :class:`dict`
-                Dictionary from ``report.json``
-            *n*: :class:`int` | ``None``
-                Current iteration number
-        :Outputs:
-            *q*: ``True`` | ``False``
-                Whether or not to update the subfigure
-        :Versions:
-            * 2016-10-25 ``@ddalle``: v1.0
-        """
-        # Get the status options
-        stsr = rc.get("Status", {})
-        # Check if the subfigure has been handled at all
-        if sfig not in stsr:
-            # New subfigure
-            print("  %s: New subfig at iteration %s" % (sfig, n))
-            return True
-        # Get the iteration status
-        nr = stsr.get(sfig)
-        # Check the iteration
-        if n != nr:
-            # Iteration update
-            print("  %s: Update %s --> %s" % (sfig, nr, n))
-            return True
-        # Get the definition last used to generate this subfig
-        defr = rc.get("Subfigures", {}).get(sfig, {})
-        # Get the present definition
-        defo = self.cntl.opts.get_SubfigCascade(sfig)
-        # Compare the subfig definitions
-        if defr != defo:
-            # Definition changed
-            print("  %s: Definition updated" % sfig)
-            return True
-        # Check for forced
-        if self.force_update:
-            # Forced update
-            print(" %s: Update forced" % sfig)
-            return True
-        # If reached this point, no update
-        return False
-
-    # Point to the correct subfigure updater
-    def SubfigSwitch(self, sfig, i, lines, q):
-        r"""Switch function to find the correct subfigure function
-
-        This function may need to be defined for each CFD solver
-
-        :Call:
-            >>> lines = R.SubfigSwitch(sfig, i, lines, q)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of subfigure to update
-            *i*: :class:`int`
-                Case index
-            *lines*: :class:`list`\ [:class:`str`]
-                List of lines already in LaTeX file
-            *q*: ``True`` | ``False``
-                Whether or not to regenerate subfigure
-        :Outputs:
-            *lines*: :class:`list`\ [:class:`str`]
-                Updated list of lines for LaTeX file
-        :Versions:
-            * 2016-10-25 ``@ddalle``: v1.0, from :func:`UpdateSubfig`
-        """
-        # Get the base type.
-        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
-        # Process it.
-        if btyp == 'Conditions':
-            # Get the content.
-            lines += self.SubfigConditions(sfig, i, q)
-        elif btyp == 'Summary':
-            # Get the force and/or moment summary
-            lines += self.SubfigSummary(sfig, i, q)
-        elif btyp == 'PlotCoeff':
-            # Get the force or moment history plot
-            lines += self.SubfigPlotCoeff(sfig, i, q)
-        elif btyp == 'PlotLineLoad':
-            # Plot a sectional loads plot
-            lines += self.SubfigPlotLineLoad(sfig, i, q)
-        elif btyp == 'PlotL1':
-            # Get the residual plot
-            lines += self.SubfigPlotL1(sfig, i, q)
-        elif btyp == 'PlotL2':
-            # Get the global residual plot
-            lines += self.SubfigPlotL2(sfig, i, q)
-        elif btyp == ['PlotResid', 'PlotTurbResid', 'PlotSpeciesResid']:
-            # Plot generic residual
-            lines += self.SubfigPlotResid(sfig, i, q)
-        elif btyp == 'Paraview':
-            # Get the Paraview layout view
-            lines += self.SubfigParaviewLayout(sfig, i, q)
-        elif btyp == 'Tecplot':
-            # Use a Tecplot layout
-            lines += self.SubfigTecplotLayout(sfig, i, q)
-        elif btyp == 'Image':
-            # Coy an image
-            lines += self.SubfigImage(sfig, i, q)
-        else:
-            print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
-        # Output
-        return lines
-
     # Update subfig for a sweep
     def UpdateSweepSubfigs(self, fig, fswp, I):
         r"""Update subfigures for a sweep figure *fig*
@@ -1321,36 +1615,6 @@ class Report(object):
         self.WriteCaseJSON(rc)
         # Output
         return lines
-
-    # Get handle for component
-    def GetSubfigRefComponent(self, sfig):
-        r"""Get handle for data book component for a sweep subfigure
-
-        :Call:
-            >>> DBc = R.GetSubfigRefComponent(sfig)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of subfigure
-        :Outputs:
-            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
-                Component data book
-        :Versions:
-            * 2017-04-23 ``@ddalle``: v1.0
-        """
-        # Get the list of components
-        comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
-        # Check type
-        if comp is None:
-            # No component... just global ref component
-            return self.cntl.DataBook.GetRefComponent()
-        elif type(comp).__name__ in ["list", "ndarray"]:
-            # List... use the first component in list
-            return self.ReadFM(comp[0])
-        else:
-            # Use single component
-            return self.ReadFM(comp)
 
     # Point to the correct subfigure updater
     def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
@@ -1474,6 +1738,25 @@ class Report(object):
         return False
 
   # === Cleanup ===
+    # Clean up cases
+    def clean_up_cases(self):
+        r"""Clean up case folders
+
+        :Call:
+            >>> r.clean_up_cases()
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+        :Versions:
+            * 2015-05-29 ``@ddalle``: v1.0
+        """
+        # Get "Archive" setting
+        if not self.get_ReportOpt("Archive"):
+            return
+        # Loop through cases
+        for i in self.mask:
+            self.tar_case(i)
+
     # Clean up cases
     def CleanUpCases(self, I=None, cons=[]):
         r"""Clean up case folders
@@ -1625,7 +1908,69 @@ class Report(object):
         os.chdir(fpwd)
 
   # === Subfigures ===
-   # --- Config ---
+   # --- Main ---
+    # Point to the correct subfigure updater
+    def subfig_frontend(self, sfig: str, i: int) -> list:
+        r"""Switch function to find the correct subfigure function
+
+        This function may need to be defined for each CFD solver
+
+        :Call:
+            >>> lines = r.subfig_frontend(sfig, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to update
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *lines*: :class:`list`\ [:class:`str`]
+                Updated list of lines for LaTeX file
+        :Versions:
+            * 2016-10-25 ``@ddalle``: v1.0, from :func:`UpdateSubfig`
+            * 2025-08-25 ``@ddalle``: v2.0, from :func:`SubfigSwitch`
+        """
+        # Get the base type
+        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+        # Process it.
+        if btyp == 'Conditions':
+            # Get the content.
+            lines = self.SubfigConditions(sfig, i, True)
+        elif btyp == 'Summary':
+            # Get the force and/or moment summary
+            lines = self.SubfigSummary(sfig, i, True)
+        elif btyp == 'PlotCoeff':
+            # Get the force or moment history plot
+            lines = self.SubfigPlotCoeff(sfig, i, True)
+        elif btyp == 'PlotLineLoad':
+            # Plot a sectional loads plot
+            lines = self.SubfigPlotLineLoad(sfig, i, True)
+        elif btyp == 'PlotL1':
+            # Get the residual plot
+            lines = self.SubfigPlotL1(sfig, i, True)
+        elif btyp == 'PlotL2':
+            # Get the global residual plot
+            lines = self.SubfigPlotL2(sfig, i, True)
+        elif btyp == ['PlotResid', 'PlotTurbResid', 'PlotSpeciesResid']:
+            # Plot generic residual
+            lines = self.SubfigPlotResid(sfig, i, True)
+        elif btyp == 'Paraview':
+            # Get the Paraview layout view
+            lines = self.SubfigParaviewLayout(sfig, i, True)
+        elif btyp == 'Tecplot':
+            # Use a Tecplot layout
+            lines = self.SubfigTecplotLayout(sfig, i, True)
+        elif btyp == 'Image':
+            # Coy an image
+            lines = self.SubfigImage(sfig, i, True)
+        else:
+            print(f"  {sfig}: No function for subfigure type '{btyp}'")
+            lines = []
+        # Output
+        return lines
+
+   # --- Common ---
     # Function to initialize a subfigure
     def SubfigInit(self, sfig):
         r"""Create the initial lines of a subfigure
@@ -1824,6 +2169,37 @@ class Report(object):
             fcpt += ("/%s" % coeff.replace('_', r'\_'))
         # Output
         return fcpt
+
+   # --- Tools ---
+    # Get handle for component
+    def GetSubfigRefComponent(self, sfig):
+        r"""Get handle for data book component for a sweep subfigure
+
+        :Call:
+            >>> DBc = R.GetSubfigRefComponent(sfig)
+        :Inputs:
+            *R*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+        :Outputs:
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
+                Component data book
+        :Versions:
+            * 2017-04-23 ``@ddalle``: v1.0
+        """
+        # Get the list of components
+        comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
+        # Check type
+        if comp is None:
+            # No component... just global ref component
+            return self.cntl.DataBook.GetRefComponent()
+        elif type(comp).__name__ in ["list", "ndarray"]:
+            # List... use the first component in list
+            return self.ReadFM(comp[0])
+        else:
+            # Use single component
+            return self.ReadFM(comp)
 
    # --- Formatting ---
     # Function to turn on grid, turn off ticks, etc.
@@ -2245,6 +2621,7 @@ class Report(object):
         spvars = self.cntl.opts.get_SubfigOpt(sfig, "SpecialVars")
         # Dictionary of recognized special keys
         spdict = {
+            "Altitude":           ["alt",  "GetAltitude"],
             "AngleOfAttack":      ["a",    "GetAlpha"],
             "a":                  ["a",    "GetAlpha"],
             "aoa":                ["a",    "GetAlpha"],
@@ -2596,7 +2973,7 @@ class Report(object):
             for comp in comps:
                 # Component label
                 # Read the Aero history.
-                FM = self.ReadCaseFM(comp)
+                FM = self.ReadCaseFM(i, comp)
                 # Get iters
                 iters = FM.get_values("i")
                 # Check for trivial
@@ -2833,7 +3210,7 @@ class Report(object):
    # --- PlotCoeff ---
     # Function to create coefficient plot and write figure
     def SubfigPlotCoeff(self, sfig, i, q):
-        r"""Create plot for a coefficient and input lines int LaTeX file
+        r"""Create plot for a coefficient and input lines to LaTeX file
 
         :Call:
             >>> lines = R.SubfigPlotCoeff(sfig, i, q)
@@ -2855,7 +3232,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Get the component.
@@ -2879,22 +3256,6 @@ class Report(object):
         fcpt = self.SubfigCaption(sfig)
         # First lines.
         lines = self.SubfigInit(sfig)
-        # Check for image update
-        if not q:
-            # File name to check for
-            fpdf = '%s.pdf' % sfig
-            # Check for the file
-            if os.path.isfile(fpdf):
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fpdf))
-            # Set the caption.
-            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-            # Close the subfigure.
-            lines.append('\\end{subfigure}\n')
-            # Output
-            return lines
        # ---------
        # Plotting
        # ---------
@@ -2937,7 +3298,7 @@ class Report(object):
             os.chdir(self.cntl.RootDir)
             os.chdir(frun)
             # Read the Aero history
-            FM = self.ReadCaseFM(comp)
+            FM = self.ReadCaseFM(i, comp)
             # Get iters
             iters = FM.get_values("i")
             # Check for missing history
@@ -2979,6 +3340,8 @@ class Report(object):
                     topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
                 # Apply the transformation.
                 FM.TransformFM(topts, self.cntl.x, i)
+            # Column for the x-axis
+            xcol = opts.get_SubfigOpt(sfig, "XCol")
             # Get the manual range to show
             dc = opts.get_SubfigOpt(sfig, "Delta", k)
             # Get the multiple of standard deviation to show
@@ -3004,9 +3367,9 @@ class Report(object):
             fmt_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
             fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
             fmt_e = opts.get_SubfigOpt(sfig, "ErrorFormat", k)
-            # Draw the plot.
+            # Draw the plot
             h = FM.PlotCoeff(
-                coeff, n=nPlotIter,
+                coeff, xcol=xcol, n=nPlotIter,
                 nFirst=nPlotFirst, nLast=nPlotLast,
                 nStats=nStats, nMaxStats=nMax, dnStats=dn,
                 PlotOptions=kw_p, MeanOptions=kw_m,
@@ -3026,16 +3389,14 @@ class Report(object):
        # --------
        # Config
        # --------
-        # Change back to report folder.
+        # Change back to report folder
         os.chdir(fpwd)
-        # Check for a figure to write.
+        # Check for a figure to write
         if nIter >= 2:
             # Save the figure
             fimg = self.save_figure(sfig, h)
-            # Include the graphics.
-            lines.append(
-                '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fimg))
+            # Include the graphics
+            self.includegraphics(fimg, lines, i)
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -3046,7 +3407,7 @@ class Report(object):
    # --- Other DataBook Types ---
     # Function to create coefficient plot and write figure
     def SubfigPlotLineLoad(self, sfig, i, q):
-        """Create plot for a sectional loads profile
+        r"""Create plot for a sectional loads profile
 
         :Call:
             >>> lines = R.SubfigPlotLineLoad(sfig, i, q)
@@ -3064,8 +3425,6 @@ class Report(object):
         """
         # Save current folder.
         fpwd = os.getcwd()
-        # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
         # Extract options
         opts = self.cntl.opts
         # Get the component.
@@ -3118,22 +3477,6 @@ class Report(object):
             fcpt = fcpt.replace('_', r'\_')
         # First lines.
         lines = self.SubfigInit(sfig)
-        # Check for image update
-        if not q:
-            # File name to check for
-            fpdf = '%s.pdf' % sfig
-            # Check for the file
-            if os.path.isfile(fpdf):
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fpdf))
-            # Set the caption.
-            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-            # Close the subfigure.
-            lines.append('\\end{subfigure}\n')
-            # Output
-            return lines
         # Initialize plot count
         nPlot = 0
         # Loop through plots.
@@ -3234,10 +3577,8 @@ class Report(object):
             self.SubfigFormatAxes(sfig, h['ax'])
             # Save the figure
             fimg = self.save_figure(sfig, h)
-            # Include the graphics.
-            lines.append(
-                '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fimg))
+            # Include the graphics
+            self.includegraphics(fimg, lines, i)
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -3270,8 +3611,6 @@ class Report(object):
        # -------
         # Save current folder.
         fpwd = os.getcwd()
-        # Case folder
-        frun = self.cntl.x.GetFullFolderNames(I[0])
         # Extract options
         opts = self.cntl.opts
         # Get the component.
@@ -3288,22 +3627,6 @@ class Report(object):
             fcpt = fcpt.replace('_', r'\_')
         # First lines.
         lines = self.SubfigInit(sfig)
-        # Check for image update
-        if not q:
-            # File name to check for
-            fpdf = '%s.pdf' % sfig
-            # Check for the file
-            if os.path.isfile(fpdf):
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fpdf))
-            # Set the caption.
-            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-            # Close the subfigure.
-            lines.append('\\end{subfigure}\n')
-            # Output
-            return lines
        # ---------
        # Plotting
        # ---------
@@ -3398,10 +3721,8 @@ class Report(object):
         if k > 0:
             # Save the figure
             fimg = self.save_figure(sfig, h)
-            # Include the graphics.
-            lines.append(
-                '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fimg))
+            # Include the graphics
+            self.includegraphics(fimg, lines, i)
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -3438,8 +3759,6 @@ class Report(object):
         # Extract options and trajectory
         x = self.cntl.DataBook.x
         opts = self.cntl.opts
-        # Case folder
-        frun = x.GetFullFolderNames(I[0])
         # Get the component.
         comp = opts.get_SubfigOpt(sfig, "Component")
         # Get the coefficient
@@ -3509,22 +3828,6 @@ class Report(object):
         fcpt = fcpt.replace("_", r"\_")
         # Initialize subfigure
         lines = self.SubfigInit(sfig)
-        # Check for image update
-        if not q:
-            # File name to check for
-            fpdf = '%s.pdf' % sfig
-            # Check for the file
-            if os.path.isfile(fpdf):
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-                    % (fswp, frun, fpdf))
-            # Set the caption.
-            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-            # Close the subfigure.
-            lines.append('\\end{subfigure}\n')
-            # Output
-            return lines
        # --------
        # Plotting
        # --------
@@ -3714,10 +4017,8 @@ class Report(object):
         self.SubfigFormatAxes(sfig, h['ax'])
         # Save the figure
         fimg = self.save_figure(sfig, h)
-        # Include the graphics.
-        lines.append(
-            '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-            % (fswp, frun, fimg))
+        # Include the graphics
+        self.includegraphics(fimg, lines, i)
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -3883,10 +4184,7 @@ class Report(object):
         # Apply case functions
         self.SubfigFunction(sfig, I[0])
         # Extract options and trajectory
-        x = self.cntl.DataBook.x
         opts = self.cntl.opts
-        # Case folder
-        frun = x.GetFullFolderNames(I[0])
         # Get the component.
         comp = opts.get_SubfigOpt(sfig, "Component")
         # Get the coefficient
@@ -3906,22 +4204,6 @@ class Report(object):
         fcpt = fcpt.replace("_", r"\_")
         # Initialize subfigure
         lines = self.SubfigInit(sfig)
-        # Check for image update
-        if not q:
-            # File name to check for
-            fpdf = '%s.pdf' % sfig
-            # Check for the file
-            if os.path.isfile(fpdf):
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-                    % (fswp, frun, fpdf))
-            # Set the caption.
-            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-            # Close the subfigure.
-            lines.append('\\end{subfigure}\n')
-            # Output
-            return lines
        # --------
        # Plotting
        # --------
@@ -4032,10 +4314,8 @@ class Report(object):
         os.chdir(fpwd)
         # Save the figure
         fimg = self.save_figure(sfig, h)
-        # Include the graphics.
-        lines.append(
-            '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-            % (fswp, frun, fimg))
+        # Include the graphics
+        self.includegraphics(fimg, lines, i)
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -4106,22 +4386,6 @@ class Report(object):
         fcpt = fcpt.replace("_", r"\_")
         # Initialize subfigure
         lines = self.SubfigInit(sfig)
-        # Check for image update
-        if not q:
-            # File name to check for
-            fpdf = '%s.pdf' % sfig
-            # Check for the file
-            if os.path.isfile(fpdf):
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-                    % (fswp, frun, fpdf))
-            # Set the caption.
-            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-            # Close the subfigure.
-            lines.append('\\end{subfigure}\n')
-            # Output
-            return lines
        # --------
        # Plotting
        # --------
@@ -4169,7 +4433,7 @@ class Report(object):
             os.chdir(fpwd)
             # Save the figure
             fimg = self.save_figure(sfig, h)
-            # Include the graphics.
+            # Include the graphics
             lines.append(
                 '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
                 % (fswp, frun, fimg))
@@ -4264,7 +4528,7 @@ class Report(object):
 
     # Function to create coefficient plot and write figure
     def SubfigPlotResid(self, sfig, i, q, c=None):
-        """Create plot for named residual
+        r"""Create plot for named residual
 
         :Call:
             >>> lines = R.SubfigPlotResid(sfig, i, c=None)
@@ -4286,7 +4550,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Current status
@@ -4299,22 +4563,6 @@ class Report(object):
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # First lines.
         lines = self.SubfigInit(sfig)
-        # Check for image update
-        if not q:
-            # File name to check for
-            fpdf = '%s.pdf' % sfig
-            # Check for the file
-            if os.path.isfile(fpdf):
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fpdf))
-            # Set the caption.
-            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-            # Close the subfigure.
-            lines.append('\\end{subfigure}\n')
-            # Output
-            return lines
         # Create plot if possible
         if nIter >= 2:
             # Go to the run directory.
@@ -4324,7 +4572,7 @@ class Report(object):
             figw = opts.get_SubfigOpt(sfig, "FigureWidth")
             figh = opts.get_SubfigOpt(sfig, "FigureHeight")
             # Read the Aero history.
-            H = self.ReadCaseResid(sfig)
+            H = self.ReadCaseResid(i)
             # Options dictionary
             kw_n = {
                 "nFirst": nPlotFirst, "nLast": nPlotLast,
@@ -4375,10 +4623,8 @@ class Report(object):
                 os.chdir(fpwd)
                 # Save the figure
                 fimg = self.save_figure(sfig, h)
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fimg))
+                # Include the graphics
+                self.includegraphics(fimg, lines, i)
         # Set the caption.
         if fcpt:
             lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
@@ -4408,10 +4654,10 @@ class Report(object):
         :Versions:
             * 2017-04-05 ``@ddalle``: v1.0
         """
-        # Save current folder.
+        # Save current folder
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Get caption.
@@ -4446,14 +4692,8 @@ class Report(object):
             if os.path.isfile(fimg):
                 # Copy the file to the report folder
                 shutil.copy(fimg, fpwd)
-            # Check for file
-            if os.path.isfile(os.path.join(fpwd, fimg)):
-                # Form the line to include the image in LaTeX
-                line = (
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fimg))
-                # Include the graphics.
-                lines.append(line)
+            # Include figure into tex file
+            self.includegraphics(fimg, lines, i)
         # Go to the report case folder
         os.chdir(fpwd)
         # Set the caption.
@@ -4486,7 +4726,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
         # Get caption.
@@ -4550,13 +4790,7 @@ class Report(object):
                 except Exception:
                     pass
             # Check for file
-            if os.path.isfile(os.path.join(fpwd, fname)):
-                # Form the line to include the image in LaTeX
-                line = (
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fname))
-                # Include the graphics.
-                lines.append(line)
+            self.includegraphics(fname, lines, i)
         # Go to the report case folder
         os.chdir(fpwd)
         # Set the caption.
@@ -4569,8 +4803,8 @@ class Report(object):
 
    # --- Tecplot ---
     # Function to create coefficient plot and write figure
-    def SubfigTecplotLayout(self, sfig, i, q):
-        """Create image based on a Tecplot layout file
+    def SubfigTecplotLayout(self, sfig: str, i: int, q):
+        r"""Create image based on a Tecplot layout file
 
         :Call:
             >>> lines = R.SubfigTecplotLayout(sfig, i)
@@ -4583,13 +4817,18 @@ class Report(object):
                 Case index
         :Versions:
             * 2016-09-06 ``@ddalle``: v1.0
-            * 2016-10-05 ``@ddalle``: Added "FieldMap" option
-            * 2016-10-25 ``@ddalle``: First :mod:`cape` version
+            * 2016-10-05 ``@ddalle``: v1.1; add "FieldMap" option
+            * 2016-10-25 ``@ddalle``: v1.2; first :mod:`cape` version
+            * 2025-08-25 ``@ddalle``: v1.3; support "case" compiling
         """
         # Save current folder
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.get_case_name(i)
+        # Path to final output
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(rootdir, figdir)
         # Extract options
         opts = self.cntl.opts
         # Get caption
@@ -4612,30 +4851,11 @@ class Report(object):
             # Save the line
             lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
             lines.append('\\vskip-6pt\n')
-        # Check for an update
-        if not q:
-            # Figure file name.
-            fname = "%s.png" % (sfig)
-            # Check if the file exists
-            if os.path.isfile(fname):
-                # Form the line
-                line = (
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fname))
-                # Include the graphics.
-                lines.append(line)
-            # Set the caption.
-            if fcpt:
-                lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
-            # Close the subfigure.
-            lines.append('\\end{subfigure}\n')
-            # Output
-            return lines
         # Go to the case folder
         os.chdir(self.cntl.RootDir)
         # Check if the run directory exists.
         if os.path.isdir(frun):
-            # Go there.
+            # Go there
             os.chdir(frun)
             # Get the most recent PLT files
             self.LinkVizFiles(sfig=sfig, i=i)
@@ -4722,22 +4942,18 @@ class Report(object):
             self.PrepTecplotLayoutKeys(tec, sfig, i)
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigureWidth")
-            # Figure file name.
-            fname = "%s.png" % (sfig)
+            # Output file name
+            fname = f"{sfig}.png"
             # Run Tecplot
             try:
                 # Copy the file into the current folder.
                 tec.Write(flay)
                 # Run the layout.
                 ExportLayout(flay, fname=fname, w=wfig)
-                # Move the file.
-                os.rename(fname, os.path.join(fpwd, fname))
-                # Form the line
-                line = (
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fname))
-                # Include the graphics.
-                lines.append(line)
+                # Move the file
+                os.rename(fname, os.path.join(dirname, fname))
+                # Include
+                self.includegraphics(fname, lines, i)
             except Exception:
                 pass
         # Go to the report case folder
@@ -5081,45 +5297,76 @@ class Report(object):
             tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
 
   # === Data Loaders ===
+    # Read case runner
+    def read_runner(self, i: int) -> CaseRunner:
+        r"""Read case control instance for case *i*
+
+        :Call:
+            >>> runner = r.read_runner(i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *runner*: :class:`cape.cfdx.casecntl.CaseRunner`
+                Case control instance
+        :Versions:
+            * 2025-08-26 ``@ddalle``: v1.0
+        """
+        return self.cntl.ReadCaseRunner(i)
+
     # Read iterative history
-    def ReadCaseFM(self, comp):
+    def ReadCaseFM(self, i: int, comp: str) -> CaseFM:
         r"""Read iterative history for a component
 
         This function needs to be customized for each solver
 
         :Call:
-            >>> FM = R.ReadCaseFM(comp)
+            >>> fm = r.ReadCaseFM(i, comp)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
+            *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
+            *i*: :class:`int`
+                Case index
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` | :class:`cape.cfdx.databook.CaseFM`
+            *fm*: ``None`` | :class:`cape.cfdx.casedata.CaseFM`
                 Case iterative force & moment history for one component
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
+            * 2025-08-26 ``@ddalle``: v2.0; generalized w/ CaseRunner
         """
-        return None
+        # Read runner
+        runner = self.read_runner(i)
+        # Read component
+        return runner.read_dex(comp)
 
     # Read residual history
-    def ReadCaseResid(self, sfig=None):
+    def ReadCaseResid(self, i: int) -> CaseResid:
         r"""Read iterative residual history for a component
 
         This function needs to be customized for each solver
 
         :Call:
-            >>> hist = R.ReadCaseResid()
+            >>> hist = r.ReadCaseResid(i)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
+            *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
+            *i*: :class:`int`
+                Case index
         :Outputs:
             *hist*: ``None`` | :class:`cape.cfdx.databook.CaseResid`
                 Case iterative residual history for one case
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
+            * 2025-08-26 ``@ddalle``: v2.0; generalized w/ CaseRunner
         """
-        return None
+        # Read runner
+        runner = self.read_runner(i)
+        # Read component
+        return runner.read_resid()
 
     # Function to read generic data book component
     def ReadFM(self, comp, targ=None):
@@ -5464,81 +5711,23 @@ class Report(object):
         return DBL.get(j)
 
     # Read a Tecplot script
-    def ReadTecscript(self, fsrc):
+    def ReadTecscript(self, fsrc) -> Tecscript:
         r"""Read a Tecplot script interface
 
         :Call:
-            >>> R.ReadTecscript(fsrc)
+            >>> tec = r.ReadTecscript(fsrc)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
+            *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *fscr*: :class:`str`
                 Name of file to read
+        :Outputs:
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
+                Interface to Tecplot layout/macro file
         :Versions:
             * 2016-10-25 ``@ddalle``: v1.0
         """
         return Tecscript(fsrc)
-
-  # === Status Tools ===
-    # Read the ``report.json`` file
-    def ReadCaseJSON(self):
-        r"""Read the JSON file which contains the current statuses
-
-        :Call:
-            >>> rc = R.ReadCaseJSON()
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-        :Outputs:
-            *rc*: :class:`dict`
-                Dictionary of subfigure definitions and status
-        :Versions:
-            * 2016-10-25 ``@ddalle``: v1.0
-        """
-        # Check for the file
-        if not os.path.isfile('report.json'):
-            # Default output
-            return {
-                "Status": {},
-                "Subfigures": {}
-            }
-        # Open the file
-        f = open('report.json')
-        # Read the settings.
-        try:
-            # Read from file
-            rc = json.load(f)
-        except Exception:
-            # No settings read
-            rc = {}
-        # Close the file.
-        f.close()
-        # Ensure the existence of main sections
-        rc.setdefault("Status", {})
-        rc.setdefault("Subfigures", {})
-        # Return the settings
-        return rc
-
-    # Write all settings
-    def WriteCaseJSON(self, rc):
-        """Write the current status to ``report.json``
-
-        :Call:
-            >>> R.WriteCaseJSON(rc)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *rc*: :class:`dict`
-                Dictionary of subfigure definitions and status
-        :Versions:
-            * 2016-10-25 ``@ddalle``: v1.0
-        """
-        # Open the file
-        f = open('report.json', 'w')
-        # Write the contents.
-        json.dump(rc, f, indent=1)
-        # Close the file.
-        f.close()
 
   # === Sweep Indices ===
     # Function to get update sweeps
@@ -5724,6 +5913,41 @@ class Report(object):
         # Output
         return I
 
+  # === TeX Tools ===
+   # --- Images/includegraphics ---
+    def includegraphics(self, fimg: str, lines: list, i: int):
+        r"""Add line for including image in a file
+
+        This automates checks if the file exists and links to the
+        correct folder based on the *Location* setting.
+
+        :Call:
+            >>> r.includegraphics(fimg, lines, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *fimg*: :class:`str`
+                Name of image file to include
+            *lines*: :class:`list`\ [:class:`str`]
+                Lines of text for ``.tex`` file, appended to
+            *i*: :class:`int`
+                Case number
+        :Versions:
+            * 2025-08-25 ``@ddalle``: v1.0
+        """
+        # Get path to figure folder, relative to compile dir
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        # Absolute path
+        relfile = os.path.join(figdir, fimg).replace(os.sep, '/')
+        absfile = os.path.join(rootdir, figdir, fimg)
+        # Check for file
+        if not os.path.isfile(absfile):
+            return
+        # Include the graphics
+        lines.append(
+            '\\includegraphics[width=\\textwidth]{%s}\n' % relfile)
+
   # === Run Folder Tools ===
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
@@ -5771,6 +5995,8 @@ class Report(object):
             if not os.path.isfile(vtkfile):
                 print(f"   Missing VTK file '{vtkfile}'")
                 continue
+            # Default to using this file directly for PLT conversion
+            vtkrawfile = vtkfile
             # Check for link
             if os.path.islink(vtkfile):
                 # Get the real name
@@ -5780,27 +6006,29 @@ class Report(object):
                 # Relative path for link
                 vtkrelfile = os.path.relpath(vtkrealfile, vtkdir)
                 # Replace VTK link with original file
-                vtkfile = os.path.relpath(vtkrealfile, os.getcwd())
+                vtkrawfile = os.path.relpath(vtkrealfile, os.getcwd())
                 # Relative path for PLT link
                 pltrelfile = vtkrelfile.rsplit('.', 1)[0] + ".plt"
                 # Path to PLT link
                 pltlinkfile = vtkfile.rsplit('.', 1)[0] + ".plt"
+            # Convert it
+            convert_vtk(vtkrawfile)
+            # Create viz link for .plt that mirrors .vtk linke
+            if os.path.islink(vtkfile):
                 # Pre-create viz link for .plt file
                 if os.path.isfile(pltlinkfile):
                     os.remove(pltlinkfile)
                 os.symlink(pltrelfile, pltlinkfile)
-            # Convert it
-            convert_vtk(vtkfile)
 
   # === Image I/O ===
     # Function to save images in various formats
-    def save_figure(self, sfig=None, h=None):
-        """Write out image files in varous formats
+    def save_figure(self, sfig: str, h: dict):
+        r"""Write out image files in varous formats
 
         :Call:
-            >>> R.save_figure(sfig, sfig, h)
+            >>> r.save_figure(sfig, sfig, h)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
+            *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -5810,34 +6038,53 @@ class Report(object):
             *fimg*: :class:`str`
                 Figure name
         :Versions:
-            * 2023-06-06 ``@jmeeroff``: First version
+            * 2023-06-06 ``@jmeeroff``: v1.0
+            * 2025-08-25 ``@ddalle``: v1.1; save to get_figdir()
         """
         # Extract options
         opts = self.cntl.opts
         # Get the file formatting
         fmt = opts.get_SubfigOpt(sfig, "Format")
         dpi = opts.get_SubfigOpt(sfig, "DPI")
+        # Get destination folder
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(self.i)
+        dirname = os.path.join(rootdir, figdir)
         # Figure name
-        fimg = '%s.%s' % (sfig, fmt)
-        fpdf = '%s.pdf' % sfig
-        # Save the figure.
+        fimg = f"{sfig}.{fmt}"
+        fpdf = f"{sfig}.pdf"
+        # Absolute paths for savefig()
+        absimg = os.path.join(dirname, fimg)
+        abspdf = os.path.join(dirname, fpdf)
+        # Save the figure
         try:
             if fmt.lower() in ['pdf']:
-                # Save as vector-based image.
-                h['fig'].savefig(fimg)
+                # Save as vector-based image only
+                h['fig'].savefig(absimg)
             elif fmt.lower() in ['svg']:
                 # Save as PDF and SVG
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
+                h['fig'].savefig(absimg)
+                h['fig'].savefig(abspdf)
                 # Use PDF in LaTex
                 fimg = fpdf
             else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-                h['fig'].savefig(fpdf)
-            # Close the figure.
+                # Save with resolution
+                h['fig'].savefig(absimg, dpi=dpi)
+                h['fig'].savefig(abspdf)
+            # Close the figure
             h['fig'].clf()
             # Return the image name
             return fimg
         except Exception:
             print("    Plotting failed, probably due to a NaN.")
+
+
+# Escape text for LaTeX
+def _escape(txt: str) -> str:
+    r"""Escape a regular string to appear as-is in LaTeX
+
+    :Call:
+        >>> tex = _escape(txt)
+    """
+    # Replace single characters
+    return _RE_TEX_CHARS.sub(r'\\\1', txt)

@@ -1,30 +1,30 @@
-----------------------------
-Options for ``FM`` component
-----------------------------
+-----------------------------------------------------------
+``FM``: definitions for a force & moment databook component
+-----------------------------------------------------------
 
 **Option aliases:**
 
-* *Coeffs* -> *Cols*
-* *Coefficients* -> *Cols*
-* *Component* -> *CompID*
-* *NAvg* -> *nStats*
-* *NFirst* -> *NMin*
-* *NLast* -> *NLastStats*
-* *NMax* -> *NLastStats*
-* *NStatsMax* -> *NMaxStats*
-* *coeffs* -> *Cols*
-* *cols* -> *Cols*
-* *dnStats* -> *DNStats*
-* *nAvg* -> *NStats*
-* *nFirst* -> *NMin*
-* *nLast* -> *NLastStats*
-* *nLastStats* -> *NLastStats*
-* *nMax* -> *NLastStats*
-* *nMaxStats* -> *NMaxStats*
-* *nMin* -> *NMin*
-* *nStats* -> *NStats*
-* *nStatsMax* -> *NMaxStats*
-* *tagets* -> *Targets*
+* *Coeffs* → *Cols*
+* *Coefficients* → *Cols*
+* *Component* → *CompID*
+* *NAvg* → *nStats*
+* *NFirst* → *NMin*
+* *NLast* → *NLastStats*
+* *NMax* → *NLastStats*
+* *NStatsMax* → *NMaxStats*
+* *coeffs* → *Cols*
+* *cols* → *Cols*
+* *dnStats* → *DNStats*
+* *nAvg* → *NStats*
+* *nFirst* → *NMin*
+* *nLast* → *NLastStats*
+* *nLastStats* → *NLastStats*
+* *nMax* → *NLastStats*
+* *nMaxStats* → *NMaxStats*
+* *nMin* → *NMin*
+* *nStats* → *NStats*
+* *nStatsMax* → *NMaxStats*
+* *tagets* → *Targets*
 
 **Recognized options:**
 
@@ -48,7 +48,7 @@ Options for ``FM`` component
     iterations to use in averaging window [for a comp]
 *Targets*: {``{}``} | :class:`dict`
     targets for this databook component
-*Transformations*: {``[]``} | :class:`dict`
+*Transformations*: {``{'Type': 'ScaleCoeffs', 'CLL': -1.0, 'CLN': -1.0}``} | :class:`dict`
     list of transformations applied to component
 *Type*: {``'FM'``} | :class:`str`
     databook component type

@@ -12,101 +12,12 @@ outputs tracked by the :mod:`cape` package.
 import os
 
 # Third-party imports
+from numpy import ndarray
 
 # Local imports
 from .dataiterfile import DataIterFile
 from ..cfdx import databook as cdbook
 from ..dkit import basedata
-
-
-# Component data book
-class FMDataBook(cdbook.FMDataBook):
-    # Read case FM history
-    def ReadCase(self, comp: str):
-        r"""Read a :class:`CaseFM` object
-
-        :Call:
-            >>> FM = DB.ReadCaseFM(comp)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *FM*: :class:`cape.pyfun.databook.CaseFM`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseFM object from PWD
-        return CaseFM(comp)
-
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid()
-
-
-class PropDataBook(cdbook.PropDataBook):
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid(self.proj)
-
-
-class PyFuncDataBook(cdbook.PyFuncDataBook):
-    pass
-
-
-# Target databook class
-class TargetDataBook(cdbook.TargetDataBook):
-    pass
-
-
-class TimeSeriesDataBook(cdbook.TimeSeriesDataBook):
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid(self.proj)
 
 
 # Iterative F&M history
@@ -197,26 +108,45 @@ class CaseFM(cdbook.CaseFM):
         # Read the data.iter
         data = DataIterFile(fname)
         # Unpack component name
-        comp = self.comp
+        comp = self.comp.lower()
         # Initialize data for output
         db = basedata.BaseData()
         # Identify iteration column to use
-        icol = "ctu" if "ctu" in data else "iter"
+        icol = "nt" if "nt" in data else "iter"
         # Force coeff prefix
-        fpre = "c" if f"cx_{comp}" in data else "cf"
+        infix = '' if (f'cx_{comp}' in data or f"fx_{comp}" in data) else 'f'
         # Save data
         db.save_col("i", data[icol])
         db.save_col("solver_iter", data[icol])
-        db.save_col("CL", data[f"cl_{comp}"])
-        db.save_col("CD", data[f"cd_{comp}"])
-        db.save_col("CA", data[f"{fpre}x_{comp}"])
-        db.save_col("CY", data[f"{fpre}y_{comp}"])
-        db.save_col("CN", data[f"{fpre}z_{comp}"])
-        db.save_col("CLL", data[f"cmx_{comp}"])
-        db.save_col("CLM", data[f"cmy_{comp}"])
-        db.save_col("CLN", data[f"cmz_{comp}"])
+        # Save coefficients
+        db.save_col("CL", self.get_datacol(data, '', 'l'))
+        db.save_col("CD", self.get_datacol(data, '', 'd'))
+        db.save_col("CA", self.get_datacol(data, infix, 'x'))
+        db.save_col("CY", self.get_datacol(data, infix, 'y'))
+        db.save_col("CN", self.get_datacol(data, infix, 'z'))
+        db.save_col("CLL", self.get_datacol(data, '', 'mx', ''))
+        db.save_col("CLM", self.get_datacol(data, '', 'my', ''))
+        db.save_col("CLN", self.get_datacol(data, '', 'mz', ''))
         # Output
         return db
+
+    def get_datacol(
+            self,
+            data: dict,
+            infix: str,
+            coeff: str,
+            prefix: str = 'f') -> ndarray:
+        # Possible col names
+        col = f"{coeff}_{self.comp.lower()}"
+        col1 = f"c{infix}{col}"
+        col2 = f"{prefix}{col}"
+        # Use best
+        if col1 in data:
+            # Coefficient defined directly
+            return data[col1]
+        else:
+            # Use force
+            return data.get(col2)
 
 
 # Iterative residual history
@@ -291,68 +221,3 @@ class CaseResid(cdbook.CaseResid):
         # Output
         return db
 
-
-# Aerodynamic history class
-class DataBook(cdbook.DataBook):
-    r"""Primary databook class for LAVA
-
-    :Call:
-        >>> db = DataBook(x, opts)
-    :Inputs:
-        *x*: :class:`RunMatrix`
-            Current run matrix
-        *opts*: :class:`Options`
-            Global CAPE options instance
-    :Outputs:
-        *db*: :class:`DataBook`
-            Databook instance
-    :Versions:
-        * 2024-09-30 ``@sneuhoff``: v1.0
-    """
-    _fm_cls = FMDataBook
-    _ts_cls = TimeSeriesDataBook
-    _prop_cls = PropDataBook
-    _pyfunc_cls = PyFuncDataBook
-  # ===========
-  # Readers
-  # ===========
-  # <
-
-    # Local version of data book
-    def _DataBook(self, targ):
-        self.Targets[targ] = DataBook(
-            self.cntl, RootDir=self.RootDir, targ=targ)
-
-    # Local version of target
-    def _TargetDataBook(self, targ):
-        self.Targets[targ] = TargetDataBook(
-            targ, self.x, self.opts, self.RootDir)
-  # >
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Current iteration status
-    def GetCurrentIter(self):
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = db.GetCurrentIter()
-        :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
-        :Outputs:
-            *n*: :class:`int` | ``None``
-                Iteration number
-        :Versions:
-            * 2024-09-18 ``@sneuhoff``: v1.0
-            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
-        """
-        try:
-            db = DataIterFile(meta=True)
-            return db.n
-        except Exception:
-            return None
-
-  # >

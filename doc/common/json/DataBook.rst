@@ -1,27 +1,27 @@
 .. _cape-json-databook:
 
---------------------------------
-Options for ``DataBook`` section
---------------------------------
+--------------------------------------------------------------
+``DataBook``: options for which post-processed data to collect
+--------------------------------------------------------------
 
 **Option aliases:**
 
-* *Dir* -> *Folder*
-* *NAvg* -> *nStats*
-* *NFirst* -> *NMin*
-* *NLast* -> *NLastStats*
-* *NMax* -> *NLastStats*
-* *delim* -> *Delimiter*
-* *dnStats* -> *DNStats*
-* *nAvg* -> *NStats*
-* *nFirst* -> *NMin*
-* *nLast* -> *NLastStats*
-* *nLastStats* -> *NLastStats*
-* *nMax* -> *NLastStats*
-* *nMaxStats* -> *NMaxStats*
-* *nMin* -> *NMin*
-* *nStats* -> *NStats*
-* *nStatsMax* -> *NMaxStats*
+* *Dir* → *Folder*
+* *NAvg* → *nStats*
+* *NFirst* → *NMin*
+* *NLast* → *NLastStats*
+* *NMax* → *NLastStats*
+* *delim* → *Delimiter*
+* *dnStats* → *DNStats*
+* *nAvg* → *NStats*
+* *nFirst* → *NMin*
+* *nLast* → *NLastStats*
+* *nLastStats* → *NLastStats*
+* *nMax* → *NLastStats*
+* *nMaxStats* → *NMaxStats*
+* *nMin* → *NMin*
+* *nStats* → *NStats*
+* *nStatsMax* → *NMaxStats*
 
 **Recognized options:**
 
@@ -50,6 +50,7 @@ Options for ``DataBook`` section
     :maxdepth: 1
 
     DataBook-Targets
+    DataBook-_default_
     DataBook-FM
     DataBook-IterPoint
     DataBook-LineLoad

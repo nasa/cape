@@ -685,9 +685,9 @@ def PressureFPSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
         * 2016-03-24 ``@ddalle``: Version 1.0
     """
     # Gas constant
-    if R is None: R = 1716.0
+    R = 1716.0 if (R is None) else R
     # Ratio of specific heats
-    if gam is None: gam = 1.4
+    gam = 1.4 if (gam is None) else gam
     # Sound speed
     a = np.sqrt(gam*R*T)
     # Velocity

@@ -1,8 +1,15 @@
+r"""
+:mod:`cape.cfdx.casedata`: Single-case data interfaces
+=======================================================
 
+This module provides the classes :class:`CaseFM` and
+:class:`CaseResid` that resid iterative histories of various types.
+"""
 
 # Standard library
 import os
-from typing import Optional
+from collections import namedtuple
+from typing import Any, Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -73,6 +80,16 @@ _FONT_FAMILY = [
 ]
 FONT_FAMILY = [
 ]
+
+
+#: Tuple of coordinates, *x*, *y*, *z*
+Point = namedtuple("Point", ("x", "y", "z"))
+
+#: Tuple of two components, e.g. AoA and AoS, *a*, *b*
+Pair = namedtuple("Pair", ("a", "b"))
+
+#: Pair for force and moment vector [histories], *F*, *M*
+FMPair = namedtuple("FMPair", ("F", "M"))
 
 
 # Dedicated function to load Matplotlib only when needed.
@@ -148,6 +165,7 @@ class CaseData(DataKit):
     __slots__ = (
         "coeffs",
         "iter_cache",
+        "runner",
     )
 
     # Default column lists
@@ -162,7 +180,7 @@ class CaseData(DataKit):
 
    # --- __dunder__ ---
     # Initialization method
-    def __init__(self, meta: bool = False, **kw):
+    def __init__(self, meta: bool = False, runner=None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -188,6 +206,8 @@ class CaseData(DataKit):
         # De-None
         i0 = 0 if i0 is None else i0
         i1 = 0 if i1 is None else i1
+        # Save case runner
+        self.runner = runner
 
    # --- I/O ---
     # Initialize file attritubets
@@ -570,6 +590,9 @@ class CaseData(DataKit):
         data = {}
         # Loop through cols
         for col, v in dbsub.items():
+            # Skip non-arrays
+            if not isinstance(v, np.ndarray):
+                continue
             # Create new column marking beginning of major iter
             if col == CASE_COL_SUB_ITERS:
                 # Main iteration
@@ -584,6 +607,8 @@ class CaseData(DataKit):
                 # Replace suffix
                 col0 = col.replace("_sub", "_0")
             # Save
+            if v.size != mask0.size:
+                continue
             data[col0] = v[mask0]
         # Output
         return data
@@ -1123,7 +1148,6 @@ class CaseData(DataKit):
         """
         # Find appropriate columns
         cols = self.get_cols_parent(CASE_COL_ITERS)
-        cols.append(CASE_COL_ITERS)
         # Apply mask to each
         for col in cols:
             self[col] = self[col][mask]
@@ -1154,7 +1178,7 @@ class CaseData(DataKit):
         # Loop through cols
         for colj, vj in self.items():
             # Get parent
-            parent = parents.get(colj, "")
+            parent = parents.get(colj, colj)
             # Check
             if (parent == col) and (len(vj) == n):
                 cols.append(colj)
@@ -1173,8 +1197,8 @@ class CaseData(DataKit):
                 Case component history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
-            *col*: :class:`str` | :class:`int` | ``None``
-                Select a column by name or index
+            *xcol*: {``'i``} | :class:`str`
+                Column to plot on *x*-axis
             *n*: :class:`int`
                 Only show the last *n* iterations
             *nMin*: {``0``} | :class:`int`
@@ -1278,12 +1302,8 @@ class CaseData(DataKit):
         # Process inputs.
         nLast = kw.get('nLast')
         nFirst = kw.get('nFirst', 1)
-        # De-None
-        if nFirst is None:
-            nFirst = 1
-        # Check if *nFirst* is negative
-        if nFirst < 0:
-            nFirst = self[CASE_COL_ITERS][-1] + nFirst
+        nFirst = 1 if (nFirst is None) else nFirst
+        nFirst = self[CASE_COL_ITERS][-1] + nFirst if (nFirst < 0) else nFirst
         # Iterative uncertainty options
         dc = kw.get("d", 0.0)
         ksig = kw.get("k", 0.0)
@@ -1293,6 +1313,9 @@ class CaseData(DataKit):
         fh = kw.get('FigureHeight')
         # Get iterations
         iters = self.get_all_values("i")
+        # X-axis
+        xcol = kw.get("xcol", "i")
+        xval = self.get_values(xcol)
        # ------------
        # Statistics
        # ------------
@@ -1346,8 +1369,10 @@ class CaseData(DataKit):
        # --------------
         # Get the first iteration to use in averaging.
         jA = max(j0, jB-nAvg+1)
-        # Reselect *iV* in case initial value was not in *self.i*.
-        iA = iters[jA]
+        # Ssample
+        x0 = xval[j0]
+        xA = xval[jA]
+        xB = xval[jB]
        # -----------------------
        # Standard deviation plot
        # -----------------------
@@ -1376,7 +1401,7 @@ class CaseData(DataKit):
             cMin = cAvg - ksig*c_std
             cMax = cAvg + ksig*c_std
             # Plot the target window boundaries.
-            h['std'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_s)
+            h['std'] = plt.fill_between([xA, xB], [cMin]*2, [cMax]*2, **kw_s)
        # --------------------------
        # Iterative uncertainty plot
        # --------------------------
@@ -1401,7 +1426,7 @@ class CaseData(DataKit):
             cMin = cAvg - uerr*c_err
             cMax = cAvg + uerr*c_err
             # Plot the target window boundaries.
-            h['err'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_u)
+            h['err'] = plt.fill_between([xA, xB], [cMin]*2, [cMax]*2, **kw_u)
        # ---------
        # Mean plot
        # ---------
@@ -1422,8 +1447,8 @@ class CaseData(DataKit):
             kw1[k] = kw_m.get_opt(k, 1)
         # Plot the mean.
         h['mean'] = (
-            plt.plot([i0, iA], [cAvg, cAvg], **kw0) +
-            plt.plot([iA, iB], [cAvg, cAvg], **kw1))
+            plt.plot([x0, xA], [cAvg, cAvg], **kw0) +
+            plt.plot([xA, xB], [cAvg, cAvg], **kw1))
        # ----------
        # Delta plot
        # ----------
@@ -1447,11 +1472,11 @@ class CaseData(DataKit):
             cMax = cAvg+dc
             # Plot the target window boundaries.
             h['min'] = (
-                plt.plot([i0, iA], [cMin, cMin], **kw0) +
-                plt.plot([iA, iB], [cMin, cMin], **kw1))
+                plt.plot([x0, xA], [cMin, cMin], **kw0) +
+                plt.plot([xA, xB], [cMin, cMin], **kw1))
             h['max'] = (
-                plt.plot([i0, iA], [cMax, cMax], **kw0) +
-                plt.plot([iA, iB], [cMax, cMax], **kw1))
+                plt.plot([x0, xA], [cMax, cMax], **kw0) +
+                plt.plot([xA, xB], [cMax, cMax], **kw1))
        # ------------
        # Primary plot
        # ------------
@@ -1464,7 +1489,7 @@ class CaseData(DataKit):
             if kw["PlotOptions"][k] is not None:
                 kw_p[k] = kw["PlotOptions"][k]
         # Plot the coefficient
-        h[c] = plt.plot(iters[j0:jB+1], C[j0:jB+1], **kw_p)
+        h[c] = plt.plot(xval[j0:jB+1], C[j0:jB+1], **kw_p)
         # Get the figure and axes.
         h['fig'] = plt.gcf()
         h['ax'] = plt.gca()
@@ -1478,13 +1503,15 @@ class CaseData(DataKit):
             # Use the coefficient
             ly = c
         # Process axis labels
-        xlbl = kw.get('XLabel', 'Iteration Number')
+        xlbldef = 'Iteration Number' if (xcol == 'i') else xcol
+        xlbl = kw.get('XLabel', xlbldef)
         ylbl = kw.get('YLabel', ly)
-        # Labels.
+        # Labels
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
-        # Set the xlimits.
-        h['ax'].set_xlim((i0, 1.03*iB-0.03*i0))
+        # Set the xlimits
+        if xcol == 'i':
+            h['ax'].set_xlim((i0, 1.03*iB-0.03*i0))
         # Set figure dimensions
         if fh:
             h['fig'].set_figheight(fh)
@@ -2211,10 +2238,10 @@ class CaseFM(CaseData):
         :Call:
             >>> fm2 = FM1.Copy()
         :Inputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Force and moment history
         :Outputs:
-            *FM2*: :class:`cape.cfdx.databook.CaseFM`
+            *FM2*: :class:`CaseFM`
                 Copy of *FM1*
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2234,7 +2261,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.AddData(A)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
                 Matrix of forces and/or moments at *N* iterations
@@ -2245,10 +2272,262 @@ class CaseFM(CaseData):
         """
         self.link_data(A)
 
-   # ============
-   # Operations
-   # ============
-   # <
+   # --- Conditions ---
+    # Get angle of attack
+    def get_alpha(self, vdef: float = 0.0) -> float:
+        r"""Get freestream angle of atack for this case
+
+        :Call:
+            >>> a = fm.get_alpha(vdef=1.0, units="mks")
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``0.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *a*: :class:`float`
+                Angle of attack [deg]
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        return self._get_runmatrix("GetAlpha", vdef)
+
+    # Get sideslip angle
+    def get_beta(self, vdef: float = 0.0) -> float:
+        r"""Get freestream sideslip angle for this case
+
+        :Call:
+            >>> b = fm.get_beta(vdef=1.0, units="mks")
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``0.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *b*: :class:`float`
+                Angle of sideslip [deg]
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        return self._get_runmatrix("GetBeta", vdef)
+
+    def get_qbar(
+            self, vdef: float = 1.0, units: Optional[str] = None) -> float:
+        r"""Get freestream dynamic pressure
+
+        :Call:
+            >>> qref = fm.get_qbar(vdef=1.0, units="mks")
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+            *units*: {``None``} | :class:`str`
+                Units for output (default is raw run matrix value)
+        :Outputs:
+            *qref*: :class:`float`
+                Dynamic pressure
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        return self._get_runmatrix("GetDynamicPressure", vdef, units)
+
+    def _get_runmatrix(
+            self,
+            fn: str,
+            vdef: Union[float, int, str] = 0.0,
+            units: Optional[str] = None) -> Union[float, int, str]:
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get case index
+        i = self.runner.get_case_index()
+        # Get method
+        func = getattr(cntl.x, fn)
+        # Check for units
+        kw = {} if (units is None) else {"units": units}
+        # Get dynamic pressure
+        return func(i, **kw)
+
+    # Get rotated AoA and AoS
+    def get_ab_history(self) -> Pair:
+        r"""Get angles of attack and sideslip, w/ moving-body
+
+        This transforms the initial *alpha*, *beta* from the run matrix
+        conditions using the Euler angles from moving-body, if present.
+
+        :Call:
+            >>> a, b = fm.get_ab_history()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *a*: :class:`np.ndarray` | :class:`float`
+                Angle of attack (history) [deg]
+            *b*: :class:`np.ndarray` | :class:`float`
+                Sideslip angle (history) [deg]
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Get initial (freestream) AoA and AoS
+        a = self.get_alpha()
+        b = self.get_beta()
+        # Get Euler angle history
+        ph = self.get_values("phi")
+        th = self.get_values("theta")
+        ps = self.get_values("psi")
+        # Exit if not specified
+        if (ph is None) or (th is None) or (ps is None):
+            # Generate histories
+            a = np.full(self[CASE_COL_ITRAW].size, a)
+            b = np.full(self[CASE_COL_ITRAW].size, b)
+            return Pair(a, b)
+        # Trig functions
+        ca = np.cos(a*DEG)
+        sa = np.sin(a*DEG)
+        cb = np.cos(b*DEG)
+        sb = np.sin(b*DEG)
+        # Get unit velocity vector in intertial frame
+        u = cb*ca
+        v = -sb
+        w = cb*sa
+        # Put unit velociy into body frame
+        ub, vb, wb = self.transform_euler123(Point(u, v, w))
+        # Convert to alpha, beta
+        alpha = np.arctan2(wb, ub) / DEG
+        beta = -np.arcsin(vb) / DEG
+        # Output
+        return Pair(alpha, beta)
+
+   # --- Options ---
+    # Get option: component
+    def get_databook_opt(self, opt: str, vdef=None) -> Any:
+        r"""Get a *DataBook* option for the component that *fm* tracks
+
+        :Call:
+            >>> v = fm.get_databook_opt(opt, vdef=None)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *opt*: :class:`str`
+                Name of option to query
+            *vdef*: {``None``} | :class:`object`
+                Default value
+        :Outputs:
+            *v*: :class:`object`
+                Value of run matrix's *DataBook* > *fm.comp* > *opt*
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_DataBookOpt(self.comp, opt, vdef=vdef)
+
+    def get_aref(self, vdef: float = 1.0) -> float:
+        r"""Get reference area for this component
+
+        :Call:
+            >>> aref = fm.get_aref(vdef=1.0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *aref*: :class:`float`
+                Reference area
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_RefArea(self.comp)
+
+    # Get configuration option
+    def get_lref(self, vdef: float = 1.0) -> float:
+        r"""Get reference length for this component
+
+        :Call:
+            >>> lref = fm.get_lref(vdef=1.0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *lref*: :class:`float`
+                Reference length
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_RefLength(self.comp)
+
+    # Get configuration option
+    def get_bref(self, vdef: float = 1.0) -> float:
+        r"""Get reference span for this component
+
+        :Call:
+            >>> bref = fm.get_bref(vdef=1.0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *bref*: :class:`float`
+                Reference span
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_RefSpan(self.comp)
+
+    def get_mrp(self, vdef: list = [0.0, 0.0, 0.0]) -> list:
+        r"""Get moment reference point for this component
+
+        :Call:
+            >>> xmrp = fm.get_mrp(vdef=[0.0, 0.0, 0.0])
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *vdef*: {``1.0``} | :class:`float`
+                Default value if no *fm.runner* is present
+        :Outputs:
+            *xmrp*: [:class:`float`, :class:`float`, :class:`float`]
+                Reference point
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check for runner
+        if self.runner is None:
+            return vdef
+        # Get *cntl*
+        cntl = self.runner.read_cntl()
+        # Get option
+        return cntl.opts.get_RefPoint(self.comp)
+
+   # --- Operations ---
     # Trim repeated iterations
     def trim_iters(self):
         r"""Trim any repeated iterations from history
@@ -2307,12 +2586,12 @@ class CaseFM(CaseData):
             >>> fm3 = fm1.__add__(fm2)
             >>> fm3 = fm1 + fm2
         :Inputs:
-            *fm1*: :class:`cape.cfdx.databook.CaseFM`
+            *fm1*: :class:`CaseFM`
                 Initial force and moment iterative history
-            *fm2*: :class:`cape.cfdx.databook.CaseFM`
+            *fm2*: :class:`CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *fm1*: :class:`cape.cfdx.databook.CaseFM`
+            *fm1*: :class:`CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2355,12 +2634,12 @@ class CaseFM(CaseData):
             >>> fm1 = fm1.__iadd__(fm2)
             >>> fm1 += fm2
         :Inputs:
-            *fm1*: :class:`cape.cfdx.databook.CaseFM`
+            *fm1*: :class:`CaseFM`
                 Initial force and moment iterative history
-            *fm2*: :class:`cape.cfdx.databook.CaseFM`
+            *fm2*: :class:`CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *fm1*: :class:`cape.cfdx.databook.CaseFM`
+            *fm1*: :class:`CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2403,12 +2682,12 @@ class CaseFM(CaseData):
             >>> fm3 = FM1.__sub__(FM2)
             >>> fm3 = FM1 - FM2
         :Inputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.cfdx.databook.CaseFM`
+            *FM2*: :class:`CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2451,12 +2730,12 @@ class CaseFM(CaseData):
             >>> fm1 = fm1.__isub__(fm2)
             >>> fm1 -= fm2
         :Inputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.cfdx.databook.CaseFM`
+            *FM2*: :class:`CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.cfdx.databook.CaseFM`
+            *FM1*: :class:`CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -2488,12 +2767,8 @@ class CaseFM(CaseData):
             self[col] -= fm[col][:n]
         # Apparently you need to output
         return self
-   # >
 
-   # =================
-   # Transformations
-   # =================
-   # <
+   # --- Transformations ---
     # Transform force or moment reference frame
     def TransformFM(self, topts: dict, x: dict, i: int):
         r"""Transform a force and moment history
@@ -2529,7 +2804,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.TransformFM(topts, x, i)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -2678,7 +2953,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.ShiftMRP(Lref, x, xi=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *Lref*: :class:`float`
                 Reference length
@@ -2711,12 +2986,355 @@ class CaseFM(CaseData):
         # Yawing moment: axial force
         if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
             self["CLN"] += (xi[0]-x[0])/Lref*self["CY"]
-   # >
 
-   # ===========
-   # Statistics
-   # ===========
-   # <
+    # Rotate forces for moving-body
+    def transform_fm321_body(self):
+        r"""Shift moment [coefficient] for moving-body MRP movements
+
+        :Call:
+            >>> fm.shift_mrtransform_fm321_body()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Instance of the force and moment class
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Loop through suffixes
+        for suffix in ('', 'p', 'v'):
+            # Get force coefficients
+            ca = self.get_values(f"CA{suffix}")
+            cy = self.get_values(f"CY{suffix}")
+            cn = self.get_values(f"CN{suffix}")
+            # Check for misses
+            if (ca is None) or (cy is None) or (cn is None):
+                continue
+            # Construct "point" histories
+            f = Point(ca, cy, cn)
+            # Rotate forces
+            fp = self.transform_euler123(f)
+            # Save
+            self.save_col(f"CAb{suffix}", fp.x)
+            self.save_col(f"CYb{suffix}", fp.y)
+            self.save_col(f"CNb{suffix}", fp.z)
+            # Get moment coefficients
+            cll = self.get_values(f"CLLb{suffix}")
+            clm = self.get_values(f"CLMb{suffix}")
+            cln = self.get_values(f"CLNb{suffix}")
+            # Check for misses
+            if (cll is None) or (clm is None) or (cln is None):
+                continue
+            # Construct "point" histories
+            m = Point(cll, clm, cln)
+            # Transform
+            mp = self.transform_euler123(m)
+            # Save
+            self.save_col(f"CLLb{suffix}", mp.x)
+            self.save_col(f"CLMb{suffix}", mp.y)
+            self.save_col(f"CLNb{suffix}", mp.z)
+        # Loop through suffixes
+        for suffix in ('', 'p', 'v'):
+            # Get force values
+            ca = self.get_values(f"Fx{suffix}")
+            cy = self.get_values(f"Fy{suffix}")
+            cn = self.get_values(f"Fz{suffix}")
+            # Check for misses
+            if (ca is None) or (cy is None) or (cn is None):
+                continue
+            # Construct "point" histories
+            f = Point(ca, cy, cn)
+            # Save
+            self.save_col(f"Fxb{suffix}", fp.x)
+            self.save_col(f"Fyb{suffix}", fp.y)
+            self.save_col(f"Fzb{suffix}", fp.z)
+            # Get moment coefficients
+            cll = self.get_values(f"Mxb{suffix}")
+            clm = self.get_values(f"Myb{suffix}")
+            cln = self.get_values(f"Mzb{suffix}")
+            # Check for misses
+            if (cll is None) or (clm is None) or (cln is None):
+                continue
+            # Construct "point" histories
+            m = Point(cll, clm, cln)
+            # Transform
+            mp = self.transform_euler123(m)
+            # Save
+            self.save_col(f"Mxb{suffix}", mp.x)
+            self.save_col(f"Myb{suffix}", mp.y)
+            self.save_col(f"Mzb{suffix}", mp.z)
+
+    # Shift moment center for specified points
+    def shift_mrp_body(self):
+        r"""Shift moment [coefficient] for moving-body MRP movements
+
+        :Call:
+            >>> fm.shift_mrp_body()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Instance of the force and moment class
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Get rotation origin
+        x0 = self.get_rotation_origin()
+        # Get history of MRP
+        x = self.genr8_mrp_history()
+        # Loop through suffixes
+        for suffix in ('', 'p', 'v'):
+            # Get force coefficients
+            ca = self.get_values(f"CA{suffix}")
+            cy = self.get_values(f"CY{suffix}")
+            cn = self.get_values(f"CN{suffix}")
+            # Check for misses
+            if (ca is None) or (cy is None) or (cn is None):
+                continue
+            # Get moment coefficients
+            cll = self.get_values(f"CLL{suffix}")
+            clm = self.get_values(f"CLM{suffix}")
+            cln = self.get_values(f"CLN{suffix}")
+            # Check for misses
+            if (cll is None) or (clm is None) or (cln is None):
+                continue
+            # Construct "point" histories
+            f = Point(ca, cy, cn)
+            m = Point(cll, clm, cln)
+            # Transform
+            mp = self._shift_mrp(x0, x, f, m)
+            # Save
+            self.save_col(f"CLLb{suffix}", mp.x)
+            self.save_col(f"CLMb{suffix}", mp.y)
+            self.save_col(f"CLNb{suffix}", mp.z)
+        # Loop through suffixes
+        for suffix in ('', 'p', 'v'):
+            # Get force values
+            ca = self.get_values(f"Fx{suffix}")
+            cy = self.get_values(f"Fy{suffix}")
+            cn = self.get_values(f"Fz{suffix}")
+            # Check for misses
+            if (ca is None) or (cy is None) or (cn is None):
+                continue
+            # Get moment coefficients
+            cll = self.get_values(f"Mx{suffix}")
+            clm = self.get_values(f"My{suffix}")
+            cln = self.get_values(f"Mz{suffix}")
+            # Check for misses
+            if (cll is None) or (clm is None) or (cln is None):
+                continue
+            # Construct "point" histories
+            f = Point(ca, cy, cn)
+            m = Point(cll, clm, cln)
+            # Transform
+            mp = self._shift_mrp(x0, x, f, m)
+            # Save
+            self.save_col(f"Mxc{suffix}", mp.x)
+            self.save_col(f"Myc{suffix}", mp.y)
+            self.save_col(f"Mzc{suffix}", mp.z)
+
+    def _shift_mrp(self, x0: Point, x: Point, f: Point, m: Point) -> Point:
+        # Get reference length
+        lref = self.get_lref()
+        # Unpack MRP, before and after
+        x0, y0, z0 = x0
+        x, y, z = x
+        # Unpack forces
+        ca, cy, cn = f
+        cll, clm, cln = m
+        # Copy moments
+        cll = cll.copy()
+        clm = clm.copy()
+        cln = cln.copy()
+        # Transform rolling moment
+        cll -= (z0-z)/lref * cy
+        cll += (y0-y)/lref * cn
+        # Transform pitching moment
+        clm -= (x0-x)/lref * cn
+        clm += (z0-z)/lref * ca
+        # Transform yawing moment
+        cln -= (y0-y)/lref * ca
+        cln += (x0-x)/lref * cy
+        # Output
+        return Point(cll, clm, cln)
+
+    # Rotate a point history
+    def rotate_point_history(
+            self,
+            x: Union[float, np.ndarray],
+            y: Union[float, np.ndarray],
+            z: Union[float, np.ndarray],
+            x0: Union[float, np.ndarray],
+            y0: Union[float, np.ndarray],
+            z0: Union[float, np.ndarray]) -> Point:
+        r"""Rotate a point history using *phi*, *theta*, *psi*
+
+        No rotations will be performed if Euler angle columns are not
+        present in ``fm``.
+
+        :Call:
+            >>> p = fm.rotate_point_history(x, y, z, x0, y0, z0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *x*: :class:`np.ndarray` | :class:`float`
+                Pre-rotation point
+            *y*: :class:`np.ndarray` | :class:`float`
+                Pre-rotation point
+            *z*: :class:`np.ndarray` | :class:`float`
+                Pre-rotation point coord
+            *x0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+            *y0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+            *z0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+        :Outputs:
+            *p*: :class:`cape.cfdx.casedata.Point`
+                Named tuple object of *p.x*, *p.y*, *p.z* after rotation
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Get position relative to origin
+        p = Point(x-x0, y-y0, z-z0)
+        # Rotate
+        dp = self.transform_euler321(p)
+        # Relative to ration point
+        return Point(x0+dp.x, y0+dp.y, z0+dp.z)
+
+    # Apply rotations
+    def transform_euler321(self, p: Point) -> Point:
+        # Get angle history
+        ph = self.get_values("phi")
+        th = self.get_values("theta")
+        ps = self.get_values("psi")
+        # Exit if not specified
+        if (ph is None) or (th is None) or (ps is None):
+            return p
+        # Calculate trig functions
+        cph = np.cos(ph*DEG)
+        sph = -np.sin(ph*DEG)
+        cth = np.cos(th*DEG)
+        sth = np.sin(th*DEG)
+        cps = np.cos(ps*DEG)
+        sps = -np.sin(ps*DEG)
+        # Unpack point
+        x, y, z = p
+        # Rotate
+        xp = cth*cps*x + (cph*sps-cph*sth*sps)*y + (sph*sps+cph*sth*cps)*z
+        yp = -cth*sps*x + (cph*cps+sph*sth*sps)*y + (sph*cps-cph*sth*sps)*z
+        zp = -sth*x - sph*cth*y + cth*cph*z
+        # Output
+        return Point(xp, yp, zp)
+
+    # Apply rotations in opposite direction
+    def transform_euler123(self, p: Point) -> Point:
+        # Get angle history
+        ph = self.get_values("phi")
+        th = self.get_values("theta")
+        ps = self.get_values("psi")
+        # Exit if not specified
+        if (ph is None) or (th is None) or (ps is None):
+            return p
+        # Calculate trig functions
+        cph = np.cos(ph*DEG)
+        sph = -np.sin(ph*DEG)
+        cth = np.cos(th*DEG)
+        sth = np.sin(th*DEG)
+        cps = np.cos(ps*DEG)
+        sps = -np.sin(ps*DEG)
+        # Unpack point
+        x, y, z = p
+        # Transformations
+        xb = cps*cth*x - sps*cth*y - sth*z
+        yb = (cph*sps-sph*sth*cps)*x + (cph*cps+sph*sth*sps)*y - sph*cth*z
+        zb = (sph*sps+cph*sth*cps)*x + (sph*cps-cph*sth*sps)*y + cth*cph*z
+        # Output
+        return Point(xb, yb, zb)
+
+    # Get history of MRP
+    def genr8_mrp_history(self) -> Point:
+        r"""Get moment reference point history, w/ motion if applicable
+
+        :Call:
+            >>> x, y, z = fm.genr8_mrp_history()
+            >>> p = fm.genr8_mrp_history()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *y*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *z*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *p*: :class:`cape.cfdx.casedata.Point`
+                Named tuple object of *p.x*, *p.y*, *p.z*
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Get rotation origin
+        x0, y0, z0 = self.get_rotation_origin()
+        # Get MRP history, using rotations as needed
+        return self.rotate_mrp(x0, y0, z0)
+
+    # Get history of MRP
+    def get_rotation_origin(self) -> Point:
+        r"""Get rotation origin [history]
+
+        :Call:
+            >>> x, y, z = fm.get_rotation_origin()
+            >>> p = fm.genr8_mrget_rotation_origin_history()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *x*: :class:`np.ndarray` | :class:`float`
+                Coordinate of origin of rotation
+            *y*: :class:`np.ndarray` | :class:`float`
+                Coordinate of origin of rotation
+            *z*: :class:`np.ndarray` | :class:`float`
+                Coordinate of origin of rotation
+            *p*: :class:`cape.cfdx.casedata.Point`
+                Named tuple object of *p.x*, *p.y*, *p.z*
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Output
+        return Point(0.0, 0.0, 0.0)
+
+    def rotate_mrp(self, x0: float, y0: float, z0: float) -> Point:
+        r"""Get moment reference point history, w/ motion if applicable
+
+        :Call:
+            >>> x, y, z = fm.rotate_mrp(x0, y0, z0)
+            >>> p = fm.rotate_mrp(x0, y0, z0)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+            *x0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+            *y0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+            *z0*: :class:`np.ndarray` | :class:`float`
+                Coordinate of rotation cnter
+        :Outputs:
+            *x*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *y*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *z*: :class:`np.ndarray`\ [:class:`float`]
+                Iterative history of *xMRP*
+            *p*: :class:`cape.cfdx.casedata.Point`
+                Named tuple object of *p.x*, *p.y*, *p.z*
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Get reference point
+        xmrp, ymrp, zmrp = self.get_mrp()
+        # Get history
+        x, y, z = self.rotate_point_history(xmrp, ymrp, zmrp, x0, y0, z0)
+        # Output
+        return Point(x, y, z)
+
+   # --- Statistics ---
     # Method to get averages and standard deviations
     def GetStatsN(self, nStats=100, nLast=None):
         r"""Get mean, min, max, and standard deviation for all coefficients
@@ -2724,7 +3342,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStatsN(nStats, nLast=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Number of iterations in window to use for statistics
@@ -2801,7 +3419,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStatsOld(nStats, nMax=None, nLast=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Minimum number of iterations in window to use for statistics
@@ -2862,7 +3480,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStatsCoeff(coeff, nStats=100, nMax=None, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
@@ -2919,7 +3537,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStats(nStats, nMax=None, nLast=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
@@ -2971,12 +3589,8 @@ class CaseFM(CaseData):
         s["nStats"] = ns
         # Output
         return s
-   # >
 
-   # ==========
-   # Plotting
-   # ==========
-   # <
+   # --- Plotting ---
     # Plot iterative force/moment history
     def PlotCoeff(self, c: str, n=None, **kw):
         r"""Plot a single coefficient history
@@ -2984,7 +3598,7 @@ class CaseFM(CaseData):
         :Call:
             >>> h = fm.PlotCoeff(c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the component force history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
@@ -3022,7 +3636,7 @@ class CaseFM(CaseData):
         :Call:
             >>> h = fm.PlotCoeffHist(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Instance of the component force history class
             *comp*: :class:`str`
                 Name of component to plot
@@ -3049,7 +3663,6 @@ class CaseFM(CaseData):
             * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
         """
         return self.PlotValueHist(c, nAvg=nAvg, nBin=nBin, nLast=None, **kw)
-   # >
 
 
 # Individual component: generic property

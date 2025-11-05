@@ -130,6 +130,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 
 # CAPE modules
+from .filecntl.mapbcfile import MapBCFile
 from .util import RangeString, SplitLineGeneral
 from .cfdx.options import util
 
@@ -251,8 +252,9 @@ class ConfigXML(SurfConfig):
                 self.ProcessTransform(comp, d)
             else:
                 # Unrecognized tag
-                raise ValueError("Unrecognized tag '%s' for component '%s'" %
-                    (x.tag, comp))
+                raise ValueError(
+                    "Unrecognized tag '%s' for component '%s'" %
+                    (d.tag, comp))
             # Process any parents.
             self.AppendParent(c, compID)
 
@@ -286,8 +288,9 @@ class ConfigXML(SurfConfig):
                 self.ProcessTransform(comp, d)
             else:
                 # Unrecognized tag
-                raise ValueError("Unrecognized tag '%s' for component '%s'" %
-                    (x.tag, comp))
+                raise ValueError(
+                    "Unrecognized tag '%s' for component '%s'" %
+                    (d.tag, comp))
             # Process any parents.
             self.AppendParent(c, compID)
 
@@ -468,7 +471,8 @@ class ConfigXML(SurfConfig):
                 })
             else:
                 # Unrecognized type
-                raise ValueError("Unrecognized transform tag '%s' for '%s'" %
+                raise ValueError(
+                    "Unrecognized transform tag '%s' for '%s'" %
                     (x.tag, comp))
 
     # Function to recursively append components to parents and their parents
@@ -493,14 +497,16 @@ class ConfigXML(SurfConfig):
         # Check for a parent.
         parent = c.get("Parent")
         # Check for no parent
-        if parent is None: return
+        if parent is None:
+            return
         # Check for recursion.
         if c.get('Name') == parent:
             # Recursive parent situation
             raise ValueError('Component "%s" is its own parent.' % parent)
         elif parent not in self.Names:
             # Parent could not be found
-            raise KeyError('Component "%s" has invalid parent "%s"' %
+            raise KeyError(
+                'Component "%s" has invalid parent "%s"' %
                 (c.get("Name"), parent))
         # Initialize the parent if necessary
         self.faces.setdefault(parent, [])
@@ -602,15 +608,16 @@ class ConfigXML(SurfConfig):
         # Number of transformations currently defined
         n = len(T)
         # Default index
-        if i is None: i = n
+        if i is None:
+            i = n
         # Check if transformation *i* exists
         if i < n:
             # Transformation exists; check type
             typ = T[i].get("Type", "Rotate")
             # Check type
             if typ != "Rotate":
-                raise ValueError("Transform %s for '%s' is not a rotation"
-                    % (i, comp))
+                raise ValueError(
+                    "Transform %s for '%s' is not a rotation" % (i, comp))
         elif i > n:
             # Cannot add this rotation
             raise ValueError(
@@ -662,14 +669,15 @@ class ConfigXML(SurfConfig):
         # Number of transformations currently defined
         n = len(T)
         # Default index
-        if i is None: i = n
+        i = n if i is None else i
         # Check if transformation *i* exists
         if i < n:
             # Transformation exists; check type
             typ = T[i].get("Type", "Translate")
             # Check type
             if typ != "Translate":
-                raise ValueError("Transform %s for '%s' is not a translation"
+                raise ValueError(
+                    "Transform %s for '%s' is not a translation"
                     % (i, comp))
         elif i > n:
             # Cannot add this rotation
@@ -693,7 +701,8 @@ class ConfigXML(SurfConfig):
                 # Check if parameter in *T[i]*
                 T[i].setdefault(k, R[k])
                 # Check if we should overwrite current settings
-                if k in kw: T[i][k] = R[k]
+                if k in kw:
+                    T[i][k] = R[k]
 
     # Write the file
     def Write(self, fname=None):
@@ -786,7 +795,8 @@ class ConfigXML(SurfConfig):
             # Get the list of components in the component.
             compID = self.GetCompID(comp)
             # Check if negative
-            if any(compID) < 0: return
+            if any(compID) < 0:
+                return
             print("       %s: %s" % (comp, compID))
             # Single component
             lbl = "Face Label"
@@ -874,7 +884,8 @@ class ConfigXML(SurfConfig):
             * 2016-08-23 ``@ddalle``: v1.0
         """
         # Check if component has one or more transformations
-        if comp not in self.transform: return
+        if comp not in self.transform:
+            return
         # Write the transform tag
         f.write("    <Transform>\n")
         # Loop through transformations
@@ -893,7 +904,7 @@ class ConfigXML(SurfConfig):
                 # Convert center to string
                 if type(cent).__name__ in ['list', 'ndarray']:
                     # Ensure doubles
-                    cent = ", ".join(['%.12e'%v for v in cent])
+                    cent = ", ".join(['%.12e' % v for v in cent])
                 # Convert axis to string
                 if type(ax).__name__ in ['list', 'ndarray']:
                     # Convert to float and then string
@@ -913,7 +924,7 @@ class ConfigXML(SurfConfig):
                 # Convert center to string
                 if type(dx).__name__ in ['list', 'ndarray']:
                     # Ensure doubles
-                    dx = ", ".join(['%.12e'%v for v in dx])
+                    dx = ", ".join(['%.12e' % v for v in dx])
                 # Write values
                 f.write(' Displacement="%s"' % dx)
             # Close the element
@@ -1082,7 +1093,7 @@ class ConfigXML(SurfConfig):
         if t.startswith('int'):
             # Valid single-component ID
             return compID
-        elif (t in ['list', 'ndarray']) and (len(compID)==1):
+        elif (t in ['list', 'ndarray']) and (len(compID) == 1):
             # Valid singleton list
             return compID[0]
         else:
@@ -1219,13 +1230,14 @@ class ConfigMIXSUR(SurfConfig):
             # Save reference condition index
             comp["NREF"] = nref
             # Initialize grids
-            subs = np.zeros((nsub,8))
+            subs = np.zeros((nsub, 8))
             # Loop through subsets
             for j in range(nsub):
                 # Read the subset input
                 V = self.readline(f)
                 # Save the information
-                for i in range(8): subs[j,i] = int(V[i])
+                for i in range(8):
+                    subs[j, i] = int(V[i])
             # Save the subsets
             comp["SUBS"] = subs
             # Read the number of PRIS
@@ -1233,13 +1245,14 @@ class ConfigMIXSUR(SurfConfig):
             # Number of PRIs
             npri = int(V[0])
             # Initialize PRIs
-            pris = np.zeros((npri,2))
+            pris = np.zeros((npri, 2))
             # Loop through PRIs
             for j in range(npri):
                 # Read the subset input
                 V = self.readline(f)
                 # Save the information
-                for i in range(2): pris[j,i] = int(V[i])
+                for i in range(2):
+                    pris[j, i] = int(V[i])
             # Save PRIs
             comp["PRIS"] = pris
             # Append component
@@ -1323,7 +1336,8 @@ class ConfigMIXSUR(SurfConfig):
             # Single face
             for par in self.faces:
                 # Do not process single comps
-                if par in self.comps: continue
+                if par in self.comps:
+                    continue
                 # Check if this comp is in there
                 if comp in self.faces[par]:
                     parents.append(par)
@@ -1331,9 +1345,11 @@ class ConfigMIXSUR(SurfConfig):
             # *face* is a group
             for par in self.faces:
                 # Do not process single comps
-                if par in self.comps: continue
+                if par in self.comps:
+                    continue
                 # Do not process self
-                if par == face: continue
+                if par == face:
+                    continue
                 # Get components in *par*
                 comppar = self.faces[par]
                 # Initialize parent test
@@ -1349,7 +1365,6 @@ class ConfigMIXSUR(SurfConfig):
                     parents.append(par)
         # Save the parent list
         self.parents[face] = parents
-
 
     # Method to copy a configuration
     def Copy(self):
@@ -1412,7 +1427,8 @@ class ConfigMIXSUR(SurfConfig):
             # Read the next line
             line = f.readline()
             # Check for end-of-file (EOF)
-            if line == "": return
+            if line == "":
+                return
             # Split it
             V = SplitLineGeneral(line)
         # Output
@@ -1510,7 +1526,7 @@ class ConfigJSON(SurfConfig):
         *fname*: {``"Config.json"``} | :class:`str`
             Name of JSON file from which to read tree and properties
     :Outputs:
-        *cfg*: :class:`cape.config.ConfigJSON`
+        *cfg*: :class:`ConfigJSON`
             JSON-based configuration interface
     :Attributes:
         *cfg.faces*: :class:`dict`\ [:class:`list` | :class:`int`]
@@ -1548,8 +1564,8 @@ class ConfigJSON(SurfConfig):
         self.tree  = opts.get("Tree")
         self.order = opts.get("Order")
         # Save the major sections
-        if self.props is None: self.props = opts
-        if self.tree  is None: self.tree = opts
+        self.props = opts if self.props is None else self.props
+        self.tree = opts if self.tree is None else self.tree
         # Save
         self.opts = opts
         # Initialize component list
@@ -1576,14 +1592,39 @@ class ConfigJSON(SurfConfig):
         return '<cape.ConfigJSON(nComp=%i, faces=%s)>' % (
             len(self.faces), self.faces.keys())
 
+    # Restrict to CompIDs in a MapBC file
+    def ApplyMapBC(self, fname: str):
+        r"""Read a ``.mapbc`` file and renumber components accordingly
+
+        :Call:
+            >>> cfg.ApplyMapBC(fname)
+        :Inputs:
+            *cfg*: :class:`ConfigJSON`
+                Surface configuration instance
+            *fname*: :class:`str`
+                Name of ``.mapbc`` file to read and apply
+        :Versions:
+            * 2025-10-03 ``@ddalle``: v1.0
+        """
+        # Read the ``.mapbc`` file
+        mapbc = MapBCFile(fname)
+        # Loop through names that are present
+        for j, comp in enumerate(mapbc.Names):
+            # Get CompID listed in MapBC file
+            i = int(mapbc.CompID[j])
+            # Apply renumbering rules
+            self.RenumberCompID(comp, i)
+        # Eliminate unused components
+        self.RestrictCompID(mapbc.CompID)
+
     # Method to get CompIDs from generic input
-    def GetCompID(self, face, warn: bool = False):
+    def GetCompID(self, face: str, warn: bool = False) -> list:
         r"""Return a list of component IDs from generic input
 
         :Call:
             >>> compID = cfg.GetCompID(face)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 XML surface config instance
             *face*: :class:`str` | :class:`int` | :class:`list`
                 Component number, name, or list thereof
@@ -1631,7 +1672,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> compfacesID = cfg.GetGetFamily(face)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 XML surface config instance
             *face*: :class:`str` | :class:`int` | :class:`list`
                 Component number, name, or list thereof
@@ -1719,7 +1760,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> compID = cfg.AppendChild(c, parent=None)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
             *c*: :class:`str`
                 Name of component in "Tree" section
@@ -1757,7 +1798,8 @@ class ConfigJSON(SurfConfig):
                 if f is None:
                     # Do not append
                     print(
-                        "Skipping '%s' child comp '%s'; no CompID" % (c, child))
+                        "Skipping '%s' child comp '%s'; no CompID"
+                        % (c, child))
                     continue
                 elif isinstance(f, list):
                     # Add two lists together
@@ -1814,7 +1856,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.RestrictCompID(compIDs)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
             *compIDs*: :class:`list`\ [:class:`int`]
                 List of relevant component IDs
@@ -1859,8 +1901,10 @@ class ConfigJSON(SurfConfig):
                     # Delete the face
                     del self.faces[face]
                 else:
+                    # Convert to list[int]
+                    facelist = list(map(int, F))
                     # Use the restricted subset
-                    self.faces[face] = F
+                    self.faces[face] = facelist
 
     # Get list of components that are not parents
     def GetTriFaces(self):
@@ -1869,7 +1913,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> comps = cfg.GetTriFaces()
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
         :Outputs:
             *comps*: :class:`list`\ [:class:`str`]
@@ -1915,7 +1959,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.WriteXML(fname="Config.xml", name=None, source=None)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
             *fname*: {``"Config.xml"``} | :class:`str`
                 Name of file to write
@@ -1952,7 +1996,8 @@ class ConfigJSON(SurfConfig):
                 # Integers are already faces
                 q = True
                 # Check for valid face
-                if compID < 0: continue
+                if compID < 0:
+                    continue
             else:
                 # Get the compID from properties
                 c = self.GetPropCompID(face)
@@ -1965,7 +2010,8 @@ class ConfigJSON(SurfConfig):
                     q = True
                     compID = compID[0]
                     # Check validity
-                    if compID < 0: continue
+                    if compID < 0:
+                        continue
                 else:
                     # One component, but from a single child
                     q = False
@@ -2032,7 +2078,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.WriteAFLR3BC(fname)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
             *fname*: :class:`str`
                 Name of AFLR3 boundary condition file to write
@@ -2088,7 +2134,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.WriteFun3DMapBC(fname)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
             *fname*: :class:`str`
                 Name of mapbc file to write
@@ -2133,13 +2179,14 @@ class ConfigJSON(SurfConfig):
                     # Copy from *bc*
                     aflr3bc = bc
             # Check for valid wall boundary condition
-            if (aflr3bc == 3) or (fun3dbc == False):
+            if (aflr3bc == 3) or (fun3dbc is False):
                 # This is a source; do not add it to the Fun3D BCs
                 continue
             # Set the component ID
             compID = self.GetPropCompID(face)
             # Check for negative component
-            if compID < 0: continue
+            if compID < 0:
+                continue
             # Add the component
             comps0.append(face)
             bcs[face] = fun3dbc
@@ -2170,7 +2217,7 @@ class ConfigJSON(SurfConfig):
         f.close()
 
     # Renumber a component
-    def RenumberCompID(self, face, compID):
+    def RenumberCompID(self, face: str, compID: int):
         r"""Renumber the component ID number
 
         This affects *cfg.faces* for *face* and each of its parents, and
@@ -2179,13 +2226,15 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.RenumberCompID(face, compID)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration
             *face*: :class:`str`
                 Name of component to rename
         :Versions:
             * 2016-11-09 ``@ddalle``: v1.0
         """
+        # Ensure int (rather than possible np.int)
+        compID = int(compID)
         # Get the current component number
         compi = self.faces[face]
         # Reset it
@@ -2219,7 +2268,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> cfg.RenumberCompIDParent(face, compi, compo)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration
             *face*: :class:`str`
                 Name of component whose parents should be renumbered
@@ -2233,7 +2282,8 @@ class ConfigJSON(SurfConfig):
         # Get parent
         parents = self.parents[face]
         # Check None
-        if parents is None: return
+        if parents is None:
+            return
         # Loop through parents
         for parent in parents:
             # Get the parent's face data
@@ -2242,13 +2292,15 @@ class ConfigJSON(SurfConfig):
             # Replace the parent value
             if t == 'list':
                 # Check for membership
-                if compi not in comp: continue
+                if compi not in comp:
+                    continue
                 # Make the replacement
                 comp[comp.index(compi)] = compo
             else:
                 # Check for membership
-                I = np.where(comp==compi)[0]
-                if len(I) == 0: continue
+                I = np.where(comp == compi)[0]
+                if len(I) == 0:
+                    continue
                 # Make the replacement
                 comp[I[0]] = compo
             # Recurse
@@ -2261,7 +2313,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> comps = cfg.ResetCompIDs()
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
         :Versions:
             * 2016-11-09 ``@ddalle``: v1.0
@@ -2282,7 +2334,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> comps = cfg.SortCompIDs()
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration instance
         :Outputs:
             *comps*: :class:`list`\ [:class:`str`]
@@ -2357,7 +2409,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> compID = cfg.GetPropCompID(comp)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
             *c*: :class:`str`
                 Name of component in "Tree" section
@@ -2380,7 +2432,8 @@ class ConfigJSON(SurfConfig):
             return int(prop)
         elif t not in ['dict', 'odict']:
             # Not a valid type
-            raise TypeError(("Properties for component '%s' " % comp) +
+            raise TypeError(
+                ("Properties for component '%s' " % comp) +
                 "must be either a 'dict' or 'int'")
         elif "CompID" not in prop:
             # Missing property
@@ -2396,7 +2449,7 @@ class ConfigJSON(SurfConfig):
         :Call:
             >>> v = cfg.GetProperty(comp, k, name=None, vdef=None)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
+            *cfg*: :class:`ConfigJSON`
                 JSON-based configuration interface
             *comp*: :class:`str`
                 Name of component to query
@@ -2421,7 +2474,7 @@ class ConfigJSON(SurfConfig):
         if q:
             return v
         # Loop through parents until one is reached
-        for parent in self.parents[comp]:
+        for parent in self.parents.get(comp, []):
             # Get the value from that parent (note: this may recurse)
             v = self.GetProperty(parent, k, name)
             # Check for success (otherwise try next parent if there is one)
@@ -2430,6 +2483,101 @@ class ConfigJSON(SurfConfig):
         # If this point is reached, could not find property in any parent
         return vdef
 
+    # Find alias
+    def GetCanonicalName(self, comp: str) -> str:
+        r"""Use aliases to get preferred name for a component
+
+        :Call:
+            >>> fullname = cfg.GetCanonicalName(comp)
+        :Inputs:
+            *cfg*: :class:`ConfigJSON`
+                JSON-based configuration interface
+            *comp*: :class:`str`
+                Name or alias name of a component
+        :Outputs:
+            *name*: :class:`str`
+                Preferred name for *comp*, including *comp* if no
+                aliases are found
+        :Versions:
+            * 2025-10-31 `@ddalle``: v1.0
+        """
+        # Get alias map
+        aliases = self.make_alias_map()
+        # Apply it
+        return aliases.get(comp, comp)
+
+    # Make map of aliases
+    def make_alias_map(self) -> dict:
+        r"""Create (if necessary) and return map of component aliases
+
+        :Call:
+            >>> aliases = cfg.make_alias_map()
+        :Inputs:
+            *cfg*: :class:`ConfigJSON`
+                JSON-based configuration interface
+        :Outputs:
+            *aliases*: :class:`dict`\ [:class:`str`]
+                Map of canonical name for each potential alias
+        :Versions:
+            * 2025-10-31 `@ddalle``: v1.0
+        """
+        # Check for one
+        aliases = getattr(self, "_aliases", None)
+        # Return it?
+        if isinstance(aliases, dict):
+            return aliases
+        # Create it
+        return self.create_alias_map()
+
+    # Create map of aliases
+    def create_alias_map(self) -> dict:
+        r"""Create, save, and return map of component aliases
+
+        :Call:
+            >>> aliases = cfg.create_alias_map()
+        :Inputs:
+            *cfg*: :class:`ConfigJSON`
+                JSON-based configuration interface
+        :Outputs:
+            *aliases*: :class:`dict`\ [:class:`str`]
+                Map of canonical name for each potential alias
+        :Versions:
+            * 2025-10-31 `@ddalle``: v1.0
+        """
+        # Initialize output
+        aliases = {}
+        # Loop through properties
+        for name, prop in self.props.items():
+            # Check for singleton properties
+            if not isinstance(prop, dict):
+                continue
+            # Check for aliases
+            comps = prop.get("Aliases")
+            parts = self.GetProperty(name, "PartAliases")
+            # Check for any
+            if comps is None and parts is None:
+                continue
+            # Use current part as one of the aliases
+            part = name.split('_', 1)[0]
+            comp = name.split('_', 1)[-1]
+            # List-ify
+            comp_aliases = (
+                comps if isinstance(comps, list) else
+                ([comp] if comps is None else [comps]))
+            part_aliases = (
+                parts if isinstance(parts, list) else
+                ([] if parts is None else [parts]))
+            part_aliases.append(part)
+            # Add all aliases
+            for part_alias in part_aliases:
+                for alias in comp_aliases:
+                    aliases[f"{part_alias}_{alias}"] = name
+        # Save it
+        self._aliases = aliases
+        # Output
+        return aliases
+
+    # Ger property tool
     def _get_property(self, comp, k, name=None):
         # Get component properties
         opts = self.props.get(comp, {})

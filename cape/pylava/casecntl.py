@@ -16,12 +16,14 @@ import re
 from typing import Optional
 
 # Third-party modules
+import numpy as np
 
 # Local imports
 from . import cmdgen
 from .. import fileutils
 from .databook import CaseFM, CaseResid
 from .dataiterfile import DataIterFile
+from .runinpfile import CartInputFile
 from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
@@ -51,6 +53,9 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Class attributes ---
     # Additional atributes
     __slots__ = (
+        "data_iter",
+        "runinpfile",
+        "runinpfile_j",
         "yamlfile",
         "yamlfile_j",
     )
@@ -78,6 +83,9 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2023-06-28 ``@ddalle``: v1.0
         """
+        self.data_iter = None
+        self.runinpfile = None
+        self.runinpfile_j = None
         self.yamlfile = None
         self.yamlfile_j = None
 
@@ -163,8 +171,9 @@ class CaseRunner(casecntl.CaseRunner):
             # Create an empty file
             fileutils.touch(fhist)
 
+   # --- Status ---
     # Function to get total iteration number
-    def getx_restart_iter(self):
+    def getx_restart_iter(self) -> int:
         r"""Get total iteration number of most recent flow file
 
         :Call:
@@ -178,11 +187,48 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2024-09-16 ``@sneuhoff``: v1.0
         """
+        # Read options
+        rc = self.read_case_json()
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Check which command to generate
+        if solver == "cartesian":
+            # Search for a restart file
+            pat = self.genr8_restart_regex()
+            mtch = self.match_regex(pat)
+            # Check for a search result
+            if mtch is None:
+                return 0
+            # Infer iteration
+            n = int(mtch.group(1))
+            return n
+        # Fallback to current iter
         return self.getx_iter()
+
+    def get_restart_ctu(self) -> float:
+        # Read options
+        rc = self.read_case_json()
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Check which command to generate
+        if solver == "cartesian":
+            # Get iteartion
+            n = self.get_restart_iter()
+            # Read data.iter
+            dat = self.read_data_iter(meta=False)
+            # Locate *n* in history
+            mask, = np.where(dat["nt"] == n)
+            # Check for match
+            if mask.size == 0:
+                return 0.0
+            # Convert to CTU
+            return dat["ctu"][mask[0]]
+        # Fallback
+        return 0.0
 
     # Get current iteration
     def getx_iter(self):
-        r"""Get the most recent iteration number for LAVACURV case
+        r"""Get the most recent iteration number for a LAVA case
 
         :Call:
             >>> n = runner.getx_iter()
@@ -199,9 +245,98 @@ class CaseRunner(casecntl.CaseRunner):
         # Read it, but only metadata
         db = self.read_data_iter(meta=True)
         # Return the last iteration
-        return int(db.n + 0.99)
+        return db.n
+
+    # Get current iteration
+    def get_ctu(self) -> float:
+        r"""Get the most recent iteration Char. Time Unit value
+
+        :Call:
+            >>> t = runner.get_ctu()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *t*: :class:`float`
+                Last time step (characteristic units)
+        :Versions:
+            * 2025-08-14 ``@sneuhoff``: v1.0
+        """
+        # Read it, but only metadata
+        db = self.read_data_iter(meta=True)
+        # Return the last iteration
+        return db.t
+
+    # Get CTU cutoff
+    def get_ctu_max(self, j: Optional[int] = None) -> float:
+        r"""Get the characteristic time units cutoff for phase *j*
+
+        :Call:
+            >>> t = runner.get_ctu_max()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *t*: :class:`float`
+                Last time step (characteristic units)
+        :Versions:
+            * 2025-08-15 ``@sneuhoff``: v1.0
+        """
+        # Get solver
+        rc = self.read_case_json()
+        solver = rc.get_LAVASolver()
+        # Filter
+        if solver == "cartesian":
+            # Default phase
+            j = j if (j is not None) else self.get_phase()
+            # Read settings
+            opts = self.read_runinputs(j)
+            # Get option
+            ctumax = opts.get_opt("time", "finish ctu")
+            ctumax = 0.0 if ctumax is None else ctumax
+            # Use it
+            return ctumax
+        # Fallback
+        return 0.0
+
+    # Check for exit criteria
+    def check_alt_exit(self, j: Optional[int] = None) -> bool:
+        # Get solver
+        rc = self.read_case_json()
+        solver = rc.get_LAVASolver()
+        # Default phase
+        j = j if (j is not None) else self.get_phase()
+        # Filter
+        if solver == "cartesian":
+            # Check for CTU criteria
+            ctumax = self.get_ctu_max(j)
+            if (not ctumax):
+                return False
+            # Check current value
+            ctu = self.get_ctu()
+            return bool(ctu + 0.5 >= ctumax)
+        elif solver == "curvilinear":
+            # Read YAML file
+            yamlfile = self.read_runyaml(j)
+            # Section with convergence stuff
+            sec = "nonlinearsolver"
+            # Maximum iterations
+            maxiters = yamlfile.get_lava_subopt(sec, "iterations")
+            # Read data
+            db = self.read_data_iter(meta=False)
+            if db.n >= maxiters:
+                return True
+            # Target convergence
+            l2conv_target = yamlfile.get_lava_subopt(sec, "l2conv")
+            # Apply it
+            if l2conv_target:
+                # Check reported convergence
+                return db.l2conv <= l2conv_target
+        # Fallback
+        return False
 
    # --- File manipulation ---
+    # Prepare any input files as needed
     def prepare_files(self, j: int):
         r"""Prepare files for phase *j*, LAVA-specific
 
@@ -218,9 +353,65 @@ class CaseRunner(casecntl.CaseRunner):
         # Create post-processing and log folder to ensure permissions
         self.mkdir("isosurface")
         self.mkdir("monitor")
+        self.mkdir("point_probe")
         self.mkdir("restart")
         self.mkdir("surface")
         self.mkdir("volume")
+        # Automatically configure restart settings
+        self.prepare_restart(j)
+
+    # Set restart option if appropriate
+    def prepare_restart(self, j: int):
+        r"""Automatically configure a case to restart if appropriate
+
+        :Call:
+            >>> runner.prepare_restart(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        # Get settings
+        rc = self.read_case_json()
+        # Get solver type
+        solver = rc.get_LAVASolver()
+        # Create function name
+        funcname = f"prepare_restart_{solver}"
+        # Get function, if any
+        func = getattr(self, funcname)
+        # Call it if possible
+        if callable(func):
+            func(j)
+
+    # Set restart option for Cart
+    def prepare_restart_cartesian(self, j: int):
+        r"""Automatically configure LAVA-Cartesian for restart
+
+        :Call:
+            >>> runner.prepare_restart_cartesian(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        # Read input file
+        opts = self.read_runinputs(j)
+        # Search for a restart file
+        restartfile = self.get_restart_file()
+        # Set it
+        opts.set_opt("solver defaults", "restart.file", restartfile)
+        # Remove it if not a restart
+        if restartfile is None:
+            # Remove restart file if previously set
+            opts["solver defaults"].pop("restart", None)
+        # Write
+        opts.write()
 
     # Link best Output files
     @casecntl.run_rootdir
@@ -245,23 +436,52 @@ class CaseRunner(casecntl.CaseRunner):
             # Go to that viz folder
             os.chdir(self.root_dir)
             os.chdir(vizdir)
+            # Form search pattern from within that folder
+            pat = os.path.join(vizdir, r"(.+)\.[0-9]+\.([a-z0-9]+)")
             # Get groups using archivist
-            vgrp = a.search_regex(r"/(.+)\.[0-9]+\.([a-z0-9]+)")
+            vgrp = a.search_regex(pat)
             # Loop through keys:
             for fnstr in vgrp.keys():
                 # Parse the filename to link to
                 parse = re.findall(r"'(.*?)'", fnstr)
                 # Append the output name and last file
                 fname = f'{parse[0]}.{parse[1]}'
-                fsrc = vgrp[fnstr][-1]
+                # Don't include relative paths in link
+                fsrc = os.path.basename(vgrp[fnstr][-1])
                 # Link the files
-                self.link_file(fname, fsrc)
+                self.link_file(fsrc, fname, f=True)
 
-   # --- Special readers ---
-    # Read namelist
+   # --- Search ---
+    def get_restart_file(self, j: Optional[int] = None) -> Optional[str]:
+        # Get search pattern
+        pat = self.genr8_restart_regex()
+        # Search
+        mtch = self.match_regex(pat)
+        # Return it if possible
+        if mtch:
+            return mtch.group()
+
+    def genr8_restart_regex(self) -> str:
+        r"""Return a regular expression that matches all restart files
+
+        :Call:
+            >>> pat = runner.genr8_restart_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Regular expression pattern
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+        """
+        return os.path.join("restart", "Cart_restart.([0-9]+).hdf5")
+
+   # --- Input files ---
+    # Read YAML inputs
     @casecntl.run_rootdir
     def read_runyaml(self, j: Optional[int] = None) -> RunYAMLFile:
-        r"""Read case namelist file
+        r"""Read case's LAVA-Curvilinear input file
 
         :Call:
             >>> yamlfile = runner.read_runyaml(j=None)
@@ -297,6 +517,52 @@ class CaseRunner(casecntl.CaseRunner):
         # Return it
         return self.yamlfile
 
+    # Read Cart inputs
+    @casecntl.run_rootdir
+    def read_runinputs(self, j: Optional[int] = None) -> CartInputFile:
+        r"""Read case's LAVA-Cartesian input file
+
+        :Call:
+            >>> yamlfile = runner.read_runinputs(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *yamlfile*: :class:`CartInputFile`
+                LAVA YAML input file interface
+        :Versions:
+            * 2025-08-14 ``@ddalle``: v1.0
+            * 2025-09-03 ``@ddalle``: v1.1; check for file
+        """
+        # Read ``case.json`` if necessary
+        rc = self.read_case_json()
+        # Process phase number
+        if j is None and rc is not None:
+            # Default to most recent phase number
+            j = self.get_phase()
+        # Get phase of namelist previously read
+        runinpj = self.runinpfile_j
+        # Check if already read
+        if isinstance(self.runinpfile, CartInputFile):
+            if runinpj == j and j is not None:
+                # Return it!
+                return self.runinpfile
+        # Get name of file to read
+        fname = cmdgen.infix_phase("run.inputs", j)
+        # Check for file
+        if os.path.isfile(fname):
+            # Read it
+            self.runinpfile = CartInputFile(fname)
+        else:
+            # Read from *cntl*
+            cntl = self.read_cntl()
+            return cntl.CartInputs
+        # Return it
+        return self.runinpfile
+
+   # --- Special readers ---
     # Check if case is complete
     @casecntl.run_rootdir
     def check_complete(self) -> bool:
@@ -352,7 +618,8 @@ class CaseRunner(casecntl.CaseRunner):
     def read_data_iter(
             self,
             fname: str = ITER_FILE,
-            meta: bool = True) -> DataIterFile:
+            meta: bool = False,
+            force: bool = False) -> DataIterFile:
         r"""Read ``data.iter``, if present
 
         :Call:
@@ -364,16 +631,28 @@ class CaseRunner(casecntl.CaseRunner):
                 Name of file to read
             *meta*: {``True``} | ``False``
                 Option to only read basic info such as last iter
+            *force*: ``True`` | {``False``}
+                Reread even if cached
         :Versions:
             * 2024-08-02 ``@sneuhoff``; v1.0
             * 2024-10-11 ``@ddalle``: v2.0
+            * 2025-08-14 ``@ddalle``: v2.1; cache, *force*
         """
+        # Check cache
+        if (not force) and (self.data_iter is not None):
+            return self.data_iter
         # Default file names for convenience
         fname = fname if os.path.isfile(fname) else ITER_FILE
         fname = fname if os.path.isfile(fname) else ITER_FILE_CART
         # Check if file exists
         if os.path.isfile(fname):
-            return DataIterFile(fname, meta=meta)
+            # Read existing file
+            dat = DataIterFile(fname, meta=meta)
+            # Cache it (not *meta*)
+            if not meta:
+                self.data_iter = dat
+            # Output
+            return dat
         else:
             # Empty instance
             return DataIterFile(None)

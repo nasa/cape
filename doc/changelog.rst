@@ -3,6 +3,175 @@
 Changelog
 ********************
 
+Release 2.2.0
+=============================
+
+CAPE 2.2 is an important release that substantially reduces the amount of
+unlikeable code under the hood. In many cases, the improvements will not be
+highly visible to users, which is the intent. The intended benefit of this
+restructuring is really to make it easier to implement new features, which is
+already paying off on several additions in the works.
+
+New Features
+---------------
+
+*   Status check commands, e.g. ``pyfun -c`` now have an option to add
+    additional columns as columns in the status table. For example:
+
+    .. code-block:: console
+
+        $ pyfun -c --add-cols "user,arch"
+        Case Config/Run Directory  Status  Iterations Que CPU Time user   arch
+        ---- --------------------- ------- ---------- --- -------- ------ ----
+        0    poweroff/m0.5a0.0b0.0 ---     /          .            ddalle rom
+        1    poweroff/m0.5a2.0b0.0 ---     /          .            jmeero mil
+        2    poweroff/m0.5a0.0b2.0 ---     /          .            ddalle ivy
+
+    Users may also use the ``--cols`` option to only select certain columns
+
+    .. code-block:: console
+
+        $ cape -c --cols "i,case,progress"
+        Case Case Folder  Iterations
+        ---- ------------ ----------
+        0    m0.5a0.0b0.0 500/1000
+        1    m0.5a2.0b0.0 / 
+        2    m0.5a0.0b2.0 /
+
+*   The various solvers now have an ability to detect "early exits." Some
+    solvers run fewer than the requested number of iterations if, for example,
+    a specified convergence criteria is met early. Previous versions of CAPE
+    in some cases got stuck in a loop trying to rerun such cases, but the new
+    capability will reduce *PhaseIters* to match whatever point the solver
+    exited at if it detects a purposeful early exit.
+
+*   Tecplot subfigures can now work directly from VTK files. If the user
+    defines the option *VTKFiles* for a ``"Tecplot"`` type subfigure, CAPE can
+    convert them using ``cape.gruvoc`` (see the CAPE 2.1.0 release notes)
+    combined with PyVista to convert them to ``.plt`` files before proceeding
+    with the flow viz image generation.
+
+*   On a related note, there is now a ``cape-vtk2plt`` executable that can
+    convert many VTK files to Tecplot ``.plt`` format directly from the command
+    line.
+
+*   The ``"Mesh"`` section of each JSON file now supports new options
+    ``"CopyAsFiles"`` and ``"LinkAsFiles"``. These are in addition to
+    ``"CopyFiles"``, which enables users to copy files into each case's run
+    folder as they are. The ``"CopyAsFiles"`` option is a :mod:`dict` that
+    enables users to rename files as they are copied. For example
+
+    .. code-block:: javascript
+
+        "Mesh": {
+            "CopyAsFiles": {
+                "inputs/mesh/config02.lb8.ugrid": "pyfun.lb8.ugrid"
+            }
+        }
+    
+    will copy the file ``inputs/mesh/config02.lb8.ugrid`` into each case folder
+    but rename it ``pyfun.lb8.ugrid`` in the process.
+
+*   A new run matrix variable type, ``"altitude"``, has been added and has been
+    integrated into the ``cape.pykes`` module.
+
+Behavior Changes
+-------------------
+
+*   The infrastructure for "DataBook" has been rewritten. Commands like
+
+    .. code-block:: console
+
+        $ pyfun --fm
+        $ pyfun --ll
+        $ pyfun --triqfm
+
+    will continue to work as before (though with some more informative output
+    to the command line), and the force & moment data will look almost
+    identical. However, the line load data files take a much different form.
+
+    A line load databook for a component called ``"STACK"`` for a run matrix
+    with cases like ``poweron/m0.50a0.0`` would have created a whole herd of
+    files in the old-style line load databooks:
+
+    *   ``ll_STACK.csv``: status and conds of which cases have been completed
+    *   ``lineload/poweron/m0.50a0.0/LineLoad_STACK.csv``: loads for one case
+    *   ``lineload/poweron/m0.50a2.0/LineLoad_STACK.csv``: loads for one case
+    *   ``lineload/poweron/m0.50a4.0/LineLoad_STACK.csv``: loads for one case
+    *   ``lineload/poweron/m0.70a0.0/LineLoad_STACK.csv``: loads for one case
+    *   ...
+
+    You will now see a single file, ``ll_STACK.csv``, which has all of the data
+    in a format that's quite compatible with revision control using `git`. It
+    will have a **lot** of columns! If you have 10 run matrix variables and you
+    select 100 slices for the ``STACK`` component, the column count will be
+    710. But it works quite well and is much simpler to interact with than the
+    previous multiple-file mess.
+
+    For a DataBook component of type ``"TriqFM"``, you will see a similar theme,
+    though the effect is much less dramatic. Suppose you have a component ``fin``
+    that has patches ``front``, ``top``, ``left``, ``right``, and ``back``. In the
+    old databooks you would have seen these files:
+
+    *   ``triqfm/triqfm_fin.csv`` (combined loads on all patches)
+    *   ``triqfm/triqfm_fin_front.csv``
+    *   ``triqfm/triqfm_fin_top.csv``
+    *   ``triqfm/triqfm_fin_left.csv``
+    *   ``triqfm/triqfm_fin_right.csv``
+    *   ``triqfm/triqfm_fin_back.csv``
+
+    whereas now you will only see a single file
+
+    *   ``triqfm/triqfm_fin.csv``
+
+*   Raw files for automated reports (e.g. from ``pyfun --report``) can now be
+    either saved in the ``report/`` folder (the previous standard) or directly
+    in the case folder (the new default). Users can control this with the new
+    *Location* option on the *Reports* section. It's defined for each report
+    and can be either ``"case"`` or ``"report"``.
+
+    The upgrades to CAPE reports will result in smaller file sizes and also
+    enable caching of text-based subfigures (such as force & moment summary
+    tables), which previously had to be regenerated each time a report was
+    compiled.
+
+Bugs Fixed
+--------------
+
+*   Several recent versions of CAPE did not support having mixed CSV/JSON
+    definitions for run matrix conditions. For example, you might have a run
+    matrix definition like this:
+
+    .. code-block:: javascript
+
+        "RunMatrix": {
+            "Keys": ["mach", "alpha", "beta", "config"],
+            "File": "matrix.csv",
+            "Config": "poweroff"
+        }
+    
+    with the following in ``matrix.csv``:
+
+    .. code-block:: none
+
+        # mach, alpha, beta
+          0.50, 2.0,  0.0
+          0.80, 4.0, -1.0
+          0.95, 1.5,  2.0
+    
+    This is supposed to work, using ``"poweroff"`` as the value for *config*
+    for all three cases, but it was broken in CAPE 2.1.
+
+*   The *limiter* option for Cart3D in non-adaptive cases now affects the
+    ``input.cntl`` files that CAPE creates.
+
+Features Paused
+---------------------
+
+*   As a result of the major rewrite of how reports are generated, sweep
+    reports are temporarily not functional. They can be reimplemented without
+    too much difficulty, but didn't make the priority cut for this release.
+
 
 Release 2.1.1
 =============================

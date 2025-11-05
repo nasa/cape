@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 :mod:`cape.pylch.databook`: Loci/CHEM data book module
-=====================================================
+========================================================
 
 This module provides interfaces to the various CFD outputs tracked by
 the :mod:`cape` package. These versions are specific to Loci/CHEM.
@@ -18,7 +18,6 @@ import numpy as np
 from ..cfdx import databook as cdbook
 from ..cfdx.cntl import Cntl
 from ..dkit import tsvfile
-from ..fileutils import tail
 
 
 # Constatns
@@ -33,96 +32,6 @@ MCOL_PAIRS = (
     ("My", "CLM"),
     ("Mz", "CLN"),
 )
-
-
-# Target databook class
-class TargetDataBook(cdbook.TargetDataBook):
-    pass
-
-
-# Databook for one component
-class FMDataBook(cdbook.FMDataBook):
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
-        :Outputs:
-            *H*: :class:`CaseResid`
-                Residual history
-        :Versions:
-            * 2024-09-30 ``@sneuhoff``: v1.0
-        """
-        # Read CaseResid object from PWD
-        return CaseResid()
-
-    # Read case FM history
-    def ReadCase(self, comp: str):
-        r"""Read a :class:`CaseFM` object
-
-        :Call:
-            >>> fm = db.ReadCase(comp)
-        :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *fm*: :class:`CaseFM`
-                Force and moment history
-        :Versions:
-            * 2024-09-30 ``@sneuhoff``: v1.0
-        """
-        # Read CaseResid object from PWD
-        return CaseFM(comp)
-
-
-class PropDataBook(cdbook.PropDataBook):
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid(self.proj)
-
-
-class PyFuncDataBook(cdbook.PyFuncDataBook):
-    pass
-
-
-class TimeSeriesDataBook(cdbook.TimeSeriesDataBook):
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid(self.proj)
 
 
 # Iterative F&M history
@@ -414,61 +323,4 @@ class CaseResid(cdbook.CaseResid):
         # Save residuals
         db.save_col(rcol, np.sqrt(L2squared))
 
-
-# Aerodynamic history class
-class DataBook(cdbook.DataBook):
-    r"""Primary databook class for LAVA
-
-    :Call:
-        >>> db = DataBook(x, opts)
-    :Inputs:
-        *x*: :class:`RunMatrix`
-            Current run matrix
-        *opts*: :class:`Options`
-            Global CAPE options instance
-    :Outputs:
-        *db*: :class:`DataBook`
-            Databook instance
-    :Versions:
-        * 2024-09-30 ``@sneuhoff``: v1.0
-    """
-    _fm_cls = FMDataBook
-    _ts_cls = TimeSeriesDataBook
-    _prop_cls = PropDataBook
-    _pyfunc_cls = PyFuncDataBook
-  # ===========
-  # Readers
-  # ===========
-  # <
-  # >
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Current iteration status
-    def GetCurrentIter(self) -> int:
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = db.GetCurrentIter()
-        :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
-        :Outputs:
-            *n*: :class:`int`
-                Iteration number
-        :Versions:
-            * 2025-05-20 ``@ddalle``: v1.0
-        """
-        # Check for resid file
-        try:
-            # Read last line of residual file
-            line = tail(os.path.join("output", "resid.dat"))
-            # Get iteration number
-            return int(line.split(maxsplit=1)[0])
-        except Exception:
-            return 0
-
-  # >
 

@@ -1,7 +1,4 @@
 
-:mod:`cape.tnakit.statutils`: Statistics tools
-=================================================
-
-.. automodule:: cape.tnakit.statutils
+.. automodule:: cape.statutils
     :members:
 

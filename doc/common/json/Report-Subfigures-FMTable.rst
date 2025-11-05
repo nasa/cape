@@ -1,17 +1,17 @@
----------------------------------
-Options for ``FMTable`` subfigure
----------------------------------
+------------------------------------------------------
+``FMTable``: table of key scalar or coefficient values
+------------------------------------------------------
 
 **Option aliases:**
 
-* *nStats* -> *NStats*
-* *nMinStats* -> *NMinStats*
-* *nMaxStats* -> *NMaxStats*
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
+* *nStats* → *NStats*
+* *nMinStats* → *NMinStats*
+* *nMaxStats* → *NMaxStats*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
 
 **Recognized options:**
 

@@ -227,70 +227,14 @@ def test_updatedatabookpt():
     # Call dbook updater
     cntl.UpdateTriqPoint(**KW5)
     # Location of output databooks
-    dbout1 = os.path.join("data/bullet/pt_p100.csv")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout1, "test.05.out")
-    # Test updated FM Databook
-    assert result.line1 == result.line2
-
-
-@testutils.run_sandbox(__file__, TEST_FILES)
-def test_deletecasespt():
-    os.mkdir("data")
-    os.mkdir(os.path.join("data", "bullet"))
-    # Use test.01.out as existing databook
-    shutil.copy("test.05.out", os.path.join("data", "bullet", "pt_p100.csv"))
-    # Get cntl
-    cntl = Cntl()
-    # Call dbook updater
-    cntl.UpdateTriqPoint(**KW6)
-    # Location of output databook
-    dbout = os.path.join("data/bullet/pt_p100.csv")
-    # Location of old databook
-    dbold = os.path.join("data/bullet/pt_p100.csv.old")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.06.out")
-    # Test deleted FM Databook
-    assert result.line1 == result.line2
-    # Test old databook exists
-    assert os.path.exists(dbold)
-
-
-@testutils.run_sandbox(__file__, TEST_FILES)
-def test_updatedatabookfunc():
-    # Get cntl
-    cntl = Cntl()
-    # Call dbook updater
-    cntl.UpdatePyFuncDataBook(**KW7)
-    # Location of output databooks
-    dbout1 = os.path.join("data/bullet/pyfunc_functest.csv")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout1, "test.07.out")
-    # Test updated FM Databook
-    assert result.line1 == result.line2
-
-
-@testutils.run_sandbox(__file__, TEST_FILES)
-def test_deletecasesfunc():
-    os.mkdir("data")
-    os.mkdir(os.path.join("data", "bullet"))
-    # Use test.01.out as existing databook
-    shutil.copy("test.07.out",
-                os.path.join("data", "bullet", "pyfunc_functest.csv"))
-    # Get cntl
-    cntl = Cntl()
-    # Call dbook updater
-    cntl.UpdatePyFuncDataBook(**KW8)
-    # Location of output databook
-    dbout = os.path.join("data/bullet/pyfunc_functest.csv")
-    # Location of old databook
-    dbold = os.path.join("data/bullet/pyfunc_functest.csv.old")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.08.out")
-    # Test deleted FM Databook
-    assert result.line1 == result.line2
-    # Test old databook exists
-    assert os.path.exists(dbold)
+    dbout1 = os.path.join("data", "bullet", "triqpt_pmap.csv")
+    # Make sure it exists
+    assert os.path.isfile(dbout1)
+    # Read it
+    db = cntl.read_dex("pmap")
+    # Test values
+    assert abs(db["p100.cp"][0] - 1.340) <= 0.01
+    assert abs(db["p101.cp"][0] + 0.687) <= 0.01
 
 
 @testutils.run_sandbox(__file__, TEST_FILES2)
@@ -300,32 +244,12 @@ def test_updatedatabooktriqfm():
     # Call dbook updater
     cntl.UpdateTriqFM(**KW9)
     # Location of output databooks
-    dbout1 = os.path.join("data/bullet/triqfm/triqfm_cap.csv")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout1, "test.09.out")
-    # Test updated FM Databook
-    assert result.line1 == result.line2
+    dbout1 = os.path.join("data", "bullet", "triqfm", "triqfm_cap.csv")
+    # Make sure it exists
+    assert os.path.isfile(dbout1)
+    # Read it
+    db = cntl.read_dex("cap_patch")
+    # Test values
+    assert abs(db["Cp_min"][0] + 0.71) <= 0.015
+    assert abs(db["CA"][0] - 0.92) <= 0.025
 
-
-@testutils.run_sandbox(__file__, TEST_FILES2)
-def test_deletecasestriqfm():
-    os.mkdir("data")
-    os.mkdir(os.path.join("data", "bullet"))
-    os.mkdir(os.path.join("data", "bullet", "triqfm"))
-    # Use test.01.out as existing databook
-    shutil.copy("test.09.out",
-                os.path.join("data", "bullet", "triqfm", "triqfm_cap.csv"))
-    # Get cntl
-    cntl = Cntl()
-    # Call dbook updater
-    cntl.UpdateTriqFM(**KW10)
-    # Location of output databook
-    dbout = os.path.join("data/bullet/triqfm/triqfm_cap.csv")
-    # Location of old databook
-    dbold = os.path.join("data/bullet/triqfm/triqfm_cap.csv.old")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.10.out")
-    # Test deleted FM Databook
-    assert result.line1 == result.line2
-    # Test old databook exists
-    assert os.path.exists(dbold)

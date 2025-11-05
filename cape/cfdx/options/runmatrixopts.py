@@ -21,6 +21,7 @@ KEY_TYPEMAP = {
     "ALPHA_P": "aoap",
     "ALPHA_T": "aoap",
     "ALPHA_TOTAL": "aoap",
+    "ALTITUDE": "altitude",
     "AOA": "alpha",
     "AOAP": "aoap",
     "AOS": "beta",
@@ -28,6 +29,9 @@ KEY_TYPEMAP = {
     "Alpha_p": "aoap",
     "Alpha_t": "aoap",
     "Alpha_total": "aoap",
+    "Alt": "altitude",
+    "AltH": "altitude",
+    "Altitude": "altitude",
     "BETA": "beta",
     "Beta": "beta",
     "CONFIG": "config",
@@ -44,6 +48,8 @@ KEY_TYPEMAP = {
     "Gamma": "gamma",
     "GroupPrefix": "config",
     "GroupSuffix": "GroupLabel",
+    "HEIGHT": "altitude",
+    "Height": "altitude",
     "LABEL": "label",
     "Label": "label",
     "M": "mach",
@@ -129,9 +135,13 @@ KEY_TYPEMAP = {
     "alpha_p": "aoap",
     "alpha_t": "aoap",
     "alpha_total": "aoap",
+    "alt": "altitude",
+    "alth": "altitude",
     "aoa": "alpha",
     "aos": "alpha",
     "density": "rho",
+    "h": "altitude",
+    "height": "altitude",
     "m": "mach",
     "other": "value",
     "p0_inf": "p0",
@@ -199,6 +209,8 @@ class KeyDefnOpts(OptionsDict):
     _optmap = {
         "DType": "Value",
         "DataType": "Value",
+        "DisplayScale": "FormatMultiplier",
+        "ScaleDisplay": "FormatMultiplier",
     }
 
     # Types
@@ -257,6 +269,17 @@ class AlphaKeyDefnOpts(KeyDefnOpts):
     # Defaults
     _rc = {
         "Abbreviation": "a",
+    }
+
+
+# Definitions for angle of attack
+class AltitudeKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "h",
     }
 
 
@@ -833,6 +856,7 @@ class KeyDefnCollectionOpts(OptionsDict):
         "V": VelocityKeyDefnOpts,
         "XMLInput": XMLInputKeyDefnOpts,
         "alpha": AlphaKeyDefnOpts,
+        "altitude": AltitudeKeyDefnOpts,
         "aoap": AOAPKeyDefnOpts,
         "beta": BetaKeyDefnOpts,
         "config": ConfigKeyDefnOpts,

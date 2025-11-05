@@ -1,14 +1,14 @@
------------------------------------------
-Options for ``SweepConditions`` subfigure
------------------------------------------
+----------------------------------------------------------
+``SweepConditions``: table conditions for a sweep of cases
+----------------------------------------------------------
 
 **Option aliases:**
 
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
 
 **Recognized options:**
 

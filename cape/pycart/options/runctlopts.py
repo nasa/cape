@@ -120,6 +120,11 @@ class FlowCartOpts(ExecOpts):
         "y_is_spanwise": BOOL_TYPES,
     }
 
+    # Permissible values
+    _optvals = {
+        "limiter": (0, 1, 2, 3, 4, 5),
+    }
+
     # Defaults
     _rc = {
         "binaryIO": True,

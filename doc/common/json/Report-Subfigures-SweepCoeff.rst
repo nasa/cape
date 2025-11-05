@@ -1,33 +1,33 @@
-------------------------------------
-Options for ``SweepCoeff`` subfigure
-------------------------------------
+--------------------------------------------------------------
+``SweepCoeff``: subfigure to plot sweep through multiple cases
+--------------------------------------------------------------
 
 **Option aliases:**
 
-* *FigHeight* -> *FigureHeight*
-* *FigWidth* -> *FigureWidth*
-* *GridStyle* -> *GridPlotOptions*
-* *LineOptions* -> *PlotOptions*
-* *MinorGridStyle* -> *MinorGridPlotOptions*
-* *RestrictionLocation* -> *RestrictionLoc*
-* *RestrictionX* -> *RestrictionXPosition*
-* *RestrictionY* -> *RestrictionYPosition*
-* *dpi* -> *DPI*
-* *nPlotFirst* -> *NPlotFirst*
-* *nFirst* -> *NPlotFirst*
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
-* *Sigma* -> *KSigma*
-* *StDevOptions* -> *SigmaPlotOptions*
-* *StandardDeviation* -> *KSigma*
-* *col* -> *Coefficient*
-* *ksig* -> *KSigma*
-* *nSigma* -> *KSigma*
-* *sig* -> *NSigma*
-* *sigma* -> *KSigma*
+* *FigHeight* → *FigureHeight*
+* *FigWidth* → *FigureWidth*
+* *GridStyle* → *GridPlotOptions*
+* *LineOptions* → *PlotOptions*
+* *MinorGridStyle* → *MinorGridPlotOptions*
+* *RestrictionLocation* → *RestrictionLoc*
+* *RestrictionX* → *RestrictionXPosition*
+* *RestrictionY* → *RestrictionYPosition*
+* *dpi* → *DPI*
+* *nPlotFirst* → *NPlotFirst*
+* *nFirst* → *NPlotFirst*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
+* *Sigma* → *KSigma*
+* *StDevOptions* → *SigmaPlotOptions*
+* *StandardDeviation* → *KSigma*
+* *col* → *Coefficient*
+* *ksig* → *KSigma*
+* *nSigma* → *KSigma*
+* *sig* → *NSigma*
+* *sigma* → *KSigma*
 
 **Recognized options:**
 
@@ -36,9 +36,9 @@ Options for ``SweepCoeff`` subfigure
 *Caption*: {``None``} | :class:`str`
     subfigure caption
 *Coefficient*: {``None``} | :class:`str`
-    value of option "Coefficient"
-*Component*: {``None``} | :class:`str`
-    value of option "Component"
+    column(s) to plot iterative history of
+*Component*: {``'entire'``} | :class:`str`
+    component(s) for which to plot *Coefficient*
 *DPI*: {``150``} | :class:`int`
     dots per inch if saving as rasterized image
 *FigureHeight*: {``4.5``} | :class:`float`
@@ -51,8 +51,8 @@ Options for ``SweepCoeff`` subfigure
     whether to show axes grid in background
 *GridPlotOptions*: {``{}``} | :class:`dict`
     plot options for major grid, if shown
-*KSigma*: {``None``} | :class:`float`
-    value of option "KSigma"
+*KSigma*: {``0.0``} | :class:`float`
+    multiple of sigma to plot above and below mean
 *MinMax*: {``False``} | ``True``
     option to plot min/max of value over iterative window
 *MinMaxOptions*: {``None``} | :class:`PlotCoeffSweepMinMaxPlotOpts`
@@ -78,7 +78,7 @@ Options for ``SweepCoeff`` subfigure
 *RestrictionYPosition*: {``None``} | :class:`float`
     explicit y-coord of restriction
 *SigmaPlotOptions*: {``None``} | :class:`PlotCoeffSigmaPlotOpts`
-    value of option "SigmaPlotOptions"
+    plot options for standard deviation box
 *Target*: {``None``} | :class:`str`
     name of target databook to co-plot
 *TargetOptions*: {``None``} | :class:`PlotCoeffSweepTargetPlotOpts`

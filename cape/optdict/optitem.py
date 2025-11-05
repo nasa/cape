@@ -30,6 +30,10 @@ from .opterror import (
 
 # Defaults
 DEFAULT_LISTDEPTH = 0
+# Constants for @expr
+DEG = np.pi / 180.0
+SIN = np.sin
+COS = np.cos
 
 # Options
 SPECIAL_DICT_KEYS = (
