@@ -1125,6 +1125,10 @@ class TriBase(object):
         # Status update.
         if kw.get('v', False):
             print("    Writing triangulation: '%s'" % fname)
+        # Hide *q* if necessary
+        if hasattr(self, "q") and isinstance(self.q, np.ndarray):
+            if self.q.dtype.name == "object":
+                self.nq = None
         # Get the extension
         ext = self.GetOutputFileType(**kw)
         # Check text vs. binary
