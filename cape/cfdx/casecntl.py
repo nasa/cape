@@ -269,6 +269,7 @@ class CaseRunner(CaseRunnerBase):
     #: Classes for reading data of various DataBook component types
     _dex_cls = {
         "fm": CaseFM,
+        "iterfm": CaseFM,
         "lineload": CaseLineLoad,
         "triqfm": CaseTriqFM,
         "triqpoint": CaseTriqPoint,
@@ -2846,6 +2847,19 @@ class CaseRunner(CaseRunnerBase):
         # Convert to DataKit
         db = DataKit()
         db.link_data(s)
+        # Output
+        return db
+
+    def sample_dex_iterfm(self, comp: str) -> DataKit:
+        # Read raw data (i.e. iterative history)
+        fm = self.read_dx(comp)
+        # Get run matrix instance
+        cntl = self.read_cntl()
+        # Get relevant options
+        n = cntl.opts.get_DataBookOpt(comp, "NStats")
+        nb = cntl.opts.get_DataBookOpt(comp, "NLastStats")
+        # Default cutoff: size
+        breakpoint()
         # Output
         return db
 
