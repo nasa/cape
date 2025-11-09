@@ -60,7 +60,7 @@ def fstep1(x):
 # Special angle-pair class
 AlphaBetaPair = namedtuple("AlphaBetaPair", ("a", "b"))
 AlphaTotalPair = namedtuple("AlphaTotalPair", ("alpha", "phi"))
-BodyVelocity = namedtuple("BodyVelocity", ("u", "v",, "w"))
+BodyVelocity = namedtuple("BodyVelocity", ("u", "v", "w"))
 
 
 # Convert (total angle of attack, total roll angle) to (aoa, aos)
