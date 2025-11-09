@@ -60,6 +60,7 @@ def fstep1(x):
 # Special angle-pair class
 AlphaBetaPair = namedtuple("AlphaBetaPair", ("a", "b"))
 AlphaTotalPair = namedtuple("AlphaTotalPair", ("alpha", "phi"))
+BodyVelocity = namedtuple("BodyVelocity", ("u", "v",, "w"))
 
 
 # Convert (total angle of attack, total roll angle) to (aoa, aos)
@@ -98,43 +99,47 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
 
 
 # Convert (aoa, aos) to (total angle of attack, total roll angle)
-def AlphaBeta2AlphaTPhi(alpha, beta):
+def AlphaBeta2AlphaTPhi(
+        a: Union[float, np.ndarray],
+        b: Union[float, np.ndarray]) -> AlphaTotalPair:
     r"""Convert angle of attack and sideslip to missile axis angles
 
     :Call:
-        >>> alpha_t, phi = cape.AlphaBeta2AlphaTPhi(alpha, beta)
+        >>> aoap, phip = cape.AlphaBeta2AlphaTPhi(a, b)
     :Inputs:
-        *alpha*: :class:`float` | :class:`numpy.array`
+        *a*: :class:`float` | :class:`numpy.array`
             Angle of attack
-        *beta*: :class:`float` | :class:`numpy.array`
+        *b*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Outputs:
-        *alpha_t*: :class:`float` | :class:`numpy.array`
+        *aoap*: :class:`float` | :class:`numpy.array`
             Total angle of attack
-        *phi*: :class:`float` | :class:`numpy.array`
+        *phip*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
         * 2014-06-02 ``@ddalle``: v1.0
         * 2014-11-05 ``@ddalle``: v1.1, transpose *w* formula
     """
     # Trig functions.
-    ca = np.cos(alpha*deg)
-    cb = np.cos(beta*deg)
-    sa = np.sin(alpha*deg)
-    sb = np.sin(beta*deg)
+    ca = np.cos(a*deg)
+    cb = np.cos(b*deg)
+    sa = np.sin(a*deg)
+    sb = np.sin(b*deg)
     # Get the components of the normalized velocity vector.
     u = cb * ca
     v = sb
     w = cb * sa
     # Convert to alpha_t, phi
-    phi = 180 - np.arctan2(v, -w) / deg
-    alpha_t = np.arccos(u) / deg
+    phip = 180 - np.arctan2(v, -w) / deg
+    aoap = np.arccos(u) / deg
     # Output
-    return alpha_t, phi
+    return AlphaTotalPair(aoap, phip)
 
 
 # Convert (aoa, aos) to (u, v, w)
-def AlphaBeta2DirectionCosines(alpha, beta):
+def AlphaBeta2DirectionCosines(
+        a: Union[float, np.ndarray],
+        b: Union[float, np.ndarray]) -> BodyVelocity:
     r"""Convert angle of attack and sideslip to direction cosines
 
     :Call:
@@ -155,10 +160,10 @@ def AlphaBeta2DirectionCosines(alpha, beta):
         * 2019-06-19 ``@ddalle``: v1.0
     """
     # Trig functions.
-    ca = np.cos(alpha*deg)
-    cb = np.cos(beta*deg)
-    sa = np.sin(alpha*deg)
-    sb = np.sin(beta*deg)
+    ca = np.cos(a*deg)
+    cb = np.cos(b*deg)
+    sa = np.sin(a*deg)
+    sb = np.sin(b*deg)
     # Get the components of the normalized velocity vector.
     u = cb * ca
     v = sb
@@ -168,7 +173,7 @@ def AlphaBeta2DirectionCosines(alpha, beta):
 
 
 # Convert (u, v, w) to (aoa, aos)
-def DirectionCosines2AlphaBeta(u, v, w):
+def DirectionCosines2AlphaBeta(u, v, w) -> AlphaBetaPair:
     r"""Convert direction cosines to angle of attack and sideslip
 
     :Call:
@@ -198,11 +203,13 @@ def DirectionCosines2AlphaBeta(u, v, w):
     alpha = np.arctan2(w, u) / deg
     beta = np.arcsin(v) / deg
     # Output
-    return alpha, beta
+    return AlphaBetaPair(alpha, beta)
 
 
 # Convert (aoa, aos) to (u, v, w)
-def AlphaTPhi2DirectionCosines(aoap, phip):
+def AlphaTPhi2DirectionCosines(
+        aoap: Union[float, np.ndarray],
+        phip: Union[float, np.ndarray]) -> BodyVelocity:
     r"""Convert total angle of attack and roll to direction cosines
 
     :Call:
@@ -232,11 +239,14 @@ def AlphaTPhi2DirectionCosines(aoap, phip):
     v = 1.0e-8*np.fix(1e8*sa * sp)
     w = 1.0e-8*np.fix(1e8*sa * cp)
     # Output
-    return u, v, w
+    return BodyVelocity(u, v, w)
 
 
 # Convert (u, v, w) to (aoap, phip)
-def DirectionCosines2AlphaTPhi(u, v, w):
+def DirectionCosines2AlphaTPhi(
+        u: Union[float, np.ndarray],
+        v: Union[float, np.ndarray],
+        w: Union[float, np.ndarray]) -> AlphaTotalPair:
     r"""Convert direction cosines to total angle of attack and roll
 
     :Call:
@@ -266,7 +276,7 @@ def DirectionCosines2AlphaTPhi(u, v, w):
     phip = 180 - np.arctan2(v, -w) / deg
     aoap = np.arccos(u) / deg
     # Output
-    return aoap, phip
+    return AlphaTotalPair(aoap, phip)
 
 
 # Convert (aoa, aos) to (maneuver angle of attack, maneuver roll angle)
