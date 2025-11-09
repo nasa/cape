@@ -132,7 +132,7 @@ class DBCompOpts(OptionsDict):
     }
 
 
-# Class for "IterPoint" components
+# Class for averaged forces & moments
 class FMDataBookOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
@@ -153,7 +153,20 @@ class FMDataBookOpts(DBCompOpts):
     }
 
 
-# Class for "IterPoint" components
+# Class for force & moment iterative histories
+class FMIterDataBookOpts(FMDataBookOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "definitions for a f0rce & moment iterative history component"
+
+    # Defaults
+    _rc = {
+        "Cols": None,
+    }
+
+
 class DBTimeSeriesOpts(FMDataBookOpts):
     # No attributes
     __slots__ = ()
@@ -1032,6 +1045,7 @@ class DataBookOpts(OptionsDict):
     _sec_cls_optmap = {
         "_default_": FMDataBookOpts,
         "FM": FMDataBookOpts,
+        "IterFM": FMIterDataBookOpts,
         "IterPoint": DBIterPointOpts,
         "LineLoad": LineLoadDataBookOpts,
         "PyFunc": PyFuncDataBookOpts,
