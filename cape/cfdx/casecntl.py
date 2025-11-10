@@ -269,6 +269,7 @@ class CaseRunner(CaseRunnerBase):
     #: Classes for reading data of various DataBook component types
     _dex_cls = {
         "fm": CaseFM,
+        "iterfm": CaseFM,
         "lineload": CaseLineLoad,
         "triqfm": CaseTriqFM,
         "triqpoint": CaseTriqPoint,
@@ -2849,6 +2850,19 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return db
 
+    def sample_dex_iterfm(self, comp: str) -> DataKit:
+        # Read raw data (i.e. iterative history)
+        fm = self.read_dx(comp)
+        # Get run matrix instance
+        cntl = self.read_cntl()
+        # Get relevant options
+        n = cntl.opts.get_DataBookOpt(comp, "NStats")
+        nb = cntl.opts.get_DataBookOpt(comp, "NLastStats")
+        # Default cutoff: size
+        breakpoint()
+        # Output
+        return db
+
     def _sample_dex_n_orders(self, comp: str, db: dict):
         # Check if unncessary
         if "nOrders" in db:
@@ -3640,6 +3654,8 @@ class CaseRunner(CaseRunnerBase):
         """
         # Read control instance
         cntl = self.read_cntl()
+        # Get name of surf-config comp
+        surfcomp = cntl.opts.get_DataBookOpt(comp, "CompID")
         # Setting for output triq file
         write_slice_triq = cntl.opts.get_DataBookTrim(comp)
         slice_opt = 1 if write_slice_triq else 0
@@ -3651,7 +3667,7 @@ class CaseRunner(CaseRunnerBase):
         # Cut direction
         cutdir = cntl.opts.get_DataBookOpt(comp, "CutPlaneNormal")
         # Get components and type of the input
-        compID = self.expand_compids(comp)
+        compID = self.expand_compids(surfcomp)
         # Get triload input conditions
         mach = self.get_mach()
         rey = self.get_reynolds()

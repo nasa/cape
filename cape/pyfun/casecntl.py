@@ -124,6 +124,7 @@ class CaseRunner(casecntl.CaseRunner):
     _resid_cls = CaseResid
     _dex_cls = {
         "fm": CaseFM,
+        "iterfm": CaseFM,
     }
 
    # --- Config ---
