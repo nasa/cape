@@ -2853,6 +2853,8 @@ class CaseRunner(CaseRunnerBase):
     def sample_dex_iterfm(self, comp: str) -> DataKit:
         # Read raw data (i.e. iterative history)
         fm = self.read_dx(comp)
+        # Intialize output
+        db = DataKit()
         # Get run matrix instance
         cntl = self.read_cntl()
         # Get relevant options

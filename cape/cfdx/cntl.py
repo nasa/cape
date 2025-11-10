@@ -3673,6 +3673,7 @@ class Cntl(CntlBase):
 
             * 2017-04-25 ``@ddalle``: v2.1, add wildcards
             * 2018-10-19 ``@ddalle``: v3.0, rename from Aero()
+            * 2025-08-10 ``@ddalle``: v4.0, use *dex*
         """
         # Get component option
         comp = kw.get("fm", kw.get("aero"))
@@ -3680,6 +3681,35 @@ class Cntl(CntlBase):
         comp = None if comp is True else comp
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("FM", comp)
+        # Loop through them
+        for comp in comps:
+            self.update_dex_comp(comp, **kw)
+
+    # Databook update for iterative histories
+    @run_rootdir
+    def UpdateIterFM(self, **kw):
+        r"""Collect iterative force and moment data
+
+        :Call:
+            >>> cntl.UpdateIterFM(cons=[], **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *iterfm*: {``None``} | :class:`str`
+                Wildcard to subset list of FM components
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2025-11-10 ``@ddalle``: v1.0
+        """
+        # Get component option
+        comp = kw.get("iter-fm")
+        # If *comp* is ``True``, process all options
+        comp = None if comp is True else comp
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob("IterFM", comp)
         # Loop through them
         for comp in comps:
             self.update_dex_comp(comp, **kw)

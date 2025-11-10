@@ -38,6 +38,7 @@ CMD_NAMES = {
     "apply": "apply",
     "dbpyfunc": "extract-pyfunc",
     "fm": "extract-fm",
+    "iter-fm": "extract-iter-fm",
     "ll": "extract-ll",
     "prop": "extract-prop",
     "pt": "extract-triqpt",
@@ -100,6 +101,7 @@ class CfdxArgReader(argread.ArgReader):
         "file": "f",
         "help": "h",
         "hide": "hide-cols",
+        "iterfm": "iter-fm",
         "json": "f",
         "kill": "qdel",
         "minsize": "cutoff",
@@ -142,6 +144,7 @@ class CfdxArgReader(argread.ArgReader):
         "fm": (bool, str),
         "imax": int,
         "incremental": bool,
+        "iter-fm": (bool, str),
         "j": bool,
         "ll": (bool, str),
         "marked": bool,
@@ -251,6 +254,7 @@ class CfdxArgReader(argread.ArgReader):
         "hide-counters": "Standard keys to omit totals after run mat table",
         "imax": "Do not extend a case beyond iteration *M*",
         "incremental": "Run case for one phase [or stop after *STOP_PHASE*]",
+        "iter-fm": "Extract iterative force & moment histories",
         "j": "List PBS/Slurm job ID in ``-c`` output",
         "kill": "Remove jobs from the queue and stop them",
         "ll": "Extract line load data [comps matching *PAT*] for case(s)",
@@ -295,6 +299,7 @@ class CfdxArgReader(argread.ArgReader):
         "hide-counters": "COLS",
         "imax": "M",
         "incremental": "[STOP_PHASE]",
+        "iter-fm": "[PAT]",
         "ll": "[PAT]",
         "n": "N",
         "pat": "PAT",
@@ -669,6 +674,28 @@ class CfdxExtractFMArgs(_CfdxExtractArgs):
     # Positional parameters
     _arglist = (
         "fm",
+    )
+
+
+# Settings for --iter-fm
+class CfdxExtractIterFMArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-iter-fm"
+
+    # Description
+    _help_title = "Extract iterative force & moment histories"
+
+    # Additional options
+    _optlist = (
+        "iter-fm",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "iter-fm",
     )
 
 
@@ -1192,6 +1219,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "exec": CfdxExecArgs,
         "extend": CfdxExtendArgs,
         "extract-fm": CfdxExtractFMArgs,
+        "extract-iter-fm": CfdxExtractIterFMArgs,
         "extract-ll": CfdxExtractLLArgs,
         "extract-pyfunc": CfdxExtractPyFuncArgs,
         "extract-prop": CfdxExtractPropArgs,
@@ -1591,6 +1619,28 @@ def cape_extract_fm(parser: CfdxArgReader) -> int:
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UpdateFM(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extract_iterfm(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --iter-fm`` command
+
+    :Call:
+        >>> ierr == cape_extract_iterfm(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.UpdateIterFM(**kw)
     # Return code
     return IERR_OK
 
@@ -2072,6 +2122,7 @@ CMD_DICT = {
     "exec": cape_exec,
     "extend": cape_extend,
     "extract-fm": cape_extract_fm,
+    "extract-iter-fm": cape_extract_iterfm,
     "extract-ll": cape_extract_ll,
     "extract-prop": cape_extract_prop,
     "extract-pyfunc": cape_extract_pyfunc,
