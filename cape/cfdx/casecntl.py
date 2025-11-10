@@ -4655,8 +4655,10 @@ class CaseRunner(CaseRunnerBase):
         # Check if found
         if conf is None:
             return comps
-        # Convert
-        complist = [conf.GetCompID(subcomp) for subcomp in comps]
+        # Convert to tri file compIDs
+        complist = []
+        for subcomp in comps:
+            complist.extend(conf.GetCompID(subcomp))
         # Avoid duplication
         return list(np.unique(complist))
 
