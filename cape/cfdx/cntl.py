@@ -2677,6 +2677,10 @@ class Cntl(CntlBase):
         # Process main list
         cols = kw.get("cols", defaultcols)
         ctrs = kw.get("counters", defaultcountercols)
+        # Check for -j
+        if kw.get("job", False):
+            if "job" not in cols:
+                cols.append("job")
         # Process additional cols
         for col in add_cols:
             if col not in cols:
