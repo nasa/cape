@@ -3654,6 +3654,8 @@ class CaseRunner(CaseRunnerBase):
         """
         # Read control instance
         cntl = self.read_cntl()
+        # Get name of surf-config comp
+        surfcomp = cntl.opts.get_DataBookOpt(comp, "CompID")
         # Setting for output triq file
         write_slice_triq = cntl.opts.get_DataBookTrim(comp)
         slice_opt = 1 if write_slice_triq else 0
@@ -3665,7 +3667,7 @@ class CaseRunner(CaseRunnerBase):
         # Cut direction
         cutdir = cntl.opts.get_DataBookOpt(comp, "CutPlaneNormal")
         # Get components and type of the input
-        compID = self.expand_compids(comp)
+        compID = self.expand_compids(surfcomp)
         # Get triload input conditions
         mach = self.get_mach()
         rey = self.get_reynolds()
