@@ -1819,12 +1819,49 @@ class CaseRunner(casecntl.CaseRunner):
         # Use it
         return (proj,)
 
+    # Create tuple of args prior to *comp*
+    def get_dex_args_pre_iterfm(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_pre_iterfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one string, project base root name
+        :Versions:
+            * 2025-11-10 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        proj = self.get_project_baserootname()
+        # Use it
+        return (proj,)
+
     # Create tuple of args after *comp*
     def get_dex_args_post_fm(self) -> tuple:
         r"""Get list of args prior to component name in :class:`CaseFM`
 
         :Call:
             >>> args = runner.get_dex_args_post_fm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one arg, *runner*
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        return (self,)
+
+    # Create tuple of args after *comp*
+    def get_dex_args_post_iterfm(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_iterfm()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver

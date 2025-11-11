@@ -161,11 +161,6 @@ class FMIterDataBookOpts(FMDataBookOpts):
     # Identifiers
     _name = "definitions for a f0rce & moment iterative history component"
 
-    # Defaults
-    _rc = {
-        "Cols": None,
-    }
-
 
 class DBTimeSeriesOpts(FMDataBookOpts):
     # No attributes
