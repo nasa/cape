@@ -2990,13 +2990,11 @@ class CaseRunner(CaseRunnerBase):
         typ = self.get_dex_type(comp)
         # Perform preprocessing if needed
         self.prep_dex(comp)
-        # Get CompID
-        compid = self.get_dex_opt(comp, "CompID", vdef=comp)
         # Check it
         if typ in ("fm", "iterfm"):
             return self.read_dex_by_element(comp)
         else:
-            return self.read_dex_element(comp, compid)
+            return self.read_dex_element(comp, comp)
 
     # Read a DEx by element
     def read_dex_by_element(self, comp: str) -> DataKit:
