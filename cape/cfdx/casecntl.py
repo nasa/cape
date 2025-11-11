@@ -2855,13 +2855,34 @@ class CaseRunner(CaseRunnerBase):
         fm = self.read_dex(comp)
         # Intialize output
         db = DataKit()
+        # Number of iterations
+        ni = fm["i"].size
         # Get run matrix instance
         cntl = self.read_cntl()
         # Get relevant options
         n = cntl.opts.get_DataBookOpt(comp, "NStats")
         nb = cntl.opts.get_DataBookOpt(comp, "NLastStats")
-        # Default cutoff: size
-        breakpoint()
+        # Default cutoff
+        nb = ni if nb is None else nb
+        # Start
+        na = nb - n
+        # Get columns
+        cols = self.get_dex_opt(comp, "Cols")
+        # Save iters
+        db.save_col('i', fm["i"][na:nb])
+        # Loop through columns
+        for col in cols:
+            # Check status
+            if col not in fm:
+                raise KeyError(
+                    f"IterFM comp '{comp}' history has no col '{col}'")
+            # Check size
+            if fm[col].size != ni:
+                raise IndexError(
+                    f"IterFM comp '{comp}' col '{col}' has size " +
+                    f"{fm[col].size}; expected {ni}")
+            # Save values
+            db.save_col(col, fm[col][na:nb])
         # Output
         return db
 
@@ -2969,11 +2990,13 @@ class CaseRunner(CaseRunnerBase):
         typ = self.get_dex_type(comp)
         # Perform preprocessing if needed
         self.prep_dex(comp)
+        # Get CompID
+        compid = self.get_dex_opt(comp, "CompID", vdef=comp)
         # Check it
-        if typ in ("fm",):
+        if typ in ("fm", "iterfm"):
             return self.read_dex_by_element(comp)
         else:
-            return self.read_dex_element(comp, comp)
+            return self.read_dex_element(comp, compid)
 
     # Read a DEx by element
     def read_dex_by_element(self, comp: str) -> DataKit:
