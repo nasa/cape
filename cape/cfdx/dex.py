@@ -93,6 +93,8 @@ class DataExchanger(DataKit):
         if os.path.isfile(absfile):
             DataKit.read(self, absfile)
 
+   # --- Custom read ---
+
    # --- Legacy read ---
     def read_legacy(self):
         r"""Read a legacy DataBook component if appropriate

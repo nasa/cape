@@ -285,7 +285,10 @@ class CaseData(DataKit):
         sourcefiles = self.get_subiter_filelist()
         # Loop through subiteration source files
         for fname in sourcefiles:
-            self.process_subiter_sourcefile(fname)
+            try:
+                self.process_subiter_sourcefile(fname)
+            except Exception:
+                print(f"CaseResid: could not parse '{fname}'")
 
     # Get list of file(s) to read
     def get_filelist(self) -> list:
