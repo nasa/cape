@@ -2881,6 +2881,9 @@ class Cntl(CntlBase):
         else:
             # Get values
             vals = self.x.GetValue(opt, I)
+            # Check for empty
+            if I.size == 0:
+                return 8
             # Check for float
             if isinstance(vals[0], (float, np.floating)):
                 return 8
