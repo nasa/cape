@@ -5200,7 +5200,7 @@ class DataKit(BaseData):
         raise TypeError("Column name must be a string")
 
     # Normalize arguments
-    def normalize_args(self, x, asarray=False):
+    def normalize_args(self, x: list, asarray=False):
         r"""Normalized mixed float and array arguments
 
         :Call:
@@ -5219,10 +5219,14 @@ class DataKit(BaseData):
                 Original dimensions of non-scalar input array
         :Versions:
             * 2019-03-11 ``@ddalle``: v1.0
-            * 2019-03-14 ``@ddalle``: Added *asarray* input
-            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
-            * 2019-12-18 ``@ddalle``: Removed ``@staticmethod``
+            * 2019-03-14 ``@ddalle``: v1.1; add *asarray* input
+            * 2019-12-18 ``@ddalle``: v1.2; port from :mod:`tnakit`
+            * 2019-12-18 ``@ddalle``: v1.3; remove ``@staticmethod``
+            * 2025-11-12 ``@ddalle``: v1.4; check trivial case
         """
+        # Check for trivial case
+        if len(x) == 0:
+            return [], ()
         # Input size by argument
         nxi = [xi.size for xi in x]
         ndi = [xi.ndim for xi in x]
@@ -10356,7 +10360,7 @@ class DataKit(BaseData):
 
    # --- Search: internal ---
     # Find matches
-    def find(self, args: list, *a, **kw):
+    def find(self, args: Optional[list] = None, *a, **kw):
         r"""Find cases that match a condition [within a tolerance]
 
         :Call:
@@ -10404,18 +10408,6 @@ class DataKit(BaseData):
             * 2022-09-15 ``@ddalle``: v3.0; *gtcons*, etc.
         """
        # --- Input Checks ---
-        # Find a valid argument
-        for arg in args:
-            # Attempt to either access or convert it
-            V = self.get_all_values(arg)
-            # Check if it was processed
-            if V is not None:
-                # Found at least one valid argument
-                break
-        else:
-            # Loop completed; nothing found
-            raise ValueError(
-                "Cannot find matches for argument list %s" % args)
         # Mask
         mask = kw.pop("mask", None)
         # Overall tolerance default
@@ -10432,6 +10424,31 @@ class DataKit(BaseData):
         gtcons = kw.pop("GreaterThanCons", kw.pop("gtcons", {}))
         ltecons = kw.pop("LessThanEqualCons", kw.pop("ltecons", {}))
         gtecons = kw.pop("GreaterThanEqualCons", kw.pop("gtecons", {}))
+        # Columns to search size
+        if args is None:
+            # Get keys from each of the constraints
+            vcols = []
+            # Loop through others
+            for condict in (ltcons, gtcons, ltecons, gtecons):
+                if isinstance(condict, dict):
+                    vcols.extend(condict.keys())
+            # Initialize list
+            args = []
+        else:
+            # Use specified *args*
+            vcols = args
+        # Find a valid argument
+        for arg in vcols:
+            # Attempt to either access or convert it
+            V = self.get_all_values(arg)
+            # Check if it was processed
+            if V is not None:
+                # Found at least one valid argument
+                break
+        else:
+            # Loop completed; nothing found
+            raise ValueError(
+                f"Cannot find matches for argument list {tuple(vcols)}")
         # Number of values
         n0 = len(V)
        # --- Mask Prep ---
@@ -10451,10 +10468,10 @@ class DataKit(BaseData):
         # Normalize arguments
         X, dims = self.normalize_args(x, True)
         # Number of test points
-        nx = np.prod(dims)
+        nx = 0 if len(x) == 0 else np.prod(dims)
        # --- Checks ---
         # Initialize tests for database indices (set to ``False``)
-        MI = np.full(n, False)
+        MI = np.full(n, False) if len(x) else np.full(n, True)
         # Initialize tests for input data indices (set to ``False``)
         MJ = np.full(nx, False)
         # Initialize maps if needed
