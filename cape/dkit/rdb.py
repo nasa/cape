@@ -10469,9 +10469,60 @@ class DataKit(BaseData):
         X, dims = self.normalize_args(x, True)
         # Number of test points
         nx = 0 if len(x) == 0 else np.prod(dims)
-       # --- Checks ---
+       # --- Inequality checks ---
+        # Cases matching inequality checks
+        ineq_mask = np.full(n, True)
+        # Loop through less-than cons
+        for k, vk in ltcons.items():
+            # Get DB values for *k*
+            Xk = self.get_values(k, mask)
+            # Check match/approx
+            if isinstance(Xk, list):
+                # Convert to array
+                Xk = np.asarray(Xk)
+            # Compound constraint
+            ineq_mask = np.logical_and(ineq_mask, Xk < vk)
+        # Loop through greater-than cons
+        for k, vk in gtcons.items():
+            # Get DB values for *k*
+            Xk = self.get_values(k, mask)
+            # Check match/approx
+            if isinstance(Xk, list):
+                # Convert to array
+                Xk = np.asarray(Xk)
+            # Compound constraint
+            ineq_mask = np.logical_and(ineq_mask, Xk > vk)
+        # Loop through less-than-equals cons
+        for k, vk in ltecons.items():
+            # Get DB values for *k*
+            Xk = self.get_all_values(k)
+            # Get tolerance for this key
+            xtol = tols.get(k, tol)
+            # Check match/approx
+            if isinstance(Xk, list):
+                # Convert to array
+                Xk = np.asarray(Xk)
+            # Compound constraint
+            ineq_mask = np.logical_and(ineq_mask, Xk <= vk + xtol)
+        # Loop through greater-than-equals cons
+        for k, vk in gtecons.items():
+            # Get DB values for *k*
+            Xk = self.get_all_values(k)
+            # Get tolerance for this key
+            xtol = tols.get(k, tol)
+            # Check match/approx
+            if isinstance(Xk, list):
+                # Convert to array
+                Xk = np.asarray(Xk)
+            # Compound constraint
+            ineq_mask = np.logical_and(ineq_mask, Xk >= vk - xtol)
+       # --- Equality checks ---
+        # Restrict mask
+        mask = np.where(ineq_mask)[0] if (mask is None) else mask[ineq_mask]
+        # Reset size
+        n = mask.size
         # Initialize tests for database indices (set to ``False``)
-        MI = np.full(n, False) if len(x) else np.full(n, True)
+        MI = np.full(n, False) if nx else np.full(n, True)
         # Initialize tests for input data indices (set to ``False``)
         MJ = np.full(nx, False)
         # Initialize maps if needed
@@ -10490,9 +10541,8 @@ class DataKit(BaseData):
                     continue
                 # Check size
                 if len(Xk) != n0:
-                    raise ValueError(
-                        ("Parameter '%s' has size %i, " % (k, len(Xk))) +
-                        ("expecting %i" % n))
+                    raise IndexError(
+                        f"Col '{k}' has size {len(Xk)}; expected {n}")
                 # Apply mask
                 if mask is not None:
                     Xk = self.get_values(k, mask)
@@ -10511,50 +10561,6 @@ class DataKit(BaseData):
                 else:
                     # Use a tolerance
                     Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
-            # Loop through less-than cons
-            for k, vk in ltcons.items():
-                # Get DB values for *k*
-                Xk = self.get_all_values(k)
-                # Check match/approx
-                if isinstance(Xk, list):
-                    # Convert to array
-                    Xk = np.asarray(Xk)
-                # Compound constraint
-                Mi = np.logical_and(Mi, Xk < vk)
-            # Loop through greater-than cons
-            for k, vk in gtcons.items():
-                # Get DB values for *k*
-                Xk = self.get_all_values(k)
-                # Check match/approx
-                if isinstance(Xk, list):
-                    # Convert to array
-                    Xk = np.asarray(Xk)
-                # Compound constraint
-                Mi = np.logical_and(Mi, Xk > vk)
-            # Loop through less-than-equals cons
-            for k, vk in ltecons.items():
-                # Get DB values for *k*
-                Xk = self.get_all_values(k)
-                # Get tolerance for this key
-                xtol = tols.get(k, tol)
-                # Check match/approx
-                if isinstance(Xk, list):
-                    # Convert to array
-                    Xk = np.asarray(Xk)
-                # Compound constraint
-                Mi = np.logical_and(Mi, Xk <= vk + xtol)
-            # Loop through greater-than-equals cons
-            for k, vk in gtecons.items():
-                # Get DB values for *k*
-                Xk = self.get_all_values(k)
-                # Get tolerance for this key
-                xtol = tols.get(k, tol)
-                # Check match/approx
-                if isinstance(Xk, list):
-                    # Convert to array
-                    Xk = np.asarray(Xk)
-                # Compound constraint
-                Mi = np.logical_and(Mi, Xk >= vk - xtol)
             # Check if any cases
             found = np.any(Mi)
             # Got to next test point if no match
@@ -10568,11 +10574,8 @@ class DataKit(BaseData):
                 MJ[i] = found
                 # Find matches
                 I = np.where(Mi)[0]
-                # Invert mask if needed
-                if mask is not None:
-                    I = mask_index[I]
                 # Append to map
-                Imap.append(I)
+                Imap.append(mask[I])
             elif once:
                 # Check for uniqueness
                 M2 = np.logical_and(np.logical_not(MI), Mi)
@@ -10600,10 +10603,7 @@ class DataKit(BaseData):
             return Imap, J
         else:
             # Convert masks to indices
-            I = np.where(MI)[0]
-            # Invert mask if needed
-            if mask is not None:
-                I = mask_index[I]
+            I = mask[np.where(MI)[0]]
             # Return combined set of matches
             return I, J
 
