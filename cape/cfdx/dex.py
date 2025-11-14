@@ -463,19 +463,24 @@ class DataExchanger(DataKit):
         cols = []
         # Process main columns
         self._get_datacols(cols)
+        # Component type
+        comptype = self.comptype.lower()
         # Check for special types
-        if self.comptype.lower() == "triqfm":
+        if comptype == "triqfm":
             # Get list of patches
             patches = self.cntl.opts.get_DataBookOpt(self.comp, "Patches")
             # Loop through patches
             for patch in patches:
                 self._get_datacols(cols, patch)
-        elif self.comptype.lower() == "triqpoint":
+        elif comptype == "triqpoint":
             # Get list of points
             pts = self.cntl.opts.get_DataBookOpt(self.comp, "Points")
             # Loop through points
             for pt in pts:
                 self._get_datacols(cols, pt)
+        elif comptype == "iterfm":
+            # Add prefix
+            cols = [f"iter.{col}" for col in cols]
         # Output
         return cols
 

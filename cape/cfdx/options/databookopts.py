@@ -1488,7 +1488,9 @@ class DataBookOpts(OptionsDict):
         # Get type
         typ = self.get_DataBookType(comp)
         # Check data book type
-        if typ in ("LineLoad", "TriqFM", "TriqPoint", "PointSensor", "PyFunc"):
+        if typ in (
+                "LineLoad", "TriqFM", "TriqPoint", "PointSensor",
+                "IterFM", "PyFunc"):
             # No iterative history
             return ['mu']
         # Others; iterative history available
