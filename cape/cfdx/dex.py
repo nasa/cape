@@ -89,7 +89,7 @@ class DataExchanger(DataKit):
     def read_main(self):
         # Absolute file
         absfile = os.path.join(self.rootdir, self.fname)
-        # Read the file
+        # Read the data file (or status file)
         if os.path.isfile(absfile):
             DataKit.read(self, absfile)
 
@@ -332,7 +332,13 @@ class DataExchanger(DataKit):
         :Versions:
             * 2025-08-12 ``@ddalle``: v1.0
         """
-        return "csv"
+        # Get component type
+        comptype = self.comptype.lower()
+        # Check
+        if comptype in ("iterfm",):
+            return "cdb"
+        else:
+            return "csv"
 
   # *** DATA ***
    # --- Initialize ---
