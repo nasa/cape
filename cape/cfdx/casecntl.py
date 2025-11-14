@@ -2815,7 +2815,8 @@ class CaseRunner(CaseRunnerBase):
         # Check for prefixes
         if typ in ("iterfm",):
             for col in list(db.cols):
-                db.save_col(f"iter.{col}", db.burst_col(col))
+                if col not in ("nStats", "nIter"):
+                    db.save_col(f"iter.{col}", db.burst_col(col))
         # Output
         return db
 
