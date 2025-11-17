@@ -2812,6 +2812,11 @@ class CaseRunner(CaseRunnerBase):
         self._sample_xmrp(comp, db)
         self._sample_ymrp(comp, db)
         self._sample_zmrp(comp, db)
+        # Check for prefixes
+        if typ in ("iterfm",):
+            for col in list(db.cols):
+                if col not in ("nStats", "nIter"):
+                    db.save_col(f"iter.{col}", db.burst_col(col))
         # Output
         return db
 
@@ -2992,9 +2997,11 @@ class CaseRunner(CaseRunnerBase):
         self.prep_dex(comp)
         # Check it
         if typ in ("fm", "iterfm"):
-            return self.read_dex_by_element(comp)
+            db = self.read_dex_by_element(comp)
         else:
-            return self.read_dex_element(comp, comp)
+            db = self.read_dex_element(comp, comp)
+        # Output
+        return db
 
     # Read a DEx by element
     def read_dex_by_element(self, comp: str) -> DataKit:

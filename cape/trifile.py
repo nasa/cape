@@ -1384,6 +1384,10 @@ class TriBase(object):
         :Versions:
             * 2015-01-03 ``@ddalle``: v1.0
         """
+        # Only can write double-precision
+        if self.Nodes.dtype.name != "float64":
+            # Convert
+            self.Nodes = self.Nodes.asdtype("float64")
         # Write the nodes.
         _cape.WriteTri(self.Nodes, self.Tris)
         # Write the component IDs.

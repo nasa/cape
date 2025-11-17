@@ -89,7 +89,7 @@ class DataExchanger(DataKit):
     def read_main(self):
         # Absolute file
         absfile = os.path.join(self.rootdir, self.fname)
-        # Read the file
+        # Read the data file (or status file)
         if os.path.isfile(absfile):
             DataKit.read(self, absfile)
 
@@ -332,7 +332,13 @@ class DataExchanger(DataKit):
         :Versions:
             * 2025-08-12 ``@ddalle``: v1.0
         """
-        return "csv"
+        # Get component type
+        comptype = self.comptype.lower()
+        # Check
+        if comptype in ("iterfm",):
+            return "cdb"
+        else:
+            return "csv"
 
   # *** DATA ***
    # --- Initialize ---
@@ -463,19 +469,24 @@ class DataExchanger(DataKit):
         cols = []
         # Process main columns
         self._get_datacols(cols)
+        # Component type
+        comptype = self.comptype.lower()
         # Check for special types
-        if self.comptype.lower() == "triqfm":
+        if comptype == "triqfm":
             # Get list of patches
             patches = self.cntl.opts.get_DataBookOpt(self.comp, "Patches")
             # Loop through patches
             for patch in patches:
                 self._get_datacols(cols, patch)
-        elif self.comptype.lower() == "triqpoint":
+        elif comptype == "triqpoint":
             # Get list of points
             pts = self.cntl.opts.get_DataBookOpt(self.comp, "Points")
             # Loop through points
             for pt in pts:
                 self._get_datacols(cols, pt)
+        elif comptype == "iterfm":
+            # Add prefix
+            cols = [f"iter.{col}" for col in cols]
         # Output
         return cols
 
