@@ -4489,10 +4489,11 @@ class TriBase(object):
         self.nNode = nNode
         self.Nodes = self.Nodes[N-1, :]
         # Downselect *q* if available
-        try:
-            self.q = self.q[N-1, :]
-        except AttributeError:
-            pass
+        if self.q is not None:
+            try:
+                self.q = self.q[N-1, :]
+            except AttributeError:
+                pass
 
     # Eliminate small triangles
     def RemoveSmallTris(self, smalltri=1e-5, v=False, recurse=True):
