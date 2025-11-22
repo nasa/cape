@@ -3077,8 +3077,8 @@ class CaseFM(CaseData):
         :Versions:
             * 2025-09-26 ``@ddalle``: v1.0
         """
-        # Get rotation origin
-        x0 = self.get_rotation_origin()
+        # Get original MRP?
+        x0 = self.get_mrp()
         # Get history of MRP
         x = self.genr8_mrp_history()
         # Loop through suffixes
