@@ -175,7 +175,7 @@ class _MPLOpts(OptionsDict):
         "BottomTickLabels": bool,
         "ContourColorMap": str,
         "ContourType": str,
-        "ContourLevels": INT_TYPES,
+        "ContourLevels": ARRAY_TYPES + INT_TYPES,
         "ContourOptions": dict,
         "Coverage": FLOAT_TYPES,
         "CoverageCDF": FLOAT_TYPES,
