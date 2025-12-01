@@ -1277,9 +1277,9 @@ class Cntl(cntl.Cntl):
             # Ensure unique list of IDs
             bodyids = np.unique(mapbcidlist)
             # Loop through each MapBC row in this "body"
-            for j, i in enumerate(bodyids):
+            for jj, ii in enumerate(bodyids):
                 # Set this entry
-                nml.set_opt(sec, opt, i, j=(j, k))
+                nml.set_opt(sec, opt, ii, j=(jj, k))
         # Select options
         mopts = self.opts.select_moving_body_input(j)
         # Apply "moving_body.input" parameters, if any
