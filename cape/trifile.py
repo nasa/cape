@@ -7541,6 +7541,7 @@ class Triq(TriBase):
         # Which things to calculate
         incm = kw.get("incm", kw.get("momentum", False))
         gauge = kw.get("gauge", True)
+        gauge = True if gauge is None else gauge
         # Get Reynolds number per grid unit
         REY = kw.get("Re", kw.get("Rey", 1.0))
         # Freestream mach number
