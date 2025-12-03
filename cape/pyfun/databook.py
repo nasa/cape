@@ -389,8 +389,10 @@ class CaseFM(casedata.CaseFM):
             "body_definitions", "move_mc")
         # If exists, check for 0
         if isinstance(mvopt, np.ndarray):
+            # Get body index
+            body = self.get_databook_opt("Body")
             # If move_mc set to 0, (no multibody support)
-            if mvopt[0] == 0:
+            if mvopt[body-1] == 0:
                 # Apply moving-body MRP shifts
                 self.shift_mrp_body()
         # Transform into body-frame
