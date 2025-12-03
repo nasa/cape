@@ -384,8 +384,15 @@ class CaseFM(casedata.CaseFM):
         self.save_col("phip", phip)
         self.save_col("aoav", aoav)
         self.save_col("phiv", phiv)
-        # Apply moving-body MRP shifts
-        self.shift_mrp_body()
+        # Get move_mc opt
+        mvopt = self.runner.get_moving_body_opt(
+            "body_definitions", "move_mc")
+        # If exists, check for 0
+        if isinstance(mvopt, np.ndarray):
+            # If move_mc set to 0, (no multibody support)
+            if mvopt[0] == 0:
+                # Apply moving-body MRP shifts
+                self.shift_mrp_body()
         # Transform into body-frame
         self.transform_fm321_body()
 
