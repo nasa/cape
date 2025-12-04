@@ -3238,7 +3238,6 @@ class CaseRunner(CaseRunnerBase):
             * 2025-12-04 ``@aburkhea``: v1.0
         """
         # Get transformations
-        breakpoint()
         transforms = self.get_dex_opt(comp, "Transformations")
         # Exit if none
         if not transforms:
