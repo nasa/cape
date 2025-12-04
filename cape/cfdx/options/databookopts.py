@@ -1254,6 +1254,14 @@ class DataBookOpts(OptionsDict):
             self[comp]["Type"] = typ
             # Set parents
             self[comp].setx_parent(self)
+        # Check if it's a dict
+        if type(self[comp]) is dict:
+            # Get type
+            typ = self.get_subopt(comp, "Type", vdef="FM")
+            # Class for that type
+            cls = self.__class__._sec_cls_optmap[typ]
+            # Convert
+            self[comp] = cls(self[comp])
         # Use cascading options
         v0 = (
             None if opt not in self.getx_optlist()
