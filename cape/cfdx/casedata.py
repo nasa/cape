@@ -3020,9 +3020,9 @@ class CaseFM(CaseData):
             self.save_col(f"CYb{suffix}", fp.y)
             self.save_col(f"CNb{suffix}", fp.z)
             # Get moment coefficients
-            cll = self.get_values(f"CLLb{suffix}")
-            clm = self.get_values(f"CLMb{suffix}")
-            cln = self.get_values(f"CLNb{suffix}")
+            cll = self.get_values(f"CLL{suffix}")
+            clm = self.get_values(f"CLM{suffix}")
+            cln = self.get_values(f"CLN{suffix}")
             # Check for misses
             if (cll is None) or (clm is None) or (cln is None):
                 continue
@@ -3050,9 +3050,9 @@ class CaseFM(CaseData):
             self.save_col(f"Fyb{suffix}", fp.y)
             self.save_col(f"Fzb{suffix}", fp.z)
             # Get moment coefficients
-            cll = self.get_values(f"Mxb{suffix}")
-            clm = self.get_values(f"Myb{suffix}")
-            cln = self.get_values(f"Mzb{suffix}")
+            cll = self.get_values(f"Mx{suffix}")
+            clm = self.get_values(f"My{suffix}")
+            cln = self.get_values(f"Mz{suffix}")
             # Check for misses
             if (cll is None) or (clm is None) or (cln is None):
                 continue
@@ -3077,8 +3077,8 @@ class CaseFM(CaseData):
         :Versions:
             * 2025-09-26 ``@ddalle``: v1.0
         """
-        # Get rotation origin
-        x0 = self.get_rotation_origin()
+        # Get original MRP?
+        x0 = self.get_mrp()
         # Get history of MRP
         x = self.genr8_mrp_history()
         # Loop through suffixes
@@ -3103,9 +3103,9 @@ class CaseFM(CaseData):
             # Transform
             mp = self._shift_mrp(x0, x, f, m)
             # Save
-            self.save_col(f"CLLb{suffix}", mp.x)
-            self.save_col(f"CLMb{suffix}", mp.y)
-            self.save_col(f"CLNb{suffix}", mp.z)
+            self.save_col(f"CLL{suffix}", mp.x)
+            self.save_col(f"CLM{suffix}", mp.y)
+            self.save_col(f"CLN{suffix}", mp.z)
         # Loop through suffixes
         for suffix in ('', 'p', 'v'):
             # Get force values
@@ -3128,9 +3128,9 @@ class CaseFM(CaseData):
             # Transform
             mp = self._shift_mrp(x0, x, f, m)
             # Save
-            self.save_col(f"Mxc{suffix}", mp.x)
-            self.save_col(f"Myc{suffix}", mp.y)
-            self.save_col(f"Mzc{suffix}", mp.z)
+            self.save_col(f"Mx{suffix}", mp.x)
+            self.save_col(f"My{suffix}", mp.y)
+            self.save_col(f"Mz{suffix}", mp.z)
 
     def _shift_mrp(self, x0: Point, x: Point, f: Point, m: Point) -> Point:
         # Get reference length

@@ -1399,7 +1399,7 @@ class CaseRunner(casecntl.CaseRunner):
         if nohist:
             self.copy_hist(jold)
         # Final case: restart but check for "nohistorykept"
-        if (not restart_opt) or (nohist_opt != nohist):
+        if (restart_opt) and (nohist_opt != nohist):
             nml.SetRestart(True, nohist)
             nml.write()
 
