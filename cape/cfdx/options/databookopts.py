@@ -161,6 +161,18 @@ class FMIterDataBookOpts(FMDataBookOpts):
     # Identifiers
     _name = "definitions for a f0rce & moment iterative history component"
 
+    # Defaults
+    _rc = {
+        "Cols": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+        "Transformations": [
+            {
+                "Type": "ScaleCoeffs",
+                "CLL": -1.0,
+                "CLN": -1.0
+            }
+        ],
+    }
+
 
 class DBTimeSeriesOpts(FMDataBookOpts):
     # No attributes

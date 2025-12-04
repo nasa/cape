@@ -3221,6 +3221,35 @@ class CaseRunner(CaseRunnerBase):
         for topts in transforms:
             fm.TransformFM(topts, cntl.x, i)
 
+   # --- IterFM ---
+    def transform_dex_iterfm(self, comp: str, fm: CaseFM):
+        r"""Apply transformations for an iterative FM data extraction
+
+        :Call:
+            >>> runner.transform_dex_iterfm(comp, fm)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+            *fm*: :class:`cape.cfdx.casedata.CasseFM`
+                Untransformed force & moment residual history
+        :Versions:
+            * 2025-12-04 ``@aburkhea``: v1.0
+        """
+        # Get transformations
+        breakpoint()
+        transforms = self.get_dex_opt(comp, "Transformations")
+        # Exit if none
+        if not transforms:
+            return
+        # Read run matrix controller and case
+        cntl = self.read_cntl()
+        i = self.get_case_index()
+        # Loop through transformations
+        for topts in transforms:
+            fm.TransformFM(topts, cntl.x, i)
+
    # --- Status ---
     # Get the current iteration number as applies to
     def get_dex_iter(self, comp: str) -> int:
