@@ -771,7 +771,7 @@ class DataKitQuickStarter:
         # Get requirements moption
         rules = self.opts.get("datakitloader")
         # Exit if none
-        if rules is None or len(rules) == 0:
+        if rules is None or len(rules) < 3:
             return
         # Package folder
         pkgdir = os.path.join(self.cwd, self.pkgdir)
