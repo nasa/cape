@@ -12,5 +12,6 @@
     casecntl
     cmdgen
     databook
+    fmfile
     report
     varsfile

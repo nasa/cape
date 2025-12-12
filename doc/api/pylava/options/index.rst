@@ -11,4 +11,5 @@
     lavaopts
     meshopts
     runctlopts
+    runinputsopts
     util
