@@ -5,23 +5,16 @@ r"""
 This module contains functions for reading and processing forces,
 moments, and other statistics from cases in a trajectory.  Data books
 are usually created by using the
-:func:`cape.pyfun.cntl.Cntl.ReadDataBook` function.
+:func:`cape.pyfun.cntl.Cntl.update_dex` function.
 
     .. code-block:: python
 
-        # Read FUN3D control instance
-        cntl = pyFun.Cntl("pyFun.json")
-        # Read the data book
-        cntl.ReadDataBook()
-        # Get a handle
-        DB = cntl.DataBook
+        from cape.pyfun.cntl import Cntl
 
-        # Read a line load component
-        DB.ReadLineLoad("CORE_LL")
-        DBL = DB.LineLoads["CORE_LL"]
-        # Read a target
-        DB.ReadTarget("t97")
-        DBT = DB.Targets["t97"]
+        # Read FUN3D control instance
+        cntl = Cntl("pyFun.json")
+        # Read the data book
+        db = read_dex("name_of_component")
 
 Data books can be created without an overall control structure, but it
 requires creating a run matrix object using
@@ -44,9 +37,9 @@ book modules, :mod:`cape.cfdx.databook`, :mod:`cape.cfdx.lineload`, and
 implemented for all CFD solvers.
 
 :See Also:
-    * :mod:`cape.cfdx.dataBook`
+    * :mod:`cape.cfdx.databook`
     * :mod:`cape.cfdx.pointsensor`
-    * :mod:`cape.options.databookopts`
+    * :mod:`cape.cfdx.options.databookopts`
 """
 
 # Standard library modules
