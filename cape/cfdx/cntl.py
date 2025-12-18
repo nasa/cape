@@ -3537,7 +3537,6 @@ class Cntl(CntlBase):
         nmin = self.get_databook_comp_nmin(comp)
         # Check if out of date
         if ni < nmin:
-            breakpoint()
             print(f"  Not enough iterations ({ni} < {nmin})")
             return 0
         # Search for case *i* in DataBook
