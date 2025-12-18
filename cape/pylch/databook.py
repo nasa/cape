@@ -10,12 +10,13 @@ the :mod:`cape` package. These versions are specific to Loci/CHEM.
 
 # Standard library
 import os
+from typing import Optional
 
 # Third-party imports
 import numpy as np
 
-# Local imports
-from ..cfdx import databook as cdbook
+from ..cfdx import databook
+from ..cfdx.casecntl import CaseRunner
 from ..cfdx.cntl import Cntl
 from ..dkit import tsvfile
 
@@ -35,7 +36,7 @@ MCOL_PAIRS = (
 
 
 # Iterative F&M history
-class CaseFM(cdbook.CaseFM):
+class CaseFM(databook.CaseFM):
     r"""Iterative force & moment history for one component, one case
 
     :Call:
@@ -75,6 +76,16 @@ class CaseFM(cdbook.CaseFM):
         "Mz",
         "edot",
     )
+
+    # Initialization method
+    def __init__(
+            self, comp: str, runner: Optional[CaseRunner] = None, **kw):
+        # Use parent initializer
+        databook.CaseFM.__init__(self, comp, **kw)
+        # Save case runner
+        self.runner = runner
+        # Normalize
+        self.normalize_fm()
 
     # List of files to read
     def get_filelist(self) -> list:
@@ -159,24 +170,30 @@ class CaseFM(cdbook.CaseFM):
         for col in ("Mx", "My", "Mz"):
             db.save_col(col, mdb[col])
 
-    def normalize_by_cntl(self, cntl: Cntl, i: int):
+    def normalize_fm(self, cntl: Cntl, i: int):
         r"""Normalize a force & moment history using run matrix
 
         :Call:
-            >>> fm.normalize_by_cntl(cntl, i)
+            >>> fm.normalize_fm()
         :Inputs:
             *fm*: :class:`CaseFM`
                 Component iterative history instance
-            *cntl*: :class:`Cntl`
-                Run matrix control instance for this case
-            *i*: :class:`int`
-                Index of this case in run matrix
         :Versions:
-            * 2025-05-23 ``@ddalle``: v1.0
+            * 2025-05-23 ``@ddalle``: v1.0 (`normalize_by_cntl`)
+            * 2025-12-12 ``@ddalle``: v2.0
         """
         # Check if normalized
         if "CA" in self.cols:
             return
+        # Case controller
+        runner = self.runner
+        # Exit if not present
+        if runner is None:
+            return
+        # Read run matrix control
+        cntl = runner.read_cntl()
+        # Get case index
+        i = runner.get_case_index()
         # Get dynamic pressure
         q = cntl.x.GetDynamicPressure(i)
         # Get reference area
@@ -216,7 +233,7 @@ class CaseFM(cdbook.CaseFM):
 
 
 # Class to keep track of residuals
-class CaseResid(cdbook.CaseResid):
+class CaseResid(databook.CaseResid):
     r"""Iterative residual history for one case
 
     :Call:
