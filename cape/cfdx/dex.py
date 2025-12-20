@@ -131,6 +131,8 @@ class DataExchanger(DataKit):
         # Check if data columns were filled in
         if self["CA"].size:
             return
+        if self["mach"].size == 0:
+            return
         # Find cases that are in the legacy databook
         ia, ib = self.xmatch(self.cntl.x)
         # Loop through cases
