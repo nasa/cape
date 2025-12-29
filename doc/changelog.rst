@@ -3,6 +3,22 @@
 Changelog
 ********************
 
+Release 2.2.1
+=============================
+
+This is a bug-fix release for CAPE 2.2.0, especially for running Cart3D.
+
+Bugs Fixed
+--------------
+
+*   Writing of ``.tri`` (Cart3D triangulation) files were writing an extra
+    ``1`` in the header as if it were writing a ``.triq`` (annotated
+    triangulation) file. This has been fixed.
+
+*   Starting new line load databooks (e.g. using ``pyfun --ll``) from various
+    initial conditions has been fixed.
+
+
 Release 2.2.0
 =============================
 
