@@ -1388,6 +1388,7 @@ class RunMatrix(dict):
             qtyp = defn.get_opt("Value")
             qskp = defn.get_opt("SkipIfZero")
             kfmt = defn.get_opt("FormatMultiplier")
+            repl = defn.get_opt("Replace")
             # Check if numeric
             qflt = (qtyp == "float")
             qint = (qtyp in ("int", "bin", "oct", "hex"))
@@ -1410,8 +1411,13 @@ class RunMatrix(dict):
                 # Round if necessary
                 vj = int(vj) if qint else vj
             # Add abbreviation and formatted value
-            name += abbrev
-            name += (fmt % vj)
+            kname = abbrev + (fmt % vj)
+            # Apply replacements
+            if repl:
+                for f, r in repl.items():
+                    kname = kname.replace(f, r)
+            # Add to total
+            name += kname
         # Output
         return name
 

@@ -932,6 +932,7 @@ class RunMatrixOpts(OptionsDict):
         "Keys",
         "MaxJobNameLength",
         "Prefix",
+        "Replace",
         "Values",
     }
 
@@ -940,11 +941,14 @@ class RunMatrixOpts(OptionsDict):
         "Cols": "Keys",
         "Defns": "Definitions",
         "JobNameMaxLength": "MaxJobNameLength",
+        "Replacements": "Replace",
         "cols": "Keys",
         "defns": "Definitions",
         "file": "File",
         "gas": "Freestream",
         "keys": "Keys",
+        "replace": "Replace",
+        "replacements": "Replace",
         "prefix": "Prefix",
     }
 
@@ -958,6 +962,7 @@ class RunMatrixOpts(OptionsDict):
         "GroupPrefix": str,
         "MaxJobNameLength": INT_TYPES,
         "Prefix": str,
+        "Replace": ReplaceOpts,
         "Values": dict,
     }
 
@@ -991,6 +996,7 @@ class RunMatrixOpts(OptionsDict):
         "MaxJobNameLength": "maximum length of PBS/Slurm job name",
         "Keys": "list of run matrix variables",
         "Prefix": "default prefix for case folders",
+        "Replace": "replacements from one string to another in case name",
     }
 
     # For 1.0 compatibility: shift raw options -> "Values" section
