@@ -179,6 +179,20 @@ KEY_TYPEMAP = {
 }
 
 
+# Options for replacements
+class ReplaceOpts(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "options for run matrix name replacements/substitutions"
+
+    # Types
+    _opttypes = {
+        "_default_": str,
+    }
+
+
 # Option for a definition
 class KeyDefnOpts(OptionsDict):
     # No attributes
@@ -198,6 +212,7 @@ class KeyDefnOpts(OptionsDict):
         "NonnegativeFormat",
         "PBSFormat",
         "PBSLabel",
+        "Replace",
         "SkipIfZero",
         "Source",
         "Type",
@@ -210,6 +225,8 @@ class KeyDefnOpts(OptionsDict):
         "DType": "Value",
         "DataType": "Value",
         "DisplayScale": "FormatMultiplier",
+        "FormatReplace": "Replace",
+        "Replacements": "Replace",
         "ScaleDisplay": "FormatMultiplier",
     }
 
@@ -224,6 +241,7 @@ class KeyDefnOpts(OptionsDict):
         "NonnegativeFormat": BOOL_TYPES,
         "PBSFormat": str,
         "PBSLabel": BOOL_TYPES,
+        "Replace": ReplaceOpts,
         "SkipIfZero": BOOL_TYPES,
         "Source": str,
         "Type": str,
