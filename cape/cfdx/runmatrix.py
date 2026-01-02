@@ -165,7 +165,8 @@ class RunMatrix(dict):
         keys = opts.get_opt("Keys")
         prefix = opts.get_opt("Prefix")
         groupPrefix = opts.get_opt("GroupPrefix")
-        # Process the definitions.
+        # Process the definitions
+        self.opts = opts
         defns = opts.get_opt("Definitions", vdef={})
         # Save file name
         self.fname = fname
@@ -1369,9 +1370,12 @@ class RunMatrix(dict):
                 Values for each *k* in *keys*
         :Versions:
             * 2024-10-16 ``@ddalle``: v1.0
+            * 2026-01-01 ``@ddalle``: v1.1; add *Replace* support
         """
         # Initialize output
         name = ""
+        # Get global options
+        repl_global = self.opts.get_opt("Replace")
         # Loop through keys
         for j, k in enumerate(keys):
             # Get definition
@@ -1418,6 +1422,10 @@ class RunMatrix(dict):
                     kname = kname.replace(f, r)
             # Add to total
             name += kname
+        # Apply global replacements
+        if repl_global:
+            for f, r in repl_global.items():
+                name = name.replace(f, r)
         # Output
         return name
 
