@@ -1371,11 +1371,13 @@ class RunMatrix(dict):
         :Versions:
             * 2024-10-16 ``@ddalle``: v1.0
             * 2026-01-01 ``@ddalle``: v1.1; add *Replace* support
+            * 2026-01-02 ``@ddalle``: v1.2; add *RegexSubs* support
         """
         # Initialize output
         name = ""
         # Get global options
         repl_global = self.opts.get_opt("Replace")
+        subs_global = self.opts.get_opt("RegexSubs")
         # Loop through keys
         for j, k in enumerate(keys):
             # Get definition
@@ -1393,6 +1395,7 @@ class RunMatrix(dict):
             qskp = defn.get_opt("SkipIfZero")
             kfmt = defn.get_opt("FormatMultiplier")
             repl = defn.get_opt("Replace")
+            subs = defn.get_opt("RegexSubs")
             # Check if numeric
             qflt = (qtyp == "float")
             qint = (qtyp in ("int", "bin", "oct", "hex"))
@@ -1418,14 +1421,22 @@ class RunMatrix(dict):
             kname = abbrev + (fmt % vj)
             # Apply replacements
             if repl:
-                for f, r in repl.items():
-                    kname = kname.replace(f, r)
+                for p, r in repl.items():
+                    kname = kname.replace(p, r)
+            # Apply substitutions
+            if subs:
+                for p, r in subs.items():
+                    kname = re.sub(p, r, kname)
             # Add to total
             name += kname
         # Apply global replacements
         if repl_global:
-            for f, r in repl_global.items():
-                name = name.replace(f, r)
+            for p, r in repl_global.items():
+                name = name.replace(p, r)
+        # Apply global substitutions
+        if subs_global:
+            for p, r in subs_global.items():
+                name = re.sub(p, r, name)
         # Output
         return name
 

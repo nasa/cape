@@ -212,6 +212,7 @@ class KeyDefnOpts(OptionsDict):
         "NonnegativeFormat",
         "PBSFormat",
         "PBSLabel",
+        "RegexSubs",
         "Replace",
         "SkipIfZero",
         "Source",
@@ -228,6 +229,8 @@ class KeyDefnOpts(OptionsDict):
         "FormatReplace": "Replace",
         "Replacements": "Replace",
         "ScaleDisplay": "FormatMultiplier",
+        "Subs": "RegexSubs",
+        "Substitute": "RegexSubs",
     }
 
     # Types
@@ -241,6 +244,7 @@ class KeyDefnOpts(OptionsDict):
         "NonnegativeFormat": BOOL_TYPES,
         "PBSFormat": str,
         "PBSLabel": BOOL_TYPES,
+        "RegexSubs": ReplaceOpts,
         "Replace": ReplaceOpts,
         "SkipIfZero": BOOL_TYPES,
         "Source": str,
@@ -932,6 +936,7 @@ class RunMatrixOpts(OptionsDict):
         "Keys",
         "MaxJobNameLength",
         "Prefix",
+        "RegexSubs",
         "Replace",
         "Values",
     }
@@ -942,6 +947,8 @@ class RunMatrixOpts(OptionsDict):
         "Defns": "Definitions",
         "JobNameMaxLength": "MaxJobNameLength",
         "Replacements": "Replace",
+        "Subs": "RegexSubs",
+        "Substitute": "RegexSubs",
         "cols": "Keys",
         "defns": "Definitions",
         "file": "File",
@@ -949,6 +956,8 @@ class RunMatrixOpts(OptionsDict):
         "keys": "Keys",
         "replace": "Replace",
         "replacements": "Replace",
+        "subs": "RegexSubs",
+        "substitute": "RegexSubs",
         "prefix": "Prefix",
     }
 
@@ -962,6 +971,7 @@ class RunMatrixOpts(OptionsDict):
         "GroupPrefix": str,
         "MaxJobNameLength": INT_TYPES,
         "Prefix": str,
+        "RegexSubs": ReplaceOpts,
         "Replace": ReplaceOpts,
         "Values": dict,
     }
@@ -996,6 +1006,7 @@ class RunMatrixOpts(OptionsDict):
         "MaxJobNameLength": "maximum length of PBS/Slurm job name",
         "Keys": "list of run matrix variables",
         "Prefix": "default prefix for case folders",
+        "RegexSubs": "regular expression substitutions to apply to case name",
         "Replace": "replacements from one string to another in case name",
     }
 
