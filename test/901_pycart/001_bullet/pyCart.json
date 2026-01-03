@@ -83,12 +83,6 @@
         // read from it.  RunMatrix values can also be specified locally.
         "File": "matrix.csv",
         "Keys": ["Mach", "alpha", "beta", "config"],
-        "Replace": {
-            ".": "p"
-        },
-        "RegexSubs": {
-            "([a-z])0p0": "\\g<1>0"
-        },
         // Copy the mesh
         "GroupMesh": true,
         // Configuration name [default]
