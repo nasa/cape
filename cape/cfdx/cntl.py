@@ -4826,6 +4826,8 @@ class Cntl(CntlBase):
         jsonfile = os.path.join(self.fdir, self.fname)
         # Create one
         self.logger = CntlLogger(self.RootDir, jsonfile)
+        # Return it
+        return self.logger
 
     def get_funcname(self, frame: int = 1) -> str:
         # Get frame of function calling this one
