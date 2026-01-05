@@ -314,6 +314,7 @@ class CntlLogger(BaseLogger):
    # --- Class attributes ---
     # Instance attributes
     __slots__ = (
+        "jsondir",
         "jsonfile",
     )
 
@@ -322,8 +323,12 @@ class CntlLogger(BaseLogger):
 
    # --- __dunder__ ---
     def __init__(self, rootdir: str, fname: str):
+        # Construct file name
+        jsonfile = fname.rsplit('.', 1)[0]
+        # Take folder chars out
+        jsonfile = jsonfile.replace(os.sep, '_-')
         # Save file name
-        self.jsonfile = os.path.basename(fname).split('.', 1)[0]
+        self.jsonfile = jsonfile
         # Call parent
         BaseLogger.__init__(self, rootdir)
 

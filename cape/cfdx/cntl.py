@@ -4823,7 +4823,7 @@ class Cntl(CntlBase):
         if isinstance(logger, CntlLogger):
             return logger
         # Get name of config
-        jsonfile = self.opts._filenames[0]
+        jsonfile = os.path.join(self.fdir, self.fname)
         # Create one
         self.logger = CntlLogger(self.RootDir, jsonfile)
 
