@@ -119,6 +119,7 @@ class BaseLogger(object):
     def _open_logfile(self, fname: str) -> IOBase:
         # Create log folder
         ierr = self._make_logdir()
+        ierr = ierr | self._make_subdir(fname)
         # If no folder made, use a text stream
         if ierr != IERR_OK:
             return StringIO()
@@ -149,6 +150,29 @@ class BaseLogger(object):
         except PermissionError:
             # Nonzero return code
             return IERR_PERMISSION
+
+    # Create sub folders
+    def _make_subdir(self, fname: Optional[str] = None) -> int:
+        # Exit if none
+        if not fname:
+            return
+        # Initialize base folder
+        fabs = os.path.join(self.root_dir, self.__class__._logdir)
+        # Split into folder parts
+        for fpart in os.path.dirname(fname).split(os.sep):
+            # Combine
+            fabs = os.path.join(fpart)
+            # Check for folder
+            if os.path.isdir(fabs):
+                continue
+            # Try to make folder
+            try:
+                os.mkdir(fabs)
+            except PermissionError:
+                # Nonzero return code
+                return IERR_PERMISSION
+        # Normal exit
+        return IERR_OK
 
 
 # Logger for actions in a case
@@ -333,6 +357,28 @@ class CntlLogger(BaseLogger):
         BaseLogger.__init__(self, rootdir)
 
    # --- Actions ---
+    def log_cmd(self, title: str, msg: str):
+        r"""Write a message to comnand log
+
+        :Call:
+            >>> logger.log_cmd(title, msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *msg*: :class:`str`
+                Main content of log message
+        :Versions:
+            * 2026-01-05 ``@ddalle``: v1.0
+        """
+        # Remove newline
+        msg = msg.rstrip('\n')
+        # Create overall message
+        line = f"{title},{_strftime()},{msg}\n"
+        # Write it
+        self.rawlog_cmd(line)
+
     def log_main(self, title: str, msg: str):
         r"""Write a message to primary case log
 
@@ -399,6 +445,25 @@ class CntlLogger(BaseLogger):
         # Write it
         self.rawlog_verbose(txt)
 
+    def rawlog_cmd(self, msg: str):
+        r"""Write a raw message to command log
+
+        :Call:
+            >>> logger.rawlog_cmd(msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+        :Versions:
+            * 2026-01-05 ``@ddalle``: v1.0
+        """
+        # Get file handle
+        fp = self.open_cmd()
+        # Write message
+        fp.write(msg)
+        fp.flush()
+
     def rawlog_main(self, msg: str):
         r"""Write a raw message to primary case log
 
@@ -438,6 +503,25 @@ class CntlLogger(BaseLogger):
         fp.flush()
 
    # --- File handles ---
+    # Get action log file
+    def open_cmd(self) -> IOBase:
+        r"""Open and return the "cmd" simple log file handle
+
+        :Call:
+            >>> fp = logger.open_cmd()
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for "cmd" log
+        :Versions:
+            * 2026-01-05 ``@ddalle``: v1.0
+        """
+        # Output
+        return self.open_logfile(
+            "cmd", os.path.join("cmd", f"{self.jsonfile}.log"))
+
     # Get main log file
     def open_main(self) -> IOBase:
         r"""Open and return the main log file handle
@@ -453,7 +537,9 @@ class CntlLogger(BaseLogger):
         :Versions:
             * 2025-04-30 ``@ddalle``: v1.0
         """
-        return self.open_logfile("main", f"{self.jsonfile}-main.log")
+        # Output
+        return self.open_logfile(
+            "main", os.path.join("main", f"{self.jsonfile}.log"))
 
     # Get verbose log file
     def open_verbose(self) -> IOBase:
@@ -470,7 +556,8 @@ class CntlLogger(BaseLogger):
         :Versions:
             * 2025-04-30 ``@ddalle``: v1.0
         """
-        return self.open_logfile("verbose", f"{self.jsonfile}-verbose.log")
+        return self.open_logfile(
+            "verbose", os.path.join("verbose", f"{self.jsonfile}.log"))
 
 
 # Logger for actions in a case
