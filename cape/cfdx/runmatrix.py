@@ -165,7 +165,8 @@ class RunMatrix(dict):
         keys = opts.get_opt("Keys")
         prefix = opts.get_opt("Prefix")
         groupPrefix = opts.get_opt("GroupPrefix")
-        # Process the definitions.
+        # Process the definitions
+        self.opts = opts
         defns = opts.get_opt("Definitions", vdef={})
         # Save file name
         self.fname = fname
@@ -1369,9 +1370,14 @@ class RunMatrix(dict):
                 Values for each *k* in *keys*
         :Versions:
             * 2024-10-16 ``@ddalle``: v1.0
+            * 2026-01-01 ``@ddalle``: v1.1; add *Replace* support
+            * 2026-01-02 ``@ddalle``: v1.2; add *RegexSubs* support
         """
         # Initialize output
         name = ""
+        # Get global options
+        repl_global = self.opts.get_opt("Replace")
+        subs_global = self.opts.get_opt("RegexSubs")
         # Loop through keys
         for j, k in enumerate(keys):
             # Get definition
@@ -1388,6 +1394,8 @@ class RunMatrix(dict):
             qtyp = defn.get_opt("Value")
             qskp = defn.get_opt("SkipIfZero")
             kfmt = defn.get_opt("FormatMultiplier")
+            repl = defn.get_opt("Replace")
+            subs = defn.get_opt("RegexSubs")
             # Check if numeric
             qflt = (qtyp == "float")
             qint = (qtyp in ("int", "bin", "oct", "hex"))
@@ -1410,8 +1418,25 @@ class RunMatrix(dict):
                 # Round if necessary
                 vj = int(vj) if qint else vj
             # Add abbreviation and formatted value
-            name += abbrev
-            name += (fmt % vj)
+            kname = abbrev + (fmt % vj)
+            # Apply replacements
+            if repl:
+                for p, r in repl.items():
+                    kname = kname.replace(p, r)
+            # Apply substitutions
+            if subs:
+                for p, r in subs.items():
+                    kname = re.sub(p, r, kname)
+            # Add to total
+            name += kname
+        # Apply global replacements
+        if repl_global:
+            for p, r in repl_global.items():
+                name = name.replace(p, r)
+        # Apply global substitutions
+        if subs_global:
+            for p, r in subs_global.items():
+                name = re.sub(p, r, name)
         # Output
         return name
 

@@ -104,6 +104,9 @@ def overrun(opts=None, j=0, **kw):
     elif ofcmd[0] == "overrun":
         # Use the ``overrun`` script
         cmdi = ofcmd + [pre, '%02i' % j]
+    elif ofcmd[0] == "overrunmpi_gpu":
+        # Use the ``overrunmpi_gpu`` script
+        cmdi = ofcmd + ['-n', str(nProc), pre, '%02i' % j]
     elif n_mpi:
         # Default to "overflowmpi"
         cmdi = [mpicmd, '-np', str(nProc)] + ofcmd

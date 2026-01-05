@@ -3,6 +3,55 @@
 Changelog
 ********************
 
+Release 2.2.2
+=============================
+
+New Features
+-------------------
+
+*   New settings in the ``"RunMatrix"`` section named ``"Replace"`` and
+    ``"RegexSubs"``. These allow you to replace one string with another
+    (*Replace*) or apply general regular expression replacements using
+    ``re.sub()``. For example, if you don't want decimal points in your case
+    names, you could use:
+
+    .. code-block:: javascript
+
+        "RunMatrix": {
+            "Replace": {
+                ".": "p"
+            }
+        }
+    
+    to get conversions like ``m2.50a2.0`` → ``m2p50a2p0`` or use
+
+    .. code-block:: javascript
+
+        "RunMatrix": {
+            "Replace": {
+                ".": ""
+            }
+        }
+    
+    to get conversions like ``m2.50a2.0`` → ``m250a20``.
+
+
+Release 2.2.1
+=============================
+
+This is a bug-fix release for CAPE 2.2.0, especially for running Cart3D.
+
+Bugs Fixed
+--------------
+
+*   Writing of ``.tri`` (Cart3D triangulation) files were writing an extra
+    ``1`` in the header as if it were writing a ``.triq`` (annotated
+    triangulation) file. This has been fixed.
+
+*   Starting new line load databooks (e.g. using ``pyfun --ll``) from various
+    initial conditions has been fixed.
+
+
 Release 2.2.0
 =============================
 

@@ -723,7 +723,7 @@ class DataKitQuickStarter:
         # Check for such a file
         if not os.path.isfile(pyfile):
             raise ValueError(
-                f"Cannot use template {pkg}; __init__.py not found")
+                f"Cannot use template {pkg}; {pyfile} not found")
         # Status update
         print(f"  Using template '{pkgdir}/__init__.py'")
         # Read the file

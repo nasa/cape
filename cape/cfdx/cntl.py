@@ -340,7 +340,6 @@ class Cntl(CntlBase):
         * :attr:`_warnmode_envvar`
         * :attr:`_zombie_files`
     :Attributes:
-        * :attr:`DataBook`
         * :attr:`RootDir`
         * :attr:`cache_iter`
         * :attr:`caseindex`
@@ -409,6 +408,21 @@ class Cntl(CntlBase):
         #: :class:`str`
         #: Root folder for this run matrix
         self.RootDir = os.getcwd()
+        # Get actual name of root file
+        fjson = os.path.realpath(fname)
+        # Absolutize
+        if os.path.isabs(fjson):
+            # Already absolute
+            fjson_rel = os.path.relpath(fjson, self.RootDir)
+        else:
+            # Already relative
+            fjson_rel = fjson
+        #: :class:`str`
+        #: JSON file name (follows links if necessary) rel. to root dir
+        self.fname = os.path.basename(fjson_rel)
+        #: :class:`str`
+        #: Folder in which JSON file is located, relative to root dir
+        self.fdir = os.path.dirname(fjson_rel)
         #: :class:`CaseRunner`
         #: Slot for the current case runner
         self.caserunner = None
@@ -4809,9 +4823,11 @@ class Cntl(CntlBase):
         if isinstance(logger, CntlLogger):
             return logger
         # Get name of config
-        jsonfile = self.opts._filenames[0]
+        jsonfile = os.path.join(self.fdir, self.fname)
         # Create one
         self.logger = CntlLogger(self.RootDir, jsonfile)
+        # Return it
+        return self.logger
 
     def get_funcname(self, frame: int = 1) -> str:
         # Get frame of function calling this one

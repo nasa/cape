@@ -78,13 +78,13 @@ def test_03_readplt():
     # Check it
     assert plt.Vars == ["x", "y", "z"]
     assert plt.Zones == [
-        "boundary 1 cap",
-        "boundary 2 body",
-        "boundary 3 base",
-        "boundary 11 fin1",
-        "boundary 12 fin2",
-        "boundary 13 fin3",
-        "boundary 14 fin4",
+        "cap",
+        "body",
+        "base",
+        "fin1",
+        "fin2",
+        "fin3",
+        "fin4",
     ]
 
 
