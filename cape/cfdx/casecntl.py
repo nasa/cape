@@ -3672,19 +3672,6 @@ class CaseRunner(CaseRunnerBase):
         # Use name of TriqFM file
         return (self._dex_triqfile, cntl, i)
 
-
-    def post_delete_dex_surfcp(self, dex, **kw):
-        fname = kw.get("fname", None)
-        casename = self.get_case_name().split("/")[-1]
-        # Delete data cdb
-        dex.delete_datafile(fname, casename)
-
-    def post_sample_dex_surfcp(self, dex, **kw):
-        fname = kw.get("fname", None)
-        casename = self.get_case_name().split("/")[-1]
-        # Write data cdb
-        dex.write_datafile(fname, casename)
-
    # --- TriqFM ---
     @run_rootdir
     def prep_dex_triqfm(self, comp: str):
