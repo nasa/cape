@@ -3365,7 +3365,6 @@ class CaseRunner(CaseRunnerBase):
         if n is not None:
             return n
         # Search for data file
-        breakpoint()
         mtch = self.match_surf_file()
         # Check for a match
         if mtch is None:
