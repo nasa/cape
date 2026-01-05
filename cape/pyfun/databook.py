@@ -63,6 +63,7 @@ from ..cfdx import casedata
 from ..cfdx import databook
 from ..dkit import tsvfile
 from ..cfdx.casecntl import CaseRunner
+from ..cfdx.cntlbase import CntlBase
 
 
 # Radian -> degree conversion
@@ -487,6 +488,84 @@ class CaseTS(databook.CaseTS):
         self._fix_iter(db)
         # Output
         return db
+
+    # Function to fix iteration histories of one file
+    def _fix_iter(self, db: tsvfile.TSVTecDatFile):
+        r"""Fix iteration and time histories for FUN3D resets
+
+        :Call:
+            >>> _fix_iter(h, db)
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Get iterations and time
+        i_solver = db.get(databook.CASE_COL_ITRAW)
+        t_solver = db.get(databook.CASE_COL_TRAW)
+        # Get current last iter
+        i_last = self.get_lastiter()
+        # Copy to actual
+        i_cape = i_solver.copy()
+        # Required delta for iteration counter
+        di = max(0, i_last - i_solver[0] + 1)
+        # Modify history
+        i_cape += di
+        # Save iterations
+        db.save_col(databook.CASE_COL_ITERS, i_cape)
+        # Modify time history
+        if (t_solver is None) or (t_solver[0] < 0):
+            # No time histories
+            t_raw = np.full(i_solver.size, np.nan)
+            t_cape = np.full(i_solver.shape, np.nan)
+            # Save placeholders for raw time
+            db.save_col(databook.CASE_COL_TRAW, t_raw)
+        else:
+            # Get last time value
+            t_last = self.get_maxtime()
+            # Copy to actual
+            t_cape = t_solver.copy()
+            # Required delta for times to be ascending
+            dt = max(0.0, np.floor(t_last - 2*t_solver[0] + t_solver[1]))
+            # Modify time histories
+            t_cape += dt
+        # Save time histories
+        db.save_col(databook.CASE_COL_TIME, t_cape)
+        # Output
+        return db
+
+
+class CaseSurfCp(databook.CaseSurfCp):
+    def __init__(self, proj: str, compid: str, ftriq: str,
+                 cntl: CntlBase, i: int, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2025-10-16 ``@ddalle``: v1.0
+            * 2024-01-23 ``@ddalle``: v2.0; DataKit
+        """
+        # Get the project rootname
+        self.proj = proj
+        # Use parent initializer
+        databook.CaseSurfCp.__init__(self, compid, ftriq, cntl, i, **kw)
+
+    # Get working folder for flow
+    def get_flow_folder(self) -> str:
+        r"""Get the working folder for primal solutions
+
+        This will be either ``""`` (base dir) or ``"Flow"``
+
+        :Call:
+            >>> workdir = fm.get_flow_folder()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *workdir*: ``""`` | ``"Flow"``
+                Current working folder for primal (flow) solutions
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Check for ``Flow/`` folder
+        return "Flow" if os.path.isdir("Flow") else ""
 
     # Function to fix iteration histories of one file
     def _fix_iter(self, db: tsvfile.TSVTecDatFile):

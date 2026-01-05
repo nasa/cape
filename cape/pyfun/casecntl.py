@@ -35,7 +35,7 @@ from . import cmdrun
 from . import cmdgen
 from . import pltfile
 from .. import fileutils
-from .databook import CaseFM, CaseResid
+from .databook import CaseFM, CaseResid, CaseSurfCp
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 from ..cfdx import casecntl
@@ -122,6 +122,7 @@ class CaseRunner(casecntl.CaseRunner):
     _resid_cls = CaseResid
     _dex_cls = {
         "fm": CaseFM,
+        "surfcp": CaseSurfCp,
     }
 
    # --- Config ---
@@ -1706,6 +1707,27 @@ class CaseRunner(casecntl.CaseRunner):
         proj = self.get_project_baserootname()
         # Use it
         return (proj,)
+
+    # Create tuple of args prior to *comp*
+    def get_dex_args_pre_surfcp(self) -> tuple:
+        r"""Get list of args prior to comp name in :class:`CaseSurfCp`
+
+        :Call:
+            >>> args = runner.get_dex_args_pre()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one string, project base root name
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        proj = self.get_project_baserootname()
+        # Use it
+        return (proj,)
+
 
     # Create tuple of args to CaseResid
     def genr8_resid_args(self) -> tuple:

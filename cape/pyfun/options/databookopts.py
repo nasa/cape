@@ -29,6 +29,7 @@ class DataBookOpts(databookopts.DataBookOpts):
         "IterPoint": databookopts.DBIterPointOpts,
         "LineLoad": databookopts.LineLoadDataBookOpts,
         "PyFunc": databookopts.PyFuncDataBookOpts,
+        "SurfCp": databookopts.SurfCpDataBookOpts,
         "TimeSeries": databookopts.DBTimeSeriesOpts,
         "TriqFM": databookopts.TriqFMDataBookOpts,
         "TriqPoint": databookopts.TriqPointDataBookOpts,
