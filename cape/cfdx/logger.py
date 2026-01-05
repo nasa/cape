@@ -153,15 +153,18 @@ class BaseLogger(object):
 
     # Create sub folders
     def _make_subdir(self, fname: Optional[str] = None) -> int:
+        # Get base folder
+        fdir = None if (fname is None) else os.path.dirname(fname)
         # Exit if none
-        if not fname:
-            return
+        if fdir is None or (not fdir):
+            return IERR_OK
         # Initialize base folder
         fabs = os.path.join(self.root_dir, self.__class__._logdir)
         # Split into folder parts
-        for fpart in os.path.dirname(fname).split(os.sep):
+        for fpart in fdir.split(os.sep):
             # Combine
             fabs = os.path.join(fpart)
+            breakpoint()
             # Check for folder
             if os.path.isdir(fabs):
                 continue
