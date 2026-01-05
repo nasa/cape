@@ -3450,7 +3450,20 @@ class Cntl(CntlBase):
             dbinds, _ = db.xmatch(self.x, maskt=inds)
             # Delete cases
             if dbinds.size:
-                n = db.delete(dbinds)
+                # Check for extra data file first
+                if db.data_fname:
+                    for i in inds:
+                        # Get case runner
+                        runner = self.ReadCaseRunner(i)
+                        # Get case data handle
+                        di = runner.read_dex(comp)
+                        # Delete case data from data file
+                        di.delete_datafile(
+                            fname=db.data_fname,
+                            casename=runner.get_case_name()
+                        )
+                # Delete case
+                n = db.delete(dbinds) 
         else:
             # Count cases updated
             n = 0
@@ -3514,6 +3527,13 @@ class Cntl(CntlBase):
             print(f"  New entry at iteration {ni}")
         # Sample the data
         d = runner.sample_dex(comp)
+        # If extra data file
+        if db.data_fname:
+            # Write extra file
+            d.write_datafile(
+                fname=db.data_fname,
+                casename=runner.get_case_name()
+            )
         # Save it to the data
         db.xiappend(self.x, i)
         db.xappend(d)
@@ -3772,23 +3792,13 @@ class Cntl(CntlBase):
         # Get component option
         comp = kw.get("surfcp")
         # If *comp* is ``True``, process all options
-        if comp is True:
-            comp = None
+        comp = None if comp is True else comp
         # Get full list of components
-        comp = self.opts.get_DataBookByGlob("surfcp", comp)
-        # Apply constraints
-        I = self.x.GetIndices(**kw)
-        # Check if we are deleting or adding.
-        if kw.get('delete', False):
-            # Read the existing data book.
-            self.ReadDataBook(comp=comp)
-            # Delete cases.
-            self.DataBook.DeleteCases(I, comp=comp)
-        else:
-            # Read an empty data book
-            self.ReadDataBook(comp=[])
-            # Read the results and update as necessary.
-            self.DataBook.UpdateDataBook(I, comp=comp)
+        comps = self.opts.get_DataBookByGlob("SurfCp", comp)
+        # Loop through them
+        for comp in comps:
+            self.update_dex_comp(comp, **kw)
+
 
     # Update time series
     @run_rootdir

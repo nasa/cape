@@ -39,6 +39,7 @@ CMD_NAMES = {
     "fm": "extract-fm",
     "ll": "extract-ll",
     "prop": "extract-prop",
+    "surfcp": "extract-surfcp",
     "pt": "extract-triqpt",
     "triqfm": "extract-triqfm",
     "ts": "extract-timeseries",
@@ -151,6 +152,7 @@ class CfdxArgReader(argread.ArgReader):
         "report": (bool, str),
         "restart": bool,
         "rm": bool,
+        "surfcp": (bool, str),
         "skeleton": bool,
         "start": bool,
         "triqfm": (bool, str),
@@ -257,6 +259,7 @@ class CfdxArgReader(argread.ArgReader):
         "re": "Limit to cases containing regular expression *REGEX*",
         "report": "Generate the report *RP* or the first in the list",
         "restart": "When submitting new jobs, only submit new cases",
+        "surcp": "Extract surface pressure data for case(s)",
         "skeleton": "Delete most files from indicaded PASSED cases",
         "rm": "Remove indicated cases",
         "start": "Set up but do not start (or submit) cases",
@@ -729,6 +732,28 @@ class CfdxExtractPyFuncArgs(_CfdxExtractArgs):
 
 
 # Settings for --ts
+class CfdxExtractSurfCpArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-surfcp"
+
+    # Description
+    _help_title = "Extract surfcp data"
+
+    # Additional options
+    _optlist = (
+        "surfcp",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "surfcp",
+    )
+
+
+# Settings for --ts
 class CfdxExtractTimeSeriesArgs(_CfdxExtractArgs):
     # No attributes
     __slots__ = ()
@@ -1032,6 +1057,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "report",
         "restart",
         "skeleton",
+        "surfcp",
         "rm",
         "start",
         "triqfm",
@@ -1065,6 +1091,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-ll",
         "extract-pyfunc",
         "extract-prop",
+        "extract-surfcp",
         "extract-timeseries",
         "extract-triqfm",
         "extract-triqpt",
@@ -1111,6 +1138,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-ll": CfdxExtractLLArgs,
         "extract-pyfunc": CfdxExtractPyFuncArgs,
         "extract-prop": CfdxExtractPropArgs,
+        "extract-surfcp": CfdxExtractSurfCpArgs,
         "extract-timeseries": CfdxExtractTimeSeriesArgs,
         "extract-triqfm": CfdxExtractTriqFMArgs,
         "extract-triqpt": CfdxExtractTriqPTArgs,
@@ -1574,6 +1602,28 @@ def cape_extract_pyfunc(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+def cape_extract_surfcp(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --surfcp`` command
+
+    :Call:
+        >>> ierr == cape_extract_surfcp(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.UpdateSurfCp(**kw)
+    # Return code
+    return IERR_OK
+
+
 def cape_extract_timeseries(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --ts`` command
 
@@ -1919,6 +1969,7 @@ CMD_DICT = {
     "extract-ll": cape_extract_ll,
     "extract-prop": cape_extract_prop,
     "extract-pyfunc": cape_extract_pyfunc,
+    "extract-surfcp": cape_extract_surfcp,
     "extract-timeseries": cape_extract_timeseries,
     "extract-triqfm": cape_extract_triqfm,
     "extract-triqpt": cape_extract_triqpt,

@@ -149,6 +149,23 @@ class FMDataBookOpts(DBCompOpts):
     }
 
 
+# Class for "SurfCp" components
+class SurfCpDataBookOpts(DBCompOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "options for surface pressure databook component"
+
+    # Defaults
+    _rc = {
+    }
+
+    # Types
+    _opttypes = {
+    }
+
+
 # Class for "IterPoint" components
 class DBTimeSeriesOpts(FMDataBookOpts):
     # No attributes
@@ -1031,6 +1048,7 @@ class DataBookOpts(OptionsDict):
         "IterPoint": DBIterPointOpts,
         "LineLoad": LineLoadDataBookOpts,
         "PyFunc": PyFuncDataBookOpts,
+        "SurfCp": SurfCpDataBookOpts,
         "TriqFM": TriqFMDataBookOpts,
         "TriqPoint": TriqPointDataBookOpts,
     }

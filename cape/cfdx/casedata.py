@@ -9,9 +9,11 @@ import numpy as np
 
 # Local imports
 from .. import util
+from .cntlbase import CntlBase
 from ..dkit import capefile
 from ..dkit.rdb import DataKit
 from ..optdict import OptionsDict
+from ..trifile import Tri, Triq
 
 # Module placeholder
 plt = None
@@ -3526,6 +3528,532 @@ class CaseResid(CaseData):
         j = np.where(iters <= i)[0][-1]
         # Output
         return j
+
+
+# Individual component time series force and moment
+class CaseSurfCp(CaseData):
+    r"""Surface Cp
+
+    This class contains methods for reading data about an the histroy of
+    an individual component for a single case.
+
+    :Call:
+        >>> fm = cape.cfdx.databook.CaseSurfCp()
+    :Outputs:
+        *cp*: :class:`cape.aero.CaseSurfCp`
+            Instance of the surface pressure class
+        *cp["casenames"]*: :class:`list`
+            List of casenames of saved case data
+        *cp["x"]*: :class:`np.ndarray`
+            X-coord of surface pressure points (global)
+        *cp["casename.x"]*: :class:`np.ndarray`
+            X-coord of surface pressure points (case specific)
+        *cp["casename.cp"]*: :class:`np.ndarray`
+            Surface pressure points (case specific)
+    :Versions:
+        * 2025-09-26 ``@aburkhea``: Started
+    """
+   # --- Class attributes ---
+    # Attributes
+    __slots__ = (
+        "comp",
+        "cols",
+        "compmap",
+        "cntl",
+        "ftriq",
+        "tri",
+        "triq",
+    )
+
+    # Minimal list of columns
+    _base_cols = (
+        "i",
+        "solver_iter",
+        "x",
+        "y",
+        "z",
+        "tris",
+        "cp",
+    )
+
+   # --- __dunder__ ---
+    def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
+        # Save the run matrix controller
+        self.cntl = cntl
+        # List of columns
+        self.cols = []
+        # Save the component name
+        self.comp = comp
+        self.compid = comp
+        # Save the name of the TriQ file
+        self.ftriq = ftriq
+        # Save case index
+        self.i = i
+        # Initialize other slots
+        self.compmap = None
+        self.tri = None
+        self.triq = None
+        # Analyze
+        self.get_triq_surfcp()
+        # Process output file
+        self.write_surf()
+
+    # Function to display contents
+    def __repr__(self):
+        r"""Representation method
+
+        Returns the following format, with ``'entire'`` replaced with the
+        component name, *fm.comp*
+
+            * ``'<CaseSurfCp('entire', i=100)>'``
+
+        :Versions:
+            * 2014-11-12 ``@ddalle``: v1.0
+            * 2015-10-16 ``@ddalle``: v2.0; generic version
+            * 2024-01-21 ``@ddalle``: v2.1; even more generic
+        """
+        return "<%s('%s', i=%i)>" % (
+            self.__class__.__name__, self.comp, self["i"].size)
+    # String method
+    __str__ = __repr__
+
+    # Read the map file for this component
+    def read_tri_map(self) -> Tri:
+        r"""Read the surface triangulation mapping file
+
+        This file defines the patches for the TriqFM output.
+
+        :Call:
+            >>> triq = db.read_triq()
+        :Inputs:
+            *db*: :class:`CaseTriqFM`
+                Interface to TriqFM data for one component of one case
+        :Outputs:
+            *triq*: :class:`cape.trifile.Triq`
+                Triangulated surface data (also stored in *db.triq*)
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check if already read
+        if self.tri is not None:
+            return
+        # Get options handle
+        opts = self.cntl.opts
+        # Get the name of the tri file and configuration
+        ftri = opts.get_DataBookOpt(self.comp, "MapTri")
+        fcfg = opts.get_DataBookOpt(self.comp, "ConfigFile")
+        # Absolutize as necessary
+        ftri = self.cntl.abspath(ftri)
+        fcfg = fcfg if fcfg is None else self.cntl.abspath(fcfg)
+        # Read
+        if os.path.isfile(ftri):
+            self.tri = Tri(ftri, c=fcfg)
+
+   # --- Map components ---
+    # Map the components
+    def map_tri_compid(self):
+        r"""Perform any component ID mapping if necessary
+
+        :Call:
+            >>> triq = db.map_tri_compid()
+        :Inputs:
+            *db*: :class:`CaseTriqFM`
+                Interface to TriqFM data for one component of one case
+        :Attributes:
+            *DBF.compmap*: :class:`dict`
+                Map of component numbers altered during the mapping
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+        # Check if already processed
+        if self.compmap is not None:
+            return
+        # Ensure tri is present
+        self.read_tri_map()
+        # Check for a tri file
+        if self.tri is None:
+            self.compmap = {}
+            return
+        # Get options handle
+        opts = self.cntl.opts
+        # Get map file name for STDOUT
+        ftri = opts.get_DataBookOpt(self.comp, "MapTri")
+        print(f"    Mapping component IDs using '{os.path.basename(ftri)}'")
+        # Get tolerances
+        kw = {
+            "AbsTol": opts.get_DataBookOpt(self.comp, "AbsTol"),
+            "CompTol": opts.get_DataBookOpt(self.comp, "CompTol"),
+            "RelTol": opts.get_DataBookOpt(self.comp, "RelTol"),
+            "AbsProjTol": opts.get_DataBookOpt(self.comp, "AbsProjTol"),
+            "CompProjTol": opts.get_DataBookOpt(self.comp, "CompProjTol"),
+            "RelProjTol": opts.get_DataBookOpt(self.comp, "RelProjTol"),
+            "compID": opts.get_DataBookOpt(self.comp, "ConfigCompID"),
+        }
+        # Pop empty options
+        for k, v in dict(kw).items():
+            if v is None:
+                kw.pop(k)
+        # Map the component IDs
+        self.compmap = self.triq.MapTriCompID(self.tri, **kw)
+
+   # --- Run matrix ---
+    def get_conditions(self) -> dict:
+        r"""Get the freestream conditions needed for forces
+
+        :Call:
+            >>> xi = db.get_conditions()
+        :Inputs:
+            *db*: :class:`CaseTriqFM`
+                Interface to TriqFM data for one component of one case
+        :Outputs:
+            *xi*: :class:`dict`
+                Conditions, incl. Mach (*mach*), Reynolds number (*Re*)
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+            * 2025-08-13 ``@ddalle``: v1.1 (dex)
+        """
+        # Get run matrix
+        x = self.cntl.x
+        i = self.i
+        # Attempt to get Mach number
+        try:
+            # Use the trajectory
+            mach = x.GetMach(i)
+        except Exception:
+            # No Mach number specified in run matrix
+            raise ValueError(
+                ("Could not determine freestream Mach number\n") +
+                ("TriqFM component '%s'" % self.comp))
+        # Attempt to get Reynolds number (not needed if inviscid)
+        try:
+            # Use the trajectory
+            Rey = x.GetReynoldsNumber(i)
+        except Exception:
+            # Assume it's not needed
+            Rey = 1.0
+        # Ratio of specific heats
+        gam = x.GetGamma(i)
+        # Dynamic pressure
+        q = x.GetDynamicPressure(i)
+        # Output
+        return {"mach": mach, "Re": Rey, "gam": gam, "q": q}
+
+   # --- Raw data ---
+    # Read the surface solution data from this case
+    def read_triq(self) -> Triq:
+        r"""Read the surface solution data from a ``.triq`` file
+
+        :Call:
+            >>> triq = db.read_triq()
+        :Inputs:
+            *db*: :class:`CaseTriqFM`
+                Interface to TriqFM data for one component of one case
+        :Outputs:
+            *triq*: :class:`cape.trifile.Triq`
+                Triangulated surface data (also stored in *db.triq*)
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Check if already read
+        if self.triq is not None:
+            return self.triq
+        # Check if file exists
+        if not os.path.isfile(self.ftriq):
+            return
+        # Get configuration file
+        fcfg = self.get_configfile()
+        # Read it
+        self.triq = Triq(self.ftriq, c=fcfg)
+        # Return it for convenience
+        return self.triq
+
+    # Find the configuration file
+    def get_configfile(self) -> str:
+        r"""Find configuration file for ``.triq`` file
+
+        :Call:
+            >>> fcfg = db.get_configfile()
+        :Inputs:
+            *db*: :class:`CaseTriqFM`
+                Interface to TriqFM data for one component of one case
+        :Outputs:
+            *fcfg*: :class:`str`
+                Name of XML/JSON/MIXSUR config file
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Get options handle
+        opts = self.cntl.opts
+        # Get component-specific config file
+        fcfg = opts.get_DataBookOpt(self.comp, "ConfigFile")
+        fcfg = fcfg if fcfg else opts.get_ConfigFile()
+        # Absolutize
+        return self.cntl.abspath(fcfg)
+
+    # Calculate forces for one comp
+    def get_triq_surfcp(self) -> dict:
+        r"""Get the surfcp on one comp
+
+        :Call:
+            >>> fm = db.get_triq_surfcp(**kw)
+        :Inputs:
+            *db*: :class:`CaseTriqFM`
+                Interface to TriqFM data for one component of one case
+            *comp*: :class:`str`
+                Name of comp
+        :Outputs:
+            *fm*: :class:`dict`\ [:class:`float`]
+                Dictionary of force & moment coefficients
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+            * 2025-08-13 ``@ddalle``: v2.0 (dex)
+        """
+        # Options handle
+        opts = self.cntl.opts
+        # Set inputs for TriqForces
+        kwfm = self.get_conditions()
+        # Apply remaining options
+        kwfm["Aref"] = opts.get_RefArea(self.compid)
+        kwfm["Lref"] = opts.get_RefLength(self.compid)
+        kwfm["bref"] = opts.get_RefSpan(self.compid)
+        kwfm["MRP"]  = np.array(opts.get_RefPoint(self.compid))
+        kwfm["incm"] = opts.get_DataBookMomentum(self.compid)
+        kwfm["gauge"] = opts.get_DataBookGauge(self.compid)
+        # Get surface data
+        triq = self.read_triq()
+        # Component for subsetting
+        K = triq.GetTrisFromCompID(self.compid)
+        # Store node indices for each tri
+        _T = triq.Tris[K, :] - 1
+        # Save just unique nodes (point cloud)?
+        T = np.unique(_T)
+        # Get surf pressure on tris
+        cp = triq.q[T, 0]
+        # Save nodes
+        self.save_col("x", triq.Nodes[T, 0])
+        self.save_col("y", triq.Nodes[T, 1])
+        self.save_col("z", triq.Nodes[T, 2])
+        # Save Tri connectivity
+        self.save_col("tris", triq.Tris)
+        # Save cp
+        self.save_col("cp", cp)
+
+   # --- Write ---
+    def delete_datafile(self, fname, casename):
+        r"""Delete surfcp data capefile
+
+        :Call:
+            >>> runner.write_datafile(casename)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of data file to write
+            *casename*: :class:`str`
+                Name of case
+        :Versions:
+            * 2026-01-05 ``@aburkhea``: v1.0
+        """
+        # Remove casename root if there
+        casename = casename.split("/")[-1]
+        # Check for existing fname
+        if os.path.isfile(fname):
+            # Read existing
+            db0 = DataKit(fname)
+            # Get casenames
+            casenames = db0.burst_col("casenames")
+            # Find case name
+            if casename in casenames:
+                # Remove from casenames
+                casenames.remove(casename)
+                # Remove casename.cp
+                _ = db0.burst_col(casename + ".cp")
+                # Remove from casename.[xyz]
+                _ = db0.burst_col(casename + ".x")
+                _ = db0.burst_col(casename + ".y")
+                _ = db0.burst_col(casename + ".z")
+                _ = db0.burst_col(casename + ".tris")
+                # If this was only case also try to delete global x,y,z
+                if len(casenames) == 0:
+                    # Remove from casename.[xyz]
+                    _ = db0.burst_col("x")
+                    _ = db0.burst_col("y")
+                    _ = db0.burst_col("z")
+                    _ = db0.burst_col("tris")
+                else:
+                    # Save new casenames
+                    db0.save_col("casenames", casenames)
+                # Re-write db0
+                db0.write_cdb(fname)
+
+
+    def write_datafile(self, fname, casename):
+        r"""Write surfcp data capefile
+
+        Defaults to global x,y,z and case specific cp. When writing new
+        case checks if global x,y,z exists then compares it to case
+        x,y,z. Will switch to case x,y,z if they are different. Once
+        case specific x,y,z started, will then always write case
+        specific x,y,z.
+
+        :Call:
+            >>> runner.write_datafile(casename)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of data file to write
+            *casename*: :class:`str`
+                Name of case
+        :Versions:
+            * 2025-09-26 ``@aburkhea``: v1.0
+        """
+        # Remove casename root if there
+        casename = casename.split("/")[-1]
+        # Check for existing fname
+        if os.path.isfile(fname):
+            # Read existing
+            db0 = DataKit(fname)
+            # Initialize blank datakit for (x,y,z,tri,cp)
+            dbq = DataKit()
+            # Try to get grid
+            x = db0.get("x", [])
+            y = db0.get("y", [])
+            z = db0.get("z", [])
+            tris = db0.get("tris", [])
+            # Start append cols
+            append_cols = []
+            # Save grid flag
+            savegrid = False
+            # No need to save
+            casex = self.burst_col("x")
+            casey = self.burst_col("y")
+            casez = self.burst_col("z")
+            caset = self.burst_col("tris")
+            # Check existing grid
+            if (len(x) and len(y) and len(z)):
+                # Compare existing grid to case grid
+                dx = x - casex
+                dy = y - casey
+                dz = z - casez
+                ds = np.count_nonzero(dx) + np.count_nonzero(dy) + \
+                     np.count_nonzero(dz)
+                # Also compare tris
+                dt = np.count_nonzero(tris - caset)
+                # If diffs, change existing grid to case specific grids
+                if ds or dt:
+                    # Save existing global grid to all existing casenmes
+                    x0 = db0.burst_col("x")
+                    y0 = db0.burst_col("y")
+                    z0 = db0.burst_col("z")
+                    tris0 = db0.burst_col("tris")
+                    # Change existing global grid names to case specific
+                    for _casename in db0.get("casenames"):
+                        dbq.save_col(f"{_casename}.x", x0)
+                        dbq.save_col(f"{_casename}.y", y0)
+                        dbq.save_col(f"{_casename}.z", z0)
+                        dbq.save_col(f"{_casename}.tris", tris0)
+                    # Save case x,y,z 
+                    savegrid = True
+            # Case specific grid
+            else:
+                savegrid = True
+            # Check for savegrid flag
+            if savegrid:
+                    dbq.save_col(f"{casename}.x", casex)
+                    dbq.save_col(f"{casename}.y", casey)
+                    dbq.save_col(f"{casename}.z", casez)
+                    dbq.save_col(f"{casename}.tris", caset)
+                    # Append case.xyz
+                    append_cols.extend([
+                        f"{casename}.x",
+                        f"{casename}.y",
+                        f"{casename}.z",
+                        f"{casename}.tris",]
+                    )
+            # Check if casename is not in casenames
+            if casename not in db0.get("casenames"):
+                # Append casename col
+                db0.append_col("casenames", casename)
+            # Sort casenames
+            db0.sort(["casenames"])
+            # Change to case specific cp col name
+            cp = self.burst_col("cp")
+            dbq.save_col(f"{casename}.cp", cp)
+            # Append case.cp col
+            append_cols.append(f"{casename}.cp")
+            # Append cols to file
+            db0.append_data(dbq, cols=append_cols)
+            # Re-write db0
+            db0.write_cdb(fname)
+        else:
+            # Initialize blank datakit for (x, y, z, cp)
+            # This "extracts" data cols & leaves metadata cols in self
+            dbq = DataKit()
+            # Save case name
+            dbq.save_col("casenames", [f"{casename}"])
+            # Burst case grid and data cols
+            x = self.burst_col("x")
+            y = self.burst_col("y")
+            z = self.burst_col("z")
+            tris = self.burst_col("tris")
+            cp = self.burst_col("cp")
+            # Write as if global grid info
+            dbq.save_col(f"x", x)
+            dbq.save_col(f"y", y)
+            dbq.save_col(f"z", z)
+            dbq.save_col(f"tris", tris)
+            # Save case specific cp
+            dbq.save_col(f"{casename}.cp", cp)
+            # Write db to file
+            dbq.write_cdb(fname)
+
+    # Write to cape db file
+    def write_dbook_cdb(self, fname):
+        r"""Write contents of history to ``.cdb`` file
+
+        :Call:
+            >>> fm.write_dbook_cdb(fname)
+        :Inputs:
+            *fm*: :class:`CaseData`
+                Iterative history instance
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: v1.0
+        """
+        # Try to write it
+        try:
+            # Create database
+            db = capefile.CapeFile(self)
+            # Write file
+            db.write(fname)
+        except PermissionError:
+            print(f"    Lacking permissions to write '{fname}'")
+
+   # --- Surface Output ---
+    # Function to write TRIQ file if requested
+    def write_surf(self, **kw):
+        r"""Write mapped solution as TRIQ or Tecplot file with zones
+
+        :Call:
+            >>> db.write_triq(**kw)
+        :Inputs:
+            *db*: :class:`CaseTriqFM`
+                Interface to TriqFM data for one component of one case
+        :Versions:
+            * 2017-03-30 ``@ddalle``: v1.0 (``TriqFMDataBook``)
+            * 2025-08-13 ``@ddalle``: v2.0 (dex)
+        """
+        # Get options handle
+        opts = self.cntl.opts
+        # Get option for output
+        if not opts.get_DataBookOpt(self.comp, "OutputSurface"):
+            return
+        # Get the output file type
+        fmt = opts.get_DataBookOpt(self.comp, "OutputFormat")
+        # Check the option
+        if fmt is None:
+            # Nothing more to do
+            return
 
 
 # Individual component time series force and moment

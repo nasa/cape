@@ -58,7 +58,7 @@ from . import queue
 from .. import fileutils
 from .archivist import CaseArchivist
 from .casecntlbase import CaseRunnerBase
-from .casedata import CaseFM, CaseResid
+from .casedata import CaseFM, CaseResid, CaseSurfCp
 from .caseutils import run_rootdir
 from .cntlbase import CntlBase
 from .ll import CaseLineLoad
@@ -270,6 +270,7 @@ class CaseRunner(CaseRunnerBase):
     _dex_cls = {
         "fm": CaseFM,
         "lineload": CaseLineLoad,
+        "surfcp": CaseSurfCp,
         "triqfm": CaseTriqFM,
         "triqpoint": CaseTriqPoint,
     }
@@ -2814,6 +2815,29 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return db
 
+
+    def sample_dex_surfcp(self, comp: str) -> DataKit:
+        r"""Sample a force & moment iterative history
+
+        :Call:
+            >>> db = runner.sample_dex_fm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read and sample
+        :Outputs:
+            *db*: :class:`cape.dkit.rdb.DataKit`
+                Sampled DataBook component or raw data
+        :Versions:
+            * 2025-07-29 ``@ddalle``: v1.0
+        """
+        # Read the raw data (e.g. iterative history)
+        surfcp = self.read_dex(comp)
+        # Output
+        return surfcp
+
+
     def sample_dex_fm(self, comp: str) -> DataKit:
         r"""Sample a force & moment iterative history
 
@@ -2954,7 +2978,7 @@ class CaseRunner(CaseRunnerBase):
         # Perform preprocessing if needed
         self.prep_dex(comp)
         # Check it
-        if typ in ("fm",):
+        if typ in ("fm", "surfcp"):
             return self.read_dex_by_element(comp)
         else:
             return self.read_dex_element(comp, comp)
@@ -3524,6 +3548,68 @@ class CaseRunner(CaseRunnerBase):
         self.write_triload_input(comp, ftriq)
         # Run ``triloadCmd``
         self.run_triload(f"triload.{comp}.i", f"triload.{comp}.o")
+
+   # --- Surf Cp ---
+    @run_rootdir
+    def prep_dex_surfcp(self, comp: str):
+        r"""Prepare surface ``.triq`` file for SurfCp processing
+
+        :Call:
+            >>> db = runner.prep_dex_triqfm(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2025-08-13 ``@ddalle``: v1.0
+        """
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get name of ``.triq`` file and create it if needed
+        self.prepare_triq()
+
+    # Create tuple of TriqFM dex args after to *comp*
+    def get_dex_args_post_surfcp(self) -> tuple:
+        r"""Get list of args after *comp* in :class:`CaseTriqFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_triqfm()
+            >>> ftriq, cntl, i = runner.get_dex_args_post_triqfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Tuple of args
+            *ftriq*: :class:`str`
+                Name of ``.triq`` file with surface solution data
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Run matrix controller with definitions for dex comp
+            *i*: :class:`int`
+                Index of this case in run matrix
+        :Versions:
+            * 2025-07-24 ``@ddalle``: v1.0
+        """
+        # Read run matrix controller
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Use name of TriqFM file
+        return (self._dex_triqfile, cntl, i)
+
+
+    def post_delete_dex_surfcp(self, dex, **kw):
+        fname = kw.get("fname", None)
+        casename = self.get_case_name().split("/")[-1]
+        # Delete data cdb
+        dex.delete_datafile(fname, casename)
+
+    def post_sample_dex_surfcp(self, dex, **kw):
+        fname = kw.get("fname", None)
+        casename = self.get_case_name().split("/")[-1]
+        # Write data cdb
+        dex.write_datafile(fname, casename)
 
    # --- TriqFM ---
     @run_rootdir

@@ -37,10 +37,10 @@ class DataExchanger(DataKit):
         "fm": "aero",
         "lineload": "ll",
         "triqpoint": "triqpt",
+        "surfcp": "cp",
     }
     _subdir_map = {
-        "triqfm": "triqfm",
-        "surfcp": "surfcp",
+        "triqfm": "triqfm"
     }
 
   # *** DUNDER ***
@@ -73,6 +73,8 @@ class DataExchanger(DataKit):
         #: :class:`str`
         #: Name of *primary* file, may be only metadata
         self.fname = self.get_filename()
+        # Get name of potential data file
+        self.data_fname = self.get_data_fname()
         # Initialize any missing columns
         self.init_empty()
         # Read data as requested
@@ -331,6 +333,36 @@ class DataExchanger(DataKit):
             * 2025-08-12 ``@ddalle``: v1.0
         """
         return "csv"
+
+    def get_data_fname(self):
+        r"""Get the name of the data databook file
+
+        :Call:
+            >>> fname = db.get_filename()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        :Outputs:
+            *fname*: :class:`str`
+                File name
+        :Versions:
+            * 2025-08-12 ``@aburkhea``: v1.0
+        """
+        if self.comptype in ("SurfCp",):
+            # Get prefix
+            prefix = self.get_prefix()
+            # Get extension
+            ext = "cdb"
+            # Get subfolder
+            dirname = self.get_subdir()
+            # Combine
+            fname = os.path.join(dirname, f"{prefix}_{self.name}_data.{ext}")
+            # Absolutize
+            if not os.path.isabs(fname):
+                fname = os.path.join(self.fdir, fname)
+            return fname
+        return None
+
 
   # *** DATA ***
    # --- Initialize ---

@@ -103,6 +103,7 @@ from ..dkit.rdb import DataKit
 from .casedata import (
     CaseFM,
     CaseProp,
+    CaseSurfCp,
     CaseTS,
     CaseResid,
     DBPlotOpts,
