@@ -6,6 +6,10 @@ needed tools for CFD solvers.
 
 """
 
+# Standard library
+from collections import namedtuple
+from typing import Union
+
 # Third-party modules
 import numpy as np
 
@@ -30,7 +34,7 @@ def fstep(x):
         *y*: ``-1.0`` | ``1.0`` | :class:`np.ndarray`
             Output step function or array of outputs
     :Versions:
-        * 2017-06-27 ``@ddalle``: Version 1.0
+        * 2017-06-27 ``@ddalle``: v1.0
     """
     return -1 + 2*np.ceil(0.5+0.5*np.sign(x))
 
@@ -48,9 +52,15 @@ def fstep1(x):
         *y*: ``-1.0`` | ``1.0`` | :class:`np.ndarray`
             Output step function or array of outputs
     :Versions:
-        * 2017-06-27 ``@ddalle``: Version 1.0
+        * 2017-06-27 ``@ddalle``: v1.0
     """
     return -1 + 2*np.floor(0.5+0.5*np.sign(x))
+
+
+# Special angle-pair class
+AlphaBetaPair = namedtuple("AlphaBetaPair", ("a", "b"))
+AlphaTotalPair = namedtuple("AlphaTotalPair", ("alpha", "phi"))
+BodyVelocity = namedtuple("BodyVelocity", ("u", "v", "w"))
 
 
 # Convert (total angle of attack, total roll angle) to (aoa, aos)
@@ -70,11 +80,13 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
         *beta*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Versions:
-        * 2014-06-02 ``@ddalle``: Version 1.0
+        * 2014-06-02 ``@ddalle``: v1.0
     """
     # Trig functions.
-    ca = np.cos(alpha_t*deg); cp = np.cos(phi*deg)
-    sa = np.sin(alpha_t*deg); sp = np.sin(phi*deg)
+    ca = np.cos(alpha_t*deg)
+    cp = np.cos(phi*deg)
+    sa = np.sin(alpha_t*deg)
+    sp = np.sin(phi*deg)
     # Get the components of the normalized velocity vector.
     u = 1.0e-8*np.fix(1e8*ca)
     v = 1.0e-8*np.fix(1e8*sa * sp)
@@ -87,41 +99,47 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
 
 
 # Convert (aoa, aos) to (total angle of attack, total roll angle)
-def AlphaBeta2AlphaTPhi(alpha, beta):
+def AlphaBeta2AlphaTPhi(
+        a: Union[float, np.ndarray],
+        b: Union[float, np.ndarray]) -> AlphaTotalPair:
     r"""Convert angle of attack and sideslip to missile axis angles
 
     :Call:
-        >>> alpha_t, phi = cape.AlphaBeta2AlphaTPhi(alpha, beta)
+        >>> aoap, phip = cape.AlphaBeta2AlphaTPhi(a, b)
     :Inputs:
-        *alpha*: :class:`float` | :class:`numpy.array`
+        *a*: :class:`float` | :class:`numpy.array`
             Angle of attack
-        *beta*: :class:`float` | :class:`numpy.array`
+        *b*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Outputs:
-        *alpha_t*: :class:`float` | :class:`numpy.array`
+        *aoap*: :class:`float` | :class:`numpy.array`
             Total angle of attack
-        *phi*: :class:`float` | :class:`numpy.array`
+        *phip*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
-        * 2014-06-02 ``@ddalle``: Version 1.0
-        * 2014-11-05 ``@ddalle``: Version 1.1, transpose *w* formula
+        * 2014-06-02 ``@ddalle``: v1.0
+        * 2014-11-05 ``@ddalle``: v1.1, transpose *w* formula
     """
     # Trig functions.
-    ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
-    sa = np.sin(alpha*deg); sb = np.sin(beta*deg)
+    ca = np.cos(a*deg)
+    cb = np.cos(b*deg)
+    sa = np.sin(a*deg)
+    sb = np.sin(b*deg)
     # Get the components of the normalized velocity vector.
     u = cb * ca
     v = sb
     w = cb * sa
     # Convert to alpha_t, phi
-    phi = 180 - np.arctan2(v, -w) / deg
-    alpha_t = np.arccos(u) / deg
+    phip = 180 - np.arctan2(v, -w) / deg
+    aoap = np.arccos(u) / deg
     # Output
-    return alpha_t, phi
+    return AlphaTotalPair(aoap, phip)
 
 
 # Convert (aoa, aos) to (u, v, w)
-def AlphaBeta2DirectionCosines(alpha, beta):
+def AlphaBeta2DirectionCosines(
+        a: Union[float, np.ndarray],
+        b: Union[float, np.ndarray]) -> BodyVelocity:
     r"""Convert angle of attack and sideslip to direction cosines
 
     :Call:
@@ -139,11 +157,13 @@ def AlphaBeta2DirectionCosines(alpha, beta):
         *w*: :class:`float` | :class:`numpy.array`
             *z*-component of body-frame velocity unit vector
     :Versions:
-        * 2019-06-19 ``@ddalle``: Version 1.0
+        * 2019-06-19 ``@ddalle``: v1.0
     """
     # Trig functions.
-    ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
-    sa = np.sin(alpha*deg); sb = np.sin(beta*deg)
+    ca = np.cos(a*deg)
+    cb = np.cos(b*deg)
+    sa = np.sin(a*deg)
+    sb = np.sin(b*deg)
     # Get the components of the normalized velocity vector.
     u = cb * ca
     v = sb
@@ -153,7 +173,7 @@ def AlphaBeta2DirectionCosines(alpha, beta):
 
 
 # Convert (u, v, w) to (aoa, aos)
-def DirectionCosines2AlphaBeta(u, v, w):
+def DirectionCosines2AlphaBeta(u, v, w) -> AlphaBetaPair:
     r"""Convert direction cosines to angle of attack and sideslip
 
     :Call:
@@ -171,7 +191,7 @@ def DirectionCosines2AlphaBeta(u, v, w):
         *beta*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Versions:
-        * 2019-06-19 ``@ddalle``: Version 1.0
+        * 2019-06-19 ``@ddalle``: v1.0
     """
     # 2-norm
     V = np.sqrt(u*u + v*v + w*w)
@@ -183,11 +203,13 @@ def DirectionCosines2AlphaBeta(u, v, w):
     alpha = np.arctan2(w, u) / deg
     beta = np.arcsin(v) / deg
     # Output
-    return alpha, beta
+    return AlphaBetaPair(alpha, beta)
 
 
 # Convert (aoa, aos) to (u, v, w)
-def AlphaTPhi2DirectionCosines(aoap, phip):
+def AlphaTPhi2DirectionCosines(
+        aoap: Union[float, np.ndarray],
+        phip: Union[float, np.ndarray]) -> BodyVelocity:
     r"""Convert total angle of attack and roll to direction cosines
 
     :Call:
@@ -205,21 +227,26 @@ def AlphaTPhi2DirectionCosines(aoap, phip):
         *w*: :class:`float` | :class:`numpy.array`
             *z*-component of body-frame velocity unit vector
     :Versions:
-        * 2019-06-19 ``@ddalle``: Version 1.0
+        * 2019-06-19 ``@ddalle``: v1.0
     """
     # Trig functions.
-    ca = np.cos(aoap*deg); cp = np.cos(phip*deg)
-    sa = np.sin(aoap*deg); sp = np.sin(phip*deg)
+    ca = np.cos(aoap*deg)
+    cp = np.cos(phip*deg)
+    sa = np.sin(aoap*deg)
+    sp = np.sin(phip*deg)
     # Get the components of the normalized velocity vector.
     u = 1.0e-8*np.fix(1e8*ca)
     v = 1.0e-8*np.fix(1e8*sa * sp)
     w = 1.0e-8*np.fix(1e8*sa * cp)
     # Output
-    return u, v, w
+    return BodyVelocity(u, v, w)
 
 
 # Convert (u, v, w) to (aoap, phip)
-def DirectionCosines2AlphaTPhi(u, v, w):
+def DirectionCosines2AlphaTPhi(
+        u: Union[float, np.ndarray],
+        v: Union[float, np.ndarray],
+        w: Union[float, np.ndarray]) -> AlphaTotalPair:
     r"""Convert direction cosines to total angle of attack and roll
 
     :Call:
@@ -237,7 +264,7 @@ def DirectionCosines2AlphaTPhi(u, v, w):
         *phip*: :class:`float` | :class:`numpy.array`
             Missile-axis to body-z roll angle
     :Versions:
-        * 2019-06-19 ``@ddalle``: Version 1.0
+        * 2019-06-19 ``@ddalle``: v1.0
     """
     # 2-norm
     V = np.sqrt(u*u + v*v + w*w)
@@ -249,15 +276,17 @@ def DirectionCosines2AlphaTPhi(u, v, w):
     phip = 180 - np.arctan2(v, -w) / deg
     aoap = np.arccos(u) / deg
     # Output
-    return aoap, phip
+    return AlphaTotalPair(aoap, phip)
 
 
 # Convert (aoa, aos) to (maneuver angle of attack, maneuver roll angle)
-def AlphaBeta2AlphaMPhi(alpha, beta):
+def AlphaBeta2AlphaMPhi(
+        a: Union[float, np.ndarray],
+        b: Union[float, np.ndarray]) -> AlphaTotalPair:
     r"""Convert angle of attack and sideslip to maneuver axis
 
     :Call:
-        >>> alpha_m, phi_m = cape.AlphaBeta2AlphaMPhi(alpha, beta)
+        >>> aoav, phiv = cape.AlphaBeta2AlphaMPhi(alpha, beta)
     :Inputs:
         *alpha*: :class:`float` | :class:`numpy.array`
             Angle of attack
@@ -269,25 +298,28 @@ def AlphaBeta2AlphaMPhi(alpha, beta):
         *phi_m*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
-        * 2017-06-26 ``@ddalle``: Version 1.0
+        * 2017-06-26 ``@ddalle``: v1.0
     """
     # Trig functions.
-    ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
-    sa = np.sin(alpha*deg); sb = np.sin(beta*deg)
+    ca = np.cos(a*deg)
+    cb = np.cos(b*deg)
+    sa = np.sin(a*deg)
+    sb = np.sin(b*deg)
     # Get the components of the normalized velocity vector.
     u = cb * ca
     v = sb
     w = cb * sa
     # Convert to alpha_t, phi
-    phi1 = 180 - np.arctan2(w, -v) / deg
-    aoa1 = np.arccos(u) / deg
-    # Apply different signs
-    alpha_m = aoa1 * fstep1(180-phi1)
-    phi_m = 180 - phi1 - 90*fstep(alpha_m)
-    # Ensure phi==0 for alpha==0
-    phi_m *= np.sign(np.abs(alpha_m))
+    phip = 180 - np.arctan2(v, -w) / deg
+    aoap = np.arccos(u) / deg
+    # Look for sign changes
+    flip = (phip > 90.01) & (phip <= 270.01)
+    sgn = 1 - 2*flip
+    aoav = aoap * sgn
+    # Map clocking angles
+    phiv = ((phip + 89.99) % 180) - 89.99
     # Output
-    return alpha_m, phi_m
+    return AlphaTotalPair(aoav, phiv)
 
 
 # Convert (total angle of attack, total roll angle) to (aoam, phim)
@@ -307,11 +339,13 @@ def AlphaTPhi2AlphaMPhi(alpha_t, phi):
         *phi_m*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
-        * 2017-06-27 ``@ddalle``: Version 1.0
+        * 2017-06-27 ``@ddalle``: v1.0
     """
     # Trig functions.
-    ca = np.cos(alpha_t*deg); cp = np.cos(phi*deg)
-    sa = np.sin(alpha_t*deg); sp = np.sin(phi*deg)
+    ca = np.cos(alpha_t*deg)
+    cp = np.cos(phi*deg)
+    sa = np.sin(alpha_t*deg)
+    sp = np.sin(phi*deg)
     # Get the components of the normalized velocity vector.
     u = ca
     v = sa * sp
@@ -345,11 +379,13 @@ def AlphaMPhi2AlphaTPhi(alpha_m, phi_m):
         *phi*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
-        * 2017-06-27 ``@ddalle``: Version 1.0
+        * 2017-06-27 ``@ddalle``: v1.0
     """
     # Trig functions.
-    ca = np.cos(alpha_m*deg); cp = np.cos(phi_m*deg)
-    sa = np.sin(alpha_m*deg); sp = np.sin(phi_m*deg)
+    ca = np.cos(alpha_m*deg)
+    cp = np.cos(phi_m*deg)
+    sa = np.sin(alpha_m*deg)
+    sp = np.sin(phi_m*deg)
     # Get the components of the normalized velocity vector.
     u = ca
     v = sa * sp
@@ -380,7 +416,7 @@ def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
         *M2*: :class:`float`
             Exit Mach number
     :Versions:
-        * 2016-04-13 ``@ddalle``: Version 1.0
+        * 2016-04-13 ``@ddalle``: v1.0
     """
     # Get critical quantities
     AR_star = CriticalAreaRatio(M1, gamma)
@@ -389,14 +425,13 @@ def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
     M1 = 1.0
     # Initial guesses
     if subsonic:
-        Ma = 0.35*min(M1,1.0)/AR
+        Ma = 0.35*min(M1, 1.0)/AR
         Mb = 1.0
     else:
         Ma = 1.0
         Mb = max(1.0, M1*AR) + M1*AR
     # Gas constants
     g = gamma
-    g1 = 0.5 * (g+1)
     g2 = 0.5 * (g-1)
     g3 = 0.5 * (g+1) / (g-1)
     # Mach parameters
@@ -410,9 +445,11 @@ def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
     fb = AR - (M1/Mb)*Rb
     # Pick best side
     if abs(fa) < abs(fb):
-        f = fa; M2 = Ma
+        f = fa
+        M2 = Ma
     else:
-        f = fb; M2 = Mb
+        f = fb
+        M2 = Mb
     # Iteration count
     k = 0
     # Loop
@@ -443,9 +480,11 @@ def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
             fa, Ma = [fc, Mc]
         # Pick best side
         if abs(fa) < abs(fb):
-            f = fa; M2 = Ma
+            f = fa
+            M2 = Ma
         else:
-            f = fb; M2 = Mb
+            f = fb
+            M2 = Mb
         # Iteration count
         k += 1
     # Output
@@ -467,7 +506,7 @@ def CriticalAreaRatio(M, gamma=1.4):
         *AR*: :class:`float`
             Nozzle area ratio
     :Versions:
-        * 2016-04-13 ``@ddalle``: Version 1.0
+        * 2016-04-13 ``@ddalle``: v1.0
     """
     # Gas constants
     g1 = 0.5 * (gamma+1)
@@ -504,13 +543,13 @@ def SutherlandFPS(T, mu0=None, T0=None, C=None):
         *mu*: :class:`float`
             Dynamic viscosity [slug/ft*s]
     :Versions:
-        * 2016-03-23 ``@ddalle``: Version 1.0
+        * 2016-03-23 ``@ddalle``: v1.0
     """
     # Reference viscosity
-    if mu0 is None: mu0 = 3.58394e-7
+    mu0 = 3.58394e-7 if (mu0 is None) else mu0
     # Reference temperatures
-    if T0 is None: T0 = 491.67
-    if C  is None: C = 198.6
+    T0 = 491.67 if (T0 is None) else T0
+    C = 198.6 if (C is None) else C
     # Sutherland's law
     return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
 
@@ -542,13 +581,13 @@ def SutherlandMKS(T, mu0=None, T0=None, C=None):
         *mu*: :class:`float`
             Dynamic viscosity [kg/m*s]
     :Versions:
-        * 2016-03-23 ``@ddalle``: Version 1.0
+        * 2016-03-23 ``@ddalle``: v1.0
     """
     # Reference viscosity
-    if mu0 is None: mu0 = 1.716e-5
+    mu0 = 1.716e-5 if (mu0 is None) else mu0
     # Reference temperatures
-    if T0 is None: T0 = 273.15
-    if C  is None: C = 110.33333
+    T0 = 273.15 if (T0 is None) else T0
+    C = 110.33333 if (C is None) else C
     # Sutherland's law
     return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
 
@@ -584,12 +623,12 @@ def ReynoldsPerFoot(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
         * :func:`cape.convert.SutherlandFPS`
         * :func:`cape.convert.PressureFPSFromRe`
     :Versions:
-        * 2016-03-23 ``@ddalle``: Version 1.0
+        * 2016-03-23 ``@ddalle``: v1.0
     """
     # Gas constant
-    if R is None: R = 1716.0
+    R  = 1716.0 if (R is None) else R
     # Ratio of specific heats
-    if gam is None: gam = 1.4
+    gam = 1.4 if (gam is None) else gam
     # Calculate density
     rho = p / (R*T)
     # Sound speed
@@ -633,12 +672,12 @@ def ReynoldsPerMeter(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
         * :func:`cape.convert.SutherlandMKS`
         * :func:`cape.convert.PressureMKSFromRe`
     :Versions:
-        * 2016-03-24 ``@ddalle``: Version 1.0
+        * 2016-03-24 ``@ddalle``: v1.0
     """
     # Gas constant
-    if R is None: R = 287.0
+    R = 287.0 if (R is None) else R
     # Ratio of specific heats
-    if gam is None: gam = 1.4
+    gam = 1.4 if (gam is None) else gam
     # Calculate density
     rho = p / (R*T)
     # Sound speed
@@ -682,12 +721,12 @@ def PressureFPSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
         * :func:`cape.convert.SutherlandFPS`
         * :func:`cape.convert.ReynoldsPerFoot`
     :Versions:
-        * 2016-03-24 ``@ddalle``: Version 1.0
+        * 2016-03-24 ``@ddalle``: v1.0
     """
     # Gas constant
-    if R is None: R = 1716.0
+    R = 1716.0 if (R is None) else R
     # Ratio of specific heats
-    if gam is None: gam = 1.4
+    gam = 1.4 if (gam is None) else gam
     # Sound speed
     a = np.sqrt(gam*R*T)
     # Velocity
@@ -729,12 +768,12 @@ def PressureMKSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
         * :func:`cape.convert.SutherlandMKS`
         * :func:`cape.convert.ReynoldsPerMeter`
     :Versions:
-        * 2016-03-24 ``@ddalle``: Version 1.0
+        * 2016-03-24 ``@ddalle``: v1.0
     """
     # Gas constant
-    if R is None: R = 287.0
+    R = 287.0 if (R is None) else R
     # Ratio of specific heats
-    if gam is None: gam = 1.4
+    gam = 1.4 if (gam is None) else gam
     # Sound speed
     a = np.sqrt(gam*R*T)
     # Velocity

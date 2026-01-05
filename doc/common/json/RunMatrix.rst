@@ -1,17 +1,18 @@
----------------------------------
-Options for ``RunMatrix`` section
----------------------------------
+-------------
+``RunMatrix``
+-------------
 
 **Option aliases:**
 
-* *Cols* -> *Keys*
-* *Defns* -> *Definitions*
-* *cols* -> *Keys*
-* *defns* -> *Definitions*
-* *file* -> *File*
-* *gas* -> *Freestream*
-* *keys* -> *Keys*
-* *prefix* -> *Prefix*
+* *Cols* → *Keys*
+* *Defns* → *Definitions*
+* *JobNameMaxLength* → *MaxJobNameLength*
+* *cols* → *Keys*
+* *defns* → *Definitions*
+* *file* → *File*
+* *gas* → *Freestream*
+* *keys* → *Keys*
+* *prefix* → *Prefix*
 
 **Recognized options:**
 
@@ -25,6 +26,8 @@ Options for ``RunMatrix`` section
     default prefix for group folders
 *Keys*: {``['mach', 'alpha', 'beta']``} | :class:`list`\ [:class:`str`]
     list of run matrix variables
+*MaxJobNameLength*: {``32``} | :class:`int`
+    maximum length of PBS/Slurm job name
 *Prefix*: {``''``} | :class:`str`
     default prefix for case folders
 *Values*: {``{}``} | :class:`dict`

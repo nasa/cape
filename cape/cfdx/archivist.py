@@ -297,7 +297,7 @@ class CaseArchivist(object):
             * 2024-09-18 ``@ddalle``: v1.0
         """
         # Begin
-        self.begin("report", test)
+        self.begin("none", test)
         # Section name
         sec = "skeleton"
         title = sec.title()

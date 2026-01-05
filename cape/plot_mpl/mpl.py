@@ -1815,6 +1815,7 @@ def _axlabel(ax, lbl, pos=None, **kw):
     y = kw.pop("y", y)
     # Set transformation unless overridden
     kw.setdefault("transform", ax.transAxes)
+    kw.setdefault("label", None)
     # Create label
     h = plt.text(x, y, lbl, **kw)
     # Set a special label (used for automatic *pos*)
@@ -2941,7 +2942,7 @@ def auto_xlim(ax, pad=0.05):
             xmax = max(xmax, bbox[2])
         elif t in ["TriContourSet"]:
             # Get all segments
-            segs = [seg[0] for seg in h.allsegs]
+            segs = [seg[0] for seg in h.allsegs if seg]
             # Combine into single array
             xy = np.vstack(segs)
             # Update limits
@@ -3049,7 +3050,7 @@ def auto_ylim(ax, pad=0.05):
             ymax = max(ymax, bbox[3])
         elif t in ["TriContourSet"]:
             # Get all segments
-            segs = [seg[0] for seg in h.allsegs]
+            segs = [seg[0] for seg in h.allsegs if seg]
             # Combine into single array
             xy = np.vstack(segs)
             # Update limits

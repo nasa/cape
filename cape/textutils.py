@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.text`: Text modification utils for CAPE
-====================================================
+:mod:`cape.textutils`: Text modification utils for CAPE
+=========================================================
 
 This module provides several functions for modifying Python docstrings.
 One of these, provided by the function :func:`markdown`, which removes
@@ -15,6 +15,8 @@ taken from a :class:`dict`.
 # Regular expression tools
 import math
 import re
+import shutil
+import sys
 from typing import Union
 
 
@@ -281,3 +283,50 @@ def pprint_n(x: Union[float, int], nchar: int = 3) -> str:
         return "%.*f%s" % (decimals, y, suf)
     else:
         return "%i%s" % (int(y), suf)
+
+
+def pprint_b(x: Union[float, int], nchar: int = 3) -> str:
+    r"""Format a string as file size kB, MB, GB, etc.
+
+    :Call:
+        >>> txt = pprint_b(x, nchar=3)
+    :Inputs:
+        *x*: :class:`int` | :class:`float`
+            Number to format
+        *nchar*: {``3``} | :class:`int`
+            Number of digits to print
+    :Outputs:
+        *txt*: :class:`str`
+            Formatted text
+    """
+    # Check for ``None``
+    if x is None:
+        return ''
+    # Get number of tens (actually cuberoot(1024))
+    nten = 0 if abs(x) < 1 else int(math.log(x) / math.log(10.0793684))
+    # Get number of 1024s
+    nth = 0 if abs(x) < 1 else int(math.log(x) / math.log(1024))
+    # Extra orders of magnitude; 0 for 1.23k, 1 for 12.3k, 2 for 123k
+    nround = nten - 3*nth
+    # Number of digits after decimal we need to retain
+    decimals = max(0, nchar - 1 - nround)
+    # Final float b/w 0 and 1000, not including exponent
+    y = x / 1024**nth
+    # Get suffix
+    suf = SI_SUFFIXES.get(nth)
+    # Use appropriate flag
+    if decimals and nth > 0:
+        return "%.*f%sB" % (decimals, y, suf)
+    else:
+        return "%i%sB" % (int(y), suf)
+
+
+# Write to STDOUT on same line, check width
+def _printf(txt: str):
+    # Get terminal width
+    wsize = shutil.get_terminal_size().columns
+    # Clear prompt
+    sys.stdout.write("\r%*s\r" % (wsize - 1, ''))
+    # Write output
+    sys.stdout.write(txt)
+    sys.stdout.flush()

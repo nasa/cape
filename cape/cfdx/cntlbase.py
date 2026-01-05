@@ -2525,34 +2525,69 @@ class CntlBase(ABC):
     # Copy files
     @abstractmethod
     def copy_files(self, i: int):
-        r"""Copy specified files to case *i* run folder
+        r"""Copy files from *Mesh* section
+
+        This applies to both *CopyFiles* and *CopyAsFiles* in the
+        *Mesh* section. The former will copy a given file into the run
+        folder for case *i* using the base name of the original (source)
+        file. Using
+
+        .. code-block:: javascript
+
+            "Mesh": {
+                "CopyAsFiles": {
+                    "inputs/mesh-config02.ugrid": "mesh.ugrid"
+                }
+            }
+
+        will copy the file ``inputs/mesh-config02.ugrid`` into the run
+        folder but name it ``mesh.ugrid`` there.
 
         :Call:
             >>> cntl.copy_files(i)
         :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE main control instance
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
             *i*: :class:`int`
                 Case index
         :Versions:
             * 2025-03-26 ``@ddalle``: v1.0
+            * 2025-09-19 ``@ddalle``: v1.1; *CopyAsFiles*
         """
         pass
 
     # Link files
     @abstractmethod
     def link_files(self, i: int):
-        r"""Link specified files to case *i* run folder
+        r"""Link files from *Mesh* section
+
+        This applies to both *LinkFiles* and *LinkAsFiles* in the
+        *Mesh* section. The former will copy a given file into the run
+        folder for case *i* using the base name of the original (source)
+        file. Using
+
+        .. code-block:: javascript
+
+            "Mesh": {
+                "LinkAsFiles": {
+                    "inputs/mesh-config02.ugrid": "mesh.ugrid"
+                }
+            }
+
+        will create a link (using the absolute path) from
+        ``inputs/mesh-config02.ugrid`` to ``mesh.ugrid`` in the case run
+        folder.
 
         :Call:
             >>> cntl.link_files(i)
         :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE main control instance
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
             *i*: :class:`int`
                 Case index
         :Versions:
             * 2025-03-26 ``@ddalle``: v1.0
+            * 2025-09-19 ``@ddalle``: v1.1; *LinkAsFiles*
         """
         pass
 
@@ -2693,6 +2728,67 @@ class CntlBase(ABC):
             * 2017-03-13 ``@ddalle``: v1.0
             * 2023-10-20 ``@ddalle``: v1.1; arbitrary-depth *frun*
             * 2024-09-20 ``@ddalle``: v2.0; use CaseArchivist
+        """
+        pass
+
+   # --- File size ---
+    # Report case size
+    @abstractmethod
+    def find_large_cases(self, cutoff: float = "100MB", **kw) -> list:
+        r"""Find large case folders
+
+        :Call:
+            >>> fruns = cntl.find_large_cases(cutoff='100MB', **kw)
+        :Inputs:
+            *cutoff*: {``"100MB"``} | :class:`str` | :class:`float`
+                Cutoff for "large", string or raw number of bytes
+            *kw*: :class:`dict`
+                Options used to subset the run matrix
+        :Outputs:
+            *fruns*: :class:`list`\ [:class:`str`]
+                List of "large" cases by total folder size
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Find size of folder
+    @abstractmethod
+    def get_dir_size(self, i: int) -> int:
+        r"""Get total size of case folder
+
+        :Call:
+            >>> frun = cntl.get_dir_size(i)
+        :Inputs:
+            *cutoff*: {``"100MB"``} | :class:`str` | :class:`float`
+                Cutoff for "large", string or raw number of bytes
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *fsize*: :class:`int`
+                Number of bytes in folder
+        :Verions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Find number of files in folder
+    @abstractmethod
+    def get_dir_files(self, i: int) -> int:
+        r"""Get total number of files in case folder
+
+        :Call:
+            >>> nfiles = cntl.get_dir_files(i)
+        :Inputs:
+            *cutoff*: {``"100MB"``} | :class:`str` | :class:`float`
+                Cutoff for "large", string or raw number of bytes
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *nfiles*: :class:`int`
+                Total number of files
+        :Verions:
+            * 2025-09-25 ``@ddalle``: v1.0
         """
         pass
 

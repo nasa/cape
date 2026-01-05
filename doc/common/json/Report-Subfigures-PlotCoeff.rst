@@ -1,48 +1,48 @@
------------------------------------
-Options for ``PlotCoeff`` subfigure
------------------------------------
+------------------------------------------
+``PlotCoeff``: iterative history subfigure
+------------------------------------------
 
 **Option aliases:**
 
-* *ErrPltOptions* -> *EpsilonPlotOptions*
-* *ErrorFormat* -> *EpsilonFormat*
-* *DeltaOptions* -> *DeltaPlotOptions*
-* *IterativeError* -> *KEpsilon*
-* *LineOptions* -> *PlotOptions*
-* *MeanOptions* -> *MuPlotOptions*
-* *NMin* -> *NMinStats*
-* *StDevOptions* -> *SigmaPlotOptions*
-* *col* -> *Coefficient*
-* *nMaxStats* -> *NMaxStats*
-* *nMin* -> *NMinStats*
-* *nMinStats* -> *NMinStats*
-* *nStats* -> *NStats*
-* *nAverage* -> *NStats*
-* *nAvg* -> *NStats*
-* *nEpsilon* -> *KEpsilon*
-* *nPlotFirst* -> *NPlotFirst*
-* *nFirst* -> *NPlotFirst*
-* *nPlotIters* -> *NPlotIters*
-* *nPlotLast* -> *NPlotLast*
-* *FigHeight* -> *FigureHeight*
-* *FigWidth* -> *FigureWidth*
-* *GridStyle* -> *GridPlotOptions*
-* *MinorGridStyle* -> *MinorGridPlotOptions*
-* *RestrictionLocation* -> *RestrictionLoc*
-* *RestrictionX* -> *RestrictionXPosition*
-* *RestrictionY* -> *RestrictionYPosition*
-* *dpi* -> *DPI*
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
-* *Sigma* -> *KSigma*
-* *StandardDeviation* -> *KSigma*
-* *ksig* -> *KSigma*
-* *nSigma* -> *KSigma*
-* *sig* -> *NSigma*
-* *sigma* -> *KSigma*
+* *ErrPltOptions* → *EpsilonPlotOptions*
+* *ErrorFormat* → *EpsilonFormat*
+* *DeltaOptions* → *DeltaPlotOptions*
+* *IterativeError* → *KEpsilon*
+* *LineOptions* → *PlotOptions*
+* *MeanOptions* → *MuPlotOptions*
+* *NMin* → *NMinStats*
+* *StDevOptions* → *SigmaPlotOptions*
+* *col* → *Coefficient*
+* *nMaxStats* → *NMaxStats*
+* *nMin* → *NMinStats*
+* *nMinStats* → *NMinStats*
+* *nStats* → *NStats*
+* *nAverage* → *NStats*
+* *nAvg* → *NStats*
+* *nEpsilon* → *KEpsilon*
+* *nPlotFirst* → *NPlotFirst*
+* *nFirst* → *NPlotFirst*
+* *nPlotIters* → *NPlotIters*
+* *nPlotLast* → *NPlotLast*
+* *FigHeight* → *FigureHeight*
+* *FigWidth* → *FigureWidth*
+* *GridStyle* → *GridPlotOptions*
+* *MinorGridStyle* → *MinorGridPlotOptions*
+* *RestrictionLocation* → *RestrictionLoc*
+* *RestrictionX* → *RestrictionXPosition*
+* *RestrictionY* → *RestrictionYPosition*
+* *dpi* → *DPI*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
+* *Sigma* → *KSigma*
+* *StandardDeviation* → *KSigma*
+* *ksig* → *KSigma*
+* *nSigma* → *KSigma*
+* *sig* → *NSigma*
+* *sigma* → *KSigma*
 
 **Recognized options:**
 
@@ -52,10 +52,10 @@ Options for ``PlotCoeff`` subfigure
     subfigure caption
 *CaptionComponent*: {``None``} | :class:`str`
     explicit text for component portion of caption
-*Coefficient*: {``None``} | :class:`object`
-    value of option "Coefficient"
-*Component*: {``None``} | :class:`object`
-    value of option "Component"
+*Coefficient*: {``None``} | :class:`str`
+    column(s) to plot iterative history of
+*Component*: {``'entire'``} | :class:`str`
+    component(s) for which to plot *Coefficient*
 *DNStats*: {``None``} | :class:`int`
     interval between candidate averaging window sizes
 *DPI*: {``150``} | :class:`int`
@@ -82,8 +82,8 @@ Options for ``PlotCoeff`` subfigure
     plot options for major grid, if shown
 *KEpsilon*: {``0.0``} | :class:`float`
     multiple of iterative error to plot
-*KSigma*: {``None``} | :class:`object`
-    value of option "KSigma"
+*KSigma*: {``0.0``} | :class:`float`
+    multiple of sigma to plot above and below mean
 *MinorGrid*: {``None``} | ``True`` | ``False``
     whether to show axes minor grid
 *MinorGridPlotOptions*: {``{}``} | :class:`dict`
@@ -128,8 +128,8 @@ Options for ``PlotCoeff`` subfigure
     option to print value of standard deviation
 *SigmaFormat*: {``'%.4f'``} | :class:`object`
     printf-style flag for *ShowSigma* value
-*SigmaPlotOptions*: {``None``} | :class:`object`
-    value of option "SigmaPlotOptions"
+*SigmaPlotOptions*: {``None``} | :class:`PlotCoeffSigmaPlotOpts`
+    plot options for standard deviation box
 *TickLabelOptions*: {``None``} | :class:`dict`
     common options for ticks of both axes
 *TickLabels*: {``None``} | ``True`` | ``False``

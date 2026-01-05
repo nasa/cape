@@ -1,18 +1,25 @@
----------------------------------
-Options for ``PostSlurm`` section
----------------------------------
+--------------------------------------------
+``PostSlurm``: options for Slurm job control
+--------------------------------------------
 
 **Option aliases:**
 
-* *q* -> *p*
-* *t* -> *time*
+* *account* → *A*
+* *begin* → *b*
+* *constraint* → *C*
+* *q* → *p*
+* *t* → *time*
 
 **Recognized options:**
 
 *A*: {``None``} | :class:`str`
     Slurm job account name
+*C*: {``None``} | :class:`str`
+    constraint(s) on Slurm job
 *N*: {``1``} | :class:`int`
     number of Slurm nodes
+*b*: {``None``} | :class:`object`
+    constraints on when to acllocate job
 *gid*: {``None``} | :class:`str`
     Slurm job group ID
 *n*: {``40``} | :class:`int`

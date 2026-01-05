@@ -1,0 +1,39 @@
+{
+    // Options for overall run control and command-line inputs
+    "RunControl": {
+        // Run sequence
+        "PhaseSequence": [0],
+        "PhaseIters": [200],
+        // Operation modes
+        "nProc": 4,
+        "MPI": false
+	},
+
+	// Parameters for creating the mesh
+    "Mesh": {
+        // This can be a list of .tri files.
+        "TriFile": "bullet.tri"
+    },
+    
+    // Describe the reference values and config.
+    "Config": {
+        // Defer to a file for most things.
+        "File": "Config.xml",
+        // Which forces should be reported
+        "Components": ["cap", "body", "bullet_no_base", "bullet_total"],
+        // Reference values
+        "RefArea": 3.14159,
+        "RefLength": 1.0,
+        // The moment point can be specified as a dictionary of components.
+        "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]}
+    },
+    
+    // RunMatrix description
+    "RunMatrix": {
+        // If a file is specified, and it exists, trajectory values will be
+        // read from it.  RunMatrix values can also be specified locally.
+        "File": "matrix.csv",
+        "Keys": ["mach", "alpha", "beta", "config"],
+        "config": "poweroff"
+    }
+}

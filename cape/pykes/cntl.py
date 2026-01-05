@@ -338,6 +338,10 @@ class Cntl(ccntl.Cntl):
         v = x.GetVelocity(i)
         if v is not None and (known_cond is None or "Vel" in known_cond):
             xml.set_velocity(v)
+        # Altitude
+        h = x.GetAltitude(i)
+        if h is not None:
+            xml.set_altitude(h)
         # Find all *Path* and *File* elements
         elems1 = xml.findall_iter("Path")
         elems2 = xml.findall_iter("File")
@@ -360,8 +364,10 @@ class Cntl(ccntl.Cntl):
             v = self.x.GetValue(key, i)
             # Get input name
             name = self.x.defns[key].get("Name")
+            # Split
+            sec, tag = name.split('.', 1)
             # Set it
-            xml.set_input(name, v)
+            xml.set_section_item(section=sec, tag=tag, value=v)
         # Loop through phases
         for j in self.opts.get_PhaseSequence():
             # Set the restart flag according to phase

@@ -21,6 +21,7 @@ KEY_TYPEMAP = {
     "ALPHA_P": "aoap",
     "ALPHA_T": "aoap",
     "ALPHA_TOTAL": "aoap",
+    "ALTITUDE": "altitude",
     "AOA": "alpha",
     "AOAP": "aoap",
     "AOS": "beta",
@@ -28,6 +29,9 @@ KEY_TYPEMAP = {
     "Alpha_p": "aoap",
     "Alpha_t": "aoap",
     "Alpha_total": "aoap",
+    "Alt": "altitude",
+    "AltH": "altitude",
+    "Altitude": "altitude",
     "BETA": "beta",
     "Beta": "beta",
     "CONFIG": "config",
@@ -44,6 +48,8 @@ KEY_TYPEMAP = {
     "Gamma": "gamma",
     "GroupPrefix": "config",
     "GroupSuffix": "GroupLabel",
+    "HEIGHT": "altitude",
+    "Height": "altitude",
     "LABEL": "label",
     "Label": "label",
     "M": "mach",
@@ -129,9 +135,13 @@ KEY_TYPEMAP = {
     "alpha_p": "aoap",
     "alpha_t": "aoap",
     "alpha_total": "aoap",
+    "alt": "altitude",
+    "alth": "altitude",
     "aoa": "alpha",
     "aos": "alpha",
     "density": "rho",
+    "h": "altitude",
+    "height": "altitude",
     "m": "mach",
     "other": "value",
     "p0_inf": "p0",
@@ -169,6 +179,20 @@ KEY_TYPEMAP = {
 }
 
 
+# Options for replacements
+class ReplaceOpts(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "options for run matrix name replacements/substitutions"
+
+    # Types
+    _opttypes = {
+        "_default_": str,
+    }
+
+
 # Option for a definition
 class KeyDefnOpts(OptionsDict):
     # No attributes
@@ -188,6 +212,8 @@ class KeyDefnOpts(OptionsDict):
         "NonnegativeFormat",
         "PBSFormat",
         "PBSLabel",
+        "RegexSubs",
+        "Replace",
         "SkipIfZero",
         "Source",
         "Type",
@@ -200,7 +226,11 @@ class KeyDefnOpts(OptionsDict):
         "DType": "Value",
         "DataType": "Value",
         "DisplayScale": "FormatMultiplier",
+        "FormatReplace": "Replace",
+        "Replacements": "Replace",
         "ScaleDisplay": "FormatMultiplier",
+        "Subs": "RegexSubs",
+        "Substitute": "RegexSubs",
     }
 
     # Types
@@ -214,6 +244,8 @@ class KeyDefnOpts(OptionsDict):
         "NonnegativeFormat": BOOL_TYPES,
         "PBSFormat": str,
         "PBSLabel": BOOL_TYPES,
+        "RegexSubs": ReplaceOpts,
+        "Replace": ReplaceOpts,
         "SkipIfZero": BOOL_TYPES,
         "Source": str,
         "Type": str,
@@ -259,6 +291,17 @@ class AlphaKeyDefnOpts(KeyDefnOpts):
     # Defaults
     _rc = {
         "Abbreviation": "a",
+    }
+
+
+# Definitions for angle of attack
+class AltitudeKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "h",
     }
 
 
@@ -835,6 +878,7 @@ class KeyDefnCollectionOpts(OptionsDict):
         "V": VelocityKeyDefnOpts,
         "XMLInput": XMLInputKeyDefnOpts,
         "alpha": AlphaKeyDefnOpts,
+        "altitude": AltitudeKeyDefnOpts,
         "aoap": AOAPKeyDefnOpts,
         "beta": BetaKeyDefnOpts,
         "config": ConfigKeyDefnOpts,
@@ -892,6 +936,8 @@ class RunMatrixOpts(OptionsDict):
         "Keys",
         "MaxJobNameLength",
         "Prefix",
+        "RegexSubs",
+        "Replace",
         "Values",
     }
 
@@ -900,11 +946,18 @@ class RunMatrixOpts(OptionsDict):
         "Cols": "Keys",
         "Defns": "Definitions",
         "JobNameMaxLength": "MaxJobNameLength",
+        "Replacements": "Replace",
+        "Subs": "RegexSubs",
+        "Substitute": "RegexSubs",
         "cols": "Keys",
         "defns": "Definitions",
         "file": "File",
         "gas": "Freestream",
         "keys": "Keys",
+        "replace": "Replace",
+        "replacements": "Replace",
+        "subs": "RegexSubs",
+        "substitute": "RegexSubs",
         "prefix": "Prefix",
     }
 
@@ -918,6 +971,8 @@ class RunMatrixOpts(OptionsDict):
         "GroupPrefix": str,
         "MaxJobNameLength": INT_TYPES,
         "Prefix": str,
+        "RegexSubs": ReplaceOpts,
+        "Replace": ReplaceOpts,
         "Values": dict,
     }
 
@@ -951,6 +1006,8 @@ class RunMatrixOpts(OptionsDict):
         "MaxJobNameLength": "maximum length of PBS/Slurm job name",
         "Keys": "list of run matrix variables",
         "Prefix": "default prefix for case folders",
+        "RegexSubs": "regular expression substitutions to apply to case name",
+        "Replace": "replacements from one string to another in case name",
     }
 
     # For 1.0 compatibility: shift raw options -> "Values" section

@@ -165,7 +165,8 @@ class RunMatrix(dict):
         keys = opts.get_opt("Keys")
         prefix = opts.get_opt("Prefix")
         groupPrefix = opts.get_opt("GroupPrefix")
-        # Process the definitions.
+        # Process the definitions
+        self.opts = opts
         defns = opts.get_opt("Definitions", vdef={})
         # Save file name
         self.fname = fname
@@ -1012,8 +1013,6 @@ class RunMatrix(dict):
         """
         # List of key types
         KT = np.array([self.defns[k]['Type'] for k in self.cols])
-        # Class of input
-        kt = type(KeyType).__name__
         # Depends on the type of what we are searching for
         if isinstance(KeyType, (str, np.str_)):
             # Return matches for single type
@@ -1371,9 +1370,14 @@ class RunMatrix(dict):
                 Values for each *k* in *keys*
         :Versions:
             * 2024-10-16 ``@ddalle``: v1.0
+            * 2026-01-01 ``@ddalle``: v1.1; add *Replace* support
+            * 2026-01-02 ``@ddalle``: v1.2; add *RegexSubs* support
         """
         # Initialize output
         name = ""
+        # Get global options
+        repl_global = self.opts.get_opt("Replace")
+        subs_global = self.opts.get_opt("RegexSubs")
         # Loop through keys
         for j, k in enumerate(keys):
             # Get definition
@@ -1390,6 +1394,8 @@ class RunMatrix(dict):
             qtyp = defn.get_opt("Value")
             qskp = defn.get_opt("SkipIfZero")
             kfmt = defn.get_opt("FormatMultiplier")
+            repl = defn.get_opt("Replace")
+            subs = defn.get_opt("RegexSubs")
             # Check if numeric
             qflt = (qtyp == "float")
             qint = (qtyp in ("int", "bin", "oct", "hex"))
@@ -1412,8 +1418,25 @@ class RunMatrix(dict):
                 # Round if necessary
                 vj = int(vj) if qint else vj
             # Add abbreviation and formatted value
-            name += abbrev
-            name += (fmt % vj)
+            kname = abbrev + (fmt % vj)
+            # Apply replacements
+            if repl:
+                for p, r in repl.items():
+                    kname = kname.replace(p, r)
+            # Apply substitutions
+            if subs:
+                for p, r in subs.items():
+                    kname = re.sub(p, r, kname)
+            # Add to total
+            name += kname
+        # Apply global replacements
+        if repl_global:
+            for p, r in repl_global.items():
+                name = name.replace(p, r)
+        # Apply global substitutions
+        if subs_global:
+            for p, r in subs_global.items():
+                name = re.sub(p, r, name)
         # Output
         return name
 
@@ -3061,8 +3084,8 @@ class RunMatrix(dict):
             Re = rho*U/mu
         elif kM and kT and kr:
             # Get values
-            M   = self.GetMach(i)
-            T   = self.GetTemperature(i, units="K")
+            M = self.GetMach(i)
+            T = self.GetTemperature(i, units="K")
             rho = self.GetDensity(i, units="kg/m^3")
             # Get viscosity (temperature used here)
             mu = self.GetViscosity(i, units="kg/m/s")
@@ -3072,8 +3095,8 @@ class RunMatrix(dict):
             Re = rho*U/mu
         elif kM and kp and kr:
             # Get values
-            M   = self.GetMach(i)
-            p   = self.GetDensity(i, units="Pa")
+            M = self.GetMach(i)
+            p = self.GetPressure(i, units="Pa")
             rho = self.GetDensity(i, units="kg/m^3")
             # Calculate temperature
             T = p / (rho*R)
@@ -3610,7 +3633,7 @@ class RunMatrix(dict):
 
     # Get freestream pressure
     def GetPressure(self, i=None, units=None):
-        """Get static freestream pressure (in psf or Pa)
+        r"""Get static freestream pressure (in psf or Pa)
 
         :Call:
             >>> p = x.GetPressure(i)
@@ -3727,7 +3750,7 @@ class RunMatrix(dict):
 
     # Get freestream pressure
     def GetDynamicPressure(self, i=None, units=None):
-        """Get dynamic freestream pressure (in psf or Pa)
+        r"""Get dynamic freestream pressure (in psf or Pa)
 
         :Call:
             >>> q = x.GetDynamicPressure(i=None)
@@ -3836,7 +3859,7 @@ class RunMatrix(dict):
 
     # Get viscosity
     def GetViscosity(self, i=None, units=None):
-        """Get the dynamic viscosity for case(s) *i*
+        r"""Get the dynamic viscosity for case(s) *i*
 
         :Call:
             >>> mu = x.GetViscosity(i=None, units=None)
@@ -3940,6 +3963,46 @@ class RunMatrix(dict):
         else:
             # Apply expected units
             return p0 / mks(units)
+
+    # Get altitude
+    def GetAltitude(self, i=None, units=None):
+        r"""Get altitude to use for other state variables
+
+        :Call:
+            >>> h = x.GetAltitude(i=None, units=None)
+        :Inputs:
+            *x*: :class:`cape.runmatrix.RunMatrix`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+            *units*: {``None``} | ``"mks"`` | ``"m"`` | ``"ft"``
+                Output units
+        :Outputs:
+            hT*: :class:`float`
+                Altitude [m | ft]
+        :Versions:
+            * 2025-09-19 ``@ddalle``: v1.0
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Search for temperature key
+        k = self.GetFirstKeyByType('altitude')
+        # Check for altitude key hit
+        if k is None:
+            # No altitude specified
+            return
+        # Check unit system
+        us = self.gas.get("UnitSystem", "fps").lower()
+        # Check default units based on input
+        if us == "mks":
+            # MKS: meters
+            udef = "m"
+        else:
+            # FPS: feet
+            udef = "ft"
+        # Get appropriately unitized value
+        return self.GetKeyValue(k, i, units=units, udef=udef)
 
    # --- Thermodynamic Properties ---
     # Get parameter from freestream state

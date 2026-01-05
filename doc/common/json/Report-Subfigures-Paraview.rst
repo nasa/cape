@@ -1,14 +1,14 @@
-----------------------------------
-Options for ``Paraview`` subfigure
-----------------------------------
+------------------------------------
+``Paraview``: Paraview script figure
+------------------------------------
 
 **Option aliases:**
 
-* *Parent* -> *Type*
-* *parent* -> *Type*
-* *pos* -> *Position*
-* *type* -> *Type*
-* *width* -> *Width*
+* *Parent* → *Type*
+* *parent* → *Type*
+* *pos* → *Position*
+* *type* → *Type*
+* *width* → *Width*
 
 **Recognized options:**
 

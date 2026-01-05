@@ -14,7 +14,7 @@ from typing import Optional
 # Local modules
 from .. import argread
 from .. import textutils
-from .datakitloader import DataKitLoader
+from .datakitloader import DataKitLoader, DataKitLoaderOptions
 from .metautils import ModulePropDB, merge_dict
 from ..optdict import OptionsDict
 from ..tnakit import promptutils
@@ -51,10 +51,6 @@ DataKit 3.0 package.
 
     --title TITLE
         Use *TITLE* as the one-line description for the package
-
-:Versions:
-    * 2021-08-24 ``@ddalle``: v1.0
-    * 2021-09-15 ``@ddalle``: v1.1; more STDOUT
 """
 
 
@@ -217,6 +213,7 @@ class QuickStartOptions(OptionsDict):
 
     # Allowed options
     _optlist = (
+        "datakitloader",
         "datakitloader-module",
         "meta",
         "requirements",
@@ -250,6 +247,7 @@ class QuickStartOptions(OptionsDict):
 
     # Subsections
     _sec_cls = {
+        "datakitloader": DataKitLoaderOptions,
         "vendor": VendorOptions,
     }
 
@@ -345,6 +343,8 @@ class DataKitQuickStarter:
         self.create_vendorize_json()
         # Write requirements
         self.write_requirements()
+        # Write datakitloader
+        self.write_dkitloader()
         # Prepare rawdata/ folder
         self.prepare_rawdata()
         # Return code
@@ -723,7 +723,7 @@ class DataKitQuickStarter:
         # Check for such a file
         if not os.path.isfile(pyfile):
             raise ValueError(
-                f"Cannot use template {pkg}; __init__.py not found")
+                f"Cannot use template {pkg}; {pyfile} not found")
         # Status update
         print(f"  Using template '{pkgdir}/__init__.py'")
         # Read the file
@@ -755,6 +755,33 @@ class DataKitQuickStarter:
         # Write to file
         with open(os.path.join(pkgdir, "requirements.json"), 'w') as fp:
             json.dump(reqs, fp, indent=4)
+
+    # Write datakit.json file based on repo settings
+    def write_dkitloader(self):
+        r"""Write ``datakit.json`` if *datakitloader* section defined
+
+        :Call:
+            >>> starter.write_dkitloader()
+        :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
+        :Versions:
+            * 2025-10-11 ``@ddalle``: v1.0
+        """
+        # Get requirements moption
+        rules = self.opts.get("datakitloader")
+        # Exit if none
+        if rules is None or len(rules) < 3:
+            return
+        # Package folder
+        pkgdir = os.path.join(self.cwd, self.pkgdir)
+        # Full path
+        fjson = os.path.join(pkgdir, "datakit.json")
+        # Status update
+        print(f"Writing file '{os.path.relpath(fjson, self.cwd)}'")
+        # Write to file
+        with open(fjson, 'w') as fp:
+            json.dump(rules, fp, indent=4)
 
     # Write the setup.py script
     def write_setup_py(self):

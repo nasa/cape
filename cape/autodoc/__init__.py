@@ -41,6 +41,14 @@ DOC_OPTS = {
         "recurse": False,
         "verbose": False,
     },
+    "pyfun": {
+        "folder": OPT_DIRS["pyfun"],
+        "file": "index",
+        "module": "cape.pyfun.options",
+        "class": "Options",
+        "recurse": False,
+        "verbose": False,
+    }
 }
 
 

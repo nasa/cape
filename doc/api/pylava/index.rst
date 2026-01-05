@@ -11,6 +11,8 @@
     options/index
     casecntl
     cmdgen
+    databook
     dataiterfile
     report
+    runinpfile
     yamlfile

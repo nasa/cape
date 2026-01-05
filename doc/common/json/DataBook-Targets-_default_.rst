@@ -1,17 +1,17 @@
--------------------
-Options for default
--------------------
+------------------------------------------------------------------------
+``_default_``: options for a target databook to use for plot comparisons
+------------------------------------------------------------------------
 
 **Option aliases:**
 
-* *Comment* -> *CommentChar*
-* *Dir* -> *Folder*
-* *RunMatrix* -> *Translations*
-* *Tolerance* -> *Tolerances*
-* *delim* -> *Delimiter*
-* *tol* -> *Tolerances*
-* *tols* -> *Tolerances*
-* *trans* -> *Translations*
+* *Comment* → *CommentChar*
+* *Dir* → *Folder*
+* *RunMatrix* → *Translations*
+* *Tolerance* → *Tolerances*
+* *delim* → *Delimiter*
+* *tol* → *Tolerances*
+* *tols* → *Tolerances*
+* *trans* → *Translations*
 
 **Recognized options:**
 

@@ -39,6 +39,7 @@ class DBCompOpts(OptionsDict):
 
     # Recognized options
     _optlist = {
+        "Body",
         "Cols",
         "CompID",
         "DNStats",
@@ -71,6 +72,7 @@ class DBCompOpts(OptionsDict):
         "NLast": "NLastStats",
         "NMax": "NLastStats",
         "NStatsMax": "NMaxStats",
+        "body": "Body",
         "coeffs": "Cols",
         "cols": "Cols",
         "dnStats": "DNStats",
@@ -88,6 +90,7 @@ class DBCompOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "Body": (str, int),
         "Cols": str,
         "DNStats": INT_TYPES,
         "FloatCols": str,
@@ -113,6 +116,7 @@ class DBCompOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "Body": "reference body name for motion of this component",
         "Cols": "list of primary solver output variables to include",
         "CompID": "surface componet(s) to use for this databook component",
         "DNStats": "increment for candidate window sizes",
@@ -128,7 +132,7 @@ class DBCompOpts(OptionsDict):
     }
 
 
-# Class for "IterPoint" components
+# Class for averaged forces & moments
 class FMDataBookOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
@@ -149,24 +153,27 @@ class FMDataBookOpts(DBCompOpts):
     }
 
 
-# Class for "SurfCp" components
-class SurfCpDataBookOpts(DBCompOpts):
+# Class for force & moment iterative histories
+class FMIterDataBookOpts(FMDataBookOpts):
     # No attributes
     __slots__ = ()
 
-    # Identifiers
-    _name = "options for surface pressure databook component"
+    # Class for "IterPoint" components
+    _name = "definitions for a f0rce & moment iterative history component"
 
     # Defaults
     _rc = {
+        "Cols": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+        "Transformations": [
+            {
+                "Type": "ScaleCoeffs",
+                "CLL": -1.0,
+                "CLN": -1.0
+            }
+        ],
     }
 
-    # Types
-    _opttypes = {
-    }
 
-
-# Class for "IterPoint" components
 class DBTimeSeriesOpts(FMDataBookOpts):
     # No attributes
     __slots__ = ()
@@ -317,6 +324,23 @@ class PyFuncDataBookOpts(DBCompOpts):
     # Descriptions
     _rst_descriptions = {
         "Function": "Python function name",
+    }
+
+
+# Class for "SurfCp" components
+class SurfCpDataBookOpts(DBCompOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "options for surface pressure databook component"
+
+    # Defaults
+    _rc = {
+    }
+
+    # Types
+    _opttypes = {
     }
 
 
@@ -1045,6 +1069,7 @@ class DataBookOpts(OptionsDict):
     _sec_cls_optmap = {
         "_default_": FMDataBookOpts,
         "FM": FMDataBookOpts,
+        "IterFM": FMIterDataBookOpts,
         "IterPoint": DBIterPointOpts,
         "LineLoad": LineLoadDataBookOpts,
         "PyFunc": PyFuncDataBookOpts,
@@ -1259,6 +1284,14 @@ class DataBookOpts(OptionsDict):
             self[comp]["Type"] = typ
             # Set parents
             self[comp].setx_parent(self)
+        # Check if it's a dict
+        if type(self[comp]) is dict:
+            # Get type
+            typ = self.get_subopt(comp, "Type", vdef="FM")
+            # Class for that type
+            cls = self.__class__._sec_cls_optmap[typ]
+            # Convert
+            self[comp] = cls(self[comp])
         # Use cascading options
         v0 = (
             None if opt not in self.getx_optlist()
@@ -1493,7 +1526,9 @@ class DataBookOpts(OptionsDict):
         # Get type
         typ = self.get_DataBookType(comp)
         # Check data book type
-        if typ in ("LineLoad", "TriqFM", "TriqPoint", "PointSensor", "PyFunc"):
+        if typ in (
+                "LineLoad", "TriqFM", "TriqPoint", "PointSensor",
+                "IterFM", "PyFunc"):
             # No iterative history
             return ['mu']
         # Others; iterative history available

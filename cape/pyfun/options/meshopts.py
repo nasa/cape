@@ -72,13 +72,10 @@ class MeshOpts(meshopts.MeshOpts):
         "FauxFile",
         "FreezeComponents",
         "FreezeFile",
-        "MapBCFile",
     }
 
     # Aliases
     _optmap = {
-        "BCFile": "MapBCFile",
-        "MapBC": "MapBCFile",
         "faux": "Faux",
     }
 
@@ -88,7 +85,6 @@ class MeshOpts(meshopts.MeshOpts):
         "FauxFile": str,
         "Freezecomponents": INT_TYPES,
         "FreezeFile": str,
-        "MapBCFile": str,
     }
 
     # Descriptions
@@ -96,7 +92,6 @@ class MeshOpts(meshopts.MeshOpts):
         "Faux": "manual ``faux_input`` settings",
         "FauxFile": "name of ``faux_input`` template file",
         "FreezeFile": "name of file w/ compIDs to freeze during adaptation",
-        "MapBCFile": "name of the boundary condition map file",
     }
 
     # Get faux geometry for a component
@@ -127,12 +122,6 @@ class MeshOpts(meshopts.MeshOpts):
             # Return component instructions
             return faux[comp]
 
-
-# Add properties
-_PROPS = (
-    "MapBCFile",
-)
-MeshOpts.add_properties(_PROPS)
 
 # Add getters
 _GETTER_PROPS = (

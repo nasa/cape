@@ -4,7 +4,7 @@
     "RunControl": {
         // Run sequence
         "PhaseSequence": [0],
-        "PhaseIters": [200],
+        "PhaseIters": [350],
         "Adaptive": true,
         // Operation modes
         "nProc": 128,

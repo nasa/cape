@@ -1,6 +1,6 @@
---------------------------
-Options for default report
---------------------------
+-----------------------------------------------
+``_default_``: options for a single CAPE report
+-----------------------------------------------
 
 **Recognized options:**
 
@@ -16,6 +16,8 @@ Options for default report
     list of figures in report
 *Frontispiece*: {``None``} | :class:`str`
     image for repore title page
+*Location*: {``'case'``} | ``'report'``
+    where to put report files; in case folders or report
 *Logo*: {``None``} | :class:`str`
     logo for footer of each report page
 *MinIter*: {``0``} | :class:`int`

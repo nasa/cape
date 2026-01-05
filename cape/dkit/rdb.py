@@ -5200,7 +5200,7 @@ class DataKit(BaseData):
         raise TypeError("Column name must be a string")
 
     # Normalize arguments
-    def normalize_args(self, x, asarray=False):
+    def normalize_args(self, x: list, asarray=False):
         r"""Normalized mixed float and array arguments
 
         :Call:
@@ -5219,10 +5219,14 @@ class DataKit(BaseData):
                 Original dimensions of non-scalar input array
         :Versions:
             * 2019-03-11 ``@ddalle``: v1.0
-            * 2019-03-14 ``@ddalle``: Added *asarray* input
-            * 2019-12-18 ``@ddalle``: Ported from :mod:`tnakit`
-            * 2019-12-18 ``@ddalle``: Removed ``@staticmethod``
+            * 2019-03-14 ``@ddalle``: v1.1; add *asarray* input
+            * 2019-12-18 ``@ddalle``: v1.2; port from :mod:`tnakit`
+            * 2019-12-18 ``@ddalle``: v1.3; remove ``@staticmethod``
+            * 2025-11-12 ``@ddalle``: v1.4; check trivial case
         """
+        # Check for trivial case
+        if len(x) == 0:
+            return [], ()
         # Input size by argument
         nxi = [xi.size for xi in x]
         ndi = [xi.ndim for xi in x]
@@ -8957,23 +8961,35 @@ class DataKit(BaseData):
             self.append_col(col, db.get_values(col, i), nref=n)
 
     # Append data to multiple columns
-    def xappend(self, d: dict, nref: Optional[int] = None):
+    def xappend(
+            self,
+            d: dict,
+            nref: Optional[int] = None,
+            update: bool = True):
         r"""Append data to multiple columns
 
         This works for scalars, lists, 1D arrays, and *N*-D arrays
 
         :Call:
-            >>> db.xappend(d)
+            >>> db.xappend(d, nref=None, update=True)
         :Inputs:
             *db*: :class:`DataKit`
                 Data interface with response mechanisms
             *d*: :class:`dict`
                 Dictionary of cols (keys) and values to append
+            *nref*: {``None``} | :class:`int`
+                Predetermined reference size
+            *update*: {``True``} | ``False``
+                Option to reduce ref size by 1
         :Versions:
             * 2025-07-23 ``@ddalle``: v1.0
+            * 2025-09-19 ``@ddalle``: v1.1; add *update*
         """
         # Get current reference size
-        n = nref if nref is not None else self.get_refsize()
+        refsize = self.get_refsize()
+        refsize = max(0, refsize - 1) if update else refsize
+        # Use user input if given
+        n = nref if nref is not None else refsize
         # Loop through cols of *d*
         for col, v in d.items():
             self.append_col(col, v, nref=n)
@@ -10344,7 +10360,7 @@ class DataKit(BaseData):
 
    # --- Search: internal ---
     # Find matches
-    def find(self, args: list, *a, **kw):
+    def find(self, args: Optional[list] = None, *a, **kw):
         r"""Find cases that match a condition [within a tolerance]
 
         :Call:
@@ -10392,18 +10408,6 @@ class DataKit(BaseData):
             * 2022-09-15 ``@ddalle``: v3.0; *gtcons*, etc.
         """
        # --- Input Checks ---
-        # Find a valid argument
-        for arg in args:
-            # Attempt to either access or convert it
-            V = self.get_all_values(arg)
-            # Check if it was processed
-            if V is not None:
-                # Found at least one valid argument
-                break
-        else:
-            # Loop completed; nothing found
-            raise ValueError(
-                "Cannot find matches for argument list %s" % args)
         # Mask
         mask = kw.pop("mask", None)
         # Overall tolerance default
@@ -10420,6 +10424,31 @@ class DataKit(BaseData):
         gtcons = kw.pop("GreaterThanCons", kw.pop("gtcons", {}))
         ltecons = kw.pop("LessThanEqualCons", kw.pop("ltecons", {}))
         gtecons = kw.pop("GreaterThanEqualCons", kw.pop("gtecons", {}))
+        # Columns to search size
+        if args is None:
+            # Get keys from each of the constraints
+            vcols = []
+            # Loop through others
+            for condict in (ltcons, gtcons, ltecons, gtecons):
+                if isinstance(condict, dict):
+                    vcols.extend(condict.keys())
+            # Initialize list
+            args = []
+        else:
+            # Use specified *args*
+            vcols = args
+        # Find a valid argument
+        for arg in vcols:
+            # Attempt to either access or convert it
+            V = self.get_all_values(arg)
+            # Check if it was processed
+            if V is not None:
+                # Found at least one valid argument
+                break
+        else:
+            # Loop completed; nothing found
+            raise ValueError(
+                f"Cannot find matches for argument list {tuple(vcols)}")
         # Number of values
         n0 = len(V)
        # --- Mask Prep ---
@@ -10439,10 +10468,61 @@ class DataKit(BaseData):
         # Normalize arguments
         X, dims = self.normalize_args(x, True)
         # Number of test points
-        nx = np.prod(dims)
-       # --- Checks ---
+        nx = 0 if len(x) == 0 else np.prod(dims)
+       # --- Inequality checks ---
+        # Cases matching inequality checks
+        ineq_mask = np.full(n, True)
+        # Loop through less-than cons
+        for k, vk in ltcons.items():
+            # Get DB values for *k*
+            Xk = self.get_values(k, mask)
+            # Check match/approx
+            if isinstance(Xk, list):
+                # Convert to array
+                Xk = np.asarray(Xk)
+            # Compound constraint
+            ineq_mask = np.logical_and(ineq_mask, Xk < vk)
+        # Loop through greater-than cons
+        for k, vk in gtcons.items():
+            # Get DB values for *k*
+            Xk = self.get_values(k, mask)
+            # Check match/approx
+            if isinstance(Xk, list):
+                # Convert to array
+                Xk = np.asarray(Xk)
+            # Compound constraint
+            ineq_mask = np.logical_and(ineq_mask, Xk > vk)
+        # Loop through less-than-equals cons
+        for k, vk in ltecons.items():
+            # Get DB values for *k*
+            Xk = self.get_all_values(k)
+            # Get tolerance for this key
+            xtol = tols.get(k, tol)
+            # Check match/approx
+            if isinstance(Xk, list):
+                # Convert to array
+                Xk = np.asarray(Xk)
+            # Compound constraint
+            ineq_mask = np.logical_and(ineq_mask, Xk <= vk + xtol)
+        # Loop through greater-than-equals cons
+        for k, vk in gtecons.items():
+            # Get DB values for *k*
+            Xk = self.get_all_values(k)
+            # Get tolerance for this key
+            xtol = tols.get(k, tol)
+            # Check match/approx
+            if isinstance(Xk, list):
+                # Convert to array
+                Xk = np.asarray(Xk)
+            # Compound constraint
+            ineq_mask = np.logical_and(ineq_mask, Xk >= vk - xtol)
+       # --- Equality checks ---
+        # Restrict mask
+        mask = np.where(ineq_mask)[0] if (mask is None) else mask[ineq_mask]
+        # Reset size
+        n = mask.size
         # Initialize tests for database indices (set to ``False``)
-        MI = np.full(n, False)
+        MI = np.full(n, False) if nx else np.full(n, True)
         # Initialize tests for input data indices (set to ``False``)
         MJ = np.full(nx, False)
         # Initialize maps if needed
@@ -10461,9 +10541,8 @@ class DataKit(BaseData):
                     continue
                 # Check size
                 if len(Xk) != n0:
-                    raise ValueError(
-                        ("Parameter '%s' has size %i, " % (k, len(Xk))) +
-                        ("expecting %i" % n))
+                    raise IndexError(
+                        f"Col '{k}' has size {len(Xk)}; expected {n}")
                 # Apply mask
                 if mask is not None:
                     Xk = self.get_values(k, mask)
@@ -10482,50 +10561,6 @@ class DataKit(BaseData):
                 else:
                     # Use a tolerance
                     Mi = np.logical_and(Mi, np.abs(Xk-xi) <= xtol)
-            # Loop through less-than cons
-            for k, vk in ltcons.items():
-                # Get DB values for *k*
-                Xk = self.get_all_values(k)
-                # Check match/approx
-                if isinstance(Xk, list):
-                    # Convert to array
-                    Xk = np.asarray(Xk)
-                # Compound constraint
-                Mi = np.logical_and(Mi, Xk < vk)
-            # Loop through greater-than cons
-            for k, vk in gtcons.items():
-                # Get DB values for *k*
-                Xk = self.get_all_values(k)
-                # Check match/approx
-                if isinstance(Xk, list):
-                    # Convert to array
-                    Xk = np.asarray(Xk)
-                # Compound constraint
-                Mi = np.logical_and(Mi, Xk > vk)
-            # Loop through less-than-equals cons
-            for k, vk in ltecons.items():
-                # Get DB values for *k*
-                Xk = self.get_all_values(k)
-                # Get tolerance for this key
-                xtol = tols.get(k, tol)
-                # Check match/approx
-                if isinstance(Xk, list):
-                    # Convert to array
-                    Xk = np.asarray(Xk)
-                # Compound constraint
-                Mi = np.logical_and(Mi, Xk <= vk + xtol)
-            # Loop through greater-than-equals cons
-            for k, vk in gtecons.items():
-                # Get DB values for *k*
-                Xk = self.get_all_values(k)
-                # Get tolerance for this key
-                xtol = tols.get(k, tol)
-                # Check match/approx
-                if isinstance(Xk, list):
-                    # Convert to array
-                    Xk = np.asarray(Xk)
-                # Compound constraint
-                Mi = np.logical_and(Mi, Xk >= vk - xtol)
             # Check if any cases
             found = np.any(Mi)
             # Got to next test point if no match
@@ -10539,11 +10574,8 @@ class DataKit(BaseData):
                 MJ[i] = found
                 # Find matches
                 I = np.where(Mi)[0]
-                # Invert mask if needed
-                if mask is not None:
-                    I = mask_index[I]
                 # Append to map
-                Imap.append(I)
+                Imap.append(mask[I])
             elif once:
                 # Check for uniqueness
                 M2 = np.logical_and(np.logical_not(MI), Mi)
@@ -10571,10 +10603,7 @@ class DataKit(BaseData):
             return Imap, J
         else:
             # Convert masks to indices
-            I = np.where(MI)[0]
-            # Invert mask if needed
-            if mask is not None:
-                I = mask_index[I]
+            I = mask[np.where(MI)[0]]
             # Return combined set of matches
             return I, J
 
@@ -10858,7 +10887,7 @@ class DataKit(BaseData):
             * 2025-07-29 ``@ddalle``: v1.0
         """
         # Default column list
-        cols = cols if cols else self.xcols
+        cols = cols if cols else getattr(self, "xcols", None)
         cols = cols if cols else self.cols
         # Form dictionary of conditions to match
         d = {col: dbt[col][j] for col in cols}

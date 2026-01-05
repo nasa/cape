@@ -26,10 +26,10 @@
     "optdict": {
         "url": "ssh://ufe/nobackupnfs1/ddalle/cape/hub/src/optdict.git",
         "vcs_info": {
-            "commit_id": "3d36dfce03038c07df2cc5079b2afb4c0ea60037",
+            "commit_id": "0e982bbf97260aba4d86e9249efc496bcc4a010b",
             "vcs": "git"
         },
-        "version": " 1.10.0"
+        "version": " 1.11.1"
     },
     "gruvoc": {
         "url": "ssh://ufe/nobackupnfs1/ddalle/cape/hub/src/gruvoc.git",

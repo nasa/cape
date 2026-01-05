@@ -5,23 +5,16 @@ r"""
 This module contains functions for reading and processing forces,
 moments, and other statistics from cases in a trajectory.  Data books
 are usually created by using the
-:func:`cape.pyfun.cntl.Cntl.ReadDataBook` function.
+:func:`cape.pyfun.cntl.Cntl.update_dex` function.
 
     .. code-block:: python
 
-        # Read FUN3D control instance
-        cntl = pyFun.Cntl("pyFun.json")
-        # Read the data book
-        cntl.ReadDataBook()
-        # Get a handle
-        DB = cntl.DataBook
+        from cape.pyfun.cntl import Cntl
 
-        # Read a line load component
-        DB.ReadLineLoad("CORE_LL")
-        DBL = DB.LineLoads["CORE_LL"]
-        # Read a target
-        DB.ReadTarget("t97")
-        DBT = DB.Targets["t97"]
+        # Read FUN3D control instance
+        cntl = Cntl("pyFun.json")
+        # Read the data book
+        db = read_dex("name_of_component")
 
 Data books can be created without an overall control structure, but it
 requires creating a run matrix object using
@@ -44,9 +37,9 @@ book modules, :mod:`cape.cfdx.databook`, :mod:`cape.cfdx.lineload`, and
 implemented for all CFD solvers.
 
 :See Also:
-    * :mod:`cape.cfdx.dataBook`
+    * :mod:`cape.cfdx.databook`
     * :mod:`cape.cfdx.pointsensor`
-    * :mod:`cape.options.databookopts`
+    * :mod:`cape.cfdx.options.databookopts`
 """
 
 # Standard library modules
@@ -59,6 +52,7 @@ from typing import Optional
 import numpy as np
 
 # Local imports
+from .. import convert
 from ..cfdx import casedata
 from ..cfdx import databook
 from ..dkit import tsvfile
@@ -67,7 +61,7 @@ from ..cfdx.cntlbase import CntlBase
 
 
 # Radian -> degree conversion
-deg = np.pi / 180.0
+DEG = np.pi / 180.0
 
 # Column names for FM files
 COLNAMES_FM = {
@@ -96,14 +90,22 @@ COLNAMES_FM = {
     "C_xv": "CAv",
     "C_yv": "CYv",
     "C_zv": "CNv",
+    "CGx": "xcg",
+    "CGy": "ycg",
+    "CGz": "zcg",
+    "Yaw": "psi",
+    "Pitch": "theta",
+    "Roll": "phi",
     "Mass flow": "mdot",
     "<greek>r</greek>": "rho",
     "p/p<sub>0</sub>": "phat",
     "p<sub>t</sub>/p<sub>0</sub>": "p0hat",
+    "Time": databook.CASE_COL_TRAW,
     "T<sub>t</sub>": "T0",
     "T<sub>RMS</sub>": "Trms",
     "Mach": "mach",
     "Simulation Time": databook.CASE_COL_TRAW,
+    "Simulation_Time": databook.CASE_COL_TRAW,
 }
 
 # Column names for primary history, {PROJ}_hist.dat
@@ -159,7 +161,7 @@ COLNAMES_SUBHIST = {
 
 
 # Force/moment history
-class CaseFM(databook.CaseFM):
+class CaseFM(casedata.CaseFM):
     r"""Iterative force & moment histories for one case, one component
 
     This class contains methods for reading data about an the history
@@ -196,7 +198,9 @@ class CaseFM(databook.CaseFM):
     )
 
     # Initialization method
-    def __init__(self, proj: str, comp: str, **kw):
+    def __init__(
+            self, proj: str, comp: str,
+            runner: Optional[CaseRunner] = None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -207,6 +211,10 @@ class CaseFM(databook.CaseFM):
         self.proj = proj
         # Use parent initializer
         databook.CaseFM.__init__(self, comp, **kw)
+        # Save project runner
+        self.runner = runner
+        # Apply moving-body transformations
+        self.apply_moving_body()
 
     # Get working folder for flow
     def get_flow_folder(self) -> str:
@@ -319,6 +327,188 @@ class CaseFM(databook.CaseFM):
         self._fix_iter(db)
         # Output
         return db
+
+    # Read and apply body positions
+    def apply_moving_body(self):
+        r"""Read and apply any moving-body data
+
+        :Call:
+            >>> fm.apply_moving_body()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+            * 2025-09-26 ``@ddalle``: v1.1; add *alpha*, *beta*
+            * 2025-10-15 ``@ddalle``: v1.2; add *(aoa|phi)[pv]*
+        """
+        # Check for moving-body data
+        dat = self.read_bodydat()
+        # Column name used frequently
+        tcol = databook.CASE_COL_TRAW
+        # Done if no moving-body
+        if dat is None:
+            return
+        # Initialize position cols
+        n = self[tcol].size
+        for col in dat.cols:
+            # Skip 'solver_time'
+            if col == tcol:
+                continue
+            # Initialize
+            self.save_col(col, np.zeros(n, dtype=dat[col].dtype))
+        # Find overlap
+        i, j = self.match(dat, cols=[tcol], once=True)
+        # Save data
+        for col in dat.cols:
+            # Skip 'solver_time'
+            if col == tcol:
+                continue
+            # Save data
+            self[col][i] = dat[col][j]
+        # Calculate angle of attack and sideslip for each iteration
+        a, b = self.get_ab_history()
+        # Calculate other variables
+        aoap, phip = convert.AlphaBeta2AlphaTPhi(a, b)
+        aoav, phiv = convert.AlphaBeta2AlphaMPhi(a, b)
+        # Save them
+        self.save_col("alpha", a)
+        self.save_col("beta", b)
+        self.save_col("aoap", aoap)
+        self.save_col("phip", phip)
+        self.save_col("aoav", aoav)
+        self.save_col("phiv", phiv)
+        # Get move_mc opt
+        mvopt = self.runner.get_moving_body_opt(
+            "body_definitions", "move_mc")
+        # Get body index
+        body = self.get_databook_opt("Body")
+        # Set default to needing MRP shift
+        if not isinstance(mvopt, (np.ndarray, list)):
+            mvopt = [0] * body
+        # If move_mc set to 0, (no multibody support)
+        if mvopt[body-1] == 0:
+            # Apply moving-body MRP shifts
+            self.shift_mrp_body()
+        # Transform into body-frame
+        self.transform_fm321_body()
+
+    # Read body positions
+    def read_bodydat(self) -> Optional[tsvfile.TSVTecDatFile]:
+        r"""Read and return any moving-body data
+
+        :Call:
+            >>> dat = fm.read_bodydat()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *dat*: :class:`cape.dkit.tsvfile.TSVTecDatFile` | ``None``
+                Moving-body position data, if relevant and found
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        # Check body name
+        body = self.get_databook_opt("Body")
+        # Exit if no moving body
+        if body is None:
+            return
+        # Construct file name
+        fname = f"PositionBody_{body}.dat"
+        # Check for file
+        if not os.path.isfile(fname):
+            return
+        # Read it
+        dat = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
+        # Output
+        return dat
+
+    # Get rotation origin coordinate
+    def get_rotation_origin_x(self) -> float:
+        r"""Get rotation origin from moving body
+
+        :Call:
+            >>> x0 = fm.get_rotation_origin_x()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *x0*: :class:`float`
+                Coordinate of rotation point
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check body name
+        body = self.get_databook_opt("Body")
+        # Exit if no moving body
+        if body is None:
+            return 0.0
+        # Ensure int
+        i = int(body)
+        # Get option
+        return self.runner.get_moving_body_opt(
+            "forced_motion", "rotation_origin_x", i=i-1)
+
+    # Get rotation origin coordinate
+    def get_rotation_origin_y(self) -> float:
+        r"""Get rotation origin from moving body
+
+        :Call:
+            >>> y0 = fm.get_rotation_origin_y()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *y0*: :class:`float`
+                Coordinate of rotation point
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check body name
+        body = self.get_databook_opt("Body")
+        # Exit if no moving body
+        if body is None:
+            return 0.0
+        # Ensure int
+        i = int(body)
+        # Get option
+        return self.runner.get_moving_body_opt(
+            "forced_motion", "rotation_origin_y", i=i-1)
+
+    # Get rotation origin coordinate
+    def get_rotation_origin_z(self) -> float:
+        r"""Get rotation origin from moving body
+
+        :Call:
+            >>> z0 = fm.get_rotation_origin_z()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *z0*: :class:`float`
+                Coordinate of rotation point
+        :Versions:
+            * 2025-09-26 ``@ddalle``: v1.0
+        """
+        # Check body name
+        body = self.get_databook_opt("Body")
+        # Exit if no moving body
+        if body is None:
+            return 0.0
+        # Ensure int
+        i = int(body)
+        # Get option
+        return self.runner.get_moving_body_opt(
+            "forced_motion", "rotation_origin_z", i=i-1)
+
+    # Get history of MRP
+    def get_rotation_origin(self) -> casedata.Point:
+        # Get rotation origin
+        x0 = self.get_rotation_origin_x()
+        y0 = self.get_rotation_origin_y()
+        z0 = self.get_rotation_origin_z()
+        # Output
+        return casedata.Point(x0, y0, z0)
 
     # Function to fix iteration histories of one file
     def _fix_iter(self, db: tsvfile.TSVTecDatFile):
@@ -924,6 +1114,9 @@ class CaseResid(databook.CaseResid):
             v = db.get(col)
             # Assemble
             if v is not None:
+                nv = v.size
+                if L2squared.size > nv:
+                    L2squared = L2squared[:nv]
                 L2squared += v*v
         # Save residuals
         db.save_col(rcol, np.sqrt(L2squared))

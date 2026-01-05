@@ -14,6 +14,7 @@ import sys
 from typing import Optional, Union
 
 # CAPE modules
+from . import manage
 from .. import argread
 from .. import convert1to2
 from ..argread import BOOL_TYPES, INT_TYPES
@@ -37,6 +38,7 @@ CMD_NAMES = {
     "apply": "apply",
     "dbpyfunc": "extract-pyfunc",
     "fm": "extract-fm",
+    "iter-fm": "extract-iter-fm",
     "ll": "extract-ll",
     "prop": "extract-prop",
     "surfcp": "extract-surfcp",
@@ -86,6 +88,7 @@ class CfdxArgReader(argread.ArgReader):
     _optmap = {
         "ERROR": "FAIL",
         "F": "force",
+        "add-col": "add-cols",
         "aero": "fm",
         "approve": "PASS",
         "check": "c",
@@ -99,8 +102,11 @@ class CfdxArgReader(argread.ArgReader):
         "file": "f",
         "help": "h",
         "hide": "hide-cols",
+        "iterfm": "iter-fm",
         "json": "f",
         "kill": "qdel",
+        "minsize": "cutoff",
+        "pattern": "pat",
         "queue": "q",
         "regex": "re",
         "scancel": "qdel",
@@ -126,6 +132,7 @@ class CfdxArgReader(argread.ArgReader):
         "compile": bool,
         "cons": str,
         "cmd": str,
+        "cutoff": str,
         "dbpyfunc": (bool, str),
         "delete": bool,
         "dezombie": bool,
@@ -138,11 +145,13 @@ class CfdxArgReader(argread.ArgReader):
         "fm": (bool, str),
         "imax": int,
         "incremental": bool,
+        "iter-fm": (bool, str),
         "j": bool,
         "ll": (bool, str),
         "marked": bool,
         "n": int,
         "passed": bool,
+        "pat": str,
         "prompt": bool,
         "prop": (bool, str),
         "pt": (bool, str),
@@ -231,6 +240,7 @@ class CfdxArgReader(argread.ArgReader):
         "cols": "Explicit list of status columns",
         "counters": "Explicit list of keys to show totals for in ``py{x} -c``",
         "cons": 'Constraints on run matrix keys, e.g. ``"mach>1.0"``',
+        "cutoff": "Min file size or count for 'large'",
         "dbpyfunc": "Extract scalar data from custom Python function",
         "delete": "Delete DataBook entries instead of adding new ones",
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
@@ -246,11 +256,13 @@ class CfdxArgReader(argread.ArgReader):
         "hide-counters": "Standard keys to omit totals after run mat table",
         "imax": "Do not extend a case beyond iteration *M*",
         "incremental": "Run case for one phase [or stop after *STOP_PHASE*]",
+        "iter-fm": "Extract iterative force & moment histories",
         "j": "List PBS/Slurm job ID in ``-c`` output",
         "kill": "Remove jobs from the queue and stop them",
         "ll": "Extract line load data [comps matching *PAT*] for case(s)",
         "marked": "Show only cases marked either PASS or ERROR",
         "n": "Submit at most *N* cases",
+        "pat": "Consider file names matching pattern *PAT*",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
         "prop": "Extract scalar properties [comps matching *PAT*]",
@@ -278,6 +290,7 @@ class CfdxArgReader(argread.ArgReader):
         "add-counters": "COLS",
         "cons": "CONS",
         "counters": "COLS",
+        "cutoff": "SIZE",
         "dbpyfunc": "[PAT]",
         "e": "EXEC",
         "extend": "[N_EXT]",
@@ -289,8 +302,10 @@ class CfdxArgReader(argread.ArgReader):
         "hide-counters": "COLS",
         "imax": "M",
         "incremental": "[STOP_PHASE]",
+        "iter-fm": "[PAT]",
         "ll": "[PAT]",
         "n": "N",
+        "pat": "PAT",
         "prop": "[PAT]",
         "pt": "[PAT]",
         "q": "QUEUE",
@@ -665,6 +680,28 @@ class CfdxExtractFMArgs(_CfdxExtractArgs):
     )
 
 
+# Settings for --iter-fm
+class CfdxExtractIterFMArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-iter-fm"
+
+    # Description
+    _help_title = "Extract iterative force & moment histories"
+
+    # Additional options
+    _optlist = (
+        "iter-fm",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "iter-fm",
+    )
+
+
 # Settings for --ll
 class CfdxExtractLLArgs(_CfdxExtractArgs):
     # No attributes
@@ -814,6 +851,29 @@ class CfdxExtractTriqPTArgs(_CfdxExtractArgs):
     )
 
 
+# Settings for --find-json
+class CfdxFindJSONArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-find-json"
+
+    # Description
+    _help_title = "Find CAPE JSON files"
+
+    # Arguments
+    _arglist = (
+        "pat",
+    )
+
+    # Additional options
+    _optlist = (
+        "h",
+        "pat",
+    )
+
+
 # Settings for --FAIL
 class CfdxFailArgs(_CfdxSubsetArgs):
     # No attributes
@@ -828,6 +888,28 @@ class CfdxFailArgs(_CfdxSubsetArgs):
     # Additional options
     _optlist = (
         "FAIL",
+    )
+
+
+# Settings for --find-large
+class CfdxFindLargeArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-find-large"
+
+    # Description
+    _help_title = "Find folders with large file size"
+
+    # Additional options
+    _optlist = (
+        "cutoff",
+    )
+
+    # Arguemnts
+    _arglist = (
+        "cutoff",
     )
 
 
@@ -915,6 +997,30 @@ class CfdxRunArgs(CfdxArgReader):
     # Options
     _optlist = (
         "h",
+    )
+
+
+# Settings for --search-large
+class CfdxSearchLargeArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-search-large"
+
+    # Description
+    _help_title = "Find large cases from all run matrices in repo"
+
+    # Additional options
+    _optlist = (
+        "pat",
+        "cutoff",
+    )
+
+    # Arguemnts
+    _arglist = (
+        "pat",
+        "cutoff",
     )
 
 
@@ -1028,6 +1134,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "cols",
         "cons",
         "counters",
+        "cutoff",
         "dbpyfunc",
         "delete",
         "dezombie",
@@ -1043,11 +1150,13 @@ class CfdxFrontDesk(CfdxArgReader):
         "hide-counters",
         "imax",
         "incremental",
+        "iter-fm",
         "j",
         "kill",
         "ll",
         "marked",
         "n",
+        "pat",
         "pt",
         "prompt",
         "q",
@@ -1088,6 +1197,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "exec",
         "extend",
         "extract-fm",
+        "extract-iter-fm",
         "extract-ll",
         "extract-pyfunc",
         "extract-prop",
@@ -1096,9 +1206,12 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqfm",
         "extract-triqpt",
         "fail",
+        "find-json",
+        "find-large",
         "qdel",
         "report",
         "rm",
+        "search-large",
         "skeleton",
         "unarchive",
         "unmark",
@@ -1135,6 +1248,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "exec": CfdxExecArgs,
         "extend": CfdxExtendArgs,
         "extract-fm": CfdxExtractFMArgs,
+        "extract-iter-fm": CfdxExtractIterFMArgs,
         "extract-ll": CfdxExtractLLArgs,
         "extract-pyfunc": CfdxExtractPyFuncArgs,
         "extract-prop": CfdxExtractPropArgs,
@@ -1143,10 +1257,13 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqfm": CfdxExtractTriqFMArgs,
         "extract-triqpt": CfdxExtractTriqPTArgs,
         "fail": CfdxFailArgs,
+        "find-json": CfdxFindJSONArgs,
+        "find-large": CfdxFindLargeArgs,
         "qdel": CfdxQdelArgs,
         "report": CfdxReportArgs,
         "rm": CfdxRemoveCasesArgs,
         "run": CfdxRunArgs,
+        "search-large": CfdxSearchLargeArgs,
         "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
         "unarchive": CfdxUnarchiveArgs,
@@ -1536,6 +1653,28 @@ def cape_extract_fm(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+def cape_extract_iterfm(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --iter-fm`` command
+
+    :Call:
+        >>> ierr == cape_extract_iterfm(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.UpdateIterFM(**kw)
+    # Return code
+    return IERR_OK
+
+
 def cape_extract_ll(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --ll`` command
 
@@ -1712,6 +1851,53 @@ def cape_fail(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+def cape_find_json(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --find-json`` command
+
+    :Call:
+        >>> ierr == cape_find_json(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-09-25 ``@ddalle``: v1.0
+    """
+    # Parse args
+    kw = parser.get_kwargs()
+    # Find files
+    json_files = manage.find_json(kw.get("pat"))
+    # List them
+    for fname in json_files:
+        print(fname)
+    # Return code
+    return IERR_OK
+
+
+def cape_find_large(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --find-large`` command
+
+    :Call:
+        >>> ierr == cape_fail(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.find_large_cases(**kw)
+    # Return code
+    return IERR_OK
+
+
 def cape_qdel(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --qdel`` command to stop PBS/Slurm cases
 
@@ -1797,6 +1983,28 @@ def cape_run(parser: CfdxArgReader) -> int:
     runner, _ = read_runner_kwargs(parser)
     # Run the case
     runner.run()
+    # Return code
+    return IERR_OK
+
+
+def cape_search_large(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --search-large`` command
+
+    :Call:
+        >>> ierr == cape_search_large(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-09-25 ``@ddalle``: v1.0
+    """
+    # Parse args
+    kw = parser.get_kwargs()
+    # Find large cases
+    manage.search_repo_large(**kw)
     # Return code
     return IERR_OK
 
@@ -1966,6 +2174,7 @@ CMD_DICT = {
     "exec": cape_exec,
     "extend": cape_extend,
     "extract-fm": cape_extract_fm,
+    "extract-iter-fm": cape_extract_iterfm,
     "extract-ll": cape_extract_ll,
     "extract-prop": cape_extract_prop,
     "extract-pyfunc": cape_extract_pyfunc,
@@ -1974,10 +2183,13 @@ CMD_DICT = {
     "extract-triqfm": cape_extract_triqfm,
     "extract-triqpt": cape_extract_triqpt,
     "fail": cape_fail,
+    "find-json": cape_find_json,
+    "find-large": cape_find_large,
     "qdel": cape_qdel,
     "report": cape_report,
     "rm": cape_rm,
     "run": cape_run,
+    "search-large": cape_search_large,
     "skeleton": cape_skeleton,
     "start": cape_start,
     "unarchive": cape_unarchive,

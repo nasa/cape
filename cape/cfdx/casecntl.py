@@ -269,6 +269,7 @@ class CaseRunner(CaseRunnerBase):
     #: Classes for reading data of various DataBook component types
     _dex_cls = {
         "fm": CaseFM,
+        "iterfm": CaseFM,
         "lineload": CaseLineLoad,
         "surfcp": CaseSurfCp,
         "triqfm": CaseTriqFM,
@@ -2812,6 +2813,11 @@ class CaseRunner(CaseRunnerBase):
         self._sample_xmrp(comp, db)
         self._sample_ymrp(comp, db)
         self._sample_zmrp(comp, db)
+        # Check for prefixes
+        if typ in ("iterfm",):
+            for col in list(db.cols):
+                if col not in ("nStats", "nIter"):
+                    db.save_col(f"iter.{col}", db.burst_col(col))
         # Output
         return db
 
@@ -2870,6 +2876,42 @@ class CaseRunner(CaseRunnerBase):
         # Convert to DataKit
         db = DataKit()
         db.link_data(s)
+        # Output
+        return db
+
+    def sample_dex_iterfm(self, comp: str) -> DataKit:
+        # Read raw data (i.e. iterative history)
+        fm = self.read_dex(comp)
+        # Intialize output
+        db = DataKit()
+        # Number of iterations
+        ni = fm["i"].size
+        # Get run matrix instance
+        cntl = self.read_cntl()
+        # Get relevant options
+        n = cntl.opts.get_DataBookOpt(comp, "NStats")
+        nb = cntl.opts.get_DataBookOpt(comp, "NLastStats")
+        # Default cutoff
+        nb = ni if nb is None else nb
+        # Start
+        na = nb - n
+        # Get columns
+        cols = self.get_dex_opt(comp, "Cols")
+        # Save iters
+        db.save_col('i', fm["i"][na:nb])
+        # Loop through columns
+        for col in cols:
+            # Check status
+            if col not in fm:
+                raise KeyError(
+                    f"IterFM comp '{comp}' history has no col '{col}'")
+            # Check size
+            if fm[col].size != ni:
+                raise IndexError(
+                    f"IterFM comp '{comp}' col '{col}' has size " +
+                    f"{fm[col].size}; expected {ni}")
+            # Save values
+            db.save_col(col, fm[col][na:nb])
         # Output
         return db
 
@@ -2978,10 +3020,12 @@ class CaseRunner(CaseRunnerBase):
         # Perform preprocessing if needed
         self.prep_dex(comp)
         # Check it
-        if typ in ("fm", "surfcp"):
-            return self.read_dex_by_element(comp)
+        if typ in ("fm", "iterfm", "surfcp"):
+            db = self.read_dex_by_element(comp)
         else:
-            return self.read_dex_element(comp, comp)
+            db = self.read_dex_element(comp, comp)
+        # Output
+        return db
 
     # Read a DEx by element
     def read_dex_by_element(self, comp: str) -> DataKit:
@@ -3014,6 +3058,8 @@ class CaseRunner(CaseRunnerBase):
             # Add or initialize
             if j == 0:
                 db = dbj
+                # Save global comp name
+                db.comp = comp
             elif negj:
                 db -= dbj
             else:
@@ -3186,6 +3232,34 @@ class CaseRunner(CaseRunnerBase):
                 Untransformed force & moment residual history
         :Versions:
             * 2025-07-31 ``@ddalle``: v1.0
+        """
+        # Get transformations
+        transforms = self.get_dex_opt(comp, "Transformations")
+        # Exit if none
+        if not transforms:
+            return
+        # Read run matrix controller and case
+        cntl = self.read_cntl()
+        i = self.get_case_index()
+        # Loop through transformations
+        for topts in transforms:
+            fm.TransformFM(topts, cntl.x, i)
+
+   # --- IterFM ---
+    def transform_dex_iterfm(self, comp: str, fm: CaseFM):
+        r"""Apply transformations for an iterative FM data extraction
+
+        :Call:
+            >>> runner.transform_dex_iterfm(comp, fm)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+            *fm*: :class:`cape.cfdx.casedata.CasseFM`
+                Untransformed force & moment residual history
+        :Versions:
+            * 2025-12-04 ``@aburkhea``: v1.0
         """
         # Get transformations
         transforms = self.get_dex_opt(comp, "Transformations")
@@ -3724,6 +3798,8 @@ class CaseRunner(CaseRunnerBase):
         """
         # Read control instance
         cntl = self.read_cntl()
+        # Get name of surf-config comp
+        surfcomp = cntl.opts.get_DataBookOpt(comp, "CompID")
         # Setting for output triq file
         write_slice_triq = cntl.opts.get_DataBookTrim(comp)
         slice_opt = 1 if write_slice_triq else 0
@@ -3735,7 +3811,7 @@ class CaseRunner(CaseRunnerBase):
         # Cut direction
         cutdir = cntl.opts.get_DataBookOpt(comp, "CutPlaneNormal")
         # Get components and type of the input
-        compID = self.expand_compids(comp)
+        compID = self.expand_compids(surfcomp)
         # Get triload input conditions
         mach = self.get_mach()
         rey = self.get_reynolds()
@@ -4723,8 +4799,10 @@ class CaseRunner(CaseRunnerBase):
         # Check if found
         if conf is None:
             return comps
-        # Convert
-        complist = [conf.GetCompID(subcomp) for subcomp in comps]
+        # Convert to tri file compIDs
+        complist = []
+        for subcomp in comps:
+            complist.extend(conf.GetCompID(subcomp))
         # Avoid duplication
         return list(np.unique(complist))
 
@@ -4863,6 +4941,7 @@ class CaseRunner(CaseRunnerBase):
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *j*: {``None``} | :class:`int`
+                Phase index
         :Outputs:
             *q*: :class:`bool`
                 ``True`` if no listed files have been modified recently
@@ -6093,7 +6172,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
@@ -6113,7 +6192,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
@@ -6133,7 +6212,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()
@@ -6152,7 +6231,7 @@ class CaseRunner(CaseRunnerBase):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-20 ``@ddalle`: v1.0
+            * 2024-09-20 ``@ddalle``: v1.0
         """
         # Get archivist
         a = self.get_archivist()

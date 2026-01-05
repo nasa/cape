@@ -353,7 +353,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Create post-processing and log folder to ensure permissions
         self.mkdir("isosurface")
         self.mkdir("monitor")
-        self.mkdir("point_output")
+        self.mkdir("point_probe")
         self.mkdir("restart")
         self.mkdir("surface")
         self.mkdir("volume")

@@ -428,7 +428,7 @@ class TriBase(object):
         if hasattr(self, "iTri"):
             tri.iTri = copy.copy(self.iTri)
         # Try to copy the state
-        if hasattr(self, "q"):
+        if hasattr(self, "q") and self.q is not None:
             tri.q = self.q.copy()
             tri.nq = tri.q.shape[1]
         # Try to copy the state length
@@ -473,6 +473,8 @@ class TriBase(object):
         """
         # Read the easy way
         tri = Umesh(fname)
+        # Number of states
+        nq = 0 if tri.nq is None else tri.nq
         # Save parts
         self.nQuad = 0
         self.nTri = tri.ntri
@@ -481,7 +483,7 @@ class TriBase(object):
         self.Tris = tri.tris
         self.CompID = tri.tri_ids
         self.n = n
-        self.nq = tri.nq
+        self.nq = nq
         self.q = tri.q
 
     # Function to read a .triq file
@@ -1123,6 +1125,10 @@ class TriBase(object):
         # Status update.
         if kw.get('v', False):
             print("    Writing triangulation: '%s'" % fname)
+        # Hide *q* if necessary
+        if hasattr(self, "q") and isinstance(self.q, np.ndarray):
+            if self.q.dtype.name == "object":
+                self.nq = None
         # Get the extension
         ext = self.GetOutputFileType(**kw)
         # Check text vs. binary
@@ -1378,6 +1384,10 @@ class TriBase(object):
         :Versions:
             * 2015-01-03 ``@ddalle``: v1.0
         """
+        # Only can write double-precision
+        if self.Nodes.dtype.name != "float64":
+            # Convert
+            self.Nodes = self.Nodes.asdtype("float64")
         # Write the nodes.
         _cape.WriteTri(self.Nodes, self.Tris)
         # Write the component IDs.
@@ -3994,7 +4004,7 @@ class TriBase(object):
             return self.GetConfCompID(face)
 
     # Get name of a compID
-    def GetCompName(self, compID):
+    def GetCompName(self, compID: int) -> str:
         r"""Get the name of a component by its number
 
         :Call:
@@ -4479,10 +4489,11 @@ class TriBase(object):
         self.nNode = nNode
         self.Nodes = self.Nodes[N-1, :]
         # Downselect *q* if available
-        try:
-            self.q = self.q[N-1, :]
-        except AttributeError:
-            pass
+        if self.q is not None:
+            try:
+                self.q = self.q[N-1, :]
+            except AttributeError:
+                pass
 
     # Eliminate small triangles
     def RemoveSmallTris(self, smalltri=1e-5, v=False, recurse=True):
@@ -4766,6 +4777,17 @@ class TriBase(object):
                     continue
                 # Save the component
                 cmapd.append(compmap[comp])
+            # Clear any matches from self.Conf
+            for cmapid in cmapd:
+                # Loop through Config
+                for fv, nv in dict(self.Conf).items():
+                    # Check for integers only
+                    if not isinstance(nv, INT_TYPES):
+                        continue
+                    # Check for match
+                    if nv == cmapid:
+                        self.Conf.pop(fv)
+                        break
             # Check length
             if len(cmapd) == 0:
                 # No matches
@@ -7520,6 +7542,7 @@ class Triq(TriBase):
         # Which things to calculate
         incm = kw.get("incm", kw.get("momentum", False))
         gauge = kw.get("gauge", True)
+        gauge = True if gauge is None else gauge
         # Get Reynolds number per grid unit
         REY = kw.get("Re", kw.get("Rey", 1.0))
         # Freestream mach number

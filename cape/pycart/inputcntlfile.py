@@ -323,8 +323,8 @@ class InputCntl(FileCntl):
             return _float(vals[1])
 
     # Function to set the CFL number
-    def SetCFL(self, CFL):
-        """Set the CFL number
+    def SetCFL(self, CFL: float):
+        r"""Set the CFL number
 
         :Call:
             >>> IC.SetCFL(CFL)
@@ -334,7 +334,7 @@ class InputCntl(FileCntl):
             *CFL*: :class:`float`
                 Value of the CFL number to use
         :Effects:
-            Replaces or adds a line to the "Solver_Control_Information" section
+            Replaces or adds line to"Solver_Control_Information" section
         :Versions:
             * 2014-06-10 ``@ddalle``: v1.0
         """
@@ -342,13 +342,34 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionStartsWith(
             'Solver_Control_Information',
             'CFL ', 'CFL%11s%s\n' % ('', CFL))
-        return None
+
+    # Function to set the CFL number
+    def SetLimiter(self, limiter: int):
+        r"""Set the limiter option
+
+        :Call:
+            >>> IC.SetLimiter(limiter)
+        :Inputs:
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
+                File control instance for :file:`input.cntl`
+            *limiter*: :class:`float`
+                Value of the CFL number to use
+        :Effects:
+            Replaces or adds line to"Solver_Control_Information" section
+        :Versions:
+            * 2014-06-10 ``@ddalle``: v1.0
+        """
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionStartsWith(
+            'Solver_Control_Information',
+            'Limiter ', f"Limiter       {limiter}\n")
 
     # Function to set the number of orders of convergence to terminate at
     def SetNOrders(self, nOrders):
-        """
-        Set the early termination criterion in number of orders of magnitude
-        decrease in the global L1 residual
+        r"""Set number of orders of convergence for exit
+
+        Set the early termination criterion in number of orders of
+        magnitude decrease in the global L1 residual
 
         :Call:
             >>> IC.SetNOrders(nOrders)

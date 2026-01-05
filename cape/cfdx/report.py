@@ -432,6 +432,7 @@ class Report(object):
             frun = self.get_case_name(i)
             # Get the actual iteration number.
             n = self.get_case_n(i)
+            n = 0 if n is None else n
             # Select character
             c = yes if (n >= nmin) else no
             c = no if ((n == 0) and (nz == 0)) else c
@@ -2620,6 +2621,7 @@ class Report(object):
         spvars = self.cntl.opts.get_SubfigOpt(sfig, "SpecialVars")
         # Dictionary of recognized special keys
         spdict = {
+            "Altitude":           ["alt",  "GetAltitude"],
             "AngleOfAttack":      ["a",    "GetAlpha"],
             "a":                  ["a",    "GetAlpha"],
             "aoa":                ["a",    "GetAlpha"],
@@ -3338,6 +3340,8 @@ class Report(object):
                     topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
                 # Apply the transformation.
                 FM.TransformFM(topts, self.cntl.x, i)
+            # Column for the x-axis
+            xcol = opts.get_SubfigOpt(sfig, "XCol")
             # Get the manual range to show
             dc = opts.get_SubfigOpt(sfig, "Delta", k)
             # Get the multiple of standard deviation to show
@@ -3363,9 +3367,9 @@ class Report(object):
             fmt_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
             fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
             fmt_e = opts.get_SubfigOpt(sfig, "ErrorFormat", k)
-            # Draw the plot.
+            # Draw the plot
             h = FM.PlotCoeff(
-                coeff, n=nPlotIter,
+                coeff, xcol=xcol, n=nPlotIter,
                 nFirst=nPlotFirst, nLast=nPlotLast,
                 nStats=nStats, nMaxStats=nMax, dnStats=dn,
                 PlotOptions=kw_p, MeanOptions=kw_m,
