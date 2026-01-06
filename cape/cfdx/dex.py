@@ -358,7 +358,10 @@ class DataExchanger(DataKit):
         :Versions:
             * 2025-08-12 ``@aburkhea``: v1.0
         """
-        if self.comptype in ("SurfCp",):
+        # Get component type
+        comptype = self.comptype.lower()
+        # Get extra data fname
+        if comptype in ("surfcp",):
             # Get prefix
             prefix = self.get_prefix()
             # Get extension

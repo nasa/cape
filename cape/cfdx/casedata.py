@@ -4146,9 +4146,9 @@ class CaseResid(CaseData):
         return j
 
 
-# Individual component time series force and moment
+# Individual component surface pressure
 class CaseSurfCp(CaseData):
-    r"""Surface Cp
+    r"""Surface pressure coefficient
 
     This class contains methods for reading data about an the histroy of
     an individual component for a single case.
