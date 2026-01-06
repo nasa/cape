@@ -4502,7 +4502,7 @@ class CaseSurfCp(CaseData):
                 # Re-write db0
                 db0.write_cdb(fname)
 
-
+    # Write extra data file
     def write_datafile(self, fname, casename):
         r"""Write surfcp data capefile
 
