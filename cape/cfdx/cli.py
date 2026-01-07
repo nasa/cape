@@ -1453,8 +1453,6 @@ def cape_c(parser: CfdxArgReader) -> int:
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.DisplayStatus(**kw)
-    # Log
-    cntl.log_parser(parser)
     # Return code
     return IERR_OK
 
@@ -2132,6 +2130,8 @@ def read_cntl_kwargs(parser: CfdxArgReader):
     kw = parser.get_kwargs()
     # Preprocess
     cntl.preprocess_kwargs(kw)
+    # Log
+    cntl.log_parser(parser)
     # Output
     return cntl, kw
 
