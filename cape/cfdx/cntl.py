@@ -3308,6 +3308,24 @@ class Cntl(CntlBase):
         # Output
         return pbs
 
+   # --- Log ---
+    def log_parser(self, parser: ArgReader):
+        # Check logging setting
+        if self.opts.get_LogLevel() == 0:
+            return
+        # Check if file name is present
+        if 'f' in parser._optlist:
+            # Make explicit, following links if necessary
+            parser.set_opt_param('f', os.path.join(self.fdir, self.fname))
+        # Reconstruct an argument
+        cmdlist = parser.reconstruct()
+        # Get executable name
+        cmdexec = os.path.basename(cmdlist[0])
+        # Split first command
+        cmdfinal = cmdexec.split('-', 1) + cmdlist[1:]
+        # Log it
+        self.log_cmd(' '.join(cmdfinal))
+
   # *** RUN MATRIX ***
    # --- Values ---
     # Get value for specified property
@@ -3523,7 +3541,7 @@ class Cntl(CntlBase):
                             casename=runner.get_case_name()
                         )
                 # Delete case
-                n = db.delete(dbinds) 
+                n = db.delete(dbinds)
         else:
             # Count cases updated
             n = 0
@@ -3888,7 +3906,6 @@ class Cntl(CntlBase):
         # Loop through them
         for comp in comps:
             self.update_dex_comp(comp, **kw)
-
 
     # Update time series
     @run_rootdir
@@ -4812,6 +4829,18 @@ class Cntl(CntlBase):
         return fileutils.get_dir_files(fabs)
 
   # *** LOGGING ***
+    def log_cmd(
+            self,
+            msg: str,
+            title: Optional[str] = None,
+            parent: int = 0):
+        # Check for manual title
+        title = "CMD"
+        # Get logger
+        logger = self.get_logger()
+        # Log the message
+        logger.log_cmd(title, msg)
+
     def log_main(
             self,
             msg: str,
