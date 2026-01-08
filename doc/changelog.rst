@@ -3,11 +3,36 @@
 Changelog
 ********************
 
-Release 2.2.2
+Release 2.3.0
 =============================
 
 New Features
 -------------------
+
+*   Logging: most command-line CAPE calls are now recorded in a log file.
+
+    Whenever you run a CAPE command that involves a Cntl instance, it will now
+    log that command in log/cmd/{BASENAME_OF_JSON_FILE}.log.
+
+    For example if you run ``pyfun -c`` and ``pyFun.json`` is linked to
+    ``run/dac3-asc01.json``, you'll get a file (or append to it if it already
+    exists) called ``log/cmd/run_-dac3-asc01.log`` (the unusual ``_-`` sequence
+    replaces the ``/`` in the path to the file name), and it will have a line
+    that looks something like
+
+    ``CMD,2026-01-07 14:55:33,pyfun check -f run/dac3-asc01.json``
+
+    The commands are "canonical-ized" so that the actual name of the JSON file
+    is always included, and it will use the new two-word format for the logged
+    commands.
+
+    You can turn this off by setting
+
+    .. code-block:: javascript
+
+        "LogLevel": 0
+
+    in the JSON file.
 
 *   New settings in the ``"RunMatrix"`` section named ``"Replace"`` and
     ``"RegexSubs"``. These allow you to replace one string with another
