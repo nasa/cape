@@ -339,7 +339,7 @@ class DataExchanger(DataKit):
         # Get component type
         comptype = self.comptype.lower()
         # Check
-        if comptype in ("iterfm",):
+        if comptype in ("iterfm", "surfcp"):
             return "cdb"
         else:
             return "csv"
@@ -365,7 +365,7 @@ class DataExchanger(DataKit):
             # Get prefix
             prefix = self.get_prefix()
             # Get extension
-            ext = "cdb"
+            ext = self.get_extension()
             # Get subfolder
             dirname = self.get_subdir()
             # Combine
@@ -374,7 +374,6 @@ class DataExchanger(DataKit):
             if not os.path.isabs(fname):
                 fname = os.path.join(self.fdir, fname)
             return fname
-        return None
 
 
   # *** DATA ***
