@@ -25,6 +25,7 @@ from . import queue
 from .casecntlbase import CaseRunnerBase
 from .options.runctlopts import RunControlOpts
 from .logger import CntlLogger
+from ..argread import ArgReader
 from ..config import ConfigXML, ConfigJSON
 
 
@@ -2375,7 +2376,7 @@ class CntlBase(ABC):
             >>> n = cntl.DeleteCase(i)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Cape control interface
+                CAPE run matrix control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
             *prompt*: {``True``} | ``False``
@@ -2397,6 +2398,8 @@ class CntlBase(ABC):
         :Call:
             >>> jobid = cntl.run_batch(argv)
         :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
             *argv*: :class:`list`\ [:class:`str`]
                 List of command-line inputs
         :Outputs:
@@ -2404,6 +2407,22 @@ class CntlBase(ABC):
                 PBS/Slurm job number/ID
         :Versions:
             * 2024-12-20 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Log ---
+    def log_parser(self, parser: ArgReader):
+        r"""Log a CLI command based on parser
+
+        :Call:
+            >>> cntl.log_parser(parser)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+            *parser*: :class:`cape.argread.ArgReader`
+                CLI parser based on :mod:`cape.cfdx.cli`
+        :Versions:
+            *2026-01-05 ``@ddalle``: v1.0
         """
         pass
 
@@ -2793,6 +2812,30 @@ class CntlBase(ABC):
         pass
 
   # *** LOGGING ***
+    @abstractmethod
+    def log_cmd(
+            self,
+            msg: str,
+            title: Optional[str] = None,
+            parent: int = 0):
+        r"""Write a message to CLI log
+
+        :Call:
+            >>> runner.log_cmd(msg, title, parent=0)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *msg*: :class:`str`
+                Primary content of message
+            *title*: {``None``} | :class:`str`
+                Manual title (default is name of calling function)
+            *parent*: {``0``} | :class:`int`
+                Extra levels to use for calling function name
+        :Versions:
+            * 2025-04-30 ``@ddalle``: v1.0
+        """
+        pass
+
     @abstractmethod
     def log_main(
             self,
