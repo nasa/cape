@@ -4548,16 +4548,13 @@ class CaseSurfCp(CaseData):
             caset = self.burst_col("tris")
             # Check existing grid
             if (len(x) and len(y) and len(z)):
-                # Compare existing grid to case grid
-                dx = x - casex
-                dy = y - casey
-                dz = z - casez
-                ds = np.count_nonzero(dx) + np.count_nonzero(dy) + \
-                     np.count_nonzero(dz)
-                # Also compare tris
-                dt = np.count_nonzero(tris - caset)
+                #Compare existing grid to case grid
+                ds = np.where(
+                    np.hstack([x,y,z]) !=
+                    np.hstack([casex,casey,casez]))[0]
+                dt = np.where(tris != caset)[0]
                 # If diffs, change existing grid to case specific grids
-                if ds or dt:
+                if len(ds) or len(dt):
                     # Save existing global grid to all existing casenmes
                     x0 = db0.burst_col("x")
                     y0 = db0.burst_col("y")
@@ -4569,6 +4566,13 @@ class CaseSurfCp(CaseData):
                         dbq.save_col(f"{_casename}.y", y0)
                         dbq.save_col(f"{_casename}.z", z0)
                         dbq.save_col(f"{_casename}.tris", tris0)
+                        # Append case.xyz
+                        append_cols.extend([
+                            f"{_casename}.x",
+                            f"{_casename}.y",
+                            f"{_casename}.z",
+                            f"{_casename}.tris",]
+                        )
                     # Save case x,y,z 
                     savegrid = True
             # Case specific grid
