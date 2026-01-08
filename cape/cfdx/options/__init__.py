@@ -177,6 +177,7 @@ file that are not part of any section.
         "Config",
         "DataBook",
         "InitFunction",
+        "LogLevel",
         "Mesh",
         "ModuleNames",
         "Modules",
@@ -206,6 +207,7 @@ file that are not part of any section.
         "BatchShellCmds": str,
         "CaseFunction": str,
         "InitFunction": str,
+        "LogLevel": INT_TYPES + (str,),
         "ModuleNames": dict,
         "Modules": str,
         "PBS_map": dict,
@@ -215,6 +217,23 @@ file that are not part of any section.
         "ShellCmds": str,
         "nSubmit": INT_TYPES,
         "umask": INT_TYPES + (str,),
+    }
+
+    # Alternate permitted values
+    _optvalmap = {
+        "LogLevel": {
+            "none": 0,
+            "low": 1,
+            "lo": 1,
+            "hi": 2,
+            "high": 2,
+            "verbose": 2,
+        },
+    }
+
+    # Permitted values
+    _optvals = {
+        "LogLevel": (0, 1, 2),
     }
 
     # Option default list depth
@@ -237,6 +256,7 @@ file that are not part of any section.
         "CaseFunction": "function(s) to execute in case right before starting",
         "BatchShellCmds": "additional shell commands for batch jobs",
         "InitFunction": "function(s) to run immediately after parsing JSON",
+        "LogLevel": "amount of logging for run matrix controller",
         "ModuleNames": "dict of short names for imported modules",
         "Modules": "list of Python modules to import",
         "NSubmit": "maximum number of jobs to submit at one time",
@@ -801,6 +821,6 @@ file that are not part of any section.
 
 
 # Add global properties
-Options.add_properties(("BatchShellCmds", "PythonExec", "NSubmit"))
+Options.add_properties(("BatchShellCmds", "LogLevel", "PythonExec", "NSubmit"))
 # Add methods from subsections
 Options.promote_sections()

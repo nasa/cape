@@ -1302,7 +1302,13 @@ class CfdxFrontDesk(CfdxArgReader):
     def infer_cmdname(self) -> str:
         # Check for various options
         for opt, cmdname in CMD_NAMES.items():
+            # Check if present
             if opt in self:
+                # Get value
+                if self[opt] in (True, False):
+                    # Remove that flag
+                    self.pop_opt_param(opt)
+                # Return the command name
                 return cmdname
         # Default is "start"
         return "start"
@@ -2126,6 +2132,8 @@ def read_cntl_kwargs(parser: CfdxArgReader):
     kw = parser.get_kwargs()
     # Preprocess
     cntl.preprocess_kwargs(kw)
+    # Log
+    cntl.log_parser(parser)
     # Output
     return cntl, kw
 

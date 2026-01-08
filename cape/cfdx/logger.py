@@ -163,8 +163,7 @@ class BaseLogger(object):
         # Split into folder parts
         for fpart in fdir.split(os.sep):
             # Combine
-            fabs = os.path.join(fpart)
-            breakpoint()
+            fabs = os.path.join(fabs, fpart)
             # Check for folder
             if os.path.isdir(fabs):
                 continue

@@ -987,6 +987,63 @@ class ArgReader(dict, metaclass=MetaArgReader):
         # Save value
         self[opt] = val
 
+    # Set option and modify param_sequence
+    def set_opt_param(self, rawopt: str, rawval: Any):
+        r"""Set the value of a single option
+
+        :Call:
+            >>> opts.set_opt_param(rawopt, rawval)
+        :Inputs:
+            *opts*: :class:`ArgReader`
+                Keyword argument parser instance
+            *rawopt*: :class:`str`
+                Name or alias of option to set
+            *rawval*: :class:`object`
+                Pre-conversion value of *rawopt*
+        """
+        # Validate
+        opt, val = self.validate_opt(rawopt, rawval)
+        # Save value
+        self[opt] = val
+        # Setting for val
+        sval = val if val in (True, False, None) else str(val)
+        # Loop through parameters
+        for j, (k, _) in enumerate(self.param_sequence):
+            # Check for match
+            if k == opt:
+                # Replace
+                self.param_sequence[j] = (opt, sval)
+                break
+        else:
+            # If no matches, add param
+            self.param_sequence.append((opt, sval))
+
+    # Remove option
+    def pop_opt_param(self, opt: str) -> Any:
+        r"""Remove option (and from ``param_sequence``)
+
+        :Call:
+            >>> v = opts.pop_opt_param(opt)
+        :Inputs:
+            *opts*: :class:`ArgReader`
+                Keyword argument parser instance
+            *opt*: :class:`str`
+                Name of option to set
+        :Outputs:
+            *val*: :class:`object`
+                Value of *opt*, if any
+        """
+        # Check if present
+        val = self.pop(opt, None)
+        # Loop through parameters
+        for j, (k, _) in enumerate(list(self.param_sequence)):
+            # Check for a match
+            if k == opt:
+                self.param_sequence.pop(j)
+                break
+        # Output anyway
+        return val
+
     # Set list of positional parameter values
     def set_args(self, args: tuple):
         r"""Set the values of positional arguments
