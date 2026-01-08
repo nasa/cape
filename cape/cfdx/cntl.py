@@ -3014,7 +3014,7 @@ class Cntl(CntlBase):
             self.opts.setx_i(i)
             # Status update
             print("  Executing system command:")
-            # Check if it's a file.
+            # Check if it's a file
             if not cmd.startswith(os.sep):
                 # First command could be a script name
                 fcmd = cmd.split()[0]

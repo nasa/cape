@@ -1304,8 +1304,10 @@ class CfdxFrontDesk(CfdxArgReader):
         for opt, cmdname in CMD_NAMES.items():
             # Check if present
             if opt in self:
-                # Remove that flag
-                self.pop_opt_param(opt)
+                # Get value
+                if self[opt] in (True, False):
+                    # Remove that flag
+                    self.pop_opt_param(opt)
                 # Return the command name
                 return cmdname
         # Default is "start"
