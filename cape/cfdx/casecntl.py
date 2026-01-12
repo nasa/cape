@@ -339,6 +339,7 @@ class CaseRunner(CaseRunnerBase):
         self.workers = []
         # Set private slots
         self._mtime_case_json = 0.0
+        self._dex_comp = None
         self._dex_n_iter = None
         self._dex_n_orders = None
         self._dex_n_stats = None
@@ -2821,7 +2822,6 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return db
 
-
     def sample_dex_surfcp(self, comp: str) -> DataKit:
         r"""Sample a force & moment iterative history
 
@@ -2842,7 +2842,6 @@ class CaseRunner(CaseRunnerBase):
         surfcp = self.read_dex(comp)
         # Output
         return surfcp
-
 
     def sample_dex_fm(self, comp: str) -> DataKit:
         r"""Sample a force & moment iterative history
@@ -3642,6 +3641,29 @@ class CaseRunner(CaseRunnerBase):
         os.chdir(self.get_working_folder())
         # Get name of ``.triq`` file and create it if needed
         self.prepare_triq()
+        # Cache name of comp
+        self._dex_comp = comp
+
+    # Create tuple of TriqFM dex args after to *comp*
+    def get_dex_args_pre_surfcp(self) -> tuple:
+        r"""Get list of args before *comp* in :class:`CaseSurfCp`
+
+        :Call:
+            >>> args = runner.get_dex_args_pre_surfcp()
+            >>> ftriq, cntl, i = runner.get_dex_args_pre_surfcp()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Tuple of args
+            *comp*: :class:`cape.cfdx.cntl.Cntl`
+                Name of dex comp
+        :Versions:
+            * 2026-01-12 ``@aburkhea``: v1.0
+        """
+        # Add comp name to args
+        return (self._dex_comp)
 
     # Create tuple of TriqFM dex args after to *comp*
     def get_dex_args_post_surfcp(self) -> tuple:
