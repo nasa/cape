@@ -2,7 +2,7 @@
    <DefinitionList>
       <Unstructured Definition>
          <ControlSurfaceList>
-            <ControlSurface name=”FinMesh1” type=”overset”>
+            <ControlSurface name="FinMesh1" type="overset">
                   <HingePoint>-1.0, -1.0, 0.0</HingePoint>
                   <HingeVector>0, 1, 0</HingeVector>
                   <MeshName>Mesh_1</MeshName>
@@ -18,7 +18,7 @@
                   </Transform>
             </ControlSurface>
          <ControlSurfaceList>
-            <ControlSurface name=”FinMesh2” type=”overset”>
+            <ControlSurface name="FinMesh2" type="overset">
                   <HingePoint>-1.0, 0.0, 1.0</HingePoint>
                   <HingeVector>0, 0, 1</HingeVector>
                   <MeshName>Mesh_1</MeshName>
@@ -28,7 +28,7 @@
                   <ShiftRefPtToOrigin>No</ShiftRefPtToOrigin>
             </ControlSurface>
          <ControlSurfaceList>
-            <ControlSurface name=”FinMesh3” type=”overset”>
+            <ControlSurface name="FinMesh3" type="overset">
                   <HingePoint>-1.0, -1.0, 0.0</HingePoint>
                   <HingeVector>0, 1, 0</HingeVector>
                   <MeshName>Mesh_1</MeshName>
@@ -44,7 +44,7 @@
                   </Transform>
             </ControlSurface>
          <ControlSurfaceList>
-            <ControlSurface name=”FinMesh4” type=”overset”>
+            <ControlSurface name="FinMesh4" type="overset">
                   <HingePoint>-1.0, 0.0, 1.0</HingePoint>
                   <HingeVector>0, 0, 1</HingeVector>
                   <MeshName>Mesh_1</MeshName>
