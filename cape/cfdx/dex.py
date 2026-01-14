@@ -73,7 +73,7 @@ class DataExchanger(DataKit):
         #: :class:`str`
         #: Name of *primary* file, may be only metadata
         self.fname = self.get_filename()
-        #: :class:`str` 
+        #: :class:`str`
         #: Name of optional separate extra data file
         self.data_fname = self.get_data_fname()
         # Initialize any missing columns
