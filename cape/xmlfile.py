@@ -17,8 +17,8 @@ through multiple levels of elements and subelements.
 import copy
 import os
 import re
-import sys
 import xml.etree.ElementTree as ET
+from typing import Optional, Union
 
 # Third-party
 try:
@@ -27,9 +27,9 @@ except ImportError:
     xmlparsemod = ET
 
 
-# Faulty *unicode* type for Python 3
-if sys.version_info.major > 2:
-    unicode = str
+# Regular expressions
+REGEX_HEX = re.compile("0x[0-9A-Fa-f]+")
+REGEX_INDEX = re.compile(r"([0-9A-Za-z_]+)\(([1-9][0-9]*)\)")
 
 
 # Primary class
@@ -95,7 +95,7 @@ class XMLFile(object):
             e = copy.deepcopy(arg0.tree)
             # Copy any file name
             self.fname = arg0.fname
-        elif isinstance(arg0, (str, unicode)):
+        elif isinstance(arg0, str):
             # Check if it looks like an XML file
             if arg0.lstrip().startswith("<"):
                 # Looks like an XML file
@@ -258,7 +258,7 @@ class XMLFile(object):
         # Convert *newtext* to string, for convenience
         if newtext is None:
             pass
-        elif isinstance(newtext, (str, unicode, bytes)):
+        elif isinstance(newtext, (str, bytes)):
             pass
         else:
             newtext = self.val2text(newtext)
@@ -435,7 +435,11 @@ class XMLFile(object):
             return elem
 
    # --- Find ---
-    def find(self, tag, attrib=None, text=None, **kw):
+    def find(
+            self,
+            tag: Union[str, list],
+            attrib: Optional[dict] = None,
+            text: Optional[str] = None, **kw) -> ET.Element:
         r"""Find an element using full path and expanded search criteria
 
         :Call:
@@ -507,7 +511,11 @@ class XMLFile(object):
         if len(elems) == ntag:
             return elems[-1]
 
-    def find_trail(self, tag, attrib=None, text=None, **kw):
+    def find_trail(
+            self,
+            tag: Union[list, str],
+            attrib: Optional[dict] = None,
+            text: Optional[str] = None, **kw):
         r"""Find an element using full path and expanded search criteria
 
         :Call:
@@ -581,8 +589,19 @@ class XMLFile(object):
             if attribs and len(attribs) > j:
                 # Use attribute for level *j*
                 kwj["attrib"] = attribs[j]
+            # Check for index
+            mtch = REGEX_INDEX.fullmatch(tagj)
+            # Process regular expression if matched
+            if mtch is None:
+                # No index
+                j = None
+            else:
+                # With index
+                tagj, i = mtch.groups()
+                # Convert index
+                j = int(i) - 1
             # Search
-            ej = find_elem(e, tagj, **kwj)
+            ej = find_elem(e, tagj, j=j, **kwj)
             # Check for find
             if ej is None:
                 return elems
@@ -726,7 +745,7 @@ class XMLFile(object):
         return self.text2val(elem.text)
 
    # --- Text <--> value ---
-    def text2val(self, txt):
+    def text2val(self, txt: str):
         r"""Convert XML text to Python value
 
         :Call:
@@ -749,7 +768,7 @@ class XMLFile(object):
         if txt is None:
             return
         # Check if we were given something other than a string
-        if not isinstance(txt, (str, unicode)):
+        if not isinstance(txt, (str, bytes)):
             raise TypeError("Expected a 'str'; got '%s'" % type(txt).__name__)
         # Strip white space
         txt = txt.strip()
@@ -769,7 +788,7 @@ class XMLFile(object):
         except ValueError:
             pass
         # Weird case, hex?
-        if re.fullmatch("0x[0-9A-Fa-f]+", txt):
+        if REGEX_HEX.fullmatch(txt):
             # Convert hex literal to int
             return eval(txt)
         else:
@@ -804,7 +823,12 @@ class XMLFile(object):
 
 
 # Find a subelement
-def find_elem(e, tag=None, attrib=None, text=None, **kw):
+def find_elem(
+        e: ET.Element,
+        tag: Optional[str] = None,
+        attrib: Optional[dict] = None,
+        text: Optional[str] = None,
+        j: Optional[int] = None, **kw) -> Optional[ET.Element]:
     r"""Find a [direct] child of *e* using full search criteria
 
     :Call:
@@ -818,6 +842,8 @@ def find_elem(e, tag=None, attrib=None, text=None, **kw):
             Dictionary of attributes to match
         *text*: {``None``} | :class:`str`
             Element text to match, ignoring head/tail
+        *j*: {``None``} | :class:`int`
+            Index of element instance
         *tail*: {``None``} | :class:`str`
             Post-element text to match, ignoring head/tail
         *exacttext*: {``None``} | :class:`str`
@@ -846,6 +872,8 @@ def find_elem(e, tag=None, attrib=None, text=None, **kw):
     else:
         # Loop through *e* itself, which gives direct children
         items = e
+    # Counter of items matching *tag*
+    n = 0
     # Loop through items from selected iterator above
     for elem in items:
         # Check for *tag*
@@ -853,6 +881,11 @@ def find_elem(e, tag=None, attrib=None, text=None, **kw):
             # Compare tag
             if elem.tag != tag:
                 continue
+        # Check for counter
+        if (j is not None) and (n < j):
+            # Increase counter
+            n += 1
+            continue
         # Check for *attrib*
         if attrib:
             # Initialize pass/fail flag
