@@ -594,14 +594,14 @@ class XMLFile(object):
             # Process regular expression if matched
             if mtch is None:
                 # No index
-                j = None
+                k = None
             else:
                 # With index
                 tagj, i = mtch.groups()
                 # Convert index
-                j = int(i) - 1
+                k = int(i) - 1
             # Search
-            ej = find_elem(e, tagj, j=j, **kwj)
+            ej = find_elem(e, tagj, j=k, **kwj)
             # Check for find
             if ej is None:
                 return elems
