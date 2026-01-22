@@ -170,7 +170,7 @@ class BaseLogger(object):
             # Try to make folder
             try:
                 os.mkdir(fabs)
-            except PermissionError:
+            except (FileNotFoundError, PermissionError):
                 # Nonzero return code
                 return IERR_PERMISSION
         # Normal exit

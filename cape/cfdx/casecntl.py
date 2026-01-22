@@ -6617,6 +6617,16 @@ class CaseRunner(CaseRunnerBase):
         # Check for no file
         if not os.path.isfile(fname):
             return None
+        try:
+            return self._get_cpu_time_user()
+        except PermissionError:
+            return None
+
+    def _get_cpu_time_user(self):
+        # Get class's name options
+        pymod = self._modname
+        # Form both file names
+        fname = f"{pymod}_time.dat"
         # Try to read first column
         with open(fname, 'r') as fp:
             # Initialize total
