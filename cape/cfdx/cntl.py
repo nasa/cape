@@ -31,10 +31,13 @@ individualized modules are below.
 
 # Standard library modules
 import copy
+import difflib
 import functools
 import getpass
 import glob
+import hashlib
 import importlib
+import json
 import os
 import shutil
 import sys
@@ -3325,6 +3328,9 @@ class Cntl(CntlBase):
         cmdfinal = cmdexec.split('-', 1) + cmdlist[1:]
         # Log it
         self.log_cmd(' '.join(cmdfinal))
+        # Log cntl state
+        self.log_cntl()
+
 
   # *** RUN MATRIX ***
    # --- Values ---
@@ -4874,3 +4880,104 @@ class Cntl(CntlBase):
         # Get name
         return func.co_name
 
+    # Hash json-like dict
+    def get_json_hash(self, jdict: dict):
+        # Sort the json keys to ensure consistent hashing
+        opts_str = json.dumps(jdict, sort_keys=True, indent=4)
+        # Convert opts dict to sorted items list and then to string
+        return hashlib.sha256(opts_str.encode()).hexdigest()
+
+    # Function to log cntl changes based on hash comparison
+    def log_cntl(
+            self,
+            title: Optional[str] = None,
+            parent: int = 0):
+        # Check for manual title
+        title = "STATE"
+        # Get logger
+        logr = self.get_logger()
+        # Open cmd log
+        fp = logr.open_cmd()
+        # Get cntl log subdir
+        logsdir = self.get_log_subdir(logr._logdir, logr.jsonfile)
+        # Get "current" log (if exists)
+        opts0 = self.get_current_log(logsdir)
+        opts1 = dict(self.opts)
+        # Get new cntl hash
+        hash1 = self.get_json_hash(opts1)
+        opts1["hash"] = hash1
+        # Compare new and prev cntl hashes
+        if opts0.get("hash", None) != opts1.get("hash"):
+            # Write state of cntl to "current" log
+            self.write_curr_opt(logr._logdir, logr.jsonfile, opts1)
+            # Add hash of cntl state to basic cmd log
+            msg = f"{hash1}"
+            logr.log_cmd(title, msg)
+            # Check logging setting and that prev cntl state exists
+            if self.opts.get_LogLevel() == 2 and opts0.get("hash", None):
+                # Open verbose log
+                fp = logr.open_verbose()
+                # Add text of cntl diffs to verbose log
+                diffmsg = "\n" + self.get_opts_diff(opts0, opts1)
+                # Write msg to verbose log
+                logr.log_verbose(title, diffmsg)
+        else:
+            # If no new state, still write hash of cntl state under cmd
+            h0 = opts0.get("hash")
+            msg = f"{h0}"
+            logr.log_cmd(title, msg)
+
+    def get_log_subdir(self, ldir, fname):
+        # Ensure the cntl log subdir exists
+        cdir = os.path.join(ldir, "cmd", fname)
+        # Make cdir if not there
+        if not os.path.isdir(cdir):
+            os.mkdir(cdir)
+        return cdir
+
+    def get_current_log(self, cdir):
+        # Check for current log
+        fcurr = os.path.join(cdir, "current")
+        jcurr = {}
+        if os.path.isfile(fcurr):
+            # If exists, read in cntl state to json
+            with open(fcurr, "r") as fp:
+                jcurr = json.load(fp)
+        # Return "current" cntl state as json object
+        return jcurr
+
+    def write_curr_opt(self, ldir, fname, opts1):
+        # Form current path
+        fcurr = os.path.join(ldir, "cmd", fname, "current")
+        # Check if already existing current
+        if os.path.isfile(fcurr):
+            # Remove previous current
+            os.remove(fcurr)
+        # Write new current
+        with open(fcurr, "w") as f:
+            json.dump(
+                opts1, f,
+                separators=(",", ":"),
+                ensure_ascii=False
+            )
+
+    # Get delta from last log
+    def get_opts_diff(self, opts0, opts1):
+        # Pop hashes from dict
+        h0 = opts0.pop("hash")
+        h1 = opts1.pop("hash")
+        # Dump dicts as json str w/ new lines
+        f0line = json.dumps(opts0, indent=4, sort_keys=True)
+        f1line = json.dumps(opts1, indent=4, sort_keys=True)
+        # Seperate line into lines for diffing
+        f0lines = f0line.splitlines(keepends=True)
+        f1lines = f1line.splitlines(keepends=True)
+        # Get diffs between states
+        diff = difflib.unified_diff(
+            f0lines, f1lines,
+            fromfile=f"old {h0}", tofile=f"new {h1}",
+            lineterm='\n'
+        )
+        # Build message
+        msg = ['  ' + line.rstrip("\n") for line in diff]
+        return '\n'.join(msg)

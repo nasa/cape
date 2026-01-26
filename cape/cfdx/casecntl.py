@@ -5130,6 +5130,12 @@ class CaseRunner(CaseRunnerBase):
             sts = "DONE"
             # Try to update the settings
             self.handle_alt_exit(jmax)
+        # Log status
+        self.log_status({
+                    "status": sts,
+                    "iter": int(self.get_iter()),
+                    "maxiter": self.get_last_iter(),
+                }, title="STATUS")
         # Output
         return sts
 
@@ -6421,6 +6427,37 @@ class CaseRunner(CaseRunnerBase):
         logger = self.get_logger()
         # Log the message
         logger.log_verbose(title, msg)
+
+    def log_status(
+            self,
+            data: dict,
+            title: Optional[str] = None,
+            parent: int = 0):
+        r"""Write a message to status log
+
+        :Call:
+            >>> runner.log_status(title, msg)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *msg*: :class:`str`
+                Primary content of message
+            *title*: {``None``} | :class:`str`
+                Manual title (default is name of calling function)
+            *parent*: {``0``} | :class:`int`
+                Extra levels to use for calling function name
+        :Versions:
+            * 2026-01-15 ``@aburkhea``: v1.0
+        """
+        # Name of calling function
+        funcname = self.get_funcname(parent + 2)
+        # Check for manual title
+        title = funcname if title is None else title
+        # Get logger
+        logger = self.get_logger()
+        # Log the message
+        logger.logdict_status(title, data)
+
 
     def log_data(
             self,
