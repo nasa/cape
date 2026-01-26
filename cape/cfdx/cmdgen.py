@@ -245,7 +245,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     # Name of MPI executable
     mpipre = rc.get_mpi_prefix(j=j)
     mpicmd = rc.get_mpicmd(j)
-    mpicmd = rc.get_mpi_executable(j=j, vdef=mpicmd)
+    mpicmd = rc.get_mpi_executable(j=j) or mpicmd
     # Exit if either criterion not met
     if (not q_mpi) or (not mpicmd):
         return []
@@ -324,7 +324,7 @@ def mpiexec_nogpu(
     # Name of MPI executable
     mpipre = rc.get_mpi_prefix(j=j)
     mpicmd = rc.get_mpicmd(j)
-    mpicmd = rc.get_mpi_executable(j=j, vdef=mpicmd)
+    mpicmd = rc.get_mpi_executable(j=j) or mpicmd
     # Exit if either criterion not met
     if (not q_mpi) or (not mpicmd):
         return []

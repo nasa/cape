@@ -1858,7 +1858,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get project root name
         proj = self.get_project_baserootname()
         # Use it
-        return (proj,)
+        return (proj, self._dex_comp)
 
     # Create tuple of args after *comp*
     def get_dex_args_post_fm(self) -> tuple:

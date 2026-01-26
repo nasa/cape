@@ -73,7 +73,8 @@ class DataExchanger(DataKit):
         #: :class:`str`
         #: Name of *primary* file, may be only metadata
         self.fname = self.get_filename()
-        # Get name of potential extra data file
+        #: :class:`str`
+        #: Name of optional separate extra data file
         self.data_fname = self.get_data_fname()
         # Initialize any missing columns
         self.init_empty()
@@ -276,7 +277,7 @@ class DataExchanger(DataKit):
         ext = self.get_extension()
         # Get subfolder
         dirname = self.get_subdir()
-        # Combine
+        # Combine default parameters
         return os.path.join(dirname, f"{prefix}_{self.name}.{ext}")
 
    # --- Prefix ---
@@ -339,7 +340,7 @@ class DataExchanger(DataKit):
         # Get component type
         comptype = self.comptype.lower()
         # Check
-        if comptype in ("iterfm",):
+        if comptype in ("iterfm", "surfcp"):
             return "cdb"
         else:
             return "csv"
@@ -365,7 +366,7 @@ class DataExchanger(DataKit):
             # Get prefix
             prefix = self.get_prefix()
             # Get extension
-            ext = "cdb"
+            ext = self.get_extension()
             # Get subfolder
             dirname = self.get_subdir()
             # Combine
@@ -374,8 +375,6 @@ class DataExchanger(DataKit):
             if not os.path.isabs(fname):
                 fname = os.path.join(self.fdir, fname)
             return fname
-        return None
-
 
   # *** DATA ***
    # --- Initialize ---

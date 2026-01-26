@@ -724,7 +724,7 @@ class CaseTS(databook.CaseTS):
 
 
 class CaseSurfCp(databook.CaseSurfCp):
-    def __init__(self, proj: str, compid: str, ftriq: str,
+    def __init__(self, proj: str, comp: str, compid: str, ftriq: str,
                  cntl: CntlBase, i: int, **kw):
         r"""Initialization method
 
@@ -735,7 +735,7 @@ class CaseSurfCp(databook.CaseSurfCp):
         # Get the project rootname
         self.proj = proj
         # Use parent initializer
-        databook.CaseSurfCp.__init__(self, compid, ftriq, cntl, i, **kw)
+        databook.CaseSurfCp.__init__(self, comp, compid, ftriq, cntl, i, **kw)
 
     # Get working folder for flow
     def get_flow_folder(self) -> str:

@@ -1,0 +1,56 @@
+<BodyHierarchy>
+   <DefinitionList>
+      <UnstructuredDefinition>
+         <ControlSurfaceList>
+            <ControlSurface name="FinMesh1" type="overset">
+                  <HingePoint>-1.0, -1.0, 0.0</HingePoint>
+                  <HingeVector>0, 1, 0</HingeVector>
+                  <MeshName>Mesh_1</MeshName>
+                  <MeshPath>Grid/fin1.avm</MeshPath>
+                  <OutputReferenceArea>0.005</OutputReferenceArea>
+                  <OutputReferenceLength>0.15</OutputReferenceLength>
+                  <ShiftRefPtToOrigin>No</ShiftRefPtToOrigin>
+                  <Transform>
+                        <CenterOfRotation>0.0, 0.0, 0.0</CenterOfRotation>
+                        <KnownRotation>Euler Angles</KnownRotation>
+                        <Rotate>0.0, 0.0, 10.0</Rotate>
+                        <Translate>0.0, 0.0, 0.0</Translate>
+                  </Transform>
+            </ControlSurface>
+            <ControlSurface name="FinMesh2" type="overset">
+                  <HingePoint>-1.0, 0.0, 1.0</HingePoint>
+                  <HingeVector>0, 0, 1</HingeVector>
+                  <MeshName>Mesh_1</MeshName>
+                  <MeshPath>Grid/fin2.avm</MeshPath>
+                  <OutputReferenceArea>0.005</OutputReferenceArea>
+                  <OutputReferenceLength>0.15</OutputReferenceLength>
+                  <ShiftRefPtToOrigin>No</ShiftRefPtToOrigin>
+            </ControlSurface>
+            <ControlSurface name="FinMesh3" type="overset">
+                  <HingePoint>-1.0, -1.0, 0.0</HingePoint>
+                  <HingeVector>0, 1, 0</HingeVector>
+                  <MeshName>Mesh_1</MeshName>
+                  <MeshPath>Grid/fin3.avm</MeshPath>
+                  <OutputReferenceArea>0.005</OutputReferenceArea>
+                  <OutputReferenceLength>0.15</OutputReferenceLength>
+                  <ShiftRefPtToOrigin>No</ShiftRefPtToOrigin>
+                  <Transform>
+                        <CenterOfRotation>0.0, 0.0, 0.0</CenterOfRotation>
+                        <KnownRotation>Euler Angles</KnownRotation>
+                        <Rotate>0.0, 0.0, -10.0</Rotate>
+                        <Translate>0.0, 0.0, 0.0</Translate>
+                  </Transform>
+            </ControlSurface>
+            <ControlSurface name="FinMesh4" type="overset">
+                  <HingePoint>-1.0, 0.0, 1.0</HingePoint>
+                  <HingeVector>0, 0, 1</HingeVector>
+                  <MeshName>Mesh_1</MeshName>
+                  <MeshPath>Grid/fin4.avm</MeshPath>
+                  <OutputReferenceArea>0.005</OutputReferenceArea>
+                  <OutputReferenceLength>0.15</OutputReferenceLength>
+                  <ShiftRefPtToOrigin>No</ShiftRefPtToOrigin>
+            </ControlSurface>
+         </ControlSurfaceList>
+      </UnstructuredDefinition>
+   </DefinitionList>
+</BodyHierarchy>

@@ -4193,14 +4193,15 @@ class CaseSurfCp(CaseData):
     )
 
    # --- __dunder__ ---
-    def __init__(self, comp: str, ftriq: str, cntl: CntlBase, i: int):
+    def __init__(self, comp: str, compid: str,
+                 ftriq: str, cntl: CntlBase, i: int):
         # Save the run matrix controller
         self.cntl = cntl
         # List of columns
         self.cols = []
         # Save the component name
         self.comp = comp
-        self.compid = comp
+        self.compid = compid
         # Save the name of the TriQ file
         self.ftriq = ftriq
         # Save case index
@@ -4209,6 +4210,8 @@ class CaseSurfCp(CaseData):
         self.compmap = None
         self.tri = None
         self.triq = None
+        # Global grid setting
+        self.cmnsurf = cntl.opts.get_DataBookOpt(self.comp, "CommonSurface")
         # Analyze
         self.get_triq_surfcp()
         # Process output file
@@ -4526,71 +4529,34 @@ class CaseSurfCp(CaseData):
         """
         # Remove casename root if there
         casename = casename.split("/")[-1]
+        # Burst grid info from self no matter what
+        casex = self.burst_col("x")
+        casey = self.burst_col("y")
+        casez = self.burst_col("z")
+        caset = self.burst_col("tris")
         # Check for existing fname
         if os.path.isfile(fname):
             # Read existing
             db0 = DataKit(fname)
             # Initialize blank datakit for (x,y,z,tri,cp)
             dbq = DataKit()
-            # Try to get grid
-            x = db0.get("x", [])
-            y = db0.get("y", [])
-            z = db0.get("z", [])
-            tris = db0.get("tris", [])
             # Start append cols
             append_cols = []
-            # Save grid flag
-            savegrid = False
-            # No need to save
-            casex = self.burst_col("x")
-            casey = self.burst_col("y")
-            casez = self.burst_col("z")
-            caset = self.burst_col("tris")
-            # Check existing grid
-            if (len(x) and len(y) and len(z)):
-                #Compare existing grid to case grid
-                ds = np.where(
-                    np.hstack([x,y,z]) !=
-                    np.hstack([casex,casey,casez]))[0]
-                dt = np.where(tris != caset)[0]
-                # If diffs, change existing grid to case specific grids
-                if len(ds) or len(dt):
-                    # Save existing global grid to all existing casenmes
-                    x0 = db0.burst_col("x")
-                    y0 = db0.burst_col("y")
-                    z0 = db0.burst_col("z")
-                    tris0 = db0.burst_col("tris")
-                    # Change existing global grid names to case specific
-                    for _casename in db0.get("casenames"):
-                        dbq.save_col(f"{_casename}.x", x0)
-                        dbq.save_col(f"{_casename}.y", y0)
-                        dbq.save_col(f"{_casename}.z", z0)
-                        dbq.save_col(f"{_casename}.tris", tris0)
-                        # Append case.xyz
-                        append_cols.extend([
-                            f"{_casename}.x",
-                            f"{_casename}.y",
-                            f"{_casename}.z",
-                            f"{_casename}.tris",]
-                        )
-                    # Save case x,y,z 
-                    savegrid = True
-            # Case specific grid
-            else:
-                savegrid = True
-            # Check for savegrid flag
-            if savegrid:
-                    dbq.save_col(f"{casename}.x", casex)
-                    dbq.save_col(f"{casename}.y", casey)
-                    dbq.save_col(f"{casename}.z", casez)
-                    dbq.save_col(f"{casename}.tris", caset)
-                    # Append case.xyz
-                    append_cols.extend([
-                        f"{casename}.x",
-                        f"{casename}.y",
-                        f"{casename}.z",
-                        f"{casename}.tris",]
-                    )
+            # Write case surface info if not common surface
+            if not self.cmnsurf:
+                # Write case surface info
+                dbq.save_col(f"{casename}.x", casex)
+                dbq.save_col(f"{casename}.y", casey)
+                dbq.save_col(f"{casename}.z", casez)
+                dbq.save_col(f"{casename}.tris", caset)
+                # Append case specific cols
+                append_cols.extend([
+                    f"{casename}.x",
+                    f"{casename}.y",
+                    f"{casename}.z",
+                    f"{casename}.tris",
+                ])
+            # Always write case specific cp
             # Check if casename is not in casenames
             if casename not in db0.get("casenames"):
                 # Append casename col
@@ -4606,24 +4572,29 @@ class CaseSurfCp(CaseData):
             db0.append_data(dbq, cols=append_cols)
             # Re-write db0
             db0.write_cdb(fname)
+        # No existing fname
         else:
             # Initialize blank datakit for (x, y, z, cp)
             # This "extracts" data cols & leaves metadata cols in self
             dbq = DataKit()
             # Save case name
             dbq.save_col("casenames", [f"{casename}"])
-            # Burst case grid and data cols
-            x = self.burst_col("x")
-            y = self.burst_col("y")
-            z = self.burst_col("z")
-            tris = self.burst_col("tris")
+            # Burst surf cp
             cp = self.burst_col("cp")
-            # Write as if global grid info
-            dbq.save_col(f"x", x)
-            dbq.save_col(f"y", y)
-            dbq.save_col(f"z", z)
-            dbq.save_col(f"tris", tris)
-            # Save case specific cp
+            # If common surface
+            if self.cmnsurf:
+                # Write common surface info
+                dbq.save_col("x", casex)
+                dbq.save_col("y", casey)
+                dbq.save_col("z", casez)
+                dbq.save_col("tris", caset)
+            else:
+                # Write case specific surface info
+                dbq.save_col(f"{casename}.x", casex)
+                dbq.save_col(f"{casename}.y", casey)
+                dbq.save_col(f"{casename}.z", casez)
+                dbq.save_col(f"{casename}.tris", caset)
+            # Save case specific cp always
             dbq.save_col(f"{casename}.cp", cp)
             # Write db to file
             dbq.write_cdb(fname)

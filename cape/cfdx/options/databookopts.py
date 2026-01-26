@@ -335,12 +335,35 @@ class SurfCpDataBookOpts(DBCompOpts):
     # Identifiers
     _name = "options for surface pressure databook component"
 
+    # Recognized options
+    _optlist = {
+        "CommonSurface",
+    }
+
+    # Aliases
+    _optmap = {
+        "CommonSurf": "CommonSurface",
+        "GlobalSurface": "CommonSurface",
+        "GlobalGrid": "CommonSurface",
+        "GroupGrid": "CommonSurface",
+        "GroupSurface": "CommonSurface",
+        "SharedSurface": "CommonSurface",
+        "SharedSurf": "CommonSurface",
+    }
+
     # Defaults
     _rc = {
+        "CommonSurface": False,
     }
 
     # Types
     _opttypes = {
+        "CommonSurface": bool,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "CommonSurface": "Whether databook cases share a common surface",
     }
 
 
