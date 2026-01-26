@@ -4193,7 +4193,7 @@ class CaseSurfCp(CaseData):
     )
 
    # --- __dunder__ ---
-    def __init__(self, comp: str, compid: str,
+    def __init__(self, comp: str, compids: list[str, int],
                  ftriq: str, cntl: CntlBase, i: int):
         # Save the run matrix controller
         self.cntl = cntl
@@ -4201,7 +4201,7 @@ class CaseSurfCp(CaseData):
         self.cols = []
         # Save the component name
         self.comp = comp
-        self.compid = compid
+        self.compids = compids
         # Save the name of the TriQ file
         self.ftriq = ftriq
         # Save case index
@@ -4429,33 +4429,22 @@ class CaseSurfCp(CaseData):
         """
         # Options handle
         opts = self.cntl.opts
-        # Set inputs for TriqForces
-        kwfm = self.get_conditions()
-        # Apply remaining options
-        kwfm["Aref"] = opts.get_RefArea(self.compid)
-        kwfm["Lref"] = opts.get_RefLength(self.compid)
-        kwfm["bref"] = opts.get_RefSpan(self.compid)
-        kwfm["MRP"]  = np.array(opts.get_RefPoint(self.compid))
-        kwfm["incm"] = opts.get_DataBookMomentum(self.compid)
-        kwfm["gauge"] = opts.get_DataBookGauge(self.compid)
         # Get surface data
         triq = self.read_triq()
         # Component for subsetting
-        K = triq.GetTrisFromCompID(self.compid)
+        K = triq.GetTrisFromCompID(self.compids)
         # Store node indices for each tri
         _T = triq.Tris[K, :] - 1
         # Save just unique nodes (point cloud)?
         T = np.unique(_T)
-        # Get surf pressure on tris
-        cp = triq.q[T, 0]
         # Save nodes
         self.save_col("x", triq.Nodes[T, 0])
         self.save_col("y", triq.Nodes[T, 1])
         self.save_col("z", triq.Nodes[T, 2])
         # Save Tri connectivity
-        self.save_col("tris", triq.Tris)
+        self.save_col("tris", triq.Tris[K, :])
         # Save cp
-        self.save_col("cp", cp)
+        self.save_col("cp", triq.q[T, 0])
 
    # --- Write ---
     def delete_datafile(self, fname, casename):

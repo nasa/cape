@@ -3019,8 +3019,10 @@ class CaseRunner(CaseRunnerBase):
         # Perform preprocessing if needed
         self.prep_dex(comp)
         # Check it
-        if typ in ("fm", "iterfm", "surfcp"):
+        if typ in ("fm", "iterfm",):
             db = self.read_dex_by_element(comp)
+        elif typ in ("surfcp",):
+            db = self.read_dex_elements(comp)
         else:
             db = self.read_dex_element(comp, comp)
         # Output
@@ -3063,6 +3065,29 @@ class CaseRunner(CaseRunnerBase):
                 db -= dbj
             else:
                 db += dbj
+        # Output
+        return db
+
+    # Read a DEx by elements
+    def read_dex_elements(self, comp: str) -> DataKit:
+        r"""Read a data component with multiple elements
+
+        :Call:
+            >>> db = runner.read_dex_elements(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component to read
+        :Versions:
+            * 2026-01-26 ``@aburkhea``: v1.0
+        """
+        # Get component(s)
+        compid = self.get_dex_opt(comp, "CompID", vdef=comp)
+        # Convert to list if necessary
+        compids = _listify(compid)
+        # Read dex with multiple compids
+        db = self.read_dex_element(comp, compids)
         # Output
         return db
 
