@@ -1120,6 +1120,16 @@ class CaseRunner(casecntl.CaseRunner):
             # If any of that fails, return 0
             return np.nan
 
+    # Search pattern for surface output files
+    def get_surf_regex(self) -> str:
+        # Just get from triq
+        pat = ( 
+            r"^Components\.(?P<gn>i|\d+)" +
+            r"(?P<t0>\.\d+)?" +
+            r"(?P<t1>\.\d+)?" +
+            r"\.(?P<ext>triq)$")
+        return pat
+
 
 # Function to determine newest triangulation file
 def GetTriqFile():
