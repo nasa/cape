@@ -118,6 +118,7 @@ class DataBookOpts(databookopts.DataBookOpts):
         "LineLoad": databookopts.LineLoadDataBookOpts,
         "LineSensor": DBIterLineOpts,
         "PyFunc": databookopts.PyFuncDataBookOpts,
+        "SurfCp": databookopts.SurfCpDataBookOpts,
         "TriqFM": databookopts.TriqFMDataBookOpts,
         "TriqPoint": databookopts.TriqPointDataBookOpts,
     }
@@ -130,6 +131,7 @@ class DataBookOpts(databookopts.DataBookOpts):
             "LineSensor",
             "LineLoad",
             "PyFunc",
+            "SurfCp",
             "TriqFM",
             "TriqPoint",
         },
