@@ -4881,7 +4881,7 @@ class Cntl(CntlBase):
         return func.co_name
 
     # Hash json-like dict
-    def get_json_hash(self, jdict: dict):
+    def get_json_hash(self, jdict: dict) -> str:
         # Sort the json keys to ensure consistent hashing
         opts_str = json.dumps(jdict, sort_keys=True, indent=4)
         # Convert opts dict to sorted items list and then to string
@@ -4898,10 +4898,14 @@ class Cntl(CntlBase):
         logr = self.get_logger()
         # Open cmd log
         fp = logr.open_cmd()
-        # Get cntl log subdir
-        logsdir = self.get_log_subdir(logr._logdir, logr.jsonfile)
+        # Get current cntl state name
+        fcurr = os.path.join(
+            logr._logdir, 
+            "cmd", 
+            "STATE-" + logr.jsonfile + ".jsonl"
+        )
         # Get "current" log (if exists)
-        opts0 = self.get_current_log(logsdir)
+        opts0 = self.get_current_log(fcurr)
         opts1 = dict(self.opts)
         # Get new cntl hash
         hash1 = self.get_json_hash(opts1)
@@ -4909,7 +4913,7 @@ class Cntl(CntlBase):
         # Compare new and prev cntl hashes
         if opts0.get("hash", None) != opts1.get("hash"):
             # Write state of cntl to "current" log
-            self.write_curr_opt(logr._logdir, logr.jsonfile, opts1)
+            self.write_curr_opt(fcurr, opts1)
             # Add hash of cntl state to basic cmd log
             msg = f"{hash1}"
             logr.log_cmd(title, msg)
@@ -4927,18 +4931,9 @@ class Cntl(CntlBase):
             msg = f"{h0}"
             logr.log_cmd(title, msg)
 
-    def get_log_subdir(self, ldir, fname):
-        # Ensure the cntl log subdir exists
-        cdir = os.path.join(ldir, "cmd", fname)
-        # Make cdir if not there
-        if not os.path.isdir(cdir):
-            os.mkdir(cdir)
-        return cdir
-
-    def get_current_log(self, cdir):
-        # Check for current log
-        fcurr = os.path.join(cdir, "current")
+    def get_current_log(self, fcurr: str) -> dict:
         jcurr = {}
+        # Check for current log
         if os.path.isfile(fcurr):
             # If exists, read in cntl state to json
             with open(fcurr, "r") as fp:
@@ -4946,9 +4941,7 @@ class Cntl(CntlBase):
         # Return "current" cntl state as json object
         return jcurr
 
-    def write_curr_opt(self, ldir, fname, opts1):
-        # Form current path
-        fcurr = os.path.join(ldir, "cmd", fname, "current")
+    def write_curr_opt(self, fcurr: str, opts1: dict):
         # Check if already existing current
         if os.path.isfile(fcurr):
             # Remove previous current
@@ -4962,7 +4955,7 @@ class Cntl(CntlBase):
             )
 
     # Get delta from last log
-    def get_opts_diff(self, opts0, opts1):
+    def get_opts_diff(self, opts0: dict, opts1: dict) -> str:
         # Pop hashes from dict
         h0 = opts0.pop("hash")
         h1 = opts1.pop("hash")
