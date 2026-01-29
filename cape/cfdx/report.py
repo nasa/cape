@@ -3307,7 +3307,7 @@ class Report(object):
                     "Comp '%s' in subfig '%s' has no history found"
                     % (comp, sfig))
             # Get transformations
-            tforms = opts.get_DataBookTransformations(comp)
+            tforms = None
             tforms = [] if tforms is None else tforms
             # Loop through the transformations
             for topts in tforms:
