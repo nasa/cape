@@ -1516,11 +1516,20 @@ class CaseRunner(CaseRunnerBase):
         n = self.get_iter()
         # History remains in present folder
         fhist = f"{self._logprefix}.{j:02d}.{n}"
-        # Assuming that worked, move the temp output file.
+        # Assuming that worked, move the temp output file
         if os.path.isfile(fout):
             if not os.path.isfile(fhist):
                 # Move the file
                 os.rename(fout, fhist)
+            else:
+                # Loop until new file name found
+                for j in range(100):
+                    # Add suffix
+                    fhist = f"{self._logprefix}.{j:02d}.{n}.{j}"
+                    # Check
+                    if not os.path.isfile(fhist):
+                        os.rename(fout, fhist)
+                        break
         else:
             # Create an empty file
             fileutils.touch(fhist)
