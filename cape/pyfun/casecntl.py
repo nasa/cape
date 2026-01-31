@@ -694,6 +694,81 @@ class CaseRunner(casecntl.CaseRunner):
         self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
 
    # --- Workers ---
+    def _get_f3d_ofiles(self, ftail, **kw) -> str:
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of flow file
+        fname_f3do = f"{proj}{ftail}"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_f3do):
+            return
+        elif os.path.getsize(fname_f3do) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_f3do) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_f3do)
+            # Log result
+            self.log_verbose(
+                f"FUN3D output file '{fname_f3do}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        return fname_f3do
+    
+    def _read_f3d_mesh(self, **kw) -> umesh.Umesh:
+        # Get project name
+        proj = self.get_project_rootname()
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        bcopt = fname_bc if os.path.isfile(fname_bc) else None
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=bcopt)
+        return mesh
+
+    def read_flow(self, **kw) -> tuple[umesh.Umesh, str]:
+        r""" Read cases most recent mesh file and flow file
+        """
+        # Get flow fname
+        fname_flow = self._get_f3d_ofiles(".flow")
+        # Read mesh
+        mesh = self._read_f3d_mesh()
+        # Read flow file
+        mesh.read_fun3d_flow(fname_flow)
+        # Add additional parameters
+        if kw.get("add-mach", True):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        return mesh, fname_flow
+
+    def read_tavg(self, **kw) -> tuple[umesh.Umesh, str]:
+        r""" Read cases most recent mesh file and tavg file
+        """
+        # Get flow fname
+        fname_tavg = self._get_f3d_ofiles("_TAVG.1")
+        # Read mesh
+        mesh = self._read_f3d_mesh()
+        # Read tavg file
+        mesh.read_fun3d_tavg(fname_tavg)
+        # Add additional parameters
+        if kw.get("add-mach", True):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        return mesh, fname_tavg
+
     def flow2plt(self, **kw):
         r"""Convert most recent ``.flow`` file to Tecplot volume file
 
@@ -1146,6 +1221,80 @@ class CaseRunner(casecntl.CaseRunner):
         # Write it
         mesh.write(fname_tmp)
         os.rename(fname_tmp, fname_vufnc)
+
+    def flow2vtk(self, **kw):
+        r"""Convert most recent ``.flow`` file to VTK volume file
+
+        :Call:
+            >>> runner.flow2vtk()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: {``True``} | ``False``
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2026-01-30 ``@aburkhea``: v1.0; cp from flow2plt
+        """
+        # Read flow file
+        mesh, fname_flow = self.read_flow()
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of output file
+        fname_vvtk = f"{proj}_volume_timestep{n}.vtk"
+        fname_tmp = f"_{fname_vvtk}"
+        # Exit if that file already exists
+        if os.path.isfile(fname_vvtk) or os.path.isfile(fname_tmp):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {mesh.fname} + {fname_flow} -> {fname_vvtk}")
+        # Make volume mesh
+        mesh.make_pvmesh_vol()
+        # Write it
+        mesh.pvmesh.save(fname_tmp)
+        # Rename file
+        os.rename(fname_tmp, fname_vvtk)
+
+    def tavg2vtk(self, **kw):
+        r"""Convert most recent ``.flow`` file to VTK volume file
+
+        :Call:
+            >>> runner.flow2vtk()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: {``True``} | ``False``
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2026-01-30 ``@aburkhea``: v1.0; cp from flow2plt
+        """
+        # Read tavg file
+        mesh, fname_tavg = self.read_tavg()
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of output file
+        fname_vvtk = f"{proj}_volume_timestep{n}.vtk"
+        fname_tmp = f"_{fname_vvtk}"
+        # Exit if that file already exists
+        if os.path.isfile(fname_vvtk) or os.path.isfile(fname_tmp):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {mesh.fname} + {fname_tavg} -> {fname_vvtk}")
+        # Make volume mesh
+        mesh.make_pvmesh_vol()
+        # Write it
+        mesh.pvmesh.save(fname_tmp)
+        # Rename file
+        os.rename(fname_tmp, fname_vvtk)
 
     def _write_vizfile(self, mesh: umesh.Umesh, fname: str, tag: str):
         # Write to temp file first
