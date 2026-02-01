@@ -207,6 +207,13 @@ def genr8_cmap(name: str, cdict: Optional[dict]) -> LinearSegmentedColormap:
     assert_isinstance(cdict, dict, "colormap definition")
     # Initialize dictionary
     cmapdict = {'red': [], 'green': [], 'blue': []}
+    # Get min and max values for input keys
+    vmin = np.inf
+    vmax = -np.inf
+    # Loop through keys
+    for v in cdict:
+        vmin = min(v, vmin)
+        vmax = max(v, vmax)
     # Loop through levels in input
     for lev, colspec in cdict.items():
         # Check for two colors
@@ -220,10 +227,12 @@ def genr8_cmap(name: str, cdict: Optional[dict]) -> LinearSegmentedColormap:
             # Use the same for both sides
             col1 = ToRGB(colspec)
             col2 = col1
+        # Scale level
+        v = (lev - vmin) / (vmax - vmin)
         # Save colors
-        cmapdict['red'].append([lev, col1[0]/255, col2[0]/255])
-        cmapdict['green'].append([lev, col1[1]/255, col2[1]/255])
-        cmapdict['blue'].append([lev, col1[2]/255, col2[2]/255])
+        cmapdict['red'].append([v, col1[0]/255, col2[0]/255])
+        cmapdict['green'].append([v, col1[1]/255, col2[1]/255])
+        cmapdict['blue'].append([v, col1[2]/255, col2[2]/255])
     # Create the object
     return LinearSegmentedColormap(name, segmentdata=cmapdict)
 

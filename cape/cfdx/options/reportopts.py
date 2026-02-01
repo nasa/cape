@@ -1123,6 +1123,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
 
     # Aliases
     _optmap = {
+        "ComponentCaption": "CaptionComponent",
         "ErrPltOptions": "EpsilonPlotOptions",
         "ErrorFormat": "EpsilonFormat",
         "DeltaOptions": "DeltaPlotOptions",
