@@ -27,6 +27,12 @@ class CapeFileNotFoundError(FileNotFoundError, CapeError):
     pass
 
 
+# Type error
+class CapeIndexError(IndexError, CapeError):
+    r"""CAPE exception for objects with the wrong size"""
+    pass
+
+
 # Runtime error
 class CapeRuntimeError(RuntimeError, CapeError):
     r"""CAPE exception that does not fit other categories"""
@@ -77,6 +83,37 @@ def assert_isinstance(
     msg = _genr8_type_error(obj, cls_or_tuple, desc)
     # Raise
     raise CapeTypeError(msg)
+
+
+# Assert type of a variable
+def assert_len(
+        obj: Union[list, tuple],
+        length: int,
+        desc: Optional[str] = None):
+    r"""Conveniently check length
+
+    :Call:
+        >>> assert_len(obj, length, desc=None)
+    :Inputs:
+        *obj*: :class:`list` | :class:`tuple`
+            Object whose type is checked
+        *length*: :class:`int`
+            Required length of *obj*
+        *desc*: {``None``} | :class:`str`
+            Brief description of intended use of *obj*
+    :Raises:
+        * :class:`CapeIndexError` if type of *obj* does not match *cls*
+          or *cls_tuple*
+    :Version:
+        * 2024-06-19 ``@ddalle``: v1.0
+    """
+    # Check for passed test
+    if len(obj) == length:
+        return
+    # Generate type error message
+    msg = _genr8_length_error(obj, length, desc)
+    # Raise
+    raise CapeIndexError(msg)
 
 
 # Ensure an executable exists
@@ -143,3 +180,37 @@ def _genr8_type_error(
     msg3 = "expected '%s'" % ("' | '".join(names))
     # Output
     return msg1 + msg2 + msg3
+
+
+# Create error message for type errors
+def _genr8_length_error(
+        obj: Union[list, tuple],
+        length: int,
+        desc: Optional[str] = None) -> str:
+    r"""Create an error message for object not having expected type
+
+    :Call:
+        >>> msg = _genr8_length_error(obj, length, desc=None)
+    :Inputs:
+        *obj*: :class:`list` | :class:`tuple`
+            Object whose type is checked
+        *length*: :class:`int`
+            Required length
+        *desc*: {``None``} | :class:`str`
+            Brief description of intended use of *obj*
+    :Outputs:
+        *msg*: :class:`str`
+            Error message
+    :Version:
+        * 2026-01-31 ``@ddalle``: v1.0
+    """
+    # Create error message
+    if desc is None:
+        # No description; msg2 is "Got length"
+        msg1 = "G"
+    else:
+        # Add description; msg is "got type"
+        msg1 = "For %s: g" % desc
+    msg2 = f"ot length {len(obj)}; expected {length}"
+    # Output
+    return msg1 + msg2

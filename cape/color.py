@@ -9,10 +9,16 @@ primary tool is to get a variety of colors via name (instead of just
 and vice-versa.
 """
 
+# Standard library
+from typing import Optional
+
 # Third-party
 import numpy as np
+from matplotlib import colormaps
+from matplotlib.colors import LinearSegmentedColormap
 
 # Local imports
+from .errors import assert_isinstance, assert_len
 from .optdict import FLOAT_TYPES
 
 
@@ -173,6 +179,53 @@ cnames = {
     'yellow': '#FFFF00',
     'yellowgreen': '#9ACD32'
 }
+
+
+# Create color map from color names
+def genr8_cmap(name: str, cdict: Optional[dict]) -> LinearSegmentedColormap:
+    r"""Create a color map object using levels and colors
+
+    :Call:
+        >>> cmap = genr8_cmap(name, cdict=None)
+    :Inputs:
+        *name*: :class:`str`
+            Name of (existing Matplotlib or new) colormap
+        *cdict*: ``None`` | :class:`dict`\ [:class:`str`]
+            Dictionary of color(s) to use at each level. Use existing
+            color map if ``None``
+    """
+    # Check input
+    assert_isinstance(name, str, "colormap name")
+    # Check for existing colormap
+    if cdict is None:
+        # Check if recognized
+        if name not in colormaps:
+            raise ValueError(f"No matplotlib colormap named '{name}'")
+        # Return it
+        return colormaps[name]
+    # Check type of color specifications
+    assert_isinstance(cdict, dict, "colormap definition")
+    # Initialize dictionary
+    cmapdict = {'red': [], 'green': [], 'blue': []}
+    # Loop through levels in input
+    for lev, colspec in cdict.items():
+        # Check for two colors
+        if isinstance(colspec, list):
+            # Ensure length 2
+            assert_len(colspec, 2, "split color specification")
+            # Split
+            col1 = ToRGB(colspec[0])
+            col2 = ToRGB(colspec[1])
+        else:
+            # Use the same for both sides
+            col1 = ToRGB(colspec)
+            col2 = col1
+        # Save colors
+        cmapdict['red'].append([lev, col1[0]/255, col2[0]/255])
+        cmapdict['green'].append([lev, col1[1]/255, col2[1]/255])
+        cmapdict['blue'].append([lev, col1[2]/255, col2[2]/255])
+    # Create the object
+    return LinearSegmentedColormap(name, segmentdata=cmapdict)
 
 
 # Convert Hex to RGB
