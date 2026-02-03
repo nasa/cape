@@ -694,29 +694,31 @@ class CaseRunner(casecntl.CaseRunner):
         self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
 
    # --- Workers ---
-    def _get_f3d_ofiles(self, ftail, **kw) -> str:
+    def _get_f3d_ofilename(self, ftail, **kw) -> str:
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
         proj = self.get_project_rootname()
         # Name of flow file
-        fname_f3do = f"{proj}{ftail}"
+        fname_f3dout = f"{proj}{ftail}"
         # Exit if no current flow file and finished writing
-        if not os.path.isfile(fname_f3do):
+        if not os.path.isfile(fname_f3dout):
             return
-        elif os.path.getsize(fname_f3do) < 1000:
+        elif os.path.getsize(fname_f3dout) < 1000:
             return
-        elif time.time() - os.path.getmtime(fname_f3do) < 5.0:
+        elif time.time() - os.path.getmtime(fname_f3dout) < 5.0:
             # Get time for print message
-            dt = time.time() - os.path.getmtime(fname_f3do)
+            dt = time.time() - os.path.getmtime(fname_f3dout)
             # Log result
             self.log_verbose(
-                f"FUN3D output file '{fname_f3do}' is only {dt:.1f} s old; "
+                f"FUN3D output file '{fname_f3dout}' is only {dt:.1f} s old; "
                 "might still be in I/O")
             return
-        return fname_f3do
+        return fname_f3dout
     
-    def _read_f3d_mesh(self, **kw) -> umesh.Umesh:
+    def load_newest_mesh(self, **kw) -> umesh.Umesh:
+        r""" Load cases most recent mesh file w/ mapbc to Umesh object
+        """
         # Get project name
         proj = self.get_project_rootname()
         # Get mesh file extension
@@ -741,9 +743,12 @@ class CaseRunner(casecntl.CaseRunner):
         r""" Read cases most recent mesh file and flow file
         """
         # Get flow fname
-        fname_flow = self._get_f3d_ofiles(".flow")
+        fname_flow = self._get_f3d_ofilename(".flow")
+        # Exit if none returned
+        if fname_flow is None:
+            return None, fname_flow
         # Read mesh
-        mesh = self._read_f3d_mesh()
+        mesh = self.load_newest_mesh()
         # Read flow file
         mesh.read_fun3d_flow(fname_flow)
         # Add additional parameters
@@ -757,9 +762,12 @@ class CaseRunner(casecntl.CaseRunner):
         r""" Read cases most recent mesh file and tavg file
         """
         # Get flow fname
-        fname_tavg = self._get_f3d_ofiles("_TAVG.1")
+        fname_tavg = self._get_f3d_ofilename("_TAVG.1")
+        # Exit if none returned
+        if fname_tavg is None:
+            return None, fname_tavg
         # Read mesh
-        mesh = self._read_f3d_mesh()
+        mesh = self.load_newest_mesh()
         # Read tavg file
         mesh.read_fun3d_tavg(fname_tavg)
         # Add additional parameters
@@ -784,40 +792,17 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2025-04-04 ``@ddalle``: v1.0
             * 2025-05-20 ``@ddalle``: v1.1; use temp file
+            * 2026-02-02 ``@aburkhea``: v1.2; minimize dupl'd. code
         """
+        # Read flow file
+        mesh, fname_flow = self.read_flow()
+        # If fname is None, fname in io still potentially
+        if fname_flow is None:
+            return
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
         proj = self.get_project_rootname()
-        # Name of flow file
-        fname_flow = f"{proj}.flow"
-        # Exit if no current flow file and finished writing
-        if not os.path.isfile(fname_flow):
-            return
-        elif os.path.getsize(fname_flow) < 1000:
-            return
-        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
-            # Get time for print message
-            dt = time.time() - os.path.getmtime(fname_flow)
-            # Log result
-            self.log_verbose(
-                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
-                "might still be in I/O")
-            return
-        # Get mesh file extension
-        grid_ext = self.get_grid_extension()
-        bc_ext = self.get_bc_extension()
-        # Search for grids
-        pat = f"{proj}.*{grid_ext}"
-        meshfiles = self.search_workdir(pat, regex=False, links=True)
-        # Exit if no mesh files
-        if len(meshfiles) == 0:
-            return
-        # Use latest mesh file
-        fname_mesh = meshfiles[-1]
-        fname_bc = f"{proj}.{bc_ext}"
-        # Check for mapbc file
-        bcopt = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
         fname_vplt = f"{proj}_volume_timestep{n}.plt"
         fname_tmp = f"_{fname_vplt}"
@@ -826,16 +811,7 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Update
         self.log_verbose(
-            f"Convert {fname_mesh} + {fname_flow} -> {fname_vplt}")
-        # Read mesh
-        mesh = umesh.Umesh(fname_mesh, mapbc=bcopt)
-        # Read flow file
-        mesh.read_fun3d_flow(fname_flow)
-        # Add additional parameters
-        if kw.get("add-mach", True):
-            mesh.add_mach()
-        if kw.get("add-cp", True):
-            mesh.add_cp()
+            f"Convert {mesh.fname} + {fname_flow} -> {fname_vplt}")
         # Write it
         mesh.write(fname_tmp)
         # Rename file
@@ -855,40 +831,17 @@ class CaseRunner(casecntl.CaseRunner):
                 Option to add pressure coefficient and to PLT file
         :Versions:
             * 2025-06-09 ``@ddalle``: v1.0
+            * 2026-02-02 ``@aburkhea``: v1.1; minimize dupl'd. code
         """
+        # Read flow file
+        mesh, fname_flow = self.read_flow()
+        # If fname is None, fname in io still potentially
+        if fname_flow is None:
+            return
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
         proj = self.get_project_rootname()
-        # Name of flow file
-        fname_flow = f"{proj}.flow"
-        # Exit if no current flow file and finished writing
-        if not os.path.isfile(fname_flow):
-            return
-        elif os.path.getsize(fname_flow) < 1000:
-            return
-        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
-            # Get time for print message
-            dt = time.time() - os.path.getmtime(fname_flow)
-            # Log result
-            self.log_verbose(
-                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
-                "might still be in I/O")
-            return
-        # Get mesh file extension
-        grid_ext = self.get_grid_extension()
-        bc_ext = self.get_bc_extension()
-        # Search for grids
-        pat = f"{proj}.*{grid_ext}"
-        meshfiles = self.search_workdir(pat, regex=False, links=True)
-        # Exit if no mesh files
-        if len(meshfiles) == 0:
-            return
-        # Use latest mesh file
-        fname_mesh = meshfiles[-1]
-        fname_bc = f"{proj}.{bc_ext}"
-        # Check for mapbc file
-        bcopt = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
         fname_splt = f"{proj}_boundary_timestep{n}.plt"
         fname_tmp = f"_{fname_splt}"
@@ -897,18 +850,9 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Update
         self.log_verbose(
-            f"Convert {fname_mesh} + {fname_flow} -> {fname_splt}")
-        # Read mesh
-        mesh = umesh.Umesh(fname_mesh, mapbc=bcopt)
-        # Read flow file
-        mesh.read_fun3d_flow(fname_flow)
+            f"Convert {mesh.fname} + {fname_flow} -> {fname_splt}")
         # Remove volume
         mesh.remove_volume()
-        # Add additional parameters
-        if kw.get("add-mach", False):
-            mesh.add_mach()
-        if kw.get("add-cp", True):
-            mesh.add_cp()
         # Write it
         mesh.write(fname_tmp)
         # Rename file
@@ -929,40 +873,17 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2025-04-14 ``@ddalle``: v1.0
             * 2025-05-20 ``@ddalle``: v1.1; use temp file
+            * 2026-02-02 ``@aburkhea``: v1.2; minimize dupl'd. code
         """
+        # Read flow file
+        mesh, fname_tavg = self.read_tavg()
+        # If fname is None, fname in io still potentially
+        if fname_tavg is None:
+            return
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
         proj = self.get_project_rootname()
-        # Name of tavg file
-        fname_flow = f"{proj}_TAVG.1"
-        # Exit if no current flow file and finished writing
-        if not os.path.isfile(fname_flow):
-            return
-        elif os.path.getsize(fname_flow) < 1000:
-            return
-        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
-            # Get time for print message
-            dt = time.time() - os.path.getmtime(fname_flow)
-            # Log result
-            self.log_verbose(
-                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
-                "might still be in I/O")
-            return
-        # Get mesh file extension
-        grid_ext = self.get_grid_extension()
-        bc_ext = self.get_bc_extension()
-        # Search for grids
-        pat = f"{proj}.*{grid_ext}"
-        meshfiles = self.search_workdir(pat, regex=False, links=True)
-        # Exit if no mesh files
-        if len(meshfiles) == 0:
-            return
-        # Use latest mesh file
-        fname_mesh = meshfiles[-1]
-        fname_bc = f"{proj}.{bc_ext}"
-        # Check for mapbc file
-        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
         fname_vplt = f"{proj}_volume_tavg_timestep{n}.plt"
         fname_tmp = f"_{fname_vplt}"
@@ -971,18 +892,10 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Update
         self.log_verbose(
-            f"Convert {fname_mesh} + {fname_flow} -> {fname_vplt}")
-        # Read mesh
-        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
-        # Read flow file
-        mesh.read_fun3d_tavg(fname_flow)
-        # Add additional parameters
-        if kw.get("add-mach", True):
-            mesh.add_mach()
-        if kw.get("add-cp", True):
-            mesh.add_cp()
+            f"Convert {mesh.fname} + {fname_tavg} -> {fname_vplt}")
         # Write it
         mesh.write(fname_tmp)
+        # Rename file
         os.rename(fname_tmp, fname_vplt)
 
     def tavg2surfplt(self, **kw):
@@ -999,40 +912,17 @@ class CaseRunner(casecntl.CaseRunner):
                 Option to add pressure coefficient and to PLT file
         :Versions:
             * 2025-06-09 ``@ddalle``: v1.0
+            * 2026-02-02 ``@aburkhea``: v1.1; minimize dupl'd. code
         """
+        # Read flow file
+        mesh, fname_tavg = self.read_tavg()
+        # If fname is None, fname in io still potentially
+        if fname_tavg is None:
+            return
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
         proj = self.get_project_rootname()
-        # Name of tavg file
-        fname_flow = f"{proj}_TAVG.1"
-        # Exit if no current flow file and finished writing
-        if not os.path.isfile(fname_flow):
-            return
-        elif os.path.getsize(fname_flow) < 1000:
-            return
-        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
-            # Get time for print message
-            dt = time.time() - os.path.getmtime(fname_flow)
-            # Log result
-            self.log_verbose(
-                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
-                "might still be in I/O")
-            return
-        # Get mesh file extension
-        grid_ext = self.get_grid_extension()
-        bc_ext = self.get_bc_extension()
-        # Search for grids
-        pat = f"{proj}.*{grid_ext}"
-        meshfiles = self.search_workdir(pat, regex=False, links=True)
-        # Exit if no mesh files
-        if len(meshfiles) == 0:
-            return
-        # Use latest mesh file
-        fname_mesh = meshfiles[-1]
-        fname_bc = f"{proj}.{bc_ext}"
-        # Check for mapbc file
-        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
         fname_splt = f"{proj}_boundary_tavg_timestep{n}.plt"
         fname_tmp = f"_{fname_splt}"
@@ -1041,20 +931,12 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Update
         self.log_verbose(
-            f"Convert {fname_mesh} + {fname_flow} -> {fname_splt}")
-        # Read mesh
-        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
-        # Read flow file
-        mesh.read_fun3d_tavg(fname_flow)
+            f"Convert {mesh.fname} + {fname_tavg} -> {fname_splt}")
         # Delete volume
         mesh.remove_volume()
-        # Add additional parameters
-        if kw.get("add-mach", False):
-            mesh.add_mach()
-        if kw.get("add-cp", True):
-            mesh.add_cp()
         # Write it
         mesh.write(fname_tmp)
+        # Rename file
         os.rename(fname_tmp, fname_splt)
 
     def tavg2x(
@@ -1078,54 +960,22 @@ class CaseRunner(casecntl.CaseRunner):
                 Option to add pressure coefficient and to PLT file
         :Versions:
             * 2025-06-09 ``@ddalle``: v1.0
+            * 2026-02-02 ``@aburkhea``: v1.1; minimize dupl'd. code
         """
+        # Read flow file
+        mesh, fname_tavg = self.read_tavg()
+        # If fname is None, fname in io still potentially
+        if fname_tavg is None:
+            return
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
         proj = self.get_project_rootname()
-        # Name of tavg file
-        fname_flow = f"{proj}_TAVG.1"
-        # Exit if no current flow file and finished writing
-        if not os.path.isfile(fname_flow):
-            return
-        elif os.path.getsize(fname_flow) < 1000:
-            return
-        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
-            # Get time for print message
-            dt = time.time() - os.path.getmtime(fname_flow)
-            # Log result
-            self.log_verbose(
-                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
-                "might still be in I/O")
-            return
-        # Get mesh file extension
-        grid_ext = self.get_grid_extension()
-        bc_ext = self.get_bc_extension()
-        # Search for grids
-        pat = f"{proj}.*{grid_ext}"
-        meshfiles = self.search_workdir(pat, regex=False, links=True)
-        # Exit if no mesh files
-        if len(meshfiles) == 0:
-            return
-        # Use latest mesh file
-        fname_mesh = meshfiles[-1]
-        fname_bc = f"{proj}.{bc_ext}"
-        # Check for mapbc file
-        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
+        # Update
+        self.log_verbose(f"Read {mesh.fname} + {fname_tavg} for convert+save")
         # Common suffix for output files
         suf = f"tavg_timestep{n}"
-        # Update
-        self.log_verbose(f"Read {fname_mesh} + {fname_flow} for convert+save")
-        tag = f"{fname_mesh} + {fname_flow}"
-        # Read mesh
-        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
-        # Read flow file
-        mesh.read_fun3d_tavg(fname_flow)
-        # Add additional parameters
-        if kw.get("add-mach", False):
-            mesh.add_mach()
-        if kw.get("add-cp", True):
-            mesh.add_cp()
+        tag = f"{fname_mesh} + {fname_tavg}"
         # Write volume files
         if volume_plt:
             self._write_vizfile(mesh, f"{proj}_volume_{suf}.plt", tag)
@@ -1166,40 +1016,17 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2025-04-04 ``@aburkhea``: v1.0
             * 2025-06-09 ``@ddalle``: v1.1; use temp file
+            * 2026-02-02 ``@aburkhea``: v1.1; minimize dupl'd. code
         """
+        # Read flow file
+        mesh, fname_flow = self.read_flow()
+        # If fname is None, fname in io still potentially
+        if fname_flow is None:
+            return
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
         proj = self.get_project_rootname()
-        # Name of flow file
-        fname_flow = f"{proj}.flow"
-        # Exit if no current flow file and finished writing
-        if not os.path.isfile(fname_flow):
-            return
-        elif os.path.getsize(fname_flow) < 1000:
-            return
-        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
-            # Get time for print message
-            dt = time.time() - os.path.getmtime(fname_flow)
-            # Log result
-            self.log_verbose(
-                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
-                "might still be in I/O")
-            return
-        # Get mesh file extension
-        grid_ext = self.get_grid_extension()
-        bc_ext = self.get_bc_extension()
-        # Search for grids
-        pat = f"{proj}.*{grid_ext}"
-        meshfiles = self.search_workdir(pat, regex=False, links=True)
-        # Exit if no mesh files
-        if len(meshfiles) == 0:
-            return
-        # Use latest mesh file
-        fname_mesh = meshfiles[-1]
-        fname_bc = f"{proj}.{bc_ext}"
-        # Check for mapbc file
-        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
         fname_vufnc = f"{proj}_volume_timestep{n}.lb8.ufunc"
         fname_tmp = f"_{fname_vufnc}"
@@ -1208,16 +1035,7 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Update
         self.log_verbose(
-            f"Convert {fname_mesh} + {fname_flow} -> {fname_vufnc}")
-        # Read mesh
-        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
-        # Read flow file
-        mesh.read_fun3d_flow(fname_flow)
-        # Add additional parameters
-        if kw.get("add-mach", True):
-            mesh.add_mach()
-        if kw.get("add-cp", True):
-            mesh.add_cp()
+            f"Convert {mesh.fname} + {fname_flow} -> {fname_vufnc}")
         # Write it
         mesh.write(fname_tmp)
         os.rename(fname_tmp, fname_vufnc)
@@ -1239,6 +1057,9 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read flow file
         mesh, fname_flow = self.read_flow()
+        # If fname is None, fname in io still potentially
+        if fname_flow is None:
+            return
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
@@ -1276,12 +1097,15 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read tavg file
         mesh, fname_tavg = self.read_tavg()
+        # If fname is None, fname in io still potentially
+        if fname_tavg is None:
+            return
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
         proj = self.get_project_rootname()
         # Name of output file
-        fname_vvtk = f"{proj}_volume_timestep{n}.vtk"
+        fname_vvtk = f"{proj}_volume_tavg_timestep{n}.vtk"
         fname_tmp = f"_{fname_vvtk}"
         # Exit if that file already exists
         if os.path.isfile(fname_vvtk) or os.path.isfile(fname_tmp):
