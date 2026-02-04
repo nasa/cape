@@ -113,11 +113,17 @@ class CaseFM(cdbook.CaseFM):
         db = basedata.BaseData()
         # Identify iteration column to use
         icol = "nt" if "nt" in data else "iter"
+        # Identify time column to use
+        tcol = "time" if "time" in data else None
+        tcol = "ctu" if ((tcol is None) and ("ctu" in dat)) else tcol
         # Force coeff prefix
         infix = '' if (f'cx_{comp}' in data or f"fx_{comp}" in data) else 'f'
         # Save data
         db.save_col("i", data[icol])
         db.save_col("solver_iter", data[icol])
+        # Save time
+        if tcol is not None:
+            db.save_col("t", data[tcol])
         # Save coefficients
         db.save_col("CL", self.get_datacol(data, '', 'l'))
         db.save_col("CD", self.get_datacol(data, '', 'd'))
