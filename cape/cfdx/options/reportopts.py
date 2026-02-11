@@ -1634,6 +1634,8 @@ class ImageSubfigOpts(SubfigOpts):
 
 # Run arbitrary script
 class PythonSubfigOpts(ImageSubfigOpts):
+    r"""Generate an image by running a Python script
+    """
     # Attributes
     __slots__ = ()
 
@@ -1642,21 +1644,25 @@ class PythonSubfigOpts(ImageSubfigOpts):
 
     # Additional options
     _optlist = (
+        "PythonExec",
         "PythonFile",
     )
 
     # Aliases
     _optmap = {
+        "PyExec": "PythonExec",
         "PythonScript": "PythonFile",
     }
 
     # Types
     _opttypes = {
+        "PythonExec": str,
         "PythonFile": str,
     }
 
     # Descriptions
     _rst_descriptions = {
+        "PythonExec": "Python executable (default to sys.executable)",
         "PythonFile": "path to Python file to copy and run",
     }
 
