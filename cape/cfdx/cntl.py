@@ -1234,7 +1234,7 @@ class Cntl(CntlBase):
             # Write the AFLR3 surface file only
             if not os.path.isfile(fsurf):
                 self.tri.WriteSurf(fsurf)
-        else:
+        elif self.opts.get_WriteTri():
             # Write main tri file
             ext = getattr(self, "_tri_ext", "tri")
             ftri = f"{fproj}.{ext}"
