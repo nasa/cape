@@ -1632,6 +1632,35 @@ class ImageSubfigOpts(SubfigOpts):
     }
 
 
+# Run arbitrary script
+class PythonSubfigOpts(ImageSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "subfigure based on running arbitrary script"
+
+    # Additional options
+    _optlist = (
+        "PythonFile",
+    )
+
+    # Aliases
+    _optmap = {
+        "PythonScript": "PythonFile",
+    }
+
+    # Types
+    _opttypes = {
+        "PythonFile": str,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "PythonFile": "path to Python file to copy and run",
+    }
+
+
 # Class for subfigure collections
 class SubfigCollectionOpts(OptionsDict):
     r"""Options for a collection of subfigure definitions
@@ -1678,6 +1707,7 @@ class SubfigCollectionOpts(OptionsDict):
         "PlotL2": ResidualSubfigOpts,
         "PlotLineLoad": PlotLineLoadSubfigOpts,
         "PlotResid": ResidualSubfigOpts,
+        "Python": PythonSubfigOpts,
         "Summary": CoeffTableSubfigOpts,
         "SweepCases": SweepConditionsSubfigOpts,
         "SweepCoeff": PlotCoeffSweepSubfigOpts,
