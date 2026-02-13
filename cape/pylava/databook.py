@@ -115,7 +115,7 @@ class CaseFM(cdbook.CaseFM):
         icol = "nt" if "nt" in data else "iter"
         # Identify time column to use
         tcol = "time" if "time" in data else None
-        tcol = "ctu" if ((tcol is None) and ("ctu" in dat)) else tcol
+        tcol = "ctu" if ((tcol is None) and ("ctu" in data)) else tcol
         # Force coeff prefix
         infix = '' if (f'cx_{comp}' in data or f"fx_{comp}" in data) else 'f'
         # Save data
@@ -124,6 +124,9 @@ class CaseFM(cdbook.CaseFM):
         # Save time
         if tcol is not None:
             db.save_col("t", data[tcol])
+        # Save CTUs
+        if 'ctu' in data:
+            db.save_col("ctu", data["ctu"])
         # Save coefficients
         db.save_col("CL", self.get_datacol(data, '', 'l'))
         db.save_col("CD", self.get_datacol(data, '', 'd'))
