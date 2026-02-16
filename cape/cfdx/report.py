@@ -1962,6 +1962,9 @@ class Report(object):
         elif btyp == 'Tecplot':
             # Use a Tecplot layout
             lines = self.SubfigTecplotLayout(sfig, i, True)
+        elif btyp == "Python":
+            # Use a Python (probably PyVista) script
+            lines = self.SubfigPython(sfig, i, True)
         elif btyp == 'Image':
             # Coy an image
             lines = self.SubfigImage(sfig, i, True)
@@ -4689,10 +4692,17 @@ class Report(object):
             os.chdir(frun)
             # Layout file name
             fimg = opts.get_SubfigOpt(sfig, "ImageFile")
+            # Extension
+            imgext = fimg.rsplit('.')[-1]
+            # Output file name
+            fout = f"{sfig}.{imgext}"
+            # Absolute path
+            fabs = os.path.join(fpwd, fout)
             # Check if the file is present
             if os.path.isfile(fimg):
                 # Copy the file to the report folder
-                shutil.copy(fimg, fpwd)
+                if os.path.abspath(fimg) != fabs:
+                    shutil.copy(fimg, fabs)
             # Include figure into tex file
             self.includegraphics(fimg, lines, i)
         # Go to the report case folder
@@ -4778,10 +4788,17 @@ class Report(object):
                     print(f"     {pyexec} {os.path.basename(fpy)}")
             # Image file name
             fimg = opts.get_SubfigOpt(sfig, "ImageFile")
+            # File extension
+            imgext = fimg.rsplit('.')[-1]
+            # Output file name
+            fout = f"{sfig}.{imgext}"
+            # Output file
+            fabs = os.path.join(fpwd, fout)
             # Check if the file is present
             if os.path.isfile(fimg):
                 # Copy the file to the report folder
-                shutil.copy(fimg, fpwd)
+                if not os.path.abspath(fimg) == fabs:
+                    shutil.copy(fimg, fabs)
             # Include figure into tex file
             self.includegraphics(fimg, lines, i)
         # Go to the report case folder
