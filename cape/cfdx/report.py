@@ -4664,6 +4664,10 @@ class Report(object):
         frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
+        # Path to final output
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(rootdir, figdir)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Get the vertical alignment.
@@ -4697,14 +4701,14 @@ class Report(object):
             # Output file name
             fout = f"{sfig}.{imgext}"
             # Absolute path
-            fabs = os.path.join(fpwd, fout)
+            fabs = os.path.join(dirname, fout)
             # Check if the file is present
             if os.path.isfile(fimg):
                 # Copy the file to the report folder
                 if os.path.abspath(fimg) != fabs:
                     shutil.copy(fimg, fabs)
             # Include figure into tex file
-            self.includegraphics(fimg, lines, i)
+            self.includegraphics(fout, lines, i)
         # Go to the report case folder
         os.chdir(fpwd)
         # Set the caption
@@ -4740,6 +4744,10 @@ class Report(object):
         frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
+        # Path to final output
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(rootdir, figdir)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Get the vertical alignment.
@@ -4793,14 +4801,14 @@ class Report(object):
             # Output file name
             fout = f"{sfig}.{imgext}"
             # Output file
-            fabs = os.path.join(fpwd, fout)
+            fabs = os.path.join(dirname, fout)
             # Check if the file is present
             if os.path.isfile(fimg):
                 # Copy the file to the report folder
                 if not os.path.abspath(fimg) == fabs:
                     shutil.copy(fimg, fabs)
             # Include figure into tex file
-            self.includegraphics(fimg, lines, i)
+            self.includegraphics(fout, lines, i)
         # Go to the report case folder
         os.chdir(fpwd)
         # Set the caption
