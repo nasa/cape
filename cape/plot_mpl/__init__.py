@@ -478,6 +478,7 @@ def loglog(xv, yv, *a, **kw):
     # Plot, then others
     _part_plot(opts, h)
     _part_semilogx(opts, h)
+    _part_semilogy(opts, h)
     _part_minmax(opts, h)
     _part_error(opts, h)
     _part_uq(opts, h)
@@ -656,16 +657,6 @@ def _part_semilogx(opts, h):
     kw = {}
     # Change to semilogy scale
     ax.set_xscale("log", **kw)
-
-
-def _part_loglog(opts, h):
-    # Get axes
-    ax = h.ax
-    # Use empty kewyword dict for now
-    kw = {}
-    # Change to semilogy scale
-    ax.set_xscale("log", **kw)
-    ax.set_yscale("log", **kw)
 
 
 # Partial function: contour()
