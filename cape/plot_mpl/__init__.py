@@ -280,7 +280,7 @@ def semilogy(xv, yv, *a, **kw):
     r"""Plot connected points with many options
 
     :Call:
-        >>> h, kw = semilogy(xv, yv, *a, **kw)
+        >>> h = semilogy(xv, yv, *a, **kw)
     :Inputs:
         *xv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *x*-axis
@@ -332,6 +332,152 @@ def semilogy(xv, yv, *a, **kw):
     # Plot, then others
     _part_plot(opts, h)
     _part_semilogy(opts, h)
+    _part_minmax(opts, h)
+    _part_error(opts, h)
+    _part_uq(opts, h)
+   # --- Axis formatting ---
+    # Format grid, spines, extents, and window
+    _part_axes_grid(opts, h)
+    _part_axes_spines(opts, h)
+    _part_axes_format(opts, h)
+    _part_axes_adjust(opts, h)
+   # --- Labeling ---
+    # Legend
+    _part_legend(opts, h)
+   # --- Cleanup ---
+    # Final margin adjustment
+    _part_axes_adjust(opts, h)
+    # Output
+    return h
+
+
+# Simple plot on log y-axis
+def semilogx(xv, yv, *a, **kw):
+    r"""Plot connected points with many options
+
+    :Call:
+        >>> h = semilogx(xv, yv, *a, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`\ [:class:`float`]
+            Array of values for *x*-axis
+        *yv*: :class:`np.ndarray`\ [:class:`float`]
+            Array of values for *y*-axis
+    :Outputs:
+        *h*: :class:`cape.plot_mpl.MPLHandle`
+            Dictionary of plot handles
+    """
+   # --- Prep ---
+    # Process options
+    opts, h = _preprocess_kwargs(**kw)
+    # Process plot format
+    if len(a) == 0:
+        # No primary plot specifier
+        pass
+    elif len(a) == 1:
+        # Check one arg for type
+        if not typeutils.isstr(a[0]):
+            raise TypeError(
+                "Extra plot arg must be string (got %s)" % type(a[0]))
+        # Use format from user
+        opts.set_option("fmt", a[0])
+    else:
+        # Too many args
+        raise TypeError(
+            "plot() takes at most 3 args (%i given)" % (len(a) + 2))
+    # Check yvalues to ensure all positive
+    if any(V < 0 for V in yv):
+        raise TypeError(
+            "semilogy() plot requires positive y-values only")
+    # Save values
+    opts.set_option("x", xv)
+    opts.set_option("y", yv)
+   # --- Control Options ---
+    # Defaults to plot different parts
+    opts.setdefault_option("ShowLine", True)
+    opts.setdefault_option("ShowMinMax", ("ymin" in opts) and ("ymax" in opts))
+    opts.setdefault_option("ShowError", ("yerr" in opts))
+    opts.setdefault_option("ShowUncertainty", ("uy" in opts))
+   # --- Axes Setup ---
+    # Figure, then axes
+    _part_init_figure(opts, h)
+    _part_init_axes(opts, h)
+   # --- Primary Plot ---
+    # Plot, then others
+    _part_plot(opts, h)
+    _part_semilogx(opts, h)
+    _part_minmax(opts, h)
+    _part_error(opts, h)
+    _part_uq(opts, h)
+   # --- Axis formatting ---
+    # Format grid, spines, extents, and window
+    _part_axes_grid(opts, h)
+    _part_axes_spines(opts, h)
+    _part_axes_format(opts, h)
+    _part_axes_adjust(opts, h)
+   # --- Labeling ---
+    # Legend
+    _part_legend(opts, h)
+   # --- Cleanup ---
+    # Final margin adjustment
+    _part_axes_adjust(opts, h)
+    # Output
+    return h
+
+
+# Simple plot on log y-axis
+def loglog(xv, yv, *a, **kw):
+    r"""Plot connected points with many options
+
+    :Call:
+        >>> h = loglog(xv, yv, *a, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`\ [:class:`float`]
+            Array of values for *x*-axis
+        *yv*: :class:`np.ndarray`\ [:class:`float`]
+            Array of values for *y*-axis
+    :Outputs:
+        *h*: :class:`cape.plot_mpl.MPLHandle`
+            Dictionary of plot handles
+    """
+   # --- Prep ---
+    # Process options
+    opts, h = _preprocess_kwargs(**kw)
+    # Process plot format
+    if len(a) == 0:
+        # No primary plot specifier
+        pass
+    elif len(a) == 1:
+        # Check one arg for type
+        if not typeutils.isstr(a[0]):
+            raise TypeError(
+                "Extra plot arg must be string (got %s)" % type(a[0]))
+        # Use format from user
+        opts.set_option("fmt", a[0])
+    else:
+        # Too many args
+        raise TypeError(
+            "plot() takes at most 3 args (%i given)" % (len(a) + 2))
+    # Check yvalues to ensure all positive
+    if any(V < 0 for V in yv):
+        raise TypeError(
+            "semilogy() plot requires positive y-values only")
+    # Save values
+    opts.set_option("x", xv)
+    opts.set_option("y", yv)
+   # --- Control Options ---
+    # Defaults to plot different parts
+    opts.setdefault_option("ShowLine", True)
+    opts.setdefault_option("ShowMinMax", ("ymin" in opts) and ("ymax" in opts))
+    opts.setdefault_option("ShowError", ("yerr" in opts))
+    opts.setdefault_option("ShowUncertainty", ("uy" in opts))
+   # --- Axes Setup ---
+    # Figure, then axes
+    _part_init_figure(opts, h)
+    _part_init_axes(opts, h)
+   # --- Primary Plot ---
+    # Plot, then others
+    _part_plot(opts, h)
+    _part_semilogx(opts, h)
     _part_minmax(opts, h)
     _part_error(opts, h)
     _part_uq(opts, h)
@@ -500,6 +646,25 @@ def _part_semilogy(opts, h):
     # Use empty kewyword dict for now
     kw = {}
     # Change to semilogy scale
+    ax.set_yscale("log", **kw)
+
+
+def _part_semilogx(opts, h):
+    # Get axes
+    ax = h.ax
+    # Use empty kewyword dict for now
+    kw = {}
+    # Change to semilogy scale
+    ax.set_xscale("log", **kw)
+
+
+def _part_loglog(opts, h):
+    # Get axes
+    ax = h.ax
+    # Use empty kewyword dict for now
+    kw = {}
+    # Change to semilogy scale
+    ax.set_xscale("log", **kw)
     ax.set_yscale("log", **kw)
 
 

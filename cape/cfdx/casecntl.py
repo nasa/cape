@@ -5187,11 +5187,12 @@ class CaseRunner(CaseRunnerBase):
             # Try to update the settings
             self.handle_alt_exit(jmax)
         # Log status
-        self.log_status({
-                    "status": sts,
-                    "iter": int(self.get_iter()),
-                    "maxiter": self.get_last_iter(),
-                }, title="STATUS")
+        self.log_status(
+            {
+                "status": sts,
+                "iter": int(self.get_iter()),
+                "maxiter": self.get_last_iter(),
+            }, title="STATUS")
         # Output
         return sts
 
@@ -6513,7 +6514,6 @@ class CaseRunner(CaseRunnerBase):
         logger = self.get_logger()
         # Log the message
         logger.logdict_status(title, data)
-
 
     def log_data(
             self,
