@@ -25,7 +25,7 @@ import os
 import re
 import shutil
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 # Third-party modules
 import numpy as np
@@ -39,6 +39,7 @@ from .databook import CaseFM, CaseResid, CaseSurfCp
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 from ..cfdx import casecntl
+from ..errors import CapeFileError
 from ..gruvoc import umesh
 from ..filecntl.tecfile import convert_szplt
 
@@ -81,7 +82,6 @@ runs it.
 
 # Maximum number of calls to run_phase()
 NSTART_MAX = 80
-
 
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_fun3d():
@@ -703,9 +703,9 @@ class CaseRunner(casecntl.CaseRunner):
         fname_f3dout = f"{proj}{ftail}"
         # Exit if no current flow file and finished writing
         if not os.path.isfile(fname_f3dout):
-            return
+            raise CapeFileError(f"No file {fname_f3dout}")
         elif os.path.getsize(fname_f3dout) < 1000:
-            return
+            raise CapeFileError(f"File {fname_f3dout} too small")
         elif time.time() - os.path.getmtime(fname_f3dout) < 5.0:
             # Get time for print message
             dt = time.time() - os.path.getmtime(fname_f3dout)
@@ -713,7 +713,7 @@ class CaseRunner(casecntl.CaseRunner):
             self.log_verbose(
                 f"FUN3D output file '{fname_f3dout}' is only {dt:.1f} s old; "
                 "might still be in I/O")
-            return
+            raise CapeFileError(f"File {fname_f3dout} still in I/O")
         return fname_f3dout
     
     def load_newest_mesh(self, **kw) -> umesh.Umesh:
@@ -739,14 +739,11 @@ class CaseRunner(casecntl.CaseRunner):
         mesh = umesh.Umesh(fname_mesh, mapbc=bcopt)
         return mesh
 
-    def read_flow(self, **kw) -> tuple[umesh.Umesh, str]:
+    def read_flow(self, **kw) -> Tuple[umesh.Umesh, str]:
         r""" Read cases most recent mesh file and flow file
         """
         # Get flow fname
         fname_flow = self._get_f3d_ofilename(".flow")
-        # Exit if none returned
-        if fname_flow is None:
-            return None, fname_flow
         # Read mesh
         mesh = self.load_newest_mesh()
         # Read flow file
@@ -758,14 +755,11 @@ class CaseRunner(casecntl.CaseRunner):
             mesh.add_cp()
         return mesh, fname_flow
 
-    def read_tavg(self, **kw) -> tuple[umesh.Umesh, str]:
+    def read_tavg(self, **kw) -> Tuple[umesh.Umesh, str]:
         r""" Read cases most recent mesh file and tavg file
         """
         # Get flow fname
         fname_tavg = self._get_f3d_ofilename("_TAVG.1")
-        # Exit if none returned
-        if fname_tavg is None:
-            return None, fname_tavg
         # Read mesh
         mesh = self.load_newest_mesh()
         # Read tavg file
@@ -794,10 +788,10 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-05-20 ``@ddalle``: v1.1; use temp file
             * 2026-02-02 ``@aburkhea``: v1.2; minimize dupl'd. code
         """
-        # Read flow file
-        mesh, fname_flow = self.read_flow()
-        # If fname is None, fname in io still potentially
-        if fname_flow is None:
+        try:
+            # Read flow file
+            mesh, fname_flow = self.read_flow()
+        except CapeFileError:
             return
         # Get restart iteration
         n = self.get_restart_iter()
@@ -812,10 +806,14 @@ class CaseRunner(casecntl.CaseRunner):
         # Update
         self.log_verbose(
             f"Convert {mesh.fname} + {fname_flow} -> {fname_vplt}")
-        # Write it
-        mesh.write(fname_tmp)
-        # Rename file
-        os.rename(fname_tmp, fname_vplt)
+        try:
+            # Write it
+            mesh.write(fname_tmp)
+            # Rename file
+            os.rename(fname_tmp, fname_vplt)
+        except:
+            # Clean up write attempt
+            os.remove(fname_tmp)
 
     def flow2surfplt(self, **kw):
         r"""Write surface PLT file from most recent ``.flow`` file
@@ -833,10 +831,10 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-06-09 ``@ddalle``: v1.0
             * 2026-02-02 ``@aburkhea``: v1.1; minimize dupl'd. code
         """
-        # Read flow file
-        mesh, fname_flow = self.read_flow()
-        # If fname is None, fname in io still potentially
-        if fname_flow is None:
+        try:
+            # Read flow file
+            mesh, fname_flow = self.read_flow()
+        except CapeFileError:
             return
         # Get restart iteration
         n = self.get_restart_iter()
@@ -853,10 +851,14 @@ class CaseRunner(casecntl.CaseRunner):
             f"Convert {mesh.fname} + {fname_flow} -> {fname_splt}")
         # Remove volume
         mesh.remove_volume()
-        # Write it
-        mesh.write(fname_tmp)
-        # Rename file
-        os.rename(fname_tmp, fname_splt)
+        try:
+            # Write it
+            mesh.write(fname_tmp)
+            # Rename file
+            os.rename(fname_tmp, fname_splt)
+        except:
+            # Clean up write attempt
+            os.remove(fname_tmp)
 
     def tavg2plt(self, **kw):
         r"""Convert most recent ``TAVG.1`` file to Tecplot volume file
@@ -875,10 +877,10 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-05-20 ``@ddalle``: v1.1; use temp file
             * 2026-02-02 ``@aburkhea``: v1.2; minimize dupl'd. code
         """
-        # Read flow file
-        mesh, fname_tavg = self.read_tavg()
-        # If fname is None, fname in io still potentially
-        if fname_tavg is None:
+        try:
+            # Read flow file
+            mesh, fname_tavg = self.read_tavg()
+        except CapeFileError:
             return
         # Get restart iteration
         n = self.get_restart_iter()
@@ -893,10 +895,14 @@ class CaseRunner(casecntl.CaseRunner):
         # Update
         self.log_verbose(
             f"Convert {mesh.fname} + {fname_tavg} -> {fname_vplt}")
-        # Write it
-        mesh.write(fname_tmp)
-        # Rename file
-        os.rename(fname_tmp, fname_vplt)
+        try:
+            # Write it
+            mesh.write(fname_tmp)
+            # Rename file
+            os.rename(fname_tmp, fname_vplt)
+        except:
+            # Clean up write attempt
+            os.remove(fname_tmp) 
 
     def tavg2surfplt(self, **kw):
         r"""Convert most recent ``TAVG.1`` file to Tecplot surface file
@@ -914,10 +920,10 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-06-09 ``@ddalle``: v1.0
             * 2026-02-02 ``@aburkhea``: v1.1; minimize dupl'd. code
         """
-        # Read flow file
-        mesh, fname_tavg = self.read_tavg()
-        # If fname is None, fname in io still potentially
-        if fname_tavg is None:
+        try:
+            # Read flow file
+            mesh, fname_tavg = self.read_tavg()
+        except CapeFileError:
             return
         # Get restart iteration
         n = self.get_restart_iter()
@@ -934,10 +940,14 @@ class CaseRunner(casecntl.CaseRunner):
             f"Convert {mesh.fname} + {fname_tavg} -> {fname_splt}")
         # Delete volume
         mesh.remove_volume()
-        # Write it
-        mesh.write(fname_tmp)
-        # Rename file
-        os.rename(fname_tmp, fname_splt)
+        try:
+            # Write it
+            mesh.write(fname_tmp)
+            # Rename file
+            os.rename(fname_tmp, fname_splt)
+        except:
+            # Clean up write attempt
+            os.remove(fname_tmp) 
 
     def tavg2x(
             self,
@@ -962,10 +972,10 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-06-09 ``@ddalle``: v1.0
             * 2026-02-02 ``@aburkhea``: v1.1; minimize dupl'd. code
         """
-        # Read flow file
-        mesh, fname_tavg = self.read_tavg()
-        # If fname is None, fname in io still potentially
-        if fname_tavg is None:
+        try:
+            # Read flow file
+            mesh, fname_tavg = self.read_tavg()
+        except CapeFileError:
             return
         # Get restart iteration
         n = self.get_restart_iter()
@@ -1018,10 +1028,10 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-06-09 ``@ddalle``: v1.1; use temp file
             * 2026-02-02 ``@aburkhea``: v1.1; minimize dupl'd. code
         """
-        # Read flow file
-        mesh, fname_flow = self.read_flow()
-        # If fname is None, fname in io still potentially
-        if fname_flow is None:
+        try:
+            # Read flow file
+            mesh, fname_flow = self.read_flow()
+        except CapeFileError:
             return
         # Get restart iteration
         n = self.get_restart_iter()
@@ -1036,9 +1046,13 @@ class CaseRunner(casecntl.CaseRunner):
         # Update
         self.log_verbose(
             f"Convert {mesh.fname} + {fname_flow} -> {fname_vufnc}")
-        # Write it
-        mesh.write(fname_tmp)
-        os.rename(fname_tmp, fname_vufnc)
+        try:
+            # Write it
+            mesh.write(fname_tmp)
+            os.rename(fname_tmp, fname_vufnc)
+        except:
+            # Clean up write attempt
+            os.remove(fname_tmp) 
 
     def flow2vtk(self, **kw):
         r"""Convert most recent ``.flow`` file to VTK volume file
@@ -1055,10 +1069,10 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2026-01-30 ``@aburkhea``: v1.0; cp from flow2plt
         """
-        # Read flow file
-        mesh, fname_flow = self.read_flow()
-        # If fname is None, fname in io still potentially
-        if fname_flow is None:
+        try:
+            # Read flow file
+            mesh, fname_flow = self.read_flow()
+        except CapeFileError:
             return
         # Get restart iteration
         n = self.get_restart_iter()
@@ -1075,10 +1089,14 @@ class CaseRunner(casecntl.CaseRunner):
             f"Convert {mesh.fname} + {fname_flow} -> {fname_vvtk}")
         # Make volume mesh
         mesh.make_pvmesh_vol()
-        # Write it
-        mesh.pvmesh.save(fname_tmp)
-        # Rename file
-        os.rename(fname_tmp, fname_vvtk)
+        try:
+            # Write it
+            mesh.pvmesh.save(fname_tmp)
+            # Rename file
+            os.rename(fname_tmp, fname_vvtk)
+        except:
+            # Clean up write attempt
+            os.remove(fname_tmp) 
 
     def tavg2vtk(self, **kw):
         r"""Convert most recent ``.flow`` file to VTK volume file
@@ -1095,10 +1113,10 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2026-01-30 ``@aburkhea``: v1.0; cp from flow2plt
         """
-        # Read tavg file
-        mesh, fname_tavg = self.read_tavg()
-        # If fname is None, fname in io still potentially
-        if fname_tavg is None:
+        try:
+            # Read tavg file
+            mesh, fname_tavg = self.read_tavg()
+        except CapeFileError:
             return
         # Get restart iteration
         n = self.get_restart_iter()
@@ -1115,10 +1133,14 @@ class CaseRunner(casecntl.CaseRunner):
             f"Convert {mesh.fname} + {fname_tavg} -> {fname_vvtk}")
         # Make volume mesh
         mesh.make_pvmesh_vol()
-        # Write it
-        mesh.pvmesh.save(fname_tmp)
-        # Rename file
-        os.rename(fname_tmp, fname_vvtk)
+        try:
+            # Write it
+            mesh.pvmesh.save(fname_tmp)
+            # Rename file
+            os.rename(fname_tmp, fname_vvtk)
+        except:
+            # Clean up write attempt
+            os.remove(fname_tmp) 
 
     def _write_vizfile(self, mesh: umesh.Umesh, fname: str, tag: str):
         # Write to temp file first

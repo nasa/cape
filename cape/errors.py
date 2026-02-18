@@ -21,6 +21,12 @@ class CapeError(Exception):
     pass
 
 
+# File error family
+class CapeFileError(CapeError):
+    r"CAPE exception class for file based intentonal exceptions"
+    pass
+
+
 # File not found error
 class CapeFileNotFoundError(FileNotFoundError, CapeError):
     r"""CAPE exception for missing required file"""
