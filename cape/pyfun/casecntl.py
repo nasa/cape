@@ -83,6 +83,7 @@ runs it.
 # Maximum number of calls to run_phase()
 NSTART_MAX = 80
 
+
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_fun3d():
     r"""Setup and run the appropriate FUN3D command
@@ -695,8 +696,6 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Workers ---
     def _get_f3d_ofilename(self, ftail, **kw) -> str:
-        # Get restart iteration
-        n = self.get_restart_iter()
         # Get project name
         proj = self.get_project_rootname()
         # Name of flow file
@@ -715,7 +714,7 @@ class CaseRunner(casecntl.CaseRunner):
                 "might still be in I/O")
             raise CapeFileError(f"File {fname_f3dout} still in I/O")
         return fname_f3dout
-    
+
     def load_newest_mesh(self, **kw) -> umesh.Umesh:
         r""" Load cases most recent mesh file w/ mapbc to Umesh object
         """
@@ -811,7 +810,7 @@ class CaseRunner(casecntl.CaseRunner):
             mesh.write(fname_tmp)
             # Rename file
             os.rename(fname_tmp, fname_vplt)
-        except:
+        except Exception:
             # Clean up write attempt
             os.remove(fname_tmp)
 
@@ -856,7 +855,7 @@ class CaseRunner(casecntl.CaseRunner):
             mesh.write(fname_tmp)
             # Rename file
             os.rename(fname_tmp, fname_splt)
-        except:
+        except Exception:
             # Clean up write attempt
             os.remove(fname_tmp)
 
@@ -900,9 +899,9 @@ class CaseRunner(casecntl.CaseRunner):
             mesh.write(fname_tmp)
             # Rename file
             os.rename(fname_tmp, fname_vplt)
-        except:
+        except Exception:
             # Clean up write attempt
-            os.remove(fname_tmp) 
+            os.remove(fname_tmp)
 
     def tavg2surfplt(self, **kw):
         r"""Convert most recent ``TAVG.1`` file to Tecplot surface file
@@ -945,16 +944,15 @@ class CaseRunner(casecntl.CaseRunner):
             mesh.write(fname_tmp)
             # Rename file
             os.rename(fname_tmp, fname_splt)
-        except:
+        except Exception:
             # Clean up write attempt
             os.remove(fname_tmp) 
 
     def tavg2x(
             self,
-            volume_plt: bool = True,
-            surface_plt: bool = False,
-            volume_ufunc: bool = False,
-            surface_ufunc: bool = False,
+            volume: bool = True,
+            surface: bool = False,
+            fmt: Optional[str] = "vtk",
             slices: Optional[dict] = None,
             **kw):
         r"""Convert most recent ``TAVG.1`` file to Tecplot surface file
@@ -977,6 +975,8 @@ class CaseRunner(casecntl.CaseRunner):
             mesh, fname_tavg = self.read_tavg()
         except CapeFileError:
             return
+        # Default format
+        fmt = "vtk" if fmt is None else fmt
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
@@ -985,12 +985,10 @@ class CaseRunner(casecntl.CaseRunner):
         self.log_verbose(f"Read {mesh.fname} + {fname_tavg} for convert+save")
         # Common suffix for output files
         suf = f"tavg_timestep{n}"
-        tag = f"{fname_mesh} + {fname_tavg}"
+        tag = f"{mesh.fname} + {fname_tavg}"
         # Write volume files
-        if volume_plt:
-            self._write_vizfile(mesh, f"{proj}_volume_{suf}.plt", tag)
-        if volume_ufunc:
-            self._write_vizfile(mesh, f"{proj}_volume_{suf}.ufunc", tag)
+        if volume:
+            self._write_vizfile(mesh, f"{proj}_volume_{suf}.{fmt}", tag)
         # Loop through slices
         slices = slices if isinstance(slices, dict) else {}
         for name, defnj in slices.items():
@@ -1006,10 +1004,8 @@ class CaseRunner(casecntl.CaseRunner):
         # Delete volume
         mesh.remove_volume()
         # Write surface files
-        if surface_plt:
-            self._write_vizfile(mesh, f"{proj}_boundary_{suf}.plt", tag)
-        if surface_ufunc:
-            self._write_vizfile(mesh, f"{proj}_boundary_{suf}.ufunc", tag)
+        if surface:
+            self._write_vizfile(mesh, f"{proj}_boundary_{suf}.{fmt}", tag)
 
     def flow2ufunc(self, **kw):
         r"""Convert most recent ``.flow`` file to SimSys ufunc file
@@ -1050,7 +1046,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Write it
             mesh.write(fname_tmp)
             os.rename(fname_tmp, fname_vufnc)
-        except:
+        except Exception:
             # Clean up write attempt
             os.remove(fname_tmp) 
 
@@ -1094,7 +1090,7 @@ class CaseRunner(casecntl.CaseRunner):
             mesh.pvmesh.save(fname_tmp)
             # Rename file
             os.rename(fname_tmp, fname_vvtk)
-        except:
+        except Exception:
             # Clean up write attempt
             os.remove(fname_tmp) 
 
@@ -1138,7 +1134,7 @@ class CaseRunner(casecntl.CaseRunner):
             mesh.pvmesh.save(fname_tmp)
             # Rename file
             os.rename(fname_tmp, fname_vvtk)
-        except:
+        except Exception:
             # Clean up write attempt
             os.remove(fname_tmp) 
 
