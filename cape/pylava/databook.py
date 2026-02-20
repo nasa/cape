@@ -127,6 +127,9 @@ class CaseFM(cdbook.CaseFM):
         # Save CTUs
         if 'ctu' in data:
             db.save_col("ctu", data["ctu"])
+        # Save cell count
+        if "numcells" in data:
+            db.save_col("numcells", data["numcells"])
         # Save coefficients
         db.save_col("CL", self.get_datacol(data, '', 'l'))
         db.save_col("CD", self.get_datacol(data, '', 'd'))
