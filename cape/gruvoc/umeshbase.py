@@ -593,7 +593,7 @@ class UmeshBase(ABC):
         # Remove the offbody points acn keep just the first cells from surfs
         surf.remove_offbody()
         surf.make_pvmesh_vol()
-         # First find qvar index for p and rho
+        # First find qvar index for p and rho
         indp = surf.qvars.index('p')
         indrho = surf.qvars.index('rho')
         # Compute local temperature using Tlocal/Tinf=gamma*p/rho
@@ -917,6 +917,32 @@ class UmeshBase(ABC):
         surf.q = qsorted
         # Return the new umesh object
         return surf
+
+    def write_vtk(self, fname):
+        r"""Write Umesh to vtk file
+
+        :Call:
+            >>> mesh.make_pvmesh_vol()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        """
+        # Check if pvmesh not there
+        if self.pvmesh is None:
+            # Check for volume elements
+            volchecks = [
+                self.tets is not None,
+                self.pris is not None,
+                self.pyrs is not None,
+                self.hexs is not None,
+            ]
+            if any(volchecks):
+                # Make vol pvmesh
+                self.make_pvmesh_vol()
+            else:
+                # Make surf pvmesh
+                self.make_pvmesh_surf()
+        self.pvmesh.save(fname)
 
    # --- DataKit ---
     def genr8_datakit(self) -> DataKit:
