@@ -823,25 +823,25 @@ class UmeshBase(ABC):
         # List of velocity strings
         vel_strings = ['u', 'v', 'w']
         # Find qvar index match for velocity components
-        match = [i for i, s in enumerate(surf.qvars) if s in vel_strings]
+        mtches = [i for i, s in enumerate(surf.qvars) if s in vel_strings]
         # Dimensionalize velocities
-        udim = surf.q[:, match[0]] * a
-        vdim = surf.q[:, match[1]] * a
-        wdim = surf.q[:, match[2]] * a
+        udim = surf.q[:, mtches[0]] * a
+        vdim = surf.q[:, mtches[1]] * a
+        wdim = surf.q[:, mtches[2]] * a
         # Lets get the first cell heights using scipy.spatial.KDTree
         tree = KDTree(surf.nodes)
         # Query for the distance between two closest points
         # On the body, this should be itself and one off-body
-        distances, indicies = tree.query(surf.nodes, k=2)
+        distances, indices = tree.query(surf.nodes, k=2)
         # Now lets compute the velocity deltas of the point with its nearest
         #  neighbor
-        du = udim[indicies[:, 1]]-udim[indicies[:, 0]]
-        dv = vdim[indicies[:, 1]]-vdim[indicies[:, 0]]
-        dw = wdim[indicies[:, 1]]-wdim[indicies[:, 0]]
+        du = udim[indices[:, 1]]-udim[indices[:, 0]]
+        dv = vdim[indices[:, 1]]-vdim[indices[:, 0]]
+        dw = wdim[indices[:, 1]]-wdim[indices[:, 0]]
         # Get displacements
-        dx = surf.nodes[:, 0][indicies[:, 1]] - surf.nodes[:, 0][indicies[:,0]]
-        dy = surf.nodes[:, 1][indicies[:, 1]] - surf.nodes[:, 1][indicies[:,0]]
-        dz = surf.nodes[:, 2][indicies[:, 1]] - surf.nodes[:, 2][indicies[:,0]]
+        dx = surf.nodes[:, 0][indices[:, 1]] - surf.nodes[:, 0][indices[:, 0]]
+        dy = surf.nodes[:, 1][indices[:, 1]] - surf.nodes[:, 1][indices[:, 0]]
+        dz = surf.nodes[:, 2][indices[:, 1]] - surf.nodes[:, 2][indices[:, 0]]
         # Extend the list of qvars
         surf.qvars.extend(['distance1', 'dx', 'dy', 'dz', 'mu'])
         surf.qvars.extend([f"{i}_dim" for i in vel_strings])
