@@ -302,6 +302,50 @@ class UmeshBase(ABC):
 
   # === I/O ===
    # --- Read ---
+    def read_vtk(
+            self,
+            fname: str):
+        # Read using PyVista
+        pvmesh = pv.read(fname)
+        # Save as gruvoc
+        mesh = self.__class__.from_pvmesh(pvmesh)
+        # Merge data
+        self.merge(mesh)
+
+    def write_vtk(
+            self,
+            fname: str):
+        r"""Write Umesh to vtk file
+
+        :Call:
+            >>> mesh.make_pvmesh_vol()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        """
+        # Check if pvmesh not there
+        if self.pvmesh is None:
+            # Check for volume elements
+            ntet = 0 if self.ntet is None else self.ntet
+            npyr = 0 if self.npyr is None else self.npyr
+            npri = 0 if self.npri is None else self.npri
+            nhex = 0 if self.nhex is None else self.nhex
+            if (ntet + npyr + npri + nhex) == 0:
+                # Make surf pvmesh
+                self.make_pvmesh_surf()
+            else:
+                # Make vol pvmesh
+                self.make_pvmesh_vol()
+        # Check for volume cells
+        if self.ntet + self.npyr + self.npri + self.nhex == 0:
+            # Surface mesh
+            self.make_pvmesh_surf()
+        else:
+            # Volume mesh
+            self.make_pvmesh_vol()
+        # Write the file
+        self.pvmesh.save(fname)
+
     def _read_to_slot(
             self,
             fp: IOBase,
@@ -918,32 +962,6 @@ class UmeshBase(ABC):
         # Return the new umesh object
         return surf
 
-    def write_vtk(self, fname):
-        r"""Write Umesh to vtk file
-
-        :Call:
-            >>> mesh.make_pvmesh_vol()
-        :Inputs:
-            *mesh*: :class:`Umesh`
-                Unstructured mesh instance
-        """
-        # Check if pvmesh not there
-        if self.pvmesh is None:
-            # Check for volume elements
-            volchecks = [
-                self.tets is not None,
-                self.pris is not None,
-                self.pyrs is not None,
-                self.hexs is not None,
-            ]
-            if any(volchecks):
-                # Make vol pvmesh
-                self.make_pvmesh_vol()
-            else:
-                # Make surf pvmesh
-                self.make_pvmesh_surf()
-        self.pvmesh.save(fname)
-
    # --- DataKit ---
     def genr8_datakit(self) -> DataKit:
         r"""Create a :class:`DataKit` from an unstructured mesh
@@ -1060,6 +1078,35 @@ class UmeshBase(ABC):
         for attr in slots:
             # Copy attributes
             setattr(mesh, attr, copy.copy(getattr(self, attr)))
+        # Output
+        return copy
+
+    def merge(self, mesh: "UmeshBase") -> "UmeshBase":
+        r"""Copy data from one mesh into another
+
+        :Call:
+            >>> mesh.merge(meshc)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *meshc*: :class:`Umesh`
+                Copy of *mesh*
+        """
+        # Initialize copy
+        cls = self.__class__
+        # Get array of slots
+        slots = []
+        while cls is not ABC:
+            # Append slots
+            for attr in getattr(cls, "__slots__", ()):
+                if attr not in slots:
+                    slots.append(attr)
+            # Get basis
+            cls = cls.__base__
+        # Loop through slots
+        for attr in slots:
+            # Copy attributes
+            setattr(self, attr, copy.copy(getattr(mesh, attr)))
         # Output
         return copy
 

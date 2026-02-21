@@ -250,6 +250,10 @@ class Umesh(umeshbase.UmeshBase):
             elif gridfmt.format == "uh3d":
                 # UH3D format
                 self.read_uh3d(fp, meta)
+            elif gridfmt.format == "vtk":
+                # VTK format
+                fp.close()
+                self.read_vtk(os.path.join(fdir, fname))
 
     def read_avm(
             self,
@@ -432,9 +436,3 @@ class Umesh(umeshbase.UmeshBase):
             fname_or_fp: Union[str, IOBase]):
         # Write mesh
         write_avm(self, fname_or_fp)
-
-    def write_vtk(
-            self,
-            fname_or_fp: Union[str, IOBase]):
-        # Write mesh
-        write_vtk(self, fname_or_fp)
