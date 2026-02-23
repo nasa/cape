@@ -619,6 +619,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return sts
 
+    @casecntl.run_rootdir
     def find_surf_source(self) -> MeshFileMeta:
         r"""Find latest available files with surface data
 
