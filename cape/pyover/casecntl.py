@@ -876,6 +876,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get iterations from the same
         return int(checkqavg(fname))
 
+    @casecntl.run_rootdir
     def get_dex_nstats_lineload(self, comp: str) -> int:
         return int(checkqavg(self._dex_sourcefile))
 
