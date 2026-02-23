@@ -872,7 +872,7 @@ class CaseRunner(casecntl.CaseRunner):
         return int(checkqavg(fname))
 
     def get_dex_nstats_lineload(self, comp: str) -> int:
-        return self._get_dex_nstats_file(self._vol_file)
+        return int(checkqavg(self._vol_file))
 
    # --- Local readers ---
     # Get the namelist
