@@ -1717,7 +1717,10 @@ class CaseRunner(CaseRunnerBase):
         # Remove existing target, if any
         self.remove_link(dst, f=True)
         # Rename
-        os.symlink(src, dst)
+        try:
+            os.symlink(src, dst)
+        except FileExistsError:
+            return
 
     # Rename a file
     def rename_file(self, src: str, dst: str, f: bool = False):
@@ -1807,7 +1810,12 @@ class CaseRunner(CaseRunnerBase):
                 # Replace (overwriten later)
                 self.log_verbose(f"overwriting file '{dst_rel}'", parent=1)
                 # Delete file
-                os.remove(dst)
+                try:
+                    os.remove(dst)
+                except PermissionError:
+                    self.log_verbose(
+                        f"permission denied: removing file '{dst_rel}'",
+                        parent=1)
             else:
                 msg = f"cannot overwrite '{dst_rel}'; file exists"
                 self.log_verbose(msg, parent=1)

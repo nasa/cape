@@ -599,7 +599,12 @@ class CaseRunner(casecntl.CaseRunner):
                     raise FileNotFoundError(
                         f"USURP output file '{fname}' not found")
             # Copy it
-            self.copy_file(fabs, "usurp.i")
+            try:
+                self.copy_file(fabs, "usurp.i")
+            except PermissionError:
+                # Cannot copy file
+                self.log_verbose(
+                    f"permission error: copy file '{fabs}' -> 'usurp.i'")
             # Run USURP
             self.run_usurp_triq("usurp.i", "usurp.o")
         else:
@@ -872,7 +877,7 @@ class CaseRunner(casecntl.CaseRunner):
         return int(checkqavg(fname))
 
     def get_dex_nstats_lineload(self, comp: str) -> int:
-        return int(checkqavg(self._vol_file))
+        return int(checkqavg(self._dex_sourcefile))
 
    # --- Local readers ---
     # Get the namelist
