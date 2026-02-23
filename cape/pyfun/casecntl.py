@@ -25,7 +25,7 @@ import os
 import re
 import shutil
 import time
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Union
 
 # Third-party modules
 import numpy as np
@@ -953,6 +953,8 @@ class CaseRunner(casecntl.CaseRunner):
             volume: bool = True,
             surface: bool = False,
             fmt: Optional[str] = "vtk",
+            surface_fmt: Optional[Union[list, str]] = None,
+            volume_fmt: Optional[Union[list, str]] = None,
             slices: Optional[dict] = None,
             **kw):
         r"""Convert most recent ``TAVG.1`` file to Tecplot surface file
@@ -977,6 +979,12 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Default format
         fmt = "vtk" if fmt is None else fmt
+        # Default surface formant
+        surface_fmt = fmt if surface_fmt is None else surface_fmt
+        volume_fmt = fmt if surface_fmt is None else surface_fmt
+        # Ensure list
+        surface_fmt = casecntl._listify(surface_fmt)
+        volume_fmt = casecntl._listify(volume_fmt)
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
@@ -988,7 +996,9 @@ class CaseRunner(casecntl.CaseRunner):
         tag = f"{mesh.fname} + {fname_tavg}"
         # Write volume files
         if volume:
-            self._write_vizfile(mesh, f"{proj}_volume_{suf}.{fmt}", tag)
+            # Loop through formats
+            for ext in volume_fmt:
+                self._write_vizfile(mesh, f"{proj}_volume_{suf}.{ext}", tag)
         # Loop through slices
         slices = slices if isinstance(slices, dict) else {}
         for name, defnj in slices.items():
@@ -1005,7 +1015,8 @@ class CaseRunner(casecntl.CaseRunner):
         mesh.remove_volume()
         # Write surface files
         if surface:
-            self._write_vizfile(mesh, f"{proj}_boundary_{suf}.{fmt}", tag)
+            for ext in surface_fmt:
+                self._write_vizfile(mesh, f"{proj}_boundary_{suf}.{ext}", tag)
 
     def flow2ufunc(self, **kw):
         r"""Convert most recent ``.flow`` file to SimSys ufunc file

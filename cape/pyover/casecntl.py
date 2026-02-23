@@ -503,6 +503,7 @@ class CaseRunner(casecntl.CaseRunner):
     def get_grid_regex(self) -> str:
         return r"(x|grid).(in|save|restart|[0-9]+)"
 
+    @casecntl.run_rootdir
     def infer_file_niter(self, mtch) -> int:
         return int(checkqt(mtch.group()))
 
@@ -564,11 +565,22 @@ class CaseRunner(casecntl.CaseRunner):
         cntl = self.read_cntl()
         opts = cntl.opts
         # Get path to fomofolder
-        fomodir = cntl.abspath(opts.get_ConfigFomoFolder())
+        fomodir = opts.get_DataBook_fomo()
+        fomodir = fomodir if (fomodir is not None) else opts.get_ConfigFomoFolder()
+        fomodir = cntl.abspath(fomodir)
+        # Get method
+        if "TriqMethod" in opts["Config"]:
+            # Directly specified
+            triqmethod = opts.get_ConfigTriqMethod()
+        else:
+            # Infer from DataBook section
+            sec = opts["DataBook"]
+            triqmethod = "usurp" if "usurp" in sec else "mixsur"
         # Check method
-        if opts.get_ConfigTriqMethod() == "usurp":
+        if triqmethod == "usurp":
             # Get USURP input file
-            fi = opts.get_ConfigUsurp()
+            fi = opts.get_DataBook_usurp()
+            fi = fi if (fi is not None) else opts.get_ConfigUsurp()
             fabs = cntl.abspath(fi)
             # Check for it
             if not os.path.isfile(fabs):
@@ -587,12 +599,18 @@ class CaseRunner(casecntl.CaseRunner):
                     raise FileNotFoundError(
                         f"USURP output file '{fname}' not found")
             # Copy it
-            self.copy_file(fabs, "usurp.i")
+            try:
+                self.copy_file(fabs, "usurp.i")
+            except PermissionError:
+                # Cannot copy file
+                self.log_verbose(
+                    f"permission error: copy file '{fabs}' -> 'usurp.i'")
             # Run USURP
             self.run_usurp_triq("usurp.i", "usurp.o")
         else:
             # Get MIXSUR input file
-            fi = opts.get_ConfigMixsur()
+            fi = opts.get_DataBook_mixsur()
+            fi = fi if (fi is not None) else opts.get_ConfigMixsur()
             fabs = cntl.abspath(fi)
             # Check for it
             if not os.path.isfile(fabs):
@@ -618,6 +636,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return sts
 
+    @casecntl.run_rootdir
     def find_surf_source(self) -> MeshFileMeta:
         r"""Find latest available files with surface data
 
@@ -684,8 +703,8 @@ class CaseRunner(casecntl.CaseRunner):
 
     def _run_splitmx(self, src: MeshFileMeta):
         # Check for existing ``q.save``
-        if os.path.isfile("q.save"):
-            if checkqt("q.save") >= checkqt(src.q):
+        if os.path.isfile("q.save") and os.path.isfile("x.save"):
+            if checkqt("q.save") >= checkqt(os.path.join('..', src.q)):
                 # Already up-to-date
                 self.log_verbose(f"{src.q} -> q.save up-to-date", parent=1)
                 return
@@ -857,8 +876,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Get iterations from the same
         return int(checkqavg(fname))
 
+    @casecntl.run_rootdir
     def get_dex_nstats_lineload(self, comp: str) -> int:
-        return self._get_dex_nstats_file(self._vol_file)
+        return int(checkqavg(self._dex_sourcefile))
 
    # --- Local readers ---
     # Get the namelist
