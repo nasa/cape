@@ -568,10 +568,19 @@ class CaseRunner(casecntl.CaseRunner):
         fomodir = opts.get_DataBook_fomo()
         fomodir = fomodir if (fomodir is not None) else opts.get_ConfigFomoFolder()
         fomodir = cntl.abspath(fomodir)
+        # Get method
+        if "TriqMethod" in opts["Config"]:
+            # Directly specified
+            triqmethod = opts.get_ConfigTriqMethod()
+        else:
+            # Infer from DataBook section
+            sec = opts["DataBook"]
+            triqmethod = "usurp" if "usurp" in sec else "mixsur"
         # Check method
-        if opts.get_ConfigTriqMethod() == "usurp":
+        if triqmethod == "usurp":
             # Get USURP input file
-            fi = opts.get_ConfigUsurp()
+            fi = opts.get_DataBook_usurp()
+            fi = fi if (fi is not None) else opts.get_ConfigUsurp()
             fabs = cntl.abspath(fi)
             # Check for it
             if not os.path.isfile(fabs):
@@ -595,7 +604,8 @@ class CaseRunner(casecntl.CaseRunner):
             self.run_usurp_triq("usurp.i", "usurp.o")
         else:
             # Get MIXSUR input file
-            fi = opts.get_ConfigMixsur()
+            fi = opts.get_DataBook_mixsur()
+            fi = fi if (fi is not None) else opts.get_ConfigMixsur()
             fabs = cntl.abspath(fi)
             # Check for it
             if not os.path.isfile(fabs):
