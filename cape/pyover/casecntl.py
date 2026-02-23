@@ -503,6 +503,7 @@ class CaseRunner(casecntl.CaseRunner):
     def get_grid_regex(self) -> str:
         return r"(x|grid).(in|save|restart|[0-9]+)"
 
+    @casecntl.run_rootdir
     def infer_file_niter(self, mtch) -> int:
         return int(checkqt(mtch.group()))
 
