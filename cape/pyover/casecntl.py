@@ -687,7 +687,7 @@ class CaseRunner(casecntl.CaseRunner):
     def _run_splitmx(self, src: MeshFileMeta):
         # Check for existing ``q.save``
         if os.path.isfile("q.save"):
-            if checkqt("q.save") >= checkqt(src.q):
+            if checkqt("q.save") >= checkqt(os.path.join('..', src.q)):
                 # Already up-to-date
                 self.log_verbose(f"{src.q} -> q.save up-to-date", parent=1)
                 return
