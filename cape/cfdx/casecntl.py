@@ -1794,7 +1794,12 @@ class CaseRunner(CaseRunnerBase):
         if os.path.islink(dst):
             # Remove link
             self.log_verbose(f"removing link '{dst_rel}'", parent=1)
-            os.remove(dst)
+            try:
+                os.remove(dst)
+            except PermissionError:
+                self.log_verbose(
+                    f"permission denied: removing link '{dst_rel}'", parent=1)
+                return
         # Check for existing file
         if os.path.isfile(dst):
             # Check for overwrite
