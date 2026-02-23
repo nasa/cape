@@ -555,7 +555,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Get number of iterations
         n = checkqt("q.save")
         # Create output
-        sts = casecntl.FileStatus(ftriq, n)
+        os.chdir('..')
+        sts = casecntl.FileStatus(os.path.join(subdir, ftriq), n)
+        os.chdir(subdir)
         # Check for up-to-date file
         if os.path.isfile(ftriq):
             if os.path.getmtime(ftriq) >= os.path.getmtime("q.save"):
