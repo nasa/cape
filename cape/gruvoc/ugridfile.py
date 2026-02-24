@@ -19,6 +19,12 @@ from typing import Callable, Optional, Union
 import numpy as np
 
 # Local imports
+from ..capeio import (
+    fromfile_lb8_i, fromfile_b8_i,
+    fromfile_lb8_f, fromfile_b8_f,
+    tofile_lb8_i, tofile_b8_i,
+    tofile_lb8_f, tofile_b8_f,
+)
 from .dataformats import (
     PATTERN_GRID_FMT,
     REGEX_GRID_FMT,
@@ -43,13 +49,23 @@ DATA_FORMATS = (
     None,
     "b4",
     "b8",
+    "b8l",
     "lb4",
     "lb8",
+    "lb8l",
     "lr4",
     "lr8",
     "r4",
     "r8",
 )
+
+# Add special ugrid file extensions to readers
+READ_FUNCS["lb8l"] = (fromfile_lb8_i, fromfile_lb8_f)
+READ_FUNCS["b8l"] = (fromfile_b8_i, fromfile_b8_f)
+# Add special ugrid file extensions to writers
+WRITE_FUNCS["lb8l"] = (tofile_lb8_i, tofile_lb8_f)
+WRITE_FUNCS["b8l"] = (tofile_b8_i, tofile_b8_f)
+
 # Regular expression to identify file extension
 REGEX_UGRID = re.compile(rf"(\.(?P<fmt>{PATTERN_GRID_FMT}))?\.ugrid$")
 
@@ -192,14 +208,17 @@ def check_ugrid_ascii(fp):
 def check_ugrid_lb(fp):
     return _check_ugrid_mode(fp, True, False)
 
+def check_ugrid_lbl(fp):
+    return _check_ugrid_mode(fp, True, False, isize=8)
 
 def check_ugrid_b(fp):
     return _check_ugrid_mode(fp, False, False)
 
+def check_ugrid_bl(fp):
+    return _check_ugrid_mode(fp, True, False, isize=8)
 
 def check_ugrid_lr(fp):
     return _check_ugrid_mode(fp, True, True)
-
 
 def check_ugrid_r(fp):
     return _check_ugrid_mode(fp, False, True)
@@ -210,8 +229,10 @@ UGRID_MODE_CHECKERS = {
     None: check_ugrid_ascii,
     "b4": check_ugrid_b,
     "b8": check_ugrid_b,
+    "b8l": check_ugrid_bl,
     "lb4": check_ugrid_lb,
     "lb8": check_ugrid_lb,
+    "lb8l": check_ugrid_lbl,
     "r4": check_ugrid_r,
     "r8": check_ugrid_r,
     "lr4": check_ugrid_lr,
@@ -426,12 +447,11 @@ def _get_ugrid_mode_fname(
 
 
 @keep_pos
-def _check_ugrid_mode(fp, little=True, record=False):
+def _check_ugrid_mode(fp, little=True, record=False, isize=4):
     # Byte order
     byteorder = "little" if little else "big"
     # Integer data type
-    isize = 4
-    dtype = "<i4" if little else ">i4"
+    dtype = f"<i{isize}" if little else f">i{isize}"
     # Build up format
     fmt = (
         ("l" if little else "") +
@@ -470,8 +490,9 @@ def _check_ugrid_mode(fp, little=True, record=False):
         # Check for overflow
         nsrf2 = ntri/2 + nquad/2
         nvol4 = ntet/4 + npyr/4 + npri/4 + nhex/4
-        if (nvol4 > MAX_INT32/4) or (nsrf2 > MAX_INT32/2):
-            return
+        if isize == 4:
+            if (nvol4 > MAX_INT32/4) or (nsrf2 > MAX_INT32/2):
+                return
         # Total surface elements
         nsrf = np.int64(ntri + nquad)
         # Total volume elements
@@ -483,6 +504,8 @@ def _check_ugrid_mode(fp, little=True, record=False):
         n4 += size_offset + nrec_required*record_offset
         # Calculate req size of double-precision by adding to sp total
         n8 = n4 + 4*(npt*3)
+        n8l = n4 + 4*(
+            npt*3 + ntri*4 + nquad*5 + ntet*4 + npyr*5 + npri*6 + nhex*8)
         # Size of optional "boundary layer vol tets" record
         r1_s4 = isize + record_offset
         r1_s8 = r1_s4
@@ -504,6 +527,7 @@ def _check_ugrid_mode(fp, little=True, record=False):
         # Assemble arrays of possible sizes
         s4 = np.cumsum([n4, r1_s4, r2_s4, r3_s4, r4_s4, r5_s4, r6_s4])
         s8 = np.cumsum([n8, r1_s8, r2_s8, r3_s8, r4_s8, r5_s8, r6_s8])
+        s8l = np.cumsum([n8l, r1_s8, r2_s8, r3_s8, r4_s8, r5_s8, r6_s8])
         # Check sizes
         if size in s4:
             # Matched single-precision size
@@ -513,6 +537,10 @@ def _check_ugrid_mode(fp, little=True, record=False):
             # Matched double-precision size
             precision = "double"
             fmt += "8"
+        elif size in s8l:
+            # Matched double-precision size
+            precision = "double"
+            fmt += "8l"
         else:
             # No match
             return

@@ -25,7 +25,7 @@ import os
 import re
 import shutil
 import time
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Union
 
 # Third-party modules
 import numpy as np
@@ -948,17 +948,92 @@ class CaseRunner(casecntl.CaseRunner):
             # Clean up write attempt
             os.remove(fname_tmp) 
 
+    def flow2x(
+            self,
+            volume: bool = True,
+            surface: bool = False,
+            fmt: Optional[str] = "vtk",
+            surface_fmt: Optional[Union[list, str]] = None,
+            volume_fmt: Optional[Union[list, str]] = None,
+            slices: Optional[dict] = None,
+            **kw):
+        r"""Convert most recent ``.flow`` file to given *volume_fmt*
+        
+        volume and *surface_fmt* surface files.
+        
+        :Call:
+            >>> runner.flow2x()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: ``True`` | {``False``}
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2026-02-23 ``@aburkhea``: v1.0; cp from tavg2x
+        """
+        try:
+            # Read flow file
+            mesh, fname_flow = self.read_flow()
+        except CapeFileError:
+            return
+        # Default format
+        fmt = "vtk" if fmt is None else fmt
+        # Default surface formant
+        surface_fmt = fmt if surface_fmt is None else surface_fmt
+        volume_fmt = fmt if surface_fmt is None else surface_fmt
+        # Ensure list
+        surface_fmt = casecntl._listify(surface_fmt)
+        volume_fmt = casecntl._listify(volume_fmt)
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Update
+        self.log_verbose(f"Read {mesh.fname} + {fname_flow} for convert+save")
+        # Common suffix for output files
+        suf = f"flow_timestep{n}"
+        tag = f"{mesh.fname} + {fname_flow}"
+        # Write volume files
+        if volume:
+            # Loop through formats
+            for ext in volume_fmt:
+                self._write_vizfile(mesh, f"{proj}_volume_{suf}.{ext}", tag)
+        # Loop through slices
+        slices = slices if isinstance(slices, dict) else {}
+        for name, defnj in slices.items():
+            # Get coordinates
+            if not isinstance(defnj, (list, tuple)) or len(defnj) != 2:
+                continue
+            # Unpack definition
+            xj, nj = defnj
+            # Calculate slice
+            slicej = mesh.slicevol_pvmesh(xj, nj)
+            # Write it
+            self._write_vizfile(slicej, f"{proj}_{name}_{suf}.plt")
+        # Delete volume
+        mesh.remove_volume()
+        # Write surface files
+        if surface:
+            for ext in surface_fmt:
+                self._write_vizfile(mesh, f"{proj}_boundary_{suf}.{ext}", tag)
+
     def tavg2x(
             self,
             volume: bool = True,
             surface: bool = False,
             fmt: Optional[str] = "vtk",
+            surface_fmt: Optional[Union[list, str]] = None,
+            volume_fmt: Optional[Union[list, str]] = None,
             slices: Optional[dict] = None,
             **kw):
-        r"""Convert most recent ``TAVG.1`` file to Tecplot surface file
+        r"""Convert most recent ``.TAVG.1`` file to given *volume_fmt*
+        
+        volume and *surface_fmt* surface files.
 
         :Call:
-            >>> runner.tavg2surfplt()
+            >>> runner.tavg2x()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -977,6 +1052,12 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Default format
         fmt = "vtk" if fmt is None else fmt
+        # Default surface formant
+        surface_fmt = fmt if surface_fmt is None else surface_fmt
+        volume_fmt = fmt if surface_fmt is None else surface_fmt
+        # Ensure list
+        surface_fmt = casecntl._listify(surface_fmt)
+        volume_fmt = casecntl._listify(volume_fmt)
         # Get restart iteration
         n = self.get_restart_iter()
         # Get project name
@@ -988,7 +1069,9 @@ class CaseRunner(casecntl.CaseRunner):
         tag = f"{mesh.fname} + {fname_tavg}"
         # Write volume files
         if volume:
-            self._write_vizfile(mesh, f"{proj}_volume_{suf}.{fmt}", tag)
+            # Loop through formats
+            for ext in volume_fmt:
+                self._write_vizfile(mesh, f"{proj}_volume_{suf}.{ext}", tag)
         # Loop through slices
         slices = slices if isinstance(slices, dict) else {}
         for name, defnj in slices.items():
@@ -1005,7 +1088,8 @@ class CaseRunner(casecntl.CaseRunner):
         mesh.remove_volume()
         # Write surface files
         if surface:
-            self._write_vizfile(mesh, f"{proj}_boundary_{suf}.{fmt}", tag)
+            for ext in surface_fmt:
+                self._write_vizfile(mesh, f"{proj}_boundary_{suf}.{ext}", tag)
 
     def flow2ufunc(self, **kw):
         r"""Convert most recent ``.flow`` file to SimSys ufunc file
