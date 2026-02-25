@@ -2182,8 +2182,28 @@ class CntlBase(ABC):
                 List of constraints
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
+            *early*: ``True`` | {``False``}
+                Reduce iteration count to current iter
         :Versions:
             * 2021-10-14 ``@ddalle``: v1.0
+            * 2026-02-25 ``@ddalle``: v1.1; add *early* option
+        """
+        pass
+
+    # Declare early exit
+    @abstractmethod
+    def declare_early_exit_case(self, i: int):
+        r"""Change *PhaseIters* to current iteration for one case
+
+        :Call:
+            >>> cntl.declare_early_exit_case(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of overall control interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2026-02-25 ``@ddalle``: v1.0
         """
         pass
 

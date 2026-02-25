@@ -946,7 +946,7 @@ class CaseRunner(casecntl.CaseRunner):
             os.rename(fname_tmp, fname_splt)
         except Exception:
             # Clean up write attempt
-            os.remove(fname_tmp) 
+            os.remove(fname_tmp)
 
     def flow2x(
             self,
@@ -957,10 +957,8 @@ class CaseRunner(casecntl.CaseRunner):
             volume_fmt: Optional[Union[list, str]] = None,
             slices: Optional[dict] = None,
             **kw):
-        r"""Convert most recent ``.flow`` file to given *volume_fmt*
-        
-        volume and *surface_fmt* surface files.
-        
+        r"""Convert most recent ``.flow`` file to flow viz files
+
         :Call:
             >>> runner.flow2x()
         :Inputs:
@@ -1028,9 +1026,7 @@ class CaseRunner(casecntl.CaseRunner):
             volume_fmt: Optional[Union[list, str]] = None,
             slices: Optional[dict] = None,
             **kw):
-        r"""Convert most recent ``.TAVG.1`` file to given *volume_fmt*
-        
-        volume and *surface_fmt* surface files.
+        r"""Convert most recent ``.TAVG.1`` file to flow viz files
 
         :Call:
             >>> runner.tavg2x()
@@ -1132,7 +1128,7 @@ class CaseRunner(casecntl.CaseRunner):
             os.rename(fname_tmp, fname_vufnc)
         except Exception:
             # Clean up write attempt
-            os.remove(fname_tmp) 
+            os.remove(fname_tmp)
 
     def flow2vtk(self, **kw):
         r"""Convert most recent ``.flow`` file to VTK volume file
@@ -1176,7 +1172,7 @@ class CaseRunner(casecntl.CaseRunner):
             os.rename(fname_tmp, fname_vvtk)
         except Exception:
             # Clean up write attempt
-            os.remove(fname_tmp) 
+            os.remove(fname_tmp)
 
     def tavg2vtk(self, **kw):
         r"""Convert most recent ``.flow`` file to VTK volume file
@@ -1220,7 +1216,7 @@ class CaseRunner(casecntl.CaseRunner):
             os.rename(fname_tmp, fname_vvtk)
         except Exception:
             # Clean up write attempt
-            os.remove(fname_tmp) 
+            os.remove(fname_tmp)
 
     def _write_vizfile(self, mesh: umesh.Umesh, fname: str, tag: str):
         # Write to temp file first

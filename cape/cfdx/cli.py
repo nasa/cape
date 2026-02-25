@@ -97,6 +97,7 @@ class CfdxArgReader(argread.ArgReader):
         "checkLL": "check-ll",
         "checkTriqFM": "check-triqfm",
         "constraints": "cons",
+        "early-exit": "early",
         "exec": "e",
         "fail": "FAIL",
         "file": "f",
@@ -137,6 +138,7 @@ class CfdxArgReader(argread.ArgReader):
         "delete": bool,
         "dezombie": bool,
         "e": str,
+        "early": bool,
         "extend": (bool, int),
         "f": str,
         "failed": bool,
@@ -201,6 +203,7 @@ class CfdxArgReader(argread.ArgReader):
         "batch",
         "c",
         "compile",
+        "early",
         "delete",
         "dezombie",
         "force",
@@ -245,6 +248,7 @@ class CfdxArgReader(argread.ArgReader):
         "delete": "Delete DataBook entries instead of adding new ones",
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
         "e": "Execute the command *EXEC*",
+        "early": "Reduce *PhaseIters* to current iter; makes case ``DONE``",
         "extend": "Extend case(s) by *N_EXT* copies of last phase",
         "f": "Use the JSON (or YAML) file *JSON*",
         "filter": "Limit to cases containing the string *TXT*",
@@ -613,7 +617,13 @@ class CfdxDezombieArgs(_CfdxSubsetArgs):
     # Additional options
     _optlist = (
         "dezombie",
+        "early",
     )
+
+    # Aliases
+    _optmap = {
+        "early-exit": "early",
+    }
 
 
 # Settings for -e
