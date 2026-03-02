@@ -68,7 +68,7 @@ from .report import Report
 from .runmatrix import RunMatrix
 from ..argread import ArgReader
 from ..argread.clitext import compile_rst
-from ..config import ConfigXML, ConfigJSON
+from ..config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from ..dkit.rdb import DataKit
 from ..errors import assert_isinstance
 from ..optdict import WARNMODE_WARN
@@ -1629,7 +1629,7 @@ class Cntl(CntlBase):
         # Name of config file
         fxml = self.opts.get_ConfigFile()
         # Split based on '.'
-        fext = fxml.split('.')
+        fext = fxml.rsplit('.', 1)
         # Get the extension
         if len(fext) < 2:
             # Odd case, no extension given
@@ -1637,6 +1637,8 @@ class Cntl(CntlBase):
         else:
             # Get the extension
             fext = fext[-1].lower()
+        # Get the base
+        fbase = os.path.basename(fxml).split('.', 1)[0]
         # Read the configuration if it can be found
         if fxml is None or not os.path.isfile(fxml):
             # Nothing to read
@@ -1644,6 +1646,9 @@ class Cntl(CntlBase):
         elif fext == "xml":
             # Read XML config file
             self.config = ConfigXML(fxml)
+        elif fext == "i" or fbase in ("mixsur", "usurp"):
+            # Read mixsur.i file
+            self.config = ConfigMIXSUR(fxml)
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)

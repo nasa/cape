@@ -555,7 +555,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Get number of iterations
         n = checkqt("q.save")
         # Create output
-        sts = casecntl.FileStatus(ftriq, n)
+        os.chdir('..')
+        sts = casecntl.FileStatus(os.path.join(subdir, ftriq), n)
+        os.chdir(subdir)
         # Check for up-to-date file
         if os.path.isfile(ftriq):
             if os.path.getmtime(ftriq) >= os.path.getmtime("q.save"):
@@ -703,7 +705,7 @@ class CaseRunner(casecntl.CaseRunner):
 
     def _run_splitmx(self, src: MeshFileMeta):
         # Check for existing ``q.save``
-        if os.path.isfile("q.save") and os.path.isfile("x.save"):
+        if os.path.isfile("q.save") and os.path.isfile("grid.in"):
             if checkqt("q.save") >= checkqt(os.path.join('..', src.q)):
                 # Already up-to-date
                 self.log_verbose(f"{src.q} -> q.save up-to-date", parent=1)
@@ -711,7 +713,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Read run matrix
         cntl = self.read_cntl()
         # Get splitmq/splitmx options
-        fsplitmx = cntl.opts.get_ConfigSplitmx()
+        fsplitmx = cntl.opts.get_DataBook_splitmx()
         # Check for splitmq
         if fsplitmx:
             # Absolutize
@@ -723,11 +725,11 @@ class CaseRunner(casecntl.CaseRunner):
                 # Link ``q`` file
                 self.link_file(os.path.join("..", src.x), "x.vol")
                 # Edit splitmq.i
-                EditSplitmqI(abssplitmx, "splitmx.i", "x.vol", "x.save")
+                EditSplitmqI(abssplitmx, "splitmx.i", "x.vol", "grid.in")
                 # Run it
                 self.splitmx("splitmx.i")
         # Otherwise use the volume file
-        self.link_file(os.path.join("..", src.x), "x.save")
+        self.link_file(os.path.join("..", src.x), "grid.in")
 
     def splitmq(self, fsplitmq: str = "splitmq.i"):
         r"""Run ``splitmq`` to extract surface and second-layer sol data

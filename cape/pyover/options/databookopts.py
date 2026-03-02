@@ -65,6 +65,7 @@ class TriqFMDataBookOpts(databookopts.TriqFMDataBookOpts):
         "XSurf",
         "fomo",
         "mixsur",
+        "splitmx",
         "splitmq",
         "usurp",
     }
@@ -90,6 +91,7 @@ class TriqFMDataBookOpts(databookopts.TriqFMDataBookOpts):
         "XSurf": str,
         "fomo": str,
         "mixsur": str,
+        "splitmx": str,
         "splitmq": str,
         "usurp": str,
     }
@@ -127,6 +129,7 @@ class TriqFMDataBookOpts(databookopts.TriqFMDataBookOpts):
             * ``grid.ptv``
             * ``mixsur.fmp``""",
         "mixsur": "input file for ``mixsur``, ``overint``, or ``usurp``",
+        "splitmx": "input file for ``splitmx``",
         "splitmq": "input file for ``splitmq``",
         "usurp": "input file for ``usurp``",
     }
@@ -171,6 +174,7 @@ class LineLoadDataBookOpts(databookopts.LineLoadDataBookOpts):
         "XSurf": str,
         "fomo": str,
         "mixsur": str,
+        "splitmx": str,
         "splitmq": str,
         "usurp": str,
     }
@@ -208,6 +212,7 @@ class LineLoadDataBookOpts(databookopts.LineLoadDataBookOpts):
             * ``grid.ptv``
             * ``mixsur.fmp``""",
         "mixsur": "input file for ``mixsur``, ``overint``, or ``usurp``",
+        "splitmx": "input file for ``splitmx``",
         "splitmq": "input file for ``splitmq``",
         "usurp": "input file for ``usurp``",
     }
@@ -228,6 +233,7 @@ class DataBookOpts(databookopts.DataBookOpts):
         "XSurf",
         "fomo",
         "mixsur",
+        "splitmx",
         "splitmq",
         "usurp",
     }
@@ -253,6 +259,7 @@ class DataBookOpts(databookopts.DataBookOpts):
         "XSurf": str,
         "fomo": str,
         "mixsur": str,
+        "splitmx": str,
         "splitmq": str,
         "usurp": str,
     }
@@ -304,6 +311,7 @@ _PROPS1 = (
     "XSurf",
     "fomo",
     "mixsur",
+    "splitmx",
     "splitmq",
     "usurp",
 )

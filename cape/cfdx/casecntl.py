@@ -1656,7 +1656,11 @@ class CaseRunner(CaseRunnerBase):
         p1 = os.stat(self.root_dir).st_mode
         p2 = os.stat(dirname).st_mode
         # Match permissions to parent folder
-        os.chmod(dirname, p1 | p2)
+        try:
+            os.chmod(dirname, p1 | p2)
+        except PermissionError:
+            self.log_verbose(
+                f"Unable to change permission of '{dirname}/'", parent=1)
 
    # --- File manipulation ---
     # Copy a file
