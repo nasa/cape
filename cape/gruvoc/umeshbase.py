@@ -1932,29 +1932,34 @@ class UmeshBase(ABC):
             quads_j = self.get_quads_by_id(k)
             if j == 0:
                 # Initial list
-                quads = quads_j
-                tris = tris_j
+                kquads = quads_j
+                ktris = tris_j
             else:
-                quads = np.union1d(quads, quads_j)
-                tris = np.union1d(tris, tris_j)
+                kquads = np.union1d(kquads, quads_j)
+                ktris = np.union1d(ktris, tris_j)
         # Get nodes
-        nodes = self.get_nodes_by_id(k, tris, quads)
+        jnodes = self.get_nodes_by_id(k, ktris, kquads)
         # Create a list
         mesh = self.__class__()
         # Save the nodes
-        mesh.nodes = self.nodes[nodes]
-        mesh.nnode = nodes.size
+        mesh.nodes = self.nodes[jnodes]
+        mesh.nnode = jnodes.size
         # Save elements
-        mesh.tris = self.tris[tris]
-        mesh.quads = self.quads[quads]
-        mesh.ntri = tris.size
-        mesh.nquad = quads.size
+        tris = self.tris[ktris]
+        quads = self.quads[kquads]
+        mesh.ntri = ktris.size
+        mesh.nquad = kquads.size
         # Component information
-        mesh.tris = compress_indices(mesh.tris, nodes)
-        mesh.quads = compress_indices(mesh.quads, nodes)
+        mesh.tris = compress_indices(tris, jnodes+1)
+        mesh.quads = compress_indices(quads, jnodes+1)
         # Renumber nodes
-        mesh.tri_ids = mesh.tri_ids
-        mesh.quad_ids = mesh.quad_ids
+        mesh.tri_ids = self.tri_ids[ktris]
+        mesh.quad_ids = self.quad_ids[kquads]
+        # No volume elements
+        mesh.ntet = 0
+        mesh.npyr = 0
+        mesh.npri = 0
+        mesh.nhex = 0
         # Output
         return mesh
 
