@@ -4677,9 +4677,15 @@ class Cntl(CntlBase):
             fdest = os.path.join(self.RootDir, frun, trg)
             # Check for overwrite
             if os.path.isfile(fdest):
-                raise FileExistsError(
-                    f"  Cannot copy '{os.path.basename(src)}' -> "
-                    f"'{src}'; file exists")
+                # Check if it's a link
+                if os.path.islink(fdest):
+                    # Just replace it
+                    os.remove(fdest)
+                else:
+                    # Don't delete hard file
+                    raise FileExistsError(
+                        f"  Cannot copy '{os.path.basename(src)}' -> "
+                        f"'{src}'; file exists")
             # Copy file
             os.symlink(fabs, fdest)
 
