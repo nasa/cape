@@ -1916,7 +1916,45 @@ class UmeshBase(ABC):
             return t[j]
 
    # --- Surface subsets ---
-    def get_nodes_by_id(self, surf_id: int) -> np.ndarray:
+    def select_comp(
+            self, comp: Union[list, tuple, int]) -> "UmeshBase":
+        # Ensure list
+        comp_ids = _listify(comp)
+        # Loop through comps
+        for j, k in enumerate(comp_ids):
+            # Get node list
+            tris_j = self.get_tris_by_id(k)
+            quads_j = self.get_quads_by_id(k)
+            if j == 0:
+                # Initial list
+                quads = quads_j
+                tris = tris_j
+            else:
+                quads = np.union1d(quads, quads_j)
+                tris = np.union1d(tris, tris_j)
+        # Get nodes
+        nodes = self.get_nodes_by_id(k, tris, quads)
+        # Create a list
+        mesh = self.__class__()
+        # Save the nodes
+        mesh.nodes = self.nodes[nodes]
+        mesh.nnode = nodes.size
+        # Save elements
+        mesh.tris = self.tris[tris]
+        mesh.quads = self.quads[quads]
+        mesh.ntri = tris.size
+        mesh.nquad = quads.size
+        # Component information
+        mesh.tri_ids = self.tri_ids[tris]
+        mesh.quad_ids = self.quad_ids[quads]
+        # Output
+        return mesh
+
+    def get_nodes_by_id(
+            self,
+            surf_id: int,
+            tri_ids: Optional[np.ndarray] = None,
+            quad_ids: Optional[np.ndarray] = None) -> np.ndarray:
         r"""Get indices of all nodes contained on a given surface ID
 
         :Call:
@@ -1931,8 +1969,12 @@ class UmeshBase(ABC):
                 Indices of nodes in at least one tri/quad w/ matching ID
         """
         # Get tris and quads
-        ktria = self.get_tris_by_id(surf_id)
-        kquad = self.get_quads_by_id(surf_id)
+        ktria = (
+            tri_ids if (tri_ids is not None)
+            else self.get_tris_by_id(surf_id))
+        kquad = (
+            quad_ids if (quad_ids is not None)
+            else self.get_quads_by_id(surf_id))
         # Get the node indices of those quads and tris
         tris = self.tris[ktria]
         quads = self.quads[kquad]
@@ -3518,3 +3560,12 @@ def interpolate_q(smesh: UmeshBase, rmesh: UmeshBase, k=5):
     rmesh.q = np.multiply(
         smesh.q[inds, :], np.stack([weights]*smesh.nq, axis=2)
     ).sum(axis=1)
+
+
+# Convert scalar to list if necessary
+def _listify(str_or_list: Union[str, list, tuple]) -> list:
+    # Check if list
+    if isinstance(str_or_list, (list, tuple)):
+        return list(str_or_list)
+    else:
+        return [str_or_list]
