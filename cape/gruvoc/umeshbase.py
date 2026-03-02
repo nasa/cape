@@ -1950,11 +1950,11 @@ class UmeshBase(ABC):
         mesh.ntri = tris.size
         mesh.nquad = quads.size
         # Component information
-        mesh.tri_ids = self.tri_ids[tris]
-        mesh.quad_ids = self.quad_ids[quads]
+        mesh.tris = compress_indices(mesh.tris, nodes)
+        mesh.quads = compress_indices(mesh.quads, nodes)
         # Renumber nodes
-        mesh.tri_ids = compress_indices(mesh.tri_ids, nodes)
-        mesh.quad_ids = compress_indices(mesh.quad_ids, nodes)
+        mesh.tri_ids = mesh.tri_ids
+        mesh.quad_ids = mesh.quad_ids
         # Output
         return mesh
 
