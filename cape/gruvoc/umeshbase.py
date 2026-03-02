@@ -1952,6 +1952,9 @@ class UmeshBase(ABC):
         # Component information
         mesh.tri_ids = self.tri_ids[tris]
         mesh.quad_ids = self.quad_ids[quads]
+        # Renumber nodes
+        mesh.tri_ids = compress_indices(mesh.tri_ids, nodes)
+        mesh.quad_ids = compress_indices(mesh.quad_ids, nodes)
         # Output
         return mesh
 
