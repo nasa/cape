@@ -311,6 +311,7 @@ class UmeshBase(ABC):
         mesh = self.__class__.from_pvmesh(pvmesh)
         # Merge data
         self.merge(mesh)
+        self.pvmesh = pvmesh
 
     def write_vtk(
             self,
@@ -323,21 +324,13 @@ class UmeshBase(ABC):
             *mesh*: :class:`Umesh`
                 Unstructured mesh instance
         """
-        # Check if pvmesh not there
-        if self.pvmesh is None:
-            # Check for volume elements
-            ntet = 0 if self.ntet is None else self.ntet
-            npyr = 0 if self.npyr is None else self.npyr
-            npri = 0 if self.npri is None else self.npri
-            nhex = 0 if self.nhex is None else self.nhex
-            if (ntet + npyr + npri + nhex) == 0:
-                # Make surf pvmesh
-                self.make_pvmesh_surf()
-            else:
-                # Make vol pvmesh
-                self.make_pvmesh_vol()
         # Check for volume cells
-        if self.ntet + self.npyr + self.npri + self.nhex == 0:
+        ntet = 0 if self.ntet is None else self.ntet
+        npyr = 0 if self.npyr is None else self.npyr
+        npri = 0 if self.npri is None else self.npri
+        nhex = 0 if self.nhex is None else self.nhex
+        # Check total volume cells
+        if ntet + npyr + npri + nhex == 0:
             # Surface mesh
             self.make_pvmesh_surf()
         else:
@@ -605,6 +598,7 @@ class UmeshBase(ABC):
         if self.qvars is not None:
             for i, var in enumerate(self.qvars):
                 self.pvmesh.point_data[var] = self.q[:, i]
+                self.pvmesh[var] = self.pvmesh.point_data[var]
 
     def make_pv_skin_friction(
             self, p, T, M, R=None, gam=1.4,
@@ -1955,6 +1949,9 @@ class UmeshBase(ABC):
         # Renumber nodes
         mesh.tri_ids = self.tri_ids[ktris]
         mesh.quad_ids = self.quad_ids[kquads]
+        # Downselect the states
+        mesh.qvars = self.qvars
+        mesh.q = self.q[jnodes, :]
         # No volume elements
         mesh.ntet = 0
         mesh.npyr = 0
