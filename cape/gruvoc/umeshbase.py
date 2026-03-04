@@ -315,14 +315,19 @@ class UmeshBase(ABC):
 
     def write_vtk(
             self,
-            fname: str):
+            fname: str,
+            force: bool = True):
         r"""Write Umesh to vtk file
 
         :Call:
-            >>> mesh.make_pvmesh_vol()
+            >>> mesh.write_vtk(fname)
         :Inputs:
             *mesh*: :class:`Umesh`
                 Unstructured mesh instance
+            *fname*: :class:`str`
+                Name of file to write
+            *force*: {``True``} | ``False``
+                Overwrite any *mesh.pvmesh*
         """
         # Check for volume cells
         ntet = 0 if self.ntet is None else self.ntet
@@ -330,12 +335,13 @@ class UmeshBase(ABC):
         npri = 0 if self.npri is None else self.npri
         nhex = 0 if self.nhex is None else self.nhex
         # Check total volume cells
-        if ntet + npyr + npri + nhex == 0:
-            # Surface mesh
-            self.make_pvmesh_surf()
-        else:
-            # Volume mesh
-            self.make_pvmesh_vol()
+        if force or getattr(self, "pvmesh") is not None:
+            if ntet + npyr + npri + nhex == 0:
+                # Surface mesh
+                self.make_pvmesh_surf()
+            else:
+                # Volume mesh
+                self.make_pvmesh_vol()
         # Write the file
         self.pvmesh.save(fname)
 
@@ -584,21 +590,23 @@ class UmeshBase(ABC):
         # Handle tri files with no quads by setting nquad to 0
         if self.nquad is None:
             self.nquad = 0
-        # Set cell types
-        celltype = np.concatenate(
-            (
-                np.repeat(pv.CellType.TRIANGLE, self.ntri),
-                np.repeat(pv.CellType.QUAD, self.nquad),
-            ),
-            dtype=np.int8,
-        )
-        # Generate array of cells
-        cells = np.concatenate((
-            np.hstack((np.full((self.ntri, 1), 3), self.tris - 1)).ravel(),
-            np.hstack((np.full((self.nquad, 1), 4), self.quads - 1)).ravel()
-        ))
+            self.quads = np.zeros((0, 4))
+        # Other defaults
+        if self.tri_ids is None:
+            self.tri_ids = np.ones(self.ntri, dtype="i4")
+        if self.quad_ids is None:
+            self.quad_ids = np.ones(self.nquad, dtype="i4")
+        # Component list
+        comp_ids = np.hstack((self.tri_ids, self.quad_ids))
+        # Get tris
+        tris = np.hstack((np.full((self.ntri, 1), 3), self.tris - 1))
+        quads = np.hstack((np.full((self.nquad, 1), 4), self.quads - 1))
+        # Stack
+        faces = np.hstack((tris.ravel(), quads.ravel()))
         # Generate mesh
-        self.pvmesh = pv.UnstructuredGrid(cells, celltype, self.nodes)
+        self.pvmesh = pv.PolyData(self.nodes, faces)
+        # Save IDs
+        self.pvmesh.cell_data["Components"] = comp_ids
         # Add solution files if present
         if self.qvars is not None:
             for i, var in enumerate(self.qvars):
