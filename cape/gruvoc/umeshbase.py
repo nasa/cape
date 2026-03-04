@@ -502,15 +502,20 @@ class UmeshBase(ABC):
         ntri = nv.size if mask.size == 0 else mask[0]
         nquad = (faces.size - 4*ntri) // 5
         # Get component IDs
-        comps = pvmesh.cell_data["Components"]
+        comps = pvmesh.cell_data.get("Components")
         # Save elements
         mesh.tris = np.reshape(faces[:4*ntri], (ntri, 4))[:, 1:] + 1
         mesh.quads = np.reshape(faces[4*ntri:], (nquad, 5))[:, 1:] + 1
         mesh.ntri = ntri
         mesh.nquad = nquad
-        # Save componet IDs
-        mesh.tri_ids = np.array(comps[:ntri], dtype="i4")
-        mesh.quad_ids = np.array(comps[ntri:], dtype="i4")
+        # Save component IDs
+        if isinstance(comps, np.ndarray):
+            mesh.tri_ids = np.array(comps[:ntri], dtype="i4")
+            mesh.quad_ids = np.array(comps[ntri:], dtype="i4")
+        else:
+            # Initialize
+            mesh.tri_ids = np.ones(ntri, dtype="i4")
+            mesh.quad_ids = np.ones(nquad, dtype="i4")
         # Save flow variables
         mesh.qvars = pvmesh.point_data.keys()
         mesh.nq = len(mesh.qvars)
