@@ -991,7 +991,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Update
         self.log_verbose(f"Read {mesh.fname} + {fname_flow} for convert+save")
         # Common suffix for output files
-        suf = f"flow_timestep{n}"
+        suf = f"timestep{n}"
         tag = f"{mesh.fname} + {fname_flow}"
         # Write volume files
         if volume:
