@@ -9,7 +9,7 @@ This module provides the classes :class:`CaseFM` and
 # Standard library
 import os
 from collections import namedtuple
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, List
 
 # Third-party modules
 import numpy as np
@@ -4193,7 +4193,7 @@ class CaseSurfCp(CaseData):
     )
 
    # --- __dunder__ ---
-    def __init__(self, comp: str, compids: list[str, int],
+    def __init__(self, comp: str, compids: List[Union[str, int]],
                  ftriq: str, cntl: CntlBase, i: int):
         # Save the run matrix controller
         self.cntl = cntl
