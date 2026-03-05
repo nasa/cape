@@ -84,7 +84,7 @@ class ExecOpts(OptionsDict):
                 # Reset ExecOpts(False) -> ExecOpts(run=False)
                 args = {"run": a},
         # Pass to parent initializer
-        OptionsDict.__init__(self, *args, **kw)
+        OptionsDict.__init__(self, **kw)
 
     # Set default *run* option accordingly
     def init_post(self):
