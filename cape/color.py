@@ -14,7 +14,10 @@ from typing import Optional
 
 # Third-party
 import numpy as np
-from matplotlib import colormaps
+try:
+    from matplotlib import colormaps
+except ImportError:
+    import matplotlib.cm as colormaps
 from matplotlib.colors import LinearSegmentedColormap
 
 # Local imports
