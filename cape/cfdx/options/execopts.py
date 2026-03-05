@@ -83,8 +83,11 @@ class ExecOpts(OptionsDict):
             if isinstance(a, BOOL_TYPES):
                 # Reset ExecOpts(False) -> ExecOpts(run=False)
                 args = {"run": a},
+            elif isinstance(a, str):
+                # Assume we're getting an executable
+                args = {"run": True, "executable": a}
         # Pass to parent initializer
-        OptionsDict.__init__(self, **kw)
+        OptionsDict.__init__(self, *args, **kw)
 
     # Set default *run* option accordingly
     def init_post(self):
