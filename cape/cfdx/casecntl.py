@@ -5551,11 +5551,15 @@ class CaseRunner(CaseRunnerBase):
                 Phase number last completed
         :Versions:
             * 2025-08-15 ``@ddalle``: v1.0
+            * 2026-02-25 ``@ddalle``: v1.1; check for 0 iters
         """
         # Get current iter
         n = self.get_iter()
         # Get cutoff for phase *j*
         nmax = self.get_phase_iters(j)
+        # Don't apply to zero-iter case
+        if (n is None) or (n == 0):
+            return
         # Try to update the settings
         try:
             # Perform action
