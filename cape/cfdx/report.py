@@ -70,6 +70,7 @@ import json
 import os
 import re
 import shutil
+import sys
 import tarfile
 from io import IOBase
 from subprocess import call, DEVNULL
@@ -1961,6 +1962,9 @@ class Report(object):
         elif btyp == 'Tecplot':
             # Use a Tecplot layout
             lines = self.SubfigTecplotLayout(sfig, i, True)
+        elif btyp == "Python":
+            # Use a Python (probably PyVista) script
+            lines = self.SubfigPython(sfig, i, True)
         elif btyp == 'Image':
             # Coy an image
             lines = self.SubfigImage(sfig, i, True)
@@ -4643,7 +4647,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigImage(sfig, i, q)
         :Inputs:
-            *R*: :class:`pyCart.report.Report`
+            *R*: :class:`Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -4660,6 +4664,10 @@ class Report(object):
         frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
+        # Path to final output
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(rootdir, figdir)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Get the vertical alignment.
@@ -4688,15 +4696,122 @@ class Report(object):
             os.chdir(frun)
             # Layout file name
             fimg = opts.get_SubfigOpt(sfig, "ImageFile")
+            # Extension
+            imgext = fimg.rsplit('.')[-1]
+            # Output file name
+            fout = f"{sfig}.{imgext}"
+            # Absolute path
+            fabs = os.path.join(dirname, fout)
             # Check if the file is present
             if os.path.isfile(fimg):
                 # Copy the file to the report folder
-                shutil.copy(fimg, fpwd)
+                if os.path.abspath(fimg) != fabs:
+                    shutil.copy(fimg, fabs)
             # Include figure into tex file
-            self.includegraphics(fimg, lines, i)
+            self.includegraphics(fout, lines, i)
         # Go to the report case folder
         os.chdir(fpwd)
-        # Set the caption.
+        # Set the caption
+        if fcpt:
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+
+   # --- External Script ---
+    # Run Python script
+    def SubfigPython(self, sfig: str, i: int, q: bool) -> list:
+        r"""Run Python script to create one or more images
+
+        :Call:
+            >>> lines = R.SubfigPython(sfig, i, q)
+        :Inputs:
+            *R*: :class:`Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+            *q*: :class:`bool`
+                Unused option whether or not to do work
+        :Versions:
+            * 2026-02-10 ``@ddalle``: v1.0
+        """
+        # Save current folder
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.get_case_name(i)
+        # Extract options
+        opts = self.cntl.opts
+        # Path to final output
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(rootdir, figdir)
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Go to the root folder
+        os.chdir(self.cntl.RootDir)
+        # Name of Python file (relative to *RootDir*)
+        fpy = opts.get_SubfigOpt(sfig, "PythonFile")
+        fpy_abs = self.cntl.abspath(fpy)
+        # Get executable
+        pyexec = opts.get_SubfigOpt(sfig, "PythonExec")
+        # Apply default
+        pyexec = sys.executable if pyexec is None else pyexec
+        # Check if the run directory exists.
+        if os.path.isdir(frun):
+            # Go there
+            os.chdir(frun)
+            # Check for Python file
+            if os.path.isfile(fpy_abs):
+                # Name of file for this folder
+                fpy_local = f"{sfig}.py"
+                # Copy python file
+                shutil.copy(fpy_abs, fpy_local)
+                # Execute it
+                if q:
+                    ierr = call([pyexec, fpy_local])
+                # Check error code
+                if ierr:
+                    print(f"  Command returned {ierr}:")
+                    print(f"     {pyexec} {os.path.basename(fpy)}")
+            # Image file name
+            fimg = opts.get_SubfigOpt(sfig, "ImageFile")
+            # File extension
+            imgext = fimg.rsplit('.')[-1]
+            # Output file name
+            fout = f"{sfig}.{imgext}"
+            # Output file
+            fabs = os.path.join(dirname, fout)
+            # Check if the file is present
+            if os.path.isfile(fimg):
+                # Copy the file to the report folder
+                if not os.path.abspath(fimg) == fabs:
+                    shutil.copy(fimg, fabs)
+            # Include figure into tex file
+            self.includegraphics(fout, lines, i)
+        # Go to the report case folder
+        os.chdir(fpwd)
+        # Set the caption
         if fcpt:
             lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -4712,7 +4827,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigParaviewLayout(sfig, i, q)
         :Inputs:
-            *R*: :class:`pyCart.report.Report`
+            *R*: :class:`Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update

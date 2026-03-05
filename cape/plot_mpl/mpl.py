@@ -268,6 +268,66 @@ def semilogy(xv, yv, fmt=None, **kw):
     return _semilogy(xv, yv, fmt=fmt, **kw_p)
 
 
+# Semilogx function with options check
+def semilogx(xv, yv, fmt=None, **kw):
+    r"""Call the :func:`semilogx` function with cycling options
+
+    :Call:
+        >>> h = semilogx(xv, yv, **kw)
+        >>> h = semilogx(xv, yv, fmt, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *fmt*: :class:`str`
+            Optional format option
+    :Keyword Arguments:
+        %(keys)s
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            List of line instances
+    :Versions:
+        * 2026-02-18 ``@ddalle``: v1.0; fork from semilogy()
+    """
+    # Process options
+    opts = MPLOpts(_section="plot", **kw)
+    # Get plot options
+    kw_p = opts.plot_options()
+    # Call root function
+    return _semilogx(xv, yv, fmt=fmt, **kw_p)
+
+
+# Log-log function with options check
+def loglog(xv, yv, fmt=None, **kw):
+    r"""Call the :func:`semilogx` function with cycling options
+
+    :Call:
+        >>> h = loglog(xv, yv, **kw)
+        >>> h = loglog(xv, yv, fmt, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *fmt*: :class:`str`
+            Optional format option
+    :Keyword Arguments:
+        %(keys)s
+    :Outputs:
+        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            List of line instances
+    :Versions:
+        * 2026-02-18 ``@ddalle``: v1.0; fork from semilogy()
+    """
+    # Process options
+    opts = MPLOpts(_section="plot", **kw)
+    # Get plot options
+    kw_p = opts.plot_options()
+    # Call root function
+    return _loglog(xv, yv, fmt=fmt, **kw_p)
+
+
 # Contour function with options check
 def contour(xv, yv, zv, **kw):
     r"""Call the :func:`contour` function with cycling options
@@ -2481,6 +2541,102 @@ def _semilogy(xv, yv, fmt=None, **kw):
     else:
         # No format argument
         h = plt.semilogy(xv, yv, **kw_p)
+    # Output
+    return h
+
+
+# Plot part
+def _semilogx(xv, yv, fmt=None, **kw):
+    r"""Call the :func:`semilogx` function with cycling options
+
+    :Call:
+        >>> h = _semilogx(xv, yv, **kw)
+        >>> h = _semilogx(xv, yv, fmt, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *fmt*: :class:`str`
+            Optional format option
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *rotate*, *Rotate*: ``True`` | {``False``}
+            Plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.plot`
+    :Outputs:
+        *h*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
+            List of line instances
+    :Versions:
+        * 2026-02-18 ``@ddalle``: v1.0; fork from _semilogy()
+    """
+    # Ensure plot() is available
+    _import_pyplot()
+    # Get index
+    i = kw.pop("Index", kw.pop("i", 0))
+    # Get rotation option
+    r = kw.pop("Rotate", kw.pop("rotate", False))
+    # Flip inputs
+    if r:
+        yv, xv = xv, yv
+    # Initialize plot options
+    kw_p = MPLOpts.select_phase(kw, i)
+    # Call plot
+    if typeutils.isstr(fmt):
+        # Call with extra format argument
+        h = plt.semilogx(xv, yv, fmt, **kw_p)
+    else:
+        # No format argument
+        h = plt.semilogx(xv, yv, **kw_p)
+    # Output
+    return h
+
+
+# Plot part
+def _loglog(xv, yv, fmt=None, **kw):
+    r"""Call the :func:`semilogx` function with cycling options
+
+    :Call:
+        >>> h = _loglog(xv, yv, **kw)
+        >>> h = _loglog(xv, yv, fmt, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`
+            Array of *x*-coordinates
+        *yv*: :class:`np.ndarray`
+            Array of *y*-coordinates
+        *fmt*: :class:`str`
+            Optional format option
+        *i*, *Index*: {``0``} | :class:`int`
+            Phase number to cycle through plot options
+        *rotate*, *Rotate*: ``True`` | {``False``}
+            Plot independent variable on vertical axis
+    :Keyword Arguments:
+        * See :func:`matplotlib.pyplot.plot`
+    :Outputs:
+        *h*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
+            List of line instances
+    :Versions:
+        * 2026-02-18 ``@ddalle``: v1.0; fork from _semilogy()
+    """
+    # Ensure plot() is available
+    _import_pyplot()
+    # Get index
+    i = kw.pop("Index", kw.pop("i", 0))
+    # Get rotation option
+    r = kw.pop("Rotate", kw.pop("rotate", False))
+    # Flip inputs
+    if r:
+        yv, xv = xv, yv
+    # Initialize plot options
+    kw_p = MPLOpts.select_phase(kw, i)
+    # Call plot
+    if typeutils.isstr(fmt):
+        # Call with extra format argument
+        h = plt.loglog(xv, yv, fmt, **kw_p)
+    else:
+        # No format argument
+        h = plt.loglog(xv, yv, **kw_p)
     # Output
     return h
 

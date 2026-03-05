@@ -250,6 +250,10 @@ class Umesh(umeshbase.UmeshBase):
             elif gridfmt.format == "uh3d":
                 # UH3D format
                 self.read_uh3d(fp, meta)
+            elif gridfmt.format == "vtk":
+                # VTK format
+                fp.close()
+                self.read_vtk(os.path.join(fdir, fname))
 
     def read_avm(
             self,
@@ -370,6 +374,11 @@ class Umesh(umeshbase.UmeshBase):
             elif gridfmt.format == "ufunc":
                 # UFUNC format
                 self.write_ufunc(fp, fmt=fmt)
+            elif gridfmt.format == "vtk":
+                # Close fp (just use pyvista save method)
+                fp.close()
+                # VTK format
+                self.write_vtk(os.path.join(fdir, fname))
 
     def write_fro(
             self,
@@ -427,4 +436,3 @@ class Umesh(umeshbase.UmeshBase):
             fname_or_fp: Union[str, IOBase]):
         # Write mesh
         write_avm(self, fname_or_fp)
-

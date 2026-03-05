@@ -1632,6 +1632,41 @@ class ImageSubfigOpts(SubfigOpts):
     }
 
 
+# Run arbitrary script
+class PythonSubfigOpts(ImageSubfigOpts):
+    r"""Generate an image by running a Python script
+    """
+    # Attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "subfigure based on running arbitrary script"
+
+    # Additional options
+    _optlist = (
+        "PythonExec",
+        "PythonFile",
+    )
+
+    # Aliases
+    _optmap = {
+        "PyExec": "PythonExec",
+        "PythonScript": "PythonFile",
+    }
+
+    # Types
+    _opttypes = {
+        "PythonExec": str,
+        "PythonFile": str,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "PythonExec": "Python executable (default to sys.executable)",
+        "PythonFile": "path to Python file to copy and run",
+    }
+
+
 # Class for subfigure collections
 class SubfigCollectionOpts(OptionsDict):
     r"""Options for a collection of subfigure definitions
@@ -1678,6 +1713,7 @@ class SubfigCollectionOpts(OptionsDict):
         "PlotL2": ResidualSubfigOpts,
         "PlotLineLoad": PlotLineLoadSubfigOpts,
         "PlotResid": ResidualSubfigOpts,
+        "Python": PythonSubfigOpts,
         "Summary": CoeffTableSubfigOpts,
         "SweepCases": SweepConditionsSubfigOpts,
         "SweepCoeff": PlotCoeffSweepSubfigOpts,

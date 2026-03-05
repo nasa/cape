@@ -316,7 +316,7 @@ class DataKitQuickStarter:
         self.pkgname = self.get_full_pkgname()
         self.pkgdir = self.get_pkgdir()
 
-    def quickstart(self,) -> int:
+    def quickstart(self) -> int:
         r"""Create new datakits
 
         :Call:

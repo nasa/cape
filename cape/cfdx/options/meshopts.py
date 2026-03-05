@@ -35,6 +35,7 @@ class MeshOpts(OptionsDict):
         "MeshFile",
         "TriFile",
         "LinkMesh",
+        "WriteTri",
     }
 
     # Aliases
@@ -52,6 +53,7 @@ class MeshOpts(OptionsDict):
     # Defaults
     _rc = {
         "LinkMesh": False,
+        "WriteTri": True,
     }
 
     # Types
@@ -64,6 +66,7 @@ class MeshOpts(OptionsDict):
         "TriFile": str,
         "LinkMesh": BOOL_TYPES,
         "MapBCFile": str,
+        "WriteTri": BOOL_TYPES,
     }
 
     # Descriptions
@@ -80,6 +83,7 @@ class MeshOpts(OptionsDict):
         "MapBCFile": "name of the boundary condition map file",
         "MeshFile": "original mesh file name(s)",
         "TriFile": "original surface triangulation file(s)",
+        "WriteTri": "whether to write surface triangulation file",
     }
 
 

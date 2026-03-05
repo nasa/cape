@@ -302,6 +302,49 @@ class UmeshBase(ABC):
 
   # === I/O ===
    # --- Read ---
+    def read_vtk(
+            self,
+            fname: str):
+        # Read using PyVista
+        pvmesh = pv.read(fname)
+        # Save as gruvoc
+        mesh = self.__class__.from_pvmesh(pvmesh)
+        # Merge data
+        self.merge(mesh)
+        self.pvmesh = pvmesh
+
+    def write_vtk(
+            self,
+            fname: str,
+            force: bool = True):
+        r"""Write Umesh to vtk file
+
+        :Call:
+            >>> mesh.write_vtk(fname)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *fname*: :class:`str`
+                Name of file to write
+            *force*: {``True``} | ``False``
+                Overwrite any *mesh.pvmesh*
+        """
+        # Check for volume cells
+        ntet = 0 if self.ntet is None else self.ntet
+        npyr = 0 if self.npyr is None else self.npyr
+        npri = 0 if self.npri is None else self.npri
+        nhex = 0 if self.nhex is None else self.nhex
+        # Check total volume cells
+        if force or getattr(self, "pvmesh") is not None:
+            if ntet + npyr + npri + nhex == 0:
+                # Surface mesh
+                self.make_pvmesh_surf()
+            else:
+                # Volume mesh
+                self.make_pvmesh_vol()
+        # Write the file
+        self.pvmesh.save(fname)
+
     def _read_to_slot(
             self,
             fp: IOBase,
@@ -464,11 +507,21 @@ class UmeshBase(ABC):
         # Look for first mismatch
         ntri = nv.size if mask.size == 0 else mask[0]
         nquad = (faces.size - 4*ntri) // 5
+        # Get component IDs
+        comps = pvmesh.cell_data.get("Components")
         # Save elements
         mesh.tris = np.reshape(faces[:4*ntri], (ntri, 4))[:, 1:] + 1
         mesh.quads = np.reshape(faces[4*ntri:], (nquad, 5))[:, 1:] + 1
         mesh.ntri = ntri
         mesh.nquad = nquad
+        # Save component IDs
+        if isinstance(comps, np.ndarray):
+            mesh.tri_ids = np.array(comps[:ntri], dtype="i4")
+            mesh.quad_ids = np.array(comps[ntri:], dtype="i4")
+        else:
+            # Initialize
+            mesh.tri_ids = np.ones(ntri, dtype="i4")
+            mesh.quad_ids = np.ones(nquad, dtype="i4")
         # Save flow variables
         if pvmesh.point_data.keys() != []:
             mesh.qvars = pvmesh.point_data.keys()
@@ -538,25 +591,28 @@ class UmeshBase(ABC):
         # Handle tri files with no quads by setting nquad to 0
         if self.nquad is None:
             self.nquad = 0
-        # Set cell types
-        celltype = np.concatenate(
-            (
-                np.repeat(pv.CellType.TRIANGLE, self.ntri),
-                np.repeat(pv.CellType.QUAD, self.nquad),
-            ),
-            dtype=np.int8,
-        )
-        # Generate array of cells
-        cells = np.concatenate((
-            np.hstack((np.full((self.ntri, 1), 3), self.tris - 1)).ravel(),
-            np.hstack((np.full((self.nquad, 1), 4), self.quads - 1)).ravel()
-        ))
+            self.quads = np.zeros((0, 4))
+        # Other defaults
+        if self.tri_ids is None:
+            self.tri_ids = np.ones(self.ntri, dtype="i4")
+        if self.quad_ids is None:
+            self.quad_ids = np.ones(self.nquad, dtype="i4")
+        # Component list
+        comp_ids = np.hstack((self.tri_ids, self.quad_ids))
+        # Get tris
+        tris = np.hstack((np.full((self.ntri, 1), 3), self.tris - 1))
+        quads = np.hstack((np.full((self.nquad, 1), 4), self.quads - 1))
+        # Stack
+        faces = np.hstack((tris.ravel(), quads.ravel()))
         # Generate mesh
-        self.pvmesh = pv.UnstructuredGrid(cells, celltype, self.nodes)
+        self.pvmesh = pv.PolyData(self.nodes, faces)
+        # Save IDs
+        self.pvmesh.cell_data["Components"] = comp_ids
         # Add solution files if present
         if self.qvars is not None:
             for i, var in enumerate(self.qvars):
                 self.pvmesh.point_data[var] = self.q[:, i]
+                self.pvmesh[var] = self.pvmesh.point_data[var]
 
     def make_pv_skin_friction(
             self, p, T, M, R=None, gam=1.4,
@@ -594,7 +650,7 @@ class UmeshBase(ABC):
         # Remove the offbody points acn keep just the first cells from surfs
         surf.remove_offbody()
         surf.make_pvmesh_vol()
-         # First find qvar index for p and rho
+        # First find qvar index for p and rho
         indp = surf.qvars.index('p')
         indrho = surf.qvars.index('rho')
         # Compute local temperature using Tlocal/Tinf=gamma*p/rho
@@ -824,25 +880,25 @@ class UmeshBase(ABC):
         # List of velocity strings
         vel_strings = ['u', 'v', 'w']
         # Find qvar index match for velocity components
-        match = [i for i, s in enumerate(surf.qvars) if s in vel_strings]
+        mtches = [i for i, s in enumerate(surf.qvars) if s in vel_strings]
         # Dimensionalize velocities
-        udim = surf.q[:, match[0]] * a
-        vdim = surf.q[:, match[1]] * a
-        wdim = surf.q[:, match[2]] * a
+        udim = surf.q[:, mtches[0]] * a
+        vdim = surf.q[:, mtches[1]] * a
+        wdim = surf.q[:, mtches[2]] * a
         # Lets get the first cell heights using scipy.spatial.KDTree
         tree = KDTree(surf.nodes)
         # Query for the distance between two closest points
         # On the body, this should be itself and one off-body
-        distances, indicies = tree.query(surf.nodes, k=2)
+        distances, indices = tree.query(surf.nodes, k=2)
         # Now lets compute the velocity deltas of the point with its nearest
         #  neighbor
-        du = udim[indicies[:, 1]]-udim[indicies[:, 0]]
-        dv = vdim[indicies[:, 1]]-vdim[indicies[:, 0]]
-        dw = wdim[indicies[:, 1]]-wdim[indicies[:, 0]]
+        du = udim[indices[:, 1]]-udim[indices[:, 0]]
+        dv = vdim[indices[:, 1]]-vdim[indices[:, 0]]
+        dw = wdim[indices[:, 1]]-wdim[indices[:, 0]]
         # Get displacements
-        dx = surf.nodes[:, 0][indicies[:, 1]] - surf.nodes[:, 0][indicies[:,0]]
-        dy = surf.nodes[:, 1][indicies[:, 1]] - surf.nodes[:, 1][indicies[:,0]]
-        dz = surf.nodes[:, 2][indicies[:, 1]] - surf.nodes[:, 2][indicies[:,0]]
+        dx = surf.nodes[:, 0][indices[:, 1]] - surf.nodes[:, 0][indices[:, 0]]
+        dy = surf.nodes[:, 1][indices[:, 1]] - surf.nodes[:, 1][indices[:, 0]]
+        dz = surf.nodes[:, 2][indices[:, 1]] - surf.nodes[:, 2][indices[:, 0]]
         # Extend the list of qvars
         surf.qvars.extend(['distance1', 'dx', 'dy', 'dz', 'mu'])
         surf.qvars.extend([f"{i}_dim" for i in vel_strings])
@@ -1035,6 +1091,35 @@ class UmeshBase(ABC):
         for attr in slots:
             # Copy attributes
             setattr(mesh, attr, copy.copy(getattr(self, attr)))
+        # Output
+        return copy
+
+    def merge(self, mesh: "UmeshBase") -> "UmeshBase":
+        r"""Copy data from one mesh into another
+
+        :Call:
+            >>> mesh.merge(meshc)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *meshc*: :class:`Umesh`
+                Copy of *mesh*
+        """
+        # Initialize copy
+        cls = self.__class__
+        # Get array of slots
+        slots = []
+        while cls is not ABC:
+            # Append slots
+            for attr in getattr(cls, "__slots__", ()):
+                if attr not in slots:
+                    slots.append(attr)
+            # Get basis
+            cls = cls.__base__
+        # Loop through slots
+        for attr in slots:
+            # Copy attributes
+            setattr(self, attr, copy.copy(getattr(mesh, attr)))
         # Output
         return copy
 
@@ -1844,7 +1929,56 @@ class UmeshBase(ABC):
             return t[j]
 
    # --- Surface subsets ---
-    def get_nodes_by_id(self, surf_id: int) -> np.ndarray:
+    def select_comp(
+            self, comp: Union[list, tuple, int]) -> "UmeshBase":
+        # Ensure list
+        comp_ids = _listify(comp)
+        # Loop through comps
+        for j, k in enumerate(comp_ids):
+            # Get node list
+            tris_j = self.get_tris_by_id(k)
+            quads_j = self.get_quads_by_id(k)
+            if j == 0:
+                # Initial list
+                kquads = quads_j
+                ktris = tris_j
+            else:
+                kquads = np.union1d(kquads, quads_j)
+                ktris = np.union1d(ktris, tris_j)
+        # Get nodes
+        jnodes = self.get_nodes_by_id(k, ktris, kquads)
+        # Create a list
+        mesh = self.__class__()
+        # Save the nodes
+        mesh.nodes = self.nodes[jnodes]
+        mesh.nnode = jnodes.size
+        # Save elements
+        tris = self.tris[ktris]
+        quads = self.quads[kquads]
+        mesh.ntri = ktris.size
+        mesh.nquad = kquads.size
+        # Component information
+        mesh.tris = compress_indices(tris, jnodes+1)
+        mesh.quads = compress_indices(quads, jnodes+1)
+        # Renumber nodes
+        mesh.tri_ids = self.tri_ids[ktris]
+        mesh.quad_ids = self.quad_ids[kquads]
+        # Downselect the states
+        mesh.qvars = self.qvars
+        mesh.q = self.q[jnodes, :]
+        # No volume elements
+        mesh.ntet = 0
+        mesh.npyr = 0
+        mesh.npri = 0
+        mesh.nhex = 0
+        # Output
+        return mesh
+
+    def get_nodes_by_id(
+            self,
+            surf_id: int,
+            tri_ids: Optional[np.ndarray] = None,
+            quad_ids: Optional[np.ndarray] = None) -> np.ndarray:
         r"""Get indices of all nodes contained on a given surface ID
 
         :Call:
@@ -1859,8 +1993,12 @@ class UmeshBase(ABC):
                 Indices of nodes in at least one tri/quad w/ matching ID
         """
         # Get tris and quads
-        ktria = self.get_tris_by_id(surf_id)
-        kquad = self.get_quads_by_id(surf_id)
+        ktria = (
+            tri_ids if (tri_ids is not None)
+            else self.get_tris_by_id(surf_id))
+        kquad = (
+            quad_ids if (quad_ids is not None)
+            else self.get_quads_by_id(surf_id))
         # Get the node indices of those quads and tris
         tris = self.tris[ktria]
         quads = self.quads[kquad]
@@ -3446,3 +3584,12 @@ def interpolate_q(smesh: UmeshBase, rmesh: UmeshBase, k=5):
     rmesh.q = np.multiply(
         smesh.q[inds, :], np.stack([weights]*smesh.nq, axis=2)
     ).sum(axis=1)
+
+
+# Convert scalar to list if necessary
+def _listify(str_or_list: Union[str, list, tuple]) -> list:
+    # Check if list
+    if isinstance(str_or_list, (list, tuple)):
+        return list(str_or_list)
+    else:
+        return [str_or_list]

@@ -68,7 +68,7 @@ from .report import Report
 from .runmatrix import RunMatrix
 from ..argread import ArgReader
 from ..argread.clitext import compile_rst
-from ..config import ConfigXML, ConfigJSON
+from ..config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from ..dkit.rdb import DataKit
 from ..errors import assert_isinstance
 from ..optdict import WARNMODE_WARN
@@ -1234,7 +1234,7 @@ class Cntl(CntlBase):
             # Write the AFLR3 surface file only
             if not os.path.isfile(fsurf):
                 self.tri.WriteSurf(fsurf)
-        else:
+        elif self.opts.get_WriteTri():
             # Write main tri file
             ext = getattr(self, "_tri_ext", "tri")
             ftri = f"{fproj}.{ext}"
@@ -1629,7 +1629,7 @@ class Cntl(CntlBase):
         # Name of config file
         fxml = self.opts.get_ConfigFile()
         # Split based on '.'
-        fext = fxml.split('.')
+        fext = fxml.rsplit('.', 1)
         # Get the extension
         if len(fext) < 2:
             # Odd case, no extension given
@@ -1637,6 +1637,8 @@ class Cntl(CntlBase):
         else:
             # Get the extension
             fext = fext[-1].lower()
+        # Get the base
+        fbase = os.path.basename(fxml).split('.', 1)[0]
         # Read the configuration if it can be found
         if fxml is None or not os.path.isfile(fxml):
             # Nothing to read
@@ -1644,6 +1646,9 @@ class Cntl(CntlBase):
         elif fext == "xml":
             # Read XML config file
             self.config = ConfigXML(fxml)
+        elif fext == "i" or fbase in ("mixsur", "usurp"):
+            # Read mixsur.i file
+            self.config = ConfigMIXSUR(fxml)
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)
@@ -3054,6 +3059,8 @@ class Cntl(CntlBase):
         nlog = int(np.ceil(np.log10(max(1, np.max(I)))))
         # Print format
         fmt = "%%%ii %%s" % nlog
+        # Get early-exit option
+        early = kw.get("early", kw.get("early-exit", False))
         # Loop through folders
         for i in I:
             # Get status
@@ -3065,10 +3072,23 @@ class Cntl(CntlBase):
             print(fmt % (i, self.x.GetFullFolderNames(i)))
             # qdel any cases
             self.StopCase(i)
+            # Reduce iteration count (make case DONE)
+            if early:
+                self.declare_early_exit_case(i)
             # Counter
             nzombie += 1
         # Final status
         print("Cleared up %i ZOMBIEs" % nzombie)
+
+    # Declare early exit
+    def declare_early_exit_case(self, i: int):
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Declare early exit
+        runner.handle_alt_exit()
+        # Save STDOUT file if found
+        j = runner.get_phase()
+        runner.finalize_stdoutfile(j)
 
    # --- Modify cases ---
     # Function to extend one or more cases
@@ -3330,7 +3350,6 @@ class Cntl(CntlBase):
         self.log_cmd(' '.join(cmdfinal))
         # Log cntl state
         self.log_cntl()
-
 
   # *** RUN MATRIX ***
    # --- Values ---
@@ -4672,9 +4691,15 @@ class Cntl(CntlBase):
             fdest = os.path.join(self.RootDir, frun, trg)
             # Check for overwrite
             if os.path.isfile(fdest):
-                raise FileExistsError(
-                    f"  Cannot copy '{os.path.basename(src)}' -> "
-                    f"'{src}'; file exists")
+                # Check if it's a link
+                if os.path.islink(fdest):
+                    # Just replace it
+                    os.remove(fdest)
+                else:
+                    # Don't delete hard file
+                    raise FileExistsError(
+                        f"  Cannot copy '{os.path.basename(src)}' -> "
+                        f"'{src}'; file exists")
             # Copy file
             os.symlink(fabs, fdest)
 
@@ -4897,11 +4922,11 @@ class Cntl(CntlBase):
         # Get logger
         logr = self.get_logger()
         # Open cmd log
-        fp = logr.open_cmd()
+        logr.open_cmd()
         # Get current cntl state name
         fcurr = os.path.join(
-            logr._logdir, 
-            "cmd", 
+            logr._logdir,
+            "cmd",
             "STATE-" + logr.jsonfile + ".jsonl"
         )
         # Get "current" log (if exists)
@@ -4920,7 +4945,7 @@ class Cntl(CntlBase):
             # Check logging setting and that prev cntl state exists
             if self.opts.get_LogLevel() == 2 and opts0.get("hash", None):
                 # Open verbose log
-                fp = logr.open_verbose()
+                logr.open_verbose()
                 # Add text of cntl diffs to verbose log
                 diffmsg = "\n" + self.get_opts_diff(opts0, opts1)
                 # Write msg to verbose log

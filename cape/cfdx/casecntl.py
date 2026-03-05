@@ -1656,7 +1656,11 @@ class CaseRunner(CaseRunnerBase):
         p1 = os.stat(self.root_dir).st_mode
         p2 = os.stat(dirname).st_mode
         # Match permissions to parent folder
-        os.chmod(dirname, p1 | p2)
+        try:
+            os.chmod(dirname, p1 | p2)
+        except PermissionError:
+            self.log_verbose(
+                f"Unable to change permission of '{dirname}/'", parent=1)
 
    # --- File manipulation ---
     # Copy a file
@@ -1717,7 +1721,10 @@ class CaseRunner(CaseRunnerBase):
         # Remove existing target, if any
         self.remove_link(dst, f=True)
         # Rename
-        os.symlink(src, dst)
+        try:
+            os.symlink(src, dst)
+        except FileExistsError:
+            return
 
     # Rename a file
     def rename_file(self, src: str, dst: str, f: bool = False):
@@ -1794,7 +1801,12 @@ class CaseRunner(CaseRunnerBase):
         if os.path.islink(dst):
             # Remove link
             self.log_verbose(f"removing link '{dst_rel}'", parent=1)
-            os.remove(dst)
+            try:
+                os.remove(dst)
+            except PermissionError:
+                self.log_verbose(
+                    f"permission denied: removing link '{dst_rel}'", parent=1)
+                return
         # Check for existing file
         if os.path.isfile(dst):
             # Check for overwrite
@@ -1802,7 +1814,12 @@ class CaseRunner(CaseRunnerBase):
                 # Replace (overwriten later)
                 self.log_verbose(f"overwriting file '{dst_rel}'", parent=1)
                 # Delete file
-                os.remove(dst)
+                try:
+                    os.remove(dst)
+                except PermissionError:
+                    self.log_verbose(
+                        f"permission denied: removing file '{dst_rel}'",
+                        parent=1)
             else:
                 msg = f"cannot overwrite '{dst_rel}'; file exists"
                 self.log_verbose(msg, parent=1)
@@ -5187,11 +5204,12 @@ class CaseRunner(CaseRunnerBase):
             # Try to update the settings
             self.handle_alt_exit(jmax)
         # Log status
-        self.log_status({
-                    "status": sts,
-                    "iter": int(self.get_iter()),
-                    "maxiter": self.get_last_iter(),
-                }, title="STATUS")
+        self.log_status(
+            {
+                "status": sts,
+                "iter": int(self.get_iter()),
+                "maxiter": self.get_last_iter(),
+            }, title="STATUS")
         # Output
         return sts
 
@@ -5533,11 +5551,15 @@ class CaseRunner(CaseRunnerBase):
                 Phase number last completed
         :Versions:
             * 2025-08-15 ``@ddalle``: v1.0
+            * 2026-02-25 ``@ddalle``: v1.1; check for 0 iters
         """
         # Get current iter
         n = self.get_iter()
         # Get cutoff for phase *j*
         nmax = self.get_phase_iters(j)
+        # Don't apply to zero-iter case
+        if (n is None) or (n == 0):
+            return
         # Try to update the settings
         try:
             # Perform action
@@ -6513,7 +6535,6 @@ class CaseRunner(CaseRunnerBase):
         logger = self.get_logger()
         # Log the message
         logger.logdict_status(title, data)
-
 
     def log_data(
             self,
