@@ -523,9 +523,10 @@ class UmeshBase(ABC):
             mesh.tri_ids = np.ones(ntri, dtype="i4")
             mesh.quad_ids = np.ones(nquad, dtype="i4")
         # Save flow variables
-        mesh.qvars = pvmesh.point_data.keys()
-        mesh.nq = len(mesh.qvars)
-        mesh.q = np.stack(pvmesh.point_data.values(), axis=1)
+        if pvmesh.point_data.keys() != []:
+            mesh.qvars = pvmesh.point_data.keys()
+            mesh.nq = len(mesh.qvars)
+            mesh.q = np.stack(pvmesh.point_data.values(), axis=1)
         # Output
         return mesh
 
