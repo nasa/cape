@@ -611,8 +611,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Perform parent check
         q = casecntl.CaseRunner.check_complete(self)
         # Quit if not complete
-        if not q:
-            return q
+        return q
 
     @casecntl.run_rootdir
     def read_data_iter(
