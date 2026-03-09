@@ -48,6 +48,9 @@ SurfZone = namedtuple("SurfZone", ("nodes", "jnode", "tris", "quads"))
 VolumeZone = namedtuple(
     "VolumeZone", ("nodes", "jnode", "tets", "pyrs", "pris", "hexs"))
 
+# Cutoffs
+SMALLTRI = 1e-15
+
 # Other defaults
 DEFAULT_STRAND_ID = np.int32(1000)
 DEFAULT_TIME = np.float64(0.0)
@@ -224,6 +227,7 @@ class UmeshBase(ABC):
         "target_config",
         "tet_ids",
         "title",
+        "tri_areas",
         "tri_bcs",
         "tri_flags",
         "tri_ids",
@@ -1460,6 +1464,51 @@ class UmeshBase(ABC):
         # Calculate the area of each triangle
         return 0.5*np.sqrt(np.sum(n**2, 1))
 
+    # Get tri unit normals and tri areas
+    def make_tri_areas(self):
+        r"""Get the tri areas and unit normals
+
+        :Call:
+            >>> a, nhat = mesh.make_tri_areas()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Outputs:
+            *a*: :class:`ndarray`, shape=(mesh.ntri,)
+                Area of each triangle
+            *nhat*: :class:`np.ndarray`, shape=(mesh.ntri, 3)
+                Unit normal of each triangle
+        """
+        # Check if computed
+        if self.tri_areas is not None:
+            if self.tri_normals is not None:
+                return self.tri_areas, self.tri_normals
+        # Extract the vertices of each trifile.
+        x = self.nodes[self.tris-1, 0]
+        y = self.nodes[self.tris-1, 1]
+        z = self.nodes[self.tris-1, 2]
+        # Get the deltas from node 0 to node 1 or node 2
+        x01 = np.stack(
+            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]), axis=1)
+        x02 = np.stack(
+            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]), axis=1)
+        # Calculate the dimensioned normals
+        n = np.cross(x01, x02)
+        # Calculate areas
+        a = 0.5*np.sqrt(np.sum(n**2, 1))
+        # Look for small areas
+        mask = a < SMALLTRI*np.max(a)
+        # Set those areas to "1" to avoid division by zero
+        anorm = a.copy()
+        anorm[mask] = 1.0
+        # Unitize normals
+        nhat = n / anorm
+        # Save them
+        self.tri_areas = a
+        self.tri_normals = nhat
+        # Output
+        return a, nhat
+
    # --- Config ---
     def get_surf_ids(self, comp=None) -> np.ndarray:
         r"""Expand integer, str, or list to list of surface ID ints
@@ -2007,6 +2056,47 @@ class UmeshBase(ABC):
         # Output
         return jnodes
 
+   # --- Composite subsets ---
+    def get_tris_by_comp(
+            self,
+            comp: Optional[Union[list, int]] = None) -> np.ndarray:
+        r"""Get indices of tris in one or more component
+
+        :Call:
+            >>> ktris = mesh.get_tris_by_comp(comp)
+            >>> ktris = mesh.get_tris_by_comp(comps)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *comp*: :class:`int`
+                Single target for `mesh.tri_ids` to match
+            *comps*: :class:`list`\ [:class:`int`]
+                List of target `tri_ids`
+        :Outputs:
+            *ktris*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of matching tris (0-based indexing)
+        """
+        # Check for empty input
+        if comp is None:
+            return np.arange(self.ntri)
+        # Ensure list
+        comp_ids = _listify(comp)
+        # Loop through comps
+        for j, k in enumerate(comp_ids):
+            # Get node list
+            tris_j = self.get_tris_by_id(k)
+            quads_j = self.get_quads_by_id(k)
+            if j == 0:
+                # Initial list
+                kquads = quads_j
+                ktris = tris_j
+            else:
+                kquads = np.union1d(kquads, quads_j)
+                ktris = np.union1d(ktris, tris_j)
+        # Output
+        return ktris
+
+   # --- Single-Zone Subsets ---
     def get_nodes_by_vol_id(self, vol_id: int) -> np.ndarray:
         r"""Get indices of all nodes contained on a given volume ID
 
@@ -2248,6 +2338,41 @@ class UmeshBase(ABC):
         nodes = self.nodes[j - 1]
         # Output
         return VolumeZone(nodes, j - 1, tets, pyrs, pris, hexs)
+
+  # === Loads ===
+   # --- Line Load Weights ---
+    # Generate weights for one segment
+    def genr8_w8s_segment(
+            self,
+            xa: float,
+            xb: float,
+            comp: Optional[Union[list, str, int]] = None) -> np.ndarray:
+        # Get tris based on component
+        ktris = self.get_tris_by_id(comp)
+        # Get the normals and areas
+        a, nhat = self.make_tri_areas()
+        # Select those tris
+        tris = self.tris[ktris, :]
+        # Get x-coordinates of those nodes
+        xtri = self.nodes[tris - 1, 0]
+        x0 = xtri[:, 0]
+        x1 = xtri[:, 1]
+        x2 = xtri[:, 2]
+        # Initialize weights for each node of each tri
+        wx = np.zeros((self.ntri, 3))
+        wy = np.zeros((self.ntri, 3))
+        wz = np.zeros((self.ntri, 3))
+        # Generate edges
+        x01L = np.fmin(x0, x1)
+        x02L = np.fmin(x0, x2)
+        x12L = np.fmin(x1, x2)
+        x01R = np.fmax(x0, x1)
+        x02R = np.fmax(x0, x2)
+        x12R = np.fmax(x1, x2)
+        # Calculate progress fractions for three edges, left-to-right
+        f01 = (xa - x01L) / (x01R - x01L)
+        f02 = (xa - x02L) / (x02R - x02L)
+        f03 = (xa - x12L) / (x12R - x12L)
 
   # === Analysis ===
    # --- Slices ---
