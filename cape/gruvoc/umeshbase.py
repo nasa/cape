@@ -1502,7 +1502,7 @@ class UmeshBase(ABC):
         anorm = a.copy()
         anorm[mask] = 1.0
         # Unitize normals
-        nhat = n / anorm
+        nhat = n / np.stack((anorm, anorm, anorm), axis=1)
         # Save them
         self.tri_areas = a
         self.tri_normals = nhat
@@ -3126,6 +3126,38 @@ class UmeshBase(ABC):
         # Reset node count
         self.nnode = self.nodes.shape[0]
 
+   # --- Small area elems ---
+    # Analyze tris
+    def report_small_tris(self, smallvol: float, nrows: int = NROWS):
+        # Check for something to report
+        if self.ntri in (None, 0) or self.tris is None:
+            return 0, 0
+        # Get areas
+        a, _ = self.make_tri_areas()
+        # Tetrahedra verts
+        t = self.tris - 1
+        # Get coordinates of tets
+        x = self.nodes[t, 0]
+        y = self.nodes[t, 1]
+        z = self.nodes[t, 2]
+        # Mask small volumes
+        mask = a <= smallvol
+        a = a[mask]
+        x = x[mask]
+        y = y[mask]
+        z = z[mask]
+        # Find smallest tris
+        j = np.argsort(a)[:nrows]
+        # Print results
+        nsmall = np.sum(mask)
+        ntotal = self.ntri
+        print(f"TRIS: {nsmall}/{pprint_n(ntotal)} small elements")
+        # Print table
+        if j.size:
+            print_smallvol_table(a, j, x, y, z)
+        # Output
+        return nsmall, ntotal
+
    # --- Small volume cells ---
     # Check all four element types for "small" cells
     def report_small_cells(
@@ -3140,6 +3172,8 @@ class UmeshBase(ABC):
             widths = bbox[1::2] - bbox[::2]
             # Use fraction of max width
             smallvol = 2e-13 * np.max(widths)
+        # Analyze surf element
+        n0, m0 = self.report_small_tris(smallvol, nrows)
         # Analyze each volume element type
         n1, m1 = self.report_small_tets(smallvol, nrows)
         n2, m2 = self.report_small_pyrs(smallvol, nrows)
@@ -3153,6 +3187,9 @@ class UmeshBase(ABC):
 
     # Analyze tetrahedra
     def report_small_tets(self, smallvol: float, nrows: int = NROWS):
+        # Check for something to report
+        if self.ntet in (None, 0) or self.tets is None:
+            return 0, 0
         # Tetrahedra verts
         t = self.tets - 1
         # Get coordinates of tets
@@ -3185,6 +3222,9 @@ class UmeshBase(ABC):
 
     # Analyze pyramids
     def report_small_pyrs(self, smallvol: float, nrows: int = NROWS):
+        # Check for something to report
+        if self.npyr in (None, 0) or self.pyrs is None:
+            return 0, 0
         # Element verts
         t = self.pyrs - 1
         # Get coordinates of tets
@@ -3218,6 +3258,9 @@ class UmeshBase(ABC):
 
     # Analyze prisms
     def report_small_pris(self, smallvol: float, nrows: int = NROWS):
+        # Check for something to report
+        if self.npri in (None, 0) or self.pris is None:
+            return 0, 0
         # Element vert indices
         t = self.pris - 1
         # Get coordinates of verts
@@ -3252,6 +3295,9 @@ class UmeshBase(ABC):
 
     # Analyze hexs
     def report_small_hexs(self, smallvol: float, nrows: int = NROWS):
+        # Check for something to report
+        if self.nhex in (None, 0) or self.hexs is None:
+            return 0, 0
         # Element vert indices
         t = self.hexs - 1
         # Get coordinates of verts
