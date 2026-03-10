@@ -1502,7 +1502,7 @@ class UmeshBase(ABC):
         anorm = a.copy()
         anorm[mask] = 1.0
         # Unitize normals
-        nhat = n / anorm
+        nhat = n / anorm.reshape(-1, 1)
         # Save them
         self.tri_areas = a
         self.tri_normals = nhat
@@ -2348,7 +2348,7 @@ class UmeshBase(ABC):
             xb: float,
             comp: Optional[Union[list, str, int]] = None) -> np.ndarray:
         # Get tris based on component
-        ktris = self.get_tris_by_id(comp)
+        ktris = self.get_tris_by_comp(comp)
         # Get the normals and areas
         a, nhat = self.make_tri_areas()
         # Select those tris
@@ -2359,9 +2359,10 @@ class UmeshBase(ABC):
         x1 = xtri[:, 1]
         x2 = xtri[:, 2]
         # Initialize weights for each node of each tri
-        wx = np.zeros((self.ntri, 3))
-        wy = np.zeros((self.ntri, 3))
-        wz = np.zeros((self.ntri, 3))
+        # wx = np.zeros((self.ntri, 3))
+        # wy = np.zeros((self.ntri, 3))
+        # wz = np.zeros((self.ntri, 3))
+        w = np.zeros((self.ntri, 1))
         # Generate edges
         x01L = np.fmin(x0, x1)
         x02L = np.fmin(x0, x2)
@@ -2370,9 +2371,31 @@ class UmeshBase(ABC):
         x02R = np.fmax(x0, x2)
         x12R = np.fmax(x1, x2)
         # Calculate progress fractions for three edges, left-to-right
-        f01 = (xa - x01L) / (x01R - x01L)
-        f02 = (xa - x02L) / (x02R - x02L)
-        f03 = (xa - x12L) / (x12R - x12L)
+        f01l = (xa - x01L) / (x01R - x01L)
+        f02l = (xa - x02L) / (x02R - x02L)
+        f12l = (xa - x12L) / (x12R - x12L)
+        # Mask out progress fractions not 0<f<1 (edge not being cut)
+        f01l[f01l < 0] = 0
+        f01l[f01l > 1] = 0
+        f02l[f02l < 0] = 0
+        f02l[f02l > 1] = 0
+        f12l[f12l < 0] = 0
+        f12l[f12l > 1] = 0
+        # Calculate fractional weighting
+        fr01 = f01l*f02l
+        fr02 = f02l*f12l
+        fr12 = f01l*f12l
+        # Set weights
+        w[ktris, 0]  = (1 - fr01 - fr02 - fr12)
+        # Calc tri avg cp
+        # qbar = np.sum(-1.0*self.q[tris - 1, 0], axis=1)*(1/3)
+        # Apply weighted area to each tri
+        # wqbar = np.multiply(qbar.reshape(-1,1),
+        #   np.multiply(self.tri_areas[ktris].reshape(-1,1), w[ktris,:]))
+        # Sum component of each weighted tri and scale by total area
+        # result = np.dot(wqbar.T, nhat[ktris,:]) / np.sum(
+        #   np.multiply(self.tri_areas[ktris].reshape(-1,1), w[ktris,:]))
+        return w
 
   # === Analysis ===
    # --- Slices ---
