@@ -3630,16 +3630,19 @@ class Cntl(CntlBase):
             print(f"  New entry at iteration {ni}")
         # Sample the data
         d = runner.sample_dex(comp)
-        # If extra data file
-        if db.data_fname:
-            # Write extra file
-            d.write_datafile(
-                fname=db.data_fname,
-                casename=runner.get_case_name()
-            )
-        # Save it to the data
+        # Save conditions to the data
         db.xiappend(self.x, i)
-        db.xappend(d)
+        # Get case data file name (``None`` if not individual-case type)
+        fi = db.get_case_filename(i)
+        # If extra data file
+        if fi is not None:
+            # Create folder if necessary
+            db.mkdir_case(i)
+            # Write extra file
+            d.write(fi)
+        else:
+            # Save it to the data
+            db.xappend(d)
         # Remove any empty columns
         db.delete_empty()
         # Return counter

@@ -6,7 +6,7 @@ r"""
 
 # Standard library
 import os
-from typing import Any
+from typing import Any, Optional
 
 # Third-party
 import numpy as np
@@ -14,9 +14,6 @@ import numpy as np
 # Local imports
 from .cntlbase import CntlBase
 from ..dkit.rdb import DataKit
-
-
-#
 
 
 # Base DataExchanger
@@ -123,15 +120,13 @@ class DataExchanger(DataKit):
         :Versions:
             * 2026-03-11 ``@ddalle``: v1.0
         """
-        # Check type
-        if self.comptype.lower() not in self._casedata_types:
+        # Get case data file name, if any
+        fname = self.get_case_filename(i)
+        # Check type (no case data file name)
+        if fname is None:
             return
-        # Path to case data
-        frun = self.get_case_folder(i)
-        # Get data file name
-        fname = self.get_data_filename()
         # Read the data
-        self.casedata[i] = DataKit(os.path.join(frun, fname))
+        self.casedata[i] = DataKit(fname)
 
    # --- Custom read ---
 
@@ -316,6 +311,27 @@ class DataExchanger(DataKit):
         dirname = self.get_subdir()
         # Combine default parameters
         return os.path.join(dirname, f"{prefix}_{self.name}.{ext}")
+
+    def get_case_filename(self, i: int) -> Optional[str]:
+        r"""Get absolute path to file for individual-case data
+
+        :Call:
+            >>> fname = db.get_case_filename(i)
+        :Outputs:
+            *fname*: ``None`` | :class:`str`
+                File for individual-case data, if appropriate
+        :Versions:
+            * 2026-03-11 ``@ddalle``: v1.0
+        """
+        # Check for case data
+        if self.comptype.lower() not in self._casedata_types:
+            return
+        # Path to case data
+        frun = self.get_case_folder(i)
+        # Get data file name
+        fname = self.get_data_filename()
+        # Combine
+        return os.path.join(frun, fname)
 
    # --- Folders ---
     def get_case_folder(self, i: int) -> str:

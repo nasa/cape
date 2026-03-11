@@ -179,21 +179,21 @@ class CasePointProbe(casedata.CasePointProbe):
             *filelist*: :class:`list`\ [:class:`str`]
                 List of files to read to construct iterative history
         :Versions:
-            * 2024-09-18 ``@sneuhoff``: v1.0
-            * 2025-07-17 ``@ddalle``: v1.1; merge Curv & Cart
+            * 2026-03-11 ``@ddalle``: v1.0
         """
         # Confirm active runner
         if self.runner is None:
             raise TypeError(
                 f"Cannot use cape.pylava {self.__class__.__name__} " +
                 "without a CaseRunner instance")
-        # Name of (single) file
-        cartfile = os.path.join("monitor", "Cart.data.iter")
-        # Check for such a file
-        if os.path.isfile(cartfile):
-            return [cartfile]
-        else:
-            return ["data.iter"]
+        # Get case index
+        j = self.runner.get_dex_opt(self.pt, "Index")
+        # Pattern for file names
+        pat = os.path.join("point_probe", rf"Cart\.[0-9]+\.pnt{j:04d}.dat")
+        # Find those files
+        filelist_raw = self.runner.search_regex(pat)
+        # Sort them
+        return sorted(filelist_raw)
 
 
 # Iterative residual history
