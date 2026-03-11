@@ -2145,11 +2145,11 @@ class CasePointProbe(CaseData):
 
    # --- __dunder__ ---
     # Initialization method
-    def __init__(self, pt: str, **kw):
+    def __init__(self, pt: str, runner=None, **kw):
         # Save point name
         self.pt = pt
         # Parent initialization
-        CaseData.__init__(self, **kw)
+        CaseData.__init__(self, runner=runner, **kw)
 
     # Function to display contents
     def __repr__(self):

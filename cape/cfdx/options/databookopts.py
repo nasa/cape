@@ -501,7 +501,7 @@ class TriqPointDataBookOpts(DBCompOpts):
 
 
 # Class for "PointProbe" components
-class IterPointProbeDataBookOpts():
+class IterPointProbeDataBookOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
 

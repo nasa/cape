@@ -21,7 +21,7 @@ import numpy as np
 # Local imports
 from . import cmdgen
 from .. import fileutils
-from .databook import CaseFM, CaseResid
+from .databook import CaseFM, CasePointProbe, CaseResid
 from .dataiterfile import DataIterFile
 from .runinpfile import CartInputFile
 from .yamlfile import RunYAMLFile
@@ -69,6 +69,7 @@ class CaseRunner(casecntl.CaseRunner):
     _resid_cls = CaseResid
     _dex_cls = {
         "fm": CaseFM,
+        "pointprobe": CasePointProbe,
     }
 
    # --- Config ---
@@ -334,6 +335,24 @@ class CaseRunner(casecntl.CaseRunner):
                 return db.l2conv <= l2conv_target
         # Fallback
         return False
+
+   # --- DEx ---
+    # Create tuple of args after *comp*
+    def get_dex_args_post_pointprobe(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_iterfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one arg, *runner*
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        return (self,)
 
    # --- File manipulation ---
     # Prepare any input files as needed
