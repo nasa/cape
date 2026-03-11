@@ -50,6 +50,7 @@ VolumeZone = namedtuple(
 
 # Cutoffs
 SMALLTRI = 1e-15
+XTOL = 1e-12
 
 # Other defaults
 DEFAULT_STRAND_ID = np.int32(1000)
@@ -2349,6 +2350,14 @@ class UmeshBase(ABC):
             comp: Optional[Union[list, str, int]] = None) -> np.ndarray:
         # Get tris based on component
         ktris = self.get_tris_by_id(comp)
+        # Get reference scale
+        bbox = self.get_bbox(comp)
+        dx = bbox[1] - bbox[0]
+        dy = bbox[3] - bbox[2]
+        dz = bbox[5] - bbox[4]
+        lref = np.sqrt(dx*dx + dy*dy + dz*dz)
+        # Reference tolrance
+        xtol = XTOL * lref
         # Get the normals and areas
         a, nhat = self.make_tri_areas()
         # Select those tris
@@ -2358,21 +2367,16 @@ class UmeshBase(ABC):
         x0 = xtri[:, 0]
         x1 = xtri[:, 1]
         x2 = xtri[:, 2]
-        # Initialize weights for each node of each tri
-        wx = np.zeros((self.ntri, 3))
-        wy = np.zeros((self.ntri, 3))
-        wz = np.zeros((self.ntri, 3))
-        # Generate edges
-        x01L = np.fmin(x0, x1)
-        x02L = np.fmin(x0, x2)
-        x12L = np.fmin(x1, x2)
-        x01R = np.fmax(x0, x1)
-        x02R = np.fmax(x0, x2)
-        x12R = np.fmax(x1, x2)
-        # Calculate progress fractions for three edges, left-to-right
-        f01 = (xa - x01L) / (x01R - x01L)
-        f02 = (xa - x02L) / (x02R - x02L)
-        f03 = (xa - x12L) / (x12R - x12L)
+        # Initialize weights for each node of each tri (no vector yet)
+        wt = np.zeros((self.ntri, 3))
+        # Check sign of each node compared to *xa* 
+        mask_tri_nodes = np.asarray(xtri >= xa - xtol, dtype="i4")
+        # Count number of passing nodes for each triangle
+        nt = np.sum(mask_tri_nodes, axis=1)
+        # Filter tris by how many nodes are to the right of *xa*
+        mask3 = (nt == 3)
+        # Tris with 2 nodes to the right
+        mask2 = (nt == 2)
 
   # === Analysis ===
    # --- Slices ---
