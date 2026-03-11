@@ -2377,6 +2377,132 @@ class UmeshBase(ABC):
         mask3 = (nt == 3)
         # Tris with 2 nodes to the right
         mask2 = (nt == 2)
+        # Ileft mask
+        Ileft = np.logical_and(x0 < xa, x1 < xa, x2 < xa)
+        Iright = np.logical_and(x0 > xb, x1 > xb, x2 > xb)
+        Iboth = np.logical_or(Ileft, Iright)
+        # Initialize weights for each node of each tri
+        # wx = np.zeros((self.ntri, 3))
+        # wy = np.zeros((self.ntri, 3))
+        # wz = np.zeros((self.ntri, 3))
+        w8s = np.zeros(self.ntri)
+        # Generate edges
+        x01L = np.fmin(x0, x1)
+        x02L = np.fmin(x0, x2)
+        x12L = np.fmin(x1, x2)
+        x01R = np.fmax(x0, x1)
+        x02R = np.fmax(x0, x2)
+        x12R = np.fmax(x1, x2)
+        # Calculate progress fractions for three edges, left-to-right
+        f01l = (xa - x01L) / np.maximum(
+            (x01R - x01L), np.ones_like(x01R)*1e-15)
+        f02l = (xa - x02L) / np.maximum(
+            (x02R - x02L), np.ones_like(x01R)*1e-15)
+        f12l = (xa - x12L) / np.maximum(
+            (x12R - x12L), np.ones_like(x01R)*1e-15)
+        # Calculate progress fractions for three edges, right-to-left
+        f01r = (x01R - xb) / np.maximum(
+            (x01R - x01L), np.ones_like(x01R)*1e-15)
+        f02r = (x02R - xb) / np.maximum(
+            (x02R - x02L), np.ones_like(x01R)*1e-15)
+        f12r = (x12R - xb) / np.maximum(
+            (x12R - x12L), np.ones_like(x01R)*1e-15)
+        # Mask out progress fractions not 0<f<1 (edge not being cut)
+        f01l[f01l < 0] = 0
+        f01l[f01l > 1] = 0
+        f02l[f02l < 0] = 0
+        f02l[f02l > 1] = 0
+        f12l[f12l < 0] = 0
+        f12l[f12l > 1] = 0
+        # Mask out progress fractions not 0<f<1 (edge not being cut)
+        f01r[f01r < 0] = 0
+        f01r[f01r > 1] = 0
+        f02r[f02r < 0] = 0
+        f02r[f02r > 1] = 0
+        f12r[f12r < 0] = 0
+        f12r[f12r > 1] = 0
+        # Calculate fractional weighting
+        fr01l = f01l*f02l
+        fr02l = f02l*f12l
+        fr12l = f01l*f12l
+        fr01r = f01r*f02r
+        fr02r = f02r*f12r
+        fr12r = f01r*f12r
+        # Adjust fractional weights (triangles that are cut)
+        w8s[ktris] = 1.0 - (fr01l + fr02l + fr12l + fr01r + fr02r + fr12r)
+        # Set weight of all triangles not between cut planes to 0
+        w8s[ktris[Iboth]] = 0.0
+        # Indexes of all tris normal to x cut planes
+        idx = np.where(
+            (np.abs(self.tri_normals[ktris, 1]) < 1e-15) &
+            (np.abs(self.tri_normals[ktris, 2]) < 1e-15))[0]
+        # Get mask of all tris lying flat on cut plane
+        Ixplane = idx[np.logical_or(
+            np.all(xtri[idx] == xa, axis=1),
+            np.all(xtri[idx] == xb, axis=1))]
+        # Keep these at full contribution
+        w8s[ktris[Ixplane]] = 1.0
+        return w8s
+
+    def genr8_ll_w8s(
+            self,
+            comp,
+            nCut):
+        ktris = self.get_tris_by_comp(comp)
+        # Select those tris
+        tris = self.tris[ktris, :]
+        # Get x-coordinates of those nodes
+        xtri = self.nodes[tris - 1, 0].flatten()
+        xmin = np.min(xtri)
+        xmax = np.max(xtri)
+        # Bins
+        xbnds = np.linspace(xmin, xmax, nCut)
+        nbins = nCut - 1
+        wbins = np.zeros((self.ntri, nbins))
+        for ibin in range(nbins):
+            wbins[:, ibin] = self.genr8_w8s_segment(
+                xbnds[ibin], xbnds[ibin+1], comp=comp)
+        return wbins, xbnds
+
+    def calc_ll_forces(
+            self,
+            mach,
+            rho_inf,
+            a_inf,
+            L_grid,
+            nCut,
+            comp: Optional[Union[list, str, int]] = None):
+        w8s, xbnds = self.genr8_ll_w8s(comp, nCut)
+        # Integrate
+        qbar = np.sum(-1.0*self.q[self.tris - 1, 0]*0.5*mach**2, axis=1)*(1/3)
+        # Apply weighted area to each tri
+        wqbar = np.multiply(qbar.reshape(-1, 1),
+            np.multiply(self.tri_areas.reshape(-1, 1), w8s))
+        # Sum component of each weighted tri
+        result = np.dot(wqbar.T, self.tri_normals) * \
+            0.5 * rho_inf * a_inf**2 * L_grid**2 / \
+            np.sum(np.multiply(self.tri_areas.reshape(-1, 1), w8s))
+        breakpoint()
+        return result
+
+    def calc_ll_coeffs(
+            self,
+            mach,
+            rho_inf,
+            a_inf,
+            L_grid,
+            Aref,
+            nCut,
+            comp: Optional[Union[list, str, int]] = None):
+        w8s, xbnds = self.genr8_ll_w8s(comp, nCut)
+        # Integrate
+        qbar = np.sum(-1.0*self.q[self.tris - 1, 0]*0.5*mach**2, axis=1)*(1/3)
+        # Apply weighted area to each tri
+        wqbar = np.multiply(qbar.reshape(-1, 1),
+            np.multiply(self.tri_areas.reshape(-1, 1), w8s))
+        result = np.dot(wqbar.T, self.tri_normals) / Aref
+        breakpoint()
+        return result
 
   # === Analysis ===
    # --- Slices ---
