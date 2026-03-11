@@ -2369,7 +2369,7 @@ class UmeshBase(ABC):
         x2 = xtri[:, 2]
         # Initialize weights for each node of each tri (no vector yet)
         wt = np.zeros((self.ntri, 3))
-        # Check sign of each node compared to *xa* 
+        # Check sign of each node compared to *xa*
         mask_tri_nodes = np.asarray(xtri >= xa - xtol, dtype="i4")
         # Count number of passing nodes for each triangle
         nt = np.sum(mask_tri_nodes, axis=1)

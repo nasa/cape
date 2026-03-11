@@ -16,12 +16,12 @@ from numpy import ndarray
 
 # Local imports
 from .dataiterfile import DataIterFile
-from ..cfdx import databook as cdbook
+from ..cfdx import casedata
 from ..dkit import basedata
 
 
 # Iterative F&M history
-class CaseFM(cdbook.CaseFM):
+class CaseFM(casedata.CaseFM):
     r"""Iterative LAVA component force & moment history
 
     :Call:
@@ -161,8 +161,43 @@ class CaseFM(cdbook.CaseFM):
             return data.get(col2)
 
 
+# Iterative point probe history
+class CasePointProbe(casedata.CasePointProbe):
+    # No extra attributes
+    __slots__ = ()
+
+    # List of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = probe.get_filelist()
+        :Inputs:
+            *prop*: :class:`CaseFM`
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        :Versions:
+            * 2024-09-18 ``@sneuhoff``: v1.0
+            * 2025-07-17 ``@ddalle``: v1.1; merge Curv & Cart
+        """
+        # Confirm active runner
+        if self.runner is None:
+            raise TypeError(
+                f"Cannot use cape.pylava {self.__class__.__name__} " +
+                "without a CaseRunner instance")
+        # Name of (single) file
+        cartfile = os.path.join("monitor", "Cart.data.iter")
+        # Check for such a file
+        if os.path.isfile(cartfile):
+            return [cartfile]
+        else:
+            return ["data.iter"]
+
+
 # Iterative residual history
-class CaseResid(cdbook.CaseResid):
+class CaseResid(casedata.CaseResid):
     r"""Iterative residual history for one component, one case
 
     :Call:
@@ -187,7 +222,7 @@ class CaseResid(cdbook.CaseResid):
         # Initialize attributes
         self.comp = comp
         # Call parent method
-        cdbook.CaseResid.__init__(self)
+        casedata.CaseResid.__init__(self)
 
     # List of files to read
     def get_filelist(self) -> list:

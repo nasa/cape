@@ -2128,6 +2128,44 @@ class CaseData(DataKit):
         return h
 
 
+# Individual point probe
+class CasePointProbe(CaseData):
+   # --- Class attributes ---
+    # Attributes
+    __slots__ = (
+        "pt",
+    )
+
+    # Minimal list of columns
+    _base_cols = (
+        "i",
+    )
+    # Minimal list of "coeffs"
+    _base_coeffs = ()
+
+   # --- __dunder__ ---
+    # Initialization method
+    def __init__(self, pt: str, **kw):
+        # Save point name
+        self.pt = pt
+        # Parent initialization
+        CaseData.__init__(self, **kw)
+
+    # Function to display contents
+    def __repr__(self):
+        r"""Representation method
+
+        Returns the following format, with ``'P01'`` replaced with the
+        component name, *probe.pt*
+
+            * ``'<CasePointProbe('P01', i=100)>'``
+        """
+        return "<%s('%s', i=%i)>" % (
+            self.__class__.__name__, self.pt, self["i"].size)
+    # String method
+    __str__ = __repr__
+
+
 # Individual component force and moment
 class CaseFM(CaseData):
     r"""Force and moment iterative histories
@@ -4427,8 +4465,6 @@ class CaseSurfCp(CaseData):
             * 2017-03-28 ``@ddalle``: v1.0
             * 2025-08-13 ``@ddalle``: v2.0 (dex)
         """
-        # Options handle
-        opts = self.cntl.opts
         # Get surface data
         triq = self.read_triq()
         # Component for subsetting

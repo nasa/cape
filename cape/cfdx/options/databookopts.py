@@ -159,7 +159,7 @@ class FMIterDataBookOpts(FMDataBookOpts):
     __slots__ = ()
 
     # Class for "IterPoint" components
-    _name = "definitions for a f0rce & moment iterative history component"
+    _name = "definitions for a force & moment iterative history component"
 
     # Defaults
     _rc = {
@@ -497,6 +497,38 @@ class TriqPointDataBookOpts(DBCompOpts):
     # Descriptions
     _rst_descriptions = {
         "Points": "list of individual point sensors",
+    }
+
+
+# Class for "PointProbe" components
+class IterPointProbeDataBookOpts():
+    # No attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "options for iterative histories at a single point probe"
+
+    # Additional options
+    _optlist = {
+        "Point",
+        "Index",
+    }
+
+    # Option types
+    _opttypes = {
+        "Point": str,
+        "Index": INT_TYPES,
+    }
+
+    # Defaults
+    _rc = {
+        "Cols": ["cp"],
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Point": "name of point probe",
+        "Index": "index of point probe in list, if necessary",
     }
 
 
@@ -1095,6 +1127,7 @@ class DataBookOpts(OptionsDict):
         "IterFM": FMIterDataBookOpts,
         "IterPoint": DBIterPointOpts,
         "LineLoad": LineLoadDataBookOpts,
+        "PointProbe": IterPointProbeDataBookOpts,
         "PyFunc": PyFuncDataBookOpts,
         "SurfCp": SurfCpDataBookOpts,
         "TriqFM": TriqFMDataBookOpts,
