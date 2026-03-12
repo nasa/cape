@@ -3237,7 +3237,6 @@ class CaseRunner(CaseRunnerBase):
         f1 = getattr(self, name1, f0)
         # Call function if possible
         args = () if not callable(f1) else f1()
-        args = () if not callable(f1) else f1()
         # Output
         return args
 
