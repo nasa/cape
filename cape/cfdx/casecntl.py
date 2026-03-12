@@ -2935,13 +2935,13 @@ class CaseRunner(CaseRunnerBase):
         if mask.size:
             na = max(na, mask[0])
         # Check for time (overrides *na* if present)
-        if (tmin is not None) and ("t" in self):
+        if (tmin is not None) and ("t" in db):
             # Check time against cutoff
             mask = np.where(db["t"] >= tmin)[0]
             # Apply it if able
             na = mask[0]
         # Check for CTU cutoff (overrides *na* if present)
-        if (ctumin is not None) and ("ctu" in self):
+        if (ctumin is not None) and ("ctu" in db):
             # Check time against cutoff
             mask = np.where(db["ctu"] >= ctumin)[0]
             # Apply it if able
