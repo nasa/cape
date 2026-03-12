@@ -519,9 +519,12 @@ class IterPointProbeDataBookOpts(DBCompOpts):
     # Aliases
     _optmap = {
         "CTUMin": "MinCTU",
+        "CTUmin": "MinCTU",
         "MinTime": "MinT",
         "TMin": "MinT",
         "TimeMin": "MinT",
+        "ctumin": "MinCTU",
+        "tmin": "MinT",
     }
 
     # Option types

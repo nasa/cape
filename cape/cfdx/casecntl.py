@@ -2922,9 +2922,11 @@ class CaseRunner(CaseRunnerBase):
         # Get run matrix instance
         cntl = self.read_cntl()
         # Get relevant options
-        n = cntl.opts.get_DataBookOpt(comp, "NStats")
-        n0 = cntl.opts.get_DataBookOpt(comp, "NMin")
-        nb = cntl.opts.get_DataBookOpt(comp, "NLastStats")
+        n = self.get_dex_opt(comp, "NStats")
+        n0 = self.get_dex_opt(comp, "NMin")
+        nb = self.get_dex_opt(comp, "NLastStats")
+        tmin = self.get_dex_opt(comp, "MinT")
+        ctumin = self.get_dex_opt(comp, "MinCTU")
         # Default cutoff
         nb = ni if nb is None else nb
         # Start
@@ -2934,6 +2936,18 @@ class CaseRunner(CaseRunnerBase):
         # Apply that if necessary
         if mask.size:
             na = max(na, mask[0])
+        # Check for time (overrides *na* if present)
+        if (tmin is not None) and ("t" in self):
+            # Check time against cutoff
+            mask = np.where(db["t"] >= tmin)[0]
+            # Apply it if able
+            na = mask[0]
+        # Check for CTU cutoff (overrides *na* if present)
+        if (ctumin is not None) and ("ctu" in self):
+            # Check time against cutoff
+            mask = np.where(db["ctu"] >= ctumin)[0]
+            # Apply it if able
+            na = mask[0]
         # Get columns
         cols = self.get_dex_opt(comp, "Cols")
         # Save iters
