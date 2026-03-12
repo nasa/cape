@@ -1290,6 +1290,26 @@ class CntlBase(ABC):
 
    # --- DataExchanger updates ---
     @abstractmethod
+    def update_dex(self, **kw):
+        r"""Extract one or more DataBook components
+
+        :Call:
+            >>> cntl.update_dex(cons=[], **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *dex*, *comp*: {``None``} | :class:`str`
+                Wildcard to subset list of FM components
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2026-03-12 ``@ddalle``: v1.0
+        """
+        pass
+
+    @abstractmethod
     def update_dex_comp(self, comp: str, **kw):
         r"""Update a DataBook component
 
