@@ -18,6 +18,7 @@ from numpy import ndarray
 from .dataiterfile import DataIterFile
 from ..cfdx import casedata
 from ..dkit import basedata
+from ..dkit.rdb import DataKit
 
 
 # Iterative F&M history
@@ -194,6 +195,29 @@ class CasePointProbe(casedata.CasePointProbe):
         filelist_raw = self.runner.search_regex(pat)
         # Sort them
         return sorted(filelist_raw)
+
+    # Read a file
+    def readfile(self, fname: str) -> dict:
+        r"""Read the point probe
+
+        :Call:
+            >>> db = probe.readfile(fname)
+        :Inputs:
+            *probe*: :class:`CasePointProbe`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`BaseData`
+                Data read from *fname*
+        :Versions:
+            * 2024-09-30 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v1.1; use ``DataiterFile``
+        """
+        # Read the data file
+        db = DataKit(tsv=fname, translators={"nt_finest": "i", "time": "t"})
+        # Output
+        return db
 
 
 # Iterative residual history
