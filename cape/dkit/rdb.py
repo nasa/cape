@@ -8964,6 +8964,7 @@ class DataKit(BaseData):
     def xappend(
             self,
             d: dict,
+            j: Optional[int] = None,
             nref: Optional[int] = None,
             update: bool = True):
         r"""Append data to multiple columns
@@ -8979,6 +8980,8 @@ class DataKit(BaseData):
                 Dictionary of cols (keys) and values to append
             *nref*: {``None``} | :class:`int`
                 Predetermined reference size
+            *j*: {``None``} | :class:`int`
+                If specified, store *d* as new entry *j*
             *update*: {``True``} | ``False``
                 Option to reduce ref size by 1
         :Versions:
@@ -8992,16 +8995,26 @@ class DataKit(BaseData):
         n = nref if nref is not None else refsize
         # Loop through cols of *d*
         for col, v in d.items():
-            self.append_col(col, v, nref=n)
+            # CHeck if appending or replacing
+            if j is None:
+                # Append
+                self.append_col(col, v, nref=n)
+            else:
+                # Replace
+                self[col][j] = v
 
     # Append data from multi-case entry
-    def xiappend(self, x: dict, i: int, nref: Optional[int] = None):
+    def xiappend(
+            self,
+            x: dict, i: int,
+            j: Optional[int] = None,
+            nref: Optional[int] = None):
         r"""Append data from entry *i* of :class:`dict` *x*
 
         This works for scalars, lists, 1D arrays, and *N*-D arrays
 
         :Call:
-            >>> db.xiappend(x, i)
+            >>> db.xiappend(x, i, j=None, nref=None)
         :Inputs:
             *db*: :class:`DataKit`
                 Data interface with response mechanisms
@@ -9009,14 +9022,24 @@ class DataKit(BaseData):
                 Dictionary of cols (keys) and values to append
             *i*: :class:`int`
                 Index of row from *x* to append to *db*
+            *j*: {``None``} | :class:`int`
+                If specified, store *x* as new entry *j*
+            *nref*: {``None``} | :class:`int`
+                Pre-declared reference size
         :Versions:
             * 2025-08-06 ``@ddalle``: v1.0
+            * 2026-03-12 ``@ddalle``: v1.1; add *j*
         """
         # Get current reference size
         n = nref if nref is not None else self.get_refsize()
         # Loop through columns of *x*
         for col, u in x.items():
-            self.append_col(col, u[i], nref=n)
+            # Check if appending or replacing
+            if j is None:
+                # Append
+                self.append_col(col, u[i], nref=n)
+            else:
+                self[col][j] = u[i]
 
     # Append data to a column
     def append_col(self, col: str, v: Any, nref: Optional[int] = None):

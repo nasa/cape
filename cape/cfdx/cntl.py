@@ -3631,7 +3631,7 @@ class Cntl(CntlBase):
         # Sample the data
         d = runner.sample_dex(comp)
         # Save conditions to the data
-        db.xiappend(self.x, i)
+        db.xiappend(self.x, i, j)
         # Get case data file name (``None`` if not individual-case type)
         fi = db.get_case_filename(i)
         # If extra data file
@@ -3642,7 +3642,7 @@ class Cntl(CntlBase):
             d.write(fi)
         else:
             # Save it to the data
-            db.xappend(d)
+            db.xappend(d, j=j)
         # Remove any empty columns
         db.delete_empty()
         # Return counter
