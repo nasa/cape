@@ -3672,7 +3672,7 @@ class Cntl(CntlBase):
             dj = {}
             for col, v in d.items():
                 # Check prefix
-                if col.startswith("iter."):
+                if col.startswith("iter.") or (col in self.x):
                     continue
                 # Save
                 dj[col] = v
