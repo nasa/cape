@@ -512,12 +512,24 @@ class IterPointProbeDataBookOpts(DBCompOpts):
     _optlist = {
         "Point",
         "Index",
+        "MinCTU",
+        "MinT",
+    }
+
+    # Aliases
+    _optmap = {
+        "CTUMin": "MinCTU",
+        "MinTime": "MinT",
+        "TMin": "MinT",
+        "TimeMin": "MinT",
     }
 
     # Option types
     _opttypes = {
         "Point": str,
         "Index": INT_TYPES,
+        "MinCTU": FLOAT_TYPES,
+        "MinT": FLOAT_TYPES,
     }
 
     # Defaults
@@ -529,6 +541,8 @@ class IterPointProbeDataBookOpts(DBCompOpts):
     _rst_descriptions = {
         "Point": "name of point probe",
         "Index": "index of point probe in list, if necessary",
+        "MinCTU": "discard history before *MinCTU* char. time units",
+        "MinT": "discard history before *MinT* seconds",
     }
 
 
