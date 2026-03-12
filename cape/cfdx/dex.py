@@ -127,6 +127,8 @@ class DataExchanger(DataKit):
             return
         # Read the data
         self.casedata[i] = DataKit(fname)
+        # Return it
+        return self.casedata[i]
 
    # --- Custom read ---
 

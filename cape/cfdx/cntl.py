@@ -3668,6 +3668,17 @@ class Cntl(CntlBase):
             db.mkdir_case(i)
             # Write extra file
             d.write(fi)
+            # Extract columns not starting with "iter."
+            dj = {}
+            for col, v in d.items():
+                # Check prefix
+                if col.startswith("iter."):
+                    continue
+                # Save
+                dj[col] = v
+            # Save those data as metadata
+            if len(dj):
+                db.xappend(dj, j=j)
         else:
             # Save it to the data
             db.xappend(d, j=j)
