@@ -275,6 +275,12 @@ class CaseRunner(CaseRunnerBase):
         "triqfm": CaseTriqFM,
         "triqpoint": CaseTriqPoint,
     }
+    #: :class:`tuple`\ [:class:`str`]
+    #: DataBook component types that store iterative histories
+    _dex_iter_types = (
+        "iterfm",
+        "pointprobe",
+    )
 
    # --- __dunder__ ---
     def __init__(self, fdir: Optional[str] = None):
@@ -2840,11 +2846,10 @@ class CaseRunner(CaseRunnerBase):
         self._sample_xmrp(comp, db)
         self._sample_ymrp(comp, db)
         self._sample_zmrp(comp, db)
-        # Check for prefixes
-        if typ in ("iterfm",):
-            for col in list(db.cols):
-                if col not in ("nStats", "nIter"):
-                    db.save_col(f"iter.{col}", db.burst_col(col))
+        # Filter histories
+        self._filter_iters(comp, db)
+        # Apply prefixes to iterative histories
+        self._apply_prefixes(comp, db)
         # Output
         return db
 
@@ -2904,13 +2909,14 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return db
 
-    def sample_dex_iterfm(self, comp: str) -> DataKit:
-        # Read raw data (i.e. iterative history)
-        fm = self.read_dex(comp)
-        # Intialize output
-        db = DataKit()
+    def _filter_iters(self, comp: str, db: dict):
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Check for prefixes
+        if typ not in self._dex_iter_types:
+            return
         # Number of iterations
-        ni = fm["i"].size
+        ni = db["i"].size
         # Get run matrix instance
         cntl = self.read_cntl()
         # Get relevant options
@@ -2923,22 +2929,32 @@ class CaseRunner(CaseRunnerBase):
         # Get columns
         cols = self.get_dex_opt(comp, "Cols")
         # Save iters
-        db.save_col('i', fm["i"][na:nb])
+        db.save_col('i', db["i"][na:nb])
+        # Apply mask to time
+        if "t" in db:
+            db.save_col("t", db["t"][na:nb])
         # Loop through columns
         for col in cols:
             # Check status
-            if col not in fm:
+            if col not in db:
                 raise KeyError(
                     f"IterFM comp '{comp}' history has no col '{col}'")
             # Check size
-            if fm[col].size != ni:
+            if db[col].size != ni:
                 raise IndexError(
-                    f"IterFM comp '{comp}' col '{col}' has size " +
-                    f"{fm[col].size}; expected {ni}")
+                    f"'{typ}' comp '{comp}' col '{col}' has size " +
+                    f"{db[col].size}; expected {ni}")
             # Save values
-            db.save_col(col, fm[col][na:nb])
-        # Output
-        return db
+            db.save_col(col, db[col][na:nb])
+
+    def _apply_prefixes(self, comp: str, db: dict):
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Check for prefixes
+        if typ in self._dex_iter_types:
+            for col in list(db.cols):
+                if col not in ("nStats", "nIter"):
+                    db.save_col(f"iter.{col}", db.burst_col(col))
 
     def _sample_dex_n_orders(self, comp: str, db: dict):
         # Check if unncessary

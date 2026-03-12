@@ -215,7 +215,17 @@ class CasePointProbe(casedata.CasePointProbe):
             * 2024-10-11 ``@ddalle``: v1.1; use ``DataiterFile``
         """
         # Read the data file
-        db = DataKit(tsv=fname, translators={"nt_finest": "i", "time": "t"})
+        db = DataKit(
+            tsv=fname,
+            translators={
+                "nt_finest": "i",
+                "time": "t",
+                "Pressure": "p",
+                "Temperature": "T",
+                "UVel": "u",
+                "VVel": "v",
+                "WVel": "w",
+            })
         # Output
         return db
 
