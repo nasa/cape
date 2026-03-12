@@ -2919,8 +2919,6 @@ class CaseRunner(CaseRunnerBase):
         raw_iters = db["i"].copy()
         # Number of iterations
         ni = raw_iters.size
-        # Get run matrix instance
-        cntl = self.read_cntl()
         # Get relevant options
         n = self.get_dex_opt(comp, "NStats")
         n0 = self.get_dex_opt(comp, "NMin")

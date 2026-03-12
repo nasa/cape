@@ -1038,6 +1038,8 @@ class DataBookOpts(OptionsDict):
         "Delimiter",
         "Folder",
         "DNStats",
+        "MinCTU",
+        "MinT",
         "NLastStats",
         "NMaxStats",
         "NMin",
@@ -1048,11 +1050,16 @@ class DataBookOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "CTUMin": "MinCTU",
+        "CTUmin": "MinCTU",
         "Dir": "Folder",
+        "MinTime": "MinT",
         "NAvg": "nStats",
         "NFirst": "NMin",
         "NLast": "NLastStats",
         "NMax": "NLastStats",
+        "TMin": "MinT",
+        "ctumin": "MinCTU",
         "delim": "Delimiter",
         "dnStats": "DNStats",
         "nAvg": "NStats",
@@ -1064,6 +1071,7 @@ class DataBookOpts(OptionsDict):
         "nMin": "NMin",
         "nStats": "NStats",
         "nStatsMax": "NMaxStats",
+        "tmin": "MinT",
     }
 
     # Types
@@ -1072,6 +1080,8 @@ class DataBookOpts(OptionsDict):
         "Delimiter": str,
         "Folder": str,
         "DNStats": INT_TYPES,
+        "MinCTU": FLOAT_TYPES,
+        "MinT": FLOAT_TYPES,
         "NLastStats": INT_TYPES,
         "NMaxStats": INT_TYPES,
         "NMin": INT_TYPES,
