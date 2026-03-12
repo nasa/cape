@@ -694,19 +694,20 @@ class CaseData(DataKit):
         return os.path.join("cape", "CASEDATA_CACHE.cdb")
 
     # Write to cached file
-    def write_cdb(self):
+    def write_cdb_case(self):
         r"""Write contents of history to ``.cdb`` file
 
         See :mod:`capefile` module. The name of the file will be
         ``f"cape/fm_{fm.comp}.cdb"``.
 
         :Call:
-            >>> fm.write_cdb()
+            >>> fm.write_cdb_case()
         :Inputs:
             *fm*: :class:`CaseData`
                 Iterative history instance
         :Versions:
             * 2024-01-20 ``@ddalle``: v1.0
+            * 2026-03-12 ``@ddalle``: v1.1; add ``_case`` to name
         """
         # Get file name
         fname = self.get_cdbfile()
