@@ -474,17 +474,10 @@ class DataExchanger(DataKit):
             prefix = self.get_prefix()
             # Get extension
             ext = self.get_data_extension()
-            # Get subfolder
-            dirname = self.get_subdir()
             # Get suffix
             suffix = "_data" if comptype == "surfcp" else ""
             # Combine
-            fname = os.path.join(
-                dirname, f"{prefix}_{self.name}{suffix}.{ext}")
-            # Absolutize
-            if not os.path.isabs(fname):
-                fname = os.path.join(self.fdir, fname)
-            return fname
+            return f"{prefix}_{self.name}{suffix}.{ext}"
 
    # --- Folder management ---
     # Create databook folder
