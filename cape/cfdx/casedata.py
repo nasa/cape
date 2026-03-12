@@ -194,6 +194,8 @@ class CaseData(DataKit):
         """
         # Parent initialization
         DataKit.__init__(self, **kw)
+        # Save case runner
+        self.runner = runner
         # Initialize base cols
         self.init_empty()
         # Initialize source file metadata
@@ -208,8 +210,6 @@ class CaseData(DataKit):
         # De-None
         i0 = 0 if i0 is None else i0
         i1 = 0 if i1 is None else i1
-        # Save case runner
-        self.runner = runner
 
    # --- I/O ---
     # Initialize file attritubets
