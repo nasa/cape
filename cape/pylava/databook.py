@@ -247,16 +247,17 @@ class CaseResid(casedata.CaseResid):
     """
 
     # Initialization method
-    def __init__(self, comp: str = "body1"):
+    def __init__(self, comp: str = "body1", meta=False, runner=False, **kw):
         r"""Initialization method
 
         :Versions:
             * 2024-09-30 ``@sneuhoff``: v1.0
+            * 2026-03-12 ``@ddalle``: v1.1; add args and kwargs
         """
         # Initialize attributes
         self.comp = comp
         # Call parent method
-        casedata.CaseResid.__init__(self)
+        casedata.CaseResid.__init__(self, meta=meta, runner=runner, **kw)
 
     # List of files to read
     def get_filelist(self) -> list:

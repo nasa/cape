@@ -211,6 +211,39 @@ class CaseData(DataKit):
         i0 = 0 if i0 is None else i0
         i1 = 0 if i1 is None else i1
 
+    # Function to display contents
+    def __repr__(self):
+        r"""Representation method
+
+        Returns the following format, with ``'P01'`` replaced with the
+        component name, *probe.pt*
+
+            * ``'<CasePointProbe('P01', n=100, ncol=10)>'``
+        """
+        # Get name of class
+        name = self.__class__.__name__
+        # Get name of slot used for name
+        slot = getattr(self.__class__, "_name_attr")
+        # Get value
+        if slot is None:
+            # No way to determine name
+            complbl = ""
+        else:
+            # Get value
+            comp = getattr(self, slot)
+            # Make a string
+            complbl = f"'{comp}', "
+        # Get data
+        i = self.get("iter.i", self.get("i"))
+        n = i.size
+        # Get columns
+        cols = self.cols
+        ncol = 0 if self.cols is None else len(self.cols)
+        # Get 
+        return f"<{name}({complbl}n={n}, ncol={ncol})>"
+    # String method
+    __str__ = __repr__
+
    # --- I/O ---
     # Initialize file attritubets
     def init_sourcefiles(self, meta: bool = False):
@@ -2142,6 +2175,8 @@ class CasePointProbe(CaseData):
     )
     # Minimal list of "coeffs"
     _base_coeffs = ()
+    # Attribute for component
+    _name_attr = "pt"
 
    # --- __dunder__ ---
     # Initialization method
@@ -2150,20 +2185,6 @@ class CasePointProbe(CaseData):
         self.pt = pt
         # Parent initialization
         CaseData.__init__(self, runner=runner, **kw)
-
-    # Function to display contents
-    def __repr__(self):
-        r"""Representation method
-
-        Returns the following format, with ``'P01'`` replaced with the
-        component name, *probe.pt*
-
-            * ``'<CasePointProbe('P01', i=100)>'``
-        """
-        return "<%s('%s', i=%i)>" % (
-            self.__class__.__name__, self.pt, self["i"].size)
-    # String method
-    __str__ = __repr__
 
 
 # Individual component force and moment
@@ -2219,6 +2240,8 @@ class CaseFM(CaseData):
         "CLM",
         "CLN",
     )
+    # Attribute for component
+    _name_attr = "comp"
 
    # --- __dunder__ ---
     # Initialization method
@@ -2234,25 +2257,6 @@ class CaseFM(CaseData):
         self.comp = comp
         # Call parent initialization
         CaseData.__init__(self, **kw)
-
-    # Function to display contents
-    def __repr__(self):
-        r"""Representation method
-
-        Returns the following format, with ``'entire'`` replaced with the
-        component name, *fm.comp*
-
-            * ``'<CaseFM('entire', i=100)>'``
-
-        :Versions:
-            * 2014-11-12 ``@ddalle``: v1.0
-            * 2015-10-16 ``@ddalle``: v2.0; generic version
-            * 2024-01-21 ``@ddalle``: v2.1; even more generic
-        """
-        return "<%s('%s', i=%i)>" % (
-            self.__class__.__name__, self.comp, self["i"].size)
-    # String method
-    __str__ = __repr__
 
    # --- I/O ---
     # Get cache file name
@@ -4230,6 +4234,9 @@ class CaseSurfCp(CaseData):
         "cp",
     )
 
+    # Name for component
+    _name_attr = "comp"
+
    # --- __dunder__ ---
     def __init__(self, comp: str, compids: List[Union[str, int]],
                  ftriq: str, cntl: CntlBase, i: int):
@@ -4254,25 +4261,6 @@ class CaseSurfCp(CaseData):
         self.get_triq_surfcp()
         # Process output file
         self.write_surf()
-
-    # Function to display contents
-    def __repr__(self):
-        r"""Representation method
-
-        Returns the following format, with ``'entire'`` replaced with the
-        component name, *fm.comp*
-
-            * ``'<CaseSurfCp('entire', i=100)>'``
-
-        :Versions:
-            * 2014-11-12 ``@ddalle``: v1.0
-            * 2015-10-16 ``@ddalle``: v2.0; generic version
-            * 2024-01-21 ``@ddalle``: v2.1; even more generic
-        """
-        return "<%s('%s', i=%i)>" % (
-            self.__class__.__name__, self.comp, self["i"].size)
-    # String method
-    __str__ = __repr__
 
     # Read the map file for this component
     def read_tri_map(self) -> Tri:
@@ -4726,6 +4714,9 @@ class CaseTS(CaseFM):
         "CLM",
         "CLN",
     )
+
+    # Name for components
+    _name_attr = "comp"
 
    # --- Write ---
     # Write to cape db file

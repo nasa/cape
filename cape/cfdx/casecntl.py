@@ -2960,6 +2960,10 @@ class CaseRunner(CaseRunnerBase):
         # Check if unncessary
         if "nOrders" in db:
             return
+        # Skip for iter histories
+        typ = self.get_dex_type(comp)
+        if typ in self._dex_iter_types:
+            return
         # Check if present
         if self._check_dex_fcol(comp, "nOrders"):
             db.save_col("nOrders", self.get_dex_n_orders())
@@ -2976,8 +2980,13 @@ class CaseRunner(CaseRunnerBase):
         # Check if necessary
         if "nStats" in db:
             return
+        # Get component type
+        typ = self.get_dex_type(comp)
+        if typ in self._dex_iter_types:
+            return
         # Check if requested
         if self._check_dex_icol(comp, "nStats"):
+            # Window used for scalar computations
             db.save_col("nStats", self.get_dex_nstats(comp))
 
     def _sample_xmrp(self, comp: str, db: dict):
