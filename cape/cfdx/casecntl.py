@@ -2915,21 +2915,29 @@ class CaseRunner(CaseRunnerBase):
         # Check for prefixes
         if typ not in self._dex_iter_types:
             return
+        # Get raw iterations
+        raw_iters = db["i"].copy()
         # Number of iterations
-        ni = db["i"].size
+        ni = raw_iters.size
         # Get run matrix instance
         cntl = self.read_cntl()
         # Get relevant options
         n = cntl.opts.get_DataBookOpt(comp, "NStats")
+        n0 = cntl.opts.get_DataBookOpt(comp, "NMin")
         nb = cntl.opts.get_DataBookOpt(comp, "NLastStats")
         # Default cutoff
         nb = ni if nb is None else nb
         # Start
         na = nb - n
+        # Find where raw iterations cross *n0*
+        mask = np.where(raw_iters >= n0)[0]
+        # Apply that if necessary
+        if mask.size:
+            na = max(na, mask[0])
         # Get columns
         cols = self.get_dex_opt(comp, "Cols")
         # Save iters
-        db.save_col('i', db["i"][na:nb])
+        db.save_col('i', raw_iters[na:nb])
         # Apply mask to time
         if "t" in db:
             db.save_col("t", db["t"][na:nb])
