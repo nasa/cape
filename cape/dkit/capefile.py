@@ -902,7 +902,6 @@ def _get_fp(name_or_stream, mode: str = 'rb') -> IOBase:
     # Check for bad types
     assert_isinstance(name_or_stream, (IOBase, str), "file identifier")
     # Check for file name
-    breakpoint()
     if isinstance(name_or_stream, str):
         return open(name_or_stream, mode)
     # Check mode
