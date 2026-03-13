@@ -579,7 +579,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Create definitions if necessary
             defn = self.get_defn(col)
             # Get text from *j*th column
-            txtj = coltxts[j]
+            txtj = '' if j >= len(coltxts) else coltxts[j]
             # Cascade through possible conversions
             if odefcls.startswith("int"):
                 try:
@@ -754,8 +754,10 @@ class TextDataFile(BaseFile, TextInterpreter):
         for (j, col) in enumerate(self.textcols):
             # Get type
             clsname = _types[j]
+            # Get texts
+            txtj = '' if j >= len(coltxts) else coltxts[j]
             # Convert text
-            v = self.fromtext_val(coltxts[j], clsname, col)
+            v = self.fromtext_val(txtj, clsname, col)
             # Save data
             if isinstance(v, tuple):
                 # Got text and a map
