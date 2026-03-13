@@ -194,6 +194,8 @@ class CaseData(DataKit):
         """
         # Parent initialization
         DataKit.__init__(self, **kw)
+        # Save case runner
+        self.runner = runner
         # Initialize base cols
         self.init_empty()
         # Initialize source file metadata
@@ -208,8 +210,39 @@ class CaseData(DataKit):
         # De-None
         i0 = 0 if i0 is None else i0
         i1 = 0 if i1 is None else i1
-        # Save case runner
-        self.runner = runner
+
+    # Function to display contents
+    def __repr__(self):
+        r"""Representation method
+
+        Returns the following format, with ``'P01'`` replaced with the
+        component name, *probe.pt*
+
+            * ``'<CasePointProbe('P01', n=100, ncol=10)>'``
+        """
+        # Get name of class
+        name = self.__class__.__name__
+        # Get name of slot used for name
+        slot = getattr(self.__class__, "_name_attr")
+        # Get value
+        if slot is None:
+            # No way to determine name
+            complbl = ""
+        else:
+            # Get value
+            comp = getattr(self, slot)
+            # Make a string
+            complbl = f"'{comp}', "
+        # Get data
+        i = self.get("iter.i", self.get("i"))
+        n = i.size
+        # Get columns
+        cols = self.cols
+        ncol = 0 if self.cols is None else len(self.cols)
+        # Get 
+        return f"<{name}({complbl}n={n}, ncol={ncol})>"
+    # String method
+    __str__ = __repr__
 
    # --- I/O ---
     # Initialize file attritubets
@@ -661,19 +694,20 @@ class CaseData(DataKit):
         return os.path.join("cape", "CASEDATA_CACHE.cdb")
 
     # Write to cached file
-    def write_cdb(self):
+    def write_cdb_case(self):
         r"""Write contents of history to ``.cdb`` file
 
         See :mod:`capefile` module. The name of the file will be
         ``f"cape/fm_{fm.comp}.cdb"``.
 
         :Call:
-            >>> fm.write_cdb()
+            >>> fm.write_cdb_case()
         :Inputs:
             *fm*: :class:`CaseData`
                 Iterative history instance
         :Versions:
             * 2024-01-20 ``@ddalle``: v1.0
+            * 2026-03-12 ``@ddalle``: v1.1; add ``_case`` to name
         """
         # Get file name
         fname = self.get_cdbfile()
@@ -2128,6 +2162,32 @@ class CaseData(DataKit):
         return h
 
 
+# Individual point probe
+class CasePointProbe(CaseData):
+   # --- Class attributes ---
+    # Attributes
+    __slots__ = (
+        "pt",
+    )
+
+    # Minimal list of columns
+    _base_cols = (
+        "i",
+    )
+    # Minimal list of "coeffs"
+    _base_coeffs = ()
+    # Attribute for component
+    _name_attr = "pt"
+
+   # --- __dunder__ ---
+    # Initialization method
+    def __init__(self, pt: str, runner=None, **kw):
+        # Save point name
+        self.pt = pt
+        # Parent initialization
+        CaseData.__init__(self, runner=runner, **kw)
+
+
 # Individual component force and moment
 class CaseFM(CaseData):
     r"""Force and moment iterative histories
@@ -2181,6 +2241,8 @@ class CaseFM(CaseData):
         "CLM",
         "CLN",
     )
+    # Attribute for component
+    _name_attr = "comp"
 
    # --- __dunder__ ---
     # Initialization method
@@ -2196,25 +2258,6 @@ class CaseFM(CaseData):
         self.comp = comp
         # Call parent initialization
         CaseData.__init__(self, **kw)
-
-    # Function to display contents
-    def __repr__(self):
-        r"""Representation method
-
-        Returns the following format, with ``'entire'`` replaced with the
-        component name, *fm.comp*
-
-            * ``'<CaseFM('entire', i=100)>'``
-
-        :Versions:
-            * 2014-11-12 ``@ddalle``: v1.0
-            * 2015-10-16 ``@ddalle``: v2.0; generic version
-            * 2024-01-21 ``@ddalle``: v2.1; even more generic
-        """
-        return "<%s('%s', i=%i)>" % (
-            self.__class__.__name__, self.comp, self["i"].size)
-    # String method
-    __str__ = __repr__
 
    # --- I/O ---
     # Get cache file name
@@ -4192,6 +4235,9 @@ class CaseSurfCp(CaseData):
         "cp",
     )
 
+    # Name for component
+    _name_attr = "comp"
+
    # --- __dunder__ ---
     def __init__(self, comp: str, compids: List[Union[str, int]],
                  ftriq: str, cntl: CntlBase, i: int):
@@ -4216,25 +4262,6 @@ class CaseSurfCp(CaseData):
         self.get_triq_surfcp()
         # Process output file
         self.write_surf()
-
-    # Function to display contents
-    def __repr__(self):
-        r"""Representation method
-
-        Returns the following format, with ``'entire'`` replaced with the
-        component name, *fm.comp*
-
-            * ``'<CaseSurfCp('entire', i=100)>'``
-
-        :Versions:
-            * 2014-11-12 ``@ddalle``: v1.0
-            * 2015-10-16 ``@ddalle``: v2.0; generic version
-            * 2024-01-21 ``@ddalle``: v2.1; even more generic
-        """
-        return "<%s('%s', i=%i)>" % (
-            self.__class__.__name__, self.comp, self["i"].size)
-    # String method
-    __str__ = __repr__
 
     # Read the map file for this component
     def read_tri_map(self) -> Tri:
@@ -4427,8 +4454,6 @@ class CaseSurfCp(CaseData):
             * 2017-03-28 ``@ddalle``: v1.0
             * 2025-08-13 ``@ddalle``: v2.0 (dex)
         """
-        # Options handle
-        opts = self.cntl.opts
         # Get surface data
         triq = self.read_triq()
         # Component for subsetting
@@ -4690,6 +4715,9 @@ class CaseTS(CaseFM):
         "CLM",
         "CLN",
     )
+
+    # Name for components
+    _name_attr = "comp"
 
    # --- Write ---
     # Write to cape db file

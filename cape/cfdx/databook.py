@@ -102,6 +102,7 @@ from .. import util
 from ..dkit.rdb import DataKit
 from .casedata import (
     CaseFM,
+    CasePointProbe,
     CaseProp,
     CaseSurfCp,
     CaseTS,
@@ -3670,10 +3671,7 @@ class FMDataBook(DataBookComp):
         * 2014-12-22 ``@ddalle``: v1.0
         * 2016-06-27 ``@ddalle``: Added target option for using other folders
     """
-  # ========
-  # Config
-  # ========
-  # <
+  # === Config ===
     # Initialization method
     def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
         """Initialization method
@@ -3740,12 +3738,8 @@ class FMDataBook(DataBookComp):
         return lbl
     # String conversion
     __str__ = __repr__
-  # >
 
-  # ======
-  # Data
-  # ======
-  # <
+  # === Data ===
     # Get a value
     def GetCoeff(self, comp, coeff, I, **kw):
         r"""Get a coefficient value for one or more cases
@@ -3999,12 +3993,8 @@ class FMDataBook(DataBookComp):
         else:
             raise IOError(
                 "Transformation type '%s' is not recognized." % ttype)
-  # >
 
-  # ======
-  # Read
-  # ======
-  # <
+  # === Read ===
     def ReadCase(self, comp):
         r"""Read a :class:`CaseFM` object
 
@@ -4041,12 +4031,8 @@ class FMDataBook(DataBookComp):
         """
         # Read CaseResid object from PWD
         return CaseResid()
-  # >
 
-  # ======
-  # Write
-  # ======
-  # <
+  # === Data ===
     # Update or add an entry for one component
     def UpdateCaseDB(self, i, j, comp):
         r"""Update or add a case to a data book
@@ -4210,7 +4196,6 @@ class FMDataBook(DataBookComp):
                 DBc['nIter'][j]   = nIter
             if 'nStats' in DBc:
                 DBc['nStats'][j]  = s['nStats']
-  # >
 
 
 # Data book for an individual component
@@ -4241,10 +4226,6 @@ class PropDataBook(DataBookComp):
         * 2016-06-27 ``@ddalle``: v1.1
         * 2022-04-08 ``@ddalle``: v1.0
     """
-  # ========
-  # Config
-  # ========
-  # <
     # Initialization method
     def __init__(self, comp, cntl, targ=None, check=False, **kw):
         """Initialization method
@@ -4312,12 +4293,7 @@ class PropDataBook(DataBookComp):
         return lbl
     # String conversion
     __str__ = __repr__
-  # >
 
-  # ======
-  # Read
-  # ======
-  # <
     # Update or add an entry for one component
     def ReadCase(self, comp):
         r"""Read a :class:`CaseProp` object
@@ -4337,12 +4313,7 @@ class PropDataBook(DataBookComp):
         """
         # Read CaseResid object from PWD
         return CaseProp(comp)
-    # >
 
-  # ======
-  # Write
-  # ======
-  # <
     # Update or add an entry for one component
     def UpdateCaseDB(self, i, j, comp):
         r"""Update or add a case to a data book
@@ -4428,7 +4399,6 @@ class PropDataBook(DataBookComp):
                 DBc['nIter'][j] = nIter
             if 'nStats' in DBc:
                 DBc['nStats'][j] = s['nStats']
-  # >
 
 
 # Data book for an individual component
@@ -5308,10 +5278,7 @@ class TimeSeriesDataBook(DataBookComp):
     :Versions:
         * 2024-10-09 ``@aburkhea``: Started
     """
-  # ========
-  # Config
-  # ========
-  # <
+  # === Config ===
     # Initialization method
     def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
         """Initialization method
@@ -5391,14 +5358,8 @@ class TimeSeriesDataBook(DataBookComp):
         return lbl
     # String conversion
     __str__ = __repr__
-  # >
-  # >
 
-  # ======
-  # Read
-  # ======
-  # <
-
+  # === Read ===
     def ReadCase(self, comp):
         r"""Read a :class:`CaseTS` object
 
@@ -5468,12 +5429,8 @@ class TimeSeriesDataBook(DataBookComp):
         DBc.RootDir = getattr(self, "RootDir", os.getcwd())
         # Output
         return DBc
-  # >
-  # ======
-  # Write
-  # ======
-  # <
 
+  # === Write ===
     # Delete Time Series Case
     def DeleteCases(self, I, comp):
         # Default case list
@@ -5728,7 +5685,6 @@ class TimeSeriesDataBook(DataBookComp):
                 DBc['tEnd'][j]    = tEnd
         # Go back.
         os.chdir(self.RootDir)
-  # >
 
 
 # Aerodynamic history class

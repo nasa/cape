@@ -37,6 +37,7 @@ CMD_NAMES = {
     "extend": "extend",
     "apply": "apply",
     "dbpyfunc": "extract-pyfunc",
+    "dex": "extract",
     "fm": "extract-fm",
     "iter-fm": "extract-iter-fm",
     "ll": "extract-ll",
@@ -136,6 +137,7 @@ class CfdxArgReader(argread.ArgReader):
         "cutoff": str,
         "dbpyfunc": (bool, str),
         "delete": bool,
+        "dex": (bool, str),
         "dezombie": bool,
         "e": str,
         "early": bool,
@@ -246,6 +248,7 @@ class CfdxArgReader(argread.ArgReader):
         "cutoff": "Min file size or count for 'large'",
         "dbpyfunc": "Extract scalar data from custom Python function",
         "delete": "Delete DataBook entries instead of adding new ones",
+        "dex": "Extract DataBook components matching pattern *DEX*",
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
         "e": "Execute the command *EXEC*",
         "early": "Reduce *PhaseIters* to current iter; makes case ``DONE``",
@@ -296,6 +299,7 @@ class CfdxArgReader(argread.ArgReader):
         "counters": "COLS",
         "cutoff": "SIZE",
         "dbpyfunc": "[PAT]",
+        "dex": "[DEX]",
         "e": "EXEC",
         "extend": "[N_EXT]",
         "f": "JSON",
@@ -666,6 +670,33 @@ class CfdxExtendArgs(_CfdxSubsetArgs):
         "extend": 1,
         "qsub": False,
     }
+
+
+# Settings for --dex
+class CfdxExtractDexArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract"
+
+    # Description
+    _help_title = "Extract DataBook components"
+
+    # Additional options
+    _optlist = (
+        "dex",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "dex",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "dex",
+    )
 
 
 # Settings for --fm
@@ -1148,6 +1179,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "dbpyfunc",
         "delete",
         "dezombie",
+        "dex",
         "e",
         "extend",
         "f",
@@ -1206,6 +1238,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "dezombie",
         "exec",
         "extend",
+        "extract",
         "extract-fm",
         "extract-iter-fm",
         "extract-ll",
@@ -1230,6 +1263,7 @@ class CfdxFrontDesk(CfdxArgReader):
     # Alternate command names
     _cmdmap = {
         "c": "check",
+        "dex": "extract",
         "e": "exec",
         "error": "fail",
         "mark-error": "fail",
@@ -1257,6 +1291,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "dezombie": CfdxDezombieArgs,
         "exec": CfdxExecArgs,
         "extend": CfdxExtendArgs,
+        "extract": CfdxExtractDexArgs,
         "extract-fm": CfdxExtractFMArgs,
         "extract-iter-fm": CfdxExtractIterFMArgs,
         "extract-ll": CfdxExtractLLArgs,
@@ -1643,6 +1678,28 @@ def cape_extend(parser: CfdxArgReader) -> int:
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.ExtendCases(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extract_dex(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --fm`` command
+
+    :Call:
+        >>> ierr == cape_extract_fm(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.update_dex(**kw)
     # Return code
     return IERR_OK
 
@@ -2191,6 +2248,7 @@ CMD_DICT = {
     "dezombie": cape_dezombie,
     "exec": cape_exec,
     "extend": cape_extend,
+    "extract": cape_extract_dex,
     "extract-fm": cape_extract_fm,
     "extract-iter-fm": cape_extract_iterfm,
     "extract-ll": cape_extract_ll,

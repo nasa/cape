@@ -17,6 +17,8 @@ also be used.
 
 # Standard library
 import fnmatch
+import re
+from typing import Optional
 
 # Local imports
 from ...optdict import (
@@ -159,7 +161,7 @@ class FMIterDataBookOpts(FMDataBookOpts):
     __slots__ = ()
 
     # Class for "IterPoint" components
-    _name = "definitions for a f0rce & moment iterative history component"
+    _name = "definitions for a force & moment iterative history component"
 
     # Defaults
     _rc = {
@@ -497,6 +499,55 @@ class TriqPointDataBookOpts(DBCompOpts):
     # Descriptions
     _rst_descriptions = {
         "Points": "list of individual point sensors",
+    }
+
+
+# Class for "PointProbe" components
+class IterPointProbeDataBookOpts(DBCompOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "options for iterative histories at a single point probe"
+
+    # Additional options
+    _optlist = {
+        "Point",
+        "Index",
+        "MinCTU",
+        "MinT",
+    }
+
+    # Aliases
+    _optmap = {
+        "CTUMin": "MinCTU",
+        "CTUmin": "MinCTU",
+        "MinTime": "MinT",
+        "TMin": "MinT",
+        "TimeMin": "MinT",
+        "ctumin": "MinCTU",
+        "tmin": "MinT",
+    }
+
+    # Option types
+    _opttypes = {
+        "Point": str,
+        "Index": INT_TYPES,
+        "MinCTU": FLOAT_TYPES,
+        "MinT": FLOAT_TYPES,
+    }
+
+    # Defaults
+    _rc = {
+        "Cols": ["cp"],
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Point": "name of point probe",
+        "Index": "index of point probe in list, if necessary",
+        "MinCTU": "discard history before *MinCTU* char. time units",
+        "MinT": "discard history before *MinT* seconds",
     }
 
 
@@ -989,6 +1040,8 @@ class DataBookOpts(OptionsDict):
         "Delimiter",
         "Folder",
         "DNStats",
+        "MinCTU",
+        "MinT",
         "NLastStats",
         "NMaxStats",
         "NMin",
@@ -999,11 +1052,16 @@ class DataBookOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "CTUMin": "MinCTU",
+        "CTUmin": "MinCTU",
         "Dir": "Folder",
+        "MinTime": "MinT",
         "NAvg": "nStats",
         "NFirst": "NMin",
         "NLast": "NLastStats",
         "NMax": "NLastStats",
+        "TMin": "MinT",
+        "ctumin": "MinCTU",
         "delim": "Delimiter",
         "dnStats": "DNStats",
         "nAvg": "NStats",
@@ -1015,6 +1073,7 @@ class DataBookOpts(OptionsDict):
         "nMin": "NMin",
         "nStats": "NStats",
         "nStatsMax": "NMaxStats",
+        "tmin": "MinT",
     }
 
     # Types
@@ -1023,6 +1082,8 @@ class DataBookOpts(OptionsDict):
         "Delimiter": str,
         "Folder": str,
         "DNStats": INT_TYPES,
+        "MinCTU": FLOAT_TYPES,
+        "MinT": FLOAT_TYPES,
         "NLastStats": INT_TYPES,
         "NMaxStats": INT_TYPES,
         "NMin": INT_TYPES,
@@ -1095,6 +1156,7 @@ class DataBookOpts(OptionsDict):
         "IterFM": FMIterDataBookOpts,
         "IterPoint": DBIterPointOpts,
         "LineLoad": LineLoadDataBookOpts,
+        "PointProbe": IterPointProbeDataBookOpts,
         "PyFunc": PyFuncDataBookOpts,
         "SurfCp": SurfCpDataBookOpts,
         "TriqFM": TriqFMDataBookOpts,
@@ -1427,15 +1489,15 @@ class DataBookOpts(OptionsDict):
         return compopts
 
     # Get data book components by type
-    def get_DataBookByType(self, typ: str) -> list:
+    def get_DataBookByType(self, typ: Optional[str]) -> list:
         r"""Get the list of data book components with a given type
 
         :Call:
-            >>> comps = opts.get_DataBookByType(typ)
+            >>> comps = opts.get_DataBookByType(typ=None)
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
-            *typ*: ``"FM"`` | ``"LineLoad"`` | :class:`str`
+            *typ*: {``None``} | :class:`str`
                 Data book type
         :Outputs:
             *comps*: :class:`list`\ [:class:`str`]
@@ -1443,7 +1505,11 @@ class DataBookOpts(OptionsDict):
         :Versions:
             * 2016-06-07 ``@ddalle``: v1.0
             * 2023-03-09 ``@ddalle``: v1.1; validate *typ*
+            * 2026-03-12 ``@ddalle``: v1.2; allow ``None``
         """
+        # Check for empty input
+        if typ is None:
+            return self.get_DataBookComponents()
         # Validate input
         self.validate_DataBookType(typ)
         # Initialize components
@@ -1458,7 +1524,10 @@ class DataBookOpts(OptionsDict):
         return comps
 
     # Get list of components matching a type and list of wild cards
-    def get_DataBookByGlob(self, typ, pat=None):
+    def get_DataBookByGlob(
+            self,
+            typ: Optional[str],
+            pat: Optional[str] = None) -> list:
         r"""Get list of components by type and list of wild cards
 
         :Call:
@@ -1477,6 +1546,7 @@ class DataBookOpts(OptionsDict):
             * 2017-04-25 ``@ddalle``: v1.0
             * 2023-02-06 ``@ddalle``: v1.1; improved naming
             * 2023-03-09 ``@ddalle``: v1.2; validate *typ*
+            * 2026-03-12 ``@ddalle``: v1.3; allow ``typ=None``
         """
         # Get list of all components with matching type
         comps_all = self.get_DataBookByType(typ)
@@ -1498,6 +1568,54 @@ class DataBookOpts(OptionsDict):
             for pat in pats:
                 # Check if it matches
                 if fnmatch.fnmatch(comp, pat):
+                    # Add the component to the list
+                    comps.append(comp)
+                    break
+        # Output
+        return comps
+
+    # Get list of components matching a type and list of wild cards
+    def get_DataBookByRegEx(
+            self,
+            typ: Optional[str],
+            pat: Optional[str] = None) -> list:
+        r"""Get list of components by type and regular expressions
+
+        :Call:
+            >>> comps = opts.get_DataBookByGlob(typ, pat=None)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *typ*: ``"FM"`` | :class:`str`
+                Target value for ``"Type"`` of matching components
+            *pat*: {``None``} | :class:`str` | :class:`list`
+                List of component name patterns
+        :Outputs:
+            *comps*: :class:`str`
+                All components meeting one or more wild cards
+        :Versions:
+            * 2026-03-12 ``@ddalle``: v1.0
+        """
+        # Get list of all components with matching type
+        comps_all = self.get_DataBookByType(typ)
+        # Check for default option
+        if pat is None or pat is True:
+            return comps_all
+        # Initialize output
+        comps = []
+        # Ensure input is a list
+        if isinstance(pat, ARRAY_TYPES):
+            # Already a list
+            pats = pat
+        else:
+            # Read as string: comma-separated list
+            pats = pat.split(",")
+        # Loop through components to check if it matches
+        for comp in comps_all:
+            # Loop through components
+            for pat in pats:
+                # Check if it matches
+                if re.fullmatch(pat, comp):
                     # Add the component to the list
                     comps.append(comp)
                     break

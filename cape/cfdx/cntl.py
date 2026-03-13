@@ -3532,6 +3532,34 @@ class Cntl(CntlBase):
         return db
 
    # --- DataExchanger updates ---
+    # Update several components
+    def update_dex(self, **kw):
+        r"""Extract one or more DataBook components
+
+        :Call:
+            >>> cntl.update_dex(cons=[], **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *dex*, *comp*: {``None``} | :class:`str`
+                Wildcard to subset list of FM components
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2026-03-12 ``@ddalle``: v1.0
+        """
+        # Get component option
+        comp = kw.get("dex", kw.get("comp"))
+        # If *comp* is ``True``, process all options
+        comp = None if comp is True else comp
+        # Get full list of components
+        comps = self.opts.get_DataBookByGlob(None, comp)
+        # Loop through them
+        for comp in comps:
+            self.update_dex_comp(comp, **kw)
+
     # Update one component, several cases
     def update_dex_comp(self, comp: str, **kw):
         # Get component type
@@ -3630,16 +3658,30 @@ class Cntl(CntlBase):
             print(f"  New entry at iteration {ni}")
         # Sample the data
         d = runner.sample_dex(comp)
+        # Save conditions to the data
+        db.xiappend(self.x, i, j)
+        # Get case data file name (``None`` if not individual-case type)
+        fi = db.get_case_filename(i)
         # If extra data file
-        if db.data_fname:
+        if fi is not None:
+            # Create folder if necessary
+            db.mkdir_case(i)
             # Write extra file
-            d.write_datafile(
-                fname=db.data_fname,
-                casename=runner.get_case_name()
-            )
-        # Save it to the data
-        db.xiappend(self.x, i)
-        db.xappend(d)
+            d.write(fi)
+            # Extract columns not starting with "iter."
+            dj = {}
+            for col, v in d.items():
+                # Check prefix
+                if col.startswith("iter.") or (col in self.x):
+                    continue
+                # Save
+                dj[col] = v
+            # Save those data as metadata
+            if len(dj):
+                db.xappend(dj, j=j)
+        else:
+            # Save it to the data
+            db.xappend(d, j=j)
         # Remove any empty columns
         db.delete_empty()
         # Return counter

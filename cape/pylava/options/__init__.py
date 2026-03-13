@@ -10,6 +10,7 @@ package, based on
 
 # Local imports
 from . import util
+from .databookopts import DataBookOpts
 from .meshopts import MeshOpts
 from .runctlopts import RunControlOpts
 from .runinputsopts import RunInputsOpts
@@ -68,9 +69,10 @@ class Options(options.Options):
 
     # Replaced or renewed sections
     _sec_cls = {
+        "DataBook": DataBookOpts,
+        "Mesh": MeshOpts,
         "RunControl": RunControlOpts,
         "RunInputs": RunInputsOpts,
-        "Mesh": MeshOpts,
     }
 
    # === Configuration ===

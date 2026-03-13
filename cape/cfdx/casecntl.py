@@ -275,6 +275,12 @@ class CaseRunner(CaseRunnerBase):
         "triqfm": CaseTriqFM,
         "triqpoint": CaseTriqPoint,
     }
+    #: :class:`tuple`\ [:class:`str`]
+    #: DataBook component types that store iterative histories
+    _dex_iter_types = (
+        "iterfm",
+        "pointprobe",
+    )
 
    # --- __dunder__ ---
     def __init__(self, fdir: Optional[str] = None):
@@ -2840,11 +2846,12 @@ class CaseRunner(CaseRunnerBase):
         self._sample_xmrp(comp, db)
         self._sample_ymrp(comp, db)
         self._sample_zmrp(comp, db)
-        # Check for prefixes
-        if typ in ("iterfm",):
-            for col in list(db.cols):
-                if col not in ("nStats", "nIter"):
-                    db.save_col(f"iter.{col}", db.burst_col(col))
+        # Filter histories
+        self._filter_iters(comp, db)
+        # Apply prefixes to iterative histories
+        self._apply_prefixes(comp, db)
+        # Add run matrix conditions
+        self._save_conditions(comp, db)
         # Output
         return db
 
@@ -2904,45 +2911,108 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return db
 
-    def sample_dex_iterfm(self, comp: str) -> DataKit:
-        # Read raw data (i.e. iterative history)
-        fm = self.read_dex(comp)
-        # Intialize output
-        db = DataKit()
+    def _filter_iters(self, comp: str, db: dict):
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Check for prefixes
+        if typ not in self._dex_iter_types:
+            return
+        # Get raw iterations
+        raw_iters = db["i"].copy()
         # Number of iterations
-        ni = fm["i"].size
-        # Get run matrix instance
-        cntl = self.read_cntl()
+        ni = raw_iters.size
         # Get relevant options
-        n = cntl.opts.get_DataBookOpt(comp, "NStats")
-        nb = cntl.opts.get_DataBookOpt(comp, "NLastStats")
+        n = self.get_dex_opt(comp, "NStats")
+        n0 = self.get_dex_opt(comp, "NMin")
+        nb = self.get_dex_opt(comp, "NLastStats")
+        tmin = self.get_dex_opt(comp, "MinT")
+        ctumin = self.get_dex_opt(comp, "MinCTU")
         # Default cutoff
         nb = ni if nb is None else nb
         # Start
         na = nb - n
+        # Find where raw iterations cross *n0*
+        mask = np.where(raw_iters >= n0)[0]
+        # Apply that if necessary
+        if mask.size:
+            na = max(na, mask[0])
+        # Check for time (overrides *na* if present)
+        if (tmin is not None) and ("t" in db):
+            # Check time against cutoff
+            mask = np.where(db["t"] >= tmin)[0]
+            # Apply it if able
+            na = mask[0]
+        # Check for CTU cutoff (overrides *na* if present)
+        if (ctumin is not None) and ("ctu" in db):
+            # Check time against cutoff
+            mask = np.where(db["ctu"] >= ctumin)[0]
+            # Apply it if able
+            na = mask[0]
         # Get columns
         cols = self.get_dex_opt(comp, "Cols")
         # Save iters
-        db.save_col('i', fm["i"][na:nb])
+        db.save_col('i', raw_iters[na:nb])
+        # Apply mask to time
+        if "t" in db:
+            db.save_col("t", db["t"][na:nb])
         # Loop through columns
         for col in cols:
             # Check status
-            if col not in fm:
+            if col not in db:
                 raise KeyError(
                     f"IterFM comp '{comp}' history has no col '{col}'")
             # Check size
-            if fm[col].size != ni:
+            if db[col].size != ni:
                 raise IndexError(
-                    f"IterFM comp '{comp}' col '{col}' has size " +
-                    f"{fm[col].size}; expected {ni}")
+                    f"'{typ}' comp '{comp}' col '{col}' has size " +
+                    f"{db[col].size}; expected {ni}")
             # Save values
-            db.save_col(col, fm[col][na:nb])
-        # Output
-        return db
+            db.save_col(col, db[col][na:nb])
+
+    def _apply_prefixes(self, comp: str, db: dict):
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Exit it not iterative history
+        if typ not in self._dex_iter_types:
+            return
+        # Get columns
+        cols = self.get_dex_opt(comp, "Cols")
+        # Expand list
+        cols = list(db.cols) if cols is None else cols
+        cols.extend(["i", "t", "ctu"])
+        # Loop through cols
+        for col in list(db.cols):
+            # Check for special cols
+            if col in ("nStats", "nIter"):
+                continue
+            # Check if valid column
+            if (cols is None) or (col in cols + ["i", "t"]):
+                # Rename and save
+                db.save_col(f"iter.{col}", db.burst_col(col))
+            else:
+                # Discard iterative histories not requested
+                db.burst_col(col)
+
+    def _save_conditions(self, comp: str, db: dict):
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Exit it not iterative history
+        if typ not in self._dex_iter_types:
+            return
+        # Read conditions
+        x = self.read_conditions()
+        # Save each
+        for k, v in x.items():
+            if k not in db:
+                db.save_col(k, v)
 
     def _sample_dex_n_orders(self, comp: str, db: dict):
         # Check if unncessary
         if "nOrders" in db:
+            return
+        # Skip for iter histories
+        typ = self.get_dex_type(comp)
+        if typ in self._dex_iter_types:
             return
         # Check if present
         if self._check_dex_fcol(comp, "nOrders"):
@@ -2960,8 +3030,13 @@ class CaseRunner(CaseRunnerBase):
         # Check if necessary
         if "nStats" in db:
             return
+        # Get component type
+        typ = self.get_dex_type(comp)
+        if typ in self._dex_iter_types:
+            return
         # Check if requested
         if self._check_dex_icol(comp, "nStats"):
+            # Window used for scalar computations
             db.save_col("nStats", self.get_dex_nstats(comp))
 
     def _sample_xmrp(self, comp: str, db: dict):
@@ -3236,7 +3311,6 @@ class CaseRunner(CaseRunnerBase):
         f0 = getattr(self, name0, None)
         f1 = getattr(self, name1, f0)
         # Call function if possible
-        args = () if not callable(f1) else f1()
         args = () if not callable(f1) else f1()
         # Output
         return args

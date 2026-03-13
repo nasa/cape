@@ -16,12 +16,13 @@ from numpy import ndarray
 
 # Local imports
 from .dataiterfile import DataIterFile
-from ..cfdx import databook as cdbook
+from ..cfdx import casedata
 from ..dkit import basedata
+from ..dkit.rdb import DataKit
 
 
 # Iterative F&M history
-class CaseFM(cdbook.CaseFM):
+class CaseFM(casedata.CaseFM):
     r"""Iterative LAVA component force & moment history
 
     :Call:
@@ -161,8 +162,76 @@ class CaseFM(cdbook.CaseFM):
             return data.get(col2)
 
 
+# Iterative point probe history
+class CasePointProbe(casedata.CasePointProbe):
+    # No extra attributes
+    __slots__ = ()
+
+    # List of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = probe.get_filelist()
+        :Inputs:
+            *prop*: :class:`CaseFM`
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        :Versions:
+            * 2026-03-11 ``@ddalle``: v1.0
+        """
+        # Confirm active runner
+        if self.runner is None:
+            raise TypeError(
+                f"Cannot use cape.pylava {self.__class__.__name__} " +
+                "without a CaseRunner instance")
+        # Get case index
+        j = self.runner.get_dex_opt(self.pt, "Index")
+        # Pattern for file names
+        pat = os.path.join("point_probe", rf"Cart\.[0-9]+\.pnt{j:04d}.dat")
+        # Find those files
+        filelist_raw = self.runner.search_regex(pat)
+        # Sort them
+        return sorted(filelist_raw)
+
+    # Read a file
+    def readfile(self, fname: str) -> dict:
+        r"""Read the point probe
+
+        :Call:
+            >>> db = probe.readfile(fname)
+        :Inputs:
+            *probe*: :class:`CasePointProbe`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`BaseData`
+                Data read from *fname*
+        :Versions:
+            * 2024-09-30 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v1.1; use ``DataiterFile``
+        """
+        # Read the data file
+        db = DataKit(
+            tsv=fname,
+            translators={
+                "nt_finest": "i",
+                "time": "t",
+                "Pressure": "p",
+                "Temperature": "T",
+                "UVel": "u",
+                "VVel": "v",
+                "WVel": "w",
+            })
+        # Output
+        return db
+
+
 # Iterative residual history
-class CaseResid(cdbook.CaseResid):
+class CaseResid(casedata.CaseResid):
     r"""Iterative residual history for one component, one case
 
     :Call:
@@ -178,16 +247,17 @@ class CaseResid(cdbook.CaseResid):
     """
 
     # Initialization method
-    def __init__(self, comp: str = "body1"):
+    def __init__(self, comp: str = "body1", meta=False, runner=False, **kw):
         r"""Initialization method
 
         :Versions:
             * 2024-09-30 ``@sneuhoff``: v1.0
+            * 2026-03-12 ``@ddalle``: v1.1; add args and kwargs
         """
         # Initialize attributes
         self.comp = comp
         # Call parent method
-        cdbook.CaseResid.__init__(self)
+        casedata.CaseResid.__init__(self, meta=meta, runner=runner, **kw)
 
     # List of files to read
     def get_filelist(self) -> list:

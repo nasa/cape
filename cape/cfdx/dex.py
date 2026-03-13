@@ -6,7 +6,7 @@ r"""
 
 # Standard library
 import os
-from typing import Any
+from typing import Any, Optional
 
 # Third-party
 import numpy as np
@@ -21,6 +21,7 @@ class DataExchanger(DataKit):
   # *** CLASS ATTRIBUTES ***
    # --- Instance ---
     __slots__ = (
+        "casedata",
         "cntl",
         "comp",
         "comptype",
@@ -36,12 +37,17 @@ class DataExchanger(DataKit):
     _prefix_map = {
         "fm": "aero",
         "lineload": "ll",
+        "pointprobe": "pt",
         "triqpoint": "triqpt",
         "surfcp": "cp",
     }
     _subdir_map = {
+        "pointprobe": "point_probe",
         "triqfm": "triqfm"
     }
+    _casedata_types = (
+        "pointprobe",
+    )
 
   # *** DUNDER ***
     def __init__(self, cntl: CntlBase, comp: str, legacy: bool = False):
@@ -75,7 +81,10 @@ class DataExchanger(DataKit):
         self.fname = self.get_filename()
         #: :class:`str`
         #: Name of optional separate extra data file
-        self.data_fname = self.get_data_fname()
+        self.data_fname = self.get_data_filename()
+        #: :class:`dict`
+        #: Holder for data from individual cases
+        self.casedata = {}
         # Initialize any missing columns
         self.init_empty()
         # Read data as requested
@@ -95,6 +104,31 @@ class DataExchanger(DataKit):
         # Read the data file (or status file)
         if os.path.isfile(absfile):
             DataKit.read(self, absfile)
+
+    def read_case(self, i: int):
+        r"""Read data from an individual case, if appropriate
+
+        The data will be stored in `db.casedata[i]`.
+
+        :Call:
+            >>> db.read_case(i)
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2026-03-11 ``@ddalle``: v1.0
+        """
+        # Get case data file name, if any
+        fname = self.get_case_filename(i)
+        # Check type (no case data file name)
+        if fname is None:
+            return
+        # Read the data
+        self.casedata[i] = DataKit(fname)
+        # Return it
+        return self.casedata[i]
 
    # --- Custom read ---
 
@@ -256,7 +290,7 @@ class DataExchanger(DataKit):
                     self[col][ia] = dbj[ycol][ib]
 
   # *** FILE MANAGEMENT ***
-   # --- File names --
+   # --- File names ---
     def get_filename(self) -> str:
         r"""Get the name of the main databook file
 
@@ -279,6 +313,59 @@ class DataExchanger(DataKit):
         dirname = self.get_subdir()
         # Combine default parameters
         return os.path.join(dirname, f"{prefix}_{self.name}.{ext}")
+
+    def get_case_filename(self, i: int) -> Optional[str]:
+        r"""Get absolute path to file for individual-case data
+
+        :Call:
+            >>> fname = db.get_case_filename(i)
+        :Outputs:
+            *fname*: ``None`` | :class:`str`
+                File for individual-case data, if appropriate
+        :Versions:
+            * 2026-03-11 ``@ddalle``: v1.0
+        """
+        # Check for case data
+        if self.comptype.lower() not in self._casedata_types:
+            return
+        # Path to case data
+        frun = self.get_case_folder(i)
+        # Get data file name
+        fname = self.get_data_filename()
+        # Combine
+        return os.path.join(frun, fname)
+
+   # --- Folders ---
+    def get_case_folder(self, i: int) -> str:
+        r"""Get folder to data for case *i*
+
+        This will be the main databook folder, *db.rootdir* if the data
+        type does not store individual files for each case.
+
+        :Call:
+            >>> fdir = db.get_case_folder(i)
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *fdir*: :class:`str`
+                Absolute path to data for case *i*
+        :Versions:
+            * 2026-03-11 ``@ddalle``: v1.0
+        """
+        # Get subfolder (if applicable)
+        subdir = self.get_subdir()
+        # Get main folder
+        absdir = os.path.join(self.rootdir, subdir)
+        # Check if cases are in use
+        if self.comptype.lower() not in self._casedata_types:
+            return absdir
+        # Get name of case
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Combine
+        return os.path.join(absdir, frun)
 
    # --- Prefix ---
     def get_prefix(self) -> str:
@@ -327,7 +414,7 @@ class DataExchanger(DataKit):
         r"""Get main databook file name extension
 
         :Call:
-            >>> et = db.get_extension()
+            >>> ext = db.get_extension()
         :Inputs:
             *db*: :class:`DataExchanger`
                 Data container customized for collecting CFD data
@@ -345,7 +432,29 @@ class DataExchanger(DataKit):
         else:
             return "csv"
 
-    def get_data_fname(self):
+    def get_data_extension(self) -> str:
+        r"""Get extension for data file if data/metadata are sep files
+
+        :Call:
+            >>> ext = db.get_data_extension()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        :Outputs:
+            *ext*: :class:`str`
+                Main file extension based on comp type, us. ``"csv"``
+        :Versions:
+            * 2026-03-11 ``@ddalle``: v1.0
+        """
+        # Get component type
+        comptype = self.comptype.lower()
+        # Check
+        if comptype in ("pointprobe"):
+            return "cdb"
+        else:
+            return self.get_extension()
+
+    def get_data_filename(self):
         r"""Get the name of the data databook file
 
         :Call:
@@ -362,19 +471,67 @@ class DataExchanger(DataKit):
         # Get component type
         comptype = self.comptype.lower()
         # Get extra data fname
-        if comptype in ("surfcp",):
+        if comptype in ("surfcp", "pointprobe"):
             # Get prefix
             prefix = self.get_prefix()
             # Get extension
-            ext = self.get_extension()
-            # Get subfolder
-            dirname = self.get_subdir()
+            ext = self.get_data_extension()
+            # Get suffix
+            suffix = "_data" if comptype == "surfcp" else ""
             # Combine
-            fname = os.path.join(dirname, f"{prefix}_{self.name}_data.{ext}")
-            # Absolutize
-            if not os.path.isabs(fname):
-                fname = os.path.join(self.fdir, fname)
-            return fname
+            return f"{prefix}_{self.name}{suffix}.{ext}"
+
+   # --- Folder management ---
+    # Create databook folder
+    def mkdirs(self):
+        r"""Create folders as needed for DataBook component
+
+        :Call:
+            >>> db.mkdirs()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        """
+        self._mkdirs(self.rootdir)
+
+    # Make case dir
+    def mkdir_case(self, i: int):
+        r"""Create folders as needed for DataBook component
+
+        :Call:
+            >>> db.mkdir_case(i)
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+            *i*: :class:`int`
+                Case index
+        """
+        # Get case folder
+        frun = self.get_case_folder(i)
+        # Create folder
+        self._mkdirs(frun)
+
+    # Create folders recursively
+    def _mkdirs(self, fdir: str):
+        r"""Create folders as needed for DataBook component
+
+        :Call:
+            >>> db.mkdirs()
+        :Inputs:
+            *db*: :class:`DataExchanger`
+                Data container customized for collecting CFD data
+        """
+        # Get components of path
+        parts = os.path.abspath(fdir).split(os.sep)
+        # Cumulative path
+        dirname = parts[0] + os.sep
+        # Loop through parts
+        for part in parts[1:]:
+            # Join path
+            dirname = os.path.join(dirname, part)
+            # Create if necessary
+            if not os.path.isdir(dirname):
+                os.mkdir(dirname)
 
   # *** DATA ***
    # --- Initialize ---
@@ -551,27 +708,4 @@ class DataExchanger(DataKit):
                 fullcol = maincol if (not prefix) else f"{prefix}.{maincol}"
                 # Add to list
                 cols.append(fullcol)
-
-  # *** FILES ***
-   # --- Folders ---
-    def mkdirs(self):
-        r"""Create folders as needed for DataBook component
-
-        :Call:
-            >>> db.mkdirs()
-        :Inputs:
-            *db*: :class:`DataExchanger`
-                Data container customized for collecting CFD data
-        """
-        # Get components of path
-        parts = self.rootdir.split(os.sep)
-        # Cumulative path
-        dirname = parts[0] + os.sep
-        # Loop through parts
-        for part in parts[1:]:
-            # Join path
-            dirname = os.path.join(dirname, part)
-            # Create if necessary
-            if not os.path.isdir(dirname):
-                os.mkdir(dirname)
 
