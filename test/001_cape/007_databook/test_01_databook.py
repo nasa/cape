@@ -49,8 +49,9 @@ def test_01_databook():
     # Save properties
     fm.cols = ["i", "CN"]
     fm.coeffs = ["CN"]
+    breakpoint()
     # Check __repr__
-    assert str(fm) == "<CaseFM('fin', i=500)>"
+    assert str(fm) == "<CaseFM('fin', n=500, ncol=2)>"
     # Calculate statistics
     stats = fm.GetStatsN(100)
     # Check values
