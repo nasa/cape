@@ -872,7 +872,7 @@ class CaseResid(databook.CaseResid):
             # Set it but don't overwrite
             self.phases.setdefault(fhist, j)
         # Pass to parent class
-        databook.CaseResid.__init__(self, **kw)
+        databook.CaseResid.__init__(self, runner=runner, **kw)
 
     # Get list of files to read
     def get_filelist(self) -> list:

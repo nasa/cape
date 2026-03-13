@@ -2850,6 +2850,8 @@ class CaseRunner(CaseRunnerBase):
         self._filter_iters(comp, db)
         # Apply prefixes to iterative histories
         self._apply_prefixes(comp, db)
+        # Add run matrix conditions
+        self._save_conditions(comp, db)
         # Output
         return db
 
@@ -2970,11 +2972,39 @@ class CaseRunner(CaseRunnerBase):
     def _apply_prefixes(self, comp: str, db: dict):
         # Get type
         typ = self.get_dex_type(comp)
-        # Check for prefixes
-        if typ in self._dex_iter_types:
-            for col in list(db.cols):
-                if col not in ("nStats", "nIter"):
-                    db.save_col(f"iter.{col}", db.burst_col(col))
+        # Exit it not iterative history
+        if typ not in self._dex_iter_types:
+            return
+        # Get columns
+        cols = self.get_dex_opt(comp, "Cols")
+        # Expand list
+        cols = list(db.cols) if cols is None else cols
+        cols.extend(["i", "t", "ctu"])
+        # Loop through cols
+        for col in list(db.cols):
+            # Check for special cols
+            if col in ("nStats", "nIter"):
+                continue
+            # Check if valid column
+            if (cols is None) or (col in cols + ["i", "t"]):
+                # Rename and save
+                db.save_col(f"iter.{col}", db.burst_col(col))
+            else:
+                # Discard iterative histories not requested
+                db.burst_col(col)
+
+    def _save_conditions(self, comp: str, db: dict):
+        # Get type
+        typ = self.get_dex_type(comp)
+        # Exit it not iterative history
+        if typ not in self._dex_iter_types:
+            return
+        # Read conditions
+        x = self.read_conditions()
+        # Save each
+        for k, v in x.items():
+            if k not in db:
+                db.save_col(k, v)
 
     def _sample_dex_n_orders(self, comp: str, db: dict):
         # Check if unncessary

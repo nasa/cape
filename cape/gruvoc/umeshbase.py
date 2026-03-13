@@ -2347,19 +2347,26 @@ class UmeshBase(ABC):
             self,
             xa: float,
             xb: float,
+            ktris: Optional[np.ndarray] = None,
             comp: Optional[Union[list, str, int]] = None) -> np.ndarray:
-        # Get tris based on component
-        ktris = self.get_tris_by_id(comp)
-        # Get reference scale
-        bbox = self.get_bbox(comp)
-        dx = bbox[1] - bbox[0]
-        dy = bbox[3] - bbox[2]
-        dz = bbox[5] - bbox[4]
-        lref = np.sqrt(dx*dx + dy*dy + dz*dz)
-        # Reference tolrance
-        xtol = XTOL * lref
-        # Get the normals and areas
-        a, nhat = self.make_tri_areas()
+        xa = np.round(xa, 14)
+        xb = np.round(xb, 14)
+        tol = 1e-13
+        if ktris is None and comp:
+            # Get tris based on component
+            ktris = self.get_tris_by_comp(comp)
+        # # Get tris based on component
+        # ktris = self.get_tris_by_id(comp)
+        # # Get reference scale
+        # bbox = self.get_bbox(comp)
+        # dx = bbox[1] - bbox[0]
+        # dy = bbox[3] - bbox[2]
+        # dz = bbox[5] - bbox[4]
+        # lref = np.sqrt(dx*dx + dy*dy + dz*dz)
+        # # Reference tolrance
+        # xtol = XTOL * lref
+        # # Get the normals and areas
+        # a, nhat = self.make_tri_areas()
         # Select those tris
         tris = self.tris[ktris, :]
         # Get x-coordinates of those nodes
@@ -2367,79 +2374,123 @@ class UmeshBase(ABC):
         x0 = xtri[:, 0]
         x1 = xtri[:, 1]
         x2 = xtri[:, 2]
-        # Initialize weights for each node of each tri (no vector yet)
-        wt = np.zeros((self.ntri, 3))
-        # Check sign of each node compared to *xa*
-        mask_tri_nodes = np.asarray(xtri >= xa - xtol, dtype="i4")
-        # Count number of passing nodes for each triangle
-        nt = np.sum(mask_tri_nodes, axis=1)
-        # Filter tris by how many nodes are to the right of *xa*
-        mask3 = (nt == 3)
-        # Tris with 2 nodes to the right
-        mask2 = (nt == 2)
-        # Ileft mask
-        Ileft = np.logical_and(x0 < xa, x1 < xa, x2 < xa)
-        Iright = np.logical_and(x0 > xb, x1 > xb, x2 > xb)
-        Iboth = np.logical_or(Ileft, Iright)
-        # Initialize weights for each node of each tri
-        # wx = np.zeros((self.ntri, 3))
-        # wy = np.zeros((self.ntri, 3))
-        # wz = np.zeros((self.ntri, 3))
+        # Mask for points not within cut segment (w/in tolerance)
+        Iboth = np.logical_or(
+            np.all(xtri - xa < tol, axis=1),
+            np.all(xtri - xb > -tol, axis=1),
+        )
+        # Initialize weights for each node
+        # # Initialize weights for each node of each tri (no vector yet)
+        # wt = np.zeros((self.ntri, 3))
+        # # Check sign of each node compared to *xa*
+        # mask_tri_nodes = np.asarray(xtri >= xa - xtol, dtype="i4")
+        # # Count number of passing nodes for each triangle
+        # nt = np.sum(mask_tri_nodes, axis=1)
+        # # Filter tris by how many nodes are to the right of *xa*
+        # mask3 = (nt == 3)
+        # # Tris with 2 nodes to the right
+        # mask2 = (nt == 2)
+        # # Ileft mask
+        # Ileft = np.logical_and(x0 < xa, x1 < xa, x2 < xa)
+        # Iright = np.logical_and(x0 > xb, x1 > xb, x2 > xb)
+        # Iboth = np.logical_or(Ileft, Iright)
+        # # Initialize weights for each node of each tri
+        # # wx = np.zeros((self.ntri, 3))
+        # # wy = np.zeros((self.ntri, 3))
+        # # wz = np.zeros((self.ntri, 3))
         w8s = np.zeros(self.ntri)
-        # Generate edges
-        x01L = np.fmin(x0, x1)
-        x02L = np.fmin(x0, x2)
-        x12L = np.fmin(x1, x2)
-        x01R = np.fmax(x0, x1)
-        x02R = np.fmax(x0, x2)
-        x12R = np.fmax(x1, x2)
-        # Calculate progress fractions for three edges, left-to-right
-        f01l = (xa - x01L) / np.maximum(
-            (x01R - x01L), np.ones_like(x01R)*1e-15)
-        f02l = (xa - x02L) / np.maximum(
-            (x02R - x02L), np.ones_like(x01R)*1e-15)
-        f12l = (xa - x12L) / np.maximum(
-            (x12R - x12L), np.ones_like(x01R)*1e-15)
-        # Calculate progress fractions for three edges, right-to-left
-        f01r = (x01R - xb) / np.maximum(
-            (x01R - x01L), np.ones_like(x01R)*1e-15)
-        f02r = (x02R - xb) / np.maximum(
-            (x02R - x02L), np.ones_like(x01R)*1e-15)
-        f12r = (x12R - xb) / np.maximum(
-            (x12R - x12L), np.ones_like(x01R)*1e-15)
-        # Mask out progress fractions not 0<f<1 (edge not being cut)
-        f01l[f01l < 0] = 0
-        f01l[f01l > 1] = 0
-        f02l[f02l < 0] = 0
-        f02l[f02l > 1] = 0
-        f12l[f12l < 0] = 0
-        f12l[f12l > 1] = 0
-        # Mask out progress fractions not 0<f<1 (edge not being cut)
-        f01r[f01r < 0] = 0
-        f01r[f01r > 1] = 0
-        f02r[f02r < 0] = 0
-        f02r[f02r > 1] = 0
-        f12r[f12r < 0] = 0
-        f12r[f12r > 1] = 0
-        # Calculate fractional weighting
-        fr01l = f01l*f02l
-        fr02l = f02l*f12l
-        fr12l = f01l*f12l
-        fr01r = f01r*f02r
-        fr02r = f02r*f12r
-        fr12r = f01r*f12r
-        # Adjust fractional weights (triangles that are cut)
-        w8s[ktris] = 1.0 - (fr01l + fr02l + fr12l + fr01r + fr02r + fr12r)
-        # Set weight of all triangles not between cut planes to 0
+        # Calculate distance from left cut plane
+        d01l = (x0 - xa)
+        d02l = (x1 - xa)
+        d12l = (x2 - xa)
+        # Calculate distance from right cut plane
+        d01r = (x0 - xb)
+        d02r = (x1 - xb)
+        d12r = (x2 - xb)
+        # Calculate weighted distances (for cut tri area weighting)
+        wd01l = (d01l/(d01l - d02l)) * (d01l)/(d01l - d12l)
+        wd02l = (d02l/(d02l - d01l)) * (d02l)/(d02l - d12l)
+        wd12l = (d12l/(d12l - d02l)) * (d12l)/(d12l - d01l)
+        wd01r = (d01r/(d01r - d02r)) * (d01r)/(d01r - d12r)
+        wd02r = (d02r/(d02r - d01r)) * (d02r)/(d02r - d12r)
+        wd12r = (d12r/(d12r - d02r)) * (d12r)/(d12r - d01r)
+        # Get sign of distances w/ zero as positive
+        signl = 2 * (np.vstack([d01l, d02l, d12l]).T >= 0) - 1
+        signr = 2 * (np.vstack([d01r, d02r, d12r]).T >= 0) - 1
+        # Get sum of each plance signed distances
+        sumsignl = np.sum(signl, axis=1)
+        sumsignr = np.sum(signr, axis=1)
+        # If all three are same sign, not being cut by this plane
+        Isumsignl = np.where(np.abs(sumsignl) > 2)[0]
+        Isumsignr = np.where(np.abs(sumsignr) > 2)[0]
+        # Get product of signs for future operations
+        psignl = np.prod(signl, axis=1)
+        psignr = np.prod(signr, axis=1)
+        # Get mask of signed distances
+        Il = signl > 0
+        Ir = signr < 0
+        # Mask for all triangles completely outside of cut plane bounds
+        III = np.all(Il, axis=1) & np.all(Ir, axis=1)
+        # Fix distances w/ 2+ pts at same x coord
+        wd01l = np.nan_to_num(wd01l, posinf=0.0, neginf=0.0)
+        wd02l = np.nan_to_num(wd02l, posinf=0.0, neginf=0.0)
+        wd12l = np.nan_to_num(wd12l, posinf=0.0, neginf=0.0)
+        wd01r = np.nan_to_num(wd01r, posinf=0.0, neginf=0.0)
+        wd02r = np.nan_to_num(wd02r, posinf=0.0, neginf=0.0)
+        wd12r = np.nan_to_num(wd12r, posinf=0.0, neginf=0.0)
+        # Treat distances < tol to be zero
+        wd01l[wd01l < tol] = 0.0
+        wd02l[wd02l < tol] = 0.0
+        wd12l[wd12l < tol] = 0.0
+        wd01r[wd01r < tol] = 0.0
+        wd02r[wd02r < tol] = 0.0
+        wd12r[wd12r < tol] = 0.0
+        # Ignore distances from other cut plane
+        wd01l[Isumsignl] = 0.0
+        wd02l[Isumsignl] = 0.0
+        wd12l[Isumsignl] = 0.0
+        wd01r[Isumsignr] = 0.0
+        wd02r[Isumsignr] = 0.0
+        wd12r[Isumsignr] = 0.0
+        # Assemble distances of left cut plane
+        frl = np.vstack([wd01l, wd02l, wd12l]).T
+        # Assemble distance of right cut plane
+        frr = np.vstack([wd01r, wd02r, wd12r]).T
+        # Get mask of triangles w/ 1 negative distance
+        neg1l = signl[psignl < 0] < 0
+        # Get mask of triangles w/ 2 negative distances
+        pos2l = signl[psignl > 0] > 0
+        # Calc weights for tris w/ 1 negative distance
+        _nw8sl = 1 - np.sum(np.multiply(frl[psignl < 0],
+            np.where(frl[psignl < 0], neg1l, 1)), axis=1)
+        # Calc weights for tris w/ 2 negative distances
+        _pw8sl = np.sum(np.multiply(frl[psignl > 0],
+            np.where(frl[psignl > 0], pos2l, 1)), axis=1)
+        # Repeat for right plane
+        neg1r = signr[psignr < 0] < 0
+        pos2r = signr[psignr > 0] > 0
+        _nw8sr = np.sum(np.multiply(frr[psignr < 0],
+            np.where(frr[psignr < 0], neg1r, 1)), axis=1)
+        _pw8sr = 1 - np.sum(np.multiply(frr[psignr > 0],
+            np.where(frr[psignr > 0], pos2r, 1)), axis=1)
+        # Set left cut plane weights
+        w8s[ktris[psignl < 0]] = _nw8sl
+        w8s[ktris[psignl > 0]] = _pw8sl
+        # Set right cut plane weights
+        w8s[ktris[psignr < 0]] += _nw8sr
+        w8s[ktris[psignr > 0]] += _pw8sr
+        # Ensure all uncut tris btwn planes are weighted 1
+        w8s[ktris[III]] = 1.0
+        # Ensure all weight of all triangles not btwn cut planes to 0
         w8s[ktris[Iboth]] = 0.0
         # Indexes of all tris normal to x cut planes
         idx = np.where(
-            (np.abs(self.tri_normals[ktris, 1]) < 1e-15) &
-            (np.abs(self.tri_normals[ktris, 2]) < 1e-15))[0]
+            (np.abs(self.tri_normals[ktris, 1]) < tol) &
+            (np.abs(self.tri_normals[ktris, 2]) < tol))[0]
         # Get mask of all tris lying flat on cut plane
         Ixplane = idx[np.logical_or(
-            np.all(xtri[idx] == xa, axis=1),
-            np.all(xtri[idx] == xb, axis=1))]
+            np.all(np.abs(xtri[idx] - xa) < tol, axis=1),
+            np.all(np.abs(xtri[idx] - xb) < tol, axis=1))]
         # Keep these at full contribution
         w8s[ktris[Ixplane]] = 1.0
         return w8s
@@ -2449,6 +2500,9 @@ class UmeshBase(ABC):
             comp,
             nCut):
         ktris = self.get_tris_by_comp(comp)
+        # Get the normals and areas
+        if self.tri_areas is None:
+            _ = self.make_tri_areas()
         # Select those tris
         tris = self.tris[ktris, :]
         # Get x-coordinates of those nodes
@@ -2461,7 +2515,7 @@ class UmeshBase(ABC):
         wbins = np.zeros((self.ntri, nbins))
         for ibin in range(nbins):
             wbins[:, ibin] = self.genr8_w8s_segment(
-                xbnds[ibin], xbnds[ibin+1], comp=comp)
+                xbnds[ibin], xbnds[ibin+1], ktris)
         return wbins, xbnds
 
     def calc_ll_forces(
@@ -2479,10 +2533,9 @@ class UmeshBase(ABC):
         wqbar = np.multiply(qbar.reshape(-1, 1),
             np.multiply(self.tri_areas.reshape(-1, 1), w8s))
         # Sum component of each weighted tri
-        result = np.dot(wqbar.T, self.tri_normals) * \
-            0.5 * rho_inf * a_inf**2 * L_grid**2 / \
+        result = np.dot(wqbar.T, self.tri_normals) \
+            * 0.5 * rho_inf * a_inf**2 * L_grid**2 / \
             np.sum(np.multiply(self.tri_areas.reshape(-1, 1), w8s))
-        breakpoint()
         return result
 
     def calc_ll_coeffs(
