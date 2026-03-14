@@ -1567,7 +1567,7 @@ def _axes_format(ax, **kw):
     # Specific pad parameters
     xpad = kw.get("XPad", pad)
     ypad = kw.get("YPad", pad)
-    # Get limits that include all data (and not extra).
+    # Get limits that include all data (and not extra)
     xmin, xmax = auto_xlim(ax, pad=xpad)
     ymin, ymax = auto_ylim(ax, pad=ypad)
     # Check for specified limits
@@ -1585,8 +1585,16 @@ def _axes_format(ax, **kw):
     # Check for typles
     xmin, xmax = kw.get("XLim", (xmin, xmax))
     ymin, ymax = kw.get("YLim", (ymin, ymax))
-    # Make sure data is included.
-    ax.set_xlim(xmin, xmax)
+    # Apply limits for log scale
+    if ax.get_xscale() == "log":
+        # Cancel negative lower lim
+        xmin = None if (xmin <= 0) else xmin
+    # Apply limits for log scale
+    if ax.get_yscale() == "log":
+        # Cancel negative lower lim
+        ymin = None if (ymin <= 0) else ymin
+    # Make sure data is included
+    ax.set_xlim(None, xmax)
     ax.set_ylim(ymin, ymax)
    # --- Cleanup ---
     # Output
