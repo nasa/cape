@@ -1500,7 +1500,7 @@ class UmeshBase(ABC):
         # Look for small areas
         mask = a < SMALLTRI*np.max(a)
         # Set those areas to "1" to avoid division by zero
-        anorm = a.copy()
+        anorm = 2.0*a.copy()
         anorm[mask] = 1.0
         # Unitize normals
         nhat = n / np.stack((anorm, anorm, anorm), axis=1)
@@ -2411,7 +2411,7 @@ class UmeshBase(ABC):
         psignl = signl.prod(axis=1)
         psignr = signr.prod(axis=1)
         # Mask: completely inside both planes
-        III = np.all(dl >= 0, axis=1) & np.all(dr <= 0, axis=1)
+        III = np.all(dl >= -tol, axis=1) & np.all(dr <= tol, axis=1)
         # Get weights from each cut plane
         wl = self._calc_cut_weights(x0l, x1l, x2l, uncut_l, tol)
         wr = self._calc_cut_weights(x0r, x1r, x2r, uncut_r, tol)
@@ -2486,21 +2486,20 @@ class UmeshBase(ABC):
 
     def calc_ll_forces(
             self,
-            mach,
-            rho_inf,
-            a_inf,
+            q_inf,
             L_grid,
             nCut,
             comp: Optional[Union[list, str, int]] = None):
         w8s, xbnds = self.genr8_ll_w8s(comp, nCut)
+        breakpoint()
         # Integrate
-        qbar = np.sum(-1.0*self.q[self.tris - 1, 0]*0.5*mach**2, axis=1)*(1/3)
+        qbar = np.sum(-1*self.q[self.tris - 1, 0], axis=1)*(1/3)
         # Apply weighted area to each tri
         wqbar = np.multiply(qbar.reshape(-1, 1),
             np.multiply(self.tri_areas.reshape(-1, 1), w8s))
         # Sum component of each weighted tri
         result = np.dot(wqbar.T, self.tri_normals) \
-            * 0.5 * rho_inf * a_inf**2 * L_grid**2 / \
+            * q_inf * L_grid**2 / \
             np.sum(np.multiply(self.tri_areas.reshape(-1, 1), w8s))
         return result
 
