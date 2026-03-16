@@ -49,7 +49,6 @@ def test_01_databook():
     # Save properties
     fm.cols = ["i", "CN"]
     fm.coeffs = ["CN"]
-    breakpoint()
     # Check __repr__
     assert str(fm) == "<CaseFM('fin', n=500, ncol=2)>"
     # Calculate statistics

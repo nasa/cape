@@ -413,7 +413,6 @@ class TecDatFile(BaseFile, TextInterpreter):
             # Initialize  empty numpy array
             V = np.array([])
             # Loop until number of items reaced
-            breakpoint()
             while np.size(V) < self.i:
                 # Read line
                 line = f.readline()
