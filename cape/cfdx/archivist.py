@@ -1277,6 +1277,10 @@ class CaseArchivist(object):
         print(f'  {msg}')
         # Log message
         self.log(msg, parent=parent)
+        # Create subdir if needed
+        fdir = os.path.dirname(fname)
+        if fdir:
+            self.make_case_subdir(fdir)
         # Copy file
         shutil.copy(fname, os.path.join(adir, fname))
 
@@ -1693,6 +1697,43 @@ class CaseArchivist(object):
             caseparts.pop(-1)
         # Build up case archive dir, starting from archive root
         fullpath = self.archivedir
+        # Loop through group folder(s)
+        for part in caseparts:
+            # Append
+            fullpath = os.path.join(fullpath, part)
+            # Create folder
+            if not os.path.isdir(fullpath):
+                # Log action
+                self.log(f"mkdir {_posix(fullpath)}")
+                # Create folder
+                os.mkdir(fullpath)
+
+    # Create archive subfolder
+    def make_case_subdir(self, fdir: str):
+        r"""Create a subfolder in the archive folder if needed
+
+        :Call:
+            >>> a.make_case_subdir(fdir)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *fdir*: :class:`str`
+                Name of subfolder (can be compound)
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
+        # Check for "phantom"
+        if self._test:
+            return
+        # Get full/partial type
+        atype = self.opts.get_ArchiveType()
+        # Exit if not partial
+        if atype == "full":
+            return
+        # Build up case archive dir, starting from archive root
+        fullpath = os.path.join(self.archivedir, self.casename)
+        # Subfolder parts
+        caseparts = fdir.split('/')
         # Loop through group folder(s)
         for part in caseparts:
             # Append
