@@ -401,6 +401,8 @@ def _write_ugrid(
             mesh.ntri, mesh.nquad,
             mesh.ntet, mesh.npyr, mesh.npri, mesh.nhex],
         ndmin=2)
+    # Allow writing w/ no elements of some type
+    ns[ns == None] = 0
     # Write to file
     iwrite(fp, ns)
     # Order of things to write

@@ -33,6 +33,7 @@ from .avmfile import read_avm, write_avm
 from .fileutils import openfile
 from .flowfile import read_fun3d_flow, read_fun3d_tavg
 from .frofile import read_fro, write_fro
+from .meshbfile import read_meshb, write_meshb
 from .pltfile import write_plt
 from .surfconfig import SurfConfig
 from .surf3dfile import read_surf3d, write_surf3d
@@ -50,6 +51,7 @@ REGEX_FILENAME = re.compile(
 # File types based on extension
 GRID_FORMATS = (
     "avm",
+    "meshb",
     "plt",
     "tri",
     "ugrid",
@@ -162,6 +164,7 @@ class Umesh(umeshbase.UmeshBase):
         fugrid = kw.get("ugrid")
         favm = kw.get("avm")
         ffro = kw.get("fro")
+        fmeshb = kw.get("meshb")
         fsurf = kw.get("surf")
         ftri = kw.get("tri")
         ftriq = kw.get("triq")
@@ -179,6 +182,9 @@ class Umesh(umeshbase.UmeshBase):
         elif ffro:
             # FRO (LAVA Cart.) format
             self.read_fro(ffro, meta=meta)
+        elif fmeshb:
+            # MESHB INRIA format
+            self.read_meshb(fmeshb, meta=meta)
         elif fsurf:
             # SURF3D (input to AFLR3)
             self.read_surf3d(fsurf, meta=meta, fmt=fmt)
@@ -238,6 +244,9 @@ class Umesh(umeshbase.UmeshBase):
             elif gridfmt.format == "fro":
                 # FRO format
                 self.read_fro(fp, meta)
+            elif gridfmt.format == "meshb":
+                # FRO format
+                self.read_meshb(fp, meta)
             elif gridfmt.format == "surf":
                 # SURF3D format
                 self.read_surf3d(fp, meta, fmt=fmt)
@@ -282,6 +291,13 @@ class Umesh(umeshbase.UmeshBase):
             meta: bool = False):
         # Read FUN3D averaged flow
         read_fun3d_tavg(self, fname_or_fp, meta)
+
+    def read_meshb(
+            self,
+            fname_or_fp: Union[str, IOBase],
+            meta: bool = False):
+        # Read LAVA FRO file
+        read_meshb(self, fname_or_fp, meta)
 
     def read_surf3d(
             self,
@@ -359,6 +375,9 @@ class Umesh(umeshbase.UmeshBase):
             elif gridfmt.format == "fro":
                 # FRO format
                 self.write_fro(fp)
+            elif gridfmt.format == "meshb":
+                # FRO format
+                self.write_meshb(fp)
             elif gridfmt.format == "plt":
                 # Tecplot PLT format
                 self.write_plt(fp, v=kw.get("v"))
@@ -385,6 +404,12 @@ class Umesh(umeshbase.UmeshBase):
             fname_or_fp: Union[str, IOBase]):
         # Write mesh
         write_fro(self, fname_or_fp)
+
+    def write_meshb(
+            self,
+            fname_or_fp: Union[str, IOBase]):
+        # Write mesh
+        write_meshb(self, fname_or_fp)
 
     def write_plt(
             self,

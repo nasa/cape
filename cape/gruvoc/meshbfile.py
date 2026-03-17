@@ -209,6 +209,8 @@ def _read_meshb_tris(
     tris = np.fromfile(fp, count=ntri, dtype=dt)
     # Save to mesh
     mesh.tris = tris['inds']
+    # Save ids
+    mesh.tri_ids = tris['ref']
     # Delete to free memory
     del tris
 
@@ -236,6 +238,8 @@ def _read_meshb_quads(
     quads = np.fromfile(fp, count=nquad, dtype=dt)
     # Save to mesh
     mesh.quads = quads['inds']
+    # Save ids
+    mesh.quad_ids = quads['ref']
     # Delete to free memory
     del quads
 
@@ -412,7 +416,8 @@ def _read_meshb(
         nkw = ireadkw(fp, 1)[0]
         # Catch eof kw
         if nkw == 54:
-            break
+            eof = True
+            continue
         # Get reader for this kw
         rfunc = MESHB_KW_READ_MAP.get(nkw, None)
         # Exectute if known reader
@@ -563,7 +568,7 @@ def _write_meshb_verts(
     # Write Vertex kw
     iwritekw(fp, 4)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwriteH(fp, fp.tell() + mesh.nnode*(fsize*3 + isize) + (2*isize))
+    iwriteH(fp, fp.tell() + np.int64(mesh.nnode)*(fsize*3 + isize) + (2*isize))
     # Write Number of vertex
     iwrite(fp, mesh.nnode)
     dtype = np.dtype([
@@ -596,7 +601,7 @@ def _write_meshb_tris(
     # Write kw
     iwritekw(fp, 6)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwriteH(fp, fp.tell() + mesh.ntri*(isize*3 + isize) + (2*isize))
+    iwriteH(fp, fp.tell() + np.int64(mesh.ntri)*(isize*3 + isize) + (2*isize))
     # Write Number of tris
     iwrite(fp, mesh.ntri)
     # Build mat to write out
@@ -619,7 +624,7 @@ def _write_meshb_quads(
     # Write kw
     iwritekw(fp, 7)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwriteH(fp, fp.tell() + mesh.nquad*(isize*4 + isize) + (2*isize))
+    iwriteH(fp, fp.tell() + np.int64(mesh.nquad)*(isize*4 + isize) + (2*isize))
     # Write Number of quads
     iwrite(fp, mesh.nquad)
     # Build mat to write out
@@ -642,7 +647,7 @@ def _write_meshb_tets(
     # Write kw
     iwritekw(fp, 8)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwriteH(fp, fp.tell() + mesh.ntet*(isize*4 + isize) + (2*isize))
+    iwriteH(fp, fp.tell() + np.int64(mesh.ntet)*(isize*4 + isize) + (2*isize))
     # Write Number of tets
     iwrite(fp, mesh.ntet)
     # Build mat to write out
@@ -665,7 +670,7 @@ def _write_meshb_pris(
     # Write kw
     iwritekw(fp, 9)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwriteH(fp, fp.tell() + mesh.npri*(isize*6 + isize)  + (2*isize))
+    iwriteH(fp, fp.tell() + np.int64(mesh.npri)*(isize*6 + isize)  + (2*isize))
     # Write Number of pris
     iwrite(fp, mesh.npri)
     # Build mat to write out
@@ -688,7 +693,7 @@ def _write_meshb_pyrs(
     # Write kw
     iwritekw(fp, 49)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwriteH(fp, fp.tell() + mesh.npyr*(isize*5 + isize) + (2*isize))
+    iwriteH(fp, fp.tell() + np.int64(mesh.npyr)*(isize*5 + isize) + (2*isize))
     # Write Number of pyrs
     iwrite(fp, mesh.npyr)
     # Build mat to write out
@@ -711,7 +716,7 @@ def _write_meshb_hexs(
     # Write kw
     iwritekw(fp, 10)
     # Write vert data end (x,y,z + ref int)*nnode + nnode int + this int
-    iwriteH(fp, fp.tell() + mesh.nhex*(isize*12 + isize) + (2*isize))
+    iwriteH(fp, fp.tell() + np.int64(mesh.nhex)*(isize*12 + isize) + (2*isize))
     # Write Number of hexs
     iwrite(fp, mesh.nhex)
     # Build mat to write out
