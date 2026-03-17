@@ -2367,6 +2367,23 @@ class UmeshBase(ABC):
             xb: float,
             ktris: Optional[np.ndarray] = None,
             comp: Optional[Union[list, str, int]] = None) -> np.ndarray:
+        """Calculate triangle area weights between two x-cut planes
+
+        :Call:
+            >>> w8s = mesh.genr8_w8s_segment(xa, xb, ktris, comp)
+        :Inputs:
+            *xa*: :class:`float`
+                x-coord for left cut plane
+            *xb*: :class:`float`
+                x-coord for right cut plane
+            *ktris*: :class:`np.ndarray`
+                Indexes of tris in comp
+            *comp*: :class:`list`
+                List of components to include in cuts
+        :Outputs:
+            *w8s*: :class:`np.ndarray`
+                Fractional area weights for each triangle in ktris
+        """
         xa = np.round(xa, 14)
         xb = np.round(xb, 14)
         TOL = 1e-13
@@ -2463,8 +2480,23 @@ class UmeshBase(ABC):
 
     def genr8_ll_w8s(
             self,
-            comp,
-            nCut):
+            nCut: int,
+            comp: Optional[Union[list, str, int]] = None):
+        """Generate line load sectional weighting on each triangle
+
+        :Call:
+            >>> w8s = mesh.genr8_ll_w8s(comp, nCut)
+        :Inputs:
+            *comp*: :class:`list`
+                List of components to include in cuts
+            *nCut*: :class:`int`
+                Number of cuts in line load (# bins = nCut - 1)
+        :Outputs:
+            *wbins*: :class:`np.ndarray`
+                Fractional area weights for each triangle and each bin
+            *xbnds*: :class:`np.ndarray`
+                Bounds of each cut bin
+        """
         ktris = self.get_tris_by_comp(comp)
         # Get the normals and areas
         if self.tri_areas is None:
@@ -2479,47 +2511,41 @@ class UmeshBase(ABC):
         xbnds = np.linspace(xmin, xmax, nCut)
         nbins = nCut - 1
         wbins = np.zeros((self.ntri, nbins))
+        # Calculate weights for each bin
         for ibin in range(nbins):
             wbins[:, ibin] = self.genr8_w8s_segment(
                 xbnds[ibin], xbnds[ibin+1], ktris)
         return wbins, xbnds
 
-    def calc_ll_forces(
+    def calc_ll_coeffs(
             self,
-            q_inf,
-            L_grid,
-            nCut,
+            Aref: float,
+            nCut: int,
             comp: Optional[Union[list, str, int]] = None):
-        w8s, xbnds = self.genr8_ll_w8s(comp, nCut)
-        breakpoint()
+        """Calculate sectional line load coefficients
+
+        :Call:
+            >>> w8s = mesh.calc_ll_coeffs(Aref, nCut, comp)
+        :Inputs:
+            *Aref*: :class:`float`
+                Reference Area
+            *nCut*: :class:`int`
+                Number of cuts in line load (# bins = nCut - 1)
+            *comp*: :class:`list`
+                List of components to include in cuts
+        :Outputs:
+            *result*: :class:`np.ndarray`
+                Sectional line load coefficients
+        """
+        w8s, xbnds = self.genr8_ll_w8s(nCut, comp)
         # Integrate
         qbar = np.sum(-1*self.q[self.tris - 1, 0], axis=1)*(1/3)
         # Apply weighted area to each tri
-        wqbar = np.multiply(qbar.reshape(-1, 1),
+        wqbar = np.multiply(
+            qbar.reshape(-1, 1),
             np.multiply(self.tri_areas.reshape(-1, 1), w8s))
         # Sum component of each weighted tri
-        result = np.dot(wqbar.T, self.tri_normals) \
-            * q_inf * L_grid**2 / \
-            np.sum(np.multiply(self.tri_areas.reshape(-1, 1), w8s))
-        return result
-
-    def calc_ll_coeffs(
-            self,
-            mach,
-            rho_inf,
-            a_inf,
-            L_grid,
-            Aref,
-            nCut,
-            comp: Optional[Union[list, str, int]] = None):
-        w8s, xbnds = self.genr8_ll_w8s(comp, nCut)
-        # Integrate
-        qbar = np.sum(-1.0*self.q[self.tris - 1, 0]*0.5*mach**2, axis=1)*(1/3)
-        # Apply weighted area to each tri
-        wqbar = np.multiply(qbar.reshape(-1, 1),
-            np.multiply(self.tri_areas.reshape(-1, 1), w8s))
         result = np.dot(wqbar.T, self.tri_normals) / Aref
-        breakpoint()
         return result
 
   # === Analysis ===
