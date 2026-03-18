@@ -473,7 +473,7 @@ file that are not part of any section.
         if ngpus:
             line += (':ngpus=%i' % ngpus)
         if nmem:
-            line += (':mem=%ig' % nmem)
+            line += (':mem=%iGB' % nmem)
         # Write the line
         f.write(line + '\n')
         # Form the -l place line (gpus only)
