@@ -27,6 +27,7 @@ from .runinpfile import CartInputFile
 from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
+from ..fileutils import tail
 
 # Constants
 ITER_FILE = "data.iter"
@@ -353,6 +354,37 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-09-25 ``@ddalle``: v1.0
         """
         return (self,)
+
+    # Get dex iter for point probe
+    def get_dex_iter_pointprobe(self, comp: str) -> int:
+        r"""Get number of iterations available for a LAVA point probe
+
+        :Call:
+            >>> n = runner.get_dex_iter_pointprobe(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *n*: :class:`int`
+                Iteration count
+        :Versions:
+            * 2026-03-20 ``@ddalle``: v1.0
+        """
+        # Get probe index
+        j = self.get_dex_opt(comp, "Index")
+        # Pattern for file names
+        pat = os.path.join("point_probe", rf"Cart\.[0-9]+\.pnt{j:04d}.dat")
+        # Find those files
+        filelist_raw = self.search_regex(pat)
+        # Use latest
+        if len(filelist_raw) == 0:
+            return 0
+        # Read last line of newest file
+        line = tail(filelist_raw[-1], n=1)
+        # Get integer
+        return int(line.split()[0])
 
    # --- File manipulation ---
     # Prepare any input files as needed
