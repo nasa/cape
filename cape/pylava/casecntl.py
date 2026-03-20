@@ -356,6 +356,7 @@ class CaseRunner(casecntl.CaseRunner):
         return (self,)
 
     # Get dex iter for point probe
+    @casecntl.run_rootdir
     def get_dex_iter_pointprobe(self, comp: str) -> int:
         r"""Get number of iterations available for a LAVA point probe
 
