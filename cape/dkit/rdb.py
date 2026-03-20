@@ -1585,7 +1585,7 @@ class DataKit(BaseData):
         # Get modification time
         mtime = 0.0 if getattr(self, "mtime") is None else self.mtime
         # Merge
-        if merge:
+        if merge and getattr(self, "xcols", None) is not None:
             # Check modification time
             if os.path.isfile(fname) and os.path.getmtime(fname) > mtime:
                 # Read the file
