@@ -1637,7 +1637,10 @@ class CaseRunner(CaseRunnerBase):
         if l is not None:
             self.log_verbose(f"ulimit -{r} {l} (phase={j})")
         # Apply setting
-        set_rlimit(r, ulim, u, j, unit)
+        try:
+            set_rlimit(r, ulim, u, j, unit)
+        except ValueError:
+            self.log_verbose(f"ulimit operation not allowed")
 
    # --- Folders ---
     @run_rootdir
