@@ -27,6 +27,7 @@ The :mod:`cape` module
     optdict/index
     plot3d
     pltfile
+    pvutils
     statutils
     step
     teccli

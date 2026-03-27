@@ -3067,6 +3067,44 @@ class UmeshBase(ABC):
         # Output
         return j
 
+    # Eliminate unused nodes
+    def remove_unused_nodes(self):
+        r"""Remove any nodes that are not used in any triangles
+
+        :Call:
+            >>> mesh.remove_unused_nodes()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Versions:
+            * 2017-02-10 ``@ddalle``: ``cape.trifile`` v1.0
+            * 2019-06-18 ``@ddalle``: ``cape.trifile`` v2.0; NO LOOPS
+            * 2026-03-26 ``@ddalle``: v1.0 (tris only)
+        """
+        # Get nodes that are used
+        keepnodes = np.unique(self.tris)
+        # Output number of nodes
+        nnode = keepnodes.size
+        # Check for no unused nodes
+        if nnode == self.nnode:
+            return
+        # Initialize array of new indices
+        # This is a map from node i -> nodemap[i-1]
+        nodemap = np.zeros(self.nnode, dtype=self.tris.dtype)
+        # Create the map using vector operation
+        nodemap[keepnodes-1] = np.arange(1, nnode+1)
+        # Renumber triangles using *I* as a map
+        self.tris = nodemap[self.tris-1]
+        # Downselect nodes
+        self.nnode = nnode
+        self.nodes = self.nodes[keepnodes-1, :]
+        # Downselect *q* if available
+        if self.q is not None:
+            try:
+                self.q = self.q[keepnodes-1, :]
+            except AttributeError:
+                pass
+
    # --- Near-surface ---
     def get_surf_nearest(self, j: Optional[np.ndarray] = None) -> np.ndarray:
         # Use surface if needed

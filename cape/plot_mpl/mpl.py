@@ -1594,7 +1594,7 @@ def _axes_format(ax, **kw):
         # Cancel negative lower lim
         ymin = None if (ymin <= 0) else ymin
     # Make sure data is included
-    ax.set_xlim(None, xmax)
+    ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
    # --- Cleanup ---
     # Output

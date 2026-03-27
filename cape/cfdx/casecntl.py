@@ -1637,7 +1637,10 @@ class CaseRunner(CaseRunnerBase):
         if l is not None:
             self.log_verbose(f"ulimit -{r} {l} (phase={j})")
         # Apply setting
-        set_rlimit(r, ulim, u, j, unit)
+        try:
+            set_rlimit(r, ulim, u, j, unit)
+        except ValueError:
+            self.log_verbose(f"ulimit operation not allowed")
 
    # --- Folders ---
     @run_rootdir
@@ -6981,7 +6984,7 @@ class CaseRunner(CaseRunnerBase):
         # Program name
         prog = self._progname
         # Number of processors
-        nproc = cmdgen.get_nproc(rc, j)
+        nproc = cmdgen.get_mpi_procs()
         # Set to one if `None`
         nproc = 1 if nproc is None else nproc
         # Format time
@@ -7000,7 +7003,7 @@ class CaseRunner(CaseRunnerBase):
         # Get the time
         toc = datetime.now()
         # Number of processors
-        nProc = cmdgen.get_nproc(rc, j)
+        nProc = cmdgen.get_mpi_procs()
         # Set to one if `None`
         nProc = 1 if nProc is None else nProc
         # Time difference
