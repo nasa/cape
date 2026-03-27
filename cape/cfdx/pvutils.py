@@ -128,8 +128,8 @@ def genr8_filenames(
 # Video maker
 def make_video(
         runner: CaseRunner,
-        pat: str,
         outs: list,
+        pat: str,
         frame_func: Callable,
         parser: PVArgs) -> int:
     # List iterations of cut plane file
@@ -182,7 +182,7 @@ def make_video(
         sys.stdout.write("\r%*s\riter %i (%i/%i)" % (60, '', n, j+1, m))
         sys.stdout.flush()
         # Process it
-        frame_func(runner, outs, n=n, j=j, width=w, height=h)
+        frame_func(runner, parser, n=n, j=j)
         # Exit this shell
         os._exit(0)
     # Clean up prompt
@@ -246,11 +246,11 @@ def main_template(frame_func: Callable, outs: list, pat: str) -> int:
     # Check if video
     if vid:
         # Make video
-        ierr = make_video(runner, pat, outs, frame_func, parser)
+        ierr = make_video(runner, outs, pat, frame_func, parser)
     else:
         # Check for an integer
         n = parser.get_opt("n")
         # Do latest frame
-        ierr = frame_func(runner, outs, n=n)
+        ierr = frame_func(runner, parser, n=n)
     # Output code
     return 0 if ierr is None else ierr

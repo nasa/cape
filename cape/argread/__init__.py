@@ -2221,7 +2221,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
         # Get _optconverter key
         func = cls.get_optconverter(opt)
         # Return original value if not found
-        if func is None:
+        if func is None or rawval is None:
             # No converter
             return rawval
         # Convert
