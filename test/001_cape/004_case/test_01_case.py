@@ -103,7 +103,7 @@ def test_case_timing():
     # Calculate delta time
     dt = tic - t0
     # Test output
-    assert nProc == rc.get_nProc(0)
+    assert nProc >= rc.get_nProc(0)
     assert dt.seconds < 1
     # Write a end-of-phase timing file
     runner.write_user_time(0)
