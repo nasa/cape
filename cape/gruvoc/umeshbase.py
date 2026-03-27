@@ -50,6 +50,7 @@ VolumeZone = namedtuple(
 
 # Cutoffs
 SMALLTRI = 1e-15
+SMALLQUAD = 1e-15
 XTOL = 1e-12
 
 # Other defaults
@@ -250,6 +251,7 @@ class UmeshBase(ABC):
         "qvars_matrix",
         "qinf",
         "qinfvars",
+        "quad_areas",
         "quad_bcs",
         "quad_flags",
         "quad_ids",
@@ -1507,6 +1509,64 @@ class UmeshBase(ABC):
         # Save them
         self.tri_areas = a
         self.tri_normals = nhat
+        # Output
+        return a, nhat
+
+    # Get quad unit normals and areas
+    def make_quad_areas(self):
+        r"""Get the quad areas and unit normals
+
+        :Call:
+            >>> a, nhat = mesh.make_quad_areas()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Outputs:
+            *a*: :class:`ndarray`, shape=(mesh.nquad,)
+                Area of each quad
+            *nhat*: :class:`np.ndarray`, shape=(mesh.nquad, 4)
+                Unit normal of each quad
+        """
+        # Check if computed
+        if self.quad_areas is not None:
+            if self.quad_normals is not None:
+                return self.quad_areas, self.quad_normals
+        # Convex
+        # Extract the vertices of each quad.
+        x = self.nodes[self.quads-1, 0]
+        y = self.nodes[self.quads-1, 1]
+        z = self.nodes[self.quads-1, 2]
+        # Cross products
+        v01 = np.cross(
+            np.array([x[:, 0], y[:, 0], z[:, 0]]).T,
+            np.array([x[:, 1], y[:, 1], z[:, 1]]).T
+        )
+        v12 = np.cross(
+            np.array([x[:, 1], y[:, 1], z[:, 1]]).T,
+            np.array([x[:, 2], y[:, 2], z[:, 2]]).T
+        )
+        v23 = np.cross(
+            np.array([x[:, 2], y[:, 2], z[:, 2]]).T,
+            np.array([x[:, 3], y[:, 3], z[:, 3]]).T
+        )
+        v30 = np.cross(
+            np.array([x[:, 3], y[:, 3], z[:, 3]]).T,
+            np.array([x[:, 0], y[:, 0], z[:, 0]]).T
+        )
+        # Sum to get dimensioned normals
+        n = v01 + v12 + v23 + v30
+        # Calculate areas
+        a = 0.5*np.sqrt(np.sum(n**2, 1))
+        # Look for small areas
+        mask = a < SMALLQUAD*np.max(a)
+        # Set those areas to "1" to avoid division by zero
+        anorm = 2.0*a.copy()
+        anorm[mask] = 1.0
+        # Unitize normals
+        nhat = n / np.stack((anorm, anorm, anorm), axis=1)
+        # Save them
+        self.quad_areas = a
+        self.quad_normals = nhat
         # Output
         return a, nhat
 
