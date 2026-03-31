@@ -27,11 +27,13 @@ from .runinpfile import CartInputFile
 from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
+from ..dkit.rdb import DataKit
 from ..fileutils import tail
 
 # Constants
 ITER_FILE = "data.iter"
 ITER_FILE_CART = os.path.join("monitor", "Cart.data.iter")
+BATCHSIZE = 100
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -386,6 +388,88 @@ class CaseRunner(casecntl.CaseRunner):
         line = tail(filelist_raw[-1], n=1)
         # Get integer
         return int(line.split()[0])
+
+   # --- Surface data ---
+    def compress_surfdata(
+            self,
+            nsurf: int = 0,
+            nbatch: int = BATCHSIZE,
+            clean: bool = False):
+        # First read metadata
+        db = self.read_surfdata(nsurf)
+        # Number of time steps saved
+        nt = db["nt"]
+        # Get current batch info
+        if nt == 0:
+            # Starting fresh
+            imax = 0
+            batch = 0
+        else:
+            # Get latest
+            imax = db["i"][-1]
+            batch = db["batch"][-1]
+        # Get any current VTK files
+        vtkpat = self._genr8_surfdata_regex(nsurf)
+        vtkfiles = sorted(self.search_regex(vtkpat))
+        # Get integers from these file names
+        iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
+        # Loop through files
+        for i, vtkfile in zip(iters, vtkfiles):
+            # Check if already covered
+            if i <= imax:
+                continue
+            # Increase counter
+            nt += 1
+            # Get batch
+            batchj = nt // nbatch
+            # Append to vectors
+            db["nt"] = nt
+            db["i"] = np.hstack((db["i"], i))
+            db["batch"] = np.hstack((db["batch"], batchj))
+            # Name of file to read
+
+    @casecntl.run_rootdir
+    def read_surfdata_meta(self, nsurf: int = 0) -> DataKit:
+        # Create file name
+        fname = self._genr8_surfdata_metafile(nsurf)
+        # Check for file
+        if not os.path.isfile(fname):
+            # Initialize datakit
+            db = DataKit()
+            # Save parameters
+            db.save_col("nt", 0)
+            db.save_col("i", np.zeros(0, dtype="i4"))
+            db.save_col("batch", np.zeros(0, dtype="i4"))
+            # Output
+            return db
+        # Otherwise read it
+        return DataKit(fname)
+
+    def _genr8_surfdata_batch(self, nsurf: int, batch: int):
+        # Name of file
+        fname = self._genr8_surfdata_datfile(nsurf, batch)
+        # Check if file exists
+        if not os.path.isfile(fname):
+            # Create a DataKit
+            db = DataKit()
+            # Initialize
+            db.save_col("nt", 0)
+            db.save_col("q", np.zeros((0, 0, 0), dtype="f4"))
+            # Write it
+            db.write_cdb(fname)
+
+    def _genr8_surfdata_regex(self, nsurf: int = 0) -> str:
+        return os.path.join(
+            "surface",
+            f"surf{nsurf:03d}\\.Cart\\.[0-9]+\\.vtk")
+
+    def _genr8_surfdata_metafile(self, nsurf: int = 0) -> str:
+        return os.path.join("surface", f"surf{nsurf:03d}.Cart.cdb")
+
+    def _genr8_surfdata_datfile(self, nsurf: int, batch: int) -> str:
+        return os.path.join(
+            "surface",
+            f"surf{nsurf:03d}.Cart.batch{batch:04d}.cdb")
 
    # --- File manipulation ---
     # Prepare any input files as needed
