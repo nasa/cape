@@ -29,6 +29,7 @@ from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
 from ..dkit.rdb import DataKit
 from ..fileutils import tail
+from ..gruvoc.umesh import Umesh
 
 # Constants
 ITER_FILE = "data.iter"
@@ -390,7 +391,7 @@ class CaseRunner(casecntl.CaseRunner):
         return int(line.split()[0])
 
    # --- Surface data ---
-    def compress_surfdata(
+    def collect_surfdata(
             self,
             nsurf: int = 0,
             nbatch: int = BATCHSIZE,
@@ -445,16 +446,59 @@ class CaseRunner(casecntl.CaseRunner):
         # Otherwise read it
         return DataKit(fname)
 
+    @casecntl.run_rootdir
+    def _write_surfdata(self, i: int, nsurf: int, batch: int):
+        # Ensure file exists
+        self._genr8_surfdata_batch(nsurf, batch)
+        # Name of file
+        fname = self._genr8_surfdata_datfile(nsurf, batch)
+        # Name of VTK file
+        fvtk = self._genr8_surfdata_reffile(nsurf, i)
+        # Check for file
+        if not os.path.isfile(fvtk):
+            self.log_verbose(f"File not found: {fvtk}")
+            return
+        # Read data
+        surf = Umesh(fvtk)
+        # Open file
+
+
+    @casecntl.run_rootdir
+    def _read_surfdata_ref(self, nsurf: int, i: Optional[int] = None) -> Umesh:
+        # Name of reference file
+        fname = self._genr8_surfdata_reffile(nsurf, i)
+        # Read it
+        return Umesh(fname)
+
+    def _genr8_surfdata_reffile(
+            self,
+            nsurf: int,
+            i: Optional[int] = None) -> str:
+        # Check for explicit iteration
+        if i is None:
+            # Get any current VTK files
+            vtkpat = self._genr8_surfdata_regex(nsurf)
+            vtkfiles = sorted(self.search_regex(vtkpat))
+            # Get integers from these file names
+            i = int(vtkfiles[0].rsplit('.', 2)[-2])
+        # Name of file
+        return os.path.join("surface", f"surf{nsurf:03d}.Cart.{i:09d}.vtk")
+
     def _genr8_surfdata_batch(self, nsurf: int, batch: int):
         # Name of file
         fname = self._genr8_surfdata_datfile(nsurf, batch)
         # Check if file exists
         if not os.path.isfile(fname):
+            # Read reference VTK file
+            surf = self._read_surfdata_ref(nsurf)
+            # Get number of states and nodes
+            nnode = surf.nnode
+            nq = surf.nq
             # Create a DataKit
             db = DataKit()
             # Initialize
             db.save_col("nt", 0)
-            db.save_col("q", np.zeros((0, 0, 0), dtype="f4"))
+            db.save_col("q", np.zeros((nnode, nq, 0), dtype="f4"))
             # Write it
             db.write_cdb(fname)
 
