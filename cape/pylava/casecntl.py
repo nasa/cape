@@ -498,6 +498,8 @@ class CaseRunner(casecntl.CaseRunner):
             db = DataKit()
             # Initialize
             db.save_col("nt", 0)
+            db.save_col("nnode", nnode)
+            db.save_col("nq", nq)
             db.save_col("q", np.zeros((nnode, nq, 0), dtype="f4"))
             # Write it
             db.write_cdb(fname)
