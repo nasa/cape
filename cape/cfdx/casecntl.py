@@ -1640,7 +1640,7 @@ class CaseRunner(CaseRunnerBase):
         try:
             set_rlimit(r, ulim, u, j, unit)
         except ValueError:
-            self.log_verbose(f"ulimit operation not allowed")
+            self.log_verbose("ulimit operation not allowed")
 
    # --- Folders ---
     @run_rootdir
@@ -1786,6 +1786,46 @@ class CaseRunner(CaseRunnerBase):
         # Action
         fileutils.touch(fname)
 
+    # Remove a file
+    def remove_file(self, dst: str):
+        r"""Delete a file if it exists
+
+        :Call:
+            >>> runner.remove_file(dst)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *dst*: :class:`str`
+                Name of link to delete
+        :Versions:
+            * 2026-04-06 ``@ddalle``: v1.0
+        """
+        # Validate destination
+        self.validate_dstfile(dst)
+        # Relative to root
+        dst_rel = self.relpath(dst)
+        # Check for existing link
+        if os.path.islink(dst):
+            # Remove link
+            self.log_verbose(f"removing link '{dst_rel}'", parent=1)
+            try:
+                os.remove(dst)
+            except PermissionError:
+                self.log_verbose(
+                    f"permission denied: removing link '{dst_rel}'", parent=1)
+                return
+        # Check for existing file
+        if os.path.isfile(dst):
+            # Replace (overwriten later)
+            self.log_verbose(f"removing file '{dst_rel}'", parent=1)
+            # Delete file
+            try:
+                os.remove(dst)
+            except PermissionError:
+                self.log_verbose(
+                    f"permission denied: removing file '{dst_rel}'",
+                    parent=1)
+
     # Remove a link
     def remove_link(self, dst: str, f: bool = False):
         r"""Delete a link [file if *f*] if it exists
@@ -1798,7 +1838,7 @@ class CaseRunner(CaseRunnerBase):
             *dst*: :class:`str`
                 Name of link to delete
             *f*: ``True`` | {``False``}
-                Option to overwrite *dst*, even if not a link
+                Option to delete *dst*, even if not a link
         :Versions:
             * 2024-08-14 ``@ddalle``: v1.0
         """
@@ -1821,7 +1861,7 @@ class CaseRunner(CaseRunnerBase):
             # Check for overwrite
             if f:
                 # Replace (overwriten later)
-                self.log_verbose(f"overwriting file '{dst_rel}'", parent=1)
+                self.log_verbose(f"removing file '{dst_rel}'", parent=1)
                 # Delete file
                 try:
                     os.remove(dst)
@@ -1830,7 +1870,7 @@ class CaseRunner(CaseRunnerBase):
                         f"permission denied: removing file '{dst_rel}'",
                         parent=1)
             else:
-                msg = f"cannot overwrite '{dst_rel}'; file exists"
+                msg = f"cannot remove '{dst_rel}'; not a link"
                 self.log_verbose(msg, parent=1)
                 raise FileExistsError(msg)
 

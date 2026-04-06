@@ -402,7 +402,8 @@ class CaseRunner(casecntl.CaseRunner):
             self,
             nsurf: int = 0,
             nbatch: int = BATCHSIZE,
-            clean: bool = False):
+            clean: bool = False,
+            nmax: Optional[int] = None):
         # First read metadata
         db = self.read_surfdata_meta(nsurf)
         # Number of time steps saved
@@ -410,21 +411,29 @@ class CaseRunner(casecntl.CaseRunner):
         # Get current batch info
         if nt == 0:
             # Starting fresh
+            iref = 0
             imax = 0
-            batch = 0
         else:
             # Get latest
+            iref = db["i"][0]
             imax = db["i"][-1]
-            batch = db["batch"][-1]
         # Get any current VTK files
         vtkpat = self._genr8_surfdata_regex(nsurf)
         vtkfiles = sorted(self.search_regex(vtkpat))
         # Get integers from these file names
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
+        # Number of saved files
+        n = 0
         # Loop through files
         for i in iters:
+            # Name of VTK file
+            fvtk = self._genr8_surfdata_reffile(nsurf, i)
             # Check if already covered
             if i <= imax:
+                # Check for clean option
+                if clean and (i != iref):
+                    # Delete it
+                    self.remove_file(fvtk)
                 continue
             # Increase counter
             nt += 1
@@ -436,6 +445,16 @@ class CaseRunner(casecntl.CaseRunner):
             db["batch"] = np.hstack((db["batch"], batchj))
             # Write data
             self._write_surfdata(i, nsurf, batchj)
+            # Check for clean
+            if clean and (i != iref):
+                self.remove_file(fvtk)
+            # Update
+            n += 1
+            # Check for exit flag
+            if (nmax is not None) and (n >= nmax):
+                break
+        # Update metadata
+        self.write_surfdata_meta(nsurf, db)
 
     @casecntl.run_rootdir
     def read_surfdata_meta(self, nsurf: int = 0) -> DataKit:
@@ -453,6 +472,13 @@ class CaseRunner(casecntl.CaseRunner):
             return db
         # Otherwise read it
         return DataKit(fname)
+
+    @casecntl.run_rootdir
+    def write_surfdata_meta(self, nsurf: int, db: DataKit):
+        # Create file name
+        fname = self._genr8_surfdata_metafile(nsurf)
+        # Write it
+        db.write(fname)
 
     @casecntl.run_rootdir
     def _write_surfdata(self, i: int, nsurf: int, batch: int):
@@ -504,16 +530,36 @@ class CaseRunner(casecntl.CaseRunner):
             rtype_code, = fromfile_lb4_i(fp, 1)
             # Parse record type details
             rt = capefile.RecordType(rtype_code)
-            # Convert to long record (short when initialized)
-            rtype_code = rtype_code | capefile.RT_XLONGREC
-            # Rewrite it
-            fp.seek(dat.pos['q'])
-            tofile_lb4_i(fp, rtype_code)
             # Calculate length (in bytes)
             l2 = 2 ** (rt.element_bits - 3)
             l3 = 25 + nt*nq*nnode*l2
             # Write size
             tofile_lb8_i(fp, l3)
+            # Get name
+            l4, = fromfile_lb4_i(fp, 1)
+            fp.read(l4)
+            # Skip dimensions
+            nd, = fromfile_lb4_i(fp, 1)
+            # Write updated sizse
+            tofile_lb4_i(fp, nt)
+            # Read node count and q count
+            nn2, nq2 = fromfile_lb4_i(fp, 2)
+            # Check
+            if nn2 != nnode:
+                raise ValueError(
+                    f"In {fvtk}: expected {nnode} nodes; got {nn2}")
+            if nq2 != nq:
+                raise ValueError(
+                    f"In {fvtk}: expected {nq} states; got {nq2}")
+            # Go to end of file to write new data
+            fp.seek(0, 2)
+            # Write state
+            if l2 == 8:
+                # Write as double-precision data
+                tofile_lb8_f(fp, surf.q.astype("f8"))
+            else:
+                # Write as single-precision data
+                tofile_lb4_f(fp, surf.q.astype("f4"))
 
     @casecntl.run_rootdir
     def _read_surfdata_ref(self, nsurf: int, i: Optional[int] = None) -> Umesh:
@@ -558,7 +604,7 @@ class CaseRunner(casecntl.CaseRunner):
             db.save_col("nt", 0)
             db.save_col("nnode", nnode)
             db.save_col("nq", nq)
-            db.save_col("q", np.zeros((nnode, nq, 0), dtype="f4"))
+            db.save_col("q", np.zeros((0, nnode, nq), dtype="f4"))
             # Get/create CAPEDB file interface
             cdb = db.genr8_cdb()
             # Set special data type (long record) for *q*
