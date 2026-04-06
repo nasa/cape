@@ -224,6 +224,18 @@ class CapeFile(dict):
             *meta*: {``True``} | ``False``
                 Option to only read column names and sizes
         """
+        # Check input type
+        if isinstance(fname, IOBase):
+            # Get file name from handle
+            fabs = os.path.abspath(fname.name)
+            # Save handle
+            self.fp = fname
+        else:
+            # use string
+            fabs = os.path.abspath(fname)
+        # Get parts
+        self.filedir = os.path.dirname(fabs)
+        self.filename = os.path.basename(fabs)
         # Get file handle
         with self.get_fp('rb') as fp:
             # Read records from it
