@@ -556,8 +556,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Get/create CAPEDB file interface
             cdb = db.genr8_cdb()
             # Set special data type (long record) for *q*
-            rt = capefile.RecordType.from_value(db["q"])
-            rt = rt | capefile.RT_XLONGREC
+            rtyp = capefile.RecordType.from_value(db["q"])
+            rt = rtyp.rt | capefile.RT_XLONGREC
             cdb.rt["q"] = rt
             # Write it
             cdb.write(fname)
