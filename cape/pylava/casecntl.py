@@ -528,6 +528,12 @@ class CaseRunner(casecntl.CaseRunner):
             i: Optional[int] = None) -> str:
         # Check for explicit iteration
         if i is None:
+            # Try iteration zero
+            vtkfile = os.path.join(
+                "surface", f"surf{nsurf:03d}.Cart.{0:09d}.vtk")
+            # Check for it
+            if os.path.isfile(vtkfile):
+                return vtkfile
             # Get any current VTK files
             vtkpat = self._genr8_surfdata_regex(nsurf)
             vtkfiles = sorted(self.search_regex(vtkpat))
@@ -556,7 +562,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Get/create CAPEDB file interface
             cdb = db.genr8_cdb()
             # Set special data type (long record) for *q*
-            rtyp = capefile.RecordType.from_value(db["q"])
+            rtyp = capefile.RecordType.from_value(db["q"], "q")
             rt = rtyp.rt | capefile.RT_XLONGREC
             cdb.rt["q"] = rt
             # Write it
