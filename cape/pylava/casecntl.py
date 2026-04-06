@@ -33,6 +33,7 @@ from ..fileutils import tail
 from ..gruvoc.umesh import Umesh
 from ..capeio import (
     fromfile_lb4_i,
+    fromfile_lb8_i,
     tofile_lb4_i,
     tofile_lb4_f,
     tofile_lb8_i,
@@ -532,25 +533,36 @@ class CaseRunner(casecntl.CaseRunner):
             rt = capefile.RecordType(rtype_code)
             # Calculate length (in bytes)
             l2 = 2 ** (rt.element_bits - 3)
-            l3 = 25 + nt*nq*nnode*l2
-            # Write size
-            tofile_lb8_i(fp, l3)
+            l3 = 33 + nt*nq*nnode*l2
+            # Position for updated record size
+            pos3 = fp.tell()
+            fromfile_lb8_i(fp, 1)
             # Get name
             l4, = fromfile_lb4_i(fp, 1)
             fp.read(l4)
             # Skip dimensions
             nd, = fromfile_lb4_i(fp, 1)
-            # Write updated sizse
-            tofile_lb4_i(fp, nt)
+            # Position for updated size
+            pos4 = fp.tell()
             # Read node count and q count
-            nn2, nq2 = fromfile_lb4_i(fp, 2)
+            nt2, nn2, nq2 = fromfile_lb8_i(fp, 3)
             # Check
+            if nt2 != nt - 1:
+                raise ValueError(
+                    f"In {fcdb}; report time step count {nt - 1} "
+                    f"does not match q.shape ({nt2})")
             if nn2 != nnode:
                 raise ValueError(
                     f"In {fvtk}: expected {nnode} nodes; got {nn2}")
             if nq2 != nq:
                 raise ValueError(
                     f"In {fvtk}: expected {nq} states; got {nq2}")
+            # Write size
+            fp.seek(pos3)
+            tofile_lb8_i(fp, l3)
+            # Write updated shape of *q*
+            fp.seek(pos4)
+            tofile_lb4_i(fp, nt)
             # Go to end of file to write new data
             fp.seek(0, 2)
             # Write state
