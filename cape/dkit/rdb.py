@@ -1520,7 +1520,7 @@ class DataKit(BaseData):
         :Versions:
             * 2025-07-05 ``@ddalle``: v1.0
         """
-        # Get/create MAT file interface
+        # Get/create CAPEDB file interface
         cdb = self.genr8_cdb(cols=cols)
         # Write it
         cdb.write(fname)

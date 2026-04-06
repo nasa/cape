@@ -26,11 +26,17 @@ from .dataiterfile import DataIterFile
 from .runinpfile import CartInputFile
 from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
-from ..capeio import fromfile_lb4_i, fromfile_lb8_i
 from ..cfdx import casecntl
+from ..dkit import capefile
 from ..dkit.rdb import DataKit
 from ..fileutils import tail
 from ..gruvoc.umesh import Umesh
+from ..capeio import (
+    fromfile_lb4_i,
+    tofile_lb4_i,
+    tofile_lb4_f,
+    tofile_lb8_i,
+    tofile_lb8_f)
 
 # Constants
 ITER_FILE = "data.iter"
@@ -463,19 +469,51 @@ class CaseRunner(casecntl.CaseRunner):
             raise FileNotFoundError(
                 f"Surfdata collection file not found: {fcdb}")
         # Open batch file
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Read surface data
+        surf = Umesh(fvtk)
+        # Read small fields
+        dat.read_record("nt")
+        dat.read_record("nnode")
+        dat.read_record("nq")
+        # Get counts from batch file
+        nt = dat["nt"] + 1
+        nq = dat["nq"]
+        nnode = dat["nnode"]
+        # Check counts
+        if surf.nq != nq:
+            raise ValueError(f"In '{fvtk}', expected nq={nq}; got {surf.nq}")
+        if surf.nnode != nnode:
+            raise ValueError(
+                f"In '{fvtk}', expected nnode={nnode}; got {surf.nnode}")
+        # Open the batch file for editing
         with open(fcdb, 'r+b') as fp:
-            # Check first 8 bytes
-            header = fp.read(8)
-            if header != b"#!CAPEDB":
-                raise ValueError(
-                    f"Surf dat file '{fcdb}' does not start iwth '#!CAPEDB'")
-            # Read number of records
-            nr, = fromfile_lb8_i(fp, 1)
-            if nr != 4:
-                raise ValueError(
-                    f"Surf dat file '{fcdb}' expected 4 records; got {nr}")
-            # Read data
-            surf = Umesh(fvtk)
+            # Go to *nt* position
+            fp.seek(dat.pos['nt'])
+            # Read record type and size
+            fromfile_lb4_i(fp, 2)
+            # Read length of name
+            l1, = fromfile_lb4_i(fp, 1)
+            # Skip name
+            fp.read(l1)
+            # Now overwrite number of time steps in file
+            tofile_lb4_i(fp, nt)
+            # Now go to end of file
+            fp.seek(dat.pos['q'])
+            # Read record type
+            rtype_code, = fromfile_lb4_i(fp, 1)
+            # Parse record type details
+            rt = capefile.RecordType(rtype_code)
+            # Convert to long record (short when initialized)
+            rtype_code = rtype_code | capefile.RT_XLONGREC
+            # Rewrite it
+            fp.seek(dat.pos['q'])
+            tofile_lb4_i(fp, rtype_code)
+            # Calculate length (in bytes)
+            l2 = 2 ** (rt.element_bits - 3)
+            l3 = 25 + nt*nq*nnode*l2
+            # Write size
+            tofile_lb8_i(fp, l3)
 
     @casecntl.run_rootdir
     def _read_surfdata_ref(self, nsurf: int, i: Optional[int] = None) -> Umesh:
@@ -515,8 +553,14 @@ class CaseRunner(casecntl.CaseRunner):
             db.save_col("nnode", nnode)
             db.save_col("nq", nq)
             db.save_col("q", np.zeros((nnode, nq, 0), dtype="f4"))
+            # Get/create CAPEDB file interface
+            cdb = db.genr8_cdb()
+            # Set special data type (long record) for *q*
+            rt = capefile.RecordType.from_value(db["q"])
+            rt = rt | capefile.RT_XLONGREC
+            cdb.rt["q"] = rt
             # Write it
-            db.write_cdb(fname)
+            cdb.write(fname)
         # Return name of file
         return fname
 

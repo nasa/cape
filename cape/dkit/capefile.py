@@ -183,6 +183,7 @@ class CapeFile(dict):
         "cols",
         "fp",
         "pos",
+        "rt",
     )
 
     # Initialization
@@ -196,6 +197,7 @@ class CapeFile(dict):
         self.cols = []
         self.pos = {}
         self.fp = None
+        self.rt = {}
         # Check for empty
         if a is None:
             # No values to read
@@ -359,8 +361,10 @@ class CapeFile(dict):
             # Check if this counts as a name
             if REGEX_NONAME.fullmatch(col):
                 name = None
+            # Get special settings for this record
+            rt = self.rt.get(col)
             # Write it
-            write_record(fp, self[col], name)
+            write_record(fp, self[col], name, rt)
 
     def save_dict(self, a: dict):
         r"""Save all parameters of a :class:`dict`
@@ -451,11 +455,15 @@ class RecordType(object):
 
 
 # Write a record
-def write_record(fp: IOBase, v, name: Optional[str] = None) -> uint64:
+def write_record(
+        fp: IOBase,
+        v,
+        name: Optional[str] = None,
+        rt: Optional[int] = None) -> uint64:
     r"""Write a record to file
 
     :Call:
-        >>> size = write_record(fp, v, name=None)
+        >>> size = write_record(fp, v, name=None, rt=0)
     :Inputs:
         *fp*: :class:`io.IOBase`
             A file open for writing bytes
@@ -463,12 +471,19 @@ def write_record(fp: IOBase, v, name: Optional[str] = None) -> uint64:
             Object to be written to file
         *name*: {``None``} | :class:`str`
             Optional title to save *v* as
+        *rt*: {``None``} | :class:`int`
+            Optional additional flags for record type
     :Outputs:
         *size*: :class:`np.uint64`
             Number of bytes written
     """
     # Get record type
-    rtyp = RecordType.from_value(v, name)
+    if rt is None:
+        # Determine from value
+        rtyp = RecordType.from_value(v, name)
+    else:
+        # Use manual spec
+        rtyp = RecordType(rt)
     # Write the type flag
     rtyp.rt.tofile(fp)
     # Calculate length
