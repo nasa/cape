@@ -225,9 +225,9 @@ class CapeFile(dict):
                 Option to only read column names and sizes
         """
         # Get file handle
-        self.fp = _get_fp(fname, 'rb')
-        # Read records from it
-        self._read(self.fp, meta)
+        with self.get_fp('rb') as fp:
+            # Read records from it
+            self._read(fp, meta)
 
     # Read file from handle
     def _read(self, fp: IOBase, meta: bool):
@@ -253,6 +253,65 @@ class CapeFile(dict):
             self.save_col(colj, vj, j)
             # Save positoin
             self.pos[colj] = posj
+
+    # Get file handle
+    def get_fp(self, mode: str = 'rb', modes: tuple = ()) -> IOBase:
+        r"""Get open file handle, using existing if appropriate
+
+        :Call:
+            >>> fp = db.get_fp(mode='rb', modes=()))
+        :Inputs:
+            *db*: :class:`CapeFile`
+                Instance of ``.cdb`` file interface
+            *mode*: {``"rb"``} | :class:`str`
+                Mode to use when opening file
+            *modes*: {``()``} | :class:`tuple`\ [:class:`str`]
+                List of alternate modes allowable
+        """
+        # Get file handle
+        fp = getattr(self, "fp", None)
+        # Path to file
+        fabs = os.path.join(self.filedir, self.filename)
+        # Check for open file
+        if (fp is None) or fp.closed:
+            # Create new one
+            self.fp = open(fabs, mode)
+            # Output
+            return self.fp
+        # Check mode
+        if (fp.mode != mode) and (fp.mode not in modes):
+            # Close it
+            fp.close()
+            # Create new one
+            self.fp = open(fabs, mode)
+            # Output
+            return self.fp
+        # Otherwise use existing file
+        return self.fp
+
+    # Read a record
+    def read_record(self, col: str):
+        r"""(Re)read a record by name, usually used with *meta*
+
+        :Call:
+            >>> db.read_record(col)
+        :Inputs:
+            *db*: :class:`CapeFile`
+                Instance of ``.cdb`` file interface
+            *col*: :class:`str`
+                Name of column to read
+        """
+        # Check for column
+        if col not in self.pos:
+            raise KeyError(f"No col '{col}' to read")
+        # Open file
+        with self.get_fp('rb', ('r+b',)) as fp:
+            # Go to position
+            fp.seek(self.pos[col])
+            # Read record ane name
+            _, v = read_record(fp)
+            # Save col
+            self[col] = v
 
     # Write entire data set to file
     def write(self, fname: Union[str, IOBase]):

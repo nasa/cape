@@ -26,6 +26,7 @@ from .dataiterfile import DataIterFile
 from .runinpfile import CartInputFile
 from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
+from ..capeio import fromfile_lb4_i, fromfile_lb8_i
 from ..cfdx import casecntl
 from ..dkit.rdb import DataKit
 from ..fileutils import tail
@@ -397,7 +398,7 @@ class CaseRunner(casecntl.CaseRunner):
             nbatch: int = BATCHSIZE,
             clean: bool = False):
         # First read metadata
-        db = self.read_surfdata(nsurf)
+        db = self.read_surfdata_meta(nsurf)
         # Number of time steps saved
         nt = db["nt"]
         # Get current batch info
@@ -415,7 +416,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get integers from these file names
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
         # Loop through files
-        for i, vtkfile in zip(iters, vtkfiles):
+        for i in iters:
             # Check if already covered
             if i <= imax:
                 continue
@@ -427,7 +428,8 @@ class CaseRunner(casecntl.CaseRunner):
             db["nt"] = nt
             db["i"] = np.hstack((db["i"], i))
             db["batch"] = np.hstack((db["batch"], batchj))
-            # Name of file to read
+            # Write data
+            self._write_surfdata(i, nsurf, batchj)
 
     @casecntl.run_rootdir
     def read_surfdata_meta(self, nsurf: int = 0) -> DataKit:
@@ -448,20 +450,32 @@ class CaseRunner(casecntl.CaseRunner):
 
     @casecntl.run_rootdir
     def _write_surfdata(self, i: int, nsurf: int, batch: int):
-        # Ensure file exists
-        self._genr8_surfdata_batch(nsurf, batch)
-        # Name of file
-        fname = self._genr8_surfdata_datfile(nsurf, batch)
+        # Name of file to read; create if necessary
+        fcdb = self._init_surfdata_batch(nsurf, batch)
         # Name of VTK file
         fvtk = self._genr8_surfdata_reffile(nsurf, i)
         # Check for file
         if not os.path.isfile(fvtk):
             self.log_verbose(f"File not found: {fvtk}")
             return
-        # Read data
-        surf = Umesh(fvtk)
-        # Open file
-
+        if not os.path.isfile(fcdb):
+            self.log_verbose(f"File not found: {fcdb}")
+            raise FileNotFoundError(
+                f"Surfdata collection file not found: {fcdb}")
+        # Open batch file
+        with open(fcdb, 'r+b') as fp:
+            # Check first 8 bytes
+            header = fp.read(8)
+            if header != b"#!CAPEDB":
+                raise ValueError(
+                    f"Surf dat file '{fcdb}' does not start iwth '#!CAPEDB'")
+            # Read number of records
+            nr, = fromfile_lb8_i(fp, 1)
+            if nr != 4:
+                raise ValueError(
+                    f"Surf dat file '{fcdb}' expected 4 records; got {nr}")
+            # Read data
+            surf = Umesh(fvtk)
 
     @casecntl.run_rootdir
     def _read_surfdata_ref(self, nsurf: int, i: Optional[int] = None) -> Umesh:
@@ -484,9 +498,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Name of file
         return os.path.join("surface", f"surf{nsurf:03d}.Cart.{i:09d}.vtk")
 
-    def _genr8_surfdata_batch(self, nsurf: int, batch: int):
+    def _init_surfdata_batch(self, nsurf: int, batch: int) -> str:
         # Name of file
-        fname = self._genr8_surfdata_datfile(nsurf, batch)
+        fname = self._genr8_surfdata_batchfile(nsurf, batch)
         # Check if file exists
         if not os.path.isfile(fname):
             # Read reference VTK file
@@ -503,6 +517,8 @@ class CaseRunner(casecntl.CaseRunner):
             db.save_col("q", np.zeros((nnode, nq, 0), dtype="f4"))
             # Write it
             db.write_cdb(fname)
+        # Return name of file
+        return fname
 
     def _genr8_surfdata_regex(self, nsurf: int = 0) -> str:
         return os.path.join(
@@ -512,7 +528,7 @@ class CaseRunner(casecntl.CaseRunner):
     def _genr8_surfdata_metafile(self, nsurf: int = 0) -> str:
         return os.path.join("surface", f"surf{nsurf:03d}.Cart.cdb")
 
-    def _genr8_surfdata_datfile(self, nsurf: int, batch: int) -> str:
+    def _genr8_surfdata_batchfile(self, nsurf: int, batch: int) -> str:
         return os.path.join(
             "surface",
             f"surf{nsurf:03d}.Cart.batch{batch:04d}.cdb")
