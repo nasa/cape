@@ -405,6 +405,24 @@ class CaseRunner(casecntl.CaseRunner):
             nbatch: int = BATCHSIZE,
             clean: bool = False,
             nmax: Optional[int] = None):
+        r"""Combine data from LAVA surface VTK files into batches
+
+        :Call:
+            >>> runner.collect_surfdata(nsurf, nbatch, clean, nmax=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: {``0``} | :class:`int`
+                LAVA surface number
+            *nbatch*: {``100``} | :class:`int`
+                Number of surface snapshots to collect into each file
+            *clean*: ``True`` | {``False``}
+                Option to delete ``.vtk`` files after processing
+            *nmax*: {``None``} | :class:`int`
+                Maximum number of snapshots to collect
+        :Versions:
+            * 2026-04-06 ``@ddalle``: v1.0
+        """
         # First read metadata
         db = self.read_surfdata_meta(nsurf)
         # Number of time steps saved
@@ -425,6 +443,8 @@ class CaseRunner(casecntl.CaseRunner):
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
         # Number of saved files
         n = 0
+        # List of files to remove (this batch)
+        rmfiles = []
         # Loop through files
         for i in iters:
             # Name of VTK file
@@ -434,26 +454,47 @@ class CaseRunner(casecntl.CaseRunner):
                 # Check for clean option
                 if clean and (i != iref):
                     # Delete it
-                    self.remove_file(fvtk)
+                    rmfiles.append(fvtk)
                 continue
             # Increase counter
             nt += 1
             # Get batch
             batchj = nt // nbatch
+            batchk = (nt % nbatch) + 1
+            # Check if new batch
+            newbatch = db["batch"].size and (db["batch"][-1] != batchj)
             # Append to vectors
             db["nt"] = nt
             db["i"] = np.hstack((db["i"], i))
             db["batch"] = np.hstack((db["batch"], batchj))
+            # Status update
+            msg = (
+                f"  Collecting '{fvtk}' " +
+                f"-> batch {batchj} ({batchk}/{nbatch})")
+            print(msg)
+            self.log_verbose(msg)
             # Write data
             self._write_surfdata(i, nsurf, batchj)
             # Check for clean
             if clean and (i != iref):
-                self.remove_file(fvtk)
+                rmfiles.append(fvtk)
+            # Remove files
+            if newbatch:
+                # Loop through files to delete for this batch
+                for fvtk in rmfiles:
+                    print(f"  Removing '{fvtk}'")
+                    self.remove_file(fvtk)
+                # Reset list of files to delete
+                rmfiles = []
             # Update
             n += 1
             # Check for exit flag
             if (nmax is not None) and (n >= nmax):
                 break
+        # Loop through files to delete that didn't line up with a batch
+        for fvtk in rmfiles:
+            print(f"  Removing '{fvtk}'")
+            self.remove_file(fvtk)
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
 

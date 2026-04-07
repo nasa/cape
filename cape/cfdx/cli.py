@@ -108,6 +108,7 @@ class CfdxArgReader(argread.ArgReader):
         "json": "f",
         "kill": "qdel",
         "minsize": "cutoff",
+        "nbatch": "batchsize",
         "pattern": "pat",
         "queue": "q",
         "regex": "re",
@@ -125,6 +126,7 @@ class CfdxArgReader(argread.ArgReader):
         "archive": bool,
         "auto": bool,
         "batch": bool,
+        "batchsize": int,
         "c": bool,
         "check-db": bool,
         "check-fm": bool,
@@ -154,6 +156,8 @@ class CfdxArgReader(argread.ArgReader):
         "ll": (bool, str),
         "marked": bool,
         "n": int,
+        "nmax": int,
+        "nsurf": int,
         "passed": bool,
         "pat": str,
         "prompt": bool,
@@ -190,9 +194,12 @@ class CfdxArgReader(argread.ArgReader):
 
     # Conversion functions
     _optconverters = {
+        "batchsize": int,
         "extend": _true_int,
         "imax": int,
         "n": int,
+        "nmax": int,
+        "nsurf": int,
     }
 
     # List of options that cannot take a "value"
@@ -235,6 +242,7 @@ class CfdxArgReader(argread.ArgReader):
         "archive": "Archive files from case(s) and delete extra files",
         "auto": "Ignore *RunControl* > *NJob* if set",
         "batch": "Submit PBS/Slurm job and run this command there",
+        "batchsize": "Number of snapshots to collect into each batch files",
         "c": "Check and display case(s) status",
         "check-db": "Check completion of all databook products",
         "check-fm": "Check completion of force & moment components",
@@ -269,6 +277,8 @@ class CfdxArgReader(argread.ArgReader):
         "ll": "Extract line load data [comps matching *PAT*] for case(s)",
         "marked": "Show only cases marked either PASS or ERROR",
         "n": "Submit at most *N* cases",
+        "nmax": "Maximum number of snapshots to process",
+        "nsurf": "Index of surface to process",
         "pat": "Consider file names matching pattern *PAT*",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
@@ -278,7 +288,8 @@ class CfdxArgReader(argread.ArgReader):
         "re": "Limit to cases containing regular expression *REGEX*",
         "report": "Generate the report *RP* or the first in the list",
         "restart": "When submitting new jobs, only submit new cases",
-        "surcp": "Extract surface pressure data for case(s)",
+        "surf": "Name of surface to collect/process",
+        "surfcp": "Extract surface pressure data for case(s)",
         "skeleton": "Delete most files from indicaded PASSED cases",
         "rm": "Remove indicated cases",
         "start": "Set up but do not start (or submit) cases",
@@ -295,6 +306,7 @@ class CfdxArgReader(argread.ArgReader):
         "I": "INDS",
         "add-cols": "COLS",
         "add-counters": "COLS",
+        "batchsize": "N",
         "cons": "CONS",
         "counters": "COLS",
         "cutoff": "SIZE",
@@ -313,12 +325,15 @@ class CfdxArgReader(argread.ArgReader):
         "iter-fm": "[PAT]",
         "ll": "[PAT]",
         "n": "N",
+        "nmax": "NMAX",
+        "nsurf": "SURF",
         "pat": "PAT",
         "prop": "[PAT]",
         "pt": "[PAT]",
         "q": "QUEUE",
         "re": "REGEX",
         "report": "[RP]",
+        "surf": "SURF",
         "triqfm": "[PAT]",
         "ts": "[PAT]",
         "u": "UID",
@@ -605,6 +620,39 @@ class CfdxCleanArgs(_CfdxSubsetArgs):
     _optlist = (
         "clean",
     )
+
+
+# Settings for collect-surf
+class CfdxCollectSurfArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-collect-surf"
+
+    # Description
+    _help_title = "Collect surface data in current case folder"
+
+    # Options
+    _optlist = (
+        "h",
+        "nsurf",
+        "batchsize",
+        "clean",
+        "nmax",
+    )
+
+    # Aliases
+    _optmap = {
+        "surf": "nsurf",
+    }
+
+    # Defaults
+    _rc = {
+        "batchsize": 100,
+        "clean": False,
+        "nsurf": 0,
+    }
 
 
 # Settings for --dezombie
@@ -1165,6 +1213,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "archive",
         "auto",
         "batch",
+        "batchsize",
         "c",
         "check-db",
         "check-fm",
@@ -1198,6 +1247,8 @@ class CfdxFrontDesk(CfdxArgReader):
         "ll",
         "marked",
         "n",
+        "nmax",
+        "nsurf",
         "pat",
         "pt",
         "prompt",
@@ -1208,6 +1259,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "report",
         "restart",
         "skeleton",
+        "surf",
         "surfcp",
         "rm",
         "start",
@@ -1235,6 +1287,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "check-ll",
         "check-triqfm",
         "clean",
+        "collect-surf",
         "dezombie",
         "exec",
         "extend",
@@ -1263,6 +1316,7 @@ class CfdxFrontDesk(CfdxArgReader):
     # Alternate command names
     _cmdmap = {
         "c": "check",
+        "collect-surfdata": "collect-surf",
         "dex": "extract",
         "e": "exec",
         "error": "fail",
@@ -1288,6 +1342,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "check-ll": CfdxCheckLLArgs,
         "check-triqfm": CfdxCheckTriqFMArgs,
         "clean": CfdxCleanArgs,
+        "collect-surf": CfdxCollectSurfArgs,
         "dezombie": CfdxDezombieArgs,
         "exec": CfdxExecArgs,
         "extend": CfdxExtendArgs,
@@ -2060,6 +2115,37 @@ def cape_run(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
+    r"""Run module-specific custom singe-case commands in current dir
+
+    :Call:
+        >>> ierr == cape_start(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2026-04-07 ``@ddalle``: v1.0
+    """
+    # Read instance
+    runner, kw = read_runner_kwargs(parser)
+    # Process args
+    nsurf = kw.get("nsurf")
+    nbatch = kw.get("batchsize")
+    clean = kw.get("clean")
+    nmax = kw.get("nmax")
+    # Run the case
+    runner.collect_surfdata(
+        nsurf=nsurf,
+        nbatch=nbatch,
+        clean=clean,
+        nmax=nmax)
+    # Return code
+    return IERR_OK
+
+
 def cape_search_large(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --search-large`` command
 
@@ -2239,6 +2325,7 @@ CMD_DICT = {
     "approve": cape_approve,
     "archive": cape_archive,
     "batch": cape_batch,
+    "collect-surf": cape_runner_collect_surfdata,
     "check": cape_c,
     "check-db": cape_check_db,
     "check-fm": cape_check_fm,
