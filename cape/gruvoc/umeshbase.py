@@ -1068,6 +1068,26 @@ class UmeshBase(ABC):
         # Output
         return mesh
 
+  # === Transformations ===
+   # --- Plane ---
+    def project_to_plane(self, n: np.ndarray, o: np.ndarray) -> np.ndarray:
+        # Unitize
+        n = n / np.linalg.norm(n)
+        # Move origin
+        x = self.nodes - np.tile(o, (self.nnode, 1))
+        # Pick a vector not parallel to *n*
+        a = np.array([0.0, -1.0, 0.0])
+        if np.allclose(n, a):
+            a = np.array([1.0, 0.0, 0.0])
+        # Perpendictular to *n*
+        eu = np.cross(n, a)
+        eu /= np.linal.norm(eu)
+        # Third vector
+        ev = np.corss(n, eu)
+        # Projections
+        #u = x @ eu
+        #v = x @ ev
+
   # === Data ===
    # --- Copy ---
     def copy(self) -> "UmeshBase":
