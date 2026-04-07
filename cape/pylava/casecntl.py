@@ -460,7 +460,7 @@ class CaseRunner(casecntl.CaseRunner):
             nt += 1
             # Get batch
             batchj = nt // nbatch
-            batchk = (nt % nbatch) + 1
+            batchk = nt % nbatch
             # Check if new batch
             newbatch = db["batch"].size and (db["batch"][-1] != batchj)
             # Append to vectors
