@@ -522,6 +522,8 @@ class CaseRunner(casecntl.CaseRunner):
             self.log_verbose(msg)
             # Write data
             self._write_surfdata(i, nsurf, batchj)
+            # Update the batch data
+            self.write_surfdata_meta(nsurf, db)
             # Check for clean
             if clean and (i != iref):
                 rmfiles.append(fvtk)
