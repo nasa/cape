@@ -398,6 +398,53 @@ class CaseRunner(casecntl.CaseRunner):
         # Get integer
         return int(line.split()[0])
 
+   # --- Isosurface data ---
+    def triangulate_cutplane(self, surf: int, n: int):
+        # Read cut plane definition
+        defn = self.read_cutplane_defn(surf)
+        # Check for valid cut plane
+        if defn is None:
+            return
+        # Suffix based on contents
+        if defn["colorfield"] == "densitygradmag":
+            suf = "DensityGradMag"
+        else:
+            suf = "fullq"
+        # Get name of file
+        basename = f"surf{surf-1:02d}_cutplane_Color{suf}_Cart.{n:09}"
+        fvtk = os.path.join("isosurface", f"{basename}.vtk")
+        ftri = os.path.join("isosurface", f"{basename}.tri.vtk")
+        # Check for files
+        if os.path.isfile(ftri) or not os.path.isfile(fvtk):
+            return
+        # Read the tri file
+        mesh = Umesh(fvtk)
+
+    def read_cutplane_defn(self, surf: int) -> Optional[dict]:
+        # Read input file
+        inp = self.read_runinputs()
+        # Name of the isosurface
+        name = f"isosurfaces_{surf}"
+        # Get section
+        sec = inp.get_opt("cartesian", "output")
+        if sec is None:
+            return
+        # Get definition
+        defn = sec.get(name)
+        if not isinstance(defn, dict):
+            return
+        # Get normal and point
+        p = defn.get_opt("point")
+        n = defn.get_opt("normal")
+        # Check both
+        if not (isinstance(p, list) and isinstance(n, list)):
+            return
+        # Normalize vectors
+        defn["point"] = np.array(p)
+        defn["normal"] = np.array(n) / np.linalg.norm(n)
+        # Output
+        return defn
+
    # --- Surface data ---
     def collect_surfdata(
             self,
