@@ -17,6 +17,10 @@ from typing import Optional
 
 # Third-party modules
 import numpy as np
+try:
+    from scipy.spatial import Delaunay
+except ImportError:
+    Delaunay = None
 
 # Local imports
 from . import cmdgen
@@ -419,6 +423,17 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Read the tri file
         mesh = Umesh(fvtk)
+        # Project the nodes to the cut plane
+        x = mesh.project_to_plane(defn["normal"], defn["point"])
+        # Calcualte Delaunay triangulation
+        tri = Delaunay(x[:, :2])
+        # Reset the triangles
+        mesh.tris = tri.simplices + 1
+        mesh.ntri = mesh.tris.shape[0]
+        # Remove no-longer-used nodes
+        mesh.remove_unused_nodes()
+        # Write it
+        mesh.write_vtk(ftri)
 
     def read_cutplane_defn(self, surf: int) -> Optional[dict]:
         # Read input file
