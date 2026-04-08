@@ -501,6 +501,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Check for clean option
                 if clean and (i != iref):
                     # Delete it
+                    print(f"  Already processed '{fvtk}'")
                     rmfiles.append(fvtk)
                 continue
             # Increase counter
