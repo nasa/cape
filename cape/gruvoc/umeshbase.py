@@ -1071,6 +1071,21 @@ class UmeshBase(ABC):
   # === Transformations ===
    # --- Plane ---
     def project_to_plane(self, n: np.ndarray, o: np.ndarray) -> np.ndarray:
+        r"""Get coordinates of each node projected into a plane
+
+        :Call:
+            >>> y = mesh.project_to_plane(n, o)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *n*: :class:`np.ndarray`\ [:class:`float`]
+                Normal vector defining plane
+            *o*: :class:`np.ndarray`\ [:class:`float`]
+                A point in the plane
+        :Outputs:
+            *y*: :class:`np.ndarray`\ [:class:`float`]
+                Projection of *mesh.nodes* into plane
+        """
         # Unitize
         n = n / np.linalg.norm(n)
         # Move origin
@@ -1080,13 +1095,12 @@ class UmeshBase(ABC):
         if np.allclose(n, a):
             a = np.array([1.0, 0.0, 0.0])
         # Perpendictular to *n*
-        eu = np.cross(n, a)
-        eu /= np.linal.norm(eu)
+        uhat = np.cross(n, a)
+        uhat /= np.linal.norm(uhat)
         # Third vector
-        ev = np.corss(n, eu)
-        # Projections
-        #u = x @ eu
-        #v = x @ ev
+        vhat = np.cross(n, uhat)
+        # Project and stack
+        return np.stack((x @ uhat, x @ vhat, x @ n), axis=1)
 
   # === Data ===
    # --- Copy ---
