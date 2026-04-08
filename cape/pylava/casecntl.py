@@ -499,7 +499,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Check if already covered
             if i <= imax:
                 # Check for clean option
-                if clean and (i != iref):
+                if clean and (i != iref) and (i > 0):
                     # Delete it
                     print(f"  Already processed '{fvtk}'")
                     rmfiles.append(fvtk)
@@ -526,7 +526,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Update the batch data
             self.write_surfdata_meta(nsurf, db)
             # Check for clean
-            if clean and (i != iref):
+            if clean and (i != iref) and (i > 0):
                 rmfiles.append(fvtk)
             # Remove files
             if newbatch:
