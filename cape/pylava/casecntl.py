@@ -20,7 +20,7 @@ import numpy as np
 try:
     import pyvista as pv
     from scipy.spatial import Delaunay
-    from vtkmodules.vtkFiltersPoints import vtkPointInterpolator2D
+    from vtkmodules.vtkFiltersPoints import vtkPointInterpolator
     from vtkmodules.vtkFiltersPoints import vtkLinearKernel
 except ImportError:
     Delaunay = None
@@ -580,15 +580,12 @@ class CaseRunner(casecntl.CaseRunner):
         # Read triangulated data on this iteration
         mesh = self.read_cutplane_tri(nsurf, n)
         # Create interpolator
-        interp = vtkPointInterpolator2D()
+        interp = vtkPointInterpolator()
         interp.SetNullPointsStrategyToClosestPoint()
         interp.SetKernel(vtkLinearKernel())
         # Set input and output
         interp.SetInputData(refmesh.pvmesh)
         interp.SetSourceData(mesh.pvmesh)
-        # Define the plane
-        interp.SetOrigin(defn["point"])
-        interp.SetNormal(defn["normal"])
         # Interpolate
         print(f"  Interpolating '{ftri}' based on iter {nref}")
         interp.Update()
