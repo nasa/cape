@@ -18,7 +18,10 @@ from typing import Optional
 # Third-party modules
 import numpy as np
 try:
+    import pyvista as pv
     from scipy.spatial import Delaunay
+    from vtkmodules.vtkFiltersPoints import vtkPointInterpolator
+    from vtkmodules.vtkFiltersPoints import vtkLinearKernel
 except ImportError:
     Delaunay = None
 
@@ -553,6 +556,88 @@ class CaseRunner(casecntl.CaseRunner):
         defn["normal"] = np.array(n) / np.linalg.norm(n)
         # Output
         return defn
+
+    @casecntl.run_rootdir
+    def read_cutplane_fixed(
+            self,
+            nsurf: int,
+            n: int,
+            nref: int = 0) -> Optional[Umesh]:
+        # Read cut plane definition
+        defn = self.read_cutplane_defn(nsurf)
+        # Get file name prefix for this cut plane
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
+        # Base file name for this iteration
+        basename = f"{prefix}.{n:09d}"
+        # Potential file names
+        ftri = f"{basename}.tri.vtk"
+        ffix = f"{basename}.fixed.vtk"
+        # Check for fixed-mesh file
+        if os.path.isfile(ffix):
+            return Umesh(ffix)
+        # Read triangulated data on the reference iteration
+        refmesh = self.read_cutplane_tri(nsurf, nref)
+        # Read triangulated data on this iteration
+        mesh = self.read_cutplane_tri(nsurf, n)
+        # Create interpolator
+        interp = vtkPointInterpolator()
+        interp.SetNullPointsStrategyToClosestPoint()
+        interp.SetKernel(vtkLinearKernel())
+        # Set input and output
+        interp.SetInputData(refmesh.pvmesh)
+        interp.SetSourceData(mesh.pvmesh)
+        # Interpolate
+        print(f"  Interpolating '{ftri}' based on iter {nref}")
+        interp.Update()
+        # Get result
+        result = pv.wrap(interp.GetOutput())
+        # Create Umesh
+        fixmesh = Umesh.from_pvmesh(result)
+        # Output
+        return fixmesh
+
+    @casecntl.run_rootdir
+    def read_cutplane_tri(self, nsurf: int, n: int) -> Optional[Umesh]:
+        r"""Read triangulated cut-plane file
+
+        :Call:
+            >>> mesh = runner.read_cutplane_tri(nsurf, n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index
+            *n*: :class:`int`
+                Iteration number
+        :Outputs:
+            *mesh*: ``None`` | :class:`cape.gruvoc.umesh.Umesh`
+                Triangulated cut plane instance
+        :Versions:
+            * 2026-04-09 ``@ddalle``: v1.0
+        """
+        # Read cut plane definition
+        defn = self.read_cutplane_defn(nsurf)
+        # Check for valid cut plane
+        if defn is None:
+            return
+        # Get name of file
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
+        basename = f"{prefix}.{n:09d}"
+        # Potential file names
+        fvtk = f"{basename}.vtk"
+        ftri = f"{basename}.tri.vtk"
+        # Check for file
+        if os.path.isfile(ftri):
+            return Umesh(ftri)
+        # Check for raw cut plane file
+        if not os.path.isfile(fvtk):
+            return
+        # Read the tri file
+        mesh = Umesh(fvtk)
+        # Project the nodes to the cut plane
+        triangulate_mesh(mesh, defn["normal"], defn["point"])
+        # Return that
+        return mesh
 
     @casecntl.run_rootdir
     def read_cutplane_meta(self, nsurf: int) -> DataKit:
