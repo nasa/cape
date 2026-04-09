@@ -647,6 +647,11 @@ class CfdxCollectSurfArgs(CfdxArgReader):
         "surf": "nsurf",
     }
 
+    # Positional parameters
+    _arglist = (
+        "nsurf",
+    )
+
     # Defaults
     _rc = {
         "batchsize": 100,
@@ -1169,6 +1174,11 @@ class CfdxTriangulateCutPlaneArgs(CfdxArgReader):
         "nsurf",
         "clean",
         "nmax",
+    )
+
+    # Positional paramters
+    _arglist = (
+        "nsurf",
     )
 
     # Aliases
