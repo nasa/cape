@@ -1092,7 +1092,7 @@ class UmeshBase(ABC):
         x = self.nodes - np.tile(o, (self.nnode, 1))
         # Pick a vector not parallel to *n*
         a = np.array([0.0, -1.0, 0.0])
-        if np.allclose(n, a):
+        if np.abs(np.abs(n @ a) - 1.0) <= 1e-2:
             a = np.array([1.0, 0.0, 0.0])
         # Perpendictular to *n*
         uhat = np.cross(n, a)
