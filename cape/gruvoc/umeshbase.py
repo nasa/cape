@@ -1096,7 +1096,7 @@ class UmeshBase(ABC):
             a = np.array([1.0, 0.0, 0.0])
         # Perpendictular to *n*
         uhat = np.cross(n, a)
-        uhat /= np.linal.norm(uhat)
+        uhat /= np.linalg.norm(uhat)
         # Third vector
         vhat = np.cross(n, uhat)
         # Project and stack

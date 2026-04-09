@@ -403,6 +403,7 @@ class CaseRunner(casecntl.CaseRunner):
         return int(line.split()[0])
 
    # --- Isosurface data ---
+    @casecntl.run_rootdir
     def triangulate_cutplane(
             self,
             nsurf: int,
@@ -426,6 +427,8 @@ class CaseRunner(casecntl.CaseRunner):
         prefix = self._genr8_cutplane_prefix(nsurf)
         vtkpat = f"{prefix}\\.[0-9]+\\.vtk"
         # Get any current VTK files
+        print(
+            f"  Searching for cutplanes matching {os.path.basename(prefix)}")
         vtkfiles = sorted(self.search_regex(vtkpat))
         # Get integers from these file names
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
@@ -484,16 +487,23 @@ class CaseRunner(casecntl.CaseRunner):
         # Get name of file
         prefix = self._genr8_cutplane_prefix(surf, defn)
         basename = f"{prefix}.{n:09}"
-        fvtk = os.path.join("isosurface", f"{basename}.vtk")
-        ftri = os.path.join("isosurface", f"{basename}.tri.vtk")
+        fvtk = f"{basename}.vtk"
+        ftri = f"{basename}.tri.vtk"
+        # Abbreviated file names
+        vtk1 = f"surf{surf-1:02d}_cutplane_...{n:09d}.vtk"
+        vtk2 = f"surf{surf-1:02d}_cutplane_...{n:09d}.tri.vtk"
         # Check for files
         if os.path.isfile(ftri):
-            print(f"  File exists: '{ftri}'")
+            print(f"  File exists: '{vtk2}'")
+            # Cleanup
+            if clean and os.path.isfile(fvtk):
+                print(f"    rm '{fvtk}'")
+                self.remove_file(fvtk)
             return False
         elif not os.path.isfile(fvtk):
             return False
         # Status update
-        msg = f"'{fvtk}' => '{ftri}'"
+        msg = f"'{vtk1}' => '{vtk2}'"
         print(f"  {msg}")
         self.log_verbose(msg)
         # Read the tri file
@@ -504,7 +514,7 @@ class CaseRunner(casecntl.CaseRunner):
         mesh.write_vtk(ftri)
         # Cleanup
         if clean:
-            print(f"  rm '{fvtk}'")
+            print(f"    rm '{fvtk}'")
             self.remove_file(fvtk)
         # Output
         return True
@@ -533,8 +543,8 @@ class CaseRunner(casecntl.CaseRunner):
         if not isinstance(defn, dict):
             return
         # Get normal and point
-        p = defn.get_opt("point")
-        n = defn.get_opt("normal")
+        p = defn.get("point")
+        n = defn.get("normal")
         # Check both
         if not (isinstance(p, list) and isinstance(n, list)):
             return
@@ -590,7 +600,8 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             suf = "fullq"
         # Get name of file
-        return f"surf{surf-1:02d}_cutplane_Color{suf}_Cart"
+        return os.path.join(
+            "isosurface", f"surf{surf-1:02d}_cutplane_Color{suf}_Cart")
 
    # --- Surface data ---
     def collect_surfdata(

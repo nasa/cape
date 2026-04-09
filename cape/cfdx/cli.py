@@ -1179,7 +1179,7 @@ class CfdxTriangulateCutPlaneArgs(CfdxArgReader):
     # Defaults
     _rc = {
         "clean": False,
-        "nsurf": 0,
+        "nsurf": 1,
     }
 
 
