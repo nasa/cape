@@ -1152,6 +1152,37 @@ class CfdxStartArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for triangulate-cutplane
+class CfdxTriangulateCutPlaneArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-triangulate-cutplane"
+
+    # Description
+    _help_title = "Triangulate oversetting cut-plane flow viz files"
+
+    # Options
+    _optlist = (
+        "h",
+        "nsurf",
+        "clean",
+        "nmax",
+    )
+
+    # Aliases
+    _optmap = {
+        "surf": "nsurf",
+    }
+
+    # Defaults
+    _rc = {
+        "clean": False,
+        "nsurf": 0,
+    }
+
+
 # Settings for --unarchive
 class CfdxUnarchiveArgs(_CfdxSubsetArgs):
     # No attributes
@@ -1309,6 +1340,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "rm",
         "search-large",
         "skeleton",
+        "triangulate-cutplane",
         "unarchive",
         "unmark",
     )
@@ -1324,9 +1356,11 @@ class CfdxFrontDesk(CfdxArgReader):
         "mark-failure": "fail",
         "mark-pass": "approve",
         "pass": "approve",
-        "r": "run",
         "qsub": "start",
+        "r": "run",
         "submit": "start",
+        "triplane": "triangulate-cutplane",
+        "tri-plane": "triangulate-cutplane",
     }
 
     # Subparsers
@@ -1366,6 +1400,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "search-large": CfdxSearchLargeArgs,
         "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
+        "triangulate-cutplane": CfdxTriangulateCutPlaneArgs,
         "unarchive": CfdxUnarchiveArgs,
         "unmark": CfdxUnmarkArgs,
     }
@@ -2119,7 +2154,7 @@ def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
     r"""Run module-specific custom singe-case commands in current dir
 
     :Call:
-        >>> ierr == cape_start(parser)
+        >>> ierr == cape_runner_collect_surfdata(parser)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
@@ -2142,6 +2177,32 @@ def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
         nbatch=nbatch,
         clean=clean,
         nmax=nmax)
+    # Return code
+    return IERR_OK
+
+
+def cape_runner_triangulate_cuplane(parser: CfdxArgReader) -> int:
+    r"""Convert raw cut-plane VTK files to triangulations
+
+    :Call:
+        >>> ierr == cape_runner_triangulate_cuplane(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2026-04-09 ``@ddalle``: v1.0
+    """
+    # Read instance
+    runner, kw = read_runner_kwargs(parser)
+    # Process args
+    nsurf = kw.get("nsurf")
+    clean = kw.get("clean")
+    nmax = kw.get("nmax")
+    # Run the case
+    runner.triangulate_cutplane(nsurf, clean=clean, nmax=nmax)
     # Return code
     return IERR_OK
 
@@ -2355,6 +2416,7 @@ CMD_DICT = {
     "search-large": cape_search_large,
     "skeleton": cape_skeleton,
     "start": cape_start,
+    "triangulate-cutplane": cape_runner_triangulate_cuplane,
     "unarchive": cape_unarchive,
     "unmark": cape_unmark,
 }

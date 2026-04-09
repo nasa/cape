@@ -403,39 +403,123 @@ class CaseRunner(casecntl.CaseRunner):
         return int(line.split()[0])
 
    # --- Isosurface data ---
-    def triangulate_cutplane(self, surf: int, n: int):
+    def triangulate_cutplane(
+            self,
+            nsurf: int,
+            clean: bool = False,
+            nmax: Optional[int] = None):
+        r"""Convert cut plane VTK files to triangulated cut planes
+
+        :Call:
+            >>> runner.triangulate_cutplane(nsurf, clean, nmax=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index
+            *clean*: ``True`` | {``False``}
+                Option to delete original cut plane file
+            *nmax*: {``None``} | :class:`int`
+                Optional maximum number of files to triangulate
+        """
+        # Search pattern for these cutplane files
+        prefix = self._genr8_cutplane_prefix(nsurf)
+        vtkpat = f"{prefix}\\.[0-9]+\\.vtk"
+        # Get any current VTK files
+        vtkfiles = sorted(self.search_regex(vtkpat))
+        # Get integers from these file names
+        iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
+        # Current count of conversions
+        ntri = 0
+        # Loop through those
+        for n in iters:
+            # Convert
+            q = self.triangulate_cutplane_n(nsurf, n, clean)
+            # Update count
+            if not q:
+                continue
+            # Update counter
+            ntri += 1
+            # Check for nmax
+            if (nmax is not None) and (ntri >= nmax):
+                break
+
+    def triangulate_cutplane_n(
+            self,
+            surf: int,
+            n: int,
+            clean: bool = False) -> bool:
+        r"""Create a triangulation so that each point is in a unique tri
+
+        This will convert a file such as
+
+            ``surf00_cutplane_Colorfullq_Cart.000045000.vtk``
+
+        and create from it
+
+            ``surf00_cutplane_Colorfullq_Cart.000045000.tri.vtk``
+
+        :Call:
+            >>> q = runner.triangulate_cutplane_n(surf, n, clean=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *surf*: :class:`int`
+                Surface index
+            *n*: :class:`int`
+                Iteration number
+            *clean*: ``True`` | {``False``}
+                Option to delete original cut plane file
+        :Outputs:
+            *q*: :class:`bool`
+                Whether a new file was created
+        :Versions:
+            * 2026-04-08 ``@ddalle``: v1.0
+        """
         # Read cut plane definition
         defn = self.read_cutplane_defn(surf)
         # Check for valid cut plane
         if defn is None:
             return
-        # Suffix based on contents
-        if defn["colorfield"] == "densitygradmag":
-            suf = "DensityGradMag"
-        else:
-            suf = "fullq"
         # Get name of file
-        basename = f"surf{surf-1:02d}_cutplane_Color{suf}_Cart.{n:09}"
+        prefix = self._genr8_cutplane_prefix(surf, defn)
+        basename = f"{prefix}.{n:09}"
         fvtk = os.path.join("isosurface", f"{basename}.vtk")
         ftri = os.path.join("isosurface", f"{basename}.tri.vtk")
         # Check for files
-        if os.path.isfile(ftri) or not os.path.isfile(fvtk):
-            return
+        if os.path.isfile(ftri):
+            print(f"  File exists: '{ftri}'")
+            return False
+        elif not os.path.isfile(fvtk):
+            return False
+        # Status update
+        msg = f"'{fvtk}' => '{ftri}'"
+        print(f"  {msg}")
+        self.log_verbose(msg)
         # Read the tri file
         mesh = Umesh(fvtk)
         # Project the nodes to the cut plane
-        x = mesh.project_to_plane(defn["normal"], defn["point"])
-        # Calcualte Delaunay triangulation
-        tri = Delaunay(x[:, :2])
-        # Reset the triangles
-        mesh.tris = tri.simplices + 1
-        mesh.ntri = mesh.tris.shape[0]
-        # Remove no-longer-used nodes
-        mesh.remove_unused_nodes()
+        triangulate_mesh(mesh, defn["normal"], defn["point"])
         # Write it
         mesh.write_vtk(ftri)
+        # Cleanup
+        if clean:
+            print(f"  rm '{fvtk}'")
+            self.remove_file(fvtk)
+        # Output
+        return True
 
     def read_cutplane_defn(self, surf: int) -> Optional[dict]:
+        r"""Read definition for a cut plane isosurface
+
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *surf*: :class:`int`
+                Isosurface number (1-based)
+        :Versions:
+            * 2026-04-08 ``@ddalle``: v1.0
+        """
         # Read input file
         inp = self.read_runinputs()
         # Name of the isosurface
@@ -459,6 +543,54 @@ class CaseRunner(casecntl.CaseRunner):
         defn["normal"] = np.array(n) / np.linalg.norm(n)
         # Output
         return defn
+
+    @casecntl.run_rootdir
+    def read_cutplane_meta(self, nsurf: int) -> DataKit:
+        r"""Read database of metadata for collected cutplane data
+
+        :Call:
+            >>> db = runner.read_surfdata_meta(nsurf)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index (1-based)
+        :Outputs:
+            *db*: :class:`cape.dkit.rdb.DataKit`
+                DataKit of which batch each iteration is located in
+        :Versions:
+            * 2026-04-05 ``@ddalle``: v1.0
+        """
+        # Create file name
+        fname = self._genr8_cutplane_metafile(nsurf)
+        # Check for file
+        if not os.path.isfile(fname):
+            # Initialize datakit
+            db = DataKit()
+            # Save parameters
+            db.save_col("nt", 0)
+            db.save_col("i", np.zeros(0, dtype="i4"))
+            db.save_col("batch", np.zeros(0, dtype="i4"))
+            # Output
+            return db
+        # Otherwise read it
+        return DataKit(fname)
+
+    def _genr8_cutplane_prefix(
+            self,
+            surf: int, defn: Optional[dict] = None) -> str:
+        # Read definition if necessary
+        if defn is None:
+            defn = self.read_cutplane_defn(surf)
+        # Isosurface type
+        colorfield = defn["colorfield"].lower().replace(' ', '')
+        # Suffix based on contents
+        if colorfield == "densitygradmag":
+            suf = "DensityGradMag"
+        else:
+            suf = "fullq"
+        # Get name of file
+        return f"surf{surf-1:02d}_cutplane_Color{suf}_Cart"
 
    # --- Surface data ---
     def collect_surfdata(
@@ -565,6 +697,21 @@ class CaseRunner(casecntl.CaseRunner):
 
     @casecntl.run_rootdir
     def read_surfdata_meta(self, nsurf: int = 0) -> DataKit:
+        r"""Read database of metadata for collected surface data
+
+        :Call:
+            >>> db = runner.read_surfdata_meta(nsurf=0)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: {``0``} | :class:`int`
+                Surface index (0-based)
+        :Outputs:
+            *db*: :class:`cape.dkit.rdb.DataKit`
+                DataKit of which batch each iteration is located in
+        :Versions:
+            * 2026-04-05 ``@ddalle``: v1.0
+        """
         # Create file name
         fname = self._genr8_surfdata_metafile(nsurf)
         # Check for file
@@ -582,6 +729,20 @@ class CaseRunner(casecntl.CaseRunner):
 
     @casecntl.run_rootdir
     def write_surfdata_meta(self, nsurf: int, db: DataKit):
+        r"""Write updated surface data collection metadata
+
+        :Call:
+            >>> db.write_surfdata_meta(nsurf, db)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: {``0``} | :class:`int`
+                Surface index (0-based)
+            *db*: :class:`cape.dkit.rdb.DataKit`
+                DataKit of which batch each iteration is located in
+        :Verions:
+            * 2026-04-05 ``@ddalle``: v1.0
+        """
         # Create file name
         fname = self._genr8_surfdata_metafile(nsurf)
         # Write it
@@ -1067,6 +1228,36 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             # Empty instance
             return DataIterFile(None)
+
+
+# Triangulate a mesh
+def triangulate_mesh(mesh: Umesh, n: np.ndarray, p: np.ndarray):
+    r"""Map a mesh onto a unique triangulation on a plane
+
+    That is, each point on that plane will be in exactly one triangle or
+    on the edge of two triangles or on a vertex.
+
+    :Call:
+        >>> triangulate_mesh(mesh, n, p)
+    :Inputs:
+        *mesh*: :class:`cape.gruvoc.umesh.Umesh`
+            Mesh instance
+        *n*: :class:`np.ndarray`\ [:class:`float`]
+            Vector normal to the plane
+        *p*: :class:`np.ndarray`\ [:class:`float`]
+            Point in the plane
+    """
+    # Project the nodes to the cut plane
+    x = mesh.project_to_plane(n, p)
+    # Calcualte Delaunay triangulation
+    tri = Delaunay(x[:, :2])
+    # Reset the triangles
+    mesh.tris = tri.simplices + 1
+    mesh.ntri = mesh.tris.shape[0]
+    # Resize CompIDs
+    mesh.tri_ids = mesh.tri_ids[:mesh.ntri]
+    # Remove no-longer-used nodes
+    mesh.remove_unused_nodes()
 
 
 # Link best viz files
