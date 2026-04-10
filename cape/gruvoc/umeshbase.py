@@ -1127,9 +1127,53 @@ class UmeshBase(ABC):
         # Loop through remaining points
         for i1, j1 in enumerate(j[~mask]):
             # Find the triangles containing this node
-            k1 = np.where(np.any(self.tris == j1 + 1, axis=1))[0]
+            mask1 = np.where(np.any(self.tris == j1 + 1, axis=1))[0]
+            # Find nerest triangle
+            k1 = self.get_nearest_tri_small(y[i1], mask1)
+            # Get interpolation weights based on this triangle
+            w1 = self._genr8_interp_w_tri(y, k1)
+            # Get the nodes of that triangle
+            t1 = self.tris[k1] - 1
+            # Save interpolation mask and weights
+            w[i1] = w1
+            i[i1] = t1
         # Output
         return InterpWeightsTuple(w, i)
+
+    def _genr8_interp_w_tri(self, y: np.ndarray, k: int) -> np.ndarray:
+        # Extract the node numbers [0-based]
+        i0, i1, i2 = self.tris[k] - 1
+        # Get nodal coordinates
+        x0 = self.nodes[i0]
+        x1 = self.nodes[i1]
+        x2 = self.nodes[i2]
+        # Projection distance
+        basis = self.make_tri_bases()
+        z = (y - x0) * basis.e3[k]
+        # Use sub-triangles to compute weights
+        # If the projected point xp is outside of the triangle,
+        # then the sum of a0,a1,a2 will be greater than the total
+        # area of the triangle, but this method scales the weights
+        # to account for this
+        #
+        # Projected point
+        xp = y - z * self.e3[k]
+        # Dot products
+        dp0 = np.cross(xp-x1, xp-x2)
+        dp1 = np.cross(xp-x2, xp-x0)
+        dp2 = np.cross(xp-x0, xp-x1)
+        # Areas of the sub triangles
+        a0 = np.sqrt(np.dot(dp0, dp0))
+        a1 = np.sqrt(np.dot(dp1, dp1))
+        a2 = np.sqrt(np.dot(dp2, dp2))
+        # Area of the entire triangle (actually three subtriangles)
+        sa = a0 + a1 + a2
+        # Compute the weights for each node
+        w0 = a0/sa
+        w1 = a1/sa
+        w2 = a2/sa
+        # Return the weights
+        return np.array([w0, w1, w2])
 
   # === Search ===
    # --- Nearest tri ---
@@ -1153,7 +1197,7 @@ class UmeshBase(ABC):
                 Optional subset of tris to use as candidates
         :Outputs:
             *k*: :class:`int`
-                1-based index of nearest tri
+                0-based index of nearest tri
         :Versions:
             * 2026-04-09 ``@ddalle``: v1.0
         """
