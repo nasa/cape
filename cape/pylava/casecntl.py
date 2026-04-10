@@ -563,11 +563,16 @@ class CaseRunner(casecntl.CaseRunner):
         basename = f"{prefix}.{n:09d}"
         # Potential file names
         ffix = f"{basename}.fixed.vtk"
+        # File name for triangulated reference tri
+        ftri = f"{prefix}.{nref:09d}.tri.vtk"
         # Check for fixed-mesh file
         if os.path.isfile(ffix):
             return Umesh(ffix)
         # Read triangulated data on the reference iteration
         refmesh = self.read_cutplane_tri(nsurf, nref)
+        # Write it if not present
+        if not os.path.isfile(ftri):
+            refmesh.write(ftri)
         # Read data (any version) on this iteration
         mesh = self.read_cutplane_best(nsurf, n)
         # Create interpolation weights
@@ -665,7 +670,7 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Cut-plane data collection ---
     def collect_cutplane(
             self,
-            nsurf: int = 0,
+            nsurf: Optional[int] = 0,
             nbatch: Optional[int] = None,
             clean: bool = False,
             nmax: Optional[int] = None):
@@ -678,11 +683,11 @@ class CaseRunner(casecntl.CaseRunner):
             surfs = [nsurf]
         # Loop through surfaces
         for surf in surfs:
-            self.collect_cutplane_surf(nsurf, nbatch, clean=clean, nmax=nmax)
+            self.collect_cutplane_surf(surf, nbatch, clean=clean, nmax=nmax)
 
     def collect_cutplane_surf(
             self,
-            nsurf: int = 0,
+            nsurf: int = 1,
             nbatch: Optional[int] = None,
             clean: bool = False,
             nmax: Optional[int] = None):
@@ -723,10 +728,10 @@ class CaseRunner(casecntl.CaseRunner):
         # Prefix for VTK files
         prefix = self._genr8_cutplane_prefix(nsurf)
         # Get any current VTK files
-        vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)vtk"
+        vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
         vtkfiles = self.search_regex(vtkpat)
         # Get integers from these file names
-        iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
+        iters = [int(v.split('.')[1]) for v in vtkfiles]
         iters = np.unique(iters)
         # Number of saved files
         n = 0
@@ -790,6 +795,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for exit flag
             if (nmax is not None) and (n >= nmax):
                 break
+        # Clean up prompt
+        print("")
         # Loop through files to delete that didn't line up with a batch
         for fvtk in rmfiles:
             self.remove_file(fvtk)
@@ -1202,6 +1209,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for exit flag
             if (nmax is not None) and (n >= nmax):
                 break
+        # Clean up prompt
+        print("")
         # Loop through files to delete that didn't line up with a batch
         for fvtk in rmfiles:
             self.remove_file(fvtk)
