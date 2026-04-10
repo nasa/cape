@@ -36,6 +36,7 @@ from ..dkit import capefile
 from ..dkit.rdb import DataKit
 from ..fileutils import tail
 from ..gruvoc.umesh import Umesh
+from ..textutils import _printf
 from ..capeio import (
     fromfile_lb4_i,
     fromfile_lb8_i,
@@ -525,18 +526,15 @@ class CaseRunner(casecntl.CaseRunner):
         vtk2 = f"surf{surf-1:02d}_cutplane_...{n:09d}.tri.vtk"
         # Check for files
         if os.path.isfile(ftri):
-            print(f"  File exists: '{vtk2}'")
             # Cleanup
             if clean and os.path.isfile(fvtk):
-                print(f"    rm '{fvtk}'")
                 self.remove_file(fvtk)
             return False
         elif not os.path.isfile(fvtk):
             return False
         # Status update
         msg = f"'{vtk1}' => '{vtk2}'"
-        print(f"  {msg}")
-        self.log_verbose(msg)
+        _printf(f"  {msg}")
         # Read the tri file
         mesh = Umesh(fvtk)
         # Project the nodes to the cut plane
@@ -545,7 +543,6 @@ class CaseRunner(casecntl.CaseRunner):
         mesh.write_vtk(ftri)
         # Cleanup
         if clean:
-            print(f"    rm '{fvtk}'")
             self.remove_file(fvtk)
         # Output
         return True
@@ -877,7 +874,6 @@ class CaseRunner(casecntl.CaseRunner):
                 # Check for clean option
                 if clean and (i != iref) and (i > 0):
                     # Delete it
-                    print(f"  Already processed '{fvtk}'")
                     rmfiles.append(fvtk)
                 continue
             # Increase counter
@@ -892,11 +888,9 @@ class CaseRunner(casecntl.CaseRunner):
             db["i"] = np.hstack((db["i"], i))
             db["batch"] = np.hstack((db["batch"], batchj))
             # Status update
-            msg = (
+            _printf(
                 f"  Collecting '{fvtk}' " +
                 f"-> batch {batchj} ({batchk}/{nbatch})")
-            print(msg)
-            self.log_verbose(msg)
             # Write data
             self._write_surfdata(i, nsurf, batchj)
             # Update the batch data
@@ -908,7 +902,6 @@ class CaseRunner(casecntl.CaseRunner):
             if newbatch:
                 # Loop through files to delete for this batch
                 for fvtk in rmfiles:
-                    print(f"  Removing '{fvtk}'")
                     self.remove_file(fvtk)
                 # Reset list of files to delete
                 rmfiles = []
@@ -919,7 +912,6 @@ class CaseRunner(casecntl.CaseRunner):
                 break
         # Loop through files to delete that didn't line up with a batch
         for fvtk in rmfiles:
-            print(f"  Removing '{fvtk}'")
             self.remove_file(fvtk)
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
