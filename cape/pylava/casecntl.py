@@ -13,6 +13,7 @@ they are available unless specifically overwritten by specific
 # Standard library modules
 import os
 import re
+import time
 from typing import Optional
 
 # Third-party modules
@@ -47,6 +48,7 @@ from ..capeio import (
 ITER_FILE = "data.iter"
 ITER_FILE_CART = os.path.join("monitor", "Cart.data.iter")
 BATCHSIZE = 100
+DEFAULT_SLEEPTIME = 0.05
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -403,8 +405,23 @@ class CaseRunner(casecntl.CaseRunner):
         return int(line.split()[0])
 
    # --- Isosurface data ---
-    @casecntl.run_rootdir
     def triangulate_cutplane(
+            self,
+            nsurf: Optional[int] = None,
+            clean: bool = False):
+        # Get surface list if not specified
+        if nsurf is None:
+            # Default to *all* the surfaces
+            surfs = self.get_cutplanes()
+        else:
+            # Convert user input to singleton list
+            surfs = [nsurf]
+        # Loop through surfaces
+        for surf in surfs:
+            self.triangulate_cutplane_surf(surf, clean=clean)
+
+    @casecntl.run_rootdir
+    def triangulate_cutplane_surf(
             self,
             nsurf: int,
             clean: bool = False,
@@ -412,7 +429,7 @@ class CaseRunner(casecntl.CaseRunner):
         r"""Convert cut plane VTK files to triangulated cut planes
 
         :Call:
-            >>> runner.triangulate_cutplane(nsurf, clean, nmax=None)
+            >>> runner.triangulate_cutplane(nsurf, clean=False)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -420,8 +437,6 @@ class CaseRunner(casecntl.CaseRunner):
                 Surface index
             *clean*: ``True`` | {``False``}
                 Option to delete original cut plane file
-            *nmax*: {``None``} | :class:`int`
-                Optional maximum number of files to triangulate
         """
         # Search pattern for these cutplane files
         prefix = self._genr8_cutplane_prefix(nsurf)
@@ -432,22 +447,39 @@ class CaseRunner(casecntl.CaseRunner):
         vtkfiles = sorted(self.search_regex(vtkpat))
         # Get integers from these file names
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
-        # Current count of conversions
-        ntri = 0
+        # Initialize list of subprocesses
+        max_workers = self.get_opt("MaxWorkers", vdef=8)
+        workers = []
         # Loop through those
         for n in iters:
-            # Convert
-            q = self.triangulate_cutplane_n(nsurf, n, clean)
-            # Update count
-            if not q:
+            # Wait until worker count is subsided
+            while len(workers) >= max_workers:
+                # Wait
+                time.sleep(DEFAULT_SLEEPTIME)
+                # Check them all
+                _update_workers(workers)
+            # Call the fork
+            pid = os.fork()
+            # Check parent/child
+            if pid != 0:
+                # Save the PID
+                workers.append(pid)
                 continue
-            # Update counter
-            ntri += 1
-            # Check for nmax
-            if (nmax is not None) and (ntri >= nmax):
+            # Otherwise do the work
+            self.triangulate_cutplane_iter(nsurf, n, clean)
+            # Exit this shell
+            os._exit(0)
+        # Wait until all workers terminated
+        for _ in range(1000):
+            # Check workers
+            _update_workers(workers)
+            # Check for workers
+            if len(workers) == 0:
                 break
+            # Wait
+            time.sleep(DEFAULT_SLEEPTIME)
 
-    def triangulate_cutplane_n(
+    def triangulate_cutplane_iter(
             self,
             surf: int,
             n: int,
@@ -463,7 +495,7 @@ class CaseRunner(casecntl.CaseRunner):
             ``surf00_cutplane_Colorfullq_Cart.000045000.tri.vtk``
 
         :Call:
-            >>> q = runner.triangulate_cutplane_n(surf, n, clean=False)
+            >>> q = runner.triangulate_cutplane_iter(surf, n, clean)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -518,6 +550,51 @@ class CaseRunner(casecntl.CaseRunner):
             self.remove_file(fvtk)
         # Output
         return True
+
+    def get_cutplanes(self) -> list:
+        r"""Get list of cut-plane isosurface indices (1-based)
+
+        :Call:
+            >>> surfs = runner.get_cutplanes()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *surfs*: :class:`list`\ [:class:`int`]
+                List of isosurfaces that are cut planes
+        :Versions:
+            * 2026-04-10 ``@ddalle``: v1.0
+        """
+        # Initialize outputs
+        surfs = []
+        # Read input file
+        inp = self.read_runinputs()
+        # Get section
+        sec = inp.get_opt("cartesian", "output")
+        if sec is None:
+            return surfs
+        # Initialize candidate
+        surf = 0
+        # Loop until isosurface not found
+        while True:
+            # Increase surface index
+            surf += 1
+            # Name of the isosurface
+            name = f"isosurfaces_{surf}"
+            # Get definition
+            defn = sec.get(name)
+            # Check if "isosurfaces_{N}" is defined
+            if not isinstance(defn, dict):
+                break
+            # Get normal and point
+            p = defn.get("point")
+            n = defn.get("normal")
+            # Check if it's a cut plane
+            if isinstance(p, list) and isinstance(n, list):
+                # Save it
+                surfs.append(surf)
+        # Output
+        return surfs
 
     def read_cutplane_defn(self, surf: int) -> Optional[dict]:
         r"""Read definition for a cut plane isosurface
@@ -1387,3 +1464,19 @@ def LinkViz():
     runner = CaseRunner()
     # Call link method
     runner.link_viz()
+
+
+def _update_workers(workers: list):
+    # Loop through workers
+    for pid in list(workers):
+        # Check if it's active
+        try:
+            # Check on the requested process
+            outpid, _ = os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError:
+            print(f"  PID {pid} is um....")
+            continue
+        # Check if it's running
+        if outpid != 0:
+            # Already done
+            workers.remove(pid)

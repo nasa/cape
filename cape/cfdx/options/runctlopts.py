@@ -63,6 +63,7 @@ class RunControlOpts(OptionsDict):
         "ContinuePhase",
         "Environ",
         "JSONFile",
+        "MaxWorkers",
         "MPI",
         "NJob",
         "PhaseSequence",
@@ -107,6 +108,7 @@ class RunControlOpts(OptionsDict):
         "ContinuePhase": BOOL_TYPES,
         "JSONFile": str,
         "MPI": BOOL_TYPES,
+        "MaxWorkers": INT_TYPES,
         "NJob": INT_TYPES,
         "PreMesh": BOOL_TYPES,
         "PhaseIters": INT_TYPES,
@@ -173,6 +175,7 @@ class RunControlOpts(OptionsDict):
     # Defaults
     _rc = {
         "MPI": False,
+        "MaxWorkers": 8,
         "PreMesh": False,
         "RestartSamePhase": True,
         "ResubmitNextPhase": False,
@@ -204,6 +207,7 @@ class RunControlOpts(OptionsDict):
         "ContinuePhase": "whether restarts of same phase can use same job",
         "JSONFile": "name of JSON file from which settings originated",
         "MPI": "whether or not to run MPI in phase",
+        "MaxWorkers": "maximum threads to use for parallel post-processing",
         "NJob": "number of jobs to run concurrently",
         "PhaseIters": "check-point iterations for phase *j*",
         "PhaseSequence": "list of phase indices to run",
