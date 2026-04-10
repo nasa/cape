@@ -1611,6 +1611,8 @@ class UmeshBase(ABC):
         self.tri_e1 = basis.e1
         self.tri_e2 = basis.e2
         self.tri_e3 = basis.e3
+        # Output
+        return basis
 
     def genr8_tri_bases(self) -> CoordBasis:
         r"""Create local coord system for each tri
