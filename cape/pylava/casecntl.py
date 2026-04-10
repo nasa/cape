@@ -525,11 +525,16 @@ class CaseRunner(casecntl.CaseRunner):
     def read_cutplane_defn(self, surf: int) -> Optional[dict]:
         r"""Read definition for a cut plane isosurface
 
+        :Call:
+            >>> defn = runner.read_cutplane_defn(surf)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *surf*: :class:`int`
                 Isosurface number (1-based)
+        :Outputs:
+            *defn*: :class:`dict`
+                Definition of cutplane *surf*
         :Versions:
             * 2026-04-08 ``@ddalle``: v1.0
         """
@@ -570,7 +575,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Base file name for this iteration
         basename = f"{prefix}.{n:09d}"
         # Potential file names
-        ftri = f"{basename}.tri.vtk"
         ffix = f"{basename}.fixed.vtk"
         # Check for fixed-mesh file
         if os.path.isfile(ffix):
@@ -579,22 +583,15 @@ class CaseRunner(casecntl.CaseRunner):
         refmesh = self.read_cutplane_tri(nsurf, nref)
         # Read triangulated data on this iteration
         mesh = self.read_cutplane_tri(nsurf, n)
-        # Create interpolator
-        interp = vtkPointInterpolator()
-        interp.SetNullPointsStrategyToClosestPoint()
-        interp.SetKernel(vtkLinearKernel())
-        # Set input and output
-        interp.SetInputData(refmesh.pvmesh)
-        interp.SetSourceData(mesh.pvmesh)
-        # Interpolate
-        print(f"  Interpolating '{ftri}' based on iter {nref}")
-        interp.Update()
-        # Get result
-        result = pv.wrap(interp.GetOutput())
-        # Create Umesh
-        fixmesh = Umesh.from_pvmesh(result)
+        # Create interpolation weights
+        w, i = mesh.genr8_interp_weights(refmesh.nodes)
+        # Extract state on nodes *i*
+        q = mesh.q[i - 1]
+        # Loop through states
+        for j in range(mesh.nq):
+            refmesh.q[:, :, j] = np.sum(w*q[:, :, j], axis=1)
         # Output
-        return fixmesh
+        return refmesh
 
     @casecntl.run_rootdir
     def read_cutplane_tri(self, nsurf: int, n: int) -> Optional[Umesh]:
