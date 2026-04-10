@@ -11,6 +11,7 @@ import numpy as np
 
 # Local imports
 from . import volcomp
+from .. import geom
 from ..dkit.rdb import DataKit
 from ..convert import (
     ReynoldsPerMeter,
@@ -43,6 +44,8 @@ except ModuleNotFoundError:
 
 
 # Class for Tecplot zones; nodes and indices
+CoordBasis = namedtuple("CoordSysBasis", ("e1", "e2", "e3"))
+InterpWeightsTuple = namedtuple("InterpWeights", ("w", "j"))
 SegmentedSlice = namedtuple("SegmentedSlice", ("nodes", "q"))
 SurfZone = namedtuple("SurfZone", ("nodes", "jnode", "tris", "quads"))
 VolumeZone = namedtuple(
@@ -231,6 +234,9 @@ class UmeshBase(ABC):
         "title",
         "tri_areas",
         "tri_bcs",
+        "tri_e1",
+        "tri_e2",
+        "tri_e3",
         "tri_flags",
         "tri_ids",
         "tri_normals",
@@ -1102,6 +1108,106 @@ class UmeshBase(ABC):
         # Project and stack
         return np.stack((x @ uhat, x @ vhat, x @ n), axis=1)
 
+  # === Interpolation ===
+   # --- Optimistic linear interpolation ---
+    def genr8_interp_weights(self, y: np.ndarray) -> InterpWeightsTuple:
+        # Create tree
+        tree = cKDTree(self.nodes)
+        # Get nearest point and distance to it
+        d, j = tree.query(y)
+        # Number of weights
+        ny = y.shape[0]
+        # Initialize interpolation weights
+        w = np.zeros((ny, 3))
+        i = np.zeros((ny, 3), dtype="i8")
+        # Find nodes with exact match
+        mask = np.abs(d) <= 1e-10
+        w[mask, 0] = 1.0
+        i[mask, 0] = j[mask] + 1
+        # Loop through remaining points
+        for i1, j1 in enumerate(j[~mask]):
+            # Find the triangles containing this node
+            k1 = np.where(np.any(self.tris == j1 + 1, axis=1))[0]
+        # Output
+        return InterpWeightsTuple(w, i)
+
+  # === Search ===
+   # --- Nearest tri ---
+    def get_nearest_tri_small(
+            self,
+            p: np.ndarray,
+            mask: Optional[np.ndarray] = None) -> int:
+        r"""Get tri nearest to point *p*
+
+        This function is intended for cases where *mask* has only a few
+        candidate triangles in it.
+
+        :Call:
+            >>> k = mesh.get_nearest_tri(p, mask=None)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *p*: :class:`np.ndarray`\ [:class:`float`]
+                *x*, *y*, and *z* coordinates of test point
+            *mask*: {``None``} | :class:`np.ndarray`
+                Optional subset of tris to use as candidates
+        :Outputs:
+            *k*: :class:`int`
+                1-based index of nearest tri
+        :Versions:
+            * 2026-04-09 ``@ddalle``: v1.0
+        """
+        # Default mask
+        mask = mask if mask is not None else np.arange(self.ntri)
+        # Unpack point
+        x, y, z = p
+        # Get basis
+        e1, e2, e3 = self.make_tri_bases()
+        e1 = e1[mask]
+        e2 = e2[mask]
+        e3 = e3[mask]
+        # Simplices
+        tris = self.tris - 1
+        # Get coordiantes
+        X = self.nodes[tris[mask], 0]
+        Y = self.nodes[tris[mask], 1]
+        Z = self.nodes[tris[mask], 2]
+        # Projection distance
+        zj = np.abs(
+            (x - X[:, 0])*e3[:, 0] +
+            (y - Y[:, 0])*e3[:, 1] +
+            (z - Z[:, 0])*e3[:, 2])
+        # These operations are tested to run as fast as possible
+        X0, X1, X2 = X.T
+        Y0, Y1, Y2 = Y.T
+        Z0, Z1, Z2 = Z.T
+        # Downselect the basis vectors
+        e10, e11, e12 = e1.T
+        e20, e21, e22 = e2.T
+        # Convert the test point into coords aligned with first edge
+        xi = (x-X0)*e10 + (y-Y0)*e11 + (z-Z0)*e12
+        yi = (x-X0)*e20 + (y-Y0)*e21 + (z-Z0)*e22
+        zi = zj
+        # Initialize transformed triangles
+        XI = np.zeros_like(X)
+        YI = np.zeros_like(X)
+        # Convert the second and third vertices
+        # The commented line should be all zeros
+        XI[:, 1] = ((X1-X0)*e10 + (Y1-Y0)*e11 + (Z1-Z0)*e12)
+        XI[:, 2] = ((X2-X0)*e10 + (Y2-Y0)*e11 + (Z2-Z0)*e12)
+        YI[:, 2] = ((X2-X0)*e20 + (Y2-Y0)*e21 + (Z2-Z0)*e22)
+        # Get distance to each triangle within the plane of each tri
+        DI = geom.dist2_tris_to_pt(XI, YI, xi, yi)
+        # Get total distance from point to each triangle
+        d = zi*zi + DI**2
+        # Get index of minimum distance
+        i1 = np.nanargmin(d)
+        # Global index
+        if mask.dtype.name == "bool":
+            return np.where(mask)[0][i1]
+        else:
+            return mask[i1]
+
   # === Data ===
    # --- Copy ---
     def copy(self) -> "UmeshBase":
@@ -1473,9 +1579,94 @@ class UmeshBase(ABC):
         # Save transformed points
         self.nodes[mask, :] = Y
 
+   # --- Element-wise coords ---
+    def make_tri_bases(self) -> CoordBasis:
+        r"""Create local coord system for each tri
+
+        :Call:
+            >>> basis = mesh.make_tri_bases()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Outputs:
+            *basis*: :class:`CoordBasis`
+                Tuple of unit vectors for each tri
+            *basis.e1*: :class:`np.ndarray`\ [:class:`float`]
+                Unit vector pointing from node 0 to node 1 for each tri
+            *basis.e2*: :class:`np.ndarray`\ [:class:`float`]
+                Unit vector in plane of each tri normal to 0->1 dir
+            *basis.e3*: :class:`np.ndarray`\ [:class:`float`]
+                Unit normal for each tri
+        :Versions:
+            * 2026-04-09 ``@ddalle``: v1.0
+        """
+        # Check if computed
+        if self.tri_e1 is not None:
+            if self.tri_e2 is not None:
+                if self.tri_e3 is not None:
+                    return CoordBasis(self.tri_e1, self.tri_e2, self.tri_e3)
+        # Create it
+        basis = self.genr8_tri_bases()
+        # Save it
+        self.tri_e1 = basis.e1
+        self.tri_e2 = basis.e2
+        self.tri_e3 = basis.e3
+
+    def genr8_tri_bases(self) -> CoordBasis:
+        r"""Create local coord system for each tri
+
+        :Call:
+            >>> basis = mesh.genr8_tri_bases()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Outputs:
+            *basis*: :class:`CoordBasis`
+                Tuple of unit vectors for each tri
+            *basis.e1*: :class:`np.ndarray`\ [:class:`float`]
+                Unit vector pointing from node 0 to node 1 for each tri
+            *basis.e2*: :class:`np.ndarray`\ [:class:`float`]
+                Unit vector in plane of each tri normal to 0->1 dir
+            *basis.e3*: :class:`np.ndarray`\ [:class:`float`]
+                Unit normal for each tri
+        :Versions:
+            * 2026-04-09 ``@ddalle``: v1.0
+        """
+        # Extract the vertices of each tri
+        x = self.nodes[self.tris-1, 0]
+        y = self.nodes[self.tris-1, 1]
+        z = self.nodes[self.tris-1, 2]
+        # Get the deltas from node 0 to node 1 or node 2
+        x01 = np.stack(
+            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]), axis=1)
+        x02 = np.stack(
+            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]), axis=1)
+        # Calculate the dimensioned normals
+        n = np.cross(x01, x02)
+        # Calculate the area of each triangle.
+        A = np.sqrt(np.sum(n**2, 1))
+        # Calculate the length of each 0->1 segment
+        L = np.sqrt(np.sum(x01**2, 1))
+        # Normalize each component
+        mask = A > 1e-16
+        e3 = n.copy()
+        e3[mask, 0] /= A[mask]
+        e3[mask, 1] /= A[mask]
+        e3[mask, 2] /= A[mask]
+        # Normalize 0->1 segment as tangent
+        mask = L > 1e-16
+        e1 = x01.copy()
+        e1[mask, 0] /= L[mask]
+        e1[mask, 1] /= L[mask]
+        e1[mask, 2] /= L[mask]
+        # Get final axis to complete right-handed system
+        e2 = np.cross(e3, e1)
+        # Output
+        return CoordBasis(e1, e2, e3)
+
    # --- Tri normals/areas ---
     # Get normals and areas
-    def genr8_tri_areas(self):
+    def genr8_tri_areas(self) -> np.ndarray:
         r"""Get the areas of each surface tri
 
         :Call:
@@ -1487,7 +1678,7 @@ class UmeshBase(ABC):
             *areas*: :class:`ndarray`, shape=(mesh,ntri,)
                 Area of each triangle
         """
-        # Extract the vertices of each trifile.
+        # Extract the vertices of each tri
         x = self.nodes[self.tris-1, 0]
         y = self.nodes[self.tris-1, 1]
         z = self.nodes[self.tris-1, 2]
