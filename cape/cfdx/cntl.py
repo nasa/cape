@@ -5014,12 +5014,15 @@ class Cntl(CntlBase):
             # Remove previous current
             os.remove(fcurr)
         # Write new current
-        with open(fcurr, "w") as f:
-            json.dump(
-                opts1, f,
-                separators=(",", ":"),
-                ensure_ascii=False
-            )
+        try:
+            with open(fcurr, "w") as f:
+                json.dump(
+                    opts1, f,
+                    separators=(",", ":"),
+                    ensure_ascii=False
+                )
+        except (PermissionError, FileNotFoundError):
+            pass
 
     # Get delta from last log
     def get_opts_diff(self, opts0: dict, opts1: dict) -> str:
