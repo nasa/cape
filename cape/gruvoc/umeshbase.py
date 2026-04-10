@@ -1159,7 +1159,7 @@ class UmeshBase(ABC):
         # Get nearest centroid to the remaining points
         _, k1 = tree.query(y1)
         # Get interpolations for each remaining tri
-        w1 = self._genr8_interPw_vec(y1, k1)
+        w1 = self._genr8_interp_w_vec(y1, k1)
         # Get the nodes of that triangle
         t1 = self.tris[k1] - 1
         # Save interpolation mask and weights
@@ -1180,7 +1180,8 @@ class UmeshBase(ABC):
         x2 = self.nodes[i2]
         # Projection distance
         basis = self.make_tri_bases()
-        z = (y - x0) @ basis.e3[k]
+        z = np.sum((y - x0) * basis.e3[k], axis=1)
+        z = z[:, None][:, [0, 0, 0]]
         # Use sub-triangles to compute weights
         # If the projected point xp is outside of the triangle,
         # then the sum of a0,a1,a2 will be greater than the total
@@ -1194,9 +1195,9 @@ class UmeshBase(ABC):
         dp1 = np.cross(xp-x2, xp-x0)
         dp2 = np.cross(xp-x0, xp-x1)
         # Areas of the sub triangles
-        a0 = np.sqrt(np.dot(dp0, dp0))
-        a1 = np.sqrt(np.dot(dp1, dp1))
-        a2 = np.sqrt(np.dot(dp2, dp2))
+        a0 = np.sqrt(np.sum(dp0*dp0, axis=1))
+        a1 = np.sqrt(np.sum(dp1*dp1, axis=1))
+        a2 = np.sqrt(np.sum(dp2*dp2, axis=1))
         # Area of the entire triangle (actually three subtriangles)
         sa = a0 + a1 + a2
         # Compute the weights for each node
