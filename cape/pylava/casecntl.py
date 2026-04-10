@@ -711,7 +711,7 @@ class CaseRunner(casecntl.CaseRunner):
             * 2026-04-10 ``@ddalle``: v1.0
         """
         # First read metadata
-        db = self.read_surfdata_meta(nsurf)
+        db = self.read_cutplane_meta(nsurf)
         # Number of time steps saved
         nt = db["nt"]
         # Get reference iteration
@@ -739,6 +739,7 @@ class CaseRunner(casecntl.CaseRunner):
         rmfiles = []
         # Loop through files
         for i in iters:
+            breakpoint()
             # Name of VTK files
             prefixi = f"{prefix}.{i:09d}"
             fvtk = f"{prefixi}.vtk"
@@ -761,7 +762,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Increase counter
             nt += 1
             # Get batch
-            batchj = nt // nbatch
+            batchj = (nt - 1) // nbatch
             batchk = nt % nbatch
             # Check if new batch
             newbatch = db["batch"].size and (db["batch"][-1] != batchj)
@@ -1178,7 +1179,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Increase counter
             nt += 1
             # Get batch
-            batchj = nt // nbatch
+            batchj = (nt - 1) // nbatch
             batchk = nt % nbatch
             # Check if new batch
             newbatch = db["batch"].size and (db["batch"][-1] != batchj)
