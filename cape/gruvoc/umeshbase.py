@@ -1128,19 +1128,27 @@ class UmeshBase(ABC):
         n = mask.size
         m = np.sum(mask)
         print(f"  Node {m}/{n} ({100*m/n:.2f}%)")
+        # Check for full match
+        if m == 1:
+            return InterpWeightsTuple(w, i)
+        # Filter to remaining nodes
+        m1 = np.where(~mask)[0]
+        y1 = y[m1]
+        # Get centrods of each tri
+        p0 = np.mean(self.nodes[self.tris - 1, :], axis=1)
+        # Make second tree of centroids
+        tree = cKDTree(p0)
+        # Get nearest centroid to the remaining points
+        _, k1 = tree(y1)
         # Loop through remaining points
-        for i1, j1 in enumerate(j[~mask]):
-            # Find the triangles containing this node
-            mask1 = np.where(np.any(self.tris == j1 + 1, axis=1))[0]
-            # Find nerest triangle
-            k1 = self.get_nearest_tri_small(y[i1], mask1)
+        for i1, k in enumerate(k1):
             # Get interpolation weights based on this triangle
-            w1 = self._genr8_interp_w_tri(y[i1], k1)
+            w1 = self._genr8_interp_w_tri(y1[i1], k)
             # Get the nodes of that triangle
-            t1 = self.tris[k1] - 1
+            t1 = self.tris[k] - 1
             # Save interpolation mask and weights
-            w[i1] = w1
-            i[i1] = t1
+            w[m1[i1]] = w1
+            i[m1[i1]] = t1
             # Update
             m += 1
             if m % 1000 == 0:
