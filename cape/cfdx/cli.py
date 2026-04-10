@@ -2209,9 +2209,8 @@ def cape_runner_triangulate_cuplane(parser: CfdxArgReader) -> int:
     # Process args
     nsurf = kw.get("nsurf")
     clean = kw.get("clean")
-    nmax = kw.get("nmax")
     # Run the case
-    runner.triangulate_cutplane(nsurf, clean=clean, nmax=nmax)
+    runner.triangulate_cutplane(nsurf, clean=clean)
     # Return code
     return IERR_OK
 

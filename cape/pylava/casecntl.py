@@ -424,8 +424,7 @@ class CaseRunner(casecntl.CaseRunner):
     def triangulate_cutplane_surf(
             self,
             nsurf: int,
-            clean: bool = False,
-            nmax: Optional[int] = None):
+            clean: bool = False):
         r"""Convert cut plane VTK files to triangulated cut planes
 
         :Call:
@@ -657,8 +656,8 @@ class CaseRunner(casecntl.CaseRunner):
             return Umesh(ffix)
         # Read triangulated data on the reference iteration
         refmesh = self.read_cutplane_tri(nsurf, nref)
-        # Read triangulated data on this iteration
-        mesh = self.read_cutplane_tri(nsurf, n)
+        # Read data (any version) on this iteration
+        mesh = self.read_cutplane_best(nsurf, n)
         # Create interpolation weights
         w, i = mesh.genr8_interp_weights(refmesh.nodes)
         # Extract state on nodes *i*
@@ -690,6 +689,45 @@ class CaseRunner(casecntl.CaseRunner):
             return nref
         # Read option
         return self.get_opt("RefIter", vdef=0)
+
+    @casecntl.run_rootdir
+    def read_cutplane_best(self, nsurf: int, n: int) -> Optional[Umesh]:
+        r"""Read cut-plane file, using triangulated if available
+
+        :Call:
+            >>> mesh = runner.read_cutplane_best(nsurf, n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index
+            *n*: :class:`int`
+                Iteration number
+        :Outputs:
+            *mesh*: ``None`` | :class:`cape.gruvoc.umesh.Umesh`
+                Triangulated cut plane instance
+        :Versions:
+            * 2026-04-09 ``@ddalle``: v1.0
+        """
+        # Read cut plane definition
+        defn = self.read_cutplane_defn(nsurf)
+        # Check for valid cut plane
+        if defn is None:
+            return
+        # Get name of file
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
+        basename = f"{prefix}.{n:09d}"
+        # Potential file names
+        fvtk = f"{basename}.vtk"
+        ftri = f"{basename}.tri.vtk"
+        ffix = f"{basename}.fixed.vtk"
+        # Check for file
+        if os.path.isfile(ftri):
+            return Umesh(ftri)
+        if os.path.isfile(fvtk):
+            return Umesh(fvtk)
+        if os.path.isfile(ffix):
+            return Umesh(ffix)
 
     @casecntl.run_rootdir
     def read_cutplane_tri(self, nsurf: int, n: int) -> Optional[Umesh]:
