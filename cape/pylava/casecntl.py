@@ -589,7 +589,7 @@ class CaseRunner(casecntl.CaseRunner):
         q = mesh.q[i - 1]
         # Loop through states
         for j in range(mesh.nq):
-            refmesh.q[:, :, j] = np.sum(w*q[:, :, j], axis=1)
+            refmesh.q[:, j] = np.sum(w*q[:, :, j], axis=1)
         # Output
         return refmesh
 
