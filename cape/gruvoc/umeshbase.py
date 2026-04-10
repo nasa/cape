@@ -1127,7 +1127,6 @@ class UmeshBase(ABC):
         # Counter
         n = mask.size
         m = np.sum(mask)
-        print(f"  Node {m}/{n} ({100*m/n:.2f}%)")
         # Check for full match
         if m == 1:
             return InterpWeightsTuple(w, i)
@@ -1139,7 +1138,7 @@ class UmeshBase(ABC):
         # Make second tree of centroids
         tree = cKDTree(p0)
         # Get nearest centroid to the remaining points
-        _, k1 = tree(y1)
+        _, k1 = tree.query(y1)
         # Loop through remaining points
         for i1, k in enumerate(k1):
             # Get interpolation weights based on this triangle
@@ -1151,8 +1150,6 @@ class UmeshBase(ABC):
             i[m1[i1]] = t1
             # Update
             m += 1
-            if m % 1000 == 0:
-                print(f"  Node {m}/{n} ({100*m/n:.2f}%)")
         # Output
         return InterpWeightsTuple(w, i)
 
