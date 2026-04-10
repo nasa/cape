@@ -1111,6 +1111,25 @@ class UmeshBase(ABC):
   # === Interpolation ===
    # --- Optimistic linear interpolation ---
     def genr8_interp_weights(self, y: np.ndarray) -> InterpWeightsTuple:
+        r"""Get interpolation weights for nodes *y*
+
+        :Call:
+            >>> W = mesh.genr8_interp_weights(y)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *y*: :class:`np.ndarray`
+                Points to interpolate to
+        :Outputs:
+            *W*: :class:`InterpWeightsTuple`
+                Interpolation weights tuple
+            *W.w*: :class:`np.ndarray`\ [:class:`float`]
+                3 weights for each row of *y*
+            *W.i*: :class:`np.ndarray`\ [:class:`float`]
+                Indices of 3 nodes to use with *W.w*
+        :Versions:
+            * 2026-04-10 ``@ddalle``: v1.0
+        """
         # Create tree
         tree = cKDTree(self.nodes)
         # Get nearest point and distance to it
@@ -1128,7 +1147,7 @@ class UmeshBase(ABC):
         n = mask.size
         m = np.sum(mask)
         # Check for full match
-        if m == 1:
+        if m == n:
             return InterpWeightsTuple(w, i)
         # Filter to remaining nodes
         m1 = np.where(~mask)[0]
@@ -1139,19 +1158,53 @@ class UmeshBase(ABC):
         tree = cKDTree(p0)
         # Get nearest centroid to the remaining points
         _, k1 = tree.query(y1)
-        # Loop through remaining points
-        for i1, k in enumerate(k1):
-            # Get interpolation weights based on this triangle
-            w1 = self._genr8_interp_w_tri(y1[i1], k)
-            # Get the nodes of that triangle
-            t1 = self.tris[k] - 1
-            # Save interpolation mask and weights
-            w[m1[i1]] = w1
-            i[m1[i1]] = t1
-            # Update
-            m += 1
+        # Get interpolations for each remaining tri
+        w1 = self._genr8_interPw_vec(y1, k1)
+        # Get the nodes of that triangle
+        t1 = self.tris[k1] - 1
+        # Save interpolation mask and weights
+        w[m1] = w1
+        i[m1] = t1
         # Output
         return InterpWeightsTuple(w, i)
+
+    def _genr8_interp_w_vec(
+            self,
+            y: np.ndarray,
+            k: np.ndarray) -> np.ndarray:
+        # Extract the node numbers [0-based]
+        i0, i1, i2 = self.tris[k].T - 1
+        # Get nodal coordinates
+        x0 = self.nodes[i0]
+        x1 = self.nodes[i1]
+        x2 = self.nodes[i2]
+        # Projection distance
+        basis = self.make_tri_bases()
+        z = (y - x0) @ basis.e3[k]
+        # Use sub-triangles to compute weights
+        # If the projected point xp is outside of the triangle,
+        # then the sum of a0,a1,a2 will be greater than the total
+        # area of the triangle, but this method scales the weights
+        # to account for this
+        #
+        # Projected point
+        xp = y - z * basis.e3[k]
+        # Dot products
+        dp0 = np.cross(xp-x1, xp-x2)
+        dp1 = np.cross(xp-x2, xp-x0)
+        dp2 = np.cross(xp-x0, xp-x1)
+        # Areas of the sub triangles
+        a0 = np.sqrt(np.dot(dp0, dp0))
+        a1 = np.sqrt(np.dot(dp1, dp1))
+        a2 = np.sqrt(np.dot(dp2, dp2))
+        # Area of the entire triangle (actually three subtriangles)
+        sa = a0 + a1 + a2
+        # Compute the weights for each node
+        w0 = a0/sa
+        w1 = a1/sa
+        w2 = a2/sa
+        # Return the weights
+        return np.stack((w0, w1, w2), axis=1)
 
     def _genr8_interp_w_tri(self, y: np.ndarray, k: int) -> np.ndarray:
         # Extract the node numbers [0-based]
