@@ -1124,6 +1124,10 @@ class UmeshBase(ABC):
         mask = np.abs(d) <= 1e-10
         w[mask, 0] = 1.0
         i[mask, 0] = j[mask] + 1
+        # Counter
+        n = mask.size
+        m = np.sum(mask)
+        print(f"  Node {m}/{n} ({100*m/n:.2f}%)")
         # Loop through remaining points
         for i1, j1 in enumerate(j[~mask]):
             # Find the triangles containing this node
@@ -1131,12 +1135,16 @@ class UmeshBase(ABC):
             # Find nerest triangle
             k1 = self.get_nearest_tri_small(y[i1], mask1)
             # Get interpolation weights based on this triangle
-            w1 = self._genr8_interp_w_tri(y, k1)
+            w1 = self._genr8_interp_w_tri(y[i1], k1)
             # Get the nodes of that triangle
             t1 = self.tris[k1] - 1
             # Save interpolation mask and weights
             w[i1] = w1
             i[i1] = t1
+            # Update
+            m += 1
+            if m % 1000 == 0:
+                print(f"  Node {m}/{n} ({100*m/n:.2f}%)")
         # Output
         return InterpWeightsTuple(w, i)
 
@@ -1149,7 +1157,7 @@ class UmeshBase(ABC):
         x2 = self.nodes[i2]
         # Projection distance
         basis = self.make_tri_bases()
-        z = (y - x0) * basis.e3[k]
+        z = (y - x0) @ basis.e3[k]
         # Use sub-triangles to compute weights
         # If the projected point xp is outside of the triangle,
         # then the sum of a0,a1,a2 will be greater than the total
@@ -1157,7 +1165,7 @@ class UmeshBase(ABC):
         # to account for this
         #
         # Projected point
-        xp = y - z * self.e3[k]
+        xp = y - z * basis.e3[k]
         # Dot products
         dp0 = np.cross(xp-x1, xp-x2)
         dp1 = np.cross(xp-x2, xp-x0)
