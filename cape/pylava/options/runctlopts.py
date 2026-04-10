@@ -17,7 +17,7 @@ the LAVA executables, defined in the ``"RunControl"`` section
 
 # Local imports
 from .lavaopts import SuperlavaOpts
-from ...cfdx.options import runctlopts
+from ...cfdx.options import runctlopts, INT_TYPES
 
 
 # Class for RunControl settings
@@ -28,18 +28,23 @@ class RunControlOpts(runctlopts.RunControlOpts):
     # Additional options
     _optlist = {
         "LAVASolver",
+        "RefIter",
         "superlava",
     }
 
     # Aliases
     _optmap = {
+        "IterRef": "RefIter",
         "LavaSolver": "LAVASolver",
+        "ReferenceIter": "RefIter",
         "Solver": "LAVASolver",
+        "iref": "RefIter",
     }
 
     # Types
     _opttypes = {
         "LAVASolver": str,
+        "RefIter": INT_TYPES,
     }
 
     # Permitted values
@@ -54,11 +59,13 @@ class RunControlOpts(runctlopts.RunControlOpts):
     # Defaults
     _rc = {
         "LAVASolver": "curvilinear",
+        "RefIter": 0,
     }
 
     # Descriptions
     _rst_descriptions = {
         "LAVASolver": "LAVA architecture to run",
+        "RefIter": "Iteration number to use for common interpolation grid",
     }
 
     # Additional sections

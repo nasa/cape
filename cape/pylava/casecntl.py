@@ -18,10 +18,7 @@ from typing import Optional
 # Third-party modules
 import numpy as np
 try:
-    import pyvista as pv
     from scipy.spatial import Delaunay
-    from vtkmodules.vtkFiltersPoints import vtkPointInterpolator
-    from vtkmodules.vtkFiltersPoints import vtkLinearKernel
 except ImportError:
     Delaunay = None
 
@@ -567,7 +564,9 @@ class CaseRunner(casecntl.CaseRunner):
             self,
             nsurf: int,
             n: int,
-            nref: int = 0) -> Optional[Umesh]:
+            nref: Optional[int] = None) -> Optional[Umesh]:
+        # Get reference iteration
+        nref = self.get_ref_iter(nref)
         # Read cut plane definition
         defn = self.read_cutplane_defn(nsurf)
         # Get file name prefix for this cut plane
@@ -592,6 +591,28 @@ class CaseRunner(casecntl.CaseRunner):
             refmesh.q[:, j] = np.sum(w*q[:, :, j], axis=1)
         # Output
         return refmesh
+
+    def get_ref_iter(self, nref: Optional[int] = None) -> int:
+        r"""Get reference iteration for flow viz, deferring to user val
+
+        :Call:
+            >>> iref = runner.get_ref_iter(nref=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nref*: {``None``} | :class:`int`
+                Optional manual override
+        :Ouptuts:
+            *iref*: :class:`int`
+                Reference iteration option from ``case.json`` or *nref*
+        :Versions:
+            * 2026-04-10 ``@ddalle``: v1.0
+        """
+        # Use explicit value if given
+        if nref is not None:
+            return nref
+        # Read option
+        return self.get_opt("RefIter", vdef=0)
 
     @casecntl.run_rootdir
     def read_cutplane_tri(self, nsurf: int, n: int) -> Optional[Umesh]:
