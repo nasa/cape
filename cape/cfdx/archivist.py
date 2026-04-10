@@ -1024,6 +1024,7 @@ class CaseArchivist(object):
             msg = f"rm -r '{filename}'"
             # Log it
             self.log(msg)
+            print(f"  {msg}")
             # Actual deletion (if no --test option)
             if not self._test:
                 shutil.rmtree(filename)
