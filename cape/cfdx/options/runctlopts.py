@@ -60,6 +60,7 @@ class RunControlOpts(OptionsDict):
     # Accepted options
     _optlist = {
         "Archive",
+        "BatchSize",
         "ContinuePhase",
         "Environ",
         "JSONFile",
@@ -105,6 +106,7 @@ class RunControlOpts(OptionsDict):
 
     # Option types
     _opttypes = {
+        "BatchSize": INT_TYPES,
         "ContinuePhase": BOOL_TYPES,
         "JSONFile": str,
         "MPI": BOOL_TYPES,
@@ -174,6 +176,7 @@ class RunControlOpts(OptionsDict):
 
     # Defaults
     _rc = {
+        "BatchSize": 100,
         "MPI": False,
         "MaxWorkers": 8,
         "PreMesh": False,
@@ -204,6 +207,7 @@ class RunControlOpts(OptionsDict):
 
     # Local parameter descriptions
     _rst_descriptions = {
+        "BatchSize": "number of iters to store in single batch",
         "ContinuePhase": "whether restarts of same phase can use same job",
         "JSONFile": "name of JSON file from which settings originated",
         "MPI": "whether or not to run MPI in phase",
