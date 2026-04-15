@@ -3360,7 +3360,7 @@ class Report(object):
             kw_m = opts.get_SubfigOpt(sfig, "MeanOptions",   k)
             kw_s = opts.get_SubfigOpt(sfig, "StDevOptions",  k)
             kw_u = opts.get_SubfigOpt(sfig, "ErrPltOptions", k)
-            kw_d = opts.get_SubfigOpt(sfig, "DeltaOptions",  k)
+            kw_d = opts.get_SubfigOpt(sfig, "DeltaPlotOptions",  k)
             # Label options
             sh_m = opts.get_SubfigOpt(sfig, "ShowMu", k)
             sh_s = opts.get_SubfigOpt(sfig, "ShowSigma", k)
