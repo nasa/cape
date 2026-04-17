@@ -3920,6 +3920,22 @@ class TriBase(object):
             if face == facei:
                 # Singleton face; candidate
                 face_candidates.append(face)
+        # Resort face candidates
+        face_comps = []
+        for face in face_candidates:
+            # Get component number
+            compi = self.config.faces[face]
+            # Check type
+            if isinstance(compi, int):
+                compj = compi
+            else:
+                compj = min(compi)
+            # Append it
+            face_comps.append(compj)
+        # Get order
+        face_order = np.argsort(face_comps)
+        # Sort
+        face_candidates = [face_candidates[i] for i in face_order]
         # Loop through sorted faces
         for face in face_candidates:
             # Get the component number

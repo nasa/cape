@@ -2288,21 +2288,13 @@ class ConfigJSON(SurfConfig):
         for parent in parents:
             # Get the parent's face data
             comp = self.faces[parent]
-            t = type(comp).__name__
             # Replace the parent value
-            if t == 'list':
+            if isinstance(comp, list):
                 # Check for membership
                 if compi not in comp:
                     continue
-                # Make the replacement
+                # Renumber
                 comp[comp.index(compi)] = compo
-            else:
-                # Check for membership
-                I = np.where(comp == compi)[0]
-                if len(I) == 0:
-                    continue
-                # Make the replacement
-                comp[I[0]] = compo
             # Recurse
             self.RenumberCompIDParent(parent, compi, compo)
 
@@ -2355,7 +2347,7 @@ class ConfigJSON(SurfConfig):
         # Loop through *faces*
         for face in faces:
             # Get the BCs from the "Properties" section
-            bc      = self.GetProperty(face, 'bc')
+            bc = self.GetProperty(face, 'bc')
             fun3dbc = self.GetProperty(face, 'fun3d_bc')
             aflr3bc = self.GetProperty(face, 'aflr3_bc')
             # Turn into a single bc
