@@ -1662,9 +1662,28 @@ class RunMatrix(dict):
 
     # Get name of single case
     def _genr8_grpname(self, i: int) -> str:
-        # Get keys and values
+        # Initialize output
+        v = []
+        # List of keys to use
         keys = self.GroupKeys
-        v = [self[k][i] for k in keys]
+        # Get keys and values
+        for k in keys:
+            # Get list
+            a = self.get(k)
+            # Check for it
+            if a is None:
+                raise KeyError(f"No values for run matrix '{k}'")
+            # Get value
+            if not isinstance(a, (list, tuple, np.ndarray)):
+                # Scalar value
+                vi = a
+            elif len(a) < i + 1:
+                raise IndexError(
+                    f"Cannot get '{k}' value for case {i}; length is {len(a)}")
+            # Get value
+            vi = a[i]
+            # Save it
+            v.append(vi)
         # Generate the name
         return self.genr8_name(keys, v)
 
