@@ -4088,6 +4088,33 @@ class CaseRunner(CaseRunnerBase):
 
   # *** OPTIONS ***
    # --- Case options ---
+    # General
+    def get_opt(self, opt: str, vdef: Optional[Any] = None) -> Any:
+        r"""Get a generic option value from ``case.json``
+
+        :Call:
+            >>> v = runner.get_opt(opt, vdef=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *opt*: :class:`str`
+                Name of *RunControl* option
+            *vdef*: {``None``} | **any**
+                Default value if *opt* is not found
+        :Outputs:
+            *v*: **any**
+                Value of that option in ``case.json``, else *vdef*
+        :Versions:
+            * 2026-04-10 ``@ddalle``: v1.0
+        """
+        # Read options
+        rc = self.read_case_json()
+        # Check for default
+        if rc is None:
+            return vdef
+        # Get option
+        return rc.get_opt(opt, vdef=vdef)
+
     # Get project root name
     def get_project_rootname(self, j: Optional[int] = None) -> str:
         r"""Read namelist and return project namelist
@@ -7017,8 +7044,6 @@ class CaseRunner(CaseRunnerBase):
 
     # Write start time
     def _write_start_time(self, fp, j: int):
-        # Get options
-        rc = self.read_case_json()
         # Initialize job ID
         jobID = self.get_job_id()
         # Program name
@@ -7034,8 +7059,6 @@ class CaseRunner(CaseRunnerBase):
 
     # Write time since
     def _write_user_time(self, fp, j: int):
-        # Get options
-        rc = self.read_case_json()
         # Initialize job ID
         jobID = self.get_job_id()
         # Program name

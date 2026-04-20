@@ -647,11 +647,32 @@ class CfdxCollectSurfArgs(CfdxArgReader):
         "surf": "nsurf",
     }
 
+    # Positional parameters
+    _arglist = (
+        "nsurf",
+    )
+
     # Defaults
     _rc = {
-        "batchsize": 100,
         "clean": False,
         "nsurf": 0,
+    }
+
+
+# Settings for collect-cutplane
+class CfdxCollectCutPlaneArgs(CfdxCollectSurfArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-collect-cutplane"
+
+    # Description
+    _help_title = "Collect cut-plane data in current case folder"
+
+    # Defaults
+    _rc = {
+        "nsurf": None,
     }
 
 
@@ -1171,6 +1192,11 @@ class CfdxTriangulateCutPlaneArgs(CfdxArgReader):
         "nmax",
     )
 
+    # Positional paramters
+    _arglist = (
+        "nsurf",
+    )
+
     # Aliases
     _optmap = {
         "surf": "nsurf",
@@ -1179,7 +1205,6 @@ class CfdxTriangulateCutPlaneArgs(CfdxArgReader):
     # Defaults
     _rc = {
         "clean": False,
-        "nsurf": 1,
     }
 
 
@@ -1318,6 +1343,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "check-ll",
         "check-triqfm",
         "clean",
+        "collect-cutplane",
         "collect-surf",
         "dezombie",
         "exec",
@@ -1348,6 +1374,9 @@ class CfdxFrontDesk(CfdxArgReader):
     # Alternate command names
     _cmdmap = {
         "c": "check",
+        "collect-cut": "collect-cutplane",
+        "collect-cutp": "collect-cutplane",
+        "collect-plane": "collect-cutplane",
         "collect-surfdata": "collect-surf",
         "dex": "extract",
         "e": "exec",
@@ -1376,6 +1405,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "check-ll": CfdxCheckLLArgs,
         "check-triqfm": CfdxCheckTriqFMArgs,
         "clean": CfdxCleanArgs,
+        "collect-cutplane": CfdxCollectCutPlaneArgs,
         "collect-surf": CfdxCollectSurfArgs,
         "dezombie": CfdxDezombieArgs,
         "exec": CfdxExecArgs,
@@ -2151,7 +2181,7 @@ def cape_run(parser: CfdxArgReader) -> int:
 
 
 def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
-    r"""Run module-specific custom singe-case commands in current dir
+    r"""Collect surface data into batches
 
     :Call:
         >>> ierr == cape_runner_collect_surfdata(parser)
@@ -2181,6 +2211,37 @@ def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
+    r"""Collect data from one or more cut planes into batches
+
+    :Call:
+        >>> ierr == cape_runner_collect_cutplane(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2026-04-07 ``@ddalle``: v1.0
+    """
+    # Read instance
+    runner, kw = read_runner_kwargs(parser)
+    # Process args
+    nsurf = kw.get("nsurf")
+    nbatch = kw.get("batchsize")
+    clean = kw.get("clean")
+    nmax = kw.get("nmax")
+    # Run the case
+    runner.collect_cutplane(
+        nsurf=nsurf,
+        nbatch=nbatch,
+        clean=clean,
+        nmax=nmax)
+    # Return code
+    return IERR_OK
+
+
 def cape_runner_triangulate_cuplane(parser: CfdxArgReader) -> int:
     r"""Convert raw cut-plane VTK files to triangulations
 
@@ -2200,9 +2261,8 @@ def cape_runner_triangulate_cuplane(parser: CfdxArgReader) -> int:
     # Process args
     nsurf = kw.get("nsurf")
     clean = kw.get("clean")
-    nmax = kw.get("nmax")
     # Run the case
-    runner.triangulate_cutplane(nsurf, clean=clean, nmax=nmax)
+    runner.triangulate_cutplane(nsurf, clean=clean)
     # Return code
     return IERR_OK
 
@@ -2386,6 +2446,7 @@ CMD_DICT = {
     "approve": cape_approve,
     "archive": cape_archive,
     "batch": cape_batch,
+    "collect-cutplane": cape_runner_collect_cutplane,
     "collect-surf": cape_runner_collect_surfdata,
     "check": cape_c,
     "check-db": cape_check_db,

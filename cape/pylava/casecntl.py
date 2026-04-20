@@ -13,15 +13,13 @@ they are available unless specifically overwritten by specific
 # Standard library modules
 import os
 import re
+import time
 from typing import Optional
 
 # Third-party modules
 import numpy as np
 try:
-    import pyvista as pv
     from scipy.spatial import Delaunay
-    from vtkmodules.vtkFiltersPoints import vtkPointInterpolator
-    from vtkmodules.vtkFiltersPoints import vtkLinearKernel
 except ImportError:
     Delaunay = None
 
@@ -38,6 +36,7 @@ from ..dkit import capefile
 from ..dkit.rdb import DataKit
 from ..fileutils import tail
 from ..gruvoc.umesh import Umesh
+from ..textutils import _printf
 from ..capeio import (
     fromfile_lb4_i,
     fromfile_lb8_i,
@@ -49,7 +48,7 @@ from ..capeio import (
 # Constants
 ITER_FILE = "data.iter"
 ITER_FILE_CART = os.path.join("monitor", "Cart.data.iter")
-BATCHSIZE = 100
+DEFAULT_SLEEPTIME = 0.05
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -405,17 +404,31 @@ class CaseRunner(casecntl.CaseRunner):
         # Get integer
         return int(line.split()[0])
 
-   # --- Isosurface data ---
-    @casecntl.run_rootdir
+   # --- Isosurface triangulation ---
     def triangulate_cutplane(
             self,
+            nsurf: Optional[int] = None,
+            clean: bool = False):
+        # Get surface list if not specified
+        if nsurf is None:
+            # Default to *all* the surfaces
+            surfs = self.get_cutplanes()
+        else:
+            # Convert user input to singleton list
+            surfs = [nsurf]
+        # Loop through surfaces
+        for surf in surfs:
+            self.triangulate_cutplane_surf(surf, clean=clean)
+
+    @casecntl.run_rootdir
+    def triangulate_cutplane_surf(
+            self,
             nsurf: int,
-            clean: bool = False,
-            nmax: Optional[int] = None):
+            clean: bool = False):
         r"""Convert cut plane VTK files to triangulated cut planes
 
         :Call:
-            >>> runner.triangulate_cutplane(nsurf, clean, nmax=None)
+            >>> runner.triangulate_cutplane(nsurf, clean=False)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -423,8 +436,6 @@ class CaseRunner(casecntl.CaseRunner):
                 Surface index
             *clean*: ``True`` | {``False``}
                 Option to delete original cut plane file
-            *nmax*: {``None``} | :class:`int`
-                Optional maximum number of files to triangulate
         """
         # Search pattern for these cutplane files
         prefix = self._genr8_cutplane_prefix(nsurf)
@@ -435,22 +446,39 @@ class CaseRunner(casecntl.CaseRunner):
         vtkfiles = sorted(self.search_regex(vtkpat))
         # Get integers from these file names
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
-        # Current count of conversions
-        ntri = 0
+        # Initialize list of subprocesses
+        max_workers = self.get_opt("MaxWorkers", vdef=8)
+        workers = []
         # Loop through those
         for n in iters:
-            # Convert
-            q = self.triangulate_cutplane_n(nsurf, n, clean)
-            # Update count
-            if not q:
+            # Wait until worker count is subsided
+            while len(workers) >= max_workers:
+                # Wait
+                time.sleep(DEFAULT_SLEEPTIME)
+                # Check them all
+                _update_workers(workers)
+            # Call the fork
+            pid = os.fork()
+            # Check parent/child
+            if pid != 0:
+                # Save the PID
+                workers.append(pid)
                 continue
-            # Update counter
-            ntri += 1
-            # Check for nmax
-            if (nmax is not None) and (ntri >= nmax):
+            # Otherwise do the work
+            self.triangulate_cutplane_iter(nsurf, n, clean)
+            # Exit this shell
+            os._exit(0)
+        # Wait until all workers terminated
+        for _ in range(1000):
+            # Check workers
+            _update_workers(workers)
+            # Check for workers
+            if len(workers) == 0:
                 break
+            # Wait
+            time.sleep(DEFAULT_SLEEPTIME)
 
-    def triangulate_cutplane_n(
+    def triangulate_cutplane_iter(
             self,
             surf: int,
             n: int,
@@ -466,7 +494,7 @@ class CaseRunner(casecntl.CaseRunner):
             ``surf00_cutplane_Colorfullq_Cart.000045000.tri.vtk``
 
         :Call:
-            >>> q = runner.triangulate_cutplane_n(surf, n, clean=False)
+            >>> q = runner.triangulate_cutplane_iter(surf, n, clean)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -497,18 +525,15 @@ class CaseRunner(casecntl.CaseRunner):
         vtk2 = f"surf{surf-1:02d}_cutplane_...{n:09d}.tri.vtk"
         # Check for files
         if os.path.isfile(ftri):
-            print(f"  File exists: '{vtk2}'")
             # Cleanup
             if clean and os.path.isfile(fvtk):
-                print(f"    rm '{fvtk}'")
                 self.remove_file(fvtk)
             return False
         elif not os.path.isfile(fvtk):
             return False
         # Status update
         msg = f"'{vtk1}' => '{vtk2}'"
-        print(f"  {msg}")
-        self.log_verbose(msg)
+        _printf(f"  {msg}")
         # Read the tri file
         mesh = Umesh(fvtk)
         # Project the nodes to the cut plane
@@ -517,52 +542,19 @@ class CaseRunner(casecntl.CaseRunner):
         mesh.write_vtk(ftri)
         # Cleanup
         if clean:
-            print(f"    rm '{fvtk}'")
             self.remove_file(fvtk)
         # Output
         return True
 
-    def read_cutplane_defn(self, surf: int) -> Optional[dict]:
-        r"""Read definition for a cut plane isosurface
-
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *surf*: :class:`int`
-                Isosurface number (1-based)
-        :Versions:
-            * 2026-04-08 ``@ddalle``: v1.0
-        """
-        # Read input file
-        inp = self.read_runinputs()
-        # Name of the isosurface
-        name = f"isosurfaces_{surf}"
-        # Get section
-        sec = inp.get_opt("cartesian", "output")
-        if sec is None:
-            return
-        # Get definition
-        defn = sec.get(name)
-        if not isinstance(defn, dict):
-            return
-        # Get normal and point
-        p = defn.get("point")
-        n = defn.get("normal")
-        # Check both
-        if not (isinstance(p, list) and isinstance(n, list)):
-            return
-        # Normalize vectors
-        defn["point"] = np.array(p)
-        defn["normal"] = np.array(n) / np.linalg.norm(n)
-        # Output
-        return defn
-
+   # --- Cut-plane interpolation ---
     @casecntl.run_rootdir
     def read_cutplane_fixed(
             self,
             nsurf: int,
             n: int,
-            nref: int = 0) -> Optional[Umesh]:
+            nref: Optional[int] = None) -> Optional[Umesh]:
+        # Get reference iteration
+        nref = self.get_ref_iter(nref)
         # Read cut plane definition
         defn = self.read_cutplane_defn(nsurf)
         # Get file name prefix for this cut plane
@@ -570,31 +562,67 @@ class CaseRunner(casecntl.CaseRunner):
         # Base file name for this iteration
         basename = f"{prefix}.{n:09d}"
         # Potential file names
-        ftri = f"{basename}.tri.vtk"
         ffix = f"{basename}.fixed.vtk"
+        # File name for triangulated reference tri
+        ftri = f"{prefix}.{nref:09d}.tri.vtk"
         # Check for fixed-mesh file
         if os.path.isfile(ffix):
             return Umesh(ffix)
         # Read triangulated data on the reference iteration
         refmesh = self.read_cutplane_tri(nsurf, nref)
-        # Read triangulated data on this iteration
-        mesh = self.read_cutplane_tri(nsurf, n)
-        # Create interpolator
-        interp = vtkPointInterpolator()
-        interp.SetNullPointsStrategyToClosestPoint()
-        interp.SetKernel(vtkLinearKernel())
-        # Set input and output
-        interp.SetInputData(refmesh.pvmesh)
-        interp.SetSourceData(mesh.pvmesh)
-        # Interpolate
-        print(f"  Interpolating '{ftri}' based on iter {nref}")
-        interp.Update()
-        # Get result
-        result = pv.wrap(interp.GetOutput())
-        # Create Umesh
-        fixmesh = Umesh.from_pvmesh(result)
+        # Write it if not present
+        if not os.path.isfile(ftri):
+            refmesh.write(ftri)
+        # Read data (any version) on this iteration
+        mesh = self.read_cutplane_best(nsurf, n)
+        # Create interpolation weights
+        w, i = mesh.genr8_interp_weights(refmesh.nodes)
+        # Extract state on nodes *i*
+        q = mesh.q[i - 1]
+        # Loop through states
+        for j in range(mesh.nq):
+            refmesh.q[:, j] = np.sum(w*q[:, :, j], axis=1)
         # Output
-        return fixmesh
+        return refmesh
+
+    @casecntl.run_rootdir
+    def read_cutplane_best(self, nsurf: int, n: int) -> Optional[Umesh]:
+        r"""Read cut-plane file, using triangulated if available
+
+        :Call:
+            >>> mesh = runner.read_cutplane_best(nsurf, n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index
+            *n*: :class:`int`
+                Iteration number
+        :Outputs:
+            *mesh*: ``None`` | :class:`cape.gruvoc.umesh.Umesh`
+                Triangulated cut plane instance
+        :Versions:
+            * 2026-04-09 ``@ddalle``: v1.0
+        """
+        # Read cut plane definition
+        defn = self.read_cutplane_defn(nsurf)
+        # Check for valid cut plane
+        if defn is None:
+            return
+        # Get name of file
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
+        basename = f"{prefix}.{n:09d}"
+        # Potential file names
+        fvtk = f"{basename}.vtk"
+        ftri = f"{basename}.tri.vtk"
+        ffix = f"{basename}.fixed.vtk"
+        # Check for file
+        if os.path.isfile(ftri):
+            return Umesh(ftri)
+        if os.path.isfile(fvtk):
+            return Umesh(fvtk)
+        if os.path.isfile(ffix):
+            return Umesh(ffix)
 
     @casecntl.run_rootdir
     def read_cutplane_tri(self, nsurf: int, n: int) -> Optional[Umesh]:
@@ -639,6 +667,143 @@ class CaseRunner(casecntl.CaseRunner):
         # Return that
         return mesh
 
+   # --- Cut-plane data collection ---
+    def collect_cutplane(
+            self,
+            nsurf: Optional[int] = 0,
+            nbatch: Optional[int] = None,
+            clean: bool = False,
+            nmax: Optional[int] = None):
+        # Get surface list if not specified
+        if nsurf is None:
+            # Default to *all* the surfaces
+            surfs = self.get_cutplanes()
+        else:
+            # Convert user input to singleton list
+            surfs = [nsurf]
+        # Loop through surfaces
+        for surf in surfs:
+            self.collect_cutplane_surf(surf, nbatch, clean=clean, nmax=nmax)
+
+    def collect_cutplane_surf(
+            self,
+            nsurf: int = 1,
+            nbatch: Optional[int] = None,
+            clean: bool = False,
+            nmax: Optional[int] = None):
+        r"""Combine data from LAVA cut-plane VTK files into batches
+
+        :Call:
+            >>> runner.collect_cutplane_surf(nsurf, nbatch, **kw)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: {``0``} | :class:`int`
+                LAVA surface number
+            *nbatch*: {``None``} | :class:`int`
+                Number of snapshots to collect; default value is
+                *BatchSize* from ``case.json``
+            *clean*: ``True`` | {``False``}
+                Option to delete ``.vtk`` files after processing
+            *nmax*: {``None``} | :class:`int`
+                Maximum number of snapshots to collect
+        :Versions:
+            * 2026-04-10 ``@ddalle``: v1.0
+        """
+        # First read metadata
+        db = self.read_cutplane_meta(nsurf)
+        # Number of time steps saved
+        nt = db["nt"]
+        # Get reference iteration
+        iref = self.get_opt("RefIter")
+        # Get current batch info
+        if nt == 0:
+            # Starting fresh
+            imax = 0
+        else:
+            # Get latest
+            imax = db["i"][-1]
+        # Batch size
+        nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
+        # Prefix for VTK files
+        prefix = self._genr8_cutplane_prefix(nsurf)
+        # Get any current VTK files
+        vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
+        vtkfiles = self.search_regex(vtkpat)
+        # Get integers from these file names
+        iters = [int(v.split('.')[1]) for v in vtkfiles]
+        iters = np.unique(iters)
+        # Number of saved files
+        n = 0
+        # List of files to remove (this batch)
+        rmfiles = []
+        # Loop through files
+        for i in iters:
+            breakpoint()
+            # Name of VTK files
+            prefixi = f"{prefix}.{i:09d}"
+            fvtk = f"{prefixi}.vtk"
+            ftri = f"{prefixi}.tri.vtk"
+            ffix = f"{prefixi}.fixed.vtk"
+            vtks = [fvtk, ftri, ffix]
+            # Check if already covered
+            if i <= imax:
+                # Check for clean option
+                if clean and (i != iref):
+                    # Delete them
+                    for fi in vtks:
+                        if os.path.isfile(fi):
+                            rmfiles.append(fi)
+                continue
+            # Shortened file name for logs
+            flbl = os.path.join(
+                "isosurface",
+                f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
+            # Increase counter
+            nt += 1
+            # Get batch
+            batchj = (nt - 1) // nbatch
+            batchk = nt % nbatch
+            # Check if new batch
+            newbatch = db["batch"].size and (db["batch"][-1] != batchj)
+            # Append to vectors
+            db["nt"] = nt
+            db["i"] = np.hstack((db["i"], i))
+            db["batch"] = np.hstack((db["batch"], batchj))
+            # Status update
+            _printf(
+                f"  Collecting '{flbl}' " +
+                f"-> batch {batchj} ({batchk}/{nbatch})")
+            # Write data
+            self._write_cutplanedata(i, nsurf, batchj)
+            # Update the batch data
+            self.write_cutplane_meta(nsurf, db)
+            # Check for clean
+            if clean and (i != iref):
+                # Delete them
+                for fi in vtks:
+                    if os.path.isfile(fi):
+                        rmfiles.append(fi)
+            # Remove files
+            if newbatch:
+                # Loop through files to delete for this batch
+                for fvtk in rmfiles:
+                    self.remove_file(fvtk)
+                # Reset list of files to delete
+                rmfiles = []
+            # Update
+            n += 1
+            # Check for exit flag
+            if (nmax is not None) and (n >= nmax):
+                break
+        # Clean up prompt
+        print("")
+        # Loop through files to delete that didn't line up with a batch
+        for fvtk in rmfiles:
+            self.remove_file(fvtk)
+        # Update metadata
+        self.write_cutplane_meta(nsurf, db)
+
     @casecntl.run_rootdir
     def read_cutplane_meta(self, nsurf: int) -> DataKit:
         r"""Read database of metadata for collected cutplane data
@@ -671,6 +836,268 @@ class CaseRunner(casecntl.CaseRunner):
         # Otherwise read it
         return DataKit(fname)
 
+    @casecntl.run_rootdir
+    def write_cutplane_meta(self, nsurf: int, db: DataKit):
+        r"""Write updated cut-plane data collection metadata
+
+        :Call:
+            >>> db.write_cutplane_meta(nsurf, db)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: {``0``} | :class:`int`
+                Surface index (1-based)
+            *db*: :class:`cape.dkit.rdb.DataKit`
+                DataKit of which batch each iteration is located in
+        :Verions:
+            * 2026-04-10 ``@ddalle``: v1.0
+        """
+        # Create file name
+        fname = self._genr8_cutplane_metafile(nsurf)
+        # Write it
+        db.write(fname)
+
+    @casecntl.run_rootdir
+    def _write_cutplanedata(self, i: int, nsurf: int, batch: int):
+        # Name of file to read; create if necessary
+        fcdb = self._init_cutplane_batch(nsurf, batch)
+        # Check for file
+        if not os.path.isfile(fcdb):
+            self.log_verbose(f"File not found: {fcdb}")
+            raise FileNotFoundError(
+                f"Cut-plane collection file not found: {fcdb}")
+        # Open batch file
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Read surface data
+        surf = self.read_cutplane_fixed(nsurf, i)
+        # Read small fields
+        dat.read_record("nt")
+        dat.read_record("nnode")
+        dat.read_record("nq")
+        # Get counts from batch file
+        nt = dat["nt"] + 1
+        nq = dat["nq"]
+        nnode = dat["nnode"]
+        # File name labl
+        fvtk = f"surf{nsurf-1:02d}_cutplane.{i:09d}.vtk"
+        # Check counts
+        if surf.nq != nq:
+            raise ValueError(f"In '{fvtk}', expected nq={nq}; got {surf.nq}")
+        if surf.nnode != nnode:
+            raise ValueError(
+                f"In '{fvtk}', expected nnode={nnode}; got {surf.nnode}")
+        # Open the batch file for editing
+        with open(fcdb, 'r+b') as fp:
+            # Go to *nt* position
+            fp.seek(dat.pos['nt'])
+            # Read record type and size
+            fromfile_lb4_i(fp, 2)
+            # Read length of name
+            l1, = fromfile_lb4_i(fp, 1)
+            # Skip name
+            fp.read(l1)
+            # Now overwrite number of time steps in file
+            tofile_lb4_i(fp, nt)
+            # Now go to end of file
+            fp.seek(dat.pos['q'])
+            # Read record type
+            rtype_code, = fromfile_lb4_i(fp, 1)
+            # Parse record type details
+            rt = capefile.RecordType(rtype_code)
+            # Calculate length (in bytes)
+            l2 = 2 ** (rt.element_bits - 3)
+            l3 = 33 + nt*nq*nnode*l2
+            # Position for updated record size
+            pos3 = fp.tell()
+            fromfile_lb8_i(fp, 1)
+            # Get name
+            l4, = fromfile_lb4_i(fp, 1)
+            fp.read(l4)
+            # Skip dimensions
+            nd, = fromfile_lb4_i(fp, 1)
+            # Position for updated size
+            pos4 = fp.tell()
+            # Read node count and q count
+            nt2, nn2, nq2 = fromfile_lb8_i(fp, 3)
+            # Check
+            if nt2 != nt - 1:
+                raise ValueError(
+                    f"In {fcdb}; report time step count {nt - 1} "
+                    f"does not match q.shape ({nt2})")
+            if nn2 != nnode:
+                raise ValueError(
+                    f"In {fvtk}: expected {nnode} nodes; got {nn2}")
+            if nq2 != nq:
+                raise ValueError(
+                    f"In {fvtk}: expected {nq} states; got {nq2}")
+            # Write size
+            fp.seek(pos3)
+            tofile_lb8_i(fp, l3)
+            # Write updated shape of *q*
+            fp.seek(pos4)
+            tofile_lb4_i(fp, nt)
+            # Go to end of file to write new data
+            fp.seek(0, 2)
+            # Write state
+            if l2 == 8:
+                # Write as double-precision data
+                tofile_lb8_f(fp, surf.q.astype("f8"))
+            else:
+                # Write as single-precision data
+                tofile_lb4_f(fp, surf.q.astype("f4"))
+
+    def _init_cutplane_batch(self, nsurf: int, batch: int) -> str:
+        # Name of file
+        fname = self._genr8_cutplane_batchfile(nsurf, batch)
+        # Check if file exists
+        if not os.path.isfile(fname):
+            # Read reference VTK file
+            surf = self._read_cutplane_ref(nsurf)
+            # Get number of states and nodes
+            nnode = surf.nnode
+            nq = surf.nq
+            # Create a DataKit
+            db = DataKit()
+            # Initialize
+            db.save_col("nt", 0)
+            db.save_col("nnode", nnode)
+            db.save_col("nq", nq)
+            db.save_col("q", np.zeros((0, nnode, nq), dtype="f4"))
+            # Get/create CAPEDB file interface
+            cdb = db.genr8_cdb()
+            # Set special data type (long record) for *q*
+            rtyp = capefile.RecordType.from_value(db["q"], "q")
+            rt = rtyp.rt | capefile.RT_XLONGREC
+            cdb.rt["q"] = rt
+            # Write it
+            cdb.write(fname)
+        # Return name of file
+        return fname
+
+    def _read_cutplane_ref(self, nsurf: int) -> Umesh:
+        # Get reference iteration
+        n = self.get_opt("RefIter")
+        # Read triangulated data for that iter
+        return self.read_cutplane_tri(nsurf, n)
+
+    def _genr8_cutplane_metafile(self, nsurf: int = 0) -> str:
+        # Get name of file
+        return os.path.join(
+            "isosurface", f"surf{nsurf-1:02d}.Cart.cdb")
+
+    def _genr8_cutplane_batchfile(self, nsurf: int, batch: int) -> str:
+        return os.path.join(
+            "isosurface",
+            f"surf{nsurf-1:02d}.Cart.batch{batch:04d}.cdb")
+
+   # --- Cut-plane definitions ---
+    def get_cutplanes(self) -> list:
+        r"""Get list of cut-plane isosurface indices (1-based)
+
+        :Call:
+            >>> surfs = runner.get_cutplanes()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *surfs*: :class:`list`\ [:class:`int`]
+                List of isosurfaces that are cut planes
+        :Versions:
+            * 2026-04-10 ``@ddalle``: v1.0
+        """
+        # Initialize outputs
+        surfs = []
+        # Read input file
+        inp = self.read_runinputs()
+        # Get section
+        sec = inp.get_opt("cartesian", "output")
+        if sec is None:
+            return surfs
+        # Initialize candidate
+        surf = 0
+        # Loop until isosurface not found
+        while True:
+            # Increase surface index
+            surf += 1
+            # Name of the isosurface
+            name = f"isosurfaces_{surf}"
+            # Get definition
+            defn = sec.get(name)
+            # Check if "isosurfaces_{N}" is defined
+            if not isinstance(defn, dict):
+                break
+            # Get normal and point
+            p = defn.get("point")
+            n = defn.get("normal")
+            # Check if it's a cut plane
+            if isinstance(p, list) and isinstance(n, list):
+                # Save it
+                surfs.append(surf)
+        # Output
+        return surfs
+
+    def read_cutplane_defn(self, surf: int) -> Optional[dict]:
+        r"""Read definition for a cut plane isosurface
+
+        :Call:
+            >>> defn = runner.read_cutplane_defn(surf)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *surf*: :class:`int`
+                Isosurface number (1-based)
+        :Outputs:
+            *defn*: :class:`dict`
+                Definition of cutplane *surf*
+        :Versions:
+            * 2026-04-08 ``@ddalle``: v1.0
+        """
+        # Read input file
+        inp = self.read_runinputs()
+        # Name of the isosurface
+        name = f"isosurfaces_{surf}"
+        # Get section
+        sec = inp.get_opt("cartesian", "output")
+        if sec is None:
+            return
+        # Get definition
+        defn = sec.get(name)
+        if not isinstance(defn, dict):
+            return
+        # Get normal and point
+        p = defn.get("point")
+        n = defn.get("normal")
+        # Check both
+        if not (isinstance(p, list) and isinstance(n, list)):
+            return
+        # Normalize vectors
+        defn["point"] = np.array(p)
+        defn["normal"] = np.array(n) / np.linalg.norm(n)
+        # Output
+        return defn
+
+    def get_ref_iter(self, nref: Optional[int] = None) -> int:
+        r"""Get reference iteration for flow viz, deferring to user val
+
+        :Call:
+            >>> iref = runner.get_ref_iter(nref=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nref*: {``None``} | :class:`int`
+                Optional manual override
+        :Ouptuts:
+            *iref*: :class:`int`
+                Reference iteration option from ``case.json`` or *nref*
+        :Versions:
+            * 2026-04-10 ``@ddalle``: v1.0
+        """
+        # Use explicit value if given
+        if nref is not None:
+            return nref
+        # Read option
+        return self.get_opt("RefIter", vdef=0)
+
     def _genr8_cutplane_prefix(
             self,
             surf: int, defn: Optional[dict] = None) -> str:
@@ -692,7 +1119,7 @@ class CaseRunner(casecntl.CaseRunner):
     def collect_surfdata(
             self,
             nsurf: int = 0,
-            nbatch: int = BATCHSIZE,
+            nbatch: Optional[int] = None,
             clean: bool = False,
             nmax: Optional[int] = None):
         r"""Combine data from LAVA surface VTK files into batches
@@ -704,8 +1131,9 @@ class CaseRunner(casecntl.CaseRunner):
                 Controller to run one case of solver
             *nsurf*: {``0``} | :class:`int`
                 LAVA surface number
-            *nbatch*: {``100``} | :class:`int`
-                Number of surface snapshots to collect into each file
+            *nbatch*: {``None``} | :class:`int`
+                Number of snapshots to collect; default value is
+                *BatchSize* from ``case.json``
             *clean*: ``True`` | {``False``}
                 Option to delete ``.vtk`` files after processing
             *nmax*: {``None``} | :class:`int`
@@ -726,6 +1154,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Get latest
             iref = db["i"][0]
             imax = db["i"][-1]
+        # Batch size
+        nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
         # Get any current VTK files
         vtkpat = self._genr8_surfdata_regex(nsurf)
         vtkfiles = sorted(self.search_regex(vtkpat))
@@ -744,13 +1174,12 @@ class CaseRunner(casecntl.CaseRunner):
                 # Check for clean option
                 if clean and (i != iref) and (i > 0):
                     # Delete it
-                    print(f"  Already processed '{fvtk}'")
                     rmfiles.append(fvtk)
                 continue
             # Increase counter
             nt += 1
             # Get batch
-            batchj = nt // nbatch
+            batchj = (nt - 1) // nbatch
             batchk = nt % nbatch
             # Check if new batch
             newbatch = db["batch"].size and (db["batch"][-1] != batchj)
@@ -759,11 +1188,9 @@ class CaseRunner(casecntl.CaseRunner):
             db["i"] = np.hstack((db["i"], i))
             db["batch"] = np.hstack((db["batch"], batchj))
             # Status update
-            msg = (
+            _printf(
                 f"  Collecting '{fvtk}' " +
                 f"-> batch {batchj} ({batchk}/{nbatch})")
-            print(msg)
-            self.log_verbose(msg)
             # Write data
             self._write_surfdata(i, nsurf, batchj)
             # Update the batch data
@@ -775,7 +1202,6 @@ class CaseRunner(casecntl.CaseRunner):
             if newbatch:
                 # Loop through files to delete for this batch
                 for fvtk in rmfiles:
-                    print(f"  Removing '{fvtk}'")
                     self.remove_file(fvtk)
                 # Reset list of files to delete
                 rmfiles = []
@@ -784,9 +1210,10 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for exit flag
             if (nmax is not None) and (n >= nmax):
                 break
+        # Clean up prompt
+        print("")
         # Loop through files to delete that didn't line up with a batch
         for fvtk in rmfiles:
-            print(f"  Removing '{fvtk}'")
             self.remove_file(fvtk)
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
@@ -1369,3 +1796,19 @@ def LinkViz():
     runner = CaseRunner()
     # Call link method
     runner.link_viz()
+
+
+def _update_workers(workers: list):
+    # Loop through workers
+    for pid in list(workers):
+        # Check if it's active
+        try:
+            # Check on the requested process
+            outpid, _ = os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError:
+            print(f"  PID {pid} is um....")
+            continue
+        # Check if it's running
+        if outpid != 0:
+            # Already done
+            workers.remove(pid)
