@@ -2717,8 +2717,6 @@ class Cntl(CntlBase):
         for col in hide_ctrs:
             if col in ctrs:
                 ctrs.remove(col)
-        # Final column count
-        ncol = len(cols)
         # Get headers
         headers = {
             col: self._header(col) for col in cols
@@ -2745,32 +2743,11 @@ class Cntl(CntlBase):
         n = 0
         # Loop through cases
         for i in inds:
-            # Loop through columns
-            for j, col in enumerate(cols):
-                # Get length
-                lj = maxlens[col]
-                # Get value
-                vj = self.getvalstr(col, i)
-                # Print it
-                sys.stdout.write("%-*s" % (lj, vj))
-                sys.stdout.flush()
-                # Print separator
-                if j + 1 >= ncol:
-                    # New line
-                    sys.stdout.write('\n')
-                else:
-                    # Separator
-                    sys.stdout.write(sep)
-                sys.stdout.flush()
-                # Count value if appropriate
-                if col in counters:
-                    counters[col].update((vj,))
-            # Run case function
-            if callable(casefunc):
-                vi = casefunc(i)
-                # Add to counter if appropriate
-                ni = vi if isinstance(vi, (int, np.integer)) else 0
-                n += ni
+            # Run analysis of one case
+            ni = self._caseloop_v_case(
+                cols, maxlens, i, sep, counters, casefunc)
+            # Update total cases submitted counter
+            n += ni
         # Blank line
         print("")
         # Process counters
@@ -2813,6 +2790,45 @@ class Cntl(CntlBase):
             print(f"{tab}{frun}")
             # Run the function
             casefunc(i)
+
+    def _caseloop_v_case(
+            self,
+            cols: list,
+            maxlens: dict,
+            i: int,
+            sep: str,
+            counters: dict,
+            casefunc: Any):
+        # Number of columns
+        ncol = len(cols)
+        # Loop through columns
+        for j, col in enumerate(cols):
+            # Get length
+            lj = maxlens[col]
+            # Get value
+            vj = self.getvalstr(col, i)
+            # Print it
+            sys.stdout.write("%-*s" % (lj, vj))
+            sys.stdout.flush()
+            # Print separator
+            if j + 1 >= ncol:
+                # New line
+                sys.stdout.write('\n')
+            else:
+                # Separator
+                sys.stdout.write(sep)
+            sys.stdout.flush()
+            # Count value if appropriate
+            if col in counters:
+                counters[col].update((vj,))
+        # Run case function
+        if callable(casefunc):
+            vi = casefunc(i)
+            # Add to counter if appropriate
+            ni = vi if isinstance(vi, (int, np.integer)) else 0
+            return ni
+        else:
+            return 0
 
     # Get header for display column
     def _header(self, opt: str) -> str:
