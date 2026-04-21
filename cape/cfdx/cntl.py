@@ -2813,7 +2813,10 @@ class Cntl(CntlBase):
                     if vi is None:
                         continue
                     # Otherwise unpack
-                    ni, ci = vi
+                    ni, line, ci = vi
+                    # Output
+                    sys.stdout.write(line)
+                    sys.stdout.flush()
                     # Update counters
                     for col in counters:
                         vi = ci.get(col)
@@ -2830,15 +2833,16 @@ class Cntl(CntlBase):
                 # Parent: close write end, save read end
                 os.close(w_fd)
                 self.pipes[pid] = r_fd
+                # Save process ID of worker
                 self.workers.append(pid)
                 continue
             # Child: close read end
             os.close(r_fd)
             # Run analysis of one case
-            ni, ci = self._caseloop_v_case(
+            ni, line, ci = self._caseloop_v_case(
                 i, casefunc, cols, ctrs, maxlens, sep)
             # Send result back through pipe
-            os.write(w_fd, pickle.dumps((ni, ci)))
+            os.write(w_fd, pickle.dumps((ni, line, ci)))
             os.close(w_fd)
             # Exit this process
             os._exit(0)
@@ -2857,7 +2861,10 @@ class Cntl(CntlBase):
             if vi is None:
                 continue
             # Otherwise unpack
-            ni, ci = vi
+            ni, line, ci = vi
+            # Output
+            sys.stdout.write(line)
+            sys.stdout.flush()
             # Update counters
             for col in counters:
                 vi = ci.get(col)
@@ -2922,6 +2929,8 @@ class Cntl(CntlBase):
         ncol = len(cols)
         # Initialize headers
         counters = {col: Counter() for col in ctrs}
+        # Initialize line
+        line = ''
         # Loop through columns
         for j, col in enumerate(cols):
             # Get length
@@ -2929,16 +2938,10 @@ class Cntl(CntlBase):
             # Get value
             vj = self.getvalstr(col, i)
             # Print it
-            sys.stdout.write("%-*s" % (lj, vj))
-            sys.stdout.flush()
+            line += ("%-*s" % (lj, vj))
             # Print separator
-            if j + 1 >= ncol:
-                # New line
-                sys.stdout.write('\n')
-            else:
-                # Separator
-                sys.stdout.write(sep)
-            sys.stdout.flush()
+            sepj = '\n' if (j + 1 >= ncol) else sep
+            line += sepj
             # Count value if appropriate
             if col in counters:
                 counters[col].update((vj,))
@@ -2950,7 +2953,7 @@ class Cntl(CntlBase):
         else:
             ni = 0
         # Output
-        return ni, counters
+        return ni, line, counters
 
     # Get header for display column
     def _header(self, opt: str) -> str:
