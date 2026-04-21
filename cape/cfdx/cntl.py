@@ -2744,10 +2744,17 @@ class Cntl(CntlBase):
         # Loop through cases
         for i in inds:
             # Run analysis of one case
-            ni = self._caseloop_v_case(
-                cols, maxlens, i, sep, counters, casefunc)
+            ni, ci = self._caseloop_v_case(
+                i, casefunc, cols, ctrs, maxlens, sep)
             # Update total cases submitted counter
             n += ni
+            # Update counters
+            for col in counters:
+                # Get value from case *i*
+                vi = ci.get(col)
+                # Update
+                if vi is not None:
+                    counters[col].update(vi)
         # Blank line
         print("")
         # Process counters
@@ -2793,14 +2800,16 @@ class Cntl(CntlBase):
 
     def _caseloop_v_case(
             self,
-            cols: list,
-            maxlens: dict,
             i: int,
-            sep: str,
-            counters: dict,
-            casefunc: Any):
+            casefunc: Optional[Callable],
+            cols: list,
+            ctrs: list,
+            maxlens: dict,
+            sep: str):
         # Number of columns
         ncol = len(cols)
+        # Initialize headers
+        counters = {col: Counter() for col in ctrs}
         # Loop through columns
         for j, col in enumerate(cols):
             # Get length
@@ -2826,9 +2835,10 @@ class Cntl(CntlBase):
             vi = casefunc(i)
             # Add to counter if appropriate
             ni = vi if isinstance(vi, (int, np.integer)) else 0
-            return ni
         else:
-            return 0
+            ni = 0
+        # Output
+        return ni, counters
 
     # Get header for display column
     def _header(self, opt: str) -> str:
