@@ -2821,12 +2821,9 @@ class Cntl(CntlBase):
                     # Otherwise unpack
                     ni, line, ci = vi
                     # Get case for that process ID
-                    j = case_ids[id]
+                    j = case_ids[pid]
                     # Save the line
                     lines[j] = line
-                    # Output
-                    sys.stdout.write(line)
-                    sys.stdout.flush()
                     # Update counters
                     for col in counters:
                         vi = ci.get(col)
