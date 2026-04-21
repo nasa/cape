@@ -39,6 +39,7 @@ import hashlib
 import importlib
 import json
 import os
+import pickle
 import shutil
 import sys
 import time
@@ -78,6 +79,7 @@ from ..trifile import ReadTriFile
 
 
 # Constants
+DEFAULT_SLEEPTIME = 0.05
 DEFAULT_WARNMODE = WARNMODE_WARN
 MATRIX_CHUNK_SIZE = 1000
 UGRID_EXTS = (
@@ -459,6 +461,12 @@ class Cntl(CntlBase):
         #: :class:`list`\ [:class:`str`]
         #: List of queues that have been checked
         self.jobqueues = []
+        #: class:`list`\ [:class:`int`]
+        #: List of child process IDs
+        self.workers = []
+        #: :class:`dict`\ [:class:`int`]
+        #: Dictionary of read-only pipes from worker processes
+        self.pipes = {}
         # Run cntl init functions, customize for py{x}
         self.init_post()
         # Run any initialization functions
@@ -776,6 +784,51 @@ class Cntl(CntlBase):
             print("  %s: %s()" % (name, funcname))
         # Call function
         return func(*a, **kw)
+
+  # *** WORKERS ***
+   # --- Cleanup ---
+    def _update_workers(self):
+        # Loop through workers
+        for pid in list(self.workers):
+            # Check if it's active
+            try:
+                # Check on the requested process
+                outpid, _ = os.waitpid(pid, os.WNOHANG)
+            except ChildProcessError:
+                print(f"  PID {pid} is um....")
+                continue
+            # Check if it's running
+            if outpid != 0:
+                # Already done
+                self.workers.remove(pid)
+
+    def _collect_worker_pipe(
+            self,
+            pid: int,
+            counters: dict,
+            n: int) -> int:
+        # Get read-only pipe for this process
+        r_fd = self.pipes.pop(pid, None)
+        if r_fd is None:
+            return n
+        # Read content from the pipe
+        chunks = []
+        while True:
+            chunk = os.read(r_fd, 4096)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        # Close the pipe
+        os.close(r_fd)
+        # Convert to Python objects
+        ni, ci = pickle.loads(b"".join(chunks))
+        # Update counters
+        for col in counters:
+            vi = ci.get(col)
+            if vi is not None:
+                counters[col].update(vi)
+        # Return counter
+        return n + ni
 
   # *** CASE PREPARATION ***
    # --- Main ---
@@ -2688,6 +2741,7 @@ class Cntl(CntlBase):
         hide_cols = kw.get("hide-cols")
         hide_ctrs = kw.get("hide-counters")
         sep = kw.get("sep", " ")
+        nproc = kw.get("nproc", 8)
         # Get indent
         indent = kw.get("indent", 4)
         tab = ' ' * indent
@@ -2741,20 +2795,57 @@ class Cntl(CntlBase):
         counters = {col: Counter() for col in ctrs}
         # Output counter
         n = 0
+        # Map pid -> pipe read fd for collecting child results
+        self.pipes = {}
         # Loop through cases
         for i in inds:
+            # Wait until worker count is subsided
+            while len(self.workers) >= nproc:
+                # Wait
+                time.sleep(DEFAULT_SLEEPTIME)
+                # Check, collecting results from finished workers
+                for pid in list(self.workers):
+                    try:
+                        outpid, _ = os.waitpid(pid, os.WNOHANG)
+                    except ChildProcessError:
+                        self.workers.remove(pid)
+                        continue
+                    if outpid != 0:
+                        self.workers.remove(pid)
+                        n = self._collect_worker_pipe(
+                            pid, counters, n)
+            # Create pipe before forking
+            r_fd, w_fd = os.pipe()
+            # Call the fork
+            pid = os.fork()
+            # Check parent/child
+            if pid != 0:
+                # Parent: close write end, save read end
+                os.close(w_fd)
+                self.pipes[pid] = r_fd
+                self.workers.append(pid)
+                continue
+            # Child: close read end
+            os.close(r_fd)
             # Run analysis of one case
             ni, ci = self._caseloop_v_case(
                 i, casefunc, cols, ctrs, maxlens, sep)
-            # Update total cases submitted counter
-            n += ni
-            # Update counters
-            for col in counters:
-                # Get value from case *i*
-                vi = ci.get(col)
-                # Update
-                if vi is not None:
-                    counters[col].update(vi)
+            # Send result back through pipe
+            os.write(w_fd, pickle.dumps((ni, ci)))
+            os.close(w_fd)
+            # Exit this process
+            os._exit(0)
+        # Wait for all remaining workers and collect their results
+        for pid in list(self.workers):
+            # Check for process
+            try:
+                os.waitpid(pid, 0)
+            except ChildProcessError:
+                pass
+            # Collect results
+            n = self._collect_worker_pipe(pid, counters, n)
+        # Give up on workers
+        self.workers.clear()
         # Blank line
         print("")
         # Process counters
