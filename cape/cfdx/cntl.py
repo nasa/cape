@@ -2789,6 +2789,12 @@ class Cntl(CntlBase):
         n = 0
         # Map pid -> pipe read fd for collecting child results
         self.pipes = {}
+        # Content for STDOUT line of each case
+        lines = {}
+        # Case ID for each worker
+        case_ids = {}
+        # Cases that have not been printed yet
+        remaining_inds = list(inds)
         # Loop through cases
         for i in inds:
             # Wait until worker count is subsided
@@ -2814,6 +2820,10 @@ class Cntl(CntlBase):
                         continue
                     # Otherwise unpack
                     ni, line, ci = vi
+                    # Get case for that process ID
+                    j = case_ids[id]
+                    # Save the line
+                    lines[j] = line
                     # Output
                     sys.stdout.write(line)
                     sys.stdout.flush()
@@ -2824,6 +2834,18 @@ class Cntl(CntlBase):
                             counters[col].update(vi)
                     # Return counter
                     n += ni
+            # Print lines as available
+            for j in list(remaining_inds):
+                # Get line for that case
+                line = lines.get(j)
+                # Check if found
+                if line is None:
+                    break
+                # Print
+                sys.stdout.write(line)
+                sys.stdout.flush()
+                # Case finished
+                remaining_inds.remove(j)
             # Create pipe before forking
             r_fd, w_fd = os.pipe()
             # Call the fork
@@ -2835,6 +2857,8 @@ class Cntl(CntlBase):
                 self.pipes[pid] = r_fd
                 # Save process ID of worker
                 self.workers.append(pid)
+                # Also save it by case
+                case_ids[pid] = i
                 continue
             # Child: close read end
             os.close(r_fd)
@@ -2874,6 +2898,18 @@ class Cntl(CntlBase):
             n += ni
         # Give up on workers
         self.workers.clear()
+        # Print lines as available
+        for j in list(remaining_inds):
+            # Get line for that case
+            line = lines.get(j)
+            # Check if found
+            if line is None:
+                break
+            # Print
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            # Case finished
+            remaining_inds.remove(j)
         # Blank line
         print("")
         # Process counters
