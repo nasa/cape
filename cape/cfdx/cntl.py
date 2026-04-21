@@ -3009,7 +3009,7 @@ class Cntl(CntlBase):
             jmax = self.opts.get_PhaseSequence(-1)
             imax = self.opts.get_PhaseIters(jmax)
             # Add some padding
-            ipad = str(int(1.8*imax))
+            ipad = str(int(3.8*imax))
             # Create example string w/ max anticipated length
             return len(ipad)
         elif opt == "cpu-hours":
