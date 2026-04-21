@@ -157,6 +157,7 @@ class CfdxArgReader(argread.ArgReader):
         "marked": bool,
         "n": int,
         "nmax": int,
+        "nproc": int,
         "nsurf": int,
         "passed": bool,
         "pat": str,
@@ -199,6 +200,7 @@ class CfdxArgReader(argread.ArgReader):
         "imax": int,
         "n": int,
         "nmax": int,
+        "nproc": int,
         "nsurf": int,
     }
 
@@ -278,6 +280,7 @@ class CfdxArgReader(argread.ArgReader):
         "marked": "Show only cases marked either PASS or ERROR",
         "n": "Submit at most *N* cases",
         "nmax": "Maximum number of snapshots to process",
+        "nproc": "Number of parallel processes to use",
         "nsurf": "Index of surface to process",
         "pat": "Consider file names matching pattern *PAT*",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
@@ -326,6 +329,7 @@ class CfdxArgReader(argread.ArgReader):
         "ll": "[PAT]",
         "n": "N",
         "nmax": "NMAX",
+        "nproc": "NPROC",
         "nsurf": "SURF",
         "pat": "PAT",
         "prop": "[PAT]",
@@ -441,6 +445,7 @@ class CfdxCheckArgs(_CfdxCaseLoopArgs):
     # Additional options
     _optlist = (
         "c",
+        "nproc",
         "u",
     )
 
