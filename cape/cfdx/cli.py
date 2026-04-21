@@ -189,6 +189,7 @@ class CfdxArgReader(argread.ArgReader):
 
     # Default values
     _rc = {
+        "nproc": 8,
         "restart": True,
         "start": True,
     }

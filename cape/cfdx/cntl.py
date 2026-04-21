@@ -3001,7 +3001,7 @@ class Cntl(CntlBase):
             jmax = 0 if (jmax is None) else jmax
             imax = self.opts.get_PhaseIters(jmax)
             # Add some padding
-            ipad = str(int(1.8*imax))
+            ipad = str(int(4.8*imax))
             # Create example string w/ max anticipated length
             return 2*len(ipad) + 1
         elif opt == "iter":
@@ -3009,7 +3009,7 @@ class Cntl(CntlBase):
             jmax = self.opts.get_PhaseSequence(-1)
             imax = self.opts.get_PhaseIters(jmax)
             # Add some padding
-            ipad = str(int(3.8*imax))
+            ipad = str(int(4.8*imax))
             # Create example string w/ max anticipated length
             return len(ipad)
         elif opt == "cpu-hours":
@@ -3032,7 +3032,7 @@ class Cntl(CntlBase):
             jmax = self.opts.get_PhaseSequence(-1)
             imax = self.opts.get_PhaseIters(jmax)
             # Add some padding
-            ipad = str(int(1.8*imax))
+            ipad = str(int(4.8*imax))
             # Create example string w/ max anticipated length
             return len(ipad)
         elif opt == "phase":
