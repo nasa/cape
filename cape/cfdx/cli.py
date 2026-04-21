@@ -1309,6 +1309,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "marked",
         "n",
         "nmax",
+        "nproc",
         "nsurf",
         "pat",
         "pt",
