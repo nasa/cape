@@ -802,15 +802,12 @@ class Cntl(CntlBase):
                 # Already done
                 self.workers.remove(pid)
 
-    def _collect_worker_pipe(
-            self,
-            pid: int,
-            counters: dict,
-            n: int) -> int:
+    def _collect_worker_pipe(self, pid: int) -> Any:
         # Get read-only pipe for this process
         r_fd = self.pipes.pop(pid, None)
+        # Check for invalid pipe
         if r_fd is None:
-            return n
+            return
         # Read content from the pipe
         chunks = []
         while True:
@@ -821,14 +818,9 @@ class Cntl(CntlBase):
         # Close the pipe
         os.close(r_fd)
         # Convert to Python objects
-        ni, ci = pickle.loads(b"".join(chunks))
-        # Update counters
-        for col in counters:
-            vi = ci.get(col)
-            if vi is not None:
-                counters[col].update(vi)
-        # Return counter
-        return n + ni
+        v = pickle.loads(b"".join(chunks))
+        # Output
+        return v
 
   # *** CASE PREPARATION ***
    # --- Main ---
@@ -2810,10 +2802,25 @@ class Cntl(CntlBase):
                     except ChildProcessError:
                         self.workers.remove(pid)
                         continue
-                    if outpid != 0:
-                        self.workers.remove(pid)
-                        n = self._collect_worker_pipe(
-                            pid, counters, n)
+                    # Check if process has exited
+                    if outpid == 0:
+                        continue
+                    # Update status of worker
+                    self.workers.remove(pid)
+                    # Get output from worker
+                    vi = self._collect_worker_pipe(pid)
+                    # Check validity
+                    if vi is None:
+                        continue
+                    # Otherwise unpack
+                    ni, ci = vi
+                    # Update counters
+                    for col in counters:
+                        vi = ci.get(col)
+                        if vi is not None:
+                            counters[col].update(vi)
+                    # Return counter
+                    n += ni
             # Create pipe before forking
             r_fd, w_fd = os.pipe()
             # Call the fork
@@ -2843,7 +2850,21 @@ class Cntl(CntlBase):
             except ChildProcessError:
                 pass
             # Collect results
-            n = self._collect_worker_pipe(pid, counters, n)
+            self.workers.remove(pid)
+            # Get output from worker
+            vi = self._collect_worker_pipe(pid)
+            # Check validity
+            if vi is None:
+                continue
+            # Otherwise unpack
+            ni, ci = vi
+            # Update counters
+            for col in counters:
+                vi = ci.get(col)
+                if vi is not None:
+                    counters[col].update(vi)
+            # Return counter
+            n += ni
         # Give up on workers
         self.workers.clear()
         # Blank line
