@@ -1193,6 +1193,7 @@ class CfdxTriangulateCutPlaneArgs(CfdxArgReader):
     # Options
     _optlist = (
         "h",
+        "nproc",
         "nsurf",
         "clean",
         "nmax",
@@ -2266,10 +2267,11 @@ def cape_runner_triangulate_cuplane(parser: CfdxArgReader) -> int:
     # Read instance
     runner, kw = read_runner_kwargs(parser)
     # Process args
+    nproc = kw.get("nproc")
     nsurf = kw.get("nsurf")
     clean = kw.get("clean")
     # Run the case
-    runner.triangulate_cutplane(nsurf, clean=clean)
+    runner.triangulate_cutplane(nsurf, clean=clean, nproc=nproc)
     # Return code
     return IERR_OK
 

@@ -408,7 +408,12 @@ class CaseRunner(casecntl.CaseRunner):
     def triangulate_cutplane(
             self,
             nsurf: Optional[int] = None,
-            clean: bool = False):
+            clean: bool = False,
+            nproc: Optional[int] = None):
+        r"""
+            *nproc*: {``None``} | :class:`int`
+                Override *MaxWorkers*
+        """
         # Get surface list if not specified
         if nsurf is None:
             # Default to *all* the surfaces
@@ -418,13 +423,14 @@ class CaseRunner(casecntl.CaseRunner):
             surfs = [nsurf]
         # Loop through surfaces
         for surf in surfs:
-            self.triangulate_cutplane_surf(surf, clean=clean)
+            self.triangulate_cutplane_surf(surf, clean=clean, nproc=nproc)
 
     @casecntl.run_rootdir
     def triangulate_cutplane_surf(
             self,
             nsurf: int,
-            clean: bool = False):
+            clean: bool = False,
+            nproc: Optional[int] = None):
         r"""Convert cut plane VTK files to triangulated cut planes
 
         :Call:
@@ -436,6 +442,8 @@ class CaseRunner(casecntl.CaseRunner):
                 Surface index
             *clean*: ``True`` | {``False``}
                 Option to delete original cut plane file
+            *nproc*: {``None``} | :class:`int`
+                Override *MaxWorkers*
         """
         # Search pattern for these cutplane files
         prefix = self._genr8_cutplane_prefix(nsurf)
@@ -446,8 +454,11 @@ class CaseRunner(casecntl.CaseRunner):
         vtkfiles = sorted(self.search_regex(vtkpat))
         # Get integers from these file names
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
-        # Initialize list of subprocesses
+        # Get max worker count
         max_workers = self.get_opt("MaxWorkers", vdef=8)
+        # Check for override
+        max_workers = max_workers if nproc is None else nproc
+        # Initialize list of subprocesses
         workers = []
         # Loop through those
         for n in iters:
