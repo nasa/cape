@@ -80,6 +80,7 @@ from ..trifile import ReadTriFile
 
 # Constants
 DEFAULT_SLEEPTIME = 0.05
+DEFAULT_MAXWAIT = 20.0
 DEFAULT_WARNMODE = WARNMODE_WARN
 MATRIX_CHUNK_SIZE = 1000
 UGRID_EXTS = (
@@ -2882,31 +2883,35 @@ class Cntl(CntlBase):
             # Exit this process
             os._exit(0)
         # Wait for all remaining workers and collect their results
-        for pid in list(self.workers):
-            # Check for process
-            try:
-                os.waitpid(pid, 0)
-            except ChildProcessError:
-                pass
-            # Collect results
-            self.workers.remove(pid)
-            # Get output from worker
-            vi = self._collect_worker_pipe(pid)
-            # Check validity
-            if vi is None:
-                continue
-            # Otherwise unpack
-            ni, line, ci = vi
-            # Output
-            sys.stdout.write(line)
-            sys.stdout.flush()
-            # Update counters
-            for col in counters:
-                vi = ci.get(col)
-                if vi is not None:
-                    counters[col].update(vi)
-            # Return counter
-            n += ni
+        for _ in range(int(DEFAULT_MAXWAIT / DEFAULT_SLEEPTIME)):
+            # Check for any workers
+            if len(self.workers) == 0:
+                break
+            # Loop through remaining workers
+            for pid in list(self.workers):
+                # Check for process
+                if not self._update_worker(pid):
+                    continue
+                # Get output from worker
+                vi = self._collect_worker_pipe(pid)
+                # Check validity
+                if vi is None:
+                    continue
+                # Otherwise unpack
+                ni, line, ci = vi
+                # Get case for that process ID
+                j = case_ids[pid]
+                # Save
+                lines[j] = line
+                # Update counters
+                for col in counters:
+                    vi = ci.get(col)
+                    if vi is not None:
+                        counters[col].update(vi)
+                # Return counter
+                n += ni
+            # Wait
+            time.sleep(DEFAULT_SLEEPTIME)
         # Give up on workers
         self.workers.clear()
         # Print lines as available
