@@ -4844,6 +4844,10 @@ class Report(object):
         frun = self.get_case_name(i)
         # Extract options
         opts = self.cntl.opts
+        # Path to final output
+        rootdir = self.get_CompileDir()
+        figdir = self.get_figdir(i)
+        dirname = os.path.join(rootdir, figdir)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Get the vertical alignment.
@@ -4884,7 +4888,7 @@ class Report(object):
             # Figure file name.
             fname = "%s.%s" % (sfig, fext)
             # Layout file name
-            fout = opts.get_SubfigOpt(sfig, "ImageFile")
+            fimg = opts.get_SubfigOpt(sfig, "ImageFile")
             # Name of executable
             fcmd = opts.get_SubfigOpt(sfig, "Command")
             # Check for update
@@ -4900,11 +4904,15 @@ class Report(object):
                     else:
                         # Run the layout w/o special option
                         pvpython(flay, cmd=fcmd)
-                    # Move the file to the location this subfig was built in
-                    if fname != fout:
-                        os.rename(fout, os.path.join(fpwd, fname))
                 except Exception:
                     pass
+            # Output file
+            fabs = os.path.join(dirname, fname)
+            # Check if the file is present
+            if os.path.isfile(fimg):
+                # Copy the file to the report folder
+                if not os.path.abspath(fimg) == fabs:
+                    shutil.copy(fimg, fabs)
             # Check for file
             self.includegraphics(fname, lines, i)
         # Go to the report case folder
