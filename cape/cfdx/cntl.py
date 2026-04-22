@@ -787,6 +787,27 @@ class Cntl(CntlBase):
 
   # *** WORKERS ***
    # --- Cleanup ---
+    def _update_worker(self, pid: int) -> bool:
+        # Check if this is a worker
+        if pid not in self.workers:
+            # Already done?
+            return True
+        # Check status
+        try:
+            # Run the actual check command
+            outpid, _ = os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError:
+            # This worker
+            self.workers.remove(pid)
+            return True
+        # Check if process has exited
+        if outpid == 0:
+            # Process has exited
+            return False
+        else:
+            # Process has exited
+            return True
+
     def _update_workers(self):
         # Loop through workers
         for pid in list(self.workers):
@@ -2803,16 +2824,9 @@ class Cntl(CntlBase):
                 time.sleep(DEFAULT_SLEEPTIME)
                 # Check, collecting results from finished workers
                 for pid in list(self.workers):
-                    try:
-                        outpid, _ = os.waitpid(pid, os.WNOHANG)
-                    except ChildProcessError:
-                        self.workers.remove(pid)
+                    # Check on that process
+                    if not self._update_worker(pid):
                         continue
-                    # Check if process has exited
-                    if outpid == 0:
-                        continue
-                    # Update status of worker
-                    self.workers.remove(pid)
                     # Get output from worker
                     vi = self._collect_worker_pipe(pid)
                     # Check validity
