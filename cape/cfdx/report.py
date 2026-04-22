@@ -4901,7 +4901,8 @@ class Report(object):
                         # Run the layout w/o special option
                         pvpython(flay, cmd=fcmd)
                     # Move the file to the location this subfig was built in
-                    os.rename(fout, os.path.join(fpwd, fname))
+                    if fname != fout:
+                        os.rename(fout, os.path.join(fpwd, fname))
                 except Exception:
                     pass
             # Check for file
