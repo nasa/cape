@@ -750,7 +750,6 @@ class CaseRunner(casecntl.CaseRunner):
         rmfiles = []
         # Loop through files
         for i in iters:
-            breakpoint()
             # Name of VTK files
             prefixi = f"{prefix}.{i:09d}"
             fvtk = f"{prefixi}.vtk"
