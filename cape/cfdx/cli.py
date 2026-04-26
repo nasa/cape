@@ -2337,7 +2337,7 @@ def cape_start(parser: CfdxArgReader) -> int:
     # Read instance
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
-    cntl.SubmitJobs(**kw)
+    cntl.SubmitJobs(nproc=1, **kw)
     # Return code
     return IERR_OK
 
