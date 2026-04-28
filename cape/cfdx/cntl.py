@@ -3502,7 +3502,7 @@ class Cntl(CntlBase):
         # Enter the batch pbs folder
         os.chdir('batch-pbs')
         # File name header
-        prog = self.__module__.split('.')[0].lower()
+        prog = self.__module__.split('.')[1].lower()
         # Current time
         fnow = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
         # File name

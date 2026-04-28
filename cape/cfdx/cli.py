@@ -1585,6 +1585,7 @@ def cape_batch(parser: CfdxArgReader) -> int:
             Return code
     :Versions:
         * 2024-12-20 ``@ddalle``: v1.0
+        * 2026-04-28 ``@ddalle``: v1.1; fix *pyexec* version
     """
     # Read instance
     cntl, _ = read_cntl_kwargs(parser)
@@ -1597,8 +1598,10 @@ def cape_batch(parser: CfdxArgReader) -> int:
     # Check for explicit executable
     pyexec = cntl.opts.get_PythonExec()
     if pyexec:
+        # Get name of module, e.g "cape.pyfun"
+        modname = cntl.__module__.rsplit('.', 1)[0]
         # Full name of module: "cfdx" -> "cape.cfdx"
-        argv[0] = f"cape.{argv[0]}"
+        argv[0] = modname
         # Prepend python3 -m ...
         argv = [pyexec, '-m'] + argv
     # Remove recursive batch
