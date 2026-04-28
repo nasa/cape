@@ -343,7 +343,7 @@ class Cntl(ccntl.Cntl):
         if h is not None:
             xml.set_altitude(h)
         # Find all *Path* and *File* elements
-        elems1 = xml.findall_iter("Path")
+        elems1 = xml.findall_iter("Path") + xml.findall_iter("MeshPath")
         elems2 = xml.findall_iter("File")
         # Remove paths from file names
         for elem in elems1 + elems2:
@@ -657,9 +657,10 @@ class Cntl(ccntl.Cntl):
         self.ReadJobXML(j=j, q=False)
         # Find all *Path* and *File* elements
         elems1 = self.JobXML0.findall_iter("Path")
+        elems3 = self.JobXML0.findall_iter("MeshPath")
         elems2 = self.JobXML0.findall_iter("File")
         # Return combination
-        return elems1 + elems2
+        return elems1 + elems2 + elems3
   # >
 
   # ================

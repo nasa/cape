@@ -157,6 +157,7 @@ class XMLFile(object):
                 Name of file to write
         :Versions:
             * 2021-10-07 ``@ddalle``: v1.0
+            * 2026-04-28 Reeid Wernig: v1.1; short_empty_elements=False
         """
         # Default file name
         if fname is None:
@@ -165,7 +166,7 @@ class XMLFile(object):
         if fname is None:
             raise ValueError("No file name determined")
         # Write file
-        self.tree.write(fname)
+        self.tree.write(fname, short_empty_elements=False)
 
    # --- Set ---
     def set_elem(self, tag, newtext=None, attrib=None, **kw):
