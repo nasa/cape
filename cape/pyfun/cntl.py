@@ -2354,7 +2354,7 @@ class Cntl(cntl.Cntl):
             if surfID is not None:
                 surf.append(surfID)
         # Check for empty
-        if len(surf) == 0:
+        if warn and (len(surf) == 0):
             print(f"     Component '{comp}' has no matches in mapbc file")
             return []
         # Sort the surface IDs to prepare RangeString

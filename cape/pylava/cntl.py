@@ -152,6 +152,56 @@ class Cntl(capecntl.Cntl):
         # Read list of custom file control classes
         self.ReadMapBC()
 
+  # === Configuration ===
+    # Get string describing which components are in config
+    def GetConfigBody(self, comp: str, warn: bool = False) -> list:
+        r"""Convert face name to list of MapBC indices
+
+        Determine which component indices are in a named component based
+        on the MapBC file, which is always numbered 1,2,...,N.  Output
+        the format as a nice string, such as ``"4-10,13,15-18"``.
+
+        If possible, this is read from the ``"Inputs"`` subsection of
+        the ``"Config"`` section of the master JSON file.  Otherwise,
+        it is read from the ``"mapbc"`` and configuration files.
+
+        :Call:
+            >>> cids = cntl.GetConfigInput(comp, warn=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *comp*: :class:`str`
+                Name of component to process
+            *warn*: ``True`` | {``False``}
+                Whether or not to print warnings if not raising errors
+        :Outputs:
+            *cids*: :class:`list`\ [:class:`str`]
+                List of MapBC inds (1-based) in *comp*
+        :Versions:
+            * 2025-05-16 ``@ddalle``: v1.0 (from GetConfigInput())
+        """
+        # Initialize
+        surf = []
+        # Get names of all child components, including *comp*
+        family = self.config.GetFamily(comp)
+        # Loop through components
+        for face in family:
+            # Check if present
+            if face not in self.MapBC.Names:
+                continue
+            # Get the surf from MapBC
+            surfID = self.MapBC.GetSurfIndex(face, check=True, warn=False) + 1
+            # If one was found, append it
+            if surfID is not None:
+                surf.append(surfID)
+        # Check for empty
+        if warn and (len(surf) == 0):
+            print(f"     Component '{comp}' has no matches in mapbc file")
+            return []
+        # Sort the surface IDs to prepare RangeString
+        surf.sort()
+        return surf
+
   # === Case Preparation ===
     # Prepare a case
     @capecntl.run_rootdir
