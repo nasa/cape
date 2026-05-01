@@ -229,14 +229,8 @@ class Cntl(capecntl.Cntl):
             *inp*: :class:`str`
                 String describing list of integers included
         :Versions:
-            * 2016-10-21 ``@ddalle``: v1.0
-            * 2025-03-13 ``@ddalle``: v2.0; use config.GetFamily()
+            * 2026-05-01 ``@ddalle``: v1.0
         """
-        # Get input definitions.
-        inp = self.opts.get_ConfigInput(comp)
-        # Determine from MapBC probably
-        if inp is not None:
-            return inp
         # Otherwise, read from the MapBC interface
         try:
             self.MapBC
