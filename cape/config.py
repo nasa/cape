@@ -1826,12 +1826,8 @@ class ConfigJSON(SurfConfig):
             cID = self.GetPropCompID(child)
             # Check for component
             if cID is None:
-                # Check if skipped already
-                if child in self._skipped_faces:
-                    continue
-                # Save skipped face and get out of here
-                self._skipped_faces.add(child)
-                continue
+                # Use next available ID
+                cID = 1 if len(self.IDs) == 0 else max(self.IDs) + 1
             elif cID in self.IDs:
                 # Duplicate entry
                 raise ValueError(
