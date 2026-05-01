@@ -150,6 +150,7 @@ class Cntl(capecntl.Cntl):
         elif solver == "cartesian":
             self.ReadCartInputFile()
         # Read list of custom file control classes
+        self.ReadConfig()
         self.ReadMapBC()
 
   # === Configuration ===
