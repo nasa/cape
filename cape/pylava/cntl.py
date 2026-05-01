@@ -149,6 +149,8 @@ class Cntl(capecntl.Cntl):
             self.ReadRunYAML()
         elif solver == "cartesian":
             self.ReadCartInputFile()
+        # Read list of custom file control classes
+        self.ReadMapBC()
 
   # === Case Preparation ===
     # Prepare a case

@@ -27,6 +27,7 @@ from .options.runctlopts import RunControlOpts
 from .logger import CntlLogger
 from ..argread import ArgReader
 from ..config import ConfigXML, ConfigJSON
+from ..filecntl.mapbcfile import MapBCFile
 
 
 # Class to read input files
@@ -1019,6 +1020,22 @@ class CntlBase(ABC):
             * 2020-09-01 ``@ddalle``: v2.1, add *f* kwarg
         """
         pass
+
+    # Read the boundary condition map
+    @abstractmethod
+    def ReadMapBC(self, j: int = 0, q: bool = True) -> Optional[MapBCFile]:
+        r"""Read the FUN3D boundary condition map
+
+        :Call:
+            >>> cntl.ReadMapBC(q=True)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of the pyFun control class
+            *q*: {``True``} | ``False``
+                Whether or not to read to *MapBC*, else *MapBC0*
+        :Versions:
+            * 2016-03-30 ``@ddalle``: v1.0
+        """
 
     # Apply a config.xml translation
     @abstractmethod
