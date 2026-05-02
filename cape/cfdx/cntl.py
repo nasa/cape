@@ -1247,19 +1247,10 @@ class Cntl(CntlBase):
         self.tri = self.tri0.Copy()
         # Apply rotations, translations, etc.
         self.PrepareTri(i)
-        # AFLR3 boundary conditions file
-        fbc = self.opts.get_aflr3_BCFile()
         # Enter case folder
         frun = self.x.GetFullFolderNames(i)
         os.chdir(self.RootDir)
         os.chdir(frun)
-        # Check for those AFLR3 boundary conditions
-        if fbc:
-            # Absolute file name
-            if not os.path.isabs(fbc):
-                fbc = os.path.join(self.RootDir, fbc)
-            # Copy the file
-            shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
         # Surface configuration file
         fxml = self.opts.get_ConfigFile()
         # Write it if necessary
@@ -1276,6 +1267,21 @@ class Cntl(CntlBase):
         self.prep_aflr3()
         # Write ``.tri`` file without formatting
         self.prep_tri_write()
+        # Actually run intersect/aflr3 before submitting if requested
+        self.run_meshtools(i)
+
+    def run_meshtools(self, i: int):
+        # Get *quickstart* option
+        if not self.opts.get_quickstart():
+            return
+        # Get a case runner
+        runner = self.ReadCaseRunner(i)
+        # Run `intersect` if appropriate
+        runner.run_intersect(0)
+        # Run `verify` if appropriate
+        runner.run_verify(0)
+        # Run `aflr3` if appropriate
+        runner.run_aflr3(0)
 
     @run_rootdir
     def prep_intersect(self, i: int):
@@ -1325,6 +1331,15 @@ class Cntl(CntlBase):
         phase0 = self.opts.get_PhaseSequence(0)
         # Project name
         fproj = self.GetProjectRootName(phase0)
+        # AFLR3 boundary conditions file
+        fbc = self.opts.get_aflr3_BCFile()
+        # Check for those AFLR3 boundary conditions
+        if fbc:
+            # Absolute file name
+            if not os.path.isabs(fbc):
+                fbc = os.path.join(self.RootDir, fbc)
+            # Copy the file
+            shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
         # Names of surface mesh files
         fsurf = "%s.surf" % fproj
         # Write the AFLR3 surface file
