@@ -1232,8 +1232,6 @@ class Cntl(CntlBase):
         # Get mesh file and tri file settings
         meshfile = self.opts.get_MeshFile()
         trifile = self.opts.get_TriFile()
-        # Option to run aflr3
-        aflr3 = self.opts.get_aflr3()
         # Check for triangulation options
         if (trifile is None) or (meshfile is not None):
             return
@@ -1272,48 +1270,97 @@ class Cntl(CntlBase):
             # Copy the file
             if os.path.isfile(fxml):
                 shutil.copyfile(fxml, f'{fproj}.xml')
-        # Check intersection status.
-        if self.opts.get_intersect():
-            # Names of triangulation files
-            fvtri = "%s.tri" % fproj
-            fctri = "%s.c.tri" % fproj
-            fftri = "%s.f.tri" % fproj
-            # Write tri file as non-intersected; each volume is one CompID
-            if not os.path.isfile(fvtri):
-                self.tri.WriteVolTri(fvtri)
-            # Write the existing triangulation with existing CompIDs.
-            if not os.path.isfile(fctri):
-                self.tri.WriteCompIDTri(fctri)
-            # Write the farfield and source triangulation files
-            if not os.path.isfile(fftri):
-                self.tri.WriteFarfieldTri(fftri)
-        elif self.opts.get_verify():
-            # Names of surface mesh files
-            fitri = "%s.i.tri" % fproj
-            fsurf = "%s.surf" % fproj
-            # Write the tri file
-            if not os.path.isfile(fitri):
+        # Prepare to run ``intersect`` if necessary
+        self.prep_intersect()
+        # Prepare to use ``aflr3`` to generate mesh if specified
+        self.prep_aflr3()
+        # Write ``.tri`` file without formatting
+        self.prep_tri_write()
+
+    @run_rootdir
+    def prep_intersect(self, i: int):
+        # Enter case folder
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Check intersect option
+        if not self.opts.get_intersect():
+            # No ``intersect``; check for ``verify``
+            if self.opts.get_verify():
+                # Names of surface mesh files
+                fitri = "%s.i.tri" % fproj
+                # Check for existing
+                if os.path.isfile(fitri):
+                    os.remove(fitri)
+                # Write tri file
                 self.tri.Write(fitri)
-            # Write the AFLR3 surface file
-            if not os.path.isfile(fsurf):
-                self.tri.WriteSurf(fsurf)
-        elif aflr3:
-            # Names of surface mesh files
-            fsurf = "%s.surf" % fproj
-            # Write the AFLR3 surface file only
-            if not os.path.isfile(fsurf):
-                self.tri.WriteSurf(fsurf)
-        elif self.opts.get_WriteTri():
-            # Write main tri file
-            ext = getattr(self, "_tri_ext", "tri")
-            ftri = f"{fproj}.{ext}"
-            # Write it
-            print(f"  Writing '{ftri}'")
-            if not os.path.isfile(ftri):
-                if ext == "fro":
-                    self.tri.WriteFro(ftri)
-                else:
-                    self.tri.Write(ftri)
+            # Stop preparations
+            return
+        # Names of triangulation files
+        fvtri = "%s.tri" % fproj
+        fctri = "%s.c.tri" % fproj
+        fftri = "%s.f.tri" % fproj
+        # Write tri file as non-intersected; each grp has single ID
+        if not os.path.isfile(fvtri):
+            self.tri.WriteVolTri(fvtri)
+        # Write the existing triangulation with existing CompIDs.
+        if not os.path.isfile(fctri):
+            self.tri.WriteCompIDTri(fctri)
+        # Write the farfield and source triangulation files
+        if not os.path.isfile(fftri):
+            self.tri.WriteFarfieldTri(fftri)
+
+    @run_rootdir
+    def prep_aflr3(self, i: int):
+        # Check for AFLR3 settiong
+        if not self.opts.get_aflr3():
+            return
+        # Enter case folder
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Names of surface mesh files
+        fsurf = "%s.surf" % fproj
+        # Write the AFLR3 surface file
+        if not os.path.isfile(fsurf):
+            self.tri.WriteSurf(fsurf)
+
+    @run_rootdir
+    def prep_tri_write(self, i: int):
+        # Check for write option
+        if not self.opts.get_WriteTri():
+            return
+        elif self.opts.get_aflr3():
+            # Creating surface mesh by other means
+            return
+        elif self.opts.get_intersect():
+            # Tri file needs more preprocessing
+            return
+        # Enter case folder
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Write main tri file
+        ext = getattr(self, "_tri_ext", "tri")
+        ftri = f"{fproj}.{ext}"
+        # Remove existing tri file
+        if os.path.isfile(ftri):
+            os.remove(ftri)
+        # Write it
+        print(f"  Writing '{ftri}'")
+        if ext == "fro":
+            self.tri.WriteFro(ftri)
+        else:
+            self.tri.Write(ftri)
 
    # --- Mesh: file names ---
     # Get list of mesh file names that should be in a case folder

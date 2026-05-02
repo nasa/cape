@@ -844,6 +844,66 @@ class CntlBase(ABC):
         """
         pass
 
+    @abstractmethod
+    def prep_intersect(self, i: int):
+        r"""Prepare triangulation input files for ``intersect``
+
+        Writes the volume, component-ID, and farfield triangulation
+        files needed by the Cart3D ``intersect`` tool, or writes a
+        plain ``.i.tri`` when only ``verify`` is requested.  Does
+        nothing if neither option is set.
+
+        :Call:
+            >>> cntl.prep_intersect(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2026-05-02 ``@ddalle``: v1.0
+        """
+        pass
+
+    @abstractmethod
+    def prep_aflr3(self, i: int):
+        r"""Prepare the AFLR3 surface file (``.surf``) for a case
+
+        Writes ``<proj>.surf`` to the case folder when the ``aflr3``
+        option is enabled.  Does nothing otherwise.
+
+        :Call:
+            >>> cntl.prep_aflr3(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2026-05-02 ``@ddalle``: v1.0
+        """
+        pass
+
+    @abstractmethod
+    def prep_tri_write(self, i: int):
+        r"""Write the surface triangulation file to a case folder
+
+        Writes ``<proj>.<ext>`` (typically ``.tri`` or ``.fro``) when
+        ``WriteTri`` is set and neither ``aflr3`` nor ``intersect`` is
+        active (those options handle their own triangulation output).
+
+        :Call:
+            >>> cntl.prep_tri_write(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2026-05-02 ``@ddalle``: v1.0
+        """
+        pass
+
    # --- Mesh: File names ---
     # Get list of mesh file names that should be in a case folder
     @abstractmethod
