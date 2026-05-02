@@ -72,6 +72,7 @@ from ..argread.clitext import compile_rst
 from ..config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from ..dkit.rdb import DataKit
 from ..errors import assert_isinstance
+from ..filecntl.mapbcfile import MapBCFile
 from ..optdict import WARNMODE_WARN
 from ..optdict.optitem import getel
 from ..geom import RotatePoints
@@ -1033,6 +1034,7 @@ class Cntl(CntlBase):
         # Apply it
         self.exec_modfunction(func, a, kw, name="ConfigFunction")
 
+  # *** MESH ***
    # --- Mesh ---
     @run_rootdir
     def PrepareMesh(self, i: int):
@@ -1649,6 +1651,24 @@ class Cntl(CntlBase):
             self.opts.set_Point(YR[j], ptsR[j])
 
    # --- Surface: config ---
+    # Read the boundary condition map
+    @run_rootdir
+    def ReadMapBC(self, j: int = 0, q: bool = True) -> Optional[MapBCFile]:
+        # Read the file
+        try:
+            BC = MapBCFile(self.opts.get_MapBCFile(j))
+        except OSError:
+            return
+        # Save it
+        if q:
+            # Read to main slot.
+            self.MapBC = BC
+        else:
+            # Template
+            self.MapBC0 = BC
+        # Output
+        return BC
+
     # Function to apply transformations to config
     def PrepareConfig(self, i: int):
         # Ensure index is set
