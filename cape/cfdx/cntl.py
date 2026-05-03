@@ -71,7 +71,7 @@ from ..argread import ArgReader
 from ..argread.clitext import compile_rst
 from ..config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from ..dkit.rdb import DataKit
-from ..errors import assert_isinstance
+from ..errors import CapeValueError, assert_isinstance
 from ..filecntl.mapbcfile import MapBCFile
 from ..optdict import WARNMODE_WARN
 from ..optdict.optitem import getel
@@ -1309,15 +1309,51 @@ class Cntl(CntlBase):
         fvtri = "%s.tri" % fproj
         fctri = "%s.c.tri" % fproj
         fftri = "%s.f.tri" % fproj
+        # Prepare alternate groups
+        self._prep_intersect_groups()
         # Write tri file as non-intersected; each grp has single ID
-        if not os.path.isfile(fvtri):
-            self.tri.WriteVolTri(fvtri)
+        if os.path.isfile(fvtri):
+            os.remove(fvtri)
+        self.tri.WriteVolTri(fvtri)
         # Write the existing triangulation with existing CompIDs.
-        if not os.path.isfile(fctri):
-            self.tri.WriteCompIDTri(fctri)
+        if os.path.isfile(fctri):
+            os.remove(fctri)
+        self.tri.WriteCompIDTri(fctri)
         # Write the farfield and source triangulation files
-        if not os.path.isfile(fftri):
-            self.tri.WriteFarfieldTri(fftri)
+        if os.path.isfile(fftri):
+            os.remove(fftri)
+        self.tri.WriteFarfieldTri(fftri)
+
+    # Prepare special groups for intersect
+    def _prep_intersect_groups(self):
+        # Check for groups option
+        grps = self.opts.get_intersect_groups()
+        # Exit if none
+        if (grps is None) or len(grps) == 0:
+            return
+        # Check for tri
+        if self.tri is None or self.tri.nNode == 0:
+            return
+        # Initialize compIDs
+        gcomps = np.zeros_like(self.tri.CompID)
+        # Loop through groups
+        for j, face in enumerate(grps):
+            # Get tris for this component
+            k = self.tri.GetTrisFromCompID(face)
+            # Check for double-defnition
+            if np.any(gcomps[k]):
+                # Get list of conflicting groups
+                lbl = ' '.join(np.unique(gcomps[k]))
+                raise CapeValueError(
+                    f"Found tris in group {j+1} ({face}) with multiple " +
+                    f"groups; previous groups: {lbl}")
+        # Check for unused triangles
+        if np.any(gcomps == 0):
+            # Count them
+            n = np.sum(gcomps == 0)
+            raise CapeValueError(f"Found {n} tris not in any groups")
+        # Save result
+        self.tri.GroupID = gcomps
 
     @run_rootdir
     def prep_aflr3(self, i: int):

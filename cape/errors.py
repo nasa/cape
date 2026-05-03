@@ -51,6 +51,12 @@ class CapeTypeError(TypeError, CapeError):
     pass
 
 
+# Value error
+class CapeValueError(TypeError, CapeError):
+    r"""CAPE exception for objects with bad values"""
+    pass
+
+
 # Assert type of a variable
 def assert_isinstance(
         obj: Any,
