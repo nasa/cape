@@ -1262,11 +1262,11 @@ class Cntl(CntlBase):
             if os.path.isfile(fxml):
                 shutil.copyfile(fxml, f'{fproj}.xml')
         # Prepare to run ``intersect`` if necessary
-        self.prep_intersect()
+        self.prep_intersect(i)
         # Prepare to use ``aflr3`` to generate mesh if specified
-        self.prep_aflr3()
+        self.prep_aflr3(i)
         # Write ``.tri`` file without formatting
-        self.prep_tri_write()
+        self.prep_tri_write(i)
         # Actually run intersect/aflr3 before submitting if requested
         self.run_meshtools(i)
 
