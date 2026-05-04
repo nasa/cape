@@ -836,16 +836,22 @@ class MetaOptionsDict(type):
         vj = getattr(clsj, attr, None)
         vx = cls.__dict__.get(attr)
         # Check for both
-        qj = isinstance(vj, dict)
-        qx = isinstance(vx, dict)
-        if not (qj and qx):
-            return
-        # Copy dict from basis
-        combined_dict = dict(vj)
-        # Combine results
-        combined_dict.update(vx)
-        # Save combined list
-        setattr(cls, attr, combined_dict)
+        if isinstance(vx, dict):
+            # Get defn in child class; check parent (almost always)
+            if isinstance(vj, dict):
+                # Combine both
+                # Copy dict from basis
+                combined_dict = dict(vj)
+                # Combine results
+                combined_dict.update(vx)
+                # Save combined list
+                setattr(cls, attr, combined_dict)
+        elif isinstance(vj, dict):
+            # Copy parent to child
+            setattr(cls, attr, dict(vj))
+        else:  # pragma no cover
+            # Initialize
+            setattr(cls, attr, {})
 
 
 # Main class
@@ -1131,7 +1137,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         # Class handle
         cls = self.__class__
         # Get compound dictionary of section names and classes
-        sec_cls = cls.getx_cls_dict("_sec_cls")
+        sec_cls = cls._sec_cls
         # Loop through sections
         for sec, seccls in sec_cls.items():
             # Get prefix and parent
@@ -1252,9 +1258,9 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         if opt is None:
             return
         # Get compound dictionary of map between section types and class
-        secmap = cls.getx_cls_dict("_sec_cls_optmap")
+        secmap = cls._sec_cls_optmap
         # Get regular (not value-dependent) subsecs to avoid conflict
-        subsecs = cls.getx_cls_dict("_sec_cls")
+        subsecs = cls._sec_cls
         # Current list of declared options
         optlist = cls._optlist
         # Default class
@@ -1344,7 +1350,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
    # --- Subsection opts ---
     def apply_optsubmap(self):
         # Get options
-        optsubmap = self.__class__.getx_cls_dict("_optsubmap")
+        optsubmap = self.__class__._optsubmap
         # Loop through opts
         for opt, submap in optsubmap.items():
             # Check if present
@@ -2007,7 +2013,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         # Apply defaults if appropriate
         if isinstance(val, OptionsDict):
             # Get full _rc
-            rc = val.getx_cls_dict("_rc")
+            rc = val.__class__._rc
             # Loop throug defaults
             for k, vk in rc.items():
                 # Apply but don't overwrite
@@ -2463,7 +2469,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
             * 2024-10-10 ``@ddalle``: v1.1; add _ignore_case option
         """
         # Get dict of aliases
-        optmap = self.getx_cls_dict("_optmap")
+        optmap = self._optmap
         # Apply it
         fullopt = optmap.get(opt, opt)
         # Check for case option
@@ -2922,7 +2928,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         # Class
         cls = self.__class__
         # Get full optmap
-        optmap = cls.getx_cls_dict("_optmap")
+        optmap = cls._optmap
         # Initialize alias list
         aliases = {opt}
         # Loop through optmap
@@ -2981,11 +2987,12 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
             * 2022-09-09 ``@ddalle``: v1.0
             * 2022-09-18 ``@ddalle``: v1.1; simple dict
             * 2023-06-13 ``@ddalle``: v1.2; use ``getx_cls_dict()``
+            * 2026-05-04 ``@ddalle``: v1.3; rely on metaclass for recurs
         """
         # Check input type
         assert_isinstance(opt, str)
         # Get option from attribute
-        optlistdepth = self.getx_cls_dict("_optlistdepth")
+        optlistdepth = self._optlistdepth
         # Check if directly present
         if opt in optlistdepth:
             return optlistdepth[opt]
@@ -3020,7 +3027,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         # Apply optmap
         opt = self.apply_optmap(opt)
         # Get _optring dict
-        optring = self.getx_cls_dict("_optring")
+        optring = self._optring
         # Get default
         ringdef = optring.get("_default_", False)
         # Process *opt* specifically
@@ -3873,23 +3880,10 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
                 ``cls.__bases__``, etc.
         :Versions:
             * 2022-10-24 ``@ddalle``: v1.0
+            * 2026-05-03 ``@ddalle``: v2.0; use metaclass for recursion
         """
-        # Get attribute
-        clsdict = cls.__dict__.get(attr)
-        # Initialize if necessary
-        if not isinstance(clsdict, dict):
-            clsdict = {}
-        # Loop through bases
-        for clsj in cls.__bases__:
-            # Only process if OptionsDict
-            if issubclass(clsj, OptionsDict):
-                # Recurse
-                clsdictj = clsj.getx_cls_dict(attr)
-                # Update, but don't overwrite
-                for kj, vj in clsdictj.items():
-                    clsdict.setdefault(kj, vj)
-        # Output
-        return clsdict
+        # Get attribute, utilizaing metaclass for recursion
+        return getattr(cls, attr, {})
 
    # --- Subsections ---
     @classmethod
@@ -4555,11 +4549,9 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         # Get list of options
         optlist = cls._optlist
         # Get child subsections
-        subsecs = dict(
-            cls.getx_cls_dict("_sec_cls"),
-            **cls.getx_cls_dict("_sec_cls_optmap"))
+        subsecs = dict(cls._sec_cls, **cls._sec_cls_optmap)
         # Get alizes
-        optmap = cls.getx_cls_dict("_optmap")
+        optmap = cls._optmap
         # Show aliases
         if len(optmap):
             # Header for aliases
@@ -4711,7 +4703,28 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         return filtered_children
 
     @classmethod
-    def _getx_sec_cls(cls, narrow=False) -> dict:
+    def _getx_optlist(cls) -> list:
+        r"""Get ``cls._optlist``, processing bases only if not *narrow*
+
+        :Call:
+            >>> optlist = cls._getx_optlist(narrow=False)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *narrow*: ``True``| {``False``}
+                Whether to only include options new to this class
+        :Outputs:
+            *optlist*: :class:`list`
+                Combined or narrow sorted list of option names
+        :Versions:
+            * 2023-07-14 ``@ddalle``: v1.0
+            * 2026-05-03 ``@ddalld``: v1.1; simplify using metaclass
+        """
+        # Output
+        return sorted(list(cls._optlist))
+
+    @classmethod
+    def _getx_sec_cls(cls, narrow: bool = False) -> dict:
         r"""Get ``cls._sec_cls``, processing bases only if not *narrow*
 
         :Call:
@@ -4726,14 +4739,9 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
                 Combined or narrow dict of section names and classes
         :Versions:
             * 2023-07-14 ``@ddalle``: v1.0
+            * 2026-05-03 ``@ddalle``: v2.0; use metaclass
         """
-        # Check narrow option
-        if narrow:
-            # Return just from *cls*
-            return cls.__dict__.get("_sec_cls", {})
-        else:
-            # Include settings from bases
-            return cls.getx_cls_dict("_sec_cls")
+        return cls._sec_cls
 
     @classmethod
     def _getx_sec_cls_optmap(cls, narrow=False) -> dict:
@@ -4753,16 +4761,9 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
             * 2023-07-14 ``@ddalle``: v1.0
             * 2023-07-15 ``@ddalle``: v1.1; include ``_opttypes``
         """
-        # Check narrow option
-        if narrow:
-            # Return just from *cls*
-            cls_optmap = cls.__dict__.get("_sec_cls_optmap", {})
-            # Get types to look for subclass therein
-            cls_opttypes = cls.__dict__.get("_opttypes", {})
-        else:
-            # Include settings from bases
-            cls_optmap = cls.getx_cls_dict("_sec_cls_optmap")
-            cls_opttypes = cls.getx_cls_dict("_opttypes")
+        # Include settings from bases
+        cls_optmap = cls._sec_cls_optmap
+        cls_opttypes = cls._opttypes
         # Initialize output
         secclsmapdict = dict(cls_optmap)
         # Loop through types
@@ -4785,7 +4786,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         return secclsmapdict
 
     @classmethod
-    def _getx_bases(cls, narrow=True):
+    def _getx_bases(cls, narrow: bool = True):
         r"""Get list of bases of *cls* for *narrow* documentation
 
         :Class:
