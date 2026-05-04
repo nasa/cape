@@ -4581,7 +4581,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         # Add a blank line
         lines.append("")
         # Get child subsections
-        sec_cls_dict = cls._getx_sec_cls(narrow)
+        sec_cls_dict = cls._sec_cls
         sec_clsmap_dict = cls._getx_sec_cls_optmap(narrow)
         # Loop through section map
         for secname, seccls in sec_cls_dict.items():
@@ -4693,7 +4693,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
                 filtered_children[secname] = cls_or_tuple
                 continue
             # Check for subsections
-            if len(seccls._getx_sec_cls(narrow)):
+            if len(seccls._sec_cls):
                 filtered_children[secname] = cls_or_tuple
                 continue
             # Check for subsections
