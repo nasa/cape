@@ -807,6 +807,9 @@ class MetaOptionsDict(type):
         qx = isinstance(vx, OPTLIST_TYPES)
         if not (qj and qx):
             return
+        # Save original list
+        if vx is not None:
+            setattr(cls, f"_raw{attr}", vx)
         # Initialize with (copy of) the parent
         combined_list = list(vj)
         # Loop through child
