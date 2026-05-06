@@ -3371,6 +3371,10 @@ class Report(object):
             fmt_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
             fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
             fmt_e = opts.get_SubfigOpt(sfig, "ErrorFormat", k)
+            # Check for size
+            if FM.get(coeff) is None or len(FM[coeff]) == 0:
+                print(f"    No iterations found for {comp}/{coeff}")
+                continue
             # Draw the plot
             h = FM.PlotCoeff(
                 coeff, xcol=xcol, n=nPlotIter,

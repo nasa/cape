@@ -742,6 +742,9 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
             "min": ymin,
             "max": ymax,
         }
+    # Check size
+    if len(y) == 0:
+        raise IndexError("Got an iterative history of size 0")
     # Use the maximum window size to get the best frequency
     w = GetBestFrequency(y[-N2:], **kw)
     # Calculate the half period based on this frequency
