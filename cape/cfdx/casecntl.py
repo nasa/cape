@@ -5482,8 +5482,10 @@ class CaseRunner(CaseRunnerBase):
             * 2024-08-09 ``@ddalle``: v1.0
             * 2025-03-21 ``@ddalle``: v1.1; use search_regex()
         """
+        # Get prefix
+        prefix = self.get_prefix()
         # Find all the runfiles renamed by CAPE
-        runfiles = self.search_regex(f"run.{j:02d}.[0-9]+")
+        runfiles = self.search_regex(rf"{prefix}\.{j:02d}\.[0-9]+")
         # Initialize run files with metadata
         runfile_meta = []
         # Loop through candidates
