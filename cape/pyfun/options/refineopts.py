@@ -213,4 +213,4 @@ class RefineOpts(ExecOpts):
 
 # Add properties
 RefineOpts.add_properties(
-    RefineOpts._optlist, prefix="refine_")
+    RefineOpts._raw_optlist, prefix="refine_")

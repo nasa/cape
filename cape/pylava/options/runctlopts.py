@@ -75,6 +75,6 @@ class RunControlOpts(runctlopts.RunControlOpts):
 
 
 # Add properties
-RunControlOpts.add_properties(RunControlOpts._optlist)
+RunControlOpts.add_properties(RunControlOpts._raw_optlist)
 # Promote sections
 RunControlOpts.promote_sections()

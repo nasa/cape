@@ -47,4 +47,4 @@ class ChemOpts(ExecOpts):
 
 
 # Add properties
-ChemOpts.add_properties(ChemOpts._optlist, prefix="chem_")
+ChemOpts.add_properties(ChemOpts._raw_optlist, prefix="chem_")
