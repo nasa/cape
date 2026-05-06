@@ -5443,10 +5443,8 @@ class CaseRunner(CaseRunnerBase):
             * 2025-03-21 ``@ddalle``: v1.1; use search_regex()
             * 2026-05-06 ``@ddalle``: v1.2; allow alterante prefix
         """
-        # Read options
-        rc = self.read_case_json()
         # Get prefix
-        prefix = rc.get_opt("Prefix", vdef="run")
+        prefix = self.get_prefix()
         # Find all the runfiles renamed by CAPE
         runfiles = self.search_regex(f"{prefix}.[0-9][0-9]+.[0-9]+")
         # Initialize run files with metadata
@@ -5559,10 +5557,12 @@ class CaseRunner(CaseRunnerBase):
         """
         # Get list of phases
         phases = self.get_phase_sequence()
+        # Get prefix
+        prefix = self.get_prefix()
         # Loop through them in reverse
         for j in reversed(phases):
             # Check if any output files exists
-            if len(self.search_regex(f"run.{j:02d}.[0-9]+")) > 0:
+            if len(self.search_regex(rf"{prefix}\.{j:02d}\.[0-9]+")) > 0:
                 # Found a phase that has been run
                 break
         # Output phase
@@ -5876,7 +5876,7 @@ class CaseRunner(CaseRunnerBase):
         # Get phase sequence
         phases = self.get_phase_sequence()
         # Get prefix
-        prefix = rc.get_opt("Prefix", vdef="run")
+        prefix = self.get_prefix()
         # Loop through possible phases
         for j in phases:
             # Check for output files
@@ -6250,6 +6250,24 @@ class CaseRunner(CaseRunnerBase):
         # CFD{X} version
         return 0
 
+    # Get prefix
+    def get_prefix(self, j: Optional[int] = None) -> str:
+        r"""Get prefix for STDOUT files, ``"run"`` by default
+
+        :Call:
+            >>> prefix = runner.get_prefix(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *prefix*: :class:`str`
+                Prefix for STDOUT files, ``"run"`` for generic
+        :Versions:
+            * 2026-05-02 ``@ddalle``: v1.0 for ``cfdx``
+        """
+        # Output
+        return "run"
+
     # Get run log iteration history
     @run_rootdir
     def get_runlog(self) -> np.ndarray:
@@ -6270,8 +6288,10 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 20254-03-23 ``@ddalle``: v1.0
         """
+        # Get prefix
+        prefix = self.get_prefix()
         # Check for certain files run.NN.N+
-        filelist = glob.glob("run.[0-9][0-9]*.[1-9]*")
+        filelist = glob.glob(f"{prefix}.[0-9][0-9]*.[1-9]*")
         # Initialize outputs
         phases = []
         iters = []
@@ -6312,8 +6332,10 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2024-03-22 ``@ddalle``: v1.0
         """
+        # Get prefix
+        prefix = self.get_prefix()
         # Check for certain files run.NN.N+
-        filelist = glob.glob("run.[0-9][0-9]*.[1-9]*")
+        filelist = glob.glob(f"{prefix}.[0-9][0-9]*.[1-9]*")
         # Initialize
         phase = 0
         iter = 0
