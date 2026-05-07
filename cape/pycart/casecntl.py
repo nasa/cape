@@ -901,9 +901,8 @@ class CaseRunner(casecntl.CaseRunner):
         # Get log files for phase
         logfiles = self.get_phase_stdoutfiles(j)
         # Check for 'cart3d.out'
-        fname = self.get_stdout_filename()
-        if os.path.isfile(fname):
-            logfiles.append(fname)
+        if os.path.isfile("flowCart.out"):
+            logfiles.append("flowCart.out")
         # If no STDOUT files; fail test: phase not complete
         if len(logfiles) == 0:
             return False
