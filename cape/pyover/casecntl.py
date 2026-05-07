@@ -956,7 +956,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get options interface
         rc = self.read_case_json()
         # Read the prefix
-        return rc.get_Prefix(j)
+        return rc.get_opt("Prefix", j=j, vdef="run")
 
     # Get STOP iteration
     @casecntl.run_rootdir

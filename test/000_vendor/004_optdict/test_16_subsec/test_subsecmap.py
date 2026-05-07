@@ -31,7 +31,8 @@ RAW_OPTS = {
     "unprocessedsection": {},
 }
 # Using _xoptkey
-FULL_OPTS = dict(RAW_OPTS,
+FULL_OPTS = dict(
+    RAW_OPTS,
     Component="STACK_no_aft",
     Components=[
         "stack",
@@ -105,8 +106,4 @@ def test_02_secoptmap():
     assert type(opts["stack_CA"]) is PlotFMOpts
     assert opts.get_opt("Component") == FULL_OPTS["Component"]
 
-
-if __name__ == "__main__":
-    test_01_secoptmap()
-    test_02_secoptmap()
 

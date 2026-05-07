@@ -187,4 +187,4 @@ class ConfigOpts(configopts.ConfigOpts):
 
 
 # Add properties
-ConfigOpts.add_properties(ConfigOpts._optlist)
+ConfigOpts.add_properties(ConfigOpts._raw_optlist)

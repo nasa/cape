@@ -42,7 +42,6 @@ class are also available here.
 import os
 import re
 import shutil
-from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -56,7 +55,6 @@ from .namelist import Namelist
 from .rubberdatafile import RubberData
 from ..cfdx import cntl
 from ..util import RangeString
-from ..filecntl.mapbcfile import MapBCFile
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -379,36 +377,6 @@ class Cntl(cntl.Cntl):
         return self.GetNamelistVar('raw_grid', 'grid_format', j)
 
   # === Other Files ===
-    # Read the boundary condition map
-    @cntl.run_rootdir
-    def ReadMapBC(self, j: int = 0, q: bool = True) -> Optional[MapBCFile]:
-        r"""Read the FUN3D boundary condition map
-
-        :Call:
-            >>> cntl.ReadMapBC(q=True)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of the pyFun control class
-            *q*: {``True``} | ``False``
-                Whether or not to read to *MapBC*, else *MapBC0*
-        :Versions:
-            * 2016-03-30 ``@ddalle``: v1.0
-        """
-        # Read the file
-        try:
-            BC = MapBCFile(self.opts.get_MapBCFile(j))
-        except OSError:
-            return
-        # Save it
-        if q:
-            # Read to main slot.
-            self.MapBC = BC
-        else:
-            # Template
-            self.MapBC0 = BC
-        # Output
-        return BC
-
     # Read the ``rubber.data`` file
     @cntl.run_rootdir
     def ReadRubberData(self, j=0, q=True):
@@ -2386,7 +2354,7 @@ class Cntl(cntl.Cntl):
             if surfID is not None:
                 surf.append(surfID)
         # Check for empty
-        if len(surf) == 0:
+        if warn and (len(surf) == 0):
             print(f"     Component '{comp}' has no matches in mapbc file")
             return []
         # Sort the surface IDs to prepare RangeString

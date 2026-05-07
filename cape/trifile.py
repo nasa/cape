@@ -3323,7 +3323,7 @@ class TriBase(object):
   # <
     # Function to write .tri file with one CompID per break
     def WriteVolTri(self, fname='Components.tri'):
-        r"""Write a .tri file with one CompID per break in *tri.iTri*
+        r"""Write a ``.tri`` file with one CompID per in *tri.iTri*
 
         This is a necessary step of running ``intersect`` because each
         polyhedron (i.e. water-tight volume) must have a single uniform
@@ -3343,7 +3343,16 @@ class TriBase(object):
         tri = self.Copy()
         # Current maximum CompID
         comp0 = np.max(self.CompID)
-        # Set first volume.
+        # Check for "groups"
+        grpids = getattr(self, "GroupID", None)
+        if grpids:
+            # Use the group IDs as component IDs
+            tri.CompID = self.GroupID
+            # Write the triangulation to file
+            tri.Write(fname)
+            # Done
+            return
+        # Set first volume
         tri.CompID[:self.iTri[0]] = comp0 + 1
         # Loop through volumes as marked in *tri.iTri*
         for k in range(len(self.iTri)-1):
@@ -5441,7 +5450,6 @@ class TriBase(object):
             * 2017-02-08 ``@ddalle``: v1.2; 3rd and 4th comp
             * 2024-06-08 ``@sfoxman``: accelerate with SplitZones
         """
-
         if n == 1:
             # we can accelerate by pre-calculating sub-regions of triangles
             if not hasattr(self, '_splitzones'):

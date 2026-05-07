@@ -228,4 +228,4 @@ class MeshOpts(meshopts.MeshOpts):
 
 
 # Add properties
-MeshOpts.add_properties(MeshOpts._optlist)
+MeshOpts.add_properties(MeshOpts._raw_optlist)

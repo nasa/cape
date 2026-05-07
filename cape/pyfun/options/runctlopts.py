@@ -266,6 +266,15 @@ class RunControlOpts(runctlopts.RunControlOpts):
 
 
 # Create properties
-RunControlOpts.add_properties(RunControlOpts._rst_descriptions)
+RunControlOpts.add_properties(
+    (
+        "AdaptPhase",
+        "AdaptMethod",
+        "Adaptive",
+        "Dual",
+        "DualPhase",
+        "KeepRestarts",
+        "nIterAdjoint",
+    ))
 # Upgrade subsections
 RunControlOpts.promote_sections()

@@ -75,4 +75,4 @@ class ConfigOpts(configopts.ConfigOpts):
 
 
 # Add properties
-ConfigOpts.add_properties(ConfigOpts._optlist, prefix="Config")
+ConfigOpts.add_properties(ConfigOpts._raw_optlist, prefix="Config")
