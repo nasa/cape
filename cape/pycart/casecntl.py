@@ -861,6 +861,7 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Early-exit phase tools ---
     # Solver-specifc phase
+    @casecntl.run_rootdir
     def checkx_phase(self, j: int) -> bool:
         r"""Apply solver-specific checks for phase *j*
 
@@ -878,23 +879,38 @@ class CaseRunner(casecntl.CaseRunner):
                 Whether phase *j* looks complete
         :Versions:
             * 2025-06-24 ``@ddalle``: v1.0
+            * 2026-05-07 ``@ddalle``: v2.0; check error-tol early exit
         """
         # Read options
         rc = self.read_case_json()
         # Check if adaptive
-        if rc.get_Adaptive(j):
-            # Get expected adaptation cycle
-            n = rc.get_n_adapt_cycles(j)
-            # Name of folder
-            dirname = f"adapt{n:02d}"
-            absdir = os.path.join(self.root_dir, dirname)
-            # Name of output file
-            fname = os.path.join(absdir, "FLOW", "DONE")
-            # Check for it
-            return os.path.isdir(absdir) and os.path.isfile(fname)
-        else:
-            # No other checks
+        if not rc.get_Adaptive(j):
             return True
+        # Get expected adaptation cycle
+        n = rc.get_n_adapt_cycles(j)
+        # Name of folder
+        dirname = f"adapt{n:02d}"
+        absdir = os.path.join(self.root_dir, dirname)
+        # Name of output file
+        fname = os.path.join(absdir, "FLOW", "DONE")
+        # Check for it
+        if os.path.isdir(absdir) and os.path.isfile(fname):
+            # Expected number of cycles is complete
+            return True
+        # We can also check for error tolerance being satisfied
+        # Get log files for phase
+        logfiles = self.get_phase_stdoutfiles(j)
+        # Check for 'cart3d.out'
+        fname = self.get_stdout_filename()
+        if os.path.isfile(fname):
+            logfiles.append(fname)
+        # If no STDOUT files; fail test: phase not complete
+        if len(logfiles) == 0:
+            return False
+        # Otherwise check last file for "Adaptation tolerance"
+        lines = fileutils.grep("  Adaptation tolerance satisfied", logfiles[-1])
+        # If that line was found, Cart3D exited early on purpose
+        return len(lines) > 0
 
     # Reset PhaseIters
     def _reset_phase_iters(self, j: int):
