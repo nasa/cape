@@ -349,7 +349,7 @@ def sbatch(fname: str) -> Optional[str]:
     # Decode output and split by '.'
     jobname = stdout.strip().decode()
     # Take everything up to second '.'
-    return _job(jobname)
+    return _slurmjob(jobname)
 
 
 # Function to delete jobs from the queue.
@@ -750,3 +750,22 @@ def _job(jobname: str) -> str:
         * 2024-06-20 ``@ddalle``: v1.0
     """
     return ".".join(str(jobname).split('.')[:2])
+
+def _slurmjob(jobname: str) -> str:
+    r"""Standardize Slurm job IDs
+
+    For example this removes ``Submitted batch job`` from the output
+    ``sbatch`` commands.
+
+    :Call:
+        >>> jobID = _slurmjob(jobname)
+    :Inputs:
+        *jobname*: :class:`str`
+            Raw job identifier
+    :Outputs:
+        *jobID*: :class:`str`
+            Standardized job identifier w/ only the jobs number
+    :Versions:
+        * 2026-05-07 ``@dvicker``: v1.0
+    """
+    return str(jobname).split(' ')[-1]

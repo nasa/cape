@@ -2809,8 +2809,8 @@ class UmeshBase(ABC):
         xtri_a  = xtri[active]
         ktris_a = ktris[active]
         # Signed distances from each cut plane
-        dl = xtri_a - xa
-        dr = xtri_a - xb
+        dl = xtri_a - (xa - TOL)
+        dr = xtri_a - (xb + TOL)
         x0l, x1l, x2l = dl[:, 0], dl[:, 1], dl[:, 2]
         x0r, x1r, x2r = dr[:, 0], dr[:, 1], dr[:, 2]
         # Sign arrays (+1 / -1); zero treated as positive
@@ -2833,31 +2833,85 @@ class UmeshBase(ABC):
         # Accumulate weights into output array
         w8s = np.zeros(self.ntri)
         # Left plane contribution
-        # psignl < 0, 1 vertex is left of xa
         nl = psignl < 0
-        if nl.any():
-            neg1l_mask = signl[nl] < 0
-            w8s[ktris_a[nl]] = 1.0 - np.sum(
-                np.where(wl[nl] != 0, wl[nl] * neg1l_mask, wl[nl]), axis=1)
-        # psignl > 0, 2 vertices are left of xa
         pl = psignl > 0
+        nr = psignr < 0
+        pr = psignr > 0
+        # Only care about where the triangle was actually cut
+        nl = nl & ~uncut_l
+        pl = pl & ~uncut_l
+        nr = nr & ~uncut_r
+        pr = pr & ~uncut_r
+        nlnr = nl & nr
+        nlpr = nl & pr
+        plnr = pl & nr
+        plpr = pl & pr
+        # Process triangles w/ both cut planes internal
+        if nlnr.any():
+            n1l_mask = signl[nlnr] < 0
+            n1r_mask = signr[nlnr] < 0
+            w8s[ktris_a[nlnr]] = ((1.0 - np.sum(
+                np.where(wl[nlnr] != 0, wl[nlnr] * n1l_mask, wl[nlnr]), axis=1)) -
+                (1.0 - np.sum(
+                np.where(wr[nlnr] != 0, wr[nlnr] * n1r_mask, wr[nlnr]), axis=1))
+            )
+            # Remove mark so wont process later
+            nl[nlnr] = False
+            nr[nlnr] = False
+        if nlpr.any():
+            n1l_mask = signl[nlpr] < 0
+            p2r_mask = signr[nlpr] > 0
+            w8s[ktris_a[nlpr]] = ((1.0 - np.sum(
+                np.where(wl[nlpr] != 0, wl[nlpr] * n1l_mask, wl[nlpr]), axis=1)) -
+                np.sum(
+                np.where(wr[nlpr] != 0, wr[nlpr] * p2r_mask, wr[nlpr]), axis=1)
+            )
+            # Remove mark so wont process later
+            nl[nlpr] = False
+            pr[nlpr] = False
+        if plnr.any():
+            p2l_mask = signl[plnr] > 0
+            n1r_mask = signr[plnr] < 0
+            w8s[ktris_a[plnr]] = (np.sum(
+                np.where(wl[plnr] != 0, wl[plnr] * p2l_mask, wl[plnr]), axis=1) -
+                (1.0 - np.sum(
+                np.where(wr[plnr] != 0, wr[plnr] * n1r_mask, wr[plnr]), axis=1))
+            )
+            # Remove mark so wont process later
+            pl[plnr] = False
+            nr[plnr] = False
+        if plpr.any():
+            p2l_mask = signl[plpr] > 0
+            p2r_mask = signr[plpr] > 0
+            w8s[ktris_a[plpr]] = (np.sum(
+                np.where(wl[plpr] != 0, wl[plpr] * p2l_mask, wl[plpr]), axis=1) -
+                np.sum(
+                np.where(wr[plpr] != 0, wr[plpr] * p2r_mask, wr[plpr]), axis=1)
+            )
+            # Remove mark so wont process later
+            pl[plpr] = False
+            pr[plpr] = False
+        # psignl < 0, 1 vertex is left of xa
+        if nl.any():
+            n1l_mask = signl[nl] < 0
+            w8s[ktris_a[nl]] = 1.0 - np.sum(
+                np.where(wl[nl] != 0, wl[nl] * n1l_mask, wl[nl]), axis=1)
+        # psignl > 0, 2 vertices are left of xa
         if pl.any():
-            pos2l_mask = signl[pl] > 0
+            p2l_mask = signl[pl] > 0
             w8s[ktris_a[pl]] = np.sum(
-                np.where(wl[pl] != 0, wl[pl] * pos2l_mask, wl[pl]), axis=1)
+                np.where(wl[pl] != 0, wl[pl] * p2l_mask, wl[pl]), axis=1)
         # Right plane contribution (additive)
         # psignr < 0, 1 vertex is right of xb
-        nr = psignr < 0
         if nr.any():
-            neg1r_mask = signr[nr] < 0
-            w8s[ktris_a[nr]] += np.sum(
-                np.where(wr[nr] != 0, wr[nr] * neg1r_mask, wr[nr]), axis=1)
+            n1r_mask = signr[nr] < 0
+            w8s[ktris_a[nr]] = np.sum(
+                np.where(wr[nr] != 0, wr[nr] * n1r_mask, wr[nr]), axis=1)
         # psignr > 0, 2 vertices are right of xb
-        pr = psignr > 0
         if pr.any():
-            pos2r_mask = signr[pr] > 0
-            w8s[ktris_a[pr]] += 1.0 - np.sum(
-                np.where(wr[pr] != 0, wr[pr] * pos2r_mask, wr[pr]), axis=1)
+            p2r_mask = signr[pr] > 0
+            w8s[ktris_a[pr]] = 1.0 - np.sum(
+                np.where(wr[pr] != 0, wr[pr] * p2r_mask, wr[pr]), axis=1)
         # Tris fully inside both planes
         w8s[ktris_a[III]] = 1.0
         # Tris fully outside either plane
@@ -2919,7 +2973,8 @@ class UmeshBase(ABC):
             self,
             Aref: float,
             nCut: int,
-            comp: Optional[Union[list, str, int]] = None):
+            comp: Optional[Union[list, str, int]] = None,
+            fweights: Optional[str] = None):
         """Calculate sectional line load coefficients
 
         :Call:
@@ -2935,7 +2990,11 @@ class UmeshBase(ABC):
             *result*: :class:`np.ndarray`
                 Sectional line load coefficients
         """
-        w8s, xbnds = self.genr8_ll_w8s(nCut, comp)
+        if fweights:
+            db = DataKit(fweights)
+            w8s = db["weights"]
+        else:
+            w8s, _ = self.genr8_ll_w8s(nCut, comp)
         # Integrate
         qbar = np.sum(-1*self.q[self.tris - 1, 0], axis=1)*(1/3)
         # Apply weighted area to each tri

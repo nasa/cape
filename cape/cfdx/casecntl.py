@@ -5322,15 +5322,11 @@ class CaseRunner(CaseRunnerBase):
             # Get phase number and iteration required to finish case
             jmax = self.get_last_phase()
             nmax = self.get_last_iter()
-            # Get current status
-            j = self.get_phase_next()
-            n = self.get_iter()
-            # Check both requirements
-            if (j < jmax) or (n < nmax):
-                sts = "INCOMP"
-            else:
-                # All criteria met
+            # Check last phase
+            if self.check_phase(jmax):
                 sts = "DONE"
+            else:
+                sts = "INCOMP"
         # Check for PASS case
         if self.check_mark_pass():
             # Check status
