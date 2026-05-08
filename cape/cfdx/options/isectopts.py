@@ -84,7 +84,7 @@ class IntersectOpts(ExecOpts):
         "rm": BOOL_TYPES,
         "smalltri": FLOAT_TYPES,
         "triged":  BOOL_TYPES,
-        "v": BOOL_TYPES
+        "v": BOOL_TYPES,
     }
 
     # Defaults
