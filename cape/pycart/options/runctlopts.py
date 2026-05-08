@@ -444,7 +444,7 @@ class CubesOpts(ExecOpts):
         "a": INT_TYPES + FLOAT_TYPES,
         "b": INT_TYPES,
         "maxR": INT_TYPES,
-        "pre": str,
+        "pre": (bool, str),
         "reorder": BOOL_TYPES,
         "sf": INT_TYPES,
     }
