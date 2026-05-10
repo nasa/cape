@@ -311,7 +311,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Read settings
             opts = self.read_runinputs(j)
             # Get option
-            ctumax = opts.get_opt("time", "finish ctu")
+            opt = "finis ctu"
+            ctumax = 0.0 if opts is None else opts.get_opt("time", opt)
             ctumax = 0.0 if ctumax is None else ctumax
             # Use it
             return ctumax

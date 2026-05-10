@@ -481,6 +481,8 @@ class Cntl(capecntl.Cntl):
         # Read it if possible
         if os.path.isfile(fabs):
             self.CartInputs = CartInputFile(fabs)
+        else:
+            self.CartInputs = None
 
     # Prepare "run.inputs" file
     @capecntl.run_rootdir
