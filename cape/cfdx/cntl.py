@@ -1314,6 +1314,7 @@ class Cntl(CntlBase):
         # Write tri file as non-intersected; each grp has single ID
         if os.path.isfile(fvtri):
             os.remove(fvtri)
+        print(f"    Writing '{fvtri}'")
         self.tri.WriteVolTri(fvtri)
         # Write the existing triangulation with existing CompIDs.
         if os.path.isfile(fctri):
@@ -1347,11 +1348,19 @@ class Cntl(CntlBase):
                 raise CapeValueError(
                     f"Found tris in group {j+1} ({face}) with multiple " +
                     f"groups; previous groups: {lbl}")
+            # Assign those
+            gcomps[k] = j + 1
         # Check for unused triangles
         if np.any(gcomps == 0):
             # Count them
             n = np.sum(gcomps == 0)
-            raise CapeValueError(f"Found {n} tris not in any groups")
+            # Find components they are in
+            cid = np.unique(self.tri.CompID[gcomps == 0])
+            cidlbl = ' '.join(['%i' % i for i in cid])
+            # Error message
+            raise CapeValueError(
+                f"Found {n} tris not in any groups, "
+                f"with compIDs {cidlbl}")
         # Save result
         self.tri.GroupID = gcomps
 
@@ -1385,6 +1394,7 @@ class Cntl(CntlBase):
     @run_rootdir
     def prep_tri_write(self, i: int):
         # Check for write option
+        breakpoint()
         if not self.opts.get_WriteTri():
             return
         elif self.opts.get_aflr3():

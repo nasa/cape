@@ -3345,7 +3345,7 @@ class TriBase(object):
         comp0 = np.max(self.CompID)
         # Check for "groups"
         grpids = getattr(self, "GroupID", None)
-        if grpids:
+        if grpids is not None:
             # Use the group IDs as component IDs
             tri.CompID = self.GroupID
             # Write the triangulation to file
