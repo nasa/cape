@@ -3460,11 +3460,12 @@ class TriBase(object):
                 # Do not keep this zone
                 kKeep[k1:-k2] = True
         # Ignore negative triangles
-        tri.Tris   = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
-        tri.nTri   = tri.Tris.shape[0]
-        # Write the triangulation to file.
-        tri.Write(fname)
+        tri.Tris = tri.Tris[kKeep, :]
+        tri.nTri = tri.Tris.shape[0]
+        # Write the triangulation to file
+        if tri.nTri:
+            tri.Write(fname)
 
     # Function to map each face's CompID to the closest match from another tri
     def MapSubCompID(self, tric, compID, kc=None):
