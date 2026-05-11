@@ -1317,10 +1317,12 @@ class Cntl(CntlBase):
         print(f"    Writing '{fvtri}'")
         self.tri.WriteVolTri(fvtri)
         # Write the existing triangulation with existing CompIDs.
+        print(f"    Writing '{fctri}'")
         if os.path.isfile(fctri):
             os.remove(fctri)
         self.tri.WriteCompIDTri(fctri)
         # Write the farfield and source triangulation files
+        print(f"    Writing '{fftri}' if needed")
         if os.path.isfile(fftri):
             os.remove(fftri)
         self.tri.WriteFarfieldTri(fftri)
@@ -1655,6 +1657,7 @@ class Cntl(CntlBase):
             kc = np.array(kc)
         # Get the reference points for translations based on this rotation
         xt = kopts.get("TranslateRefPoint", [0.0, 0.0, 0.0])
+        xt = self.opts.get_Point(xt)
         # Get scale for translated points
         kt = kopts.get('TranslateScale', np.ones(3))
         # Ensure vector
@@ -1724,8 +1727,8 @@ class Cntl(CntlBase):
         Y = RotatePoints(X, v0, v1, theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
         # Rotate reference points as requested
-        yt = RotatePoints(xt, v0, v1, theta)
-        ytR = RotatePoints(xt, v0R, v1R, ka*theta)
+        yt = RotatePoints(xt, v0, v1, theta)[0]
+        ytR = RotatePoints(xt, v0R, v1R, ka*theta)[0]
         # Process translations caused by this rotation
         for j in range(len(compsT)):
             self.tri.Translate(kt*(yt-xt), compID=compsT[j])
