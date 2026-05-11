@@ -1394,7 +1394,6 @@ class Cntl(CntlBase):
     @run_rootdir
     def prep_tri_write(self, i: int):
         # Check for write option
-        breakpoint()
         if not self.opts.get_WriteTri():
             return
         elif self.opts.get_aflr3():
