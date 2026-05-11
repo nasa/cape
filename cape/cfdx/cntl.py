@@ -1669,11 +1669,11 @@ class Cntl(CntlBase):
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
         ptsT = kopts.get('TranslatePoints', [])
-        # Make sure these are lists.
-        if not isinstance(pts, list):
-            pts = list(pts)
-        if not isinstance(ptsR, list):
-            ptsR = list(ptsR)
+        ptsTR = kopts.get('TranslatePointsSymmetric', [])
+        # Make sure these are lists
+        pts = pts if isinstance(pts, list) else list(pts)
+        ptsR = ptsR if isinstance(ptsR, list) else list(ptsR)
+        ptsT = ptsT if isinstance(ptsT, list) else list(ptsT)
         # ---------------------------
         # Process the rotation vector
         # ---------------------------
@@ -1730,15 +1730,19 @@ class Cntl(CntlBase):
         self.tri.Rotate(v0,  v1,  theta,  compID=compID)
         self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
         # Points to be rotated
-        X  = np.array([self.opts.get_Point(pt) for pt in pts])
+        X = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
+        # Points to be translated
+        XM = np.array([self.opts.get_Point(pt) for pt in ptsT])
+        XMR = np.array([self.opts.get_Point(pt) for pt in ptsTR])
         # Reference points to be rotated
-        XT  = np.array([xT[comp] for comp in compsT])
+        XT = np.array([xT[comp] for comp in compsT])
         XTR = np.array([xT[comp] for comp in compsTR])
         # Apply transformation
-        Y   = RotatePoints(X,   v0,  v1,  theta)
-        YT  = RotatePoints(XT,  v0,  v1,  theta)
-        YR  = RotatePoints(XR,  v0R, v1R, ka*theta)
+        Y = RotatePoints(X, v0, v1, theta)
+        YR = RotatePoints(XR, v0R, v1R, ka*theta)
+        # Rotate reference points as requested
+        YT = RotatePoints(XT, v0, v1, theta)
         YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
         # Process translations caused by this rotation
         for j in range(len(compsT)):
@@ -1746,17 +1750,19 @@ class Cntl(CntlBase):
         # Process translations caused by symmetric rotation
         for j in range(len(compsTR)):
             self.tri.Translate(kt*(YTR[j]-XTR[j]), compID=compsTR[j])
+        # Process point rotations caused by rotation
+        
         # Apply transformation
         Y  = RotatePoints(X,  v0,  v1,  theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
-        # Save the points.
-        for j in range(len(pts)):
+        # Save the points
+        for j, pt in enumerate(pts):
             # Set the new value.
-            self.opts.set_Point(Y[j], pts[j])
-        # Save the symmetric points.
-        for j in range(len(ptsR)):
+            self.opts.set_Point(Y[j], pt)
+        # Save the symmetric points
+        for j, pt in enumerate(ptsR):
             # Set the new value.
-            self.opts.set_Point(YR[j], ptsR[j])
+            self.opts.set_Point(YR[j], pt)
 
    # --- Surface: config ---
     # Read the boundary condition map
