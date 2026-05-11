@@ -1668,6 +1668,7 @@ class Cntl(CntlBase):
         # Get points to translate along with it.
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
+        ptsT = kopts.get('TranslatePoints', [])
         # Make sure these are lists.
         if not isinstance(pts, list):
             pts = list(pts)
