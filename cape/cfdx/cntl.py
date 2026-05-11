@@ -1654,7 +1654,7 @@ class Cntl(CntlBase):
         if isinstance(kc, list):
             kc = np.array(kc)
         # Get the reference points for translations based on this rotation
-        xT = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
+        xt = kopts.get("TranslateRefPoint", [0.0, 0.0, 0.0])
         # Get scale for translated points
         kt = kopts.get('TranslateScale', np.ones(3))
         # Ensure vector
@@ -1662,8 +1662,8 @@ class Cntl(CntlBase):
             # Ensure vector so that we can multiply it by another vector
             kt = np.array(kt)
         # Get vector
+        ax = kopts.get('Axis')
         vec = kopts.get('Vector')
-        ax  = kopts.get('Axis')
         cen = kopts.get('Center')
         # Get points to translate along with it.
         pts  = kopts.get('Points', [])
@@ -1708,21 +1708,6 @@ class Cntl(CntlBase):
         v1 = ax + cen
         v0R = cenR
         v1R = axR + cenR
-        # Ensure a dictionary for reference points
-        if not isinstance(xT, dict):
-            # Initialize dict (can't use an iterator to do this in old Python)
-            yT = {}
-            # Loop through components affected by this translation
-            for comp in compsT+compsTR:
-                yT[comp] = xT
-            # Move the variable name
-            xT = yT
-        # Create full dictionary
-        for comp in compsT+compsTR:
-            # Get ref point for this component
-            pt = xT.get(comp, xT.get('def', [0.0, 0.0, 0.0]))
-            # Save it as a dimensionalized point
-            xT[comp] = np.array(self.opts.get_Point(pt))
         # ---------------------
         # Apply transformations
         # ---------------------
@@ -1733,36 +1718,40 @@ class Cntl(CntlBase):
         X = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
         # Points to be translated
-        XM = np.array([self.opts.get_Point(pt) for pt in ptsT])
-        XMR = np.array([self.opts.get_Point(pt) for pt in ptsTR])
-        # Reference points to be rotated
-        XT = np.array([xT[comp] for comp in compsT])
-        XTR = np.array([xT[comp] for comp in compsTR])
+        XT = np.array([self.opts.get_Point(pt) for pt in ptsT])
+        XTR = np.array([self.opts.get_Point(pt) for pt in ptsTR])
         # Apply transformation
         Y = RotatePoints(X, v0, v1, theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
         # Rotate reference points as requested
-        YT = RotatePoints(XT, v0, v1, theta)
-        YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
+        yt = RotatePoints(xt, v0, v1, theta)
+        ytR = RotatePoints(xt, v0R, v1R, ka*theta)
         # Process translations caused by this rotation
         for j in range(len(compsT)):
-            self.tri.Translate(kt*(YT[j]-XT[j]), compID=compsT[j])
+            self.tri.Translate(kt*(yt-xt), compID=compsT[j])
         # Process translations caused by symmetric rotation
         for j in range(len(compsTR)):
-            self.tri.Translate(kt*(YTR[j]-XTR[j]), compID=compsTR[j])
+            self.tri.Translate(kt*(ytR-xt), compID=compsTR[j])
         # Process point rotations caused by rotation
-        
-        # Apply transformation
-        Y  = RotatePoints(X,  v0,  v1,  theta)
+        for j in range(len(ptsT)):
+            XT[j] += kt*(yt-xt)
+        for j in range(len(ptsTR)):
+            XTR[j] += kt*(ytR-xt)
+        # Apply main transformation
+        Y = RotatePoints(X, v0, v1, theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
         # Save the points
         for j, pt in enumerate(pts):
-            # Set the new value.
             self.opts.set_Point(Y[j], pt)
         # Save the symmetric points
         for j, pt in enumerate(ptsR):
-            # Set the new value.
             self.opts.set_Point(YR[j], pt)
+        # Save the translated points
+        for j, pt in enumerate(ptsT):
+            self.opts.set_Point(XT[j], pt)
+        # Save the symmetric translated points
+        for j, pt in enumerate(ptsTR):
+            self.opts.set_Point(XTR[j], pt)
 
    # --- Surface: config ---
     # Read the boundary condition map
