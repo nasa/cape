@@ -622,6 +622,7 @@ class TriRotationDefnKeyOpts(SurfTransformKeyDefnOpts):
         "TranslateRefPoint",
         "TranslateScale",
         "TranslatePoints",
+        "TranslatePointsSymmetric",
         "VectorSymmetry",
     )
 
@@ -641,6 +642,7 @@ class TriRotationDefnKeyOpts(SurfTransformKeyDefnOpts):
         "CompIDTranslate": 1,
         "CompIDTranslateSymmetric": 1,
         "TranslatePoints": 1,
+        "TranslatePointsSymmetric": 1,
     }
 
     # Defaults
