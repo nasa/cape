@@ -304,7 +304,6 @@ class X(object):
                 self.ext = ext + '8'
         # Close the file
         f.close()
-
         # Output
         return self.ext
 
@@ -1612,10 +1611,10 @@ class Q(X):
                 # Read the number of grids
                 ng, = io.fromfile_lb4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_lb4_i(f, ng*4).reshape((ng,4))
+                dims = io.fromfile_lb4_i(f, ng*4).reshape((ng, 4))
             else:
                 # Read the dimensions
-                dims = io.fromfile_lb4_i(f, 4).reshape((1,4))
+                dims = io.fromfile_lb4_i(f, 4).reshape((1, ))
             # Total number of points
             npt = np.sum(np.prod(dims, axis=1))
             # Number of bytes in file if single-precision
@@ -1628,10 +1627,10 @@ class Q(X):
                 # Read the number of grids
                 ng, = io.fromfile_b4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_b4_i(f, ng*4).reshape((ng,4))
+                dims = io.fromfile_b4_i(f, ng*4).reshape((ng, 4))
             else:
                 # Read the dimensions
-                dims = io.fromfile_b4_i(f, 4).reshape((1,4))
+                dims = io.fromfile_b4_i(f, 4).reshape((1, 4))
         # Try to determine single/double precision
         if (self.filetype == "record"):
             # Number of points in the first grid
@@ -1645,6 +1644,10 @@ class Q(X):
             elif r/4 == npt*nq:
                 # Single-precision
                 self.ext = ext + '4'
+            else:
+                raise ValueError(
+                    "Could not determine precision of " +
+                    ("%s file" % ext))
         else:
             # Total number of points
             npt = np.sum(np.prod(dims, axis=1))

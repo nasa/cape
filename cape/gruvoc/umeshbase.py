@@ -604,7 +604,7 @@ class UmeshBase(ABC):
         # Handle tri files with no quads by setting nquad to 0
         if self.nquad is None:
             self.nquad = 0
-            self.quads = np.zeros((0, 4))
+            self.quads = np.zeros((0, 4), dtype='i4')
         # Other defaults
         if self.tri_ids is None:
             self.tri_ids = np.ones(self.ntri, dtype="i4")
