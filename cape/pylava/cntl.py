@@ -52,6 +52,7 @@ from .runinpfile import CartInputFile
 from ..optdict import OptionsDict
 from ..cfdx import cntl as capecntl
 from ..cfdx.cmdgen import infix_phase
+from ..util import RangeString
 
 
 # Get the root directory of the module.
@@ -149,6 +150,100 @@ class Cntl(capecntl.Cntl):
             self.ReadRunYAML()
         elif solver == "cartesian":
             self.ReadCartInputFile()
+        # Read list of custom file control classes
+        self.ReadConfig()
+        self.ReadMapBC()
+
+  # === Configuration ===
+    # Get string describing which components are in config
+    def GetConfigBody(self, comp: str, warn: bool = False) -> list:
+        r"""Convert face name to list of MapBC indices
+
+        Determine which component indices are in a named component based
+        on the MapBC file, which is always numbered 1,2,...,N.  Output
+        the format as a nice string, such as ``"4-10,13,15-18"``.
+
+        If possible, this is read from the ``"Inputs"`` subsection of
+        the ``"Config"`` section of the master JSON file.  Otherwise,
+        it is read from the ``"mapbc"`` and configuration files.
+
+        :Call:
+            >>> cids = cntl.GetConfigInput(comp, warn=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *comp*: :class:`str`
+                Name of component to process
+            *warn*: ``True`` | {``False``}
+                Whether or not to print warnings if not raising errors
+        :Outputs:
+            *cids*: :class:`list`\ [:class:`str`]
+                List of MapBC inds (1-based) in *comp*
+        :Versions:
+            * 2025-05-16 ``@ddalle``: v1.0 (from GetConfigInput())
+        """
+        # Initialize
+        surf = []
+        # Get names of all child components, including *comp*
+        family = self.config.GetFamily(comp)
+        # Loop through components
+        for face in family:
+            # Check if present
+            if face not in self.MapBC.Names:
+                continue
+            # Get the surf from MapBC
+            surfID = self.MapBC.GetSurfIndex(face, check=True, warn=False) + 1
+            # If one was found, append it
+            if surfID is not None:
+                surf.append(surfID)
+        # Check for empty
+        if warn and (len(surf) == 0):
+            print(f"     Component '{comp}' has no matches in mapbc file")
+            return []
+        # Sort the surface IDs to prepare RangeString
+        surf.sort()
+        return surf
+
+    # Get string describing which components are in config
+    def GetConfigInput(self, comp: str, warn: bool = False):
+        r"""Convert face name to list of MapBC indices
+
+        Determine which component indices are in a named component based
+        on the MapBC file, which is always numbered 1,2,...,N.  Output
+        the format as a nice string, such as ``"4-10,13,15-18"``.
+
+        If possible, this is read from the ``"Inputs"`` subsection of
+        the ``"Config"`` section of the master JSON file.  Otherwise,
+        it is read from the ``"mapbc"`` and configuration files.
+
+        :Call:
+            >>> cntl.GetConfigInput(comp, warn=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *comp*: :class:`str`
+                Name of component to process
+            *warn*: ``True`` | {``False``}
+                Whether or not to print warnings if not raising errors
+        :Outputs:
+            *inp*: :class:`str`
+                String describing list of integers included
+        :Versions:
+            * 2026-05-01 ``@ddalle``: v1.0
+        """
+        # Otherwise, read from the MapBC interface
+        try:
+            self.MapBC
+            self.config
+        except Exception:
+            return
+        # Determine entries from MapBC
+        surf = self.GetConfigBody(comp, warn=warn)
+        if surf is None or len(surf) == 0:
+            return ""
+        # Convert to string
+        inp = RangeString(surf)
+        return inp
 
   # === Case Preparation ===
     # Prepare a case
@@ -386,6 +481,8 @@ class Cntl(capecntl.Cntl):
         # Read it if possible
         if os.path.isfile(fabs):
             self.CartInputs = CartInputFile(fabs)
+        else:
+            self.CartInputs = None
 
     # Prepare "run.inputs" file
     @capecntl.run_rootdir

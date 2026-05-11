@@ -97,7 +97,7 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
 
 
 # Add full options
-ArchiveOpts.add_properties(ArchiveOpts._optlist)
+ArchiveOpts.add_properties(ArchiveOpts._raw_optlist)
 
 
 # Turn dictionary into Archive options

@@ -605,14 +605,24 @@ INDEX_ITYPE = 1
 INDEX_ONAME = 2
 INDEX_OTYPE = 3
 
-# Types
+#: List-like types
 ARRAY_TYPES = (
     list,
     tuple,
     np.ndarray)
+#: Bool types (:class:`bool` or NumPy boolean)
 BOOL_TYPES = (bool, np.bool_)
+#: Float-like types (:class:`float` or NumPy integer-like types)
 INT_TYPES = (int, np.integer)
+#: Float-like types (:class:`float` or NumPy flaoting-point types)
 FLOAT_TYPES = (float, np.floating)
+#: Acceptable types for :data:`OptionsDict._optlist`
+OPTLIST_TYPES = (
+    set,
+    tuple,
+    frozenset,
+    list)
+
 _BOOL_TYPE_SET = set(BOOL_TYPES)
 _FLOAT_TYPE_SET = set(FLOAT_TYPES)
 _INT_TYPE_SET = set(INT_TYPES)
@@ -685,9 +695,171 @@ def expand_doc(func_or_cls):
     return func_or_cls
 
 
+# Metaclass to combine _optlist and other class attributes
+class MetaOptionsDict(type):
+    r"""Metaclass for :class:`OptionsDict`
+
+    This metaclass combines attributes w/ bases. For example if creating
+    a new class :class:`Class2` that inherits from :class:`Class1`, this
+    will automatically combine ``Class1._optlist` and
+    ``Class2._optlist`` and save the result as ``Class2._optlist``. This
+    happens behind the scenes so that users do not need to worry about
+    repeating ``_optlist`` entries.
+    """
+
+    #: List of tuple-like class attributes
+    _tuple_attrs = (
+        "_optlist",
+    )
+
+    #: List of dict-like class attributes
+    _dict_attrs = (
+        "_help_opt",
+        "_help_optarg",
+        "_optconverters",
+        "_optlistdepth",
+        "_optmap",
+        "_optring",
+        "_optsubmap",
+        "_opttypes",
+        "_optval_converters",
+        "_optvalmap",
+        "_optvals",
+        "_rawopttypes",
+        "_rc",
+        "_rst_descriptions",
+        "_rst_types",
+        "_sec_cls",
+        "_sec_cls_optmap",
+        "_sec_initfrom",
+        "_sec_parent",
+        "_sec_prefix",
+    )
+
+    def __new__(metacls, name: str, bases: tuple, namespace: dict):
+        r"""Initialize a new subclass, but combine ``_optlist`` attr
+
+        :Call:
+            >>> cls = metacls.__new__(name, bases, namespace)
+        :Inputs:
+            *metacls*: :class:`type`
+                The :class:`MetaArgReader` metaclass
+            *name*: :class:`str`
+                Name of new class being created
+            *bases*: :class:`tuple`\ [:class:`type`]
+                Bases for new class
+            *namespace*: :class:`dict`
+                Attributes, methods, etc. for new class
+        :Outputs:
+            *cls*: :class:`type`
+                New class using *metacls* instead of :class:`type`
+        """
+        # Initialize the new class
+        cls = type.__new__(metacls, name, bases, namespace)
+        # Check for attribute entries to inherit from bases
+        for clsj in bases:
+            cls.combine_attrs(clsj, cls)
+        # Return the new class
+        return cls
+
+    @classmethod
+    def combine_attrs(metacls, clsj: type, cls: type):
+        r"""Combine attributes of *clsj* and *cls*
+
+        :Call:
+            >>> metacls.combine_attrs(clsj, cls)
+        :Inputs:
+            *metacls*: :class:`type`
+                The :class:`MetaArgReader` metaclass
+            *clsj*: :class:`type`
+                Parent class (basis) to combine into *cls*
+            *cls*: :class:`type`
+                New class in which to save combined attributes
+        """
+        # Combine tuples
+        for attr in metacls._tuple_attrs:
+            metacls.combine_tuple(clsj, cls, attr)
+        # Combine dict/map
+        for attr in metacls._dict_attrs:
+            metacls.combine_dict(clsj, cls, attr)
+
+    @classmethod
+    def combine_tuple(metacls, clsj: type, cls: type, attr: str):
+        r"""Combine one tuple-like class attribute of *clsj* and *cls*
+
+        :Call:
+            >>> metacls.combine_tuple(clsj, cls, attr)
+        :Inputs:
+            *metacls*: :class:`type`
+                The :class:`MetaArgReader` metaclass
+            *clsj*: :class:`type`
+                Parent class (basis) to combine into *cls*
+            *cls*: :class:`type`
+                New class in which to save combined attributes
+            *attr*: :class:`str`
+                Name of attribute to combine
+        """
+        # Get initial properties
+        vj = getattr(clsj, attr, None)
+        vx = cls.__dict__.get(attr)
+        # Check for both
+        qj = isinstance(vj, OPTLIST_TYPES)
+        qx = isinstance(vx, OPTLIST_TYPES)
+        if not (qj and qx):
+            return
+        # Save original list
+        if vx is not None:
+            setattr(cls, f"_raw{attr}", vx)
+        # Initialize with (copy of) the parent
+        combined_list = list(vj)
+        # Loop through child
+        for v in vx:
+            if v not in combined_list:
+                combined_list.append(v)
+        # Save combined list
+        setattr(cls, attr, tuple(combined_list))
+
+    @classmethod
+    def combine_dict(metacls, clsj: type, cls: type, attr: str):
+        r"""Combine one dict-like class attribute of *clsj* and *cls*
+
+        :Call:
+            >>> metacls.combine_dict(clsj, cls, attr)
+        :Inputs:
+            *metacls*: :class:`type`
+                The :class:`MetaArgReader` metaclass
+            *clsj*: :class:`type`
+                Parent class (basis) to combine into *cls*
+            *cls*: :class:`type`
+                New class in which to save combined attributes
+            *attr*: :class:`str`
+                Name of attribute to combine
+        """
+        # Get initial properties
+        vj = getattr(clsj, attr, None)
+        vx = cls.__dict__.get(attr)
+        # Check for both
+        if isinstance(vx, dict):
+            # Get defn in child class; check parent (almost always)
+            if isinstance(vj, dict):
+                # Combine both
+                # Copy dict from basis
+                combined_dict = dict(vj)
+                # Combine results
+                combined_dict.update(vx)
+                # Save combined list
+                setattr(cls, attr, combined_dict)
+        elif isinstance(vj, dict):
+            # Copy parent to child
+            setattr(cls, attr, dict(vj))
+        else:  # pragma no cover
+            # Initialize
+            setattr(cls, attr, {})
+
+
 # Main class
 @expand_doc
-class OptionsDict(dict):
+class OptionsDict(dict, metaclass=MetaOptionsDict):
     r"""Advanced :class:`dict`-based options interface
 
     :Call:
@@ -968,7 +1140,7 @@ class OptionsDict(dict):
         # Class handle
         cls = self.__class__
         # Get compound dictionary of section names and classes
-        sec_cls = cls.getx_cls_dict("_sec_cls")
+        sec_cls = cls._sec_cls
         # Loop through sections
         for sec, seccls in sec_cls.items():
             # Get prefix and parent
@@ -1089,11 +1261,11 @@ class OptionsDict(dict):
         if opt is None:
             return
         # Get compound dictionary of map between section types and class
-        secmap = cls.getx_cls_dict("_sec_cls_optmap")
+        secmap = cls._sec_cls_optmap
         # Get regular (not value-dependent) subsecs to avoid conflict
-        subsecs = cls.getx_cls_dict("_sec_cls")
+        subsecs = cls._sec_cls
         # Current list of declared options
-        optlist = cls.getx_cls_set("_optlist")
+        optlist = cls._optlist
         # Default class
         clsdef = secmap.get("_default_")
         # Use same warning modes
@@ -1181,7 +1353,7 @@ class OptionsDict(dict):
    # --- Subsection opts ---
     def apply_optsubmap(self):
         # Get options
-        optsubmap = self.__class__.getx_cls_dict("_optsubmap")
+        optsubmap = self.__class__._optsubmap
         # Loop through opts
         for opt, submap in optsubmap.items():
             # Check if present
@@ -1844,7 +2016,7 @@ class OptionsDict(dict):
         # Apply defaults if appropriate
         if isinstance(val, OptionsDict):
             # Get full _rc
-            rc = val.getx_cls_dict("_rc")
+            rc = val.__class__._rc
             # Loop throug defaults
             for k, vk in rc.items():
                 # Apply but don't overwrite
@@ -2300,7 +2472,7 @@ class OptionsDict(dict):
             * 2024-10-10 ``@ddalle``: v1.1; add _ignore_case option
         """
         # Get dict of aliases
-        optmap = self.getx_cls_dict("_optmap")
+        optmap = self._optmap
         # Apply it
         fullopt = optmap.get(opt, opt)
         # Check for case option
@@ -2725,16 +2897,17 @@ class OptionsDict(dict):
                 Allowed option names; if empty, all options allowed
         :Versions:
             * 2022-09-19 ``@ddalle``: v1.0
-            * 2022-10-04 ``@ddalle``: v2.0: recurse throubh bases
+            * 2022-10-04 ``@ddalle``: v2.0; recurse through bases
+            * 2026-05-03 ``@ddalle``: v3.0; simplify using metaclass
         """
         # Get list of options from class
-        optlist = self.__class__.getx_cls_set("_optlist")
+        optlist = self._optlist
         # Get instance-specific list
         xoptlist = self._xoptlist
         # Add them
         if isinstance(xoptlist, set):
             # Combine
-            return optlist | xoptlist
+            return set(optlist) | xoptlist
         else:
             # Just the class's
             return optlist
@@ -2758,7 +2931,7 @@ class OptionsDict(dict):
         # Class
         cls = self.__class__
         # Get full optmap
-        optmap = cls.getx_cls_dict("_optmap")
+        optmap = cls._optmap
         # Initialize alias list
         aliases = {opt}
         # Loop through optmap
@@ -2817,11 +2990,12 @@ class OptionsDict(dict):
             * 2022-09-09 ``@ddalle``: v1.0
             * 2022-09-18 ``@ddalle``: v1.1; simple dict
             * 2023-06-13 ``@ddalle``: v1.2; use ``getx_cls_dict()``
+            * 2026-05-04 ``@ddalle``: v1.3; rely on metaclass for recurs
         """
         # Check input type
         assert_isinstance(opt, str)
         # Get option from attribute
-        optlistdepth = self.getx_cls_dict("_optlistdepth")
+        optlistdepth = self._optlistdepth
         # Check if directly present
         if opt in optlistdepth:
             return optlistdepth[opt]
@@ -2856,7 +3030,7 @@ class OptionsDict(dict):
         # Apply optmap
         opt = self.apply_optmap(opt)
         # Get _optring dict
-        optring = self.getx_cls_dict("_optring")
+        optring = self._optring
         # Get default
         ringdef = optring.get("_default_", False)
         # Process *opt* specifically
@@ -3709,23 +3883,10 @@ class OptionsDict(dict):
                 ``cls.__bases__``, etc.
         :Versions:
             * 2022-10-24 ``@ddalle``: v1.0
+            * 2026-05-03 ``@ddalle``: v2.0; use metaclass for recursion
         """
-        # Get attribute
-        clsdict = cls.__dict__.get(attr)
-        # Initialize if necessary
-        if not isinstance(clsdict, dict):
-            clsdict = {}
-        # Loop through bases
-        for clsj in cls.__bases__:
-            # Only process if OptionsDict
-            if issubclass(clsj, OptionsDict):
-                # Recurse
-                clsdictj = clsj.getx_cls_dict(attr)
-                # Update, but don't overwrite
-                for kj, vj in clsdictj.items():
-                    clsdict.setdefault(kj, vj)
-        # Output
-        return clsdict
+        # Get attribute, utilizaing metaclass for recursion
+        return getattr(cls, attr, {})
 
    # --- Subsections ---
     @classmethod
@@ -4389,13 +4550,11 @@ class OptionsDict(dict):
             lines.append(cls._description)
             lines.append("")
         # Get list of options
-        optlist = cls._getx_optlist(narrow)
+        optlist = cls._optlist
         # Get child subsections
-        subsecs = dict(
-            cls.getx_cls_dict("_sec_cls"),
-            **cls.getx_cls_dict("_sec_cls_optmap"))
+        subsecs = dict(cls._sec_cls, **cls._sec_cls_optmap)
         # Get alizes
-        optmap = cls.getx_cls_dict("_optmap")
+        optmap = cls._optmap
         # Show aliases
         if len(optmap):
             # Header for aliases
@@ -4425,7 +4584,7 @@ class OptionsDict(dict):
         # Add a blank line
         lines.append("")
         # Get child subsections
-        sec_cls_dict = cls._getx_sec_cls(narrow)
+        sec_cls_dict = cls._sec_cls
         sec_clsmap_dict = cls._getx_sec_cls_optmap(narrow)
         # Loop through section map
         for secname, seccls in sec_cls_dict.items():
@@ -4533,11 +4692,11 @@ class OptionsDict(dict):
                 # Only got class
                 seccls = cls_or_tuple
             # Check for options
-            if len(seccls._getx_optlist(narrow)):
+            if len(seccls._optlist):
                 filtered_children[secname] = cls_or_tuple
                 continue
             # Check for subsections
-            if len(seccls._getx_sec_cls(narrow)):
+            if len(seccls._sec_cls):
                 filtered_children[secname] = cls_or_tuple
                 continue
             # Check for subsections
@@ -4547,7 +4706,7 @@ class OptionsDict(dict):
         return filtered_children
 
     @classmethod
-    def _getx_optlist(cls, narrow=False) -> list:
+    def _getx_optlist(cls) -> list:
         r"""Get ``cls._optlist``, processing bases only if not *narrow*
 
         :Call:
@@ -4562,19 +4721,13 @@ class OptionsDict(dict):
                 Combined or narrow sorted list of option names
         :Versions:
             * 2023-07-14 ``@ddalle``: v1.0
+            * 2026-05-03 ``@ddalld``: v1.1; simplify using metaclass
         """
-        # Get list of options
-        if narrow:
-            # Only use options directly defined for this class
-            optlist = cls.__dict__.get("_optlist", [])
-        else:
-            # Include all options from parent classes
-            optlist = cls.getx_cls_set("_optlist")
         # Output
-        return sorted(optlist)
+        return sorted(list(cls._optlist))
 
     @classmethod
-    def _getx_sec_cls(cls, narrow=False) -> dict:
+    def _getx_sec_cls(cls, narrow: bool = False) -> dict:
         r"""Get ``cls._sec_cls``, processing bases only if not *narrow*
 
         :Call:
@@ -4589,14 +4742,9 @@ class OptionsDict(dict):
                 Combined or narrow dict of section names and classes
         :Versions:
             * 2023-07-14 ``@ddalle``: v1.0
+            * 2026-05-03 ``@ddalle``: v2.0; use metaclass
         """
-        # Check narrow option
-        if narrow:
-            # Return just from *cls*
-            return cls.__dict__.get("_sec_cls", {})
-        else:
-            # Include settings from bases
-            return cls.getx_cls_dict("_sec_cls")
+        return cls._sec_cls
 
     @classmethod
     def _getx_sec_cls_optmap(cls, narrow=False) -> dict:
@@ -4616,16 +4764,9 @@ class OptionsDict(dict):
             * 2023-07-14 ``@ddalle``: v1.0
             * 2023-07-15 ``@ddalle``: v1.1; include ``_opttypes``
         """
-        # Check narrow option
-        if narrow:
-            # Return just from *cls*
-            cls_optmap = cls.__dict__.get("_sec_cls_optmap", {})
-            # Get types to look for subclass therein
-            cls_opttypes = cls.__dict__.get("_opttypes", {})
-        else:
-            # Include settings from bases
-            cls_optmap = cls.getx_cls_dict("_sec_cls_optmap")
-            cls_opttypes = cls.getx_cls_dict("_opttypes")
+        # Include settings from bases
+        cls_optmap = cls._sec_cls_optmap
+        cls_opttypes = cls._opttypes
         # Initialize output
         secclsmapdict = dict(cls_optmap)
         # Loop through types
@@ -4648,7 +4789,7 @@ class OptionsDict(dict):
         return secclsmapdict
 
     @classmethod
-    def _getx_bases(cls, narrow=True):
+    def _getx_bases(cls, narrow: bool = True):
         r"""Get list of bases of *cls* for *narrow* documentation
 
         :Class:

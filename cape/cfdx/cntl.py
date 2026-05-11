@@ -71,7 +71,8 @@ from ..argread import ArgReader
 from ..argread.clitext import compile_rst
 from ..config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from ..dkit.rdb import DataKit
-from ..errors import assert_isinstance
+from ..errors import CapeValueError, assert_isinstance
+from ..filecntl.mapbcfile import MapBCFile
 from ..optdict import WARNMODE_WARN
 from ..optdict.optitem import getel
 from ..geom import RotatePoints
@@ -1033,6 +1034,7 @@ class Cntl(CntlBase):
         # Apply it
         self.exec_modfunction(func, a, kw, name="ConfigFunction")
 
+  # *** MESH ***
    # --- Mesh ---
     @run_rootdir
     def PrepareMesh(self, i: int):
@@ -1230,8 +1232,6 @@ class Cntl(CntlBase):
         # Get mesh file and tri file settings
         meshfile = self.opts.get_MeshFile()
         trifile = self.opts.get_TriFile()
-        # Option to run aflr3
-        aflr3 = self.opts.get_aflr3()
         # Check for triangulation options
         if (trifile is None) or (meshfile is not None):
             return
@@ -1247,19 +1247,10 @@ class Cntl(CntlBase):
         self.tri = self.tri0.Copy()
         # Apply rotations, translations, etc.
         self.PrepareTri(i)
-        # AFLR3 boundary conditions file
-        fbc = self.opts.get_aflr3_BCFile()
         # Enter case folder
         frun = self.x.GetFullFolderNames(i)
         os.chdir(self.RootDir)
         os.chdir(frun)
-        # Check for those AFLR3 boundary conditions
-        if fbc:
-            # Absolute file name
-            if not os.path.isabs(fbc):
-                fbc = os.path.join(self.RootDir, fbc)
-            # Copy the file
-            shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
         # Surface configuration file
         fxml = self.opts.get_ConfigFile()
         # Write it if necessary
@@ -1270,48 +1261,167 @@ class Cntl(CntlBase):
             # Copy the file
             if os.path.isfile(fxml):
                 shutil.copyfile(fxml, f'{fproj}.xml')
-        # Check intersection status.
-        if self.opts.get_intersect():
-            # Names of triangulation files
-            fvtri = "%s.tri" % fproj
-            fctri = "%s.c.tri" % fproj
-            fftri = "%s.f.tri" % fproj
-            # Write tri file as non-intersected; each volume is one CompID
-            if not os.path.isfile(fvtri):
-                self.tri.WriteVolTri(fvtri)
-            # Write the existing triangulation with existing CompIDs.
-            if not os.path.isfile(fctri):
-                self.tri.WriteCompIDTri(fctri)
-            # Write the farfield and source triangulation files
-            if not os.path.isfile(fftri):
-                self.tri.WriteFarfieldTri(fftri)
-        elif self.opts.get_verify():
-            # Names of surface mesh files
-            fitri = "%s.i.tri" % fproj
-            fsurf = "%s.surf" % fproj
-            # Write the tri file
-            if not os.path.isfile(fitri):
+        # Prepare to run ``intersect`` if necessary
+        self.prep_intersect(i)
+        # Prepare to use ``aflr3`` to generate mesh if specified
+        self.prep_aflr3(i)
+        # Write ``.tri`` file without formatting
+        self.prep_tri_write(i)
+        # Actually run intersect/aflr3 before submitting if requested
+        self.run_meshtools(i)
+
+    def run_meshtools(self, i: int):
+        # Get *quickstart* option
+        if not self.opts.get_quickstart():
+            return
+        # Get a case runner
+        runner = self.ReadCaseRunner(i)
+        # Run `intersect` if appropriate
+        runner.run_intersect(0)
+        # Run `verify` if appropriate
+        runner.run_verify(0)
+        # Run `aflr3` if appropriate
+        runner.run_aflr3(0)
+
+    @run_rootdir
+    def prep_intersect(self, i: int):
+        # Enter case folder
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Check intersect option
+        if not self.opts.get_intersect():
+            # No ``intersect``; check for ``verify``
+            if self.opts.get_verify():
+                # Names of surface mesh files
+                fitri = "%s.i.tri" % fproj
+                # Check for existing
+                if os.path.isfile(fitri):
+                    os.remove(fitri)
+                # Write tri file
                 self.tri.Write(fitri)
-            # Write the AFLR3 surface file
-            if not os.path.isfile(fsurf):
-                self.tri.WriteSurf(fsurf)
-        elif aflr3:
-            # Names of surface mesh files
-            fsurf = "%s.surf" % fproj
-            # Write the AFLR3 surface file only
-            if not os.path.isfile(fsurf):
-                self.tri.WriteSurf(fsurf)
-        elif self.opts.get_WriteTri():
-            # Write main tri file
-            ext = getattr(self, "_tri_ext", "tri")
-            ftri = f"{fproj}.{ext}"
-            # Write it
-            print(f"  Writing '{ftri}'")
-            if not os.path.isfile(ftri):
-                if ext == "fro":
-                    self.tri.WriteFro(ftri)
-                else:
-                    self.tri.Write(ftri)
+            # Stop preparations
+            return
+        # Names of triangulation files
+        fvtri = "%s.tri" % fproj
+        fctri = "%s.c.tri" % fproj
+        fftri = "%s.f.tri" % fproj
+        # Prepare alternate groups
+        self._prep_intersect_groups()
+        # Write tri file as non-intersected; each grp has single ID
+        if os.path.isfile(fvtri):
+            os.remove(fvtri)
+        print(f"    Writing '{fvtri}'")
+        self.tri.WriteVolTri(fvtri)
+        # Write the existing triangulation with existing CompIDs.
+        if os.path.isfile(fctri):
+            os.remove(fctri)
+        self.tri.WriteCompIDTri(fctri)
+        # Write the farfield and source triangulation files
+        if os.path.isfile(fftri):
+            os.remove(fftri)
+        self.tri.WriteFarfieldTri(fftri)
+
+    # Prepare special groups for intersect
+    def _prep_intersect_groups(self):
+        # Check for groups option
+        grps = self.opts.get_intersect_groups()
+        # Exit if none
+        if (grps is None) or len(grps) == 0:
+            return
+        # Check for tri
+        if self.tri is None or self.tri.nNode == 0:
+            return
+        # Initialize compIDs
+        gcomps = np.zeros_like(self.tri.CompID)
+        # Loop through groups
+        for j, face in enumerate(grps):
+            # Get tris for this component
+            k = self.tri.GetTrisFromCompID(face)
+            # Check for double-defnition
+            if np.any(gcomps[k]):
+                # Get list of conflicting groups
+                lbl = ' '.join(np.unique(gcomps[k]))
+                raise CapeValueError(
+                    f"Found tris in group {j+1} ({face}) with multiple " +
+                    f"groups; previous groups: {lbl}")
+            # Assign those
+            gcomps[k] = j + 1
+        # Check for unused triangles
+        if np.any(gcomps == 0):
+            # Count them
+            n = np.sum(gcomps == 0)
+            # Find components they are in
+            cid = np.unique(self.tri.CompID[gcomps == 0])
+            cidlbl = ' '.join(['%i' % i for i in cid])
+            # Error message
+            raise CapeValueError(
+                f"Found {n} tris not in any groups, "
+                f"with compIDs {cidlbl}")
+        # Save result
+        self.tri.GroupID = gcomps
+
+    @run_rootdir
+    def prep_aflr3(self, i: int):
+        # Check for AFLR3 settiong
+        if not self.opts.get_aflr3():
+            return
+        # Enter case folder
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # AFLR3 boundary conditions file
+        fbc = self.opts.get_aflr3_BCFile()
+        # Check for those AFLR3 boundary conditions
+        if fbc:
+            # Absolute file name
+            if not os.path.isabs(fbc):
+                fbc = os.path.join(self.RootDir, fbc)
+            # Copy the file
+            shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
+        # Names of surface mesh files
+        fsurf = "%s.surf" % fproj
+        # Write the AFLR3 surface file
+        if not os.path.isfile(fsurf):
+            self.tri.WriteSurf(fsurf)
+
+    @run_rootdir
+    def prep_tri_write(self, i: int):
+        # Check for write option
+        breakpoint()
+        if not self.opts.get_WriteTri():
+            return
+        elif self.opts.get_aflr3():
+            # Creating surface mesh by other means
+            return
+        elif self.opts.get_intersect():
+            # Tri file needs more preprocessing
+            return
+        # Enter case folder
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Write main tri file
+        ext = getattr(self, "_tri_ext", "tri")
+        ftri = f"{fproj}.{ext}"
+        # Remove existing tri file
+        if os.path.isfile(ftri):
+            os.remove(ftri)
+        # Write it
+        print(f"  Writing '{ftri}'")
+        if ext == "fro":
+            self.tri.WriteFro(ftri)
+        else:
+            self.tri.Write(ftri)
 
    # --- Mesh: file names ---
     # Get list of mesh file names that should be in a case folder
@@ -1649,6 +1759,24 @@ class Cntl(CntlBase):
             self.opts.set_Point(YR[j], ptsR[j])
 
    # --- Surface: config ---
+    # Read the boundary condition map
+    @run_rootdir
+    def ReadMapBC(self, j: int = 0, q: bool = True) -> Optional[MapBCFile]:
+        # Read the file
+        try:
+            BC = MapBCFile(self.opts.get_MapBCFile(j))
+        except OSError:
+            return
+        # Save it
+        if q:
+            # Read to main slot.
+            self.MapBC = BC
+        else:
+            # Template
+            self.MapBC0 = BC
+        # Output
+        return BC
+
     # Function to apply transformations to config
     def PrepareConfig(self, i: int):
         # Ensure index is set

@@ -165,6 +165,7 @@ KEY_TYPEMAP = {
     "tags": "tag",
     "temp": "T",
     "temperature": "T",
+    "tinf": "T",
     "translate": "TriTranslate",
     "translation": "TriTranslate",
     "u": "V",

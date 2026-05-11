@@ -51,4 +51,4 @@ class SuperlavaOpts(ExecOpts):
 
 
 # Add properties
-SuperlavaOpts.add_properties(SuperlavaOpts._optlist, prefix="lava_")
+SuperlavaOpts.add_properties(SuperlavaOpts._raw_optlist, prefix="lava_")

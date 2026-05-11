@@ -59,6 +59,7 @@ class IntersectOpts(ExecOpts):
         "ascii",
         "cutout",
         "fast",
+        "groups",
         "i",
         "intersections",
         "o",
@@ -75,6 +76,7 @@ class IntersectOpts(ExecOpts):
         "ascii": BOOL_TYPES,
         "cutout": INT_TYPES,
         "fast": BOOL_TYPES,
+        "groups": str,
         "i": str,
         "intersections": BOOL_TYPES,
         "o": str,
@@ -82,7 +84,7 @@ class IntersectOpts(ExecOpts):
         "rm": BOOL_TYPES,
         "smalltri": FLOAT_TYPES,
         "triged":  BOOL_TYPES,
-        "v": BOOL_TYPES
+        "v": BOOL_TYPES,
     }
 
     # Defaults
@@ -98,12 +100,18 @@ class IntersectOpts(ExecOpts):
         "v": False,
     }
 
+    # Lists
+    _optlistdepth = {
+        "groups": 1
+    }
+
     # Descriptions
     _rst_descriptions = {
         "T": "option to also write Tecplot file ``Components.i.plt``",
         "ascii": "flag that input file is ASCII",
         "cutout": "number of component to subtract",
         "fast": "also write unformatted FAST file ``Components.i.fast``",
+        "groups": "list of families to treat as groups for `intersect`",
         "i": "input file to ``intersect``",
         "intersections": "option to write intersections to ``intersect.dat``",
         "o": "output file for ``intersect``",

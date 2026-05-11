@@ -166,6 +166,7 @@ class RunControlOpts(OptionsDict):
         "WorkerMaxWaitTime": "WorkerTimeout",
         "WorkerTimeOut": "WorkerTimeout",
         "nJob": "NJob",
+        "quickstart": "PreMesh",
         "sbatch": "slurm",
     }
 
@@ -189,6 +190,7 @@ class RunControlOpts(OptionsDict):
         "WorkerTimeout": 600.0,
         "WorkerSleepTime": 10.0,
         "qsub": False,
+        "quickstart": False,
         "slurm": False,
         "NJob": 0,
         "ZombieTimeout": 45.0
@@ -217,7 +219,7 @@ class RunControlOpts(OptionsDict):
         "PhaseSequence": "list of phase indices to run",
         "PostPythonFuncs": "Python functions to run after each cycle",
         "PostShellCmds": "list of commands to run after each cycle",
-        "PreMesh": "whether or not to generate volume mesh before submitting",
+        "PreMesh": "option to generate mesh before submitting job",
         "PrePythonFuncs": "Python functions to run before each cycle",
         "PreShellCmds": "list of commands to run before each cycle",
         "RootDir": "(absolute) base folder from which CAPE settings were read",
@@ -239,6 +241,7 @@ class RunControlOpts(OptionsDict):
         "nIter": "number of iterations to run in phase *j*",
         "nProc": "number (or fraction) of cores to use (or omit if negative)",
         "qsub": "whether or not to submit jobs with PBS",
+        "quickstart": "option to generate mesh before submitting job",
         "slurm": "whether or not to submit jobs with Slurm",
     }
 

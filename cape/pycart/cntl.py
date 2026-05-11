@@ -441,9 +441,12 @@ class Cntl(capecntl.Cntl):
         # Generic copy files
         self.copy_files(i)
         self.link_files(i)
-        # Get the name of the configuration file.
+        # Get the name of the configuration file
+        prefile = self.opts.get_preSpecCntl()
+        prefile = 'preSpec.c3d.cntl' if prefile is True else prefile
+        prefile = '' if prefile in (None, False) else prefile
         fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
-        fpre = os.path.join(self.RootDir, self.opts.get_preSpecCntl())
+        fpre = os.path.join(self.RootDir, prefile)
         fc3d = os.path.join(self.RootDir, self.opts.get_inputC3d())
         # Copy the config file.
         if os.path.isfile(fxml):

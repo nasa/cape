@@ -27,6 +27,7 @@ from .options.runctlopts import RunControlOpts
 from .logger import CntlLogger
 from ..argread import ArgReader
 from ..config import ConfigXML, ConfigJSON
+from ..filecntl.mapbcfile import MapBCFile
 
 
 # Class to read input files
@@ -843,6 +844,66 @@ class CntlBase(ABC):
         """
         pass
 
+    @abstractmethod
+    def prep_intersect(self, i: int):
+        r"""Prepare triangulation input files for ``intersect``
+
+        Writes the volume, component-ID, and farfield triangulation
+        files needed by the Cart3D ``intersect`` tool, or writes a
+        plain ``.i.tri`` when only ``verify`` is requested.  Does
+        nothing if neither option is set.
+
+        :Call:
+            >>> cntl.prep_intersect(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2026-05-02 ``@ddalle``: v1.0
+        """
+        pass
+
+    @abstractmethod
+    def prep_aflr3(self, i: int):
+        r"""Prepare the AFLR3 surface file (``.surf``) for a case
+
+        Writes ``<proj>.surf`` to the case folder when the ``aflr3``
+        option is enabled.  Does nothing otherwise.
+
+        :Call:
+            >>> cntl.prep_aflr3(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2026-05-02 ``@ddalle``: v1.0
+        """
+        pass
+
+    @abstractmethod
+    def prep_tri_write(self, i: int):
+        r"""Write the surface triangulation file to a case folder
+
+        Writes ``<proj>.<ext>`` (typically ``.tri`` or ``.fro``) when
+        ``WriteTri`` is set and neither ``aflr3`` nor ``intersect`` is
+        active (those options handle their own triangulation output).
+
+        :Call:
+            >>> cntl.prep_tri_write(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2026-05-02 ``@ddalle``: v1.0
+        """
+        pass
+
    # --- Mesh: File names ---
     # Get list of mesh file names that should be in a case folder
     @abstractmethod
@@ -1019,6 +1080,22 @@ class CntlBase(ABC):
             * 2020-09-01 ``@ddalle``: v2.1, add *f* kwarg
         """
         pass
+
+    # Read the boundary condition map
+    @abstractmethod
+    def ReadMapBC(self, j: int = 0, q: bool = True) -> Optional[MapBCFile]:
+        r"""Read the FUN3D boundary condition map
+
+        :Call:
+            >>> cntl.ReadMapBC(q=True)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of the pyFun control class
+            *q*: {``True``} | ``False``
+                Whether or not to read to *MapBC*, else *MapBC0*
+        :Versions:
+            * 2016-03-30 ``@ddalle``: v1.0
+        """
 
     # Apply a config.xml translation
     @abstractmethod

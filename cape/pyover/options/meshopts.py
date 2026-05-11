@@ -120,5 +120,5 @@ class MeshOpts(OptionsDict):
 
 
 # Add properties
-MeshOpts.add_properties(MeshOpts._optlist, prefix="Mesh")
+MeshOpts.add_properties(MeshOpts._raw_optlist, prefix="Mesh")
 

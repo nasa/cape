@@ -57,7 +57,7 @@ def overrun(opts=None, j=0, **kw):
     r"""Interface to OVERFLOW binary
 
     :Call:
-        >>> cmdi = overrun(opts, i=0)
+        >>> cmdi = overrun(opts, j=0)
         >>> cmdi = overrun(**kw)
     :Inputs:
         *opts*: :class:`pyFun.options.Options`

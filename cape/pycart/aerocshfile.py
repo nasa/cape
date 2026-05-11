@@ -21,6 +21,9 @@ addition to the overall mesh adaptation parameters set in
     * :mod:`cape.pycart.cntl`
 """
 
+# Standard library
+from typing import Union
+
 # Import the base file control class.
 from ..filecntl.filecntl import FileCntl
 
@@ -130,7 +133,7 @@ class AeroCsh(FileCntl):
         self.SetCubesA(opts.get_cubes_a(0))
         self.SetCubesB(opts.get_cubes_b(0))
         self.SetMaxR(opts.get_maxR(0))
-        self.SetPreSpec(True)
+        self.SetPreSpec(opts.get_preSpecCntl(0))
         # Process the adaptation-specific lists.
         self.SetAPC(opts.get_apc())
         self.SetMeshGrowth(opts.get_mesh_growth())
@@ -766,7 +769,7 @@ class AeroCsh(FileCntl):
         self.SetVar('maxR', maxR)
 
     # Function to turn on (or off) preSpec for cubes
-    def SetPreSpec(self, pre=True):
+    def SetPreSpec(self, pre: Union[bool, str] = True):
         r"""Turn on or off :file:`preSpec.c3d.cntl`
 
         :Call:

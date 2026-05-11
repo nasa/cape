@@ -3263,6 +3263,8 @@ class Report(object):
        # ---------
        # Plotting
        # ---------
+        # Placeholder for plot object
+        h = None
         # Loop through plots.
         for k in range(nCoeff):
             # Get the component and coefficient.
@@ -3371,6 +3373,11 @@ class Report(object):
             fmt_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
             fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
             fmt_e = opts.get_SubfigOpt(sfig, "ErrorFormat", k)
+            # Check for size
+            v = FM.get_values(coeff)
+            if v is None or len(v) == 0:
+                print(f"    No iterations found for {comp}/{coeff}")
+                continue
             # Draw the plot
             h = FM.PlotCoeff(
                 coeff, xcol=xcol, n=nPlotIter,
@@ -3389,14 +3396,15 @@ class Report(object):
        # Post Formatting
        # ----------------
         # Additional formatting
-        self.SubfigFormatAxes(sfig, h['ax'])
+        if h is not None:
+            self.SubfigFormatAxes(sfig, h['ax'])
        # --------
        # Config
        # --------
         # Change back to report folder
         os.chdir(fpwd)
         # Check for a figure to write
-        if nIter >= 2:
+        if nIter >= 2 and (h is not None):
             # Save the figure
             fimg = self.save_figure(sfig, h)
             # Include the graphics

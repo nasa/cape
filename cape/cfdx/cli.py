@@ -1170,6 +1170,7 @@ class CfdxStartArgs(_CfdxSubsetArgs):
 
     # Additional options
     _optlist = (
+        "auto",
         "n",
         "j",
         "q",
