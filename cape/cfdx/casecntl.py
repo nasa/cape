@@ -1216,7 +1216,7 @@ class CaseRunner(CaseRunnerBase):
         else:
             # Perform the mapping
             print("    Mapping CompIDs for intersected {fotri} -> {fitri}")
-            self.lov_verbose(f"'mapping CompIDs from {fotri} using {fctri}")
+            self.log_verbose(f"'mapping CompIDs from {fotri} using {fctri}")
             trii.MapCompID(tric, tri0, v=100)
             # Add in far-field, sources, non-intersect comps
             if os.path.isfile(fftri):
