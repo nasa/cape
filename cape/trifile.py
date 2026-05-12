@@ -33,6 +33,10 @@ from io import IOBase
 
 # Third-party modules
 import numpy as np
+try:
+    from scipy.spatial import cKDTree
+except ModuleNotFoundError:
+    cKDTree = None
 
 # Local inputs
 from . import capeio as io
@@ -3574,32 +3578,36 @@ class TriBase(object):
             self.CompID[i] = tric.CompID[K0[j]]
 
     # Function to fully map component IDs
-    def MapCompID(self, tric, tri0):
-        r"""
-        Map CompIDs from pre-intersected triangulation to an intersected
-        triangulation.  In standard cape terminology, this is a transformation
-        from :file:`Components.o.tri` to :file:`Components.i.tri`
+    def map_comps(self, tric: "Tri", tri0: "Tri"):
+        r"""Map CompIDs from pre-intersected tri to new one
+
+        In standard CAPE usage, this works with `intersect`, this and
+        transforms ``Components.o.tri` to ``Components.i.tri``
 
         :Call:
-            >>> tri.MapCompID(tric, tri0)
+            >>> tri.map_comps(tric, tri0)
         :Inputs:
-            *tri*: :class:`cape.trifile.Tri`
+            *tri*: :class:`Tri`
                 Triangulation interface
-            *tric*: :class:`cape.trifile.Tri`
+            *tric*: :class:`Tri`
                 Full CompID breakdown prior to intersection
-            *tri0*: :class:`cape.trifile.Tri`
+            *tri0*: :class:`Tri`
                 Input triangulation to `intersect`
         :Versions:
-            * 2015-02-25 ``@ddalle``: v1.0
+            * 2015-02-25 ``@ddalle``: v1.0 (``MapCompID()``)
+            * 2026-05-12 ``@ddalle``: v2.0; use KDTree
         """
-        # Get the components from the pre-intersected triangulation.
-        comps = np.unique(tri0.CompID)
-        # Loop through comps.
-        for compID in comps:
-            # Get the faces with that comp ID (before intersection)
-            kc = np.where(tri0.CompID == compID)[0]
-            # Map the compIDs for that component.
-            self.MapSubCompID(tric, compID, kc)
+        # Get centers
+        self.GetCenters()
+        tric.GetCenters()
+        # Build tree on based on original (pre-intersected) tris
+        print("building KDtree...")
+        tree = cKDTree(tric.Centers)
+        print("querying KDtree...")
+        # Query tree for nearest k points
+        _, inds = tree.query(self.Centers)
+        # Save the results
+        self.CompID = tric.CompID[inds]
   # >
 
   # ================
@@ -5667,6 +5675,38 @@ class TriBase(object):
         node_normals[:, 2] /= L
         # Save it.
         self.NodeNormals = node_normals
+
+    # Get number of connected tris
+    def GetNodeTriCount(self) -> np.ndarray:
+        # Get counters
+        ntri = np.zeros(self.nNode, dtype="int32")
+        # Add in each count
+        np.add.at(ntri, self.Tris[:, 0] - 1, 1)
+        np.add.at(ntri, self.Tris[:, 1] - 1, 1)
+        np.add.at(ntri, self.Tris[:, 2] - 1, 1)
+        # Output
+        return ntri
+
+    def GetNodeCompID(self) -> np.ndarray:
+        # Get counters
+        ntri = self.GetNodeTriCount()
+        # Initialize CompID map
+        idsums = np.zeros(self.nNode)
+        # Add in compID from each column of tris
+        np.add.at(idsums, self.Tris[:, 0] - 1, self.CompID)
+        np.add.at(idsums, self.Tris[:, 1] - 1, self.CompID)
+        np.add.at(idsums, self.Tris[:, 2] - 1, self.CompID)
+        # Take the average
+        mask = ntri > 0
+        idsums[mask] /= ntri[mask]
+        # Convert to integers
+        node_ids = np.astype(idsums, self.CompID.dtype)
+        # Find where those are not close to integers
+        mask = np.abs(idsums - node_ids) > 1e-6
+        # Zero those out
+        node_ids[mask] = 0
+        # Output
+        return node_ids
 
     # Get averaged normals at nodes
     def GetSurfaceNormals(self):
