@@ -3376,8 +3376,8 @@ class TriBase(object):
         tri.Tris   = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
         tri.nTri   = tri.Tris.shape[0]
-        # Write the triangulation to file.
-        tri.Write(fname)
+        # Write the triangulation to file
+        tri.WriteSlow_lr4(fname)
 
     # Function to write c.tri file with original CompIDs but w/o farfield
     def WriteCompIDTri(self, fname='Components.tri'):
@@ -3420,8 +3420,8 @@ class TriBase(object):
         tri.Tris   = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
         tri.nTri   = tri.Tris.shape[0]
-        # Write the triangulation to file.
-        tri.Write(fname)
+        # Write the triangulation to file
+        tri.WriteSlow_lr4(fname)
 
     # Function to write f.tri file with supplemental surfaces
     def WriteFarfieldTri(self, fname='Components.f.tri'):
@@ -3465,7 +3465,7 @@ class TriBase(object):
         tri.nTri = tri.Tris.shape[0]
         # Write the triangulation to file
         if tri.nTri:
-            tri.Write(fname)
+            tri.WriteSlow_lr4(fname)
 
     # Function to map each face's CompID to the closest match from another tri
     def MapSubCompID(self, tric, compID, kc=None):
