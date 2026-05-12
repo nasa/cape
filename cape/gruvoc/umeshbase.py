@@ -2422,6 +2422,39 @@ class UmeshBase(ABC):
         # Output
         return mesh
 
+    def get_nodes_by_comp(
+            self,
+            comp: Union[int, list, str],
+            tri_ids: Optional[np.ndarray] = None,
+            quad_ids: Optional[np.ndarray] = None) -> np.ndarray:
+        r"""Get indices of all nodes contained on a given component
+
+        :Call:
+            >>> mask = mesh.get_nodes_by_comp(comp)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *comp*: :class:`int` | :class:`str` | :class:`list`
+                Surface ID name, number, or list thereof
+        :Outputs:
+            *mask*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of nodes in at least one tri/quad w/ matching ID
+        """
+        # Get tris and quads
+        ktria = (
+            tri_ids if (tri_ids is not None)
+            else self.get_tris_by_comp(comp))
+        kquad = (
+            quad_ids if (quad_ids is not None)
+            else self.get_quads_by_comp(comp))
+        # Get the node indices of those quads and tris
+        tris = self.tris[ktria]
+        quads = self.quads[kquad]
+        # Get overall non-repeating list of indices
+        jnodes = np.unique(np.hstack((tris.flatten(), quads.flatten()))) - 1
+        # Output
+        return jnodes
+
     def get_nodes_by_id(
             self,
             surf_id: int,
@@ -2484,16 +2517,49 @@ class UmeshBase(ABC):
         for j, k in enumerate(comp_ids):
             # Get node list
             tris_j = self.get_tris_by_id(k)
+            if j == 0:
+                # Initial list
+                ktris = tris_j
+            else:
+                ktris = np.union1d(ktris, tris_j)
+        # Output
+        return ktris
+
+    def get_quads_by_comp(
+            self,
+            comp: Optional[Union[list, int]] = None) -> np.ndarray:
+        r"""Get indices of quads in one or more component
+
+        :Call:
+            >>> kquads = mesh.get_quads_by_comp(comp)
+            >>> kquads = mesh.get_quads_by_comp(comps)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *comp*: :class:`int`
+                Single target for `mesh.tri_ids` to match
+            *comps*: :class:`list`\ [:class:`int`]
+                List of target `tri_ids`
+        :Outputs:
+            *kquads*: :class:`np.ndarray`\ [:class:`int`]
+                Indices of matching quads (0-based indexing)
+        """
+        # Check for empty input
+        if comp is None:
+            return np.arange(self.nquad)
+        # Ensure list
+        comp_ids = _listify(comp)
+        # Loop through comps
+        for j, k in enumerate(comp_ids):
+            # Get node list
             quads_j = self.get_quads_by_id(k)
             if j == 0:
                 # Initial list
                 kquads = quads_j
-                ktris = tris_j
             else:
                 kquads = np.union1d(kquads, quads_j)
-                ktris = np.union1d(ktris, tris_j)
         # Output
-        return ktris
+        return kquads
 
    # --- Single-Zone Subsets ---
     def get_nodes_by_vol_id(self, vol_id: int) -> np.ndarray:
@@ -2850,10 +2916,13 @@ class UmeshBase(ABC):
         if nlnr.any():
             n1l_mask = signl[nlnr] < 0
             n1r_mask = signr[nlnr] < 0
-            w8s[ktris_a[nlnr]] = ((1.0 - np.sum(
-                np.where(wl[nlnr] != 0, wl[nlnr] * n1l_mask, wl[nlnr]), axis=1)) -
+            w8s[ktris_a[nlnr]] = (
                 (1.0 - np.sum(
-                np.where(wr[nlnr] != 0, wr[nlnr] * n1r_mask, wr[nlnr]), axis=1))
+                    np.where(wl[nlnr] != 0, wl[nlnr]*n1l_mask, wl[nlnr]),
+                    axis=1)) -
+                (1.0 - np.sum(
+                    np.where(wr[nlnr] != 0, wr[nlnr]*n1r_mask, wr[nlnr]),
+                    axis=1))
             )
             # Remove mark so wont process later
             nl[nlnr] = False
@@ -2861,10 +2930,13 @@ class UmeshBase(ABC):
         if nlpr.any():
             n1l_mask = signl[nlpr] < 0
             p2r_mask = signr[nlpr] > 0
-            w8s[ktris_a[nlpr]] = ((1.0 - np.sum(
-                np.where(wl[nlpr] != 0, wl[nlpr] * n1l_mask, wl[nlpr]), axis=1)) -
+            w8s[ktris_a[nlpr]] = (
+                (1.0 - np.sum(
+                    np.where(wl[nlpr] != 0, wl[nlpr] * n1l_mask, wl[nlpr]),
+                    axis=1)) -
                 np.sum(
-                np.where(wr[nlpr] != 0, wr[nlpr] * p2r_mask, wr[nlpr]), axis=1)
+                    np.where(wr[nlpr] != 0, wr[nlpr] * p2r_mask, wr[nlpr]),
+                    axis=1)
             )
             # Remove mark so wont process later
             nl[nlpr] = False
@@ -2872,10 +2944,13 @@ class UmeshBase(ABC):
         if plnr.any():
             p2l_mask = signl[plnr] > 0
             n1r_mask = signr[plnr] < 0
-            w8s[ktris_a[plnr]] = (np.sum(
-                np.where(wl[plnr] != 0, wl[plnr] * p2l_mask, wl[plnr]), axis=1) -
+            w8s[ktris_a[plnr]] = (
+                np.sum(
+                    np.where(wl[plnr] != 0, wl[plnr] * p2l_mask, wl[plnr]),
+                    axis=1) -
                 (1.0 - np.sum(
-                np.where(wr[plnr] != 0, wr[plnr] * n1r_mask, wr[plnr]), axis=1))
+                    np.where(wr[plnr] != 0, wr[plnr] * n1r_mask, wr[plnr]),
+                    axis=1))
             )
             # Remove mark so wont process later
             pl[plnr] = False
@@ -2883,10 +2958,13 @@ class UmeshBase(ABC):
         if plpr.any():
             p2l_mask = signl[plpr] > 0
             p2r_mask = signr[plpr] > 0
-            w8s[ktris_a[plpr]] = (np.sum(
-                np.where(wl[plpr] != 0, wl[plpr] * p2l_mask, wl[plpr]), axis=1) -
+            w8s[ktris_a[plpr]] = (
                 np.sum(
-                np.where(wr[plpr] != 0, wr[plpr] * p2r_mask, wr[plpr]), axis=1)
+                    np.where(wl[plpr] != 0, wl[plpr] * p2l_mask, wl[plpr]),
+                    axis=1) -
+                np.sum(
+                    np.where(wr[plpr] != 0, wr[plpr] * p2r_mask, wr[plpr]),
+                    axis=1)
             )
             # Remove mark so wont process later
             pl[plpr] = False
