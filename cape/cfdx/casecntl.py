@@ -1199,7 +1199,7 @@ class CaseRunner(CaseRunnerBase):
             # Get command
             cmdi = cmdgen.intersect(rc)
             # Runn it
-            self.callf(cmdi)
+            self.callf(cmdi, f="intersect.out")
         # Read the original triangulation.
         tric = Tri(fctri)
         # Read the intersected triangulation.
@@ -1215,7 +1215,9 @@ class CaseRunner(CaseRunnerBase):
             trii = Tri(futri)
         else:
             # Perform the mapping
-            trii.MapCompID(tric, tri0)
+            print("    Mapping CompIDs for intersected {fotri} -> {fitri}")
+            self.lov_verbose(f"'mapping CompIDs from {fotri} using {fctri}")
+            trii.MapCompID(tric, tri0, v=100)
             # Add in far-field, sources, non-intersect comps
             if os.path.isfile(fftri):
                 # Read the tri file
