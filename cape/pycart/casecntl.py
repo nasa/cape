@@ -124,7 +124,7 @@ class CaseRunner(casecntl.CaseRunner):
             * 2023-07-09 ``@ddalle``: v1.2; rename, instance method
         """
         # Mesh generation
-        self.run_intersect(j)
+        self.run_intersect(j, proj="Components")
         self.run_comp2tri(j)
         self.run_verify(j)
         self.run_autoInputs(j)

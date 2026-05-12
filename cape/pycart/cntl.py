@@ -506,7 +506,7 @@ class Cntl(capecntl.Cntl):
             # Read runner
             runner = self._case_cls()
             # Run ``intersect`` if appropriate
-            runner.run_intersect(0)
+            runner.run_intersect(0, proj="Components")
             # Run ``verify`` if appropriate
             runner.run_verify(0)
             # Create the mesh if appropriate
