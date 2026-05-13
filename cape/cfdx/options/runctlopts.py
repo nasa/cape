@@ -99,6 +99,7 @@ class RunControlOpts(OptionsDict):
         "nIter",
         "nProc",
         "qsub",
+        "quickstart",
         "slurm",
         "ulimit",
         "verify",
@@ -141,6 +142,7 @@ class RunControlOpts(OptionsDict):
         "nIter": INT_TYPES,
         "nProc": INT_TYPES + FLOAT_TYPES,
         "qsub": BOOL_TYPES,
+        "quickstart": BOOL_TYPES,
         "slurm": BOOL_TYPES,
     }
 
@@ -166,7 +168,6 @@ class RunControlOpts(OptionsDict):
         "WorkerMaxWaitTime": "WorkerTimeout",
         "WorkerTimeOut": "WorkerTimeout",
         "nJob": "NJob",
-        "quickstart": "PreMesh",
         "sbatch": "slurm",
     }
 

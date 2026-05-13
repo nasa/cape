@@ -1111,7 +1111,7 @@ class CaseRunner(CaseRunnerBase):
         return ierr
 
     # Function to intersect geometry if appropriate
-    def run_intersect(self, j: int, proj: str = "Components"):
+    def run_intersect(self, j: int, proj: Optional[str] = None):
         r"""Run ``intersect`` to combine surface triangulations
 
         This is a multi-step process in order to preserve all the
@@ -1144,7 +1144,7 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *j*: :class:`int`
                 Phase number
-            *proj*: {``'Components'``} | :class:`str`
+            *proj*: {``None``} | :class:`str`
                 Project root name
         :See also:
             * :class:`cape.trifile.Tri`
@@ -1154,6 +1154,7 @@ class CaseRunner(CaseRunnerBase):
             * 2016-04-05 ``@ddalle``: v1.1; generalize to ``cfdx``
             * 2023-06-21 ``@ddalle``: v1.2; update name, instance method
             * 2024-08-22 ``@ddalle``: v1.3; add log messages
+            * 2026-05-11 ``@ddalle``: v1.4; add ``proj=None`` support
         """
         # Exit if not phase zero
         if j > 0:
@@ -1170,16 +1171,18 @@ class CaseRunner(CaseRunnerBase):
         # Check for initial run
         if n:
             return
+        # Default project
+        proj = proj if (proj is not None) else self.get_project_rootname(0)
         # Log message
         self.log_verbose(f"preparing to run ``intersect`` at phase {j}")
         # Triangulation file names
-        ftri  = "%s.tri" % proj
-        fftri = "%s.f.tri" % proj
-        fotri = "%s.o.tri" % proj
-        fctri = "%s.c.tri" % proj
-        fatri = "%s.a.tri" % proj
-        futri = "%s.u.tri" % proj
-        fitri = "%s.i.tri" % proj
+        ftri  = f"{proj}.tri"
+        fftri = f"{proj}.f.tri"
+        fotri = f"{proj}.o.tri"
+        fctri = f"{proj}.c.tri"
+        fatri = f"{proj}.a.tri"
+        futri = f"{proj}.u.tri"
+        fitri = f"{proj}.i.tri"
         # Check for triangulation file.
         if os.path.isfile(fitri):
             # Note this.
@@ -1196,7 +1199,7 @@ class CaseRunner(CaseRunnerBase):
             # Get command
             cmdi = cmdgen.intersect(rc)
             # Runn it
-            self.callf(cmdi)
+            self.callf(cmdi, f="intersect.out")
         # Read the original triangulation.
         tric = Tri(fctri)
         # Read the intersected triangulation.
@@ -1212,7 +1215,9 @@ class CaseRunner(CaseRunnerBase):
             trii = Tri(futri)
         else:
             # Perform the mapping
-            trii.MapCompID(tric, tri0)
+            print("    Mapping CompIDs for intersected {fotri} -> {fitri}")
+            self.log_verbose(f"'mapping CompIDs from {fotri} using {fctri}")
+            trii.MapCompID(tric, tri0, v=100)
             # Add in far-field, sources, non-intersect comps
             if os.path.isfile(fftri):
                 # Read the tri file
@@ -5321,7 +5326,6 @@ class CaseRunner(CaseRunnerBase):
         else:
             # Get phase number and iteration required to finish case
             jmax = self.get_last_phase()
-            nmax = self.get_last_iter()
             # Check last phase
             if self.check_phase(jmax):
                 sts = "DONE"

@@ -33,6 +33,10 @@ from io import IOBase
 
 # Third-party modules
 import numpy as np
+try:
+    from scipy.spatial import cKDTree
+except ModuleNotFoundError:
+    cKDTree = None
 
 # Local inputs
 from . import capeio as io
@@ -3376,8 +3380,8 @@ class TriBase(object):
         tri.Tris   = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
         tri.nTri   = tri.Tris.shape[0]
-        # Write the triangulation to file.
-        tri.Write(fname)
+        # Write the triangulation to file
+        tri.WriteSlow_lr4(fname)
 
     # Function to write c.tri file with original CompIDs but w/o farfield
     def WriteCompIDTri(self, fname='Components.tri'):
@@ -3420,8 +3424,8 @@ class TriBase(object):
         tri.Tris   = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
         tri.nTri   = tri.Tris.shape[0]
-        # Write the triangulation to file.
-        tri.Write(fname)
+        # Write the triangulation to file
+        tri.WriteSlow_lr4(fname)
 
     # Function to write f.tri file with supplemental surfaces
     def WriteFarfieldTri(self, fname='Components.f.tri'):
@@ -3465,7 +3469,7 @@ class TriBase(object):
         tri.nTri = tri.Tris.shape[0]
         # Write the triangulation to file
         if tri.nTri:
-            tri.Write(fname)
+            tri.WriteSlow_lr4(fname)
 
     # Function to map each face's CompID to the closest match from another tri
     def MapSubCompID(self, tric, compID, kc=None):
@@ -3574,32 +3578,36 @@ class TriBase(object):
             self.CompID[i] = tric.CompID[K0[j]]
 
     # Function to fully map component IDs
-    def MapCompID(self, tric, tri0):
-        r"""
-        Map CompIDs from pre-intersected triangulation to an intersected
-        triangulation.  In standard cape terminology, this is a transformation
-        from :file:`Components.o.tri` to :file:`Components.i.tri`
+    def map_comps(self, tric: "Tri", tri0: "Tri"):
+        r"""Map CompIDs from pre-intersected tri to new one
+
+        In standard CAPE usage, this works with `intersect`, this and
+        transforms ``Components.o.tri` to ``Components.i.tri``
 
         :Call:
-            >>> tri.MapCompID(tric, tri0)
+            >>> tri.map_comps(tric, tri0)
         :Inputs:
-            *tri*: :class:`cape.trifile.Tri`
+            *tri*: :class:`Tri`
                 Triangulation interface
-            *tric*: :class:`cape.trifile.Tri`
+            *tric*: :class:`Tri`
                 Full CompID breakdown prior to intersection
-            *tri0*: :class:`cape.trifile.Tri`
+            *tri0*: :class:`Tri`
                 Input triangulation to `intersect`
         :Versions:
-            * 2015-02-25 ``@ddalle``: v1.0
+            * 2015-02-25 ``@ddalle``: v1.0 (``MapCompID()``)
+            * 2026-05-12 ``@ddalle``: v2.0; use KDTree
         """
-        # Get the components from the pre-intersected triangulation.
-        comps = np.unique(tri0.CompID)
-        # Loop through comps.
-        for compID in comps:
-            # Get the faces with that comp ID (before intersection)
-            kc = np.where(tri0.CompID == compID)[0]
-            # Map the compIDs for that component.
-            self.MapSubCompID(tric, compID, kc)
+        # Get centers
+        self.GetCenters()
+        tric.GetCenters()
+        # Build tree on based on original (pre-intersected) tris
+        print("building KDtree...")
+        tree = cKDTree(tric.Centers)
+        print("querying KDtree...")
+        # Query tree for nearest k points
+        _, inds = tree.query(self.Centers)
+        # Save the results
+        self.CompID = tric.CompID[inds]
   # >
 
   # ================
@@ -5668,6 +5676,65 @@ class TriBase(object):
         # Save it.
         self.NodeNormals = node_normals
 
+    # Get number of connected tris
+    def GetNodeTriCount(self) -> np.ndarray:
+        r"""Get the number of triangles that each node is in
+
+        :Call:
+            >>> node_ids = tri.GetNodeCompID()
+        :Inputs:
+            *tri*: :class:`Tri`
+                Triangulation instance
+        :Outputs:
+            *node_ids*: :class:`np.ndarray`\ [:class:`int`]
+                CompIDs of each node or ``0`` if ambiguous
+        :Versions:
+            * 2025-04-03 ``@ddalle``: v1.0
+        """
+        # Get counters
+        ntri = np.zeros(self.nNode, dtype="int32")
+        # Add in each count
+        np.add.at(ntri, self.Tris[:, 0] - 1, 1)
+        np.add.at(ntri, self.Tris[:, 1] - 1, 1)
+        np.add.at(ntri, self.Tris[:, 2] - 1, 1)
+        # Output
+        return ntri
+
+    def GetNodeCompID(self) -> np.ndarray:
+        r"""Get the unique CompID for each node where such is defined
+
+        Nodes on boundaries between 2 or more components will have the
+        CompID of ``0``.
+
+        :Call:
+            >>> node_ids = tri.GetNodeCompID()
+        :Inputs:
+            *tri*: :class:`Tri`
+                Triangulation instance
+        :Outputs:
+            *node_ids*: :class:`np.ndarray`\ [:class:`int`]
+                CompIDs of each node or ``0`` if ambiguous
+        :Versions:
+            * 2025-04-03 ``@ddalle``: v1.0
+        """
+        # Initialize CompID map
+        idmin = np.full(self.nNode, np.max(self.CompID) + 1)
+        idmax = np.full(self.nNode, 0)
+        # Calculate cumulative min over each node
+        np.minimum.at(idmin, self.Tris[:, 0] - 1, self.CompID)
+        np.minimum.at(idmin, self.Tris[:, 1] - 1, self.CompID)
+        np.minimum.at(idmin, self.Tris[:, 2] - 1, self.CompID)
+        # Calculate cumulative max over each node
+        np.maximum.at(idmax, self.Tris[:, 0] - 1, self.CompID)
+        np.maximum.at(idmax, self.Tris[:, 1] - 1, self.CompID)
+        np.maximum.at(idmax, self.Tris[:, 2] - 1, self.CompID)
+        # Copy the IDs
+        node_ids = idmax + 0
+        # Only take the ones where min==max
+        node_ids[idmax != idmin] = 0
+        # Output
+        return node_ids
+
     # Get averaged normals at nodes
     def GetSurfaceNormals(self):
         r"""Get the area-weighted (non-uit) normals at each node
@@ -5675,7 +5742,7 @@ class TriBase(object):
         :Call:
             >>> surf_normals = tri.GetSurfaceNormals()
         :Inputs:
-            *tri*: :class:`cape.trifile.Tri`
+            *tri*: :class:`Tri`
                 Triangulation instance
         :Outputs:
             *surf_normals*: :class:`np.ndarray`

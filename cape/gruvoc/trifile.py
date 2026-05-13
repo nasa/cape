@@ -557,7 +557,7 @@ def _check_tri_mode(fp, little=True, record=False):
         # Read first 2 ints
         ns = np.fromfile(fp, count=nelem_types, dtype=dtype)
         # Unpack individual sizes (implicitly checks size of *ns*)
-        npt, ntri = ns
+        npt, ntri = np.astype(ns, "int64")
         # Check for negative dimensions
         if np.min(ns) < 0:
             return
@@ -770,12 +770,6 @@ def _check_triq_mode(fp, little=True, record=False):
         return
 
 
-#--- Copy over some functionality from CAPE ---#
-
-# =========
-# Averaging
-# =========
-# <
 # Function to calculate weighted average.
 def triq_weighted_avg(triq1, triq2):
     r"""Calculate weighted average with a second triangulation
@@ -808,13 +802,8 @@ def triq_weighted_avg(triq1, triq2):
         (triq1.niter+triq2.niter)
     # Update count.
     triq1.niter += triq2.niter
-# >
 
 
-# ==============
-# Interpolation
-# ==============
-# <
 # Interpolate state
 def triq_interp_surf_pt(triq, x, **kw):
     r"""Interpolate *triq.q* to the nearest point on the surface
@@ -897,13 +886,8 @@ def triq_interp_surf_pt(triq, x, **kw):
     # Interpolation
     q = w0*q0 + w1*q1 + w2*q2
     return xp, q
-# >
 
 
-# ============
-# Force/Moment
-# ============
-# <
 # Calculate forces and moments
 def triq_get_skin_friction(triq, comp=None, **kw):
     r"""Get components of skin friction coeffs
@@ -1446,5 +1430,4 @@ def triq_get_tri_forces(mesh, comp=None, **kw):
     C["CLNv"] = np.sum(Mv[:, 2])
     # Output
     return C
-# >
 

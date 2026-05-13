@@ -1317,10 +1317,12 @@ class Cntl(CntlBase):
         print(f"    Writing '{fvtri}'")
         self.tri.WriteVolTri(fvtri)
         # Write the existing triangulation with existing CompIDs.
+        print(f"    Writing '{fctri}'")
         if os.path.isfile(fctri):
             os.remove(fctri)
         self.tri.WriteCompIDTri(fctri)
         # Write the farfield and source triangulation files
+        print(f"    Writing '{fftri}' if needed")
         if os.path.isfile(fftri):
             os.remove(fftri)
         self.tri.WriteFarfieldTri(fftri)
@@ -1394,7 +1396,6 @@ class Cntl(CntlBase):
     @run_rootdir
     def prep_tri_write(self, i: int):
         # Check for write option
-        breakpoint()
         if not self.opts.get_WriteTri():
             return
         elif self.opts.get_aflr3():
@@ -1655,7 +1656,8 @@ class Cntl(CntlBase):
         if isinstance(kc, list):
             kc = np.array(kc)
         # Get the reference points for translations based on this rotation
-        xT = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
+        xt = kopts.get("TranslateRefPoint", [0.0, 0.0, 0.0])
+        xt = self.opts.get_Point(xt)
         # Get scale for translated points
         kt = kopts.get('TranslateScale', np.ones(3))
         # Ensure vector
@@ -1663,17 +1665,18 @@ class Cntl(CntlBase):
             # Ensure vector so that we can multiply it by another vector
             kt = np.array(kt)
         # Get vector
+        ax = kopts.get('Axis')
         vec = kopts.get('Vector')
-        ax  = kopts.get('Axis')
         cen = kopts.get('Center')
         # Get points to translate along with it.
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists.
-        if not isinstance(pts, list):
-            pts = list(pts)
-        if not isinstance(ptsR, list):
-            ptsR = list(ptsR)
+        ptsT = kopts.get('TranslatePoints', [])
+        ptsTR = kopts.get('TranslatePointsSymmetric', [])
+        # Make sure these are lists
+        pts = pts if isinstance(pts, list) else list(pts)
+        ptsR = ptsR if isinstance(ptsR, list) else list(ptsR)
+        ptsT = ptsT if isinstance(ptsT, list) else list(ptsT)
         # ---------------------------
         # Process the rotation vector
         # ---------------------------
@@ -1708,21 +1711,6 @@ class Cntl(CntlBase):
         v1 = ax + cen
         v0R = cenR
         v1R = axR + cenR
-        # Ensure a dictionary for reference points
-        if not isinstance(xT, dict):
-            # Initialize dict (can't use an iterator to do this in old Python)
-            yT = {}
-            # Loop through components affected by this translation
-            for comp in compsT+compsTR:
-                yT[comp] = xT
-            # Move the variable name
-            xT = yT
-        # Create full dictionary
-        for comp in compsT+compsTR:
-            # Get ref point for this component
-            pt = xT.get(comp, xT.get('def', [0.0, 0.0, 0.0]))
-            # Save it as a dimensionalized point
-            xT[comp] = np.array(self.opts.get_Point(pt))
         # ---------------------
         # Apply transformations
         # ---------------------
@@ -1730,33 +1718,43 @@ class Cntl(CntlBase):
         self.tri.Rotate(v0,  v1,  theta,  compID=compID)
         self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
         # Points to be rotated
-        X  = np.array([self.opts.get_Point(pt) for pt in pts])
+        X = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
-        # Reference points to be rotated
-        XT  = np.array([xT[comp] for comp in compsT])
-        XTR = np.array([xT[comp] for comp in compsTR])
+        # Points to be translated
+        XT = np.array([self.opts.get_Point(pt) for pt in ptsT])
+        XTR = np.array([self.opts.get_Point(pt) for pt in ptsTR])
         # Apply transformation
-        Y   = RotatePoints(X,   v0,  v1,  theta)
-        YT  = RotatePoints(XT,  v0,  v1,  theta)
-        YR  = RotatePoints(XR,  v0R, v1R, ka*theta)
-        YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
+        Y = RotatePoints(X, v0, v1, theta)
+        YR = RotatePoints(XR, v0R, v1R, ka*theta)
+        # Rotate reference points as requested
+        yt = RotatePoints(xt, v0, v1, theta)[0]
+        ytR = RotatePoints(xt, v0R, v1R, ka*theta)[0]
         # Process translations caused by this rotation
         for j in range(len(compsT)):
-            self.tri.Translate(kt*(YT[j]-XT[j]), compID=compsT[j])
+            self.tri.Translate(kt*(yt-xt), compID=compsT[j])
         # Process translations caused by symmetric rotation
         for j in range(len(compsTR)):
-            self.tri.Translate(kt*(YTR[j]-XTR[j]), compID=compsTR[j])
-        # Apply transformation
-        Y  = RotatePoints(X,  v0,  v1,  theta)
+            self.tri.Translate(kt*(ytR-xt), compID=compsTR[j])
+        # Process point rotations caused by rotation
+        for j in range(len(ptsT)):
+            XT[j] += kt*(yt-xt)
+        for j in range(len(ptsTR)):
+            XTR[j] += kt*(ytR-xt)
+        # Apply main transformation
+        Y = RotatePoints(X, v0, v1, theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
-        # Save the points.
-        for j in range(len(pts)):
-            # Set the new value.
-            self.opts.set_Point(Y[j], pts[j])
-        # Save the symmetric points.
-        for j in range(len(ptsR)):
-            # Set the new value.
-            self.opts.set_Point(YR[j], ptsR[j])
+        # Save the points
+        for j, pt in enumerate(pts):
+            self.opts.set_Point(Y[j], pt)
+        # Save the symmetric points
+        for j, pt in enumerate(ptsR):
+            self.opts.set_Point(YR[j], pt)
+        # Save the translated points
+        for j, pt in enumerate(ptsT):
+            self.opts.set_Point(XT[j], pt)
+        # Save the symmetric translated points
+        for j, pt in enumerate(ptsTR):
+            self.opts.set_Point(XTR[j], pt)
 
    # --- Surface: config ---
     # Read the boundary condition map

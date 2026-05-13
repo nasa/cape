@@ -165,6 +165,7 @@ KEY_TYPEMAP = {
     "tags": "tag",
     "temp": "T",
     "temperature": "T",
+    "tinf": "T",
     "translate": "TriTranslate",
     "translation": "TriTranslate",
     "u": "V",
@@ -620,6 +621,8 @@ class TriRotationDefnKeyOpts(SurfTransformKeyDefnOpts):
         "CompIDTranslateSymmetric",
         "TranslateRefPoint",
         "TranslateScale",
+        "TranslatePoints",
+        "TranslatePointsSymmetric",
         "VectorSymmetry",
     )
 
@@ -638,6 +641,8 @@ class TriRotationDefnKeyOpts(SurfTransformKeyDefnOpts):
     _optlistdepth = {
         "CompIDTranslate": 1,
         "CompIDTranslateSymmetric": 1,
+        "TranslatePoints": 1,
+        "TranslatePointsSymmetric": 1,
     }
 
     # Defaults

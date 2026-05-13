@@ -207,7 +207,7 @@ class DataKitHub(dict):
                 Path from which to begin search
         :Outputs:
             *fabs*: :class:`str`
-                Absolute path to such a 
+                Absolute path to such a
         :Versions:
             * 2021-07-21 ``@ddalle``: Version 1.0
         """
@@ -292,7 +292,7 @@ class DataKitHub(dict):
             *vdef*: {``None``} | **any**
                 Default value for *opt*
         :Outputs:
-            *v*: {*vdef*} | 
+            *v*: {*vdef*} |
                 Value of *hub[grp][opt]* or *vdef*
         :Versions:
             * 2021-02-18 ``@ddalle``: Version 1.0
@@ -763,7 +763,7 @@ class DataKitHub(dict):
                 ierr = max(ierr, jerr)
         # If reaching this point, return the best error code
         return ierr, None
-        
+
     # Load a module from name and section
     def _import_dbname(self, dbname, sec, regex, template, **kw):
         r"""Import a datakit by DB name from section and modname regex
@@ -874,7 +874,7 @@ class DataKitHub(dict):
     # Expand module name based on template
     def genr8_modname(self, dbname, regex, template):
         r"""Determine module name from DB name, regex, and template
-    
+
         :Call:
             >>> modname = hub.genr8_modname(dbname, regex, template)
         :Inputs:
