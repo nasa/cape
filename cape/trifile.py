@@ -5678,6 +5678,19 @@ class TriBase(object):
 
     # Get number of connected tris
     def GetNodeTriCount(self) -> np.ndarray:
+        r"""Get the number of triangles that each node is in
+
+        :Call:
+            >>> node_ids = tri.GetNodeCompID()
+        :Inputs:
+            *tri*: :class:`Tri`
+                Triangulation instance
+        :Outputs:
+            *node_ids*: :class:`np.ndarray`\ [:class:`int`]
+                CompIDs of each node or ``0`` if ambiguous
+        :Versions:
+            * 2025-04-03 ``@ddalle``: v1.0
+        """
         # Get counters
         ntri = np.zeros(self.nNode, dtype="int32")
         # Add in each count
@@ -5688,23 +5701,37 @@ class TriBase(object):
         return ntri
 
     def GetNodeCompID(self) -> np.ndarray:
-        # Get counters
-        ntri = self.GetNodeTriCount()
+        r"""Get the unique CompID for each node where such is defined
+
+        Nodes on boundaries between 2 or more components will have the
+        CompID of ``0``.
+
+        :Call:
+            >>> node_ids = tri.GetNodeCompID()
+        :Inputs:
+            *tri*: :class:`Tri`
+                Triangulation instance
+        :Outputs:
+            *node_ids*: :class:`np.ndarray`\ [:class:`int`]
+                CompIDs of each node or ``0`` if ambiguous
+        :Versions:
+            * 2025-04-03 ``@ddalle``: v1.0
+        """
         # Initialize CompID map
-        idsums = np.zeros(self.nNode)
-        # Add in compID from each column of tris
-        np.add.at(idsums, self.Tris[:, 0] - 1, self.CompID)
-        np.add.at(idsums, self.Tris[:, 1] - 1, self.CompID)
-        np.add.at(idsums, self.Tris[:, 2] - 1, self.CompID)
-        # Take the average
-        mask = ntri > 0
-        idsums[mask] /= ntri[mask]
-        # Convert to integers
-        node_ids = np.astype(idsums, self.CompID.dtype)
-        # Find where those are not close to integers
-        mask = np.abs(idsums - node_ids) > 1e-6
-        # Zero those out
-        node_ids[mask] = 0
+        idmin = np.full(self.nNode, np.max(self.CompID) + 1)
+        idmax = np.full(self.nNode, 0)
+        # Calculate cumulative min over each node
+        np.minimum.at(idmin, self.Tris[:, 0] - 1, self.CompID)
+        np.minimum.at(idmin, self.Tris[:, 1] - 1, self.CompID)
+        np.minimum.at(idmin, self.Tris[:, 2] - 1, self.CompID)
+        # Calculate cumulative max over each node
+        np.maximum.at(idmax, self.Tris[:, 0] - 1, self.CompID)
+        np.maximum.at(idmax, self.Tris[:, 1] - 1, self.CompID)
+        np.maximum.at(idmax, self.Tris[:, 2] - 1, self.CompID)
+        # Copy the IDs
+        node_ids = idmax + 0
+        # Only take the ones where min==max
+        node_ids[idmax != idmin] = 0
         # Output
         return node_ids
 
@@ -5715,7 +5742,7 @@ class TriBase(object):
         :Call:
             >>> surf_normals = tri.GetSurfaceNormals()
         :Inputs:
-            *tri*: :class:`cape.trifile.Tri`
+            *tri*: :class:`Tri`
                 Triangulation instance
         :Outputs:
             *surf_normals*: :class:`np.ndarray`
