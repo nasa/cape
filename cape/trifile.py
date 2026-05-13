@@ -3615,7 +3615,7 @@ class TriBase(object):
         printv("building KD-tree of target nodes...")
         tree = cKDTree(tric.Nodes[nodemask])
         # Evaluate distance from existing nodes
-        print("querying tree at current nodes...")
+        printv("querying tree at current nodes...")
         d, inds = tree.query(self.Nodes)
         # Status update
         printv("finding tris with known nodes...")

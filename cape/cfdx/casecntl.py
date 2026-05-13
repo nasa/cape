@@ -972,7 +972,11 @@ class CaseRunner(CaseRunnerBase):
   # *** SYSTEM INTERFACE ***
    # --- Runners (multiple-use) ---
     # Mesh generation
-    def run_aflr3(self, j: int, proj: str, fmt='lb8.ugrid'):
+    def run_aflr3(
+            self,
+            j: int,
+            proj: Optional[str] = None,
+            fmt: str = 'lb8.ugrid'):
         r"""Create volume mesh using ``aflr3``
 
         This function looks for several files to determine the most
@@ -999,7 +1003,7 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *j*: :class:`int`
                 Phase number
-            *proj*: :class:`str`
+            *proj*: {``None``} | :class:`str`
                 Project root name
             *fmt*: {``"lb8.ugrid"``} | :class:`str`
                 AFLR3 volume mesh format
@@ -1008,6 +1012,7 @@ class CaseRunner(CaseRunnerBase):
             * 2023-06-02 ``@ddalle``: v1.1; use ``get_aflr3_run()``
             * 2023-06-20 ``@ddalle``: v1.1; instance method
             * 2024-08-22 ``@ddalle``: v1.2; add log messages
+            * 2026-05-13 ``@ddalle``: v1.3; add proj=None support
         """
         # Get iteration
         n = self.get_iter()
@@ -1028,6 +1033,8 @@ class CaseRunner(CaseRunnerBase):
         # Check for initial run
         if n:
             return
+        # Default project
+        proj = proj if (proj is not None) else self.get_project_rootname(0)
         # Log message
         self.log_verbose(f"preparing to run ``aflr3`` at phase {j}")
         # File names
@@ -1213,7 +1220,7 @@ class CaseRunner(CaseRunnerBase):
             trii = Tri(futri)
         else:
             # Perform the mapping
-            print("    Mapping CompIDs for intersected {fotri} -> {fitri}")
+            print(f"    Mapping CompIDs for intersected {fotri} -> {fitri}")
             self.log_verbose(f"'mapping CompIDs from {fotri} using {fctri}")
             trii.map_comps(tric, v=False)
             # Add in far-field, sources, non-intersect comps
@@ -1229,7 +1236,7 @@ class CaseRunner(CaseRunnerBase):
         # Trim unused trianlges (internal)
         trii.RemoveUnusedNodes(v=True)
         # Write trimmed triangulation
-        trii.Write(futri)
+        trii.WriteSlow_lr4(futri)
         # Check if we should remove small triangles
         if o_rm and o_triged:
             # Status update
@@ -1237,12 +1244,16 @@ class CaseRunner(CaseRunnerBase):
             # Input file to remove small tris
             infix = "RemoveSmallTris"
             fi = open('triged.%s.i' % infix, 'w')
-            # Write inputs to file
+            # Write inputs to file: input file name
             fi.write('%s\n' % futri)
+            # Option to remove small triangles
             fi.write('19\n')
-            fi.write('%f\n' % rc.get("SmallArea", o_smalltri))
+            # Min area to keep
+            fi.write('%f\n' % o_smalltri)
+            # Name of output file
             fi.write('%s\n' % fitri)
-            fi.write('1\n')
+            # Binary format
+            fi.write('0\n')
             fi.close()
             # Run triged to remove small tris
             self.callf(
