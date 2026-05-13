@@ -1200,12 +1200,10 @@ class CaseRunner(CaseRunnerBase):
             cmdi = cmdgen.intersect(rc)
             # Runn it
             self.callf(cmdi, f="intersect.out")
-        # Read the original triangulation.
+        # Read the original triangulation
         tric = Tri(fctri)
-        # Read the intersected triangulation.
+        # Read the intersected triangulation
         trii = Tri(fotri)
-        # Read the pre-intersection triangulation.
-        tri0 = Tri(ftri)
         # Map the Component IDs
         if os.path.isfile(fatri):
             # Just read the mapped file
@@ -1217,7 +1215,7 @@ class CaseRunner(CaseRunnerBase):
             # Perform the mapping
             print("    Mapping CompIDs for intersected {fotri} -> {fitri}")
             self.log_verbose(f"'mapping CompIDs from {fotri} using {fctri}")
-            trii.MapCompID(tric, tri0, v=100)
+            trii.map_comps(tric, v=False)
             # Add in far-field, sources, non-intersect comps
             if os.path.isfile(fftri):
                 # Read the tri file
