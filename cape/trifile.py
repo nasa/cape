@@ -707,11 +707,11 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of file to write
         :Attributes:
-            *trifile.filetype*: {``'ascii'``} | ``'binary'``
+            *tri.filetype*: {``'ascii'``} | ``'binary'``
                 File type
-            *trifile.byteorder*: ``'big'`` | ``'little'``
+            *tri.byteorder*: ``'big'`` | ``'little'``
                 Endianness
-            *trifile.precision*: ``4`` | ``8``
+            *tri.precision*: ``4`` | ``8``
                 Number of bytes in one entry
         :Versions:
             * 2016-08-18 ``@ddalle``: v1.0
@@ -3578,36 +3578,77 @@ class TriBase(object):
             self.CompID[i] = tric.CompID[K0[j]]
 
     # Function to fully map component IDs
-    def map_comps(self, tric: "Tri", tri0: "Tri"):
+    def map_comps(self, tric: "Tri", v: bool = False):
         r"""Map CompIDs from pre-intersected tri to new one
 
         In standard CAPE usage, this works with `intersect`, this and
         transforms ``Components.o.tri` to ``Components.i.tri``
 
         :Call:
-            >>> tri.map_comps(tric, tri0)
+            >>> tri.map_comps(tric, v=False)
         :Inputs:
             *tri*: :class:`Tri`
                 Triangulation interface
             *tric*: :class:`Tri`
                 Full CompID breakdown prior to intersection
-            *tri0*: :class:`Tri`
-                Input triangulation to `intersect`
+            *v*: ``True`` | {``False``}
+                Verbose option
         :Versions:
             * 2015-02-25 ``@ddalle``: v1.0 (``MapCompID()``)
             * 2026-05-12 ``@ddalle``: v2.0; use KDTree
+            * 2026-05-13 ``@ddalle``: v3.0; use node map first
         """
+        # STDOUT helper
+        def printv(txt: str):
+            if v:
+                print(txt)
+        # Get length scale for each tringale
+        printv("getting length scale for each tri...")
+        l = self.GetTriScale()
+        # Identify nodes of *tric* on a single comp (not boundary)
+        printv("identifying node IDs of target...")
+        node_ids = tric.GetNodeCompID()
+        # Get subset
+        nodemask = node_ids != 0
+        node_ids = node_ids[nodemask]
+        # Build tree based on nodes of *tric*
+        printv("building KD-tree of target nodes...")
+        tree = cKDTree(tric.Nodes[nodemask])
+        # Evaluate distance from existing nodes
+        printv("querying tree at current nodes...")
+        d, inds = tree.query(self.Nodes)
+        # Status update
+        printv("finding tris with known nodes...")
+        # Turn this into distance map for tris
+        dtrimap = d[self.Tris - 1]
+        itrimap = node_ids[inds[self.Tris - 1]]
+        # Map each triangle to a single distance
+        dtri = np.min(dtrimap, axis=1)
+        # Identify triangles that have a uniquely-owned node
+        trimask = dtri <= 1e-2*l
+        # Find which node had the minimum distance for each tri
+        jtri = np.argmin(dtrimap, axis=1)
+        # Reset CompIDs
+        self.CompID = np.zeros_like(self.CompID)
+        # Save CompIDs that of tris with uniquely-owned node
+        self.CompID[trimask] = itrimap[trimask, jtri[trimask]]
+        # Identify gaps
+        gapmask = np.where(self.CompID == 0)[0]
+        # Check for perfection?
+        if gapmask.size == 0:
+            return
+        # Status update
+        printv("building KD-tree of target centroids...")
         # Get centers
         self.GetCenters()
         tric.GetCenters()
         # Build tree on based on original (pre-intersected) tris
-        print("building KDtree...")
         tree = cKDTree(tric.Centers)
-        print("querying KDtree...")
-        # Query tree for nearest k points
-        _, inds = tree.query(self.Centers)
+        # Query tree for nearest centroids of *tric* to cur centroids
+        printv(f"finding closest target tri to {gapmask.size} gaps...")
+        _, inds = tree.query(self.Centers[gapmask])
         # Save the results
-        self.CompID = tric.CompID[inds]
+        self.CompID[gapmask] = tric.CompID[inds]
   # >
 
   # ================
@@ -3754,7 +3795,7 @@ class TriBase(object):
         component ID of 4, but the user wants that component ID to instead be
         104, then ``tri.Conf['Body']`` will be ``4``, and ``cfg.faces['Body']``
         will be ``104``.  The result of applying this method is that all faces
-        in *trifile.compID* that are labeled with a ``4`` will get changed to
+        in *tri.compID* that are labeled with a ``4`` will get changed to
         ``104``.
 
         This process uses a working copy of *tri* to avoid problems with the
@@ -5187,11 +5228,11 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Attributes:
-            *trifile.TriX*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
+            *tri.TriX*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
                 *x*-coordinates of each node of each triangle
-            *trifile.TriY*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
+            *tri.TriY*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
                 *y*-coordinates of each node of each triangle
-            *trifile.TriZ*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
+            *tri.TriZ*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
                 *z*-coordinates of each node of each triangle
         :Versions:
             * 2017-12-22 ``@ddalle``: v1.0
@@ -5219,7 +5260,7 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Attributes:
-            *trifile.Centers*: :class:`np.ndarray`\ [:class:`float`]
+            *tri.Centers*: :class:`np.ndarray`\ [:class:`float`]
                 Center of each triangle
         :Versions:
             * 2017-02-09 ``@ddalle``: v1.0
@@ -5238,6 +5279,32 @@ class TriBase(object):
         self.Centers = stackcol((x, y, z))
 
     # Get normals and areas
+    def GetTriScale(self) -> np.ndarray:
+        r"""Get the length scale for each triangle
+        :Call:
+            >>> l = tri.GetTriScale()
+        :Inputs:
+            *tri*: :class:`Tri`
+                Triangulation instance
+        :Outputs:
+            *l*: :class:`ndarray`\ [:class:`float`]
+                Length scale for each triangle
+        :Versions:
+            * 2026-05-13 ``@ddalle``: v1.0
+        """
+        # Extract the vertices of each tri
+        x = self.Nodes[self.Tris - 1, :]
+        # Calculate the length of each edge
+        l01 = np.sum((x[:, 1, :] - x[:, 0, :])**2, axis=1)
+        l12 = np.sum((x[:, 2, :] - x[:, 1, :])**2, axis=1)
+        l20 = np.sum((x[:, 0, :] - x[:, 2, :])**2, axis=1)
+        # Get the max length
+        l = np.fmax(l01, l12)
+        l = np.fmax(l, l20)
+        # Return length
+        return np.sqrt(l)
+
+    # Get normals and areas
     def GetNormals(self):
         r"""Get the normals and areas of each triangle
 
@@ -5247,9 +5314,9 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.Areas*: :class:`ndarray`, shape=(tri.nTri,)
+            *tri.Areas*: :class:`ndarray`, shape=(tri.nTri,)
                 Area of each triangle is created
-            *trifile.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
+            *tri.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
                 Unit normal for each triangle is saved
         :Versions:
             * 2014-06-12 ``@ddalle``: v1.0
@@ -5291,9 +5358,9 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.AreaVectors*: :class:`ndarray`, shape=(tri.nTri,)
+            *tri.AreaVectors*: :class:`ndarray`, shape=(tri.nTri,)
                 Area of each triangle is created
-            *trifile.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
+            *tri.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
                 Unit normal for each triangle is saved
         :Versions:
             * 2014-06-12 ``@ddalle``: v1.0
@@ -5328,11 +5395,11 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.e1*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
+            *tri.e1*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
                 Unit vector pointing from node 1 to node 2 of each tri
-            *trifile.e2*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
+            *tri.e2*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
                 Unit vector completing right-handed coordinate system
-            *trifile.e3*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
+            *tri.e3*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
                 Unit normal of each triangle
         :Versions:
             * 2017-02-09 ``@ddalle``: v1.0
@@ -5387,7 +5454,7 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.Lengths*: :class:`numpy.ndarray`, shape=(tri.nTri,3)
+            *tri.Lengths*: :class:`numpy.ndarray`, shape=(tri.nTri,3)
                 Length of edge of each triangle
         :Versions:
             * 2015-02-21 ``@ddalle``: v1.0
@@ -5651,7 +5718,7 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.NodeNormals*: :class:`np.ndarray`
+            *tri.NodeNormals*: :class:`np.ndarray`
                 Unit normal at each node weigthed by adj. triangles
         :Versions:
             * 2016-01-23 ``@ddalle``: v1.0
@@ -5689,7 +5756,7 @@ class TriBase(object):
             *node_ids*: :class:`np.ndarray`\ [:class:`int`]
                 CompIDs of each node or ``0`` if ambiguous
         :Versions:
-            * 2025-04-03 ``@ddalle``: v1.0
+            * 2026-05-12 ``@ddalle``: v1.0
         """
         # Get counters
         ntri = np.zeros(self.nNode, dtype="int32")
@@ -5715,7 +5782,7 @@ class TriBase(object):
             *node_ids*: :class:`np.ndarray`\ [:class:`int`]
                 CompIDs of each node or ``0`` if ambiguous
         :Versions:
-            * 2025-04-03 ``@ddalle``: v1.0
+            * 2026-05-12 ``@ddalle``: v1.0
         """
         # Initialize CompID map
         idmin = np.full(self.nNode, np.max(self.CompID) + 1)
@@ -5748,7 +5815,7 @@ class TriBase(object):
             *surf_normals*: :class:`np.ndarray`
                 Area-weighted normal at each node
         :Effects:
-            *trifile.SurfaceNormals*: *surf_normals*
+            *tri.SurfaceNormals*: *surf_normals*
         :Versions:
             * 2025-04-03 ``@ddalle``: v1.0
         """
@@ -5781,7 +5848,7 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
         :Effects:
-            *trifile.Edges*: :class:`np.ndarray`, shape=(3*nTri, 2)
+            *tri.Edges*: :class:`np.ndarray`, shape=(3*nTri, 2)
                 Array of node indices defining each edge
         :Versions:
             * 2016-09-29 ``@ddalle``: v1.0
@@ -5812,7 +5879,7 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
         :Effects:
-            *trifile.EdgeTable*: :class:`np.ndarray`, shape=(3*nTri, 3)
+            *tri.EdgeTable*: :class:`np.ndarray`, shape=(3*nTri, 3)
                 Array of node indices defining each edge
         :Versions:
             * 2019-06-20 ``@ddalle``: v1.0
