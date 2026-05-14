@@ -511,7 +511,12 @@ class UmeshBase(ABC):
         mesh.nodes = np.array(pvmesh.points)
         mesh.nnode = mesh.nodes.shape[0]
         # Get faces
-        faces = pvmesh.faces
+        if isinstance(pvmesh, pv.UnstructuredGrid):
+            # Use *cells*; generic surf-or-volume UnstructuredGrid
+            faces = pvmesh.cells
+        else:
+            # Use *faces* from a surface-specific object
+            faces = pvmesh.faces
         # Assume all the triangles are first and quads follow ...
         # Get the number of points per element assuming all tris
         nv = faces[::4]
