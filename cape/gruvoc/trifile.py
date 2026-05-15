@@ -556,11 +556,11 @@ def _check_tri_mode(fp, little=True, record=False):
                 return
         # Read first 2 ints
         ns = np.fromfile(fp, count=nelem_types, dtype=dtype)
-        # Unpack individual sizes (implicitly checks size of *ns*)
-        npt, ntri = np.astype(ns, "int64")
         # Check for negative dimensions
         if np.min(ns) < 0:
             return
+        # Unpack individual sizes (implicitly checks size of *ns*)
+        npt, ntri = np.array(ns, dtype="int64")
         # Calculate size of required records for single-precision
         n4 = 4*(npt*3 + ntri*3)
         # Add in size of first record and record markers (if any)

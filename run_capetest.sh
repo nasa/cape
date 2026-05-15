@@ -5,7 +5,7 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/000_vendor/004_optdict" \
+    "test/001_cape/041_uh3d" \
     --junitxml=test/junit.xml \
     --pdb \
 
