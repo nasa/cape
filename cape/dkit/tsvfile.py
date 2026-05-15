@@ -1447,6 +1447,7 @@ class TSVTecDatFile(TSVSimple):
                 break
             # Check if this is a data line
             firstword = line.split(maxsplit=1)[0]
+            firstword = firstword.split('=', maxsplit=1)[0]
             # Check if it's a number
             if REGEX_NUMERIC.fullmatch(firstword):
                 # Header must be over!
@@ -1468,7 +1469,8 @@ class TSVTecDatFile(TSVSimple):
                 continue
             elif linetype in ("zone", "zone t") and (not continuation_line):
                 # Title is on right-hand side
-                zone = line.split('=')[1].strip()
+                parts = line.split('=')
+                zone = "" if len(parts) < 2 else parts[1].strip()
                 # Strip quotes
                 self.zone = zone.strip('"').strip("'")
                 continue
@@ -1482,6 +1484,9 @@ class TSVTecDatFile(TSVSimple):
                 continue
             # Process variable names
             linecols = re.findall('"([^"]+)"', line)
+            # Fall back if no quotes are used
+            if len(linecols) == 0:
+                linecols = line.split()
             # Translate
             linecols = self.translate_colnames(linecols)
             # Append to list
