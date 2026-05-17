@@ -488,6 +488,38 @@ class UmeshBase(ABC):
         return True
 
   # === Conversion ===
+   # --- cape.trifile ---
+    @classmethod
+    def from_tri(cls, tri) -> "UmeshBase":
+        r"""Interpret :class:`Umesh` from a :class:`cape.trifile.Tri`
+
+        :Call:
+            >>> mesh = Umesh.from_tri(tri)
+        :Inputs:
+            *tri*: :class:`cape.trifile.Tri`
+                Alternate CAPE tri-file instance
+        :Outputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        """
+        # Initialize empty mesh
+        mesh = cls()
+        # Get nodes
+        mesh.nodes = tri.Nodes
+        mesh.nnode = tri.nNode
+        # Get tris
+        mesh.tris = tri.Tris
+        mesh.ntri = tri.nTri
+        # Get quads
+        mesh.quads = getattr(tri, "Quads", np.zeros((0, 4), dtype="int"))
+        mesh.nquad = getattr(tri, "nQuad", 0)
+        # Get comp ids
+        mesh.tri_ids = tri.CompID
+        mesh.quad_ids = getattr(
+            tri, "CompIDQuad", np.ones(mesh.nquad, dtype="i4"))
+        # Output
+        return mesh
+
    # --- PyVista ---
     @classmethod
     def from_pvmesh(cls, pvmesh) -> "UmeshBase":

@@ -37,6 +37,7 @@ import signal
 import sys
 import time
 import traceback
+import warnings
 from collections import namedtuple
 from datetime import datetime
 from typing import Any, Optional, Tuple, Union
@@ -1140,9 +1141,9 @@ class CaseRunner(CaseRunnerBase):
 
         More specifically, these files are ``{proj}.i.tri``, etc.; the
         default project name is ``"Components"``.  This function also
-        calls the Chimera Grid Tools program ``triged`` to remove unused
-        nodes from the intersected triangulation and optionally remove
-        small triangles.
+        has the option to utilize PyVista to clean up the raw
+        intersected triangulation to eliminate very small triangles and
+        other difficulties that may arise in the `intersect` output.
 
         :Call:
             >>> runner.run_intersect(j, proj="Components")
@@ -1162,6 +1163,7 @@ class CaseRunner(CaseRunnerBase):
             * 2023-06-21 ``@ddalle``: v1.2; update name, instance method
             * 2024-08-22 ``@ddalle``: v1.3; add log messages
             * 2026-05-11 ``@ddalle``: v1.4; add ``proj=None`` support
+            * 2026-05-16 ``@ddalle``: v1.5; use PyVista, not `triged`
         """
         # Exit if not phase zero
         if j > 0:
@@ -1211,6 +1213,25 @@ class CaseRunner(CaseRunnerBase):
         tric = Tri(fctri)
         # Read the intersected triangulation
         trii = Tri(fotri)
+        # Trim unused nodes (internal)
+        trii.RemoveUnusedNodes(v=True)
+        # Perform cleaning
+        if rc.get_intersect_pvclean(0) and not os.path.isfile(futri):
+            # Get tolerance
+            tol = rc.get_intersect_cleantol(0)
+            # Initialize gruvoc mesh to get a PyVista object
+            mesh = umesh.Umesh.fromt_tri(trii)
+            mesh.make_pvmesh_surf()
+            # Perform cleanup of ``intersect`` cleanup
+            pvmesh = mesh.pvmesh.clean(
+                tolerance=tol, absolute=False)
+            # Cleanup
+            del mesh.pvmesh
+            del mesh
+            # Save to new object
+            meshu = umesh.Umesh.from_pvmesh(pvmesh)
+            # Write unmapped file
+            meshu.write_tri(futri, fmt="lr4")
         # Map the Component IDs
         if os.path.isfile(fatri):
             # Just read the mapped file
@@ -1229,38 +1250,13 @@ class CaseRunner(CaseRunnerBase):
                 trif = Tri(fftri)
                 # Add it to the mapped triangulation
                 trii.AddRawCompID(trif)
-        # Intersect post-process options
-        o_rm = rc.get_intersect_rm()
-        o_triged = rc.get_intersect_triged()
-        o_smalltri = rc.get_intersect_smalltri()
-        # Trim unused trianlges (internal)
-        trii.RemoveUnusedNodes(v=True)
+        # Check if we should remove small triangles
+        if rc.get_intersect_triged():
+            warnings.warn(
+                "'triged' option in 'intersect' is deprecated",
+                DeprecationWarning)
         # Write trimmed triangulation
         trii.WriteSlow_lr4(futri)
-        # Check if we should remove small triangles
-        if o_rm and o_triged:
-            # Status update
-            self.log_verbose("removing small tris after intersect")
-            # Input file to remove small tris
-            infix = "RemoveSmallTris"
-            fi = open('triged.%s.i' % infix, 'w')
-            # Write inputs to file: input file name
-            fi.write('%s\n' % futri)
-            # Option to remove small triangles
-            fi.write('19\n')
-            # Min area to keep
-            fi.write('%f\n' % o_smalltri)
-            # Name of output file
-            fi.write('%s\n' % fitri)
-            # Binary format
-            fi.write('0\n')
-            fi.close()
-            # Run triged to remove small tris
-            self.callf(
-                f"triged < triged.{infix}.i > triged.{infix}.o", shell=True)
-        else:
-            # Rename file
-            os.rename(futri, fitri)
 
     # Function to verify if requested
     def run_verify(self, j: int, proj='Components'):

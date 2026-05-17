@@ -104,6 +104,7 @@ class IntersectOpts(ExecOpts):
     # Defaults
     _rc = {
         "T": False,
+        "clean-tol": 1e-6,
         "fast": False,
         "i": "Components.tri",
         "intersections": False,
