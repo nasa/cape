@@ -454,7 +454,7 @@ class TriBase(object):
    # ++++++++++++++++
    # {
     # Function to read a .tri file
-    def Read(self, fname, n=1):
+    def Read(self, fname: str, n: int = 1):
         r"""Read a triangulation file (from ``.tri`` or ``.triq`` file)
 
         File type is automatically detected and may be any one of the following
@@ -476,19 +476,36 @@ class TriBase(object):
             * 2014-06-02 ``@ddalle``: v1.0
         """
         # Read the easy way
-        tri = Umesh(fname)
+        mesh = Umesh(fname)
+        # Save manual tag
+        self.n = n
+        # Save data
+        self._from_umesh(mesh)
+
+    @classmethod
+    def from_umesh(cls, mesh: Umesh):
+        # Initialize
+        tri = cls()
+        # Apply data
+        tri._from_umesh(mesh)
+        # Output
+        return tri
+
+    def _from_umesh(self, mesh):
         # Number of states
-        nq = 0 if tri.nq is None else tri.nq
+        nq = 0 if mesh.nq is None else mesh.nq
         # Save parts
         self.nQuad = 0
-        self.nTri = tri.ntri
-        self.nNode = tri.nnode
-        self.Nodes = tri.nodes
-        self.Tris = tri.tris
-        self.CompID = tri.tri_ids
-        self.n = n
+        self.nTri = mesh.ntri
+        self.nNode = mesh.nnode
+        self.Nodes = mesh.nodes
+        self.Tris = mesh.tris
+        self.CompID = mesh.tri_ids
+        self.Quads = mesh.quads
+        self.nQuad = mesh.nquad
+        self.CompIDQuad = mesh.quad_ids
         self.nq = nq
-        self.q = tri.q
+        self.q = mesh.q
 
     # Function to read a .triq file
     def ReadTriQ(self, fname, n=1):

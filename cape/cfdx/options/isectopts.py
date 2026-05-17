@@ -57,6 +57,7 @@ class IntersectOpts(ExecOpts):
     _optlist = {
         "T",
         "ascii",
+        "clean-tol",
         "cutout",
         "fast",
         "groups",
@@ -64,16 +65,28 @@ class IntersectOpts(ExecOpts):
         "intersections",
         "o",
         "overlap",
+        "pv-clean",
         "rm",
         "smalltri",
         "triged",
         "v",
     }
 
+    # Aliases
+    _optmap = {
+        "clean": "pv-clean",
+        "pvclean": "pv-clean",
+        "pyvista-clean": "pv-clean",
+        "cleantol": "clean-tol",
+        "pv-tol": "clean-tol",
+        "tol": "clean-tol",
+    }
+
     # Types
     _opttypes = {
         "T": BOOL_TYPES,
         "ascii": BOOL_TYPES,
+        "clean-tol": FLOAT_TYPES,
         "cutout": INT_TYPES,
         "fast": BOOL_TYPES,
         "groups": str,
@@ -81,6 +94,7 @@ class IntersectOpts(ExecOpts):
         "intersections": BOOL_TYPES,
         "o": str,
         "overlap": INT_TYPES,
+        "pv-clean": BOOL_TYPES,
         "rm": BOOL_TYPES,
         "smalltri": FLOAT_TYPES,
         "triged":  BOOL_TYPES,
@@ -90,10 +104,12 @@ class IntersectOpts(ExecOpts):
     # Defaults
     _rc = {
         "T": False,
+        "clean-tol": 1e-6,
         "fast": False,
         "i": "Components.tri",
         "intersections": False,
         "o": "Components.i.tri",
+        "pv-clean": True,
         "rm": False,
         "smalltri": 1e-4,
         "triged": True,
@@ -109,6 +125,7 @@ class IntersectOpts(ExecOpts):
     _rst_descriptions = {
         "T": "option to also write Tecplot file ``Components.i.plt``",
         "ascii": "flag that input file is ASCII",
+        "clean-tol": "tolerance for PyVista surface cleaning with *pv-clean*",
         "cutout": "number of component to subtract",
         "fast": "also write unformatted FAST file ``Components.i.fast``",
         "groups": "list of families to treat as groups for `intersect`",
@@ -116,6 +133,7 @@ class IntersectOpts(ExecOpts):
         "intersections": "option to write intersections to ``intersect.dat``",
         "o": "output file for ``intersect``",
         "overlap": "perform boolean intersection of this comp number",
+        "pv-clean": "option to clean intersected surface using PyVista",
         "rm": "option to remove small triangles from results",
         "smalltri": "cutoff size for small triangles with *rm*",
         "triged": "option to use CGT ``triged`` to clean output file",
