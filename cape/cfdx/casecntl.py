@@ -1189,7 +1189,6 @@ class CaseRunner(CaseRunnerBase):
         fftri = f"{proj}.f.tri"
         fotri = f"{proj}.o.tri"
         fctri = f"{proj}.c.tri"
-        fatri = f"{proj}.a.tri"
         futri = f"{proj}.u.tri"
         fitri = f"{proj}.i.tri"
         # Check for triangulation file.
@@ -1216,47 +1215,49 @@ class CaseRunner(CaseRunnerBase):
         # Trim unused nodes (internal)
         trii.RemoveUnusedNodes(v=True)
         # Perform cleaning
-        if rc.get_intersect_pvclean(0) and not os.path.isfile(futri):
+        if os.path.isfile(futri):
+            # Log result
+            self.log_verbose(f"'{futri}' exists; using cleaned-up file")
+            # Reread
+            trii = Tri(futri)
+        elif rc.get_intersect_pvclean(0):
+            # Log message
+            self.log_both(f"Using PyVista to perform cleanup of '{fotri}'")
             # Get tolerance
             tol = rc.get_intersect_cleantol(0)
             # Initialize gruvoc mesh to get a PyVista object
             mesh = umesh.Umesh.fromt_tri(trii)
             mesh.make_pvmesh_surf()
             # Perform cleanup of ``intersect`` cleanup
-            pvmesh = mesh.pvmesh.clean(
-                tolerance=tol, absolute=False)
+            pvmesh = mesh.pvmesh.clean(tolerance=tol, absolute=False)
             # Cleanup
             del mesh.pvmesh
             del mesh
+            # Log completion
+            self.log_verbose(f"Completed cleanup, writing '{futri}'")
             # Save to new object
             meshu = umesh.Umesh.from_pvmesh(pvmesh)
             # Write unmapped file
             meshu.write_tri(futri, fmt="lr4")
-        # Map the Component IDs
-        if os.path.isfile(fatri):
-            # Just read the mapped file
-            trii = Tri(fatri)
-        elif os.path.isfile(futri):
-            # Just read the mapped file w/o unused nodes
-            trii = Tri(futri)
-        else:
-            # Perform the mapping
-            print(f"    Mapping CompIDs for intersected {fotri} -> {fitri}")
-            self.log_verbose(f"'mapping CompIDs from {fotri} using {fctri}")
-            trii.map_comps(tric, v=False)
-            # Add in far-field, sources, non-intersect comps
-            if os.path.isfile(fftri):
-                # Read the tri file
-                trif = Tri(fftri)
-                # Add it to the mapped triangulation
-                trii.AddRawCompID(trif)
+            # Get back to Tri format
+            trii = Tri.from_umesh(meshu)
+        # Perform the mapping
+        print(f"    Mapping CompIDs for intersected {fotri} -> {fitri}")
+        self.log_verbose(f"'mapping CompIDs from {fotri} using {fctri}")
+        trii.map_comps(tric, v=False)
+        # Add in far-field, sources, non-intersect comps
+        if os.path.isfile(fftri):
+            # Read the tri file
+            trif = Tri(fftri)
+            # Add it to the mapped triangulation
+            trii.AddRawCompID(trif)
         # Check if we should remove small triangles
         if rc.get_intersect_triged():
             warnings.warn(
                 "'triged' option in 'intersect' is deprecated",
                 DeprecationWarning)
         # Write trimmed triangulation
-        trii.WriteSlow_lr4(futri)
+        trii.WriteSlow_lr4(fitri)
 
     # Function to verify if requested
     def run_verify(self, j: int, proj='Components'):
