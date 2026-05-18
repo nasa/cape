@@ -1213,7 +1213,7 @@ class CaseRunner(CaseRunnerBase):
         # Read the intersected triangulation
         trii = Tri(fotri)
         # Trim unused nodes (internal)
-        trii.RemoveUnusedNodes(v=True)
+        trii.RemoveUnusedNodes(v=False)
         # Perform cleaning
         if os.path.isfile(futri):
             # Log result
@@ -1221,12 +1221,14 @@ class CaseRunner(CaseRunnerBase):
             # Reread
             trii = Tri(futri)
         elif rc.get_intersect_pvclean(0):
-            # Log message
-            self.log_both(f"Using PyVista to perform cleanup of '{fotri}'")
             # Get tolerance
             tol = rc.get_intersect_cleantol(0)
+            # Log message
+            msg = f"Using PyVista to perform cleanup of '{fotri}', tol={tol:.1e}"
+            self.log_both(msg)
+            print(f"    {msg}")
             # Initialize gruvoc mesh to get a PyVista object
-            mesh = umesh.Umesh.fromt_tri(trii)
+            mesh = umesh.Umesh.from_tri(trii)
             mesh.make_pvmesh_surf()
             # Perform cleanup of ``intersect`` cleanup
             pvmesh = mesh.pvmesh.clean(tolerance=tol, absolute=False)
