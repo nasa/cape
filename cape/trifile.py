@@ -3370,7 +3370,7 @@ class TriBase(object):
             # Use the group IDs as component IDs
             tri.CompID = self.GroupID
             # Write the triangulation to file
-            tri.Write(fname)
+            tri.WriteSlow_lr4(fname)
             # Done
             return
         # Set first volume
