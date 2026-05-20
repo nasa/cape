@@ -3348,6 +3348,8 @@ class Report(object):
                 FM.TransformFM(topts, self.cntl.x, i)
             # Column for the x-axis
             xcol = opts.get_SubfigOpt(sfig, "XCol")
+            # Linear vs log scaling
+            ylog = opts.get_SubfigOpt(sfig, "LogY")
             # Get the manual range to show
             dc = opts.get_SubfigOpt(sfig, "Delta", k)
             # Get the multiple of standard deviation to show
@@ -3383,6 +3385,7 @@ class Report(object):
                 coeff, xcol=xcol, n=nPlotIter,
                 nFirst=nPlotFirst, nLast=nPlotLast,
                 nStats=nStats, nMaxStats=nMax, dnStats=dn,
+                semilogy=ylog,
                 PlotOptions=kw_p, MeanOptions=kw_m,
                 d=dc, DeltaOptions=kw_d,
                 k=ksig, StDevOptions=kw_s,
