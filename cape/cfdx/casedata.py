@@ -1642,6 +1642,12 @@ class CaseData(DataKit):
                 transform=h['ax'].transAxes)
             # Correct the font
             _set_font(h['eps'])
+       # ------------------
+       # Log/Linear scaling
+       # ------------------
+        # Check for log scale
+        if kw.get("semilogy", False):
+            h['ax'].set_yscale('log')
        # -----------
        # Grid Lines
        # -----------
