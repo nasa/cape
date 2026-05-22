@@ -52,7 +52,7 @@ def RotatePoints(X, v1, v2, theta):
     y = X[:,1] - v1[1]
     z = X[:,2] - v1[2]
     # Make the rotation vector
-    v = (v2-v1) / np.linalg.linalg.norm(v2-v1)
+    v = (v2-v1) / np.linalg.norm(v2-v1)
     # Dot product of points with rotation vector
     k1 = v[0]*x + v[1]*y + v[2]*z
     # Trig functions

@@ -1641,14 +1641,69 @@ class Cntl(CntlBase):
         kopts = self.x.defns[key]
         # Rotation angle
         theta = self.x[key][i]
-        # Get the components to translate.
+        # Get the components to rotate.
         compID = self.tri.GetCompID(kopts.get('CompID'), warn=True)
-        # Components to translate in opposite direction
+        # Components to rotate in opposite direction
         compIDR = self.tri.GetCompID(
             kopts.get('CompIDSymmetric', []), warn=True)
-        # Get the components to translate based on a lever armg
-        compsT  = kopts.get('CompIDTranslate', [])
+        # Get the components to translate based on a lever arm
+        compsT = kopts.get('CompIDTranslate', [])
         compsTR = kopts.get('CompIDTranslateSymmetric', [])
+        # Symmetry applied to rotation vector.
+        kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
+        kx = kopts.get('AxisSymmetry',  kv)
+        kc = kopts.get('CenterSymmetry', kx)
+        ka = kopts.get('AngleSymmetry', -1.0)
+        # Convert symmetries: list -> numpy.ndarray
+        kv = np.asarray(kv)
+        kx = np.asarray(kx)
+        kc = np.asarray(kc)
+        # Get the reference points for translations based on this rotation
+        xt = kopts.get("TranslateRefPoint", [0.0, 0.0, 0.0])
+        xt = self.opts.get_Point(xt)
+        # Get scale for translated points
+        kt = kopts.get('TranslateScale', np.ones(3))
+        kt = np.asarray(kt)
+        # ---------------------------
+        # Process the rotation vector
+        # ---------------------------
+        ax, cen = self._get_rotation_vec(key)
+        # Symmetry rotation vectors.
+        axR = kx*ax
+        cenR = kc*cen
+        # Form vectors
+        v0 = cen
+        v1 = ax + cen
+        v0R = cenR
+        v1R = axR + cenR
+        # -------------------------
+        # Apply tri transformations
+        # -------------------------
+        # Rotate the triangulation
+        self.tri.Rotate(v0, v1, theta, compID=compID)
+        self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
+        # Rotate reference points to get translate delta
+        yt = RotatePoints(xt, v0,  v1,  theta)[0]
+        ytR = RotatePoints(xt, v0R, v1R, ka*theta)[0]
+        # Process translations caused by this rotation
+        for j in range(len(compsT)):
+            self.tri.Translate(kt*(yt-xt),  compID=compsT[j])
+        # Process translations caused by symmetric rotation
+        for j in range(len(compsTR)):
+            self.tri.Translate(kt*(ytR-xt), compID=compsTR[j])
+        # --------------------------
+        # Apply point transformations
+        # --------------------------
+        self._prepare_points_rotation(key, i)
+
+    def _prepare_points_rotation(self, key: str, i: int):
+        # ---------------
+        # Read the inputs
+        # ---------------
+        # Get the options for this key
+        kopts = self.x.defns[key]
+        # Rotation angle
+        theta = self.x[key][i]
         # Symmetry applied to rotation vector.
         kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
         kx = kopts.get('AxisSymmetry',   kv)
@@ -1670,11 +1725,7 @@ class Cntl(CntlBase):
         if isinstance(kt, list):
             # Ensure vector so that we can multiply it by another vector
             kt = np.array(kt)
-        # Get vector
-        ax = kopts.get('Axis')
-        vec = kopts.get('Vector')
-        cen = kopts.get('Center')
-        # Get points to translate along with it.
+        # Get points to rotate or translate along with it.
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
         ptsT = kopts.get('TranslatePoints', [])
@@ -1686,29 +1737,7 @@ class Cntl(CntlBase):
         # ---------------------------
         # Process the rotation vector
         # ---------------------------
-        # Check for an axis and center
-        if vec is not None:
-            # Check type
-            if len(vec) != 2:
-                raise KeyError(
-                    "Rotation key '%s' vector must be exactly two points."
-                    % key)
-            # Get start and end points of rotation vector.
-            v0 = np.array(self.opts.get_Point(vec[0]))
-            v1 = np.array(self.opts.get_Point(vec[1]))
-            # Convert to axis and center
-            cen = v0
-            ax  = v1 - v0
-        else:
-            # Get default axis if necessary
-            if ax is None:
-                ax = [0.0, 1.0, 0.0]
-            # Get default center if necessary
-            if cen is None:
-                cen = [0.0, 0.0, 0.0]
-            # Convert points
-            cen = np.array(self.opts.get_Point(cen))
-            ax  = np.array(self.opts.get_Point(ax))
+        ax, cen = self._get_rotation_vec(key)
         # Symmetry rotation vectors.
         axR  = kx*ax
         cenR = kc*cen
@@ -1720,27 +1749,15 @@ class Cntl(CntlBase):
         # ---------------------
         # Apply transformations
         # ---------------------
-        # Rotate the triangulation.
-        self.tri.Rotate(v0,  v1,  theta,  compID=compID)
-        self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
         # Points to be rotated
         X = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
         # Points to be translated
         XT = np.array([self.opts.get_Point(pt) for pt in ptsT])
         XTR = np.array([self.opts.get_Point(pt) for pt in ptsTR])
-        # Apply transformation
-        Y = RotatePoints(X, v0, v1, theta)
-        YR = RotatePoints(XR, v0R, v1R, ka*theta)
         # Rotate reference points as requested
         yt = RotatePoints(xt, v0, v1, theta)[0]
         ytR = RotatePoints(xt, v0R, v1R, ka*theta)[0]
-        # Process translations caused by this rotation
-        for j in range(len(compsT)):
-            self.tri.Translate(kt*(yt-xt), compID=compsT[j])
-        # Process translations caused by symmetric rotation
-        for j in range(len(compsTR)):
-            self.tri.Translate(kt*(ytR-xt), compID=compsTR[j])
         # Process point rotations caused by rotation
         for j in range(len(ptsT)):
             XT[j] += kt*(yt-xt)
@@ -1761,6 +1778,36 @@ class Cntl(CntlBase):
         # Save the symmetric translated points
         for j, pt in enumerate(ptsTR):
             self.opts.set_Point(XTR[j], pt)
+
+    def _get_rotation_vec(self, key: str) -> tuple:
+        # Get the options for this key
+        kopts = self.x.defns[key]
+        # Get vector
+        ax = kopts.get('Axis')
+        vec = kopts.get('Vector')
+        cen = kopts.get('Center')
+        # Check for an axis and center
+        if vec is not None:
+            # Check type
+            if len(vec) != 2:
+                raise KeyError(
+                    "Rotation key '%s' vector must be exactly two points."
+                    % key)
+            # Get start and end points of rotation vector.
+            v0 = np.array(self.opts.get_Point(vec[0]))
+            v1 = np.array(self.opts.get_Point(vec[1]))
+            # Convert to axis and center
+            cen = v0
+            ax = v1 - v0
+        else:
+            # Get default axis if necessary
+            ax = [0.0, 1.0, 0.0] if ax is None else ax
+            cen = [0.0, 0.0, 0.0] if cen is None else cen
+            # Convert points
+            cen = np.array(self.opts.get_Point(cen))
+            ax = np.array(self.opts.get_Point(ax))
+        # Output
+        return ax, cen
 
    # --- Surface: config ---
     # Read the boundary condition map

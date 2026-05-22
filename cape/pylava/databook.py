@@ -131,6 +131,16 @@ class CaseFM(casedata.CaseFM):
         # Save cell count
         if "numcells" in data:
             db.save_col("numcells", data["numcells"])
+        for k in range(20):
+            # Cool name targets
+            col1 = f"ncells_{k:02d}"
+            col2 = f"blocks_{k:02d}"
+            # Check if present
+            if col1 not in data or col2 not in data:
+                break
+            # Save
+            db.save_col(col1, data[col1])
+            db.save_col(col2, data[col2])
         # Save coefficients
         db.save_col("CL", self.get_datacol(data, '', 'l'))
         db.save_col("CD", self.get_datacol(data, '', 'd'))
