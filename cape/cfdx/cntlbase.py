@@ -982,6 +982,7 @@ class CntlBase(ABC):
                 Overall CAPE control instance
         :Versions:
             * 2014-08-30 ``@ddalle``: v1.0
+            * 2026-05-22 ``@ddalle``: v1.1; check which files were read
         """
         pass
 

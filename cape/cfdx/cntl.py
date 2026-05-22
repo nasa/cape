@@ -1479,12 +1479,19 @@ class Cntl(CntlBase):
     def ReadTri(self):
         # Only read triangulation if not already present
         tri = getattr(self, "tri", None)
-        if tri is not None:
-            return
-        # Get the list of tri files.
+        # Get the list of tri files to read
         ftri = self.opts.get_TriFile()
-        # Status update.
-        print("  Reading tri file(s) from root directory.")
+        ftri = ftri if isinstance(ftri, (list, np.ndarray)) else [ftri]
+        # If present, this might be a null action
+        if tri is not None:
+            # Compare two TriFile values
+            if ftri == getattr(self, "ftri", None):
+                return
+        # Status update
+        if len(ftri):
+            print("  Reading tri file(s):")
+            for fi in ftri:
+                print(f"    {fi}")
         # Name of config file
         fxml = self.opts.get_ConfigFile()
         # Check for a config file.
@@ -1502,9 +1509,6 @@ class Cntl(CntlBase):
         else:
             # Read config file
             cfg = ConfigXML(fxml)
-        # Ensure list
-        if not isinstance(ftri, (list, np.ndarray)):
-            ftri = [ftri]
         # Read first file
         tri = ReadTriFile(ftri[0])
         # Apply configuration
@@ -1539,10 +1543,12 @@ class Cntl(CntlBase):
         self.tri.config = cfg
         # Check for AFLR3 bcs
         fbc = self.opts.get_aflr3_BCFile()
-        # If present, map it.
+        # If present, map it
         if fbc:
             # Map boundary conditions
             self.tri.ReadBCs_AFLR3(fbc)
+        # Save the list of files read
+        self.ftri = ftri
         # Make a copy of the original to revert to after rotations, etc.
         self.tri0 = self.tri.Copy()
 

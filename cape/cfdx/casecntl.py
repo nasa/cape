@@ -1224,7 +1224,7 @@ class CaseRunner(CaseRunnerBase):
             # Get tolerance
             tol = rc.get_intersect_cleantol(0)
             # Log message
-            msg = f"Using PyVista to perform cleanup of '{fotri}', tol={tol:.1e}"
+            msg = f"Using PyVista for cleanup of '{fotri}', tol={tol:.1e}"
             self.log_both(msg)
             print(f"    {msg}")
             # Initialize gruvoc mesh to get a PyVista object
