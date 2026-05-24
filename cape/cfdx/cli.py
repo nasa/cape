@@ -18,12 +18,14 @@ from . import manage
 from .. import argread
 from .. import convert1to2
 from ..argread import BOOL_TYPES, INT_TYPES
+from ..errors import CapeError
 
 
 # Constants
 IERR_OK = 0
 IERR_CMD = 16
 IERR_OPT = 32
+IERR_RUNTIME = 128
 
 # Inferred commands from options
 CMD_NAMES = {
@@ -2496,6 +2498,7 @@ CMD_DICT = {
 }
 
 
+# Template for each solver
 def main_template(
         parser_cls: CfdxFrontDesk,
         argv: Optional[list] = None) -> int:
@@ -2519,9 +2522,18 @@ def main_template(
     subparser.casecntl_mod = parser_cls._casecntl_mod
     # Get function
     func = CMD_DICT.get(cmdname)
-    # Call it
+    # Call the function
     if func:
-        return func(subparser)
+        # Use a try/except to catch user-input errors
+        try:
+            return func(subparser)
+        except CapeError as e:
+            # Print the error type
+            print(f"{e.__class__.__name__[4:]}:")
+            # Now the error message
+            for a in e.args:
+                print(f"    {a}")
+                return IERR_RUNTIME
     # For now, print the selected command
     return IERR_OK
 

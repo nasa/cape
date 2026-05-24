@@ -21,6 +21,12 @@ class CapeError(Exception):
     pass
 
 
+# Attribute error
+class CapeAttributeError(AttributeError, CapeError):
+    r"CAPE exception class for missing attribute"
+    pass
+
+
 # File error family
 class CapeFileError(CapeError):
     r"CAPE exception class for file based intentonal exceptions"

@@ -410,8 +410,7 @@ class Cntl(CntlBase):
         # Check if file exists
         if not os.path.isfile(fname):
             # Raise error but suppress traceback
-            os.sys.tracebacklimit = 0
-            raise ValueError("No cape control file '%s' found" % fname)
+            raise CapeValueError("No cape control file '%s' found" % fname)
         #: :class:`str`
         #: Root folder for this run matrix
         self.RootDir = os.getcwd()
