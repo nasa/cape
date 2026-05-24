@@ -548,6 +548,19 @@ class Cntl(CntlBase):
         # Revert options
         self.opts = copy.deepcopy(opts0)
 
+    # Change an option
+    def apply_setter(self, opt: str, v: Any):
+        # Name of setter
+        fn = f"set_{opt}"
+        # Get setter method
+        func = getattr(self.opts, fn, None)
+        # Check for callable setter
+        if not callable(func):
+            raise AttributeError(
+                f"CAPE {self._solver} option has no '{fn}()' method")
+        # Call it
+        func(v)
+
    # --- Top-level options ---
     # Get the project rootname
     def GetProjectRootName(self, j: int = 0) -> str:

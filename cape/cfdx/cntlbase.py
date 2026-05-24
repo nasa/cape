@@ -129,6 +129,26 @@ class CntlBase(ABC):
         """
         pass
 
+    # Change an option using set_{OPT}() method
+    @abstractmethod
+    def apply_setter(self, opt: str, v: Any):
+        r"""Change an option by name of setter method
+
+        :Call:
+            >>> cntl.apply_setter(opt, v)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE solver control interface
+            *opt*: :class:`str`
+                Name of option, e.g. ``"PBS_q"`` will cause the function
+                to look for :func:`cntl.opts.set_PBS_q`
+            *v*: **any**
+                Value to set the option to
+        :Versions:
+            * 2026-05-23 ``@ddalle``: v1.0
+        """
+        pass
+
    # --- Top-level options ---
     # Get the project rootname
     @abstractmethod
