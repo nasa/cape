@@ -2529,11 +2529,13 @@ def main_template(
             return func(subparser)
         except CapeError as e:
             # Print the error type
-            print(f"{e.__class__.__name__[4:]}:")
+            sys.stderr.write(f"{e.__class__.__name__[4:]}:\n")
             # Now the error message
             for a in e.args:
-                print(f"    {a}")
-                return IERR_RUNTIME
+                sys.stderr.write(f"    {a}\n")
+            # End message and exit
+            sys.stderr.flush()
+            return IERR_RUNTIME
     # For now, print the selected command
     return IERR_OK
 
