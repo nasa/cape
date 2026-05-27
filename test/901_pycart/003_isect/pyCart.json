@@ -14,7 +14,7 @@
             // flowCart order
             "first_order": false,
             // Basic number of iterations
-            "it_fc": 200,
+            "it_fc": 10,
             // Use MPI?
             "mpi_fc": false,
             // Nominal CFL number
@@ -32,7 +32,11 @@
         
         // Let's run `intesect`
         "intersect": {
-            "run": true
+            "run": true,
+            "groups": [
+                "bullet",
+                "box"
+            ]
         },
 
         // Parameters for autoInputs
@@ -97,7 +101,7 @@
         "File": "matrix.csv",
         "Keys": ["mach", "alpha", "beta", "config"],
         // Copy the mesh
-        "GroupMesh": true,
+        "GroupMesh": false,
         // Configuration name [default]
         "config": "poweroff"
     }
