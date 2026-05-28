@@ -166,6 +166,9 @@ def autoInputs(opts=None, j=0, **kw):
     if os.path.isfile('Components.i.tri'):
         # Intersected surface
         ftri = 'Components.i.tri'
+    elif os.path.isfile("Components.c.tri"):
+        # Pre-intersected surf w/ original comps
+        ftri = 'Components.c.tri'
     else:
         # Surface will be intersected later
         ftri = 'Components.tri'
