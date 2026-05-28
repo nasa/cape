@@ -686,6 +686,25 @@ class CaseRunner(casecntl.CaseRunner):
             nbatch: Optional[int] = None,
             clean: bool = False,
             nmax: Optional[int] = None):
+        r"""Collect VTK cut-plane data from oner or more isosurfaces
+
+        :Call:
+            >>> runner.collect_cutplane(nsurf=0, nbatch=None, **kw)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: {``None``} | :class:`int`
+                Isosurface index (0-based) or all if ``None``
+            *nbatch*: {``None``} | :class:`int`
+                Number of snapshots to collect; default value is
+                *BatchSize* from ``case.json``
+            *clean*: ``True`` | {``False``}
+                Option to delete ``.vtk`` files after processing
+            *nmax*: {``None``} | :class:`int`
+                Maximum number of snapshots to collect
+        :Versions:
+            * 2026-04-10 ``@ddalle``: v1.0
+        """
         # Get surface list if not specified
         if nsurf is None:
             # Default to *all* the surfaces
@@ -722,6 +741,22 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2026-04-10 ``@ddalle``: v1.0
         """
+        self._collect_cutplane_fixed(nsurf, nbatch, clean, nmax)
+
+    def _collect_cutplane_adaptive(
+            self,
+            nsurf: int = 1,
+            nbatch: Optional[int] = None,
+            clean: bool = False,
+            nmax: Optional[int] = None):
+        ...
+
+    def _collect_cutplane_fixed(
+            self,
+            nsurf: int = 1,
+            nbatch: Optional[int] = None,
+            clean: bool = False,
+            nmax: Optional[int] = None):
         # First read metadata
         db = self.read_cutplane_meta(nsurf)
         # Number of time steps saved
@@ -1472,7 +1507,8 @@ class CaseRunner(casecntl.CaseRunner):
         # Get output section
         outs = runinp["cartesian"]["output"]
         # Get output keys that have start with isosurfaces
-        isos = [k for k in outs.keys() if k.startswith("isosurface")]        # For each isosurf
+        isos = [k for k in outs.keys() if k.startswith("isosurface")]
+        # For each isosurf
         for iso, _ in enumerate(isos):
             iso1 = iso + 1
             # Try to read meta data
