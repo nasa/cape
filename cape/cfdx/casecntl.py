@@ -505,7 +505,9 @@ class CaseRunner(CaseRunnerBase):
             except Exception as e:
                 # Log failure encounter
                 self.log_both(f"error during phase {j}")
-                self.log_verbose(f"{e.__class__}: " + ' '.join(e.args))
+                # Convert args
+                eargs = [str(a) for a in e.args]
+                self.log_verbose(f"{type(e).__name__}: " + ' '.join(eargs))
                 self.log_verbose(traceback.format_exc())
                 # Failure
                 self.mark_failure("run_phase")
