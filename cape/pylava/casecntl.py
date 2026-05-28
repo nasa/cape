@@ -638,6 +638,39 @@ class CaseRunner(casecntl.CaseRunner):
             return Umesh(ffix)
 
     @casecntl.run_rootdir
+    def read_cutplane_raw(self, nsurf: int, n: int) -> Optional[Umesh]:
+        r"""Read raw cut-plane file exported by LAVA
+
+        :Call:
+            >>> mesh = runner.read_cutplane_raw(nsurf, n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index
+            *n*: :class:`int`
+                Iteration number
+        :Outputs:
+            *mesh*: ``None`` | :class:`cape.gruvoc.umesh.Umesh`
+                Cut plane instance
+        :Versions:
+            * 2026-05-28 ``@ddalle``: v1.0
+        """
+        # Read cut plane definition
+        defn = self.read_cutplane_defn(nsurf)
+        # Check for valid cut plane
+        if defn is None:
+            return
+        # Get name of file
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
+        basename = f"{prefix}.{n:09d}"
+        # Potential file names
+        fvtk = f"{basename}.vtk"
+        # Check for file
+        if os.path.isfile(fvtk):
+            return Umesh(fvtk)
+
+    @casecntl.run_rootdir
     def read_cutplane_tri(self, nsurf: int, n: int) -> Optional[Umesh]:
         r"""Read triangulated cut-plane file
 
@@ -854,7 +887,7 @@ class CaseRunner(casecntl.CaseRunner):
         for fvtk in rmfiles:
             self.remove_file(fvtk)
         # Update metadata
-        self.write_cutplane_meta(nsurf, db)
+        self.write_cutplane_meta(nsurf, db, mode="adaptive")
 
     def _collect_cutplane_fixed(
             self,
@@ -953,19 +986,21 @@ class CaseRunner(casecntl.CaseRunner):
         for fvtk in rmfiles:
             self.remove_file(fvtk)
         # Update metadata
-        self.write_cutplane_meta(nsurf, db)
+        self.write_cutplane_meta(nsurf, db, mode="fixed")
 
     @casecntl.run_rootdir
-    def read_cutplane_meta(self, nsurf: int) -> DataKit:
+    def read_cutplane_meta(self, nsurf: int, mode: str) -> DataKit:
         r"""Read database of metadata for collected cutplane data
 
         :Call:
-            >>> db = runner.read_surfdata_meta(nsurf)
+            >>> db = runner.read_surfdata_meta(nsurf, mode)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *nsurf*: :class:`int`
                 Surface index (1-based)
+            *mode*: :class:`str`
+                Cutplane data storage mode
         :Outputs:
             *db*: :class:`cape.dkit.rdb.DataKit`
                 DataKit of which batch each iteration is located in
@@ -973,7 +1008,7 @@ class CaseRunner(casecntl.CaseRunner):
             * 2026-04-05 ``@ddalle``: v1.0
         """
         # Create file name
-        fname = self._genr8_cutplane_metafile(nsurf)
+        fname = self._genr8_cutplane_metafile(nsurf, mode=mode)
         # Check for file
         if not os.path.isfile(fname):
             # Initialize datakit
@@ -988,11 +1023,11 @@ class CaseRunner(casecntl.CaseRunner):
         return DataKit(fname)
 
     @casecntl.run_rootdir
-    def write_cutplane_meta(self, nsurf: int, db: DataKit):
+    def write_cutplane_meta(self, nsurf: int, db: DataKit, mode: str):
         r"""Write updated cut-plane data collection metadata
 
         :Call:
-            >>> db.write_cutplane_meta(nsurf, db)
+            >>> db.write_cutplane_meta(nsurf, db, mode)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -1000,11 +1035,13 @@ class CaseRunner(casecntl.CaseRunner):
                 Surface index (1-based)
             *db*: :class:`cape.dkit.rdb.DataKit`
                 DataKit of which batch each iteration is located in
+            *mode*: :class:`str`
+                Cutplane data storage mode
         :Verions:
             * 2026-04-10 ``@ddalle``: v1.0
         """
         # Create file name
-        fname = self._genr8_cutplane_metafile(nsurf)
+        fname = self._genr8_cutplane_metafile(nsurf, mode=mode)
         # Write it
         db.write(fname)
 
