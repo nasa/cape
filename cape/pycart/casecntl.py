@@ -217,8 +217,18 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for cubes option
         if not rc.get_autoInputs_run():
             return
+        # Gegenerate command
+        cmdi = cmdgen.autoInputs(opts=rc, j=j)
         # Run autoInputs
-        cmdrun.autoInputs(opts=rc, j=j)
+        ierr = self.callf(cmdi, f="autoInputs.out")
+        # Fix the name of the triangulation in the 'input.c3d' file
+        # Read the intersect file.
+        lines = open('input.c3d').readlines()
+        # Change the triangulation file
+        lines[7] = '  Components.i.tri\n'
+        # Write the corrected file.
+        open('input.c3d', 'w').writelines(lines)
+        return ierr
 
     # Run one phase adaptively
     def run_phase_adaptive(self, j: int) -> int:
