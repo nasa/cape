@@ -566,6 +566,25 @@ class CaseRunner(casecntl.CaseRunner):
             nsurf: int,
             n: int,
             nref: Optional[int] = None) -> Optional[Umesh]:
+        r"""Read cut-plane data interpolated onto a fixed mesh
+
+        :Call:
+            >>> mesh = runner.read_cutplane_fixed(nsurf, n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index
+            *n*: :class:`int`
+                Iteration number
+            *nref*: {``None``} | :class:`int`
+                Pre-determined iteration to use as reference mesh
+        :Outputs:
+            *mesh*: ``None`` | :class:`cape.gruvoc.umesh.Umesh`
+                Triangulated cut plane instance
+        :Versions:
+            * 2026-04-09 ``@ddalle``: v1.0
+        """
         # Get reference iteration
         nref = self.get_ref_iter(nref)
         # Read cut plane definition
@@ -790,8 +809,10 @@ class CaseRunner(casecntl.CaseRunner):
         """
         if mode in (2, "fixed"):
             self._collect_cutplane_fixed(nsurf, nbatch, clean, nmax)
-        else:
+        elif mode in (1, "adaptive"):
             self._collect_cutplane_adaptive(nsurf, nbatch, clean, nmax)
+        else:
+            self._collect_cutplane_raw(nsurf, nbatch, clean, nmax)
 
     def _collect_cutplane_adaptive(
             self,
@@ -800,7 +821,7 @@ class CaseRunner(casecntl.CaseRunner):
             clean: bool = False,
             nmax: Optional[int] = None):
         # First read metadata
-        db = self.read_cutplane_meta(nsurf)
+        db = self.read_cutplane_meta(nsurf, "adaptive")
         # Number of time steps saved
         nt = db["nt"]
         # Get current batch info
@@ -889,6 +910,101 @@ class CaseRunner(casecntl.CaseRunner):
         # Update metadata
         self.write_cutplane_meta(nsurf, db, mode="adaptive")
 
+    def _collect_cutplane_raw(
+            self,
+            nsurf: int = 1,
+            nbatch: Optional[int] = None,
+            clean: bool = False,
+            nmax: Optional[int] = None):
+        # First read metadata
+        db = self.read_cutplane_meta(nsurf, "raw")
+        # Number of time steps saved
+        nt = db["nt"]
+        # Get current batch info
+        if nt == 0:
+            # Starting fresh
+            imax = 0
+        else:
+            # Get latest
+            imax = db["i"][-1]
+        # Batch size
+        nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
+        # Prefix for VTK files
+        prefix = self._genr8_cutplane_prefix(nsurf)
+        # Get any current VTK files
+        vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
+        vtkfiles = self.search_regex(vtkpat)
+        # Get integers from these file names
+        iters = [int(v.split('.')[1]) for v in vtkfiles]
+        iters = np.unique(iters)
+        # Number of saved files
+        n = 0
+        # List of files to remove (this batch)
+        rmfiles = []
+        # Loop through files
+        for i in iters:
+            # Name of VTK files
+            prefixi = f"{prefix}.{i:09d}"
+            fvtk = f"{prefixi}.vtk"
+            vtks = [fvtk]
+            # Check if already covered
+            if i <= imax:
+                # Check for clean option
+                if clean:
+                    # Delete them
+                    for fi in vtks:
+                        if os.path.isfile(fi):
+                            rmfiles.append(fi)
+                continue
+            # Shortened file name for logs
+            flbl = os.path.join(
+                "isosurface",
+                f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
+            # Increase counter
+            nt += 1
+            # Get batch
+            batchj = (nt - 1) // nbatch
+            batchk = nt % nbatch
+            # Check if new batch
+            newbatch = db["batch"].size and (db["batch"][-1] != batchj)
+            # Append to vectors
+            db["nt"] = nt
+            db["i"] = np.hstack((db["i"], i))
+            db["batch"] = np.hstack((db["batch"], batchj))
+            # Status update
+            _printf(
+                f"  Collecting '{flbl}' " +
+                f"-> batch {batchj} ({batchk}/{nbatch})")
+            # Write data
+            self._write_cutplanedata_raw(i, nsurf, batchj)
+            # Update the batch data
+            self.write_cutplane_meta(nsurf, db)
+            # Check for clean
+            if clean:
+                # Delete them
+                for fi in vtks:
+                    if os.path.isfile(fi):
+                        rmfiles.append(fi)
+            # Remove files
+            if newbatch:
+                # Loop through files to delete for this batch
+                for fvtk in rmfiles:
+                    self.remove_file(fvtk)
+                # Reset list of files to delete
+                rmfiles = []
+            # Update
+            n += 1
+            # Check for exit flag
+            if (nmax is not None) and (n >= nmax):
+                break
+        # Clean up prompt
+        print("")
+        # Loop through files to delete that didn't line up with a batch
+        for fvtk in rmfiles:
+            self.remove_file(fvtk)
+        # Update metadata
+        self.write_cutplane_meta(nsurf, db, mode="adaptive")
+
     def _collect_cutplane_fixed(
             self,
             nsurf: int = 1,
@@ -896,7 +1012,7 @@ class CaseRunner(casecntl.CaseRunner):
             clean: bool = False,
             nmax: Optional[int] = None):
         # First read metadata
-        db = self.read_cutplane_meta(nsurf)
+        db = self.read_cutplane_meta(nsurf, "fixed")
         # Number of time steps saved
         nt = db["nt"]
         # Get reference iteration
@@ -1186,9 +1302,79 @@ class CaseRunner(casecntl.CaseRunner):
                 # Write as single-precision data
                 tofile_lb4_f(fp, surf.q.astype("f4"))
 
+    @casecntl.run_rootdir
+    def _write_cutplanedata_raw(self, i: int, nsurf: int, batch: int):
+        # Name of file to read; create if necessary
+        fcdb = self._init_cutplane_batch_raw(nsurf, batch)
+        # Check for file
+        if not os.path.isfile(fcdb):
+            self.log_verbose(f"File not found: {fcdb}")
+            raise CapeFileNotFoundError(
+                f"Cut-plane collection file not found: {fcdb}")
+        # Open batch file
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Read surface data
+        surf = self.read_cutplane_raw(nsurf, i)
+        # Read small fields
+        dat.read_record("nt")
+        dat.read_record("nq")
+        # Get counts from batch file
+        nt = dat["nt"] + 1
+        nq = dat["nq"]
+        # File name labl
+        fvtk = f"surf{nsurf-1:02d}_cutplane.{i:09d}.vtk"
+        # Check counts
+        if surf.nq != nq:
+            raise CapeValueError(
+                f"In '{fvtk}', expected nq={nq}; got {surf.nq}")
+        # Open the batch file for editing
+        with open(fcdb, 'r+b') as fp:
+            # Add three records
+            fp.seek(8)
+            np.uint64(len(dat.cols) + 3).tofile(fp)
+            # Go to *nt* position
+            fp.seek(dat.pos['nt'])
+            # Read record type and size
+            fromfile_lb4_i(fp, 2)
+            # Read length of name
+            l1, = fromfile_lb4_i(fp, 1)
+            # Skip name
+            fp.read(l1)
+            # Now overwrite number of time steps in file
+            tofile_lb4_i(fp, nt)
+            # Now go to end of file
+            fp.seek(0, 2)
+            # Save data
+            dat.save_col(f"nodes.{i}", surf.nodes.astype("f4"))
+            dat.save_col(f"tris.{i}", surf.nodes.astype("i4"))
+            dat.save_col(f"q.{i}", surf.q.astype("f4"))
+            # Write additional data
+            dat._write_record(fp, f"nodes.{i}")
+            dat._write_record(fp, f"tris.{i}")
+            dat._write_record(fp, f"q.{i}")
+
     def _init_cutplane_batch_adaptive(self, nsurf: int, batch: int) -> str:
         # Name of file
         fname = self._genr8_cutplane_batchfile(nsurf, batch, mode="adaptive")
+        # Check if file exists
+        if not os.path.isfile(fname):
+            # Read reference VTK file
+            surf = self._read_cutplane_ref(nsurf)
+            # Get number of states
+            nq = surf.nq
+            # Create a DataKit
+            db = DataKit()
+            # Initialize
+            db.save_col("nt", 0)
+            db.save_col("nq", nq)
+            # Write it
+            db.write(fname)
+        # Return name of file
+        return fname
+
+    def _init_cutplane_batch_raw(self, nsurf: int, batch: int) -> str:
+        # Name of file
+        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode="raw")
         # Check if file exists
         if not os.path.isfile(fname):
             # Read reference VTK file
