@@ -1233,18 +1233,26 @@ class CaseRunner(CaseRunnerBase):
             mesh = umesh.Umesh.from_tri(trii)
             mesh.make_pvmesh_surf()
             # Perform cleanup of ``intersect`` cleanup
-            pvmesh = mesh.pvmesh.clean(tolerance=tol, absolute=False)
-            # Cleanup
-            del mesh.pvmesh
-            del mesh
-            # Log completion
-            self.log_verbose(f"Completed cleanup, writing '{futri}'")
-            # Save to new object
-            meshu = umesh.Umesh.from_pvmesh(pvmesh)
-            # Write unmapped file
-            meshu.write_tri(futri, fmt="lr4")
-            # Get back to Tri format
-            trii = Tri.from_umesh(meshu)
+            if mesh.pvmesh is None:
+                msg = f"Failed to create pyvista surf from '{fotri}'"
+                print(f"    {msg}")
+                print(f"    tri: {tri}")
+                print(f"    mesh: {mesh}")
+                self.log_verbose(msg)
+            else:
+                # Perform clean command
+                pvmesh = mesh.pvmesh.clean(tolerance=tol, absolute=False)
+                # Cleanup
+                del mesh.pvmesh
+                del mesh
+                # Log completion
+                self.log_verbose(f"Completed cleanup, writing '{futri}'")
+                # Save to new object
+                meshu = umesh.Umesh.from_pvmesh(pvmesh)
+                # Write unmapped file
+                meshu.write_tri(futri, fmt="lr4")
+                # Get back to Tri format
+                trii = Tri.from_umesh(meshu)
         # Perform the mapping
         print(f"    Mapping CompIDs for intersected {fotri} -> {fitri}")
         self.log_verbose(f"'mapping CompIDs from {fotri} using {fctri}")
