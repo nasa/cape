@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Configuration Name="bullet.xml" Source="Components.i.tri">
+
+  <Component Name="cap" Parent="bullet" Type="tri">
+    <Data>Face Label=1</Data>
+  </Component>
+
+  <Component Name="body" Parent="bullet" Type="tri">
+    <Data>Face Label=2</Data>
+  </Component>
+
+  <Component Name="base" Parent="bullet" Type="tri">
+    <Data>Face Label=3</Data>
+  </Component>
+
+  <Component Name="sides" Parent="box" Type="tri">
+    <Data>Face Label=4</Data>
+  </Component>
+
+  <Component Name="back" Parent="box" Type="tri">
+    <Data>Face Label=5</Data>
+  </Component>
+
+  <Component Name="bullet" Type="container">
+  </Component>
+
+  <Component Name="box" Type="container">
+  </Component>
+
+</Configuration>

@@ -67,7 +67,7 @@
     // Describe the reference values and config.
     "Config": {
         // Defer to a file for most things.
-        "File": "bullet.json",
+        "File": "bullet.xml",
         // Which forces should be reported
         "Components": [
             "cap",
