@@ -1236,7 +1236,7 @@ class CaseRunner(CaseRunnerBase):
             if mesh.pvmesh is None:
                 msg = f"Failed to create pyvista surf from '{fotri}'"
                 print(f"    {msg}")
-                print(f"    tri: {tri}")
+                print(f"    tri: {trii}")
                 print(f"    mesh: {mesh}")
                 self.log_verbose(msg)
             else:

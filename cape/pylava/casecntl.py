@@ -821,7 +821,7 @@ class CaseRunner(casecntl.CaseRunner):
                 f"  Collecting '{flbl}' " +
                 f"-> batch {batchj} ({batchk}/{nbatch})")
             # Write data
-            self._write_cutplanedata(i, nsurf, batchj)
+            self._write_cutplanedata_fixed(i, nsurf, batchj)
             # Update the batch data
             self.write_cutplane_meta(nsurf, db)
             # Check for clean
@@ -904,9 +904,9 @@ class CaseRunner(casecntl.CaseRunner):
         db.write(fname)
 
     @casecntl.run_rootdir
-    def _write_cutplanedata(self, i: int, nsurf: int, batch: int):
+    def _write_cutplanedata_fixed(self, i: int, nsurf: int, batch: int):
         # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch(nsurf, batch)
+        fcdb = self._init_cutplane_batch_fixed(nsurf, batch)
         # Check for file
         if not os.path.isfile(fcdb):
             self.log_verbose(f"File not found: {fcdb}")
@@ -992,9 +992,9 @@ class CaseRunner(casecntl.CaseRunner):
                 # Write as single-precision data
                 tofile_lb4_f(fp, surf.q.astype("f4"))
 
-    def _init_cutplane_batch(self, nsurf: int, batch: int) -> str:
+    def _init_cutplane_batch_fixed(self, nsurf: int, batch: int) -> str:
         # Name of file
-        fname = self._genr8_cutplane_batchfile(nsurf, batch)
+        fname = self._genr8_cutplane_batchfile(nsurf, batch, fixed=True)
         # Check if file exists
         if not os.path.isfile(fname):
             # Read reference VTK file
@@ -1026,15 +1026,22 @@ class CaseRunner(casecntl.CaseRunner):
         # Read triangulated data for that iter
         return self.read_cutplane_tri(nsurf, n)
 
-    def _genr8_cutplane_metafile(self, nsurf: int = 0) -> str:
+    def _genr8_cutplane_metafile(
+            self, nsurf: int = 0, fixed: bool = False) -> str:
+        # Infix for "fixed"
+        infix = "_fixed" if fixed else ""
         # Get name of file
         return os.path.join(
-            "isosurface", f"surf{nsurf-1:02d}.Cart.cdb")
+            "isosurface", f"surf{nsurf-1:02d}{infix}.Cart.cdb")
 
-    def _genr8_cutplane_batchfile(self, nsurf: int, batch: int) -> str:
+    def _genr8_cutplane_batchfile(
+            self, nsurf: int, batch: int, fixed: bool = False) -> str:
+        # Generate infix
+        infix = "_fixed" if fixed else ""
+        # Get name of file
         return os.path.join(
             "isosurface",
-            f"surf{nsurf-1:02d}.Cart.batch{batch:04d}.cdb")
+            f"surf{nsurf-1:02d}{infix}.Cart.batch{batch:04d}.cdb")
 
    # --- Cut-plane definitions ---
     def get_cutplanes(self) -> list:
