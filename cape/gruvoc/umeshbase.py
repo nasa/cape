@@ -579,6 +579,8 @@ class UmeshBase(ABC):
             mesh.qvars = pvmesh.point_data.keys()
             mesh.nq = len(mesh.qvars)
             mesh.q = np.stack(pvmesh.point_data.values(), axis=1)
+        # Store original inpu
+        mesh.pvmesh = pvmesh
         # Output
         return mesh
 

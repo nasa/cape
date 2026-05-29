@@ -756,11 +756,10 @@ class CaseRunner(casecntl.CaseRunner):
         prefix = self._genr8_cutplane_prefix(nsurf, defn)
         # Get file name infix
         infix = self._genr8_cutplane_infix(mode)
-        infix_pat = infix.replace('.', '\\.')
         # Determine iteration if necessary
         if n is None:
             # File name pattern
-            pat = rf"{prefix}\.([0-9]+){infix_pat}\.vtk"
+            pat = rf"{prefix}\.([0-9]+)\.vtk"
             # Search for latest
             mtch = self.match_regex(pat)
             # Check if that found anything
@@ -779,6 +778,7 @@ class CaseRunner(casecntl.CaseRunner):
                 n = int(mtch.group(1))
         # Generate file name
         cutplanefile = f"{prefix}.{n:09d}{infix}.vtk"
+        altfile = f"{prefix}.{n:09d}.vtk"
         # Check if present
         if os.path.isfile(cutplanefile):
             # Read it
@@ -789,7 +789,16 @@ class CaseRunner(casecntl.CaseRunner):
         meta = self.read_cutplane_meta(nsurf, mode)
         # Check that *n* is present
         mask, _ = meta.find(["i"], n)
-        if mask.size == 0:  # pragma no-cover
+        # Check for a find in metadata (it's been collected)
+        if mask.size == 0:
+            # Check for raw file available but not mode-specific
+            if os.path.isfile(altfile):
+                # Read raw file and triangulate[, interpolate]
+                if mode == "adaptive":
+                    return self.read_cutplane_tri(nsurf, n)
+                elif mode == "fixed":
+                    return self.read_cutplane_fixed(nsurf, n)
+            # pragma no-cover
             self._complain_cutplane_iter(nsurf, n, mode)
         # Get batch number
         i = mask[0]
@@ -1741,25 +1750,7 @@ class CaseRunner(casecntl.CaseRunner):
             nsurf: int,
             n: Optional[int] = None) -> Umesh:
         # Determine iteration if necessary
-        if n is None:
-            # File name pattern
-            pat = self._genr8_surfdata_regex(nsurf)
-            # Search for latest
-            mtch = self.match_regex(pat)
-            # Check if that found anything
-            if mtch is None:
-                # Check for batch data
-                meta = self.read_surfdata_meta(nsurf)
-                # Check for data
-                if meta["nt"] == 0:
-                    raise CapeFileNotFoundError(
-                        f"No data found for cut-plane {nsurf} "
-                        f"(isosurfaces_{nsurf})")
-                # Use the last available iteration
-                n = meta["i"][-1]
-            else:
-                # Get integer from file name
-                n = int(mtch.group(1))
+        n = self.infer_surfdata_n(nsurf, n)
         # Prefix for this surface
         prefix = self._genr8_surfdata_prefix(nsurf)
         # Generate file name
@@ -1769,7 +1760,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Read it
             pvmesh = pv.read(surffile)
             # Convert to Umesh
-            return Umesh.from_pvmesh(pvmesh)
+            mesh = Umesh.from_pvmesh(pvmesh)
+            return mesh
         # Read metadata
         meta = self.read_surfdata_meta(nsurf)
         # Check that *n* is present
