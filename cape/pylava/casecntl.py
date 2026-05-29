@@ -37,6 +37,7 @@ from ..dkit.rdb import DataKit
 from ..errors import CapeFileNotFoundError, CapeValueError
 from ..fileutils import tail
 from ..gruvoc.umesh import Umesh
+from ..gruvoc.umeshbase import pv
 from ..textutils import _printf
 from ..capeio import (
     fromfile_lb4_i,
@@ -406,7 +407,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get integer
         return int(line.split()[0])
 
-   # --- Isosurface triangulation ---
+   # --- Cut-plane triangulation ---
     def triangulate_cutplane(
             self,
             nsurf: Optional[int] = None,
@@ -559,7 +560,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return True
 
-   # --- Cut-plane interpolation ---
+   # --- Cut-plane readers ---
     @casecntl.run_rootdir
     def read_cutplane_fixed(
             self,
@@ -731,6 +732,140 @@ class CaseRunner(casecntl.CaseRunner):
         triangulate_mesh(mesh, defn["normal"], defn["point"])
         # Return that
         return mesh
+
+    def _genr8_cutplane_infix(self, mode: str):
+        if mode == "adaptive":
+            return ".tri"
+        elif mode == "fixed":
+            return ".fixed"
+        else:
+            return ""
+
+   # --- Cutplane data ---
+    def read_cutplane(
+            self,
+            nsurf: int,
+            n: Optional[int] = None,
+            mode: str = "raw") -> Umesh:
+        # Get file name infix
+        infix = self._genr8_cutplane_infix(mode)
+        infix_pat = infix.replace('.', '\\.')
+        # Determine iteration if necessary
+        if n is None:
+            # Get definition
+            defn = self.read_cutplane_defn(nsurf)
+            self._assert_cutplane(nsurf, defn)
+            # File name pattern
+            prefix = self._genr8_cutplane_prefix(nsurf, defn)
+            pat = rf"{prefix}\.([0-9]+){infix_pat}\.vtk"
+            # Search for latest
+            mtch = self.match_regex(pat)
+            # Check if that found anything
+            if mtch is None:
+                # Check for batch data
+                meta = self.read_cutplane_meta(nsurf, mode)
+                # Check for data
+                if meta["nt"] == 0:
+                    raise CapeFileNotFoundError(
+                        f"No data found for cut-plane {nsurf} "
+                        f"(isosurfaces_{nsurf+1})")
+                # Use the last available iteration
+                n = meta["i"][-1]
+            else:
+                # Get integer from file name
+                n = int(mtch.group(1))
+        # Generate file name
+        cutplanefile = f"{prefix}.{n:09d}{infix}.vtk"
+        # Check if present
+        if os.path.isfile(cutplanefile):
+            # Read it
+            pvmesh = pv.read(cutplanefile)
+            # Convert to Umesh
+            return Umesh.from_pvmesh(pvmesh)
+        # Read metadata
+        meta = self.read_cutplane_meta(nsurf, mode)
+        # Check that *n* is present
+        mask, _ = meta.find(["i"], n)
+        if mask.size == 0:  # pragma no-cover
+            self._complain_cutplane_iter(nsurf, n)
+        # Get batch number
+        i = mask[0]
+        j = meta["batch"][i]
+        # Infix for batch
+        infix_batch = "_adaptive" if (mode == "adaptive") else ""
+        infix_batch = "_raw" if (mode == "raw") else infix_batch
+        # Create name of batch file
+        fcdb = self._genr8_cutplane_batchfile(nsurf, j, mode)
+        # Check for batch file
+        if not os.path.isfile(fcdb):  # pragma no-cover
+            self._complain_cutplane_iter(nsurf, n)
+        # Read the batch file in meta-mode
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Initialize mesh
+        mesh = Umesh()
+        # Check which mode we are in
+        if mode == "fixed":
+            # We need to find the index of this case w/i the batch
+            mask, _ = meta.find(["batch"], j)
+            k = np.where(meta["i"][mask] == n)[0][0]
+            # Read small fields
+            dat.read_record("nq")
+            # Read the reference iteration for geometry and shape
+            ref = self._read_cutplane_ref(nsurf)
+            # Open the .cdb file for precise reading
+            with open(fcdb, 'rb') as fp:
+                # Go to correct position in the .cdb file
+                fp.seek(dat.pos['q'])
+                # Read record type
+                rtype_code, = fromfile_lb4_i(fp, 1)
+                # Parse record type details
+                rt = capefile.RecordType(rtype_code)
+                # Calculate length (in bytes)
+                l2 = 2 ** (rt.element_bits - 3)
+                # Skip over record size
+                fp.seek(8)
+                # Skip over record name (which should be 'q')
+                l4, = fromfile_lb4_i(fp, 1)
+                fp.read(l4)
+                # Skip number dimensions (3)
+                fromfile_lb4_i(fp, 1)
+                # Skip array shape (nnode*nq*nt)
+                fromfile_lb8_i(fp, 3)
+                # Now shift to iteration *k*
+                fp.seek(k * ref.nnode * ref.nq * l2)
+                # Read this slice
+                q = tofile_lb4_i(fp, ref.nnode * ref.nq)
+                q = np.reshape(q, (ref.nnode, ref.nq))
+            # Save the data
+            mesh.q = q
+            # Create PyVista object
+            mesh.make_pvmesh_surf()
+        else:
+            # Name of columns to read
+            col1 = f"nodes.{n}"
+            col2 = f"tris.{n}"
+            col3 = f"q.{n}"
+            # Read those columns
+            dat.read_record(col1)
+            dat.read_record(col2)
+            dat.read_record(col3)
+            # Save data
+            mesh.nodes = dat[col1]
+            mesh.tris = dat[col2]
+            mesh.q = dat[col3]
+            # Size
+            mesh.nnode = mesh.nodes.shape[0]
+            mesh.ntri = mesh.tris.shape[0]
+            mesh.nq = mesh.q.shape[1]
+        # Create pyvista mesh
+        mesh.make_pvmesh_surf()
+        # Output
+        return mesh
+
+    def _complain_cutplane_iter(self, nsurf: int, n: int, mode: str):
+        raise CapeValueError(
+            f"Iteration {n} for cut-plane {nsurf} "
+            f"(isosurfaces_{nsurf+1}) apparently deleted (mode='{mode}'")
 
    # --- Cut-plane data collection ---
     def collect_cutplane(
@@ -1550,6 +1685,16 @@ class CaseRunner(casecntl.CaseRunner):
             return nref
         # Read option
         return self.get_opt("RefIter", vdef=0)
+
+    def _assert_cutplane(self, nsurf: int, defn: Optional[dict]):
+        # Check for errors
+        if defn is None:
+            # Create message
+            msg = (
+                f"Failed to read cut-plane with index {nsurf}; ",
+                f"no 'isosurfaces_{nsurf+1}' in input file")
+            self.log_verbose(msg)
+            raise CapeValueError(msg)
 
     def _genr8_cutplane_prefix(
             self,
