@@ -1277,10 +1277,14 @@ class CaseRunner(casecntl.CaseRunner):
         if not os.path.isfile(fname):
             # Initialize datakit
             db = DataKit()
+            # Read reference grid to get list of vars
+            mesh = self._read_cutplane_ref(nsurf, mode="raw")
             # Save parameters
             db.save_col("nt", 0)
             db.save_col("i", np.zeros(0, dtype="i4"))
             db.save_col("batch", np.zeros(0, dtype="i4"))
+            db.save_col("nq", mesh.nq)
+            db.save_col("qvars", mesh.qvars)
             # Output
             return db
         # Otherwise read it
@@ -1949,10 +1953,14 @@ class CaseRunner(casecntl.CaseRunner):
         if not os.path.isfile(fname):
             # Initialize datakit
             db = DataKit()
+            # Read reference grid
+            mesh = self._read_surfdata_ref(nsurf)
             # Save parameters
             db.save_col("nt", 0)
             db.save_col("i", np.zeros(0, dtype="i4"))
             db.save_col("batch", np.zeros(0, dtype="i4"))
+            db.save_col("nq", mesh.nq)
+            db.save_col("qvars", mesh.qvars)
             # Output
             return db
         # Otherwise read it
