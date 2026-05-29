@@ -775,7 +775,8 @@ class CaseRunner(casecntl.CaseRunner):
             surfs = [nsurf]
         # Loop through surfaces
         for surf in surfs:
-            self.collect_cutplane_surf(surf, nbatch, clean=clean, nmax=nmax)
+            self.collect_cutplane_surf(
+                surf, nbatch, clean=clean, nmax=nmax, mode=mode)
 
     def collect_cutplane_surf(
             self,
@@ -883,7 +884,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Write data
             self._write_cutplanedata_adaptive(i, nsurf, batchj)
             # Update the batch data
-            self.write_cutplane_meta(nsurf, db)
+            self.write_cutplane_meta(nsurf, db, "adaptive")
             # Check for clean
             if clean:
                 # Delete them
@@ -908,7 +909,7 @@ class CaseRunner(casecntl.CaseRunner):
         for fvtk in rmfiles:
             self.remove_file(fvtk)
         # Update metadata
-        self.write_cutplane_meta(nsurf, db, mode="adaptive")
+        self.write_cutplane_meta(nsurf, db, "adaptive")
 
     def _collect_cutplane_raw(
             self,
@@ -978,7 +979,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Write data
             self._write_cutplanedata_raw(i, nsurf, batchj)
             # Update the batch data
-            self.write_cutplane_meta(nsurf, db)
+            self.write_cutplane_meta(nsurf, db, "raw")
             # Check for clean
             if clean:
                 # Delete them
@@ -1003,7 +1004,7 @@ class CaseRunner(casecntl.CaseRunner):
         for fvtk in rmfiles:
             self.remove_file(fvtk)
         # Update metadata
-        self.write_cutplane_meta(nsurf, db, mode="adaptive")
+        self.write_cutplane_meta(nsurf, db, "adaptive")
 
     def _collect_cutplane_fixed(
             self,
@@ -1077,7 +1078,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Write data
             self._write_cutplanedata_fixed(i, nsurf, batchj)
             # Update the batch data
-            self.write_cutplane_meta(nsurf, db)
+            self.write_cutplane_meta(nsurf, db, "fixed")
             # Check for clean
             if clean and (i != iref):
                 # Delete them
@@ -1102,7 +1103,7 @@ class CaseRunner(casecntl.CaseRunner):
         for fvtk in rmfiles:
             self.remove_file(fvtk)
         # Update metadata
-        self.write_cutplane_meta(nsurf, db, mode="fixed")
+        self.write_cutplane_meta(nsurf, db, "fixed")
 
     @casecntl.run_rootdir
     def read_cutplane_meta(self, nsurf: int, mode: str) -> DataKit:
