@@ -926,10 +926,25 @@ class CaseRunner(casecntl.CaseRunner):
         # Use the last available iteration
         return max(max(n1, n2), n3)
 
-    def find_cutplane_n(
+    def find_cutplane_iters(
             self,
             nsurf: int,
             mode: str = "adaptive") -> np.ndarray:
+        r"""Find the iterations available of a cut-plane
+
+        :Call:
+            >>> ns = runner.find_cutplane_iters(nsurf, mode="adaptive")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index (1-based)
+            *mode*: {``"adaptive"``} | ``"raw"`` | ``"fixed"``
+                Mode to use when checking batch file
+        :Outputs:
+            *ns*: :class:`np.ndarray`\ [:class:`int`]
+                List of iteration numbers
+        """
         # Get definition
         defn = self.read_cutplane_defn(nsurf)
         self._assert_cutplane(nsurf, defn)
@@ -2093,6 +2108,35 @@ class CaseRunner(casecntl.CaseRunner):
                 f"(isosurfaces_{nsurf})")
         # Use the last available iteration
         return max(n1, n2)
+
+    def find_surfdata_iters(self, nsurf: int) -> np.ndarray:
+        r"""Find the iterations available of a surface data set
+
+        :Call:
+            >>> ns = runner.find_surfdata_iters(nsurf)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index (1-based)
+        :Outputs:
+            *ns*: :class:`np.ndarray`\ [:class:`int`]
+                List of iteration numbers
+        """
+        # File name prefix for this cutplane
+        prefix = self._genr8_surfdata_prefix(nsurf)
+        # File name pattern
+        pat1 = rf"{prefix}\.([0-9]+)\.vtk"
+        # Search for latest
+        mtch1 = self.search_regex(pat1)
+        # Read metadata file
+        meta = self.read_surfdata_meta(nsurf)
+        # Convert file searches to lists of integers
+        n1 = [int(fname.split('.')[1]) for fname in mtch1]
+        n1 = np.array(n1, dtype="int32")
+        n3 = meta["i"].astype("int32")
+        # Combine lists
+        return np.unique(np.hstack((n1, n3)))
 
     def _complain_surfdata_iter(self, nsurf: int, n: int):
         raise CapeValueError(
