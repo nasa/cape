@@ -812,7 +812,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Read small fields
             dat.read_record("nq")
             # Read the reference iteration for geometry and shape
-            mesh = self._read_cutplane_ref(nsurf)
+            mesh = self._read_cutplane_ref(nsurf, mode="fixed")
             # Unpack sizes
             nnode = mesh.nnode
             nq = mesh.nq
@@ -872,7 +872,7 @@ class CaseRunner(casecntl.CaseRunner):
     def _complain_cutplane_iter(self, nsurf: int, n: int, mode: str):
         raise CapeValueError(
             f"Iteration {n} for cut-plane {nsurf} "
-            f"(isosurfaces_{nsurf}, surf_{nsurf-1:03d}) "
+            f"(isosurfaces_{nsurf}, surf{nsurf-1:02d}) "
             f"apparently deleted (mode='{mode}'")
 
    # --- Cut-plane data collection ---
@@ -1730,9 +1730,103 @@ class CaseRunner(casecntl.CaseRunner):
             "isosurface", f"surf{surf-1:02d}_cutplane_Color{suf}_Cart")
 
    # --- Surface data ---
+    def read_surfdata(
+            self,
+            nsurf: int,
+            n: Optional[int] = None) -> Umesh:
+        # Determine iteration if necessary
+        if n is None:
+            # File name pattern
+            pat = self._genr8_surfdata_regex(nsurf)
+            # Search for latest
+            mtch = self.match_regex(pat)
+            # Check if that found anything
+            if mtch is None:
+                # Check for batch data
+                meta = self.read_surfdata_meta(nsurf)
+                # Check for data
+                if meta["nt"] == 0:
+                    raise CapeFileNotFoundError(
+                        f"No data found for cut-plane {nsurf} "
+                        f"(isosurfaces_{nsurf})")
+                # Use the last available iteration
+                n = meta["i"][-1]
+            else:
+                # Get integer from file name
+                n = int(mtch.group(1))
+        # Prefix for this surface
+        prefix = self._genr8_surfdata_prefix(nsurf)
+        # Generate file name
+        surffile = f"{prefix}.{n:09d}.vtk"
+        # Check if present
+        if os.path.isfile(surffile):
+            # Read it
+            pvmesh = pv.read(surffile)
+            # Convert to Umesh
+            return Umesh.from_pvmesh(pvmesh)
+        # Read metadata
+        meta = self.read_surfdata_meta(nsurf)
+        # Check that *n* is present
+        mask, _ = meta.find(["i"], n)
+        if mask.size == 0:  # pragma no-cover
+            self._complain_cutplane_iter(nsurf, n)
+        # Get batch number
+        i = mask[0]
+        j = meta["batch"][i]
+        # Create name of batch file
+        fcdb = self._genr8_surfdata_batchfile(nsurf, j)
+        # Check for batch file
+        if not os.path.isfile(fcdb):  # pragma no-cover
+            self._complain_surfdata_iter(nsurf, n)
+        # Read the batch file in meta-mode
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # We need to find the index of this case w/i the batch
+        mask, _ = meta.find(["batch"], j)
+        k = np.where(meta["i"][mask] == n)[0][0]
+        # Read small fields
+        dat.read_record("nq")
+        # Read the reference iteration for geometry and shape
+        mesh = self._read_surfdata_ref(nsurf)
+        # Unpack sizes
+        nnode = mesh.nnode
+        nq = mesh.nq
+        # Open the .cdb file for precise reading
+        with open(fcdb, 'rb') as fp:
+            # Go to correct position in the .cdb file
+            fp.seek(dat.pos['q'])
+            # Read record type
+            rtype_code, = fromfile_lb4_i(fp, 1)
+            # Parse record type details
+            rt = capefile.RecordType(rtype_code)
+            # Calculate length (in bytes)
+            l2 = 2 ** (rt.element_bits - 3)
+            # Skip over record size
+            fp.seek(8)
+            # Skip over record name (which should be 'q')
+            l4, = fromfile_lb4_i(fp, 1)
+            fp.read(l4)
+            # Skip number dimensions (3)
+            fromfile_lb4_i(fp, 1)
+            # Skip array shape (nnode*nq*nt)
+            fromfile_lb8_i(fp, 3)
+            # Now shift to iteration *k*
+            fp.seek(k * nnode * nq * l2)
+            # Read this slice
+            if l2 == 8:
+                q = fromfile_lb8_f(fp, nnode * nq)
+            else:
+                q = fromfile_lb4_f(fp, nnode * nq)
+            q = np.reshape(q, (nnode, nq))
+        # Save the data
+        mesh.q = q
+        # Create PyVista mesh
+        mesh.make_pvmesh_surf()
+        # Output
+        return mesh
+
     def collect_surfdata(
             self,
-            nsurf: int = 0,
+            nsurf: int = 1,
             nbatch: Optional[int] = None,
             clean: bool = False,
             nmax: Optional[int] = None):
@@ -1833,7 +1927,7 @@ class CaseRunner(casecntl.CaseRunner):
         self.write_surfdata_meta(nsurf, db)
 
     @casecntl.run_rootdir
-    def read_surfdata_meta(self, nsurf: int = 0) -> DataKit:
+    def read_surfdata_meta(self, nsurf: int = 1) -> DataKit:
         r"""Read database of metadata for collected surface data
 
         :Call:
@@ -1884,6 +1978,11 @@ class CaseRunner(casecntl.CaseRunner):
         fname = self._genr8_surfdata_metafile(nsurf)
         # Write it
         db.write(fname)
+
+    def _complain_surfdata_iter(self, nsurf: int, n: int):
+        raise CapeValueError(
+            f"Iteration {n} for surface {nsurf} "
+            f"(surface, surf{nsurf-1:03d})")
 
     @casecntl.run_rootdir
     def _write_surfdata(self, i: int, nsurf: int, batch: int):
@@ -1993,7 +2092,7 @@ class CaseRunner(casecntl.CaseRunner):
         if i is None:
             # Try iteration zero
             vtkfile = os.path.join(
-                "surface", f"surf{nsurf:03d}.Cart.{0:09d}.vtk")
+                "surface", f"surf{nsurf-1:03d}.Cart.{0:09d}.vtk")
             # Check for it
             if os.path.isfile(vtkfile):
                 return vtkfile
@@ -2033,18 +2132,23 @@ class CaseRunner(casecntl.CaseRunner):
         # Return name of file
         return fname
 
-    def _genr8_surfdata_regex(self, nsurf: int = 0) -> str:
+    def _genr8_surfdata_regex(self, nsurf: int = 1) -> str:
         return os.path.join(
             "surface",
-            f"surf{nsurf:03d}\\.Cart\\.[0-9]+\\.vtk")
+            f"surf{nsurf-1:03d}\\.Cart\\.[0-9]+\\.vtk")
 
-    def _genr8_surfdata_metafile(self, nsurf: int = 0) -> str:
-        return os.path.join("surface", f"surf{nsurf:03d}.Cart.cdb")
+    def _genr8_surfdata_prefix(self, nsurf: int) -> str:
+        return os.path.join(
+            "surface",
+            f"surf{nsurf-1:03d}.Cart")
+
+    def _genr8_surfdata_metafile(self, nsurf: int = 1) -> str:
+        return os.path.join("surface", f"surf{nsurf-1:03d}.Cart.cdb")
 
     def _genr8_surfdata_batchfile(self, nsurf: int, batch: int) -> str:
         return os.path.join(
             "surface",
-            f"surf{nsurf:03d}.Cart.batch{batch:04d}.cdb")
+            f"surf{nsurf-1:03d}.Cart.batch{batch:04d}.cdb")
 
    # --- Workers ---
     def ingest_cutplanes(
