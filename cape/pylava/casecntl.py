@@ -848,6 +848,8 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             # Initialize mesh
             mesh = Umesh()
+            # Set list of variables
+            mesh.qvars = meta["qvars"]
             # Name of columns to read
             col1 = f"nodes.{n}"
             col2 = f"tris.{n}"
@@ -1316,7 +1318,7 @@ class CaseRunner(casecntl.CaseRunner):
     @casecntl.run_rootdir
     def _write_cutplanedata_adaptive(self, i: int, nsurf: int, batch: int):
         # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_adaptive(nsurf, batch, "adaptive")
+        fcdb = self._init_cutplane_batch_adaptive(nsurf, batch)
         # Check for file
         if not os.path.isfile(fcdb):
             self.log_verbose(f"File not found: {fcdb}")
@@ -1841,8 +1843,8 @@ class CaseRunner(casecntl.CaseRunner):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *nsurf*: {``0``} | :class:`int`
-                LAVA surface number
+            *nsurf*: {``1``} | :class:`int`
+                LAVA surface number (1-based)
             *nbatch*: {``None``} | :class:`int`
                 Number of snapshots to collect; default value is
                 *BatchSize* from ``case.json``
@@ -2110,7 +2112,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Get integers from these file names
             i = int(vtkfiles[0].rsplit('.', 2)[-2])
         # Name of file
-        return os.path.join("surface", f"surf{nsurf:03d}.Cart.{i:09d}.vtk")
+        return os.path.join("surface", f"surf{nsurf-1:03d}.Cart.{i:09d}.vtk")
 
     def _init_surfdata_batch(self, nsurf: int, batch: int) -> str:
         # Name of file
