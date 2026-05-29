@@ -40,6 +40,8 @@ from ..gruvoc.umesh import Umesh
 from ..gruvoc.umeshbase import pv
 from ..textutils import _printf
 from ..capeio import (
+    fromfile_lb4_f,
+    fromfile_lb8_f,
     fromfile_lb4_i,
     fromfile_lb8_i,
     tofile_lb4_i,
@@ -769,7 +771,7 @@ class CaseRunner(casecntl.CaseRunner):
                 if meta["nt"] == 0:
                     raise CapeFileNotFoundError(
                         f"No data found for cut-plane {nsurf} "
-                        f"(isosurfaces_{nsurf+1})")
+                        f"(isosurfaces_{nsurf})")
                 # Use the last available iteration
                 n = meta["i"][-1]
             else:
@@ -788,7 +790,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check that *n* is present
         mask, _ = meta.find(["i"], n)
         if mask.size == 0:  # pragma no-cover
-            self._complain_cutplane_iter(nsurf, n)
+            self._complain_cutplane_iter(nsurf, n, mode)
         # Get batch number
         i = mask[0]
         j = meta["batch"][i]
@@ -799,11 +801,9 @@ class CaseRunner(casecntl.CaseRunner):
         fcdb = self._genr8_cutplane_batchfile(nsurf, j, mode)
         # Check for batch file
         if not os.path.isfile(fcdb):  # pragma no-cover
-            self._complain_cutplane_iter(nsurf, n)
+            self._complain_cutplane_iter(nsurf, n, mode)
         # Read the batch file in meta-mode
         dat = capefile.CapeFile(fcdb, meta=True)
-        # Initialize mesh
-        mesh = Umesh()
         # Check which mode we are in
         if mode == "fixed":
             # We need to find the index of this case w/i the batch
@@ -812,7 +812,10 @@ class CaseRunner(casecntl.CaseRunner):
             # Read small fields
             dat.read_record("nq")
             # Read the reference iteration for geometry and shape
-            ref = self._read_cutplane_ref(nsurf)
+            mesh = self._read_cutplane_ref(nsurf)
+            # Unpack sizes
+            nnode = mesh.nnode
+            nq = mesh.nq
             # Open the .cdb file for precise reading
             with open(fcdb, 'rb') as fp:
                 # Go to correct position in the .cdb file
@@ -833,15 +836,18 @@ class CaseRunner(casecntl.CaseRunner):
                 # Skip array shape (nnode*nq*nt)
                 fromfile_lb8_i(fp, 3)
                 # Now shift to iteration *k*
-                fp.seek(k * ref.nnode * ref.nq * l2)
+                fp.seek(k * nnode * nq * l2)
                 # Read this slice
-                q = tofile_lb4_i(fp, ref.nnode * ref.nq)
-                q = np.reshape(q, (ref.nnode, ref.nq))
+                if l2 == 8:
+                    q = fromfile_lb8_f(fp, nnode * nq)
+                else:
+                    q = fromfile_lb4_f(fp, nnode * nq)
+                q = np.reshape(q, (nnode, nq))
             # Save the data
             mesh.q = q
-            # Create PyVista object
-            mesh.make_pvmesh_surf()
         else:
+            # Initialize mesh
+            mesh = Umesh()
             # Name of columns to read
             col1 = f"nodes.{n}"
             col2 = f"tris.{n}"
@@ -858,7 +864,7 @@ class CaseRunner(casecntl.CaseRunner):
             mesh.nnode = mesh.nodes.shape[0]
             mesh.ntri = mesh.tris.shape[0]
             mesh.nq = mesh.q.shape[1]
-        # Create pyvista mesh
+        # Create PyVista mesh
         mesh.make_pvmesh_surf()
         # Output
         return mesh
@@ -866,7 +872,8 @@ class CaseRunner(casecntl.CaseRunner):
     def _complain_cutplane_iter(self, nsurf: int, n: int, mode: str):
         raise CapeValueError(
             f"Iteration {n} for cut-plane {nsurf} "
-            f"(isosurfaces_{nsurf+1}) apparently deleted (mode='{mode}'")
+            f"(isosurfaces_{nsurf}, surf_{nsurf-1:03d}) "
+            f"apparently deleted (mode='{mode}'")
 
    # --- Cut-plane data collection ---
     def collect_cutplane(
@@ -1305,7 +1312,7 @@ class CaseRunner(casecntl.CaseRunner):
     @casecntl.run_rootdir
     def _write_cutplanedata_adaptive(self, i: int, nsurf: int, batch: int):
         # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_adaptive(nsurf, batch)
+        fcdb = self._init_cutplane_batch_adaptive(nsurf, batch, "adaptive")
         # Check for file
         if not os.path.isfile(fcdb):
             self.log_verbose(f"File not found: {fcdb}")
@@ -1564,7 +1571,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get reference iteration
         n = self.get_opt("RefIter")
         # Function name based on mode
-        infix = "" if (mode == "raw") else "_tri"
+        infix = "_raw" if (mode == "raw") else "_tri"
         # Get the function
         func = getattr(self, f"read_cutplane{infix}")
         # Read triangulated data for that iter
@@ -1701,7 +1708,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Create message
             msg = (
                 f"Failed to read cut-plane with index {nsurf}; ",
-                f"no 'isosurfaces_{nsurf+1}' in input file")
+                f"no 'isosurfaces_{nsurf}' in input file")
             self.log_verbose(msg)
             raise CapeValueError(msg)
 
