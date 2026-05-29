@@ -1989,6 +1989,30 @@ class CaseRunner(casecntl.CaseRunner):
         # Write it
         db.write(fname)
 
+    def infer_surfdata_n(self, nsurf: int, n: Optional[int] = None) -> int:
+        # Determine iteration if necessary
+        if n is not None:
+            # Already specified
+            return n
+        # File name pattern
+        pat = self._genr8_surfdata_regex(nsurf)
+        # Search for latest
+        mtch = self.match_regex(pat)
+        # Check if that found anything
+        if mtch is not None:
+            # Get integer from latest file name
+            return int(mtch.group(1))
+        # Check for batch data
+        meta = self.read_surfdata_meta(nsurf)
+        # Check for data
+        if meta["nt"] == 0:
+            raise CapeFileNotFoundError(
+                f"No data found for cut-plane {nsurf} "
+                f"(isosurfaces_{nsurf})")
+        # Use the last available iteration
+        return meta["i"][-1]
+
+
     def _complain_surfdata_iter(self, nsurf: int, n: int):
         raise CapeValueError(
             f"Iteration {n} for surface {nsurf} "
@@ -2145,7 +2169,7 @@ class CaseRunner(casecntl.CaseRunner):
     def _genr8_surfdata_regex(self, nsurf: int = 1) -> str:
         return os.path.join(
             "surface",
-            f"surf{nsurf-1:03d}\\.Cart\\.[0-9]+\\.vtk")
+            f"surf{nsurf-1:03d}\\.Cart\\.([0-9]+)\\.vtk")
 
     def _genr8_surfdata_prefix(self, nsurf: int) -> str:
         return os.path.join(
