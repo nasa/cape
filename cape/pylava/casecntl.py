@@ -1065,6 +1065,7 @@ class CaseRunner(casecntl.CaseRunner):
             clean: bool = False,
             nmax: Optional[int] = None):
         # First read metadata
+        _printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}")
         db = self.read_cutplane_meta(nsurf, "adaptive")
         # Number of time steps saved
         nt = db["nt"]
@@ -1083,6 +1084,12 @@ class CaseRunner(casecntl.CaseRunner):
         prefix = self._genr8_cutplane_prefix(nsurf)
         # Get any current VTK files
         vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
+        # Shortened file name for logs
+        flbl = os.path.join(
+            "isosurface",
+            f"surf{nsurf-1:02d}_cutplane....vtk")
+        # Search for them
+        print(f"  Searching for files: {flbl}")
         vtkfiles = self.search_regex(vtkpat)
         # Get integers from these file names
         iters = [int(v.split('.')[1]) for v in vtkfiles]
@@ -1111,6 +1118,7 @@ class CaseRunner(casecntl.CaseRunner):
             flbl = os.path.join(
                 "isosurface",
                 f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
+            # Check if alread processed
             # Increase counter
             nt += 1
             # Get batch
