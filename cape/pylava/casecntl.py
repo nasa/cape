@@ -2132,7 +2132,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Read metadata file
         meta = self.read_surfdata_meta(nsurf)
         # Convert file searches to lists of integers
-        n1 = [int(fname.split('.')[1]) for fname in mtch1]
+        n1 = [int(fname.split('.')[2]) for fname in mtch1]
         n1 = np.array(n1, dtype="int32")
         n3 = meta["i"].astype("int32")
         # Combine lists
