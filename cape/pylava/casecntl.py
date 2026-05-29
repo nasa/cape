@@ -747,16 +747,17 @@ class CaseRunner(casecntl.CaseRunner):
             nsurf: int,
             n: Optional[int] = None,
             mode: str = "raw") -> Umesh:
+        # Get definition
+        defn = self.read_cutplane_defn(nsurf)
+        self._assert_cutplane(nsurf, defn)
+        # File name prefix for this cutplane
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
         # Get file name infix
         infix = self._genr8_cutplane_infix(mode)
         infix_pat = infix.replace('.', '\\.')
         # Determine iteration if necessary
         if n is None:
-            # Get definition
-            defn = self.read_cutplane_defn(nsurf)
-            self._assert_cutplane(nsurf, defn)
             # File name pattern
-            prefix = self._genr8_cutplane_prefix(nsurf, defn)
             pat = rf"{prefix}\.([0-9]+){infix_pat}\.vtk"
             # Search for latest
             mtch = self.match_regex(pat)
