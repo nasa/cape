@@ -216,26 +216,32 @@ def make_video(
         # Check folder
         if dirname == "surface":
             # Use three digits
-            surfaces.append(int(basename[4:7]))
+            surfaces.append(int(basename[4:7]) + 1)
         else:
             # Use two digits
-            cutplanes.append(int(basename[5:6]))
+            cutplanes.append(int(basename[5:6]) + 1)
     elif pat > 0:
         cutplanes.append(pat)
     else:
         surfaces.append(max(1, -pat))
     # Find available iterations
-    l1 = (runner.find_surfdata_iters(nsurf) for nsurf in surfaces)
-    l2 = (runner.find_cutplane_iters(nsurf) for nsurf in cutplanes)
+    l1 = [runner.find_surfdata_iters(nsurf) for nsurf in surfaces]
+    l2 = [runner.find_cutplane_iters(nsurf) for nsurf in cutplanes]
     # Combine everything
-    n1 = np.hstack(l1, dtype="int32")
-    n2 = np.hstack(l2, dtype="int32")
+    n1 = np.zeros(0, dtype="int32") if len(l1) == 0 else np.hstack(l1)
+    n2 = np.zeros(0, dtype="int32") if len(l2) == 0 else np.hstack(l2)
     # Use overlap
-    iters = np.intersect1d(n1, n2)
-    # List iterations of cut plane file
-    flist = runner.search_regex(rf"{pat}\.([0-9]+)\.vtk")
+    if n2.size == 0:
+        # Use just surfaces
+        iters = np.unique(n1)
+    elif n1.size == 0:
+        # Use just cut planes
+        iters = np.unique(n2)
+    else:
+        # Use overlap
+        iters = np.intersect1d(n1, n2)
     # Number of matches
-    m = len(flist)
+    m = iters.size
     # Initialize list of subprocesses
     workers = []
     # Get options
