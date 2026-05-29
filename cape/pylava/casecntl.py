@@ -948,8 +948,11 @@ class CaseRunner(casecntl.CaseRunner):
         # Convert file searches to lists of integers
         n1 = [int(fname.split('.')[1]) for fname in mtch1]
         n2 = [int(fname.split('.')[1]) for fname in mtch2]
+        n1 = np.array(n1, dtype="int32")
+        n2 = np.array(n2, dtype="int32")
+        n3 = meta["i"].astype("int32")
         # Combine lists
-        return np.unique(np.hstack((n1, n2, meta["i"])))
+        return np.unique(np.hstack((n1, n2, n3)))
 
     def _complain_cutplane_iter(self, nsurf: int, n: int, mode: str):
         raise CapeValueError(
