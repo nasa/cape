@@ -1089,7 +1089,7 @@ class CaseRunner(casecntl.CaseRunner):
             "isosurface",
             f"surf{nsurf-1:02d}_cutplane....vtk")
         # Search for them
-        print(f"  Searching for files: {flbl}")
+        print(f"\n  Searching for files: {flbl}")
         vtkfiles = self.search_regex(vtkpat)
         # Get integers from these file names
         iters = [int(v.split('.')[1]) for v in vtkfiles]
