@@ -960,6 +960,8 @@ class CaseRunner(casecntl.CaseRunner):
         db = self.read_cutplane_meta(nsurf, "adaptive")
         # Number of time steps saved
         nt = db["nt"]
+        # Get reference iteration
+        iref = self.get_opt("RefIter")
         # Get current batch info
         if nt == 0:
             # Starting fresh
@@ -991,7 +993,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Check if already covered
             if i <= imax:
                 # Check for clean option
-                if clean:
+                if clean and (i != iref):
                     # Delete them
                     for fi in vtks:
                         if os.path.isfile(fi):
@@ -1021,7 +1023,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Update the batch data
             self.write_cutplane_meta(nsurf, db, "adaptive")
             # Check for clean
-            if clean:
+            if clean and (i != iref):
                 # Delete them
                 for fi in vtks:
                     if os.path.isfile(fi):
@@ -1056,6 +1058,8 @@ class CaseRunner(casecntl.CaseRunner):
         db = self.read_cutplane_meta(nsurf, "raw")
         # Number of time steps saved
         nt = db["nt"]
+        # Get reference iteration
+        iref = self.get_opt("RefIter")
         # Get current batch info
         if nt == 0:
             # Starting fresh
@@ -1086,7 +1090,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Check if already covered
             if i <= imax:
                 # Check for clean option
-                if clean:
+                if clean and (i != iref):
                     # Delete them
                     for fi in vtks:
                         if os.path.isfile(fi):
@@ -1116,7 +1120,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Update the batch data
             self.write_cutplane_meta(nsurf, db, "raw")
             # Check for clean
-            if clean:
+            if clean and (i != iref):
                 # Delete them
                 for fi in vtks:
                     if os.path.isfile(fi):
@@ -1495,7 +1499,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check if file exists
         if not os.path.isfile(fname):
             # Read reference VTK file
-            surf = self._read_cutplane_ref(nsurf)
+            surf = self._read_cutplane_ref(nsurf, mode="raw")
             # Get number of states
             nq = surf.nq
             # Create a DataKit
@@ -1514,7 +1518,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check if file exists
         if not os.path.isfile(fname):
             # Read reference VTK file
-            surf = self._read_cutplane_ref(nsurf)
+            surf = self._read_cutplane_ref(nsurf, mode="raw")
             # Get number of states
             nq = surf.nq
             # Create a DataKit
@@ -1555,11 +1559,15 @@ class CaseRunner(casecntl.CaseRunner):
         # Return name of file
         return fname
 
-    def _read_cutplane_ref(self, nsurf: int) -> Umesh:
+    def _read_cutplane_ref(self, nsurf: int, mode: str = "fixed") -> Umesh:
         # Get reference iteration
         n = self.get_opt("RefIter")
+        # Function name based on mode
+        infix = "" if (mode == "raw") else "_tri"
+        # Get the function
+        func = getattr(self, f"read_cutplane{infix}")
         # Read triangulated data for that iter
-        return self.read_cutplane_tri(nsurf, n)
+        return func(nsurf, n)
 
     def _genr8_cutplane_metafile(
             self, nsurf: int = 0, mode: str = "fixed") -> str:
