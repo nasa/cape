@@ -757,25 +757,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get file name infix
         infix = self._genr8_cutplane_infix(mode)
         # Determine iteration if necessary
-        if n is None:
-            # File name pattern
-            pat = rf"{prefix}\.([0-9]+)\.vtk"
-            # Search for latest
-            mtch = self.match_regex(pat)
-            # Check if that found anything
-            if mtch is None:
-                # Check for batch data
-                meta = self.read_cutplane_meta(nsurf, mode)
-                # Check for data
-                if meta["nt"] == 0:
-                    raise CapeFileNotFoundError(
-                        f"No data found for cut-plane {nsurf} "
-                        f"(isosurfaces_{nsurf})")
-                # Use the last available iteration
-                n = meta["i"][-1]
-            else:
-                # Get integer from file name
-                n = int(mtch.group(1))
+        n = self.infer_cutplane_n(nsurf, n)
         # Generate file name
         cutplanefile = f"{prefix}.{n:09d}{infix}.vtk"
         altfile = f"{prefix}.{n:09d}.vtk"
@@ -879,6 +861,95 @@ class CaseRunner(casecntl.CaseRunner):
         mesh.make_pvmesh_surf()
         # Output
         return mesh
+
+    def infer_cutplane_n(
+            self,
+            nsurf: int,
+            n: Optional[int] = None,
+            mode: str = "adaptive") -> int:
+        r"""Infer iteration of latest available cut-plane data file
+
+        Returns *n* if an integer input is given.
+
+        :Call:
+            >>> i = runner.infer_cutplane_n(nsurf, n=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index (1-based)
+            *n*: {``None``} | :class:`int`
+                Optional iteration number
+            *mode*: {``"adaptive"``} | ``"raw"`` | ``"fixed"``
+                Mode to use when checking batch file
+        :Outputs:
+            *i*: :class:`int`
+                Latest iter if *n* is ``None``, otherwise *n*
+        """
+        # Determine iteration if necessary
+        if n is not None:
+            # Already specified
+            return n
+        # Get definition
+        defn = self.read_cutplane_defn(nsurf)
+        self._assert_cutplane(nsurf, defn)
+        # File name prefix for this cutplane
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
+        # Get file name infix
+        infix = self._genr8_cutplane_infix(mode)
+        # File name pattern
+        pat1 = rf"{prefix}\.([0-9]+)\.vtk"
+        pat2 = rf"{prefix}\.([0-9]+){infix}\.vtk"
+        # Search for latest
+        mtch1 = self.match_regex(pat1)
+        # Check if that found anything
+        n1 = 0 if mtch1 is None else int(mtch1.group(1))
+        # Check for alternate pattern
+        if pat1 == pat2:
+            # Don't do a second search
+            n2 = n1
+            mtch2 = None
+        else:
+            # Search for triangulated/fixed files, too
+            mtch2 = self.match_regex(pat2)
+            # Check if that found anything
+            n2 = 0 if mtch2 is None else int(mtch2.group(1))
+        # Check for batch data
+        meta = self.read_cutplane_meta(nsurf, mode)
+        # Check for data
+        n3 = 0 if (meta["nt"] == 0) else meta["i"][-1]
+        # Check for empty result from all three
+        if (meta["nt"] == 0) and (mtch1 is None) and (mtch2 is None):
+            raise CapeFileNotFoundError(
+                f"No data found for cut-plane {nsurf} "
+                f"(isosurfaces_{nsurf})")
+        # Use the last available iteration
+        return max(max(n1, n2), n3)
+
+    def find_cutplane_n(
+            self,
+            nsurf: int,
+            mode: str = "adaptive") -> np.ndarray:
+        # Get definition
+        defn = self.read_cutplane_defn(nsurf)
+        self._assert_cutplane(nsurf, defn)
+        # File name prefix for this cutplane
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
+        # Get file name infix
+        infix = self._genr8_cutplane_infix(mode)
+        # File name pattern
+        pat1 = rf"{prefix}\.([0-9]+)\.vtk"
+        pat2 = rf"{prefix}\.([0-9]+){infix}\.vtk"
+        # Search for latest
+        mtch1 = self.search_regex(pat1)
+        mtch2 = [] if (pat1 == pat2) else self.search_regex(pat2)
+        # Read metadata file
+        meta = self.read_cutplane_meta(nsurf, mode)
+        # Convert file searches to lists of integers
+        n1 = [int(fname.split('.')[1]) for fname in mtch1]
+        n2 = [int(fname.split('.')[1]) for fname in mtch2]
+        # Combine lists
+        return np.unique(np.hstack((n1, n2, meta["i"])))
 
     def _complain_cutplane_iter(self, nsurf: int, n: int, mode: str):
         raise CapeValueError(
@@ -1969,8 +2040,8 @@ class CaseRunner(casecntl.CaseRunner):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *nsurf*: {``0``} | :class:`int`
-                Surface index (0-based)
+            *nsurf*: :class:`int`
+                Surface index (1-based)
             *db*: :class:`cape.dkit.rdb.DataKit`
                 DataKit of which batch each iteration is located in
         :Verions:
@@ -1982,6 +2053,23 @@ class CaseRunner(casecntl.CaseRunner):
         db.write(fname)
 
     def infer_surfdata_n(self, nsurf: int, n: Optional[int] = None) -> int:
+        r"""Infer iteration of latest available surface data file
+
+        Returns *n* if an integer input is given.
+
+        :Call:
+            >>> i = runner.infer_surfdata_n(nsurf, n=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index (1-based)
+            *n*: {``None``} | :class:`int`
+                Optional iteration number
+        :Outputs:
+            *i*: :class:`int`
+                Latest iter if *n* is ``None``, otherwise *n*
+        """
         # Determine iteration if necessary
         if n is not None:
             # Already specified
@@ -1991,19 +2079,17 @@ class CaseRunner(casecntl.CaseRunner):
         # Search for latest
         mtch = self.match_regex(pat)
         # Check if that found anything
-        if mtch is not None:
-            # Get integer from latest file name
-            return int(mtch.group(1))
+        n1 = 0 if mtch is None else int(mtch.group(1))
         # Check for batch data
         meta = self.read_surfdata_meta(nsurf)
         # Check for data
-        if meta["nt"] == 0:
+        n2 = 0 if (meta["nt"] == 0) else meta["i"][-1]
+        if (meta["nt"] == 0) and (mtch is None):
             raise CapeFileNotFoundError(
                 f"No data found for cut-plane {nsurf} "
                 f"(isosurfaces_{nsurf})")
         # Use the last available iteration
-        return meta["i"][-1]
-
+        return max(n1, n2)
 
     def _complain_surfdata_iter(self, nsurf: int, n: int):
         raise CapeValueError(
