@@ -1743,7 +1743,11 @@ class DataKit(BaseData):
             # Delete the file
             try:
                 os.remove(flock)
+            except FileNotFoundError:
+                # File already unlocked
+                pass
             except PermissionError:
+                # Someone else locked the file
                 print(f"PermissionError deleting\n'{flock}'")
 
    # --- Utilities ---
