@@ -873,7 +873,7 @@ class CaseRunner(casecntl.CaseRunner):
         raise CapeValueError(
             f"Iteration {n} for cut-plane {nsurf} "
             f"(isosurfaces_{nsurf}, surf{nsurf-1:02d}) "
-            f"apparently deleted (mode='{mode}'")
+            f"apparently deleted (mode='{mode}')")
 
    # --- Cut-plane data collection ---
     def collect_cutplane(
