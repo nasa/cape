@@ -1457,7 +1457,7 @@ class CaseRunner(casecntl.CaseRunner):
             fp.seek(0, 2)
             # Save data
             dat.save_col(f"nodes.{i}", surf.nodes.astype("f4"))
-            dat.save_col(f"tris.{i}", surf.nodes.astype("i4"))
+            dat.save_col(f"tris.{i}", surf.tris.astype("i4"))
             dat.save_col(f"q.{i}", surf.q.astype("f4"))
             # Write additional data
             dat._write_record(fp, f"nodes.{i}")
@@ -1598,7 +1598,7 @@ class CaseRunner(casecntl.CaseRunner):
             fp.seek(0, 2)
             # Save data
             dat.save_col(f"nodes.{i}", surf.nodes.astype("f4"))
-            dat.save_col(f"tris.{i}", surf.nodes.astype("i4"))
+            dat.save_col(f"tris.{i}", surf.tris.astype("i4"))
             dat.save_col(f"q.{i}", surf.q.astype("f4"))
             # Write additional data
             dat._write_record(fp, f"nodes.{i}")
