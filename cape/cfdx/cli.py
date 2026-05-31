@@ -2309,7 +2309,7 @@ def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
     # Set mode
     mode = "adaptive" if (len(modes) == 0) else modes[0]
     # Run the case
-    runner.collect_cutplane(
+    runner.collect_cutplanes(
         nsurf=nsurf,
         nbatch=nbatch,
         clean=clean,

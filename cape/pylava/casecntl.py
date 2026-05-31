@@ -975,7 +975,7 @@ class CaseRunner(casecntl.CaseRunner):
             f"apparently deleted (mode='{mode}')")
 
    # --- Cut-plane data collection ---
-    def collect_cutplane(
+    def collect_cutplanes(
             self,
             nsurf: Optional[int] = 0,
             nbatch: Optional[int] = None,
@@ -985,7 +985,7 @@ class CaseRunner(casecntl.CaseRunner):
         r"""Collect VTK cut-plane data from oner or more isosurfaces
 
         :Call:
-            >>> runner.collect_cutplane(nsurf=0, nbatch=None, **kw)
+            >>> runner.collect_cutplanes(nsurf=0, nbatch=None, **kw)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -1017,10 +1017,10 @@ class CaseRunner(casecntl.CaseRunner):
             surfs = [nsurf]
         # Loop through surfaces
         for surf in surfs:
-            self.collect_cutplane_surf(
+            self.collect_cutplane(
                 surf, nbatch, clean=clean, nmax=nmax, mode=mode)
 
-    def collect_cutplane_surf(
+    def collect_cutplane(
             self,
             nsurf: int = 1,
             nbatch: Optional[int] = None,
@@ -1030,7 +1030,7 @@ class CaseRunner(casecntl.CaseRunner):
         r"""Combine data from LAVA cut-plane VTK files into batches
 
         :Call:
-            >>> runner.collect_cutplane_surf(nsurf, nbatch, **kw)
+            >>> runner.collect_cutplane(nsurf, nbatch, **kw)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2315,100 +2315,6 @@ class CaseRunner(casecntl.CaseRunner):
         return os.path.join(
             "surface",
             f"surf{nsurf-1:03d}.Cart.batch{batch:04d}.cdb")
-
-   # --- Workers ---
-    def ingest_cutplanes(
-            self,
-            nbatch: Optional[int] = None,
-            clean: bool = True,
-            nmax: Optional[int] = None):
-        r"""Collect cutplanes and cleanup source files
-
-        :Call:
-            >>> runner.ingest_cutplanes()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *nbatch*: {``None``} | :class:`int`
-                Number of snapshots to collect; default value is
-                *BatchSize* from ``case.json``
-            *clean*: {``True``} | ``False``
-                Option to delete ``.vtk`` files after processing
-            *nmax*: {``None``} | :class:`int`
-                Maximum number of snapshots to collect
-        :Versions:
-            * 2026-05-26 ``@aburkhea``: v1.0
-        """
-        # Get current phase
-        iphase = self.get_phase()
-        # Read lava input
-        runinp = self.read_runinputs(iphase)
-        # Get output section
-        outs = runinp["cartesian"]["output"]
-        # Get output keys that have start with isosurfaces
-        isos = [k for k in outs.keys() if k.startswith("isosurface")]
-        # For each isosurf
-        for iso, _ in enumerate(isos):
-            iso1 = iso + 1
-            # Try to read meta data
-            db = self.read_cutplane_meta(iso1)
-            # Get current batch number
-            cbat = np.max([0, *db["batch"]])
-            defn = self.read_cutplane_defn(iso1)
-            # Get any current VTK files
-            prefix = self._genr8_cutplane_prefix(iso1, defn)
-            # Get any current VTK files
-            vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
-            vtkfiles = self.search_regex(vtkpat)
-            nfiles = len(vtkfiles)
-            if nfiles > 0:
-                # Update
-                self.log_verbose(
-                    f"Adding {nfiles} surf{iso:03} file(s) to batch {cbat}")
-                self.collect_cutplane(
-                    iso1, nbatch, clean=clean, nmax=nmax
-                )
-
-    def ingest_surf(
-            self,
-            nsurf: Optional[int] = 0,
-            nbatch: Optional[int] = None,
-            clean: bool = True,
-            nmax: Optional[int] = None):
-        r"""Collect surfaces and cleanup source files
-
-        :Call:
-            >>> runner.ingest_surf()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *nsurf*: {``0``} | class:`int`
-                Surface number to collect
-            *nbatch*: {``None``} | :class:`int`
-                Number of snapshots to collect; default value is
-                *BatchSize* from ``case.json``
-            *clean*: {``True``} | ``False``
-                Option to delete ``.vtk`` files after processing
-            *nmax*: {``None``} | :class:`int`
-                Maximum number of snapshots to collect
-        :Versions:
-            * 2026-05-26 ``@aburkhea``: v1.0
-        """
-        # Try to read meta data
-        db = self.read_surfdata_meta(nsurf)
-        # Get current batch
-        cbat = np.max([0, *db["batch"]])
-        # Get any current VTK files
-        vtkpat = self._genr8_surfdata_regex(nsurf)
-        vtkfiles = sorted(self.search_regex(vtkpat))
-        nfiles = len(vtkfiles)
-        if nfiles > 0:
-            # Update
-            self.log_verbose(
-                f"Adding {nfiles} surf{nsurf:02} file(s) to batch {cbat}")
-            self.collect_surfdata(
-                nsurf, nbatch, clean=clean, nmax=nmax
-            )
 
    # --- File manipulation ---
     # Prepare any input files as needed
