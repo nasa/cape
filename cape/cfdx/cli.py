@@ -101,6 +101,7 @@ class CfdxArgReader(argread.ArgReader):
         "checkTriqFM": "check-triqfm",
         "constraints": "cons",
         "early-exit": "early",
+        "edit-json": "edit",
         "exec": "e",
         "fail": "FAIL",
         "file": "f",
@@ -111,6 +112,7 @@ class CfdxArgReader(argread.ArgReader):
         "kill": "qdel",
         "minsize": "cutoff",
         "nbatch": "batchsize",
+        "output-json": "o",
         "pattern": "pat",
         "queue": "q",
         "regex": "re",
@@ -145,6 +147,7 @@ class CfdxArgReader(argread.ArgReader):
         "dezombie": bool,
         "e": str,
         "early": bool,
+        "edit": str,
         "extend": (bool, int),
         "f": str,
         "failed": bool,
@@ -161,6 +164,7 @@ class CfdxArgReader(argread.ArgReader):
         "nmax": int,
         "nproc": int,
         "nsurf": int,
+        "o": str,
         "passed": bool,
         "pat": str,
         "prompt": bool,
@@ -265,6 +269,7 @@ class CfdxArgReader(argread.ArgReader):
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
         "e": "Execute the command *EXEC*",
         "early": "Reduce *PhaseIters* to current iter; makes case ``DONE``",
+        "edit": "Modify JSON settings and rewrite",
         "extend": "Extend case(s) by *N_EXT* copies of last phase",
         "f": "Use the JSON (or YAML) file *JSON*",
         "filter": "Limit to cases containing the string *TXT*",
@@ -285,6 +290,7 @@ class CfdxArgReader(argread.ArgReader):
         "nmax": "Maximum number of snapshots to process",
         "nproc": "Number of parallel processes to use",
         "nsurf": "Index of surface to process",
+        "o": "Name of output JSON file (defaults to same as *f*)",
         "pat": "Consider file names matching pattern *PAT*",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
@@ -319,6 +325,7 @@ class CfdxArgReader(argread.ArgReader):
         "dbpyfunc": "[PAT]",
         "dex": "[DEX]",
         "e": "EXEC",
+        "edit": "SETTINGS",
         "extend": "[N_EXT]",
         "f": "JSON",
         "filter": "TXT",
@@ -334,6 +341,7 @@ class CfdxArgReader(argread.ArgReader):
         "nmax": "NMAX",
         "nproc": "NPROC",
         "nsurf": "SURF",
+        "o": "OUT_JSON",
         "pat": "PAT",
         "prop": "[PAT]",
         "pt": "[PAT]",
@@ -682,6 +690,31 @@ class CfdxCollectCutPlaneArgs(CfdxCollectSurfArgs):
     _rc = {
         "nsurf": None,
     }
+
+
+# Settings for --edit
+class CfdxEditArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-edit-json"
+
+    # Description
+    _help_title = "Edit JSON settings from command-line"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "edit",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "f",
+        "edit",
+    )
 
 
 # Settings for --dezombie
