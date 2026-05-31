@@ -222,6 +222,7 @@ class CaseRunner(CaseRunnerBase):
         "logger",
         "archivist",
         "child",
+        "is_fork",
         "is_worker",
         "n",
         "nr",
@@ -349,6 +350,9 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`bool`
         #: Whether or not this process is a worker
         self.is_worker = False
+        #: :class:`bool`
+        #: Flag for process forked other than standard "worker"
+        self.is_fork = False
         # Set private slots
         self._mtime_case_json = 0.0
         self._dex_comp = None
@@ -7358,6 +7362,8 @@ class CaseRunner(CaseRunnerBase):
             # Save the PID
             self.workers.append(pid)
             return
+        # Mark status
+        self.is_worker = True
         # Loop until case is completed
         while True:
             # Sleep
