@@ -1057,6 +1057,155 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             self._collect_cutplane_raw(nsurf, nbatch, clean, nmax)
 
+    def _collect_cutplane_adaptive2(
+            self,
+            nsurf: int = 1,
+            nbatch: Optional[int] = None,
+            clean: bool = False,
+            nmax: Optional[int] = None,
+            nproc: Optional[int] = None):
+        # First read metadata
+        self._printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}")
+        db = self.read_cutplane_meta(nsurf, "adaptive")
+        # Number of time steps saved
+        nt = db["nt"]
+        # Get reference iteration
+        iref = self.get_opt("RefIter")
+        # Get current batch info
+        if nt == 0:
+            # Starting fresh
+            imax = 0
+        else:
+            # Get latest
+            imax = db["i"][-1]
+        # Batch size
+        nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
+        # Prefix for VTK files
+        prefix = self._genr8_cutplane_prefix(nsurf)
+        # Get any current VTK files
+        vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
+        # Shortened file name for logs
+        flbl = os.path.join(
+            "isosurface",
+            f"surf{nsurf-1:02d}_cutplane....vtk")
+        # Search for them
+        print(f"\n  Searching for files: {flbl}")
+        vtkfiles = self.search_regex(vtkpat)
+        # Get integers from these file names
+        iters = [int(v.split('.')[1]) for v in vtkfiles]
+        iters = np.unique(iters)
+        # Number of saved files
+        n = 0
+        # List of files to remove (this batch)
+        rmfiles = []
+        # Max number of workers
+        if nproc is None:
+            nproc = self.get_opt("NSubProcess", 8)
+        # Create dictionary of subprocess PIDs
+        case_ids = {}
+        # Loop through files
+        for i in iters:
+            # Wait until worker count is subsided
+            while len(self.workers) >= nproc:
+                # Wait
+                time.sleep(DEFAULT_SLEEPTIME)
+                # Check, collecting results from finished workers
+                for pid in list(self.workers):
+                    # Check on that process
+                    if not self._update_fork(pid):
+                        continue
+                    # Get output from worker
+                    vi = self._collect_fork_pipe(pid)
+                    # Check validity
+                    if vi is None:
+                        continue
+                    # Otherwise unpack
+                    nodes, tris, q = vi
+                    # Get case for that process ID
+                    j = case_ids[pid]
+                    # Write it
+                    ...
+                    # self._write_cutplane_batchdata()
+                    # Update counter
+                    n += 1
+            # Create pipe before forking
+            r_fd, w_fd = os.pipe()
+            # Call the fork
+            pid = os.fork()
+            # Check parent/child
+            if pid != 0:
+                # Parent: close write end, save read end
+                os.close(w_fd)
+                self.fork_pipes[pid] = r_fd
+                # Save process ID of worker
+                self.forks.append(pid)
+                # Also save it by case
+                case_ids[pid] = i
+                continue
+            # Name of VTK files
+            prefixi = f"{prefix}.{i:09d}"
+            fvtk = f"{prefixi}.vtk"
+            ftri = f"{prefixi}.tri.vtk"
+            vtks = [fvtk, ftri]
+            # Check if already covered
+            if i <= imax:
+                # Check for clean option
+                if clean and (i != iref):
+                    # Delete them
+                    for fi in vtks:
+                        if os.path.isfile(fi):
+                            rmfiles.append(fi)
+                continue
+            # Shortened file name for logs
+            flbl = os.path.join(
+                "isosurface",
+                f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
+            # Check if alread processed
+            # Increase counter
+            nt += 1
+            # Get batch
+            batchj = (nt - 1) // nbatch
+            batchk = nt % nbatch
+            # Check if new batch
+            newbatch = db["batch"].size and (db["batch"][-1] != batchj)
+            # Append to vectors
+            db["nt"] = nt
+            db["i"] = np.hstack((db["i"], i))
+            db["batch"] = np.hstack((db["batch"], batchj))
+            # Status update
+            self._printf(
+                f"  Collecting '{flbl}' " +
+                f"-> batch {batchj} ({batchk}/{nbatch})")
+            # Write data
+            self._write_cutplanedata_adaptive(i, nsurf, batchj)
+            # Update the batch data
+            self.write_cutplane_meta(nsurf, db, "adaptive")
+            # Check for clean
+            if clean and (i != iref):
+                # Delete them
+                for fi in vtks:
+                    if os.path.isfile(fi):
+                        rmfiles.append(fi)
+            # Remove files
+            if newbatch:
+                # Loop through files to delete for this batch
+                for fvtk in rmfiles:
+                    self.remove_file(fvtk)
+                # Reset list of files to delete
+                rmfiles = []
+            # Update
+            n += 1
+            # Check for exit flag
+            if (nmax is not None) and (n >= nmax):
+                break
+        # Clean up prompt
+        print("")
+        # Loop through files to delete that didn't line up with a batch
+        for fvtk in rmfiles:
+            self.remove_file(fvtk)
+        # Update metadata
+        self.write_cutplane_meta(nsurf, db, "adaptive")
+
     def _collect_cutplane_adaptive(
             self,
             nsurf: int = 1,
@@ -1419,6 +1568,7 @@ class CaseRunner(casecntl.CaseRunner):
         fname = self._genr8_cutplane_metafile(nsurf, mode=mode)
         # Write it
         db.write(fname)
+
 
     @casecntl.run_rootdir
     def _write_cutplanedata_adaptive(self, i: int, nsurf: int, batch: int):

@@ -29,6 +29,7 @@ import getpass
 import glob
 import json
 import os
+import pickle
 import pwd
 import re
 import shlex
@@ -222,6 +223,8 @@ class CaseRunner(CaseRunnerBase):
         "logger",
         "archivist",
         "child",
+        "forks",
+        "fork_pipes",
         "is_fork",
         "is_worker",
         "n",
@@ -350,6 +353,12 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`bool`
         #: Whether or not this process is a worker
         self.is_worker = False
+        #: :class:`list`\ [:class:`int`]
+        #: List of subprocess IDs other than "workers"
+        self.forks = []
+        #: :class:`dict`\ [:class:`int`]
+        #: Dictionary of read pipes from forks to main process
+        self.fork_pipes = {}
         #: :class:`bool`
         #: Flag for process forked other than standard "worker"
         self.is_fork = False
@@ -7181,6 +7190,66 @@ class CaseRunner(CaseRunnerBase):
                 Name of class w/o module included
         """
         return self.__class__.__name__
+
+  # *** FORK SUBPROCESSES ***
+
+   # --- I/O ---
+    def _collect_fork_pipe(self, pid: int) -> Any:
+        # Get read-only pipe for this process
+        r_fd = self.fork_pipes.pop(pid, None)
+        # Check for invalid pipe
+        if r_fd is None:
+            return
+        # Read content from the pipe
+        chunks = []
+        while True:
+            chunk = os.read(r_fd, 4096)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        # Close the pipe
+        os.close(r_fd)
+        # Convert to Python objects
+        v = pickle.loads(b"".join(chunks))
+        # Output
+        return v
+
+   # --- Cleanup ---
+    def _update_fork(self, pid: int) -> bool:
+        # Check if this is a worker
+        if pid not in self.forks:
+            # Already done?
+            return True
+        # Check status
+        try:
+            # Run the actual check command
+            outpid, _ = os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError:
+            # This worker
+            self.forks.remove(pid)
+            return True
+        # Check if process has exited
+        if outpid == 0:
+            # Process has exited
+            return False
+        else:
+            # Process has exited
+            return True
+
+    def _update_forks(self):
+        # Loop through workers
+        for pid in list(self.forks):
+            # Check if it's active
+            try:
+                # Check on the requested process
+                outpid, _ = os.waitpid(pid, os.WNOHANG)
+            except ChildProcessError:
+                print(f"  PID {pid} is um....")
+                continue
+            # Check if it's running
+            if outpid != 0:
+                # Already done
+                self.forks.remove(pid)
 
   # *** WORKERS ***
    # --- Driver ---
