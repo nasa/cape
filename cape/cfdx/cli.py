@@ -18,7 +18,7 @@ from . import manage
 from .. import argread
 from .. import convert1to2
 from ..argread import BOOL_TYPES, INT_TYPES
-from ..errors import CapeError
+from ..errors import CapeError, CapeValueError
 
 
 # Constants
@@ -126,6 +126,7 @@ class CfdxArgReader(argread.ArgReader):
         "I": str,
         "FAIL": bool,
         "PASS": bool,
+        "adaptive": bool,
         "apply": bool,
         "archive": bool,
         "auto": bool,
@@ -152,6 +153,7 @@ class CfdxArgReader(argread.ArgReader):
         "f": str,
         "failed": bool,
         "filter": str,
+        "fixed": bool,
         "force": bool,
         "fm": (bool, str),
         "imax": int,
@@ -172,6 +174,7 @@ class CfdxArgReader(argread.ArgReader):
         "pt": (bool, str),
         "q": bool,
         "qsub": bool,
+        "raw": bool,
         "re": str,
         "report": (bool, str),
         "restart": bool,
@@ -245,6 +248,7 @@ class CfdxArgReader(argread.ArgReader):
         "FAIL": "Mark case(s) as ERRORs",
         "I": "Specific case indices, e.g. ``-I 4:8,12``",
         "PASS": "Mark case(s) as PASS",
+        "adaptive": "Save the adapted-mesh version of flow data (more data)",
         "add-cols": "Additional columns to show in run matrix status table",
         "add-counters": "Additional keys to show totals after run mat table",
         "apply": "Apply current JSON settings to existing case(s)",
@@ -273,6 +277,7 @@ class CfdxArgReader(argread.ArgReader):
         "extend": "Extend case(s) by *N_EXT* copies of last phase",
         "f": "Use the JSON (or YAML) file *JSON*",
         "filter": "Limit to cases containing the string *TXT*",
+        "fixed": "Interpolate flow data to common grid",
         "fm": "Extract force & moment data [comps matching *PAT*] for case(s)",
         "force": "Update report and ignore subfigure cache",
         "glob": "Limit to cases whose name matches the filename pattern *PAT*",
@@ -303,6 +308,7 @@ class CfdxArgReader(argread.ArgReader):
         "surf": "Name of surface to collect/process",
         "surfcp": "Extract surface pressure data for case(s)",
         "skeleton": "Delete most files from indicaded PASSED cases",
+        "raw": "Collect raw flow data w/o triangulating or interpolating",
         "rm": "Remove indicated cases",
         "start": "Set up but do not start (or submit) cases",
         "triqfm": "Extract triq F&M data [comps matching *PAT*] for case(s)",
@@ -671,7 +677,7 @@ class CfdxCollectSurfArgs(CfdxArgReader):
     # Defaults
     _rc = {
         "clean": False,
-        "nsurf": 0,
+        "nsurf": 1,
     }
 
 
@@ -682,6 +688,13 @@ class CfdxCollectCutPlaneArgs(CfdxCollectSurfArgs):
 
     # Name of function
     _name = "cfdx-collect-cutplane"
+
+    # Additional options
+    _optlist = (
+        "adaptive",
+        "fixed",
+        "raw",
+    )
 
     # Description
     _help_title = "Collect cut-plane data in current case folder"
@@ -1306,6 +1319,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "FAIL",
         "I",
         "PASS",
+        "adaptive",
         "apply",
         "add-cols",
         "add-counters",
@@ -1332,6 +1346,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extend",
         "f",
         "filter",
+        "fixed",
         "fm",
         "force",
         "glob",
@@ -1355,6 +1370,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "q",
         "qdel",
         "qsub",
+        "raw",
         "re",
         "report",
         "restart",
@@ -2271,6 +2287,7 @@ def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
             Return code
     :Versions:
         * 2026-04-07 ``@ddalle``: v1.0
+        * 2026-05-29 ``@ddalle``: v1.1; add *mode*
     """
     # Read instance
     runner, kw = read_runner_kwargs(parser)
@@ -2279,11 +2296,24 @@ def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
     nbatch = kw.get("batchsize")
     clean = kw.get("clean")
     nmax = kw.get("nmax")
+    # Process mode options
+    modes = [
+        opt for opt in ("adaptive", "fixed", "raw")
+        if kw.get(opt) is not None
+    ]
+    # Check for multiple options
+    if len(modes) > 1:
+        # Show which options were given
+        optmodes = [f"--{o}" for o in modes]
+        raise CapeValueError(f"Got: {' '.join(optmodes)}; can only use one")
+    # Set mode
+    mode = "adaptive" if (len(modes) == 0) else modes[0]
     # Run the case
     runner.collect_cutplane(
         nsurf=nsurf,
         nbatch=nbatch,
         clean=clean,
+        mode=mode,
         nmax=nmax)
     # Return code
     return IERR_OK
@@ -2562,11 +2592,13 @@ def main_template(
             return func(subparser)
         except CapeError as e:
             # Print the error type
-            print(f"{e.__class__.__name__[4:]}:")
+            sys.stderr.write(f"{e.__class__.__name__[4:]}:\n")
             # Now the error message
             for a in e.args:
-                print(f"    {a}")
-                return IERR_RUNTIME
+                sys.stderr.write(f"    {a}\n")
+            # End message and exit
+            sys.stderr.flush()
+            return IERR_RUNTIME
     # For now, print the selected command
     return IERR_OK
 

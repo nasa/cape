@@ -1,0 +1,20 @@
+{
+    "Tree": {
+        "bullet": [
+            "cap",
+            "body",
+            "base"
+        ],
+        "box": [
+            "sides",
+            "back"
+        ]
+    },
+    "Properties": {
+        "cap": 1,
+        "body": 2,
+        "base": 3,
+        "sides": 4,
+        "back": 5
+    }
+}

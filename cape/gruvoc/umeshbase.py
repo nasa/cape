@@ -28,13 +28,15 @@ from .surfconfig import INT_TYPES
 # Optional imports
 try:
     import pyvista as pv
+except ModuleNotFoundError:
+    pv = None
+try:
     import pyvista.core._vtk_core as _vtk
     from pyvista.core.filters import _get_output, _update_alg
     from vtkmodules.vtkCommonDataModel import vtkPlane
     from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
 except ModuleNotFoundError:
     # Empty imports
-    pv = None
     vtkPlane = None
 try:
     from scipy.spatial import cKDTree, KDTree
@@ -577,6 +579,8 @@ class UmeshBase(ABC):
             mesh.qvars = pvmesh.point_data.keys()
             mesh.nq = len(mesh.qvars)
             mesh.q = np.stack(pvmesh.point_data.values(), axis=1)
+        # Store original inpu
+        mesh.pvmesh = pvmesh
         # Output
         return mesh
 

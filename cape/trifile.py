@@ -1845,7 +1845,7 @@ class TriBase(object):
         # Check for state vars
         try:
             qq = self.nq > 0
-        except AttributeError:
+        except (AttributeError, TypeError):
             # No attribute for number of states
             qq = False
         # Open the file
@@ -3360,8 +3360,10 @@ class TriBase(object):
         :Versions:
             * 2015-02-24 ``@ddalle``: v1.0
         """
-        # Copy the triangulation.
+        # Copy the triangulation
         tri = self.Copy()
+        # Do not write states
+        tri.nq = None
         # Current maximum CompID
         comp0 = np.max(self.CompID)
         # Check for "groups"

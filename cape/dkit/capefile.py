@@ -356,15 +356,16 @@ class CapeFile(dict):
         uint64(n).tofile(fp)
         # Loop through records
         for col in self.cols:
-            # Assume the name is a title
-            name = col
-            # Check if this counts as a name
-            if REGEX_NONAME.fullmatch(col):
-                name = None
-            # Get special settings for this record
-            rt = self.rt.get(col)
-            # Write it
-            write_record(fp, self[col], name, rt)
+            self._write_record(fp, col)
+
+    def _write_record(self, fp: IOBase, col: str):
+        # Assume the name is a title
+        name = None if REGEX_NONAME.fullmatch(col) else col
+        # Get special settings for this record
+        rt = self.rt.get(col)
+        # Write it
+        write_record(fp, self[col], name, rt)
+        
 
     def save_dict(self, a: dict):
         r"""Save all parameters of a :class:`dict`

@@ -470,6 +470,8 @@ class Cntl(capecntl.Cntl):
         self.PrepareTri(i)
         # Check intersection status.
         if self.opts.get_intersect():
+            # Prepare alternate groups
+            self._prep_intersect_groups()
             # Write the tri file as non-intersected; each volume is one CompID
             self.tri.WriteVolTri('Components.tri')
             # Write the existing triangulation with existing CompIDs.

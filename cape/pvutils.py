@@ -17,10 +17,11 @@ a specific frame).
 import os
 import sys
 import time
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 from subprocess import call
 
 # Third-party
+import numpy as np
 import pyvista as pv
 from cape.argread import ArgReader
 from cape.pylava.casecntl import CaseRunner
@@ -183,9 +184,11 @@ def genr8_filenames(
 def make_video(
         runner: CaseRunner,
         outs: list,
-        pat: str,
+        pat: Union[str, int],
         frame_func: Callable,
-        parser: PVArgs) -> int:
+        parser: PVArgs,
+        cutplanes: Optional[list] = None,
+        surfaces: Optional[list] = None) -> int:
     r"""Template to assemble PyVista frames into a video
 
     :Call:
@@ -203,10 +206,42 @@ def make_video(
         *parser*: :class:`PVArgs`
             CLI args parsed using ``PVAgs``
     """
-    # List iterations of cut plane file
-    flist = runner.search_regex(rf"{pat}\.([0-9]+)\.vtk")
+    # Default lists
+    cutplanes = [] if cutplanes is None else list(cutplanes)
+    surfaces = [] if surfaces is None else list(surfaces)
+    # Infer *pat* input
+    if isinstance(pat, str):
+        # Split into folder and file name
+        dirname, basename = os.path.split(pat)
+        # Check folder
+        if dirname == "surface":
+            # Use three digits
+            surfaces.append(int(basename[4:7]) + 1)
+        else:
+            # Use two digits
+            cutplanes.append(int(basename[5:6]) + 1)
+    elif pat > 0:
+        cutplanes.append(pat)
+    else:
+        surfaces.append(max(1, -pat))
+    # Find available iterations
+    l1 = [runner.find_surfdata_iters(nsurf) for nsurf in surfaces]
+    l2 = [runner.find_cutplane_iters(nsurf) for nsurf in cutplanes]
+    # Combine everything
+    n1 = np.zeros(0, dtype="int32") if len(l1) == 0 else np.hstack(l1)
+    n2 = np.zeros(0, dtype="int32") if len(l2) == 0 else np.hstack(l2)
+    # Use overlap
+    if n2.size == 0:
+        # Use just surfaces
+        iters = np.unique(n1)
+    elif n1.size == 0:
+        # Use just cut planes
+        iters = np.unique(n2)
+    else:
+        # Use overlap
+        iters = np.intersect1d(n1, n2)
     # Number of matches
-    m = len(flist)
+    m = iters.size
     # Initialize list of subprocesses
     workers = []
     # Get options
@@ -220,9 +255,7 @@ def make_video(
     # Number of frames
     nframe = 0
     # Loop through same
-    for j, fname in enumerate(sorted(flist)):
-        # Get iteration number
-        n = int(fname.split('.')[-2])
+    for j, n in enumerate(iters):
         # Check if we want to skip this frame
         if n < nmin:
             continue
