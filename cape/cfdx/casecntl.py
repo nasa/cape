@@ -73,6 +73,7 @@ from ..dkit.rdb import DataKit
 from ..errors import CapeRuntimeError
 from ..gruvoc import umesh
 from ..optdict import _NPEncoder
+from ..textutils import _printf
 from ..trifile import Tri
 from ..util import RangeString
 
@@ -221,6 +222,7 @@ class CaseRunner(CaseRunnerBase):
         "logger",
         "archivist",
         "child",
+        "is_worker",
         "n",
         "nr",
         "job",
@@ -344,6 +346,9 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`list`\ [:class:`int`]
         #: List of concurrent worker Process IDs
         self.workers = []
+        #: :class:`bool`
+        #: Whether or not this process is a worker
+        self.is_worker = False
         # Set private slots
         self._mtime_case_json = 0.0
         self._dex_comp = None
@@ -6783,6 +6788,11 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return self.logger
 
+   # --- STDOUT (modified) ---
+    def _printf(self, msg: str):
+        if not self.is_worker:
+            _printf(msg)
+
    # --- Function name ---
     def get_funcname(self, frame: int = 1) -> str:
         r"""Get name of calling function, mostly for log messages
@@ -7306,6 +7316,8 @@ class CaseRunner(CaseRunnerBase):
             # Save the PID
             self.workers.append(pid)
             return
+        # Now in a worker
+        self.is_worker = True
         # Loop until case is completed
         while True:
             # Sleep

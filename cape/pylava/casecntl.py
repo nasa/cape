@@ -38,7 +38,6 @@ from ..errors import CapeFileNotFoundError, CapeValueError
 from ..fileutils import tail
 from ..gruvoc.umesh import Umesh
 from ..gruvoc.umeshbase import pv
-from ..textutils import _printf
 from ..capeio import (
     fromfile_lb4_f,
     fromfile_lb8_f,
@@ -549,7 +548,7 @@ class CaseRunner(casecntl.CaseRunner):
             return False
         # Status update
         msg = f"'{vtk1}' => '{vtk2}'"
-        _printf(f"  {msg}")
+        self._printf(f"  {msg}")
         # Read the tri file
         mesh = Umesh(fvtk)
         # Project the nodes to the cut plane
@@ -1065,7 +1064,7 @@ class CaseRunner(casecntl.CaseRunner):
             clean: bool = False,
             nmax: Optional[int] = None):
         # First read metadata
-        _printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}")
+        self._printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}")
         db = self.read_cutplane_meta(nsurf, "adaptive")
         # Number of time steps saved
         nt = db["nt"]
@@ -1131,7 +1130,7 @@ class CaseRunner(casecntl.CaseRunner):
             db["i"] = np.hstack((db["i"], i))
             db["batch"] = np.hstack((db["batch"], batchj))
             # Status update
-            _printf(
+            self._printf(
                 f"  Collecting '{flbl}' " +
                 f"-> batch {batchj} ({batchk}/{nbatch})")
             # Write data
@@ -1228,7 +1227,7 @@ class CaseRunner(casecntl.CaseRunner):
             db["i"] = np.hstack((db["i"], i))
             db["batch"] = np.hstack((db["batch"], batchj))
             # Status update
-            _printf(
+            self._printf(
                 f"  Collecting '{flbl}' " +
                 f"-> batch {batchj} ({batchk}/{nbatch})")
             # Write data
@@ -1327,7 +1326,7 @@ class CaseRunner(casecntl.CaseRunner):
             db["i"] = np.hstack((db["i"], i))
             db["batch"] = np.hstack((db["batch"], batchj))
             # Status update
-            _printf(
+            self._printf(
                 f"  Collecting '{flbl}' " +
                 f"-> batch {batchj} ({batchk}/{nbatch})")
             # Write data
@@ -1991,7 +1990,7 @@ class CaseRunner(casecntl.CaseRunner):
             db["i"] = np.hstack((db["i"], i))
             db["batch"] = np.hstack((db["batch"], batchj))
             # Status update
-            _printf(
+            self._printf(
                 f"  Collecting '{fvtk}' " +
                 f"-> batch {batchj} ({batchk}/{nbatch})")
             # Write data
