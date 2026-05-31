@@ -1100,7 +1100,7 @@ class CaseRunner(casecntl.CaseRunner):
         rmfiles = []
         # Max number of workers
         if nproc is None:
-            nproc = self.get_opt("NSubProcess", 8)
+            nproc = self.get_opt("NSubProcess", 1)
         # Create dictionary of subprocess PIDs
         case_ids = {}
         # Loop through files
@@ -1204,6 +1204,43 @@ class CaseRunner(casecntl.CaseRunner):
         for fvtk in rmfiles:
             self.remove_file(fvtk)
         # Update metadata
+        self.write_cutplane_meta(nsurf, db, "adaptive")
+
+    def _write_cutplanedata(
+            self,
+            mode: str,
+            nsurf: int,
+            i: int,
+            batch: int,
+            nbatch: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
+        # Shortened file name for logs
+        flbl = os.path.join(
+            "isosurface",
+            f"surf{nsurf-1:02d}_cutplane....vtk")
+        # Read the appropriate metadata
+        db = self.read_cutplane_meta(nsurf, mode)
+        # Increase counter
+        nt = db["nt"] + 1
+        # Get batch
+        batchj = (nt - 1) // nbatch
+        batchk = nt % nbatch
+        # Append to vectors
+        db["nt"] = nt
+        db["i"] = np.hstack((db["i"], i))
+        db["batch"] = np.hstack((db["batch"], batchj))
+        # Status update
+        self._printf(
+            f"  Collecting '{flbl}' " +
+            f"-> batch {batchj} ({batchk}/{nbatch})")
+        # Write data
+        ...
+        self._write_cutplanedata_adaptive(i, nsurf, batchj)
+        # Find files to delete
+        ...
+        # Update the batch data
         self.write_cutplane_meta(nsurf, db, "adaptive")
 
     def _collect_cutplane_adaptive(
@@ -1568,7 +1605,6 @@ class CaseRunner(casecntl.CaseRunner):
         fname = self._genr8_cutplane_metafile(nsurf, mode=mode)
         # Write it
         db.write(fname)
-
 
     @casecntl.run_rootdir
     def _write_cutplanedata_adaptive(self, i: int, nsurf: int, batch: int):
