@@ -1097,13 +1097,10 @@ class CaseRunner(casecntl.CaseRunner):
         iters = np.unique(iters)
         # Number of saved files
         n = 0
-        # List of files to remove (this batch)
-        rmfiles = []
         # Max number of workers
         if nproc is None:
             nproc = self.get_opt("NSubProcess", 1)
         # Create dictionary of subprocess PIDs
-        case_ids = {}
         case_pids = {}
         # Iterations to write; next to write is entry 0 of this list
         iters_write = []
@@ -1147,6 +1144,8 @@ class CaseRunner(casecntl.CaseRunner):
                 # Write it
                 self._write_cutplanedata_adaptive2(
                     nsurf, batchj, j, nodes, tris, q)
+                # Update metadata
+                self.write_cutplane_meta(nsurf, db, "adaptive")
             # Check if already covered
             if i <= imax:
                 # Delete files if appropriate
@@ -1175,7 +1174,6 @@ class CaseRunner(casecntl.CaseRunner):
                 iters_write.append(i)
                 # Also save it by case
                 case_pids[i] = pid
-                case_ids[pid] = i
                 # Update counter
                 n += 1
                 # Check for exit flag
@@ -1192,13 +1190,47 @@ class CaseRunner(casecntl.CaseRunner):
             os.close(w_fd)
             # Exit this process
             os._exit(0)
+        # Wait until worker count is subsided
+        while len(iters_write):
+            # Get next iteration to write
+            j = iters_write.pop(0)
+            # Get batch number and relative index
+            batchj, batchk = self._get_batch_next(db, nbatch)
+            # Get PID to wait for
+            pid = case_pids[j]
+            # Shortened file name for logs
+            flbl = os.path.join(
+                "isosurface",
+                f"surf{nsurf-1:02d}_cutplane...{j}.vtk")
+            # Status update
+            self._printf(
+                f"  Waiting for '{flbl}' " +
+                f"-> batch {batchj} ({batchk}/{nbatch})")
+            # Loop until that process ends
+            while not self._update_fork(pid):
+                time.sleep(0.1)
+            # Increase counter
+            nt += 1
+            # Append to vectors
+            db["nt"] = nt
+            db["i"] = np.hstack((db["i"], i))
+            db["batch"] = np.hstack((db["batch"], batchj))
+            # Get output from worker
+            vi = self._collect_fork_pipe(pid)
+            # Check validity
+            if vi is None:
+                raise CapeValueError(
+                    f"Failed to collect isosurface/surf{nsurf-1:02d} "
+                    f"for iteration {j}")
+            # Otherwise unpack
+            nodes, tris, q = vi
+            # Write it
+            self._write_cutplanedata_adaptive2(
+                nsurf, batchj, j, nodes, tris, q)
+            # Update metadata
+            self.write_cutplane_meta(nsurf, db, "adaptive")
         # Clean up prompt
         print("")
-        # Loop through files to delete that didn't line up with a batch
-        for fvtk in rmfiles:
-            self.remove_file(fvtk)
-        # Update metadata
-        self.write_cutplane_meta(nsurf, db, "adaptive")
 
     def _cleanup_cutplane_files(self, nsurf: int, i: int):
         # Prefix for VTK files
@@ -1243,43 +1275,6 @@ class CaseRunner(casecntl.CaseRunner):
             k = 0
         # Output
         return j, k
-
-    def _write_cutplanedata(
-            self,
-            mode: str,
-            nsurf: int,
-            i: int,
-            batch: int,
-            nbatch: int,
-            nodes: np.ndarray,
-            tris: np.ndarray,
-            q: np.ndarray):
-        # Shortened file name for logs
-        flbl = os.path.join(
-            "isosurface",
-            f"surf{nsurf-1:02d}_cutplane....vtk")
-        # Read the appropriate metadata
-        db = self.read_cutplane_meta(nsurf, mode)
-        # Increase counter
-        nt = db["nt"] + 1
-        # Get batch
-        batchj = (nt - 1) // nbatch
-        batchk = nt % nbatch
-        # Append to vectors
-        db["nt"] = nt
-        db["i"] = np.hstack((db["i"], i))
-        db["batch"] = np.hstack((db["batch"], batchj))
-        # Status update
-        self._printf(
-            f"  Collecting '{flbl}' " +
-            f"-> batch {batchj} ({batchk}/{nbatch})")
-        # Write data
-        ...
-        self._write_cutplanedata_adaptive2(nsurf, batchj, i, nodes, tris, q)
-        # Find files to delete
-        ...
-        # Update the batch data
-        self.write_cutplane_meta(nsurf, db, "adaptive")
 
     def _collect_cutplane_adaptive(
             self,
