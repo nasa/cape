@@ -12,6 +12,7 @@ they are available unless specifically overwritten by specific
 
 # Standard library modules
 import os
+import pickle
 import re
 import time
 from typing import Optional, Union
@@ -1103,31 +1104,62 @@ class CaseRunner(casecntl.CaseRunner):
             nproc = self.get_opt("NSubProcess", 1)
         # Create dictionary of subprocess PIDs
         case_ids = {}
+        case_pids = {}
+        # Iterations to write; next to write is entry 0 of this list
+        iters_write = []
+        # Number of iters processed
         # Loop through files
         for i in iters:
             # Wait until worker count is subsided
-            while len(self.workers) >= nproc:
-                # Wait
-                time.sleep(DEFAULT_SLEEPTIME)
-                # Check, collecting results from finished workers
-                for pid in list(self.workers):
-                    # Check on that process
-                    if not self._update_fork(pid):
-                        continue
-                    # Get output from worker
-                    vi = self._collect_fork_pipe(pid)
-                    # Check validity
-                    if vi is None:
-                        continue
-                    # Otherwise unpack
-                    nodes, tris, q = vi
-                    # Get case for that process ID
-                    j = case_ids[pid]
-                    # Write it
-                    ...
-                    # self._write_cutplane_batchdata()
-                    # Update counter
-                    n += 1
+            while len(self.forks) >= nproc:
+                # Get next iteration to write
+                j = iters_write.pop(0)
+                # Get batch number and relative index
+                batchj, batchk = self._get_batch_next(db, nbatch)
+                # Get PID to wait for
+                pid = case_pids[j]
+                # Shortened file name for logs
+                flbl = os.path.join(
+                    "isosurface",
+                    f"surf{nsurf-1:02d}_cutplane...{j}.vtk")
+                # Status update
+                self._printf(
+                    f"  Waiting for '{flbl}' " +
+                    f"-> batch {batchj} ({batchk}/{nbatch})")
+                # Loop until that process ends
+                while not self._update_fork(pid):
+                    time.sleep(0.1)
+                # Increase counter
+                nt += 1
+                # Append to vectors
+                db["nt"] = nt
+                db["i"] = np.hstack((db["i"], i))
+                db["batch"] = np.hstack((db["batch"], batchj))
+                # Get output from worker
+                vi = self._collect_fork_pipe(pid)
+                # Check validity
+                if vi is None:
+                    raise CapeValueError(
+                        f"Failed to collect isosurface/surf{nsurf-1:02d} "
+                        f"for iteration {j}")
+                # Otherwise unpack
+                nodes, tris, q = vi
+                # Write it
+                self._write_cutplanedata_adaptive2(
+                    nsurf, batchj, j, nodes, tris, q)
+            # Check if already covered
+            if i <= imax:
+                # Delete files if appropriate
+                if clean and (i != iref):
+                    self._cleanup_cutplane_files(nsurf, i)
+                # Go to next iteration
+                continue
+            # Shortened file name for logs
+            flbl = os.path.join(
+                "isosurface",
+                f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
+            # Status update
+            self._printf(f"  Collecting '{flbl}'")
             # Create pipe before forking
             r_fd, w_fd = os.pipe()
             # Call the fork
@@ -1139,65 +1171,27 @@ class CaseRunner(casecntl.CaseRunner):
                 self.fork_pipes[pid] = r_fd
                 # Save process ID of worker
                 self.forks.append(pid)
+                # Ok, here we have an iteration to actually process
+                iters_write.append(i)
                 # Also save it by case
+                case_pids[i] = pid
                 case_ids[pid] = i
-                continue
-            # Name of VTK files
-            prefixi = f"{prefix}.{i:09d}"
-            fvtk = f"{prefixi}.vtk"
-            ftri = f"{prefixi}.tri.vtk"
-            vtks = [fvtk, ftri]
-            # Check if already covered
-            if i <= imax:
-                # Check for clean option
-                if clean and (i != iref):
-                    # Delete them
-                    for fi in vtks:
-                        if os.path.isfile(fi):
-                            rmfiles.append(fi)
-                continue
-            # Shortened file name for logs
-            flbl = os.path.join(
-                "isosurface",
-                f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
-            # Check if alread processed
-            # Increase counter
-            nt += 1
-            # Get batch
-            batchj = (nt - 1) // nbatch
-            batchk = nt % nbatch
-            # Check if new batch
-            newbatch = db["batch"].size and (db["batch"][-1] != batchj)
-            # Append to vectors
-            db["nt"] = nt
-            db["i"] = np.hstack((db["i"], i))
-            db["batch"] = np.hstack((db["batch"], batchj))
-            # Status update
-            self._printf(
-                f"  Collecting '{flbl}' " +
-                f"-> batch {batchj} ({batchk}/{nbatch})")
-            # Write data
-            self._write_cutplanedata_adaptive(i, nsurf, batchj)
-            # Update the batch data
-            self.write_cutplane_meta(nsurf, db, "adaptive")
-            # Check for clean
-            if clean and (i != iref):
-                # Delete them
-                for fi in vtks:
-                    if os.path.isfile(fi):
-                        rmfiles.append(fi)
-            # Remove files
-            if newbatch:
-                # Loop through files to delete for this batch
-                for fvtk in rmfiles:
-                    self.remove_file(fvtk)
-                # Reset list of files to delete
-                rmfiles = []
-            # Update
-            n += 1
-            # Check for exit flag
-            if (nmax is not None) and (n >= nmax):
-                break
+                # Update counter
+                n += 1
+                # Check for exit flag
+                if (nmax is not None) and (n >= nmax):
+                    # Exit loop and start collector
+                    break
+                else:
+                    # Go to next iteration
+                    continue
+            # Read the data
+            surf = self.read_cutplane_tri(nsurf, i)
+            # Send result back through pipe
+            os.write(w_fd, pickle.dumps((surf.nodes, surf.tris, surf.q)))
+            os.close(w_fd)
+            # Exit this process
+            os._exit(0)
         # Clean up prompt
         print("")
         # Loop through files to delete that didn't line up with a batch
@@ -1205,6 +1199,50 @@ class CaseRunner(casecntl.CaseRunner):
             self.remove_file(fvtk)
         # Update metadata
         self.write_cutplane_meta(nsurf, db, "adaptive")
+
+    def _cleanup_cutplane_files(self, nsurf: int, i: int):
+        # Prefix for VTK files
+        prefix = self._genr8_cutplane_prefix(nsurf)
+        # Name of VTK files
+        prefixi = f"{prefix}.{i:09d}"
+        fvtk = f"{prefixi}.vtk"
+        ftri = f"{prefixi}.tri.vtk"
+        ffix = f"{prefixi}.fixed.vtk"
+        vtks = [fvtk, ftri, ffix]
+        # Delete them
+        for fi in vtks:
+            if os.path.isfile(fi):
+                self.remove_file(fi)
+
+    def _get_batch_next(self, meta: DataKit, nbatch: int) -> tuple:
+        r"""Get the batch number and relative index of the next entry
+
+        :Call:
+            >>> j, k = runner._get_batch_next(meta, nbatch)
+        :Inputs:
+            *meta*: :class:`DataKit`
+                Metadata DataKit
+            *nbatch*: :class:`int`
+                Current batch size (not required to be uniform t/o hist)
+        :Outputs:
+            *j*: :class:`int`
+                Batch number for the next output
+            *k*: :class:`int`
+                Index of next case within batch *j*
+        """
+        # Get history of batch numbers
+        batches = meta.get("batch", np.zeros(0))
+        # Get most recent batch that was written
+        j = 0 if (batches.size == 0) else batches[-1]
+        # Count number of entries already written to batch *j*
+        k = np.sum(batches == j)
+        # Check batch size
+        if k >= nbatch:
+            # Start a new batch
+            j += 1
+            k = 0
+        # Output
+        return j, k
 
     def _write_cutplanedata(
             self,
@@ -1237,7 +1275,7 @@ class CaseRunner(casecntl.CaseRunner):
             f"-> batch {batchj} ({batchk}/{nbatch})")
         # Write data
         ...
-        self._write_cutplanedata_adaptive(i, nsurf, batchj)
+        self._write_cutplanedata_adaptive2(nsurf, batchj, i, nodes, tris, q)
         # Find files to delete
         ...
         # Update the batch data
@@ -1652,6 +1690,60 @@ class CaseRunner(casecntl.CaseRunner):
             dat.save_col(f"nodes.{i}", surf.nodes.astype("f4"))
             dat.save_col(f"tris.{i}", surf.tris.astype("i4"))
             dat.save_col(f"q.{i}", surf.q.astype("f4"))
+            # Write additional data
+            dat._write_record(fp, f"nodes.{i}")
+            dat._write_record(fp, f"tris.{i}")
+            dat._write_record(fp, f"q.{i}")
+
+    def _write_cutplanedata_adaptive2(
+            self,
+            nsurf: int,
+            batch: int,
+            i: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
+        # Name of file to read; create if necessary
+        fcdb = self._init_cutplane_batch_adaptive(nsurf, batch)
+        # Check for file
+        if not os.path.isfile(fcdb):
+            self.log_verbose(f"File not found: {fcdb}")
+            raise CapeFileNotFoundError(
+                f"Cut-plane collection file not found: {fcdb}")
+        # Open batch file
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Read small fields
+        dat.read_record("nt")
+        dat.read_record("nq")
+        # Get counts from batch file
+        nt = dat["nt"] + 1
+        nq = dat["nq"]
+        # Check counts
+        if q.shape[1] != nq:
+            raise CapeValueError(
+                f"In surf{nsurf+1} iter {i}; "
+                f"expected nq={nq}, got {q.shape[1]}")
+        # Open the batch file for editing
+        with open(fcdb, 'r+b') as fp:
+            # Add three records
+            fp.seek(8)
+            np.uint64(len(dat.cols) + 3).tofile(fp)
+            # Go to *nt* position
+            fp.seek(dat.pos['nt'])
+            # Read record type and size
+            fromfile_lb4_i(fp, 2)
+            # Read length of name
+            l1, = fromfile_lb4_i(fp, 1)
+            # Skip name
+            fp.read(l1)
+            # Now overwrite number of time steps in file
+            tofile_lb4_i(fp, nt)
+            # Now go to end of file
+            fp.seek(0, 2)
+            # Save data
+            dat.save_col(f"nodes.{i}", nodes.astype("f4"))
+            dat.save_col(f"tris.{i}", tris.astype("i4"))
+            dat.save_col(f"q.{i}", q.astype("f4"))
             # Write additional data
             dat._write_record(fp, f"nodes.{i}")
             dat._write_record(fp, f"tris.{i}")
