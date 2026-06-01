@@ -564,6 +564,45 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Cut-plane readers ---
     @casecntl.run_rootdir
+    def read_cutplane_best(self, nsurf: int, n: int) -> Optional[Umesh]:
+        r"""Read cut-plane file, using triangulated if available
+
+        :Call:
+            >>> mesh = runner.read_cutplane_best(nsurf, n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                Surface index
+            *n*: :class:`int`
+                Iteration number
+        :Outputs:
+            *mesh*: ``None`` | :class:`cape.gruvoc.umesh.Umesh`
+                Triangulated cut plane instance
+        :Versions:
+            * 2026-04-09 ``@ddalle``: v1.0
+        """
+        # Read cut plane definition
+        defn = self.read_cutplane_defn(nsurf)
+        # Check for valid cut plane
+        if defn is None:
+            return
+        # Get name of file
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
+        basename = f"{prefix}.{n:09d}"
+        # Potential file names
+        fvtk = f"{basename}.vtk"
+        ftri = f"{basename}.tri.vtk"
+        ffix = f"{basename}.fixed.vtk"
+        # Check for file
+        if os.path.isfile(ftri):
+            return Umesh(ftri)
+        if os.path.isfile(fvtk):
+            return Umesh(fvtk)
+        if os.path.isfile(ffix):
+            return Umesh(ffix)
+
+    @casecntl.run_rootdir
     def read_cutplane_fixed(
             self,
             nsurf: int,
@@ -619,45 +658,6 @@ class CaseRunner(casecntl.CaseRunner):
             refmesh.q[:, j] = np.sum(w*q[:, :, j], axis=1)
         # Output
         return refmesh
-
-    @casecntl.run_rootdir
-    def read_cutplane_best(self, nsurf: int, n: int) -> Optional[Umesh]:
-        r"""Read cut-plane file, using triangulated if available
-
-        :Call:
-            >>> mesh = runner.read_cutplane_best(nsurf, n)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *nsurf*: :class:`int`
-                Surface index
-            *n*: :class:`int`
-                Iteration number
-        :Outputs:
-            *mesh*: ``None`` | :class:`cape.gruvoc.umesh.Umesh`
-                Triangulated cut plane instance
-        :Versions:
-            * 2026-04-09 ``@ddalle``: v1.0
-        """
-        # Read cut plane definition
-        defn = self.read_cutplane_defn(nsurf)
-        # Check for valid cut plane
-        if defn is None:
-            return
-        # Get name of file
-        prefix = self._genr8_cutplane_prefix(nsurf, defn)
-        basename = f"{prefix}.{n:09d}"
-        # Potential file names
-        fvtk = f"{basename}.vtk"
-        ftri = f"{basename}.tri.vtk"
-        ffix = f"{basename}.fixed.vtk"
-        # Check for file
-        if os.path.isfile(ftri):
-            return Umesh(ftri)
-        if os.path.isfile(fvtk):
-            return Umesh(fvtk)
-        if os.path.isfile(ffix):
-            return Umesh(ffix)
 
     @casecntl.run_rootdir
     def read_cutplane_raw(self, nsurf: int, n: int) -> Optional[Umesh]:
@@ -734,6 +734,14 @@ class CaseRunner(casecntl.CaseRunner):
         triangulate_mesh(mesh, defn["normal"], defn["point"])
         # Return that
         return mesh
+
+    def _read_cutplane(self, mode: str, nsurf: int, n: int) -> Optional[Umesh]:
+        if mode == "fixed":
+            return self.read_cutplane_fixed(nsurf, n)
+        elif mode == "adaptive":
+            return self.read_cutplane_tri(nsurf, n)
+        else:
+            return self.read_cutplane_raw(nsurf, n)
 
     def _genr8_cutplane_infix(self, mode: str):
         if mode == "adaptive":
@@ -1058,13 +1066,16 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             self._collect_cutplane_raw(nsurf, nbatch, clean, nmax)
 
-    def _collect_cutplane_adaptive2(
+    def _collect_cutplane2(
             self,
             nsurf: int = 1,
             nbatch: Optional[int] = None,
+            mode: Union[str, int] = "adaptive",
             clean: bool = False,
             nmax: Optional[int] = None,
             nproc: Optional[int] = None):
+        # Normalize mode
+        mode = self._normalize_mode(mode)
         # First read metadata
         self._printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}")
         db = self.read_cutplane_meta(nsurf, "adaptive")
@@ -1104,7 +1115,6 @@ class CaseRunner(casecntl.CaseRunner):
         case_pids = {}
         # Iterations to write; next to write is entry 0 of this list
         iters_write = []
-        # Number of iters processed
         # Loop through files
         for i in iters:
             # Wait until worker count is subsided
@@ -1142,10 +1152,12 @@ class CaseRunner(casecntl.CaseRunner):
                 # Otherwise unpack
                 nodes, tris, q = vi
                 # Write it
-                self._write_cutplanedata_adaptive2(
-                    nsurf, batchj, j, nodes, tris, q)
+                self._write_cutplanedata2(
+                    mode, nsurf, batchj, j, nodes, tris, q)
                 # Update metadata
                 self.write_cutplane_meta(nsurf, db, "adaptive")
+                # Cleanup
+                self._cleanup_cutplane_files(nsurf, i)
             # Check if already covered
             if i <= imax:
                 # Delete files if appropriate
@@ -1184,7 +1196,7 @@ class CaseRunner(casecntl.CaseRunner):
                     # Go to next iteration
                     continue
             # Read the data
-            surf = self.read_cutplane_tri(nsurf, i)
+            surf = self._read_cutplane(mode, nsurf, i)
             # Send result back through pipe
             os.write(w_fd, pickle.dumps((surf.nodes, surf.tris, surf.q)))
             os.close(w_fd)
@@ -1225,12 +1237,23 @@ class CaseRunner(casecntl.CaseRunner):
             # Otherwise unpack
             nodes, tris, q = vi
             # Write it
-            self._write_cutplanedata_adaptive2(
-                nsurf, batchj, j, nodes, tris, q)
+            self._write_cutplanedata2(
+                mode, nsurf, batchj, j, nodes, tris, q)
             # Update metadata
             self.write_cutplane_meta(nsurf, db, "adaptive")
+            # Cleanup
+            self._cleanup_cutplane_files(nsurf, i)
         # Clean up prompt
         print("")
+
+    def _normalize_mode(self, mode: Union[str, int] = "adaptive") -> str:
+        # Check mode
+        if mode in (2, "fixed"):
+            return "fixed"
+        elif mode in (1, "adaptive"):
+            return "adaptive"
+        else:
+            return "raw"
 
     def _cleanup_cutplane_files(self, nsurf: int, i: int):
         # Prefix for VTK files
@@ -1689,6 +1712,26 @@ class CaseRunner(casecntl.CaseRunner):
             dat._write_record(fp, f"nodes.{i}")
             dat._write_record(fp, f"tris.{i}")
             dat._write_record(fp, f"q.{i}")
+
+    def _write_cutplanedata2(
+            self,
+            mode: str,
+            nsurf: int,
+            batch: int,
+            i: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
+        # Check mode
+        if mode == "fixed":
+            self._write_cutplanedata_fixed2(
+                nsurf, batch, i, nodes, tris, q)
+        elif mode == "adaptive":
+            self._write_cutplanedata_adaptive2(
+                nsurf, batch, i, nodes, tris, q)
+        else:
+            self._write_cutplanedata_raw2(
+                nsurf, batch, i, nodes, tris, q)
 
     def _write_cutplanedata_adaptive2(
             self,
