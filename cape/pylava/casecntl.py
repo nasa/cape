@@ -16,6 +16,7 @@ import pickle
 import re
 import sys
 import time
+from io import BytesIO
 from typing import Optional, Union
 
 # Third-party modules
@@ -1147,14 +1148,10 @@ class CaseRunner(casecntl.CaseRunner):
                 db["i"] = np.hstack((db["i"], i))
                 db["batch"] = np.hstack((db["batch"], batchj))
                 # Get output from worker
-                vi = self._collect_fork_pipe(pid)
-                # Check validity
-                if vi is None:
-                    raise CapeValueError(
-                        f"Failed to collect isosurface/surf{nsurf-1:02d} "
-                        f"for iteration {j}")
-                # Otherwise unpack
-                nodes, tris, q = vi
+                with os.fdopen(self.fork_pipes[pid], 'rb') as fp:
+                    nodes = np.load(fp)
+                    tris = np.load(fp)
+                    q = np.load(fp)
                 # Write it
                 self._write_cutplanedata2(
                     mode, nsurf, batchj, j, nodes, tris, q)
@@ -1208,12 +1205,10 @@ class CaseRunner(casecntl.CaseRunner):
             sys.stdout.write(f"  {len(self.forks)}: ... read\n")
             sys.stdout.flush()
             # Send result back through pipe
-            os.write(
-                w_fd, (
-                    surf.nodes.tobytes(),
-                    surf.tris.tobytes(),
-                    surf.q.tobytes())
-            os.close(w_fd)
+            with os.fdopen(w_fd, "wb") as fp:
+                np.save(fp, surf.nodes)
+                np.save(fp, surf.tris)
+                np.save(fp, surf.q)
             sys.stdout.write(f"  {len(self.forks)}: ... written\n")
             sys.stdout.flush()
             # Exit this process

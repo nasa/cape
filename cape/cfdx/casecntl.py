@@ -7194,7 +7194,7 @@ class CaseRunner(CaseRunnerBase):
   # *** FORK SUBPROCESSES ***
 
    # --- I/O ---
-    def _collect_fork_pipe(self, pid: int) -> Any:
+    def _collect_fork_bytes(self, pid: int) -> bytes:
         # Get read-only pipe for this process
         r_fd = self.fork_pipes.pop(pid, None)
         # Check for invalid pipe
@@ -7209,8 +7209,14 @@ class CaseRunner(CaseRunnerBase):
             chunks.append(chunk)
         # Close the pipe
         os.close(r_fd)
+        # Return the bytes
+        return b"".join(chunks)
+
+    def _collect_fork_pipe(self, pid: int) -> Any:
+        # Get bytes
+        data = self._collect_fork_bytes(pid)
         # Convert to Python objects
-        v = pickle.loads(b"".join(chunks))
+        v = pickle.loads(data)
         # Output
         return v
 
