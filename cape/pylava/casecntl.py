@@ -1244,7 +1244,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Remove the file
             os.remove(fj)
             # Write it
-            self._write_cutplanedata2(
+            self._write_cutplanedata(
                 mode, nsurf, batchj, j, nodes, tris, q)
             # Update metadata
             self.write_cutplane_meta(nsurf, db, "adaptive")
@@ -1368,7 +1368,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Write it
         db.write(fname)
 
-    def _write_cutplanedata2(
+    def _write_cutplanedata(
             self,
             mode: str,
             nsurf: int,
@@ -1379,16 +1379,16 @@ class CaseRunner(casecntl.CaseRunner):
             q: np.ndarray):
         # Check mode
         if mode == "fixed":
-            self._write_cutplanedata_fixed2(
+            self._write_cutplanedata_fixed(
                 nsurf, batch, i, q)
         elif mode == "adaptive":
-            self._write_cutplanedata_adaptive2(
+            self._write_cutplanedata_adaptive(
                 nsurf, batch, i, nodes, tris, q)
         else:
-            self._write_cutplanedata_raw2(
+            self._write_cutplanedata_raw(
                 nsurf, batch, i, nodes, tris, q)
 
-    def _write_cutplanedata_fixed2(
+    def _write_cutplanedata_fixed(
             self,
             nsurf: int,
             batch: int,
@@ -1481,7 +1481,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Write as single-precision data
                 tofile_lb4_f(fp, q.astype("f4"))
 
-    def _write_cutplanedata_adaptive2(
+    def _write_cutplanedata_adaptive(
             self,
             nsurf: int,
             batch: int,
@@ -1535,7 +1535,7 @@ class CaseRunner(casecntl.CaseRunner):
             dat._write_record(fp, f"tris.{i}")
             dat._write_record(fp, f"q.{i}")
 
-    def _write_cutplanedata_raw2(
+    def _write_cutplanedata_raw(
             self,
             nsurf: int,
             batch: int,
