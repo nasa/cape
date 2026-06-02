@@ -1116,10 +1116,8 @@ class CaseRunner(casecntl.CaseRunner):
         case_pids = {}
         # Iterations to write; next to write is entry 0 of this list
         iters_write = []
-        print(f"  nproc={nproc}")
         # Loop through files
         for i in iters:
-            print(f"i={i}, imax={imax}")
             # Wait until worker count is subsided
             while len(self.forks) >= nproc:
                 # Get next iteration to write
@@ -1135,7 +1133,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Status update
                 self._printf(
                     f"  Waiting for '{flbl}' " +
-                    f"-> batch {batchj} ({batchk}/{nbatch})\n")
+                    f"-> batch {batchj} ({batchk}/{nbatch})")
                 # Loop until that process ends
                 while not self._update_fork(pid):
                     time.sleep(2.5)
@@ -1176,9 +1174,7 @@ class CaseRunner(casecntl.CaseRunner):
                 "isosurface",
                 f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
             # Status update
-            print(
-                f"  {len(self.forks)}: Collecting '{flbl}'")
-            self._printf(f"  Collecting '{flbl}'\n")
+            self._printf(f"  Collecting '{flbl}'")
             # Call the fork
             pid = os.fork()
             # Check parent/child
@@ -1199,16 +1195,11 @@ class CaseRunner(casecntl.CaseRunner):
                     # Go to next iteration
                     continue
             # Read the data
-            sys.stdout.write(f"  {len(self.forks)}: reading\n")
-            sys.stdout.flush()
             surf = self._read_cutplane(mode, nsurf, i)
-            if surf is None:
-                fvtki = f"{prefix}.{i:09d}.vtk"
-                sys.stdout.write(f"  {len(self.forks)}:\n")
-                sys.stdout.write(f"    i={i}\n")
-                sys.stdout.write(f"    {fvtki}: {os.path.isfile(fvtki)}\n")
-            sys.stdout.write(f"  {len(self.forks)}: read surf={surf}\n")
-            sys.stdout.flush()
+            # Check for output
+            if not isinstance(surf, Umesh):
+                self._printf(f"  {flbl}: VTK file removed during read")
+                os._exit(0)
             # Create DataKit
             dbi = DataKit()
             dbi.save_col("nodes", surf.nodes)
@@ -1218,10 +1209,7 @@ class CaseRunner(casecntl.CaseRunner):
             fi = os.path.join(
                 "isosurface", f"surf{nsurf:02d}_{mode}.{i:09d}.cdb")
             # Write it
-            print(f"        ... {fi}")
             dbi.write_cdb(fi)
-            sys.stdout.write(f"  {len(self.forks)}: ... written\n")
-            sys.stdout.flush()
             # Exit this process
             os._exit(0)
         # Wait until worker count is subsided
@@ -1252,6 +1240,10 @@ class CaseRunner(casecntl.CaseRunner):
             # Temporary file name
             fj = os.path.join(
                 "isosurface", f"surf{nsurf:02d}_{mode}.{j:09d}.cdb")
+            # Check for failur
+            if not os.path.isfile(fj):
+                print(f"\n  {flbl}: failed to convert")
+                continue
             # Get output from worker
             dbj = DataKit(fj)
             # Unpack
@@ -1291,8 +1283,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Delete them
         for fi in vtks:
             if os.path.isfile(fi):
-                sys.stdout.write(f"  rm {fi}\n")
-                sys.stdout.flush()
                 self.remove_file(fi)
 
     def _get_batch_next(self, meta: DataKit, nbatch: int) -> tuple:
