@@ -16,7 +16,6 @@ import pickle
 import re
 import sys
 import time
-from io import BytesIO
 from typing import Optional, Union
 
 # Third-party modules
@@ -1120,6 +1119,7 @@ class CaseRunner(casecntl.CaseRunner):
         print(f"  nproc={nproc}")
         # Loop through files
         for i in iters:
+            print(f"i={i}, imax={imax}")
             # Wait until worker count is subsided
             while len(self.forks) >= nproc:
                 # Get next iteration to write
@@ -1135,30 +1135,35 @@ class CaseRunner(casecntl.CaseRunner):
                 # Status update
                 self._printf(
                     f"  Waiting for '{flbl}' " +
-                    f"-> batch {batchj} ({batchk}/{nbatch})")
+                    f"-> batch {batchj} ({batchk}/{nbatch})\n")
                 # Loop until that process ends
                 while not self._update_fork(pid):
-                    print(" ... waiting")
                     time.sleep(2.5)
                 self.forks.remove(pid)
                 # Increase counter
                 nt += 1
                 # Append to vectors
                 db["nt"] = nt
-                db["i"] = np.hstack((db["i"], i))
+                db["i"] = np.hstack((db["i"], j))
                 db["batch"] = np.hstack((db["batch"], batchj))
+                # Temporary file name
+                fj = os.path.join(
+                    "isosurface", f"surf{nsurf:02d}_{mode}.{j:09d}.cdb")
                 # Get output from worker
-                with os.fdopen(self.fork_pipes[pid], 'rb') as fp:
-                    nodes = np.load(fp)
-                    tris = np.load(fp)
-                    q = np.load(fp)
+                dbj = DataKit(fj)
+                # Unpack
+                nodes = dbj["nodes"]
+                tris = dbj["tris"]
+                q = dbj["q"]
+                # Delete the file
+                os.remove(fj)
                 # Write it
                 self._write_cutplanedata2(
                     mode, nsurf, batchj, j, nodes, tris, q)
                 # Update metadata
                 self.write_cutplane_meta(nsurf, db, "adaptive")
                 # Cleanup
-                self._cleanup_cutplane_files(nsurf, i)
+                self._cleanup_cutplane_files(nsurf, j)
             # Check if already covered
             if i <= imax:
                 # Delete files if appropriate
@@ -1173,16 +1178,11 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             print(
                 f"  {len(self.forks)}: Collecting '{flbl}'")
-            self._printf(f"  Collecting '{flbl}'")
-            # Create pipe before forking
-            r_fd, w_fd = os.pipe()
+            self._printf(f"  Collecting '{flbl}'\n")
             # Call the fork
             pid = os.fork()
             # Check parent/child
             if pid != 0:
-                # Parent: close write end, save read end
-                os.close(w_fd)
-                self.fork_pipes[pid] = r_fd
                 # Save process ID of worker
                 self.forks.append(pid)
                 # Ok, here we have an iteration to actually process
@@ -1199,16 +1199,27 @@ class CaseRunner(casecntl.CaseRunner):
                     # Go to next iteration
                     continue
             # Read the data
-            sys.stdout.write(f"  {len(self.forks)}: ... reading\n")
+            sys.stdout.write(f"  {len(self.forks)}: reading\n")
             sys.stdout.flush()
             surf = self._read_cutplane(mode, nsurf, i)
-            sys.stdout.write(f"  {len(self.forks)}: ... read\n")
+            if surf is None:
+                fvtki = f"{prefix}.{i:09d}.vtk"
+                sys.stdout.write(f"  {len(self.forks)}:\n")
+                sys.stdout.write(f"    i={i}\n")
+                sys.stdout.write(f"    {fvtki}: {os.path.isfile(fvtki)}\n")
+            sys.stdout.write(f"  {len(self.forks)}: read surf={surf}\n")
             sys.stdout.flush()
-            # Send result back through pipe
-            with os.fdopen(w_fd, "wb") as fp:
-                np.save(fp, surf.nodes)
-                np.save(fp, surf.tris)
-                np.save(fp, surf.q)
+            # Create DataKit
+            dbi = DataKit()
+            dbi.save_col("nodes", surf.nodes)
+            dbi.save_col("tris", surf.tris)
+            dbi.save_col("q", surf.q)
+            # Temporary file name
+            fi = os.path.join(
+                "isosurface", f"surf{nsurf:02d}_{mode}.{i:09d}.cdb")
+            # Write it
+            print(f"        ... {fi}")
+            dbi.write_cdb(fi)
             sys.stdout.write(f"  {len(self.forks)}: ... written\n")
             sys.stdout.flush()
             # Exit this process
@@ -1236,24 +1247,26 @@ class CaseRunner(casecntl.CaseRunner):
             nt += 1
             # Append to vectors
             db["nt"] = nt
-            db["i"] = np.hstack((db["i"], i))
+            db["i"] = np.hstack((db["i"], j))
             db["batch"] = np.hstack((db["batch"], batchj))
+            # Temporary file name
+            fj = os.path.join(
+                "isosurface", f"surf{nsurf:02d}_{mode}.{j:09d}.cdb")
             # Get output from worker
-            vi = self._collect_fork_pipe(pid)
-            # Check validity
-            if vi is None:
-                raise CapeValueError(
-                    f"Failed to collect isosurface/surf{nsurf-1:02d} "
-                    f"for iteration {j}")
-            # Otherwise unpack
-            nodes, tris, q = vi
+            dbj = DataKit(fj)
+            # Unpack
+            nodes = dbj["nodes"]
+            tris = dbj["tris"]
+            q = dbj["q"]
+            # Remove the file
+            os.remove(fj)
             # Write it
             self._write_cutplanedata2(
                 mode, nsurf, batchj, j, nodes, tris, q)
             # Update metadata
             self.write_cutplane_meta(nsurf, db, "adaptive")
             # Cleanup
-            self._cleanup_cutplane_files(nsurf, i)
+            self._cleanup_cutplane_files(nsurf, j)
         # Clean up prompt
         print("")
 
@@ -1278,6 +1291,8 @@ class CaseRunner(casecntl.CaseRunner):
         # Delete them
         for fi in vtks:
             if os.path.isfile(fi):
+                sys.stdout.write(f"  rm {fi}\n")
+                sys.stdout.flush()
                 self.remove_file(fi)
 
     def _get_batch_next(self, meta: DataKit, nbatch: int) -> tuple:
