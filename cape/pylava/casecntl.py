@@ -1750,7 +1750,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check mode
         if mode == "fixed":
             self._write_cutplanedata_fixed2(
-                nsurf, batch, i, nodes, tris, q)
+                nsurf, batch, i, q)
         elif mode == "adaptive":
             self._write_cutplanedata_adaptive2(
                 nsurf, batch, i, nodes, tris, q)
