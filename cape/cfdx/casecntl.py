@@ -71,7 +71,7 @@ from .options.archiveopts import ArchiveOpts
 from .options.funcopts import UserFuncOpts
 from ..config import ConfigXML, SurfConfig
 from ..dkit.rdb import DataKit
-from ..errors import CapeRuntimeError
+from ..errors import CapeFileNotFoundError, CapeRuntimeError, CapeValueError
 from ..gruvoc import umesh
 from ..optdict import _NPEncoder
 from ..textutils import _printf
@@ -1076,7 +1076,7 @@ class CaseRunner(CaseRunnerBase):
                     "missing AFLR3 input file candidates: " +
                     f"{ftri} or {fsurf}")
                 self.log_both(msg)
-                raise ValueError(msg)
+                raise CapeValueError(msg)
             # Read the triangulation
             if os.path.isfile(fxml):
                 # Read with configuration
@@ -1941,17 +1941,17 @@ class CaseRunner(CaseRunnerBase):
             # Bad link
             msg = f"file '{src_rel}' is a broken link"
             self.log_verbose(msg, parent=1)
-            raise FileNotFoundError(msg)
+            raise CapeFileNotFoundError(msg)
         elif os.path.isdir(src):
             # Folder instead of file
             msg = f"'{src_rel}' is a folder instead of file"
             self.log_verbose(msg, parent=1)
-            raise ValueError(msg)
+            raise CapeValueError(msg)
         else:
             # File does not exists
             msg = f"file '{src_rel}' does not exist"
             self.log_verbose(msg, parent=1)
-            raise FileNotFoundError(msg)
+            raise CapeFileNotFoundError(msg)
 
     # Check appropriate destination file
     def validate_dstfile(self, dst: str):
@@ -1978,7 +1978,7 @@ class CaseRunner(CaseRunnerBase):
                 f"invalid destination '{os.path.abspath(dst)}'; " +
                 f"outside of root dir '{self.root_dir}'")
             self.log_verbose(msg, parent=1)
-            raise ValueError(msg)
+            raise CapeValueError(msg)
 
     # Get path relative to root
     def relpath(self, fname: str) -> str:
@@ -4044,11 +4044,11 @@ class CaseRunner(CaseRunnerBase):
         xmrp = cntl.opts.get_RefPoint(comp)
         # Check for missing values
         if Aref is None:
-            raise ValueError(f"No reference area specified for {comp}")
+            raise CapeValueError(f"No reference area specified for {comp}")
         if Lref is None:
-            raise ValueError(f"No reference length specified for {comp}")
+            raise CapeValueError(f"No reference length specified for {comp}")
         if xmrp is None:
-            raise ValueError(f"No moment reference point specified for {comp}")
+            raise CapeValueError(f"No moment reference point specified for {comp}")
         if not isinstance(compID, (list, tuple, np.ndarray)):
             raise TypeError(
                 f"Unable to find compID list for {self.comp}; got {compID}")
@@ -7235,6 +7235,22 @@ class CaseRunner(CaseRunnerBase):
         else:
             # Process has exited
             return True
+
+    def _wait_fork(self, pid: int) -> int:
+        # Check if this is a fork
+        if pid not in self.forks:
+            # Already done?
+            raise CapeValueError(f"No child process {pid}")
+        # Wait for process
+        try:
+            # Run the actual check command
+            _, ierr = os.waitpid(pid, 0)
+        except ChildProcessError:
+            # This worker
+            self.forks.remove(pid)
+            return 128
+        # Return status of process
+        return ierr
 
     def _update_forks(self):
         # Loop through workers

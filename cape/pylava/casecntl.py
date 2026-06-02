@@ -14,6 +14,7 @@ they are available unless specifically overwritten by specific
 import os
 import pickle
 import re
+import sys
 import time
 from typing import Optional, Union
 
@@ -1110,11 +1111,12 @@ class CaseRunner(casecntl.CaseRunner):
         n = 0
         # Max number of workers
         if nproc is None:
-            nproc = self.get_opt("NSubProcess", 1)
+            nproc = self.get_opt("NSubProcess", 2)
         # Create dictionary of subprocess PIDs
         case_pids = {}
         # Iterations to write; next to write is entry 0 of this list
         iters_write = []
+        print(f"  nproc={nproc}")
         # Loop through files
         for i in iters:
             # Wait until worker count is subsided
@@ -1135,7 +1137,9 @@ class CaseRunner(casecntl.CaseRunner):
                     f"-> batch {batchj} ({batchk}/{nbatch})")
                 # Loop until that process ends
                 while not self._update_fork(pid):
-                    time.sleep(0.1)
+                    print(" ... waiting")
+                    time.sleep(2.5)
+                self.forks.remove(pid)
                 # Increase counter
                 nt += 1
                 # Append to vectors
@@ -1170,6 +1174,8 @@ class CaseRunner(casecntl.CaseRunner):
                 "isosurface",
                 f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
             # Status update
+            print(
+                f"  {len(self.forks)}: Collecting '{flbl}'")
             self._printf(f"  Collecting '{flbl}'")
             # Create pipe before forking
             r_fd, w_fd = os.pipe()
@@ -1196,10 +1202,20 @@ class CaseRunner(casecntl.CaseRunner):
                     # Go to next iteration
                     continue
             # Read the data
+            sys.stdout.write(f"  {len(self.forks)}: ... reading\n")
+            sys.stdout.flush()
             surf = self._read_cutplane(mode, nsurf, i)
+            sys.stdout.write(f"  {len(self.forks)}: ... read\n")
+            sys.stdout.flush()
             # Send result back through pipe
-            os.write(w_fd, pickle.dumps((surf.nodes, surf.tris, surf.q)))
+            os.write(
+                w_fd, (
+                    surf.nodes.tobytes(),
+                    surf.tris.tobytes(),
+                    surf.q.tobytes())
             os.close(w_fd)
+            sys.stdout.write(f"  {len(self.forks)}: ... written\n")
+            sys.stdout.flush()
             # Exit this process
             os._exit(0)
         # Wait until worker count is subsided
