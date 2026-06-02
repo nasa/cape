@@ -1102,7 +1102,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Loop through files
         for i in iters:
             # Wait until worker count is subsided
-            while (len(self.forks) >= nproc) and (len(iters_write) > 0):
+            while (len(self.forks) >= nproc):
                 # Get next iteration to write
                 j = iters_write.pop(0)
                 # Get batch number and relative index
@@ -1120,6 +1120,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Loop until that process ends
                 while not self._update_fork(pid):
                     time.sleep(0.1)
+                # Remove fork from list
                 self.forks.remove(pid)
                 # Increase counter
                 nt += 1
@@ -1222,6 +1223,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Loop until that process ends
             while not self._update_fork(pid):
                 time.sleep(0.1)
+            # Remove fork
+            self.forks.remove(pid)
             # Increase counter
             nt += 1
             # Append to vectors
