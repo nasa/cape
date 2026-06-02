@@ -1102,7 +1102,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Loop through files
         for i in iters:
             # Wait until worker count is subsided
-            while len(self.forks) >= nproc:
+            while (len(self.forks) >= nproc) and (len(iters_write) > 0):
                 # Get next iteration to write
                 j = iters_write.pop(0)
                 # Get batch number and relative index
@@ -1143,7 +1143,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Delete the file
                 os.remove(fj)
                 # Write it
-                self._write_cutplanedata2(
+                self._write_cutplanedata(
                     mode, nsurf, batchj, j, nodes, tris, q)
                 # Update metadata
                 self.write_cutplane_meta(nsurf, db, "adaptive")
