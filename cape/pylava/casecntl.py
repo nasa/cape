@@ -12,9 +12,7 @@ they are available unless specifically overwritten by specific
 
 # Standard library modules
 import os
-import pickle
 import re
-import sys
 import time
 from typing import Optional, Union
 
@@ -991,7 +989,8 @@ class CaseRunner(casecntl.CaseRunner):
             nbatch: Optional[int] = None,
             clean: bool = False,
             nmax: Optional[int] = None,
-            mode: Union[str, int] = "adaptive"):
+            mode: Union[str, int] = "adaptive",
+            nproc: Optional[int] = None):
         r"""Collect VTK cut-plane data from oner or more isosurfaces
 
         :Call:
@@ -1012,6 +1011,8 @@ class CaseRunner(casecntl.CaseRunner):
                 Mode of how to save data, raw data, triangulated, and
                 interpolated to a common mesh. If the data has no mesh
                 adaptation, ``"fixed"`` is recommended
+            *nproc*: {``None``} | :class:`int`
+                Number of parallel processes to process cut planes
         :Versions:
             * 2026-04-10 ``@ddalle``: v1.0
         """
@@ -1026,9 +1027,10 @@ class CaseRunner(casecntl.CaseRunner):
             # Convert user input to singleton list
             surfs = [nsurf]
         # Loop through surfaces
-        for surf in surfs:
-            self.collect_cutplane(
-                surf, nbatch, clean=clean, nmax=nmax, mode=mode)
+        for nsurf in surfs:
+            self._collect_cutplane2(
+                nsurf, nbatch, mode=mode,
+                clean=clean, nmax=nmax, nproc=nproc)
 
     def collect_cutplane(
             self,
@@ -1212,7 +1214,7 @@ class CaseRunner(casecntl.CaseRunner):
             dbi.write_cdb(fi)
             # Exit this process
             os._exit(0)
-        # Wait until worker count is subsided
+        # Wait for final round of forks to end
         while len(iters_write):
             # Get next iteration to write
             j = iters_write.pop(0)
@@ -1749,6 +1751,99 @@ class CaseRunner(casecntl.CaseRunner):
             self._write_cutplanedata_raw2(
                 nsurf, batch, i, nodes, tris, q)
 
+    def _write_cutplanedata_fixed2(
+            self,
+            nsurf: int,
+            batch: int,
+            i: int,
+            q: np.ndarray):
+        # Name of file to read; create if necessary
+        fcdb = self._init_cutplane_batch_fixed(nsurf, batch)
+        # Check for file
+        if not os.path.isfile(fcdb):
+            self.log_verbose(f"File not found: {fcdb}")
+            raise CapeFileNotFoundError(
+                f"Cut-plane collection file not found: {fcdb}")
+        # Open batch file
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Read small fields
+        dat.read_record("nt")
+        dat.read_record("nnode")
+        dat.read_record("nq")
+        # Get counts from batch file
+        nnode = dat["nnode"]
+        nt = dat["nt"] + 1
+        nq = dat["nq"]
+        # Check counts
+        if q.shape[1] != nq:
+            raise CapeValueError(
+                f"In surf{nsurf+1} iter {i}; "
+                f"expected nq={nq}, got {q.shape[1]}")
+        if q.shape[0] != nnode:
+            raise CapeValueError(
+                f"In surf{nsurf+1} iter {i}; ")
+        # Open the batch file for editing
+        with open(fcdb, 'r+b') as fp:
+            # Go to *nt* position
+            fp.seek(dat.pos['nt'])
+            # Read record type and size
+            fromfile_lb4_i(fp, 2)
+            # Read length of name
+            l1, = fromfile_lb4_i(fp, 1)
+            # Skip name
+            fp.read(l1)
+            # Now overwrite number of time steps in file
+            tofile_lb4_i(fp, nt)
+            # Now go to end of file
+            fp.seek(dat.pos['q'])
+            # Read record type
+            rtype_code, = fromfile_lb4_i(fp, 1)
+            # Parse record type details
+            rt = capefile.RecordType(rtype_code)
+            # Calculate length (in bytes)
+            l2 = 2 ** (rt.element_bits - 3)
+            l3 = 33 + nt*nq*nnode*l2
+            # Position for updated record size
+            pos3 = fp.tell()
+            fromfile_lb8_i(fp, 1)
+            # Get name
+            l4, = fromfile_lb4_i(fp, 1)
+            fp.read(l4)
+            # Skip dimensions
+            nd, = fromfile_lb4_i(fp, 1)
+            # Position for updated size
+            pos4 = fp.tell()
+            # Read node count and q count
+            nt2, nn2, nq2 = fromfile_lb8_i(fp, 3)
+            # Check
+            if nt2 != nt - 1:
+                raise CapeValueError(
+                    f"In {fcdb}; report time step count {nt - 1} "
+                    f"does not match q.shape ({nt2})")
+            if nn2 != nnode:
+                raise CapeValueError(
+                    f"In surf{nsurf+1:02d} batch {batch}: "
+                    f"expected {nnode} nodes; got {nn2}")
+            if nq2 != nq:
+                raise CapeValueError(
+                    f"In surf{nsurf+1:02d} batch {batch}: "
+                    f"expected {nq} states; got {nq2}")
+            # Write size
+            fp.seek(pos3)
+            tofile_lb8_i(fp, l3)
+            # Write updated shape of *q*
+            fp.seek(pos4)
+            tofile_lb4_i(fp, nt)
+            # Go to end of file to write new data
+            fp.seek(0, 2)
+            # Write state
+            if l2 == 8:
+                # Write as double-precision data
+                tofile_lb8_f(fp, q.astype("f8"))
+            else:
+                # Write as single-precision data
+                tofile_lb4_f(fp, q.astype("f4"))
+
     def _write_cutplanedata_adaptive2(
             self,
             nsurf: int,
@@ -1759,6 +1854,60 @@ class CaseRunner(casecntl.CaseRunner):
             q: np.ndarray):
         # Name of file to read; create if necessary
         fcdb = self._init_cutplane_batch_adaptive(nsurf, batch)
+        # Check for file
+        if not os.path.isfile(fcdb):
+            self.log_verbose(f"File not found: {fcdb}")
+            raise CapeFileNotFoundError(
+                f"Cut-plane collection file not found: {fcdb}")
+        # Open batch file
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Read small fields
+        dat.read_record("nt")
+        dat.read_record("nq")
+        # Get counts from batch file
+        nt = dat["nt"] + 1
+        nq = dat["nq"]
+        # Check counts
+        if q.shape[1] != nq:
+            raise CapeValueError(
+                f"In surf{nsurf+1} iter {i}; "
+                f"expected nq={nq}, got {q.shape[1]}")
+        # Open the batch file for editing
+        with open(fcdb, 'r+b') as fp:
+            # Add three records
+            fp.seek(8)
+            np.uint64(len(dat.cols) + 3).tofile(fp)
+            # Go to *nt* position
+            fp.seek(dat.pos['nt'])
+            # Read record type and size
+            fromfile_lb4_i(fp, 2)
+            # Read length of name
+            l1, = fromfile_lb4_i(fp, 1)
+            # Skip name
+            fp.read(l1)
+            # Now overwrite number of time steps in file
+            tofile_lb4_i(fp, nt)
+            # Now go to end of file
+            fp.seek(0, 2)
+            # Save data
+            dat.save_col(f"nodes.{i}", nodes.astype("f4"))
+            dat.save_col(f"tris.{i}", tris.astype("i4"))
+            dat.save_col(f"q.{i}", q.astype("f4"))
+            # Write additional data
+            dat._write_record(fp, f"nodes.{i}")
+            dat._write_record(fp, f"tris.{i}")
+            dat._write_record(fp, f"q.{i}")
+
+    def _write_cutplanedata_raw2(
+            self,
+            nsurf: int,
+            batch: int,
+            i: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
+        # Name of file to read; create if necessary
+        fcdb = self._init_cutplane_batch_raw(nsurf, batch)
         # Check for file
         if not os.path.isfile(fcdb):
             self.log_verbose(f"File not found: {fcdb}")
