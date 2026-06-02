@@ -1155,9 +1155,10 @@ class CaseRunner(casecntl.CaseRunner):
                 # Get output from worker
                 dbj = DataKit(fj)
                 # Unpack
-                nodes = dbj["nodes"]
-                tris = dbj["tris"]
                 q = dbj["q"]
+                # Get nodes and tris if present
+                nodes = dbj.get("nodes")
+                tris = dbj.get("tris")
                 # Delete the file
                 os.remove(fj)
                 # Write it
@@ -1210,8 +1211,9 @@ class CaseRunner(casecntl.CaseRunner):
                 os._exit(0)
             # Create DataKit
             dbi = DataKit()
-            dbi.save_col("nodes", surf.nodes)
-            dbi.save_col("tris", surf.tris)
+            if mode != "fixed":
+                dbi.save_col("nodes", surf.nodes)
+                dbi.save_col("tris", surf.tris)
             dbi.save_col("q", surf.q)
             # Temporary file name
             fi = os.path.join(
@@ -1255,8 +1257,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Get output from worker
             dbj = DataKit(fj)
             # Unpack
-            nodes = dbj["nodes"]
-            tris = dbj["tris"]
+            nodes = dbj.get("nodes")
+            tris = dbj.get("tris")
             q = dbj["q"]
             # Remove the file
             os.remove(fj)
