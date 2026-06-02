@@ -1028,7 +1028,7 @@ class CaseRunner(casecntl.CaseRunner):
             surfs = [nsurf]
         # Loop through surfaces
         for nsurf in surfs:
-            self._collect_cutplane2(
+            self.collect_cutplane(
                 nsurf, nbatch, mode=mode,
                 clean=clean, nmax=nmax, nproc=nproc)
 
@@ -1036,9 +1036,10 @@ class CaseRunner(casecntl.CaseRunner):
             self,
             nsurf: int = 1,
             nbatch: Optional[int] = None,
+            mode: Union[str, int] = "adaptive",
             clean: bool = False,
             nmax: Optional[int] = None,
-            mode: Union[str, int] = "adaptive"):
+            nproc: Optional[int] = None):
         r"""Combine data from LAVA cut-plane VTK files into batches
 
         :Call:
@@ -1059,24 +1060,11 @@ class CaseRunner(casecntl.CaseRunner):
                 Mode of how to save data, raw data, triangulated, and
                 interpolated to a common mesh. If the data has no mesh
                 adaptation, ``"fixed"`` is recommended
+            *nproc*: {``None``} | :class:`int`
+                Number of parallel processes to process cut planes
         :Versions:
             * 2026-04-10 ``@ddalle``: v1.0
         """
-        if mode in (2, "fixed"):
-            self._collect_cutplane_fixed(nsurf, nbatch, clean, nmax)
-        elif mode in (1, "adaptive"):
-            self._collect_cutplane_adaptive(nsurf, nbatch, clean, nmax)
-        else:
-            self._collect_cutplane_raw(nsurf, nbatch, clean, nmax)
-
-    def _collect_cutplane2(
-            self,
-            nsurf: int = 1,
-            nbatch: Optional[int] = None,
-            mode: Union[str, int] = "adaptive",
-            clean: bool = False,
-            nmax: Optional[int] = None,
-            nproc: Optional[int] = None):
         # Normalize mode
         mode = self._normalize_mode(mode)
         # First read metadata
@@ -1086,13 +1074,6 @@ class CaseRunner(casecntl.CaseRunner):
         nt = db["nt"]
         # Get reference iteration
         iref = self.get_opt("RefIter")
-        # Get current batch info
-        if nt == 0:
-            # Starting fresh
-            imax = 0
-        else:
-            # Get latest
-            imax = db["i"][-1]
         # Batch size
         nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
         # Prefix for VTK files
@@ -1326,308 +1307,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return j, k
 
-    def _collect_cutplane_adaptive(
-            self,
-            nsurf: int = 1,
-            nbatch: Optional[int] = None,
-            clean: bool = False,
-            nmax: Optional[int] = None):
-        # First read metadata
-        self._printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}")
-        db = self.read_cutplane_meta(nsurf, "adaptive")
-        # Number of time steps saved
-        nt = db["nt"]
-        # Get reference iteration
-        iref = self.get_opt("RefIter")
-        # Get current batch info
-        if nt == 0:
-            # Starting fresh
-            imax = 0
-        else:
-            # Get latest
-            imax = db["i"][-1]
-        # Batch size
-        nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
-        # Prefix for VTK files
-        prefix = self._genr8_cutplane_prefix(nsurf)
-        # Get any current VTK files
-        vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
-        # Shortened file name for logs
-        flbl = os.path.join(
-            "isosurface",
-            f"surf{nsurf-1:02d}_cutplane....vtk")
-        # Search for them
-        print(f"\n  Searching for files: {flbl}")
-        vtkfiles = self.search_regex(vtkpat)
-        # Get integers from these file names
-        iters = [int(v.split('.')[1]) for v in vtkfiles]
-        iters = np.unique(iters)
-        # Number of saved files
-        n = 0
-        # List of files to remove (this batch)
-        rmfiles = []
-        # Loop through files
-        for i in iters:
-            # Name of VTK files
-            prefixi = f"{prefix}.{i:09d}"
-            fvtk = f"{prefixi}.vtk"
-            ftri = f"{prefixi}.tri.vtk"
-            vtks = [fvtk, ftri]
-            # Check if already covered
-            if i <= imax:
-                # Check for clean option
-                if clean and (i != iref):
-                    # Delete them
-                    for fi in vtks:
-                        if os.path.isfile(fi):
-                            rmfiles.append(fi)
-                continue
-            # Shortened file name for logs
-            flbl = os.path.join(
-                "isosurface",
-                f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
-            # Check if alread processed
-            # Increase counter
-            nt += 1
-            # Get batch
-            batchj = (nt - 1) // nbatch
-            batchk = nt % nbatch
-            # Check if new batch
-            newbatch = db["batch"].size and (db["batch"][-1] != batchj)
-            # Append to vectors
-            db["nt"] = nt
-            db["i"] = np.hstack((db["i"], i))
-            db["batch"] = np.hstack((db["batch"], batchj))
-            # Status update
-            self._printf(
-                f"  Collecting '{flbl}' " +
-                f"-> batch {batchj} ({batchk}/{nbatch})")
-            # Write data
-            self._write_cutplanedata_adaptive(i, nsurf, batchj)
-            # Update the batch data
-            self.write_cutplane_meta(nsurf, db, "adaptive")
-            # Check for clean
-            if clean and (i != iref):
-                # Delete them
-                for fi in vtks:
-                    if os.path.isfile(fi):
-                        rmfiles.append(fi)
-            # Remove files
-            if newbatch:
-                # Loop through files to delete for this batch
-                for fvtk in rmfiles:
-                    self.remove_file(fvtk)
-                # Reset list of files to delete
-                rmfiles = []
-            # Update
-            n += 1
-            # Check for exit flag
-            if (nmax is not None) and (n >= nmax):
-                break
-        # Clean up prompt
-        print("")
-        # Loop through files to delete that didn't line up with a batch
-        for fvtk in rmfiles:
-            self.remove_file(fvtk)
-        # Update metadata
-        self.write_cutplane_meta(nsurf, db, "adaptive")
-
-    def _collect_cutplane_raw(
-            self,
-            nsurf: int = 1,
-            nbatch: Optional[int] = None,
-            clean: bool = False,
-            nmax: Optional[int] = None):
-        # First read metadata
-        db = self.read_cutplane_meta(nsurf, "raw")
-        # Number of time steps saved
-        nt = db["nt"]
-        # Get reference iteration
-        iref = self.get_opt("RefIter")
-        # Get current batch info
-        if nt == 0:
-            # Starting fresh
-            imax = 0
-        else:
-            # Get latest
-            imax = db["i"][-1]
-        # Batch size
-        nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
-        # Prefix for VTK files
-        prefix = self._genr8_cutplane_prefix(nsurf)
-        # Get any current VTK files
-        vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
-        vtkfiles = self.search_regex(vtkpat)
-        # Get integers from these file names
-        iters = [int(v.split('.')[1]) for v in vtkfiles]
-        iters = np.unique(iters)
-        # Number of saved files
-        n = 0
-        # List of files to remove (this batch)
-        rmfiles = []
-        # Loop through files
-        for i in iters:
-            # Name of VTK files
-            prefixi = f"{prefix}.{i:09d}"
-            fvtk = f"{prefixi}.vtk"
-            vtks = [fvtk]
-            # Check if already covered
-            if i <= imax:
-                # Check for clean option
-                if clean and (i != iref):
-                    # Delete them
-                    for fi in vtks:
-                        if os.path.isfile(fi):
-                            rmfiles.append(fi)
-                continue
-            # Shortened file name for logs
-            flbl = os.path.join(
-                "isosurface",
-                f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
-            # Increase counter
-            nt += 1
-            # Get batch
-            batchj = (nt - 1) // nbatch
-            batchk = nt % nbatch
-            # Check if new batch
-            newbatch = db["batch"].size and (db["batch"][-1] != batchj)
-            # Append to vectors
-            db["nt"] = nt
-            db["i"] = np.hstack((db["i"], i))
-            db["batch"] = np.hstack((db["batch"], batchj))
-            # Status update
-            self._printf(
-                f"  Collecting '{flbl}' " +
-                f"-> batch {batchj} ({batchk}/{nbatch})")
-            # Write data
-            self._write_cutplanedata_raw(i, nsurf, batchj)
-            # Update the batch data
-            self.write_cutplane_meta(nsurf, db, "raw")
-            # Check for clean
-            if clean and (i != iref):
-                # Delete them
-                for fi in vtks:
-                    if os.path.isfile(fi):
-                        rmfiles.append(fi)
-            # Remove files
-            if newbatch:
-                # Loop through files to delete for this batch
-                for fvtk in rmfiles:
-                    self.remove_file(fvtk)
-                # Reset list of files to delete
-                rmfiles = []
-            # Update
-            n += 1
-            # Check for exit flag
-            if (nmax is not None) and (n >= nmax):
-                break
-        # Clean up prompt
-        print("")
-        # Loop through files to delete that didn't line up with a batch
-        for fvtk in rmfiles:
-            self.remove_file(fvtk)
-        # Update metadata
-        self.write_cutplane_meta(nsurf, db, "adaptive")
-
-    def _collect_cutplane_fixed(
-            self,
-            nsurf: int = 1,
-            nbatch: Optional[int] = None,
-            clean: bool = False,
-            nmax: Optional[int] = None):
-        # First read metadata
-        db = self.read_cutplane_meta(nsurf, "fixed")
-        # Number of time steps saved
-        nt = db["nt"]
-        # Get reference iteration
-        iref = self.get_opt("RefIter")
-        # Get current batch info
-        if nt == 0:
-            # Starting fresh
-            imax = 0
-        else:
-            # Get latest
-            imax = db["i"][-1]
-        # Batch size
-        nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
-        # Prefix for VTK files
-        prefix = self._genr8_cutplane_prefix(nsurf)
-        # Get any current VTK files
-        vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
-        vtkfiles = self.search_regex(vtkpat)
-        # Get integers from these file names
-        iters = [int(v.split('.')[1]) for v in vtkfiles]
-        iters = np.unique(iters)
-        # Number of saved files
-        n = 0
-        # List of files to remove (this batch)
-        rmfiles = []
-        # Loop through files
-        for i in iters:
-            # Name of VTK files
-            prefixi = f"{prefix}.{i:09d}"
-            fvtk = f"{prefixi}.vtk"
-            ftri = f"{prefixi}.tri.vtk"
-            ffix = f"{prefixi}.fixed.vtk"
-            vtks = [fvtk, ftri, ffix]
-            # Check if already covered
-            if i <= imax:
-                # Check for clean option
-                if clean and (i != iref):
-                    # Delete them
-                    for fi in vtks:
-                        if os.path.isfile(fi):
-                            rmfiles.append(fi)
-                continue
-            # Shortened file name for logs
-            flbl = os.path.join(
-                "isosurface",
-                f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
-            # Increase counter
-            nt += 1
-            # Get batch
-            batchj = (nt - 1) // nbatch
-            batchk = nt % nbatch
-            # Check if new batch
-            newbatch = db["batch"].size and (db["batch"][-1] != batchj)
-            # Append to vectors
-            db["nt"] = nt
-            db["i"] = np.hstack((db["i"], i))
-            db["batch"] = np.hstack((db["batch"], batchj))
-            # Status update
-            self._printf(
-                f"  Collecting '{flbl}' " +
-                f"-> batch {batchj} ({batchk}/{nbatch})")
-            # Write data
-            self._write_cutplanedata_fixed(i, nsurf, batchj)
-            # Update the batch data
-            self.write_cutplane_meta(nsurf, db, "fixed")
-            # Check for clean
-            if clean and (i != iref):
-                # Delete them
-                for fi in vtks:
-                    if os.path.isfile(fi):
-                        rmfiles.append(fi)
-            # Remove files
-            if newbatch:
-                # Loop through files to delete for this batch
-                for fvtk in rmfiles:
-                    self.remove_file(fvtk)
-                # Reset list of files to delete
-                rmfiles = []
-            # Update
-            n += 1
-            # Check for exit flag
-            if (nmax is not None) and (n >= nmax):
-                break
-        # Clean up prompt
-        print("")
-        # Loop through files to delete that didn't line up with a batch
-        for fvtk in rmfiles:
-            self.remove_file(fvtk)
-        # Update metadata
-        self.write_cutplane_meta(nsurf, db, "fixed")
-
     @casecntl.run_rootdir
     def read_cutplane_meta(self, nsurf: int, mode: str) -> DataKit:
         r"""Read database of metadata for collected cutplane data
@@ -1688,57 +1367,6 @@ class CaseRunner(casecntl.CaseRunner):
         fname = self._genr8_cutplane_metafile(nsurf, mode=mode)
         # Write it
         db.write(fname)
-
-    @casecntl.run_rootdir
-    def _write_cutplanedata_adaptive(self, i: int, nsurf: int, batch: int):
-        # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_adaptive(nsurf, batch)
-        # Check for file
-        if not os.path.isfile(fcdb):
-            self.log_verbose(f"File not found: {fcdb}")
-            raise CapeFileNotFoundError(
-                f"Cut-plane collection file not found: {fcdb}")
-        # Open batch file
-        dat = capefile.CapeFile(fcdb, meta=True)
-        # Read surface data
-        surf = self.read_cutplane_tri(nsurf, i)
-        # Read small fields
-        dat.read_record("nt")
-        dat.read_record("nq")
-        # Get counts from batch file
-        nt = dat["nt"] + 1
-        nq = dat["nq"]
-        # File name labl
-        fvtk = f"surf{nsurf-1:02d}_cutplane.{i:09d}.vtk"
-        # Check counts
-        if surf.nq != nq:
-            raise CapeValueError(
-                f"In '{fvtk}', expected nq={nq}; got {surf.nq}")
-        # Open the batch file for editing
-        with open(fcdb, 'r+b') as fp:
-            # Add three records
-            fp.seek(8)
-            np.uint64(len(dat.cols) + 3).tofile(fp)
-            # Go to *nt* position
-            fp.seek(dat.pos['nt'])
-            # Read record type and size
-            fromfile_lb4_i(fp, 2)
-            # Read length of name
-            l1, = fromfile_lb4_i(fp, 1)
-            # Skip name
-            fp.read(l1)
-            # Now overwrite number of time steps in file
-            tofile_lb4_i(fp, nt)
-            # Now go to end of file
-            fp.seek(0, 2)
-            # Save data
-            dat.save_col(f"nodes.{i}", surf.nodes.astype("f4"))
-            dat.save_col(f"tris.{i}", surf.tris.astype("i4"))
-            dat.save_col(f"q.{i}", surf.q.astype("f4"))
-            # Write additional data
-            dat._write_record(fp, f"nodes.{i}")
-            dat._write_record(fp, f"tris.{i}")
-            dat._write_record(fp, f"q.{i}")
 
     def _write_cutplanedata2(
             self,
@@ -1956,147 +1584,6 @@ class CaseRunner(casecntl.CaseRunner):
             dat.save_col(f"nodes.{i}", nodes.astype("f4"))
             dat.save_col(f"tris.{i}", tris.astype("i4"))
             dat.save_col(f"q.{i}", q.astype("f4"))
-            # Write additional data
-            dat._write_record(fp, f"nodes.{i}")
-            dat._write_record(fp, f"tris.{i}")
-            dat._write_record(fp, f"q.{i}")
-
-    @casecntl.run_rootdir
-    def _write_cutplanedata_fixed(self, i: int, nsurf: int, batch: int):
-        # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_fixed(nsurf, batch)
-        # Check for file
-        if not os.path.isfile(fcdb):
-            self.log_verbose(f"File not found: {fcdb}")
-            raise CapeFileNotFoundError(
-                f"Cut-plane collection file not found: {fcdb}")
-        # Open batch file
-        dat = capefile.CapeFile(fcdb, meta=True)
-        # Read surface data
-        surf = self.read_cutplane_fixed(nsurf, i)
-        # Read small fields
-        dat.read_record("nt")
-        dat.read_record("nnode")
-        dat.read_record("nq")
-        # Get counts from batch file
-        nt = dat["nt"] + 1
-        nq = dat["nq"]
-        nnode = dat["nnode"]
-        # File name labl
-        fvtk = f"surf{nsurf-1:02d}_cutplane.{i:09d}.vtk"
-        # Check counts
-        if surf.nq != nq:
-            raise CapeValueError(
-                f"In '{fvtk}', expected nq={nq}; got {surf.nq}")
-        if surf.nnode != nnode:
-            raise CapeValueError(
-                f"In '{fvtk}', expected nnode={nnode}; got {surf.nnode}")
-        # Open the batch file for editing
-        with open(fcdb, 'r+b') as fp:
-            # Go to *nt* position
-            fp.seek(dat.pos['nt'])
-            # Read record type and size
-            fromfile_lb4_i(fp, 2)
-            # Read length of name
-            l1, = fromfile_lb4_i(fp, 1)
-            # Skip name
-            fp.read(l1)
-            # Now overwrite number of time steps in file
-            tofile_lb4_i(fp, nt)
-            # Now go to end of file
-            fp.seek(dat.pos['q'])
-            # Read record type
-            rtype_code, = fromfile_lb4_i(fp, 1)
-            # Parse record type details
-            rt = capefile.RecordType(rtype_code)
-            # Calculate length (in bytes)
-            l2 = 2 ** (rt.element_bits - 3)
-            l3 = 33 + nt*nq*nnode*l2
-            # Position for updated record size
-            pos3 = fp.tell()
-            fromfile_lb8_i(fp, 1)
-            # Get name
-            l4, = fromfile_lb4_i(fp, 1)
-            fp.read(l4)
-            # Skip dimensions
-            nd, = fromfile_lb4_i(fp, 1)
-            # Position for updated size
-            pos4 = fp.tell()
-            # Read node count and q count
-            nt2, nn2, nq2 = fromfile_lb8_i(fp, 3)
-            # Check
-            if nt2 != nt - 1:
-                raise CapeValueError(
-                    f"In {fcdb}; report time step count {nt - 1} "
-                    f"does not match q.shape ({nt2})")
-            if nn2 != nnode:
-                raise CapeValueError(
-                    f"In {fvtk}: expected {nnode} nodes; got {nn2}")
-            if nq2 != nq:
-                raise CapeValueError(
-                    f"In {fvtk}: expected {nq} states; got {nq2}")
-            # Write size
-            fp.seek(pos3)
-            tofile_lb8_i(fp, l3)
-            # Write updated shape of *q*
-            fp.seek(pos4)
-            tofile_lb4_i(fp, nt)
-            # Go to end of file to write new data
-            fp.seek(0, 2)
-            # Write state
-            if l2 == 8:
-                # Write as double-precision data
-                tofile_lb8_f(fp, surf.q.astype("f8"))
-            else:
-                # Write as single-precision data
-                tofile_lb4_f(fp, surf.q.astype("f4"))
-
-    @casecntl.run_rootdir
-    def _write_cutplanedata_raw(self, i: int, nsurf: int, batch: int):
-        # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_raw(nsurf, batch)
-        # Check for file
-        if not os.path.isfile(fcdb):
-            self.log_verbose(f"File not found: {fcdb}")
-            raise CapeFileNotFoundError(
-                f"Cut-plane collection file not found: {fcdb}")
-        # Open batch file
-        dat = capefile.CapeFile(fcdb, meta=True)
-        # Read surface data
-        surf = self.read_cutplane_raw(nsurf, i)
-        # Read small fields
-        dat.read_record("nt")
-        dat.read_record("nq")
-        # Get counts from batch file
-        nt = dat["nt"] + 1
-        nq = dat["nq"]
-        # File name labl
-        fvtk = f"surf{nsurf-1:02d}_cutplane.{i:09d}.vtk"
-        # Check counts
-        if surf.nq != nq:
-            raise CapeValueError(
-                f"In '{fvtk}', expected nq={nq}; got {surf.nq}")
-        # Open the batch file for editing
-        with open(fcdb, 'r+b') as fp:
-            # Add three records
-            fp.seek(8)
-            np.uint64(len(dat.cols) + 3).tofile(fp)
-            # Go to *nt* position
-            fp.seek(dat.pos['nt'])
-            # Read record type and size
-            fromfile_lb4_i(fp, 2)
-            # Read length of name
-            l1, = fromfile_lb4_i(fp, 1)
-            # Skip name
-            fp.read(l1)
-            # Now overwrite number of time steps in file
-            tofile_lb4_i(fp, nt)
-            # Now go to end of file
-            fp.seek(0, 2)
-            # Save data
-            dat.save_col(f"nodes.{i}", surf.nodes.astype("f4"))
-            dat.save_col(f"tris.{i}", surf.tris.astype("i4"))
-            dat.save_col(f"q.{i}", surf.q.astype("f4"))
             # Write additional data
             dat._write_record(fp, f"nodes.{i}")
             dat._write_record(fp, f"tris.{i}")
