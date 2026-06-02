@@ -1138,7 +1138,7 @@ class CaseRunner(casecntl.CaseRunner):
                     f"-> batch {batchj} ({batchk}/{nbatch})")
                 # Loop until that process ends
                 while not self._update_fork(pid):
-                    time.sleep(2.5)
+                    time.sleep(0.1)
                 self.forks.remove(pid)
                 # Increase counter
                 nt += 1
@@ -1149,6 +1149,9 @@ class CaseRunner(casecntl.CaseRunner):
                 # Temporary file name
                 fj = os.path.join(
                     "isosurface", f"surf{nsurf:02d}_{mode}.{j:09d}.cdb")
+                if not os.path.isfile(fj):
+                    print(f"\n  {flbl}: failed to convert")
+                    continue
                 # Get output from worker
                 dbj = DataKit(fj)
                 # Unpack
@@ -1163,9 +1166,10 @@ class CaseRunner(casecntl.CaseRunner):
                 # Update metadata
                 self.write_cutplane_meta(nsurf, db, "adaptive")
                 # Cleanup
-                self._cleanup_cutplane_files(nsurf, j)
+                if clean:
+                    self._cleanup_cutplane_files(nsurf, j)
             # Check if already covered
-            if i <= imax:
+            if np.where(db["i"] == i)[0].size > 0:
                 # Delete files if appropriate
                 if clean and (i != iref):
                     self._cleanup_cutplane_files(nsurf, i)
@@ -1200,7 +1204,9 @@ class CaseRunner(casecntl.CaseRunner):
             surf = self._read_cutplane(mode, nsurf, i)
             # Check for output
             if not isinstance(surf, Umesh):
-                self._printf(f"  {flbl}: VTK file removed during read")
+                # Prefix for VTK files
+                prefix = self._genr8_cutplane_prefix(nsurf)
+                print(f"\n  {flbl}: VTK file removed during read")
                 os._exit(0)
             # Create DataKit
             dbi = DataKit()
@@ -1242,7 +1248,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Temporary file name
             fj = os.path.join(
                 "isosurface", f"surf{nsurf:02d}_{mode}.{j:09d}.cdb")
-            # Check for failur
+            # Check for failure
             if not os.path.isfile(fj):
                 print(f"\n  {flbl}: failed to convert")
                 continue
@@ -1260,7 +1266,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Update metadata
             self.write_cutplane_meta(nsurf, db, "adaptive")
             # Cleanup
-            self._cleanup_cutplane_files(nsurf, j)
+            if clean:
+                self._cleanup_cutplane_files(nsurf, j)
         # Clean up prompt
         print("")
 
