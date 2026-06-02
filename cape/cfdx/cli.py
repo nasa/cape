@@ -693,6 +693,7 @@ class CfdxCollectCutPlaneArgs(CfdxCollectSurfArgs):
     _optlist = (
         "adaptive",
         "fixed",
+        "nproc",
         "raw",
     )
 

@@ -204,7 +204,7 @@ def tecmcr(mcr="export-lay.mcr", **kw):
     # Get tecplot command
     t360 = GetTecplotCommand()
     # Form the command
-    cmd = [t360, '-b', '-p', mcr, '-mesa']
+    cmd = [t360, '-b', '-p', mcr, '--mesa']
     # Output
     return cmd
 
