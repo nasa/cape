@@ -1028,9 +1028,13 @@ class CaseRunner(casecntl.CaseRunner):
             surfs = [nsurf]
         # Loop through surfaces
         for nsurf in surfs:
-            self.collect_cutplane(
-                nsurf, nbatch, mode=mode,
-                clean=clean, nmax=nmax, nproc=nproc)
+            try:
+                self.collect_cutplane(
+                    nsurf, nbatch, mode=mode,
+                    clean=clean, nmax=nmax, nproc=nproc)
+            except Exception:
+                # Continue on to next surface
+                print(f"  Collecting surf{nsurf-1:02d} failed")
 
     def collect_cutplane(
             self,
