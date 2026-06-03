@@ -2297,6 +2297,7 @@ def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
     nbatch = kw.get("batchsize")
     clean = kw.get("clean")
     nmax = kw.get("nmax")
+    nproc = kw.get("nproc")
     # Process mode options
     modes = [
         opt for opt in ("adaptive", "fixed", "raw")
@@ -2315,7 +2316,8 @@ def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
         nbatch=nbatch,
         clean=clean,
         mode=mode,
-        nmax=nmax)
+        nmax=nmax,
+        nproc=nproc)
     # Return code
     return IERR_OK
 
