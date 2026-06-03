@@ -7,11 +7,11 @@ Test report for ``cape`` (Python 3.6)
     :python-version: 3.6
     :errors: 0
     :failures: 0
-    :hostname: r204c3t1n1
+    :hostname: r202c4t4n2
     :name: pytest
     :skipped: 0
     :tests: 370
-    :time: 377.229
-    :timestamp: 2026-06-01T01:40:05.280049
-    :python-fullversion: 3.6.8 (default, Mar 26 2026, 07:14:57) [GCC 8.5.0 20210514 (Red Hat 8.5.0-28)]
+    :time: 378.508
+    :timestamp: 2026-06-02T01:40:19.824038
+    :python-fullversion: 3.6.8 (default, Apr 16 2026, 23:54:45) [GCC 8.5.0 20210514 (Red Hat 8.5.0-28)]
     :python-executable: /usr/bin/python3
