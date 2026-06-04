@@ -64,6 +64,7 @@ class RunControlOpts(OptionsDict):
         "ContinuePhase",
         "Environ",
         "JSONFile",
+        "MaxForks",
         "MaxWorkers",
         "MPI",
         "NJob",
@@ -111,6 +112,7 @@ class RunControlOpts(OptionsDict):
         "ContinuePhase": BOOL_TYPES,
         "JSONFile": str,
         "MPI": BOOL_TYPES,
+        "MaxForks": INT_TYPES,
         "MaxWorkers": INT_TYPES,
         "NJob": INT_TYPES,
         "PreMesh": BOOL_TYPES,
@@ -153,6 +155,8 @@ class RunControlOpts(OptionsDict):
         "ConcurrentShellCmds": "WorkerShellCmds",
         "Continue": "ContinuePhase",
         "GPU": "gpu",
+        "NSubProc": "Maxforks",
+        "NSubProcess": "MaxForks",
         "PostCmds": "PostShellCmds",
         "PostFuncs": "PostPythonFuncs",
         "PostPyFuncs": "PostPythonFuncs",
@@ -178,8 +182,9 @@ class RunControlOpts(OptionsDict):
 
     # Defaults
     _rc = {
-        "BatchSize": 100,
+        "BatchSize": 1000,
         "MPI": False,
+        "MaxForks": 4,
         "MaxWorkers": 8,
         "PreMesh": False,
         "RestartSamePhase": True,
@@ -214,6 +219,7 @@ class RunControlOpts(OptionsDict):
         "ContinuePhase": "whether restarts of same phase can use same job",
         "JSONFile": "name of JSON file from which settings originated",
         "MPI": "whether or not to run MPI in phase",
+        "MaxForks": "maximum forks to use for parallel post-processing",
         "MaxWorkers": "maximum threads to use for parallel post-processing",
         "NJob": "number of jobs to run concurrently",
         "PhaseIters": "check-point iterations for phase *j*",

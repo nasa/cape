@@ -1101,7 +1101,7 @@ class CaseRunner(casecntl.CaseRunner):
         n = 0
         # Max number of workers
         if nproc is None:
-            nproc = self.get_opt("NSubProcess", 2)
+            nproc = self.get_opt("MaxForks", 2)
         # Create dictionary of subprocess PIDs
         case_pids = {}
         # Iterations to write; next to write is entry 0 of this list
