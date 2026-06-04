@@ -1106,6 +1106,8 @@ class CaseRunner(casecntl.CaseRunner):
         case_pids = {}
         # Iterations to write; next to write is entry 0 of this list
         iters_write = []
+        # Evaluate right-hand side for progress indicator
+        nlim = min(len(iters), min(nbatch, nmax))
         # Loop through files
         for i in iters:
             # Wait until worker count is subsided
@@ -1114,6 +1116,9 @@ class CaseRunner(casecntl.CaseRunner):
                 j = iters_write.pop(0)
                 # Get batch number and relative index
                 batchj, batchk = self._get_batch_next(db, nbatch)
+                # Decrease counter if appropriate
+                if batchk == 0 and n > 0:
+                    nlim = min(nbatch, min(nmax - n, len(iters) - n))
                 # Get PID to wait for
                 pid = case_pids[j]
                 # Shortened file name for logs
@@ -1123,7 +1128,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Status update
                 self._printf(
                     f"  Waiting for '{flbl}' " +
-                    f"-> batch {batchj} ({batchk}/{nbatch})")
+                    f"-> batch {batchj} ({batchk}/{nlim})")
                 # Loop until that process ends
                 while not self._update_fork(pid):
                     time.sleep(0.1)
@@ -1226,7 +1231,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             self._printf(
                 f"  Waiting for '{flbl}' " +
-                f"-> batch {batchj} ({batchk}/{nbatch})")
+                f"-> batch {batchj} ({batchk}/{lim})")
             # Loop until that process ends
             while not self._update_fork(pid):
                 time.sleep(0.1)
@@ -1839,7 +1844,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Generate file name
         surffile = f"{prefix}.{n:09d}.vtk"
         # Check if present
-        if os.path.isfile(surffile):
+        if os.path.isfile(surffile) and False:
             # Read it
             pvmesh = pv.read(surffile)
             # Convert to Umesh
@@ -1850,7 +1855,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check that *n* is present
         mask, _ = meta.find(["i"], n)
         if mask.size == 0:  # pragma no-cover
-            self._complain_cutplane_iter(nsurf, n)
+            self._complain_surfdata_iter(nsurf, n)
         # Get batch number
         i = mask[0]
         j = meta["batch"][i]
@@ -1887,19 +1892,17 @@ class CaseRunner(casecntl.CaseRunner):
             l4, = fromfile_lb4_i(fp, 1)
             fp.read(l4)
             # Skip number dimensions (3)
-            fromfile_lb4_i(fp, 1)
+            nd, = fromfile_lb4_i(fp, 1)
             # Skip array shape (nnode*nq*nt)
-            fromfile_lb8_i(fp, 3)
+            nn2, nq2, nt2 = fromfile_lb8_i(fp, 3)
             # Now shift to iteration *k*
-            fp.seek(k * nnode * nq * l2 + 10)
+            fp.seek(k * nnode * nq * l2, 1)
             # Read this slice
             if l2 == 8:
                 q = fromfile_lb8_f(fp, nnode * nq)
             else:
                 q = fromfile_lb4_f(fp, nnode * nq)
             q = np.reshape(q, (nnode, nq))
-            print(np.min(q, axis=0))
-            print(np.max(q, axis=0))
         # Save the data
         mesh.q = q
         # Create PyVista mesh
@@ -1954,6 +1957,8 @@ class CaseRunner(casecntl.CaseRunner):
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
         # Number of saved files
         n = 0
+        # Evaluate right-hand side for progress indicator
+        nlim = min(len(iters), min(nbatch, nmax))
         # List of files to remove (this batch)
         rmfiles = []
         # Loop through files
@@ -1961,7 +1966,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Name of VTK file
             fvtk = self._genr8_surfdata_reffile(nsurf, i)
             # Check if already covered
-            if i <= imax:
+            if np.where(db["i"] == i)[0].size > 0:
                 # Check for clean option
                 if clean and (i != iref) and (i > 0):
                     # Delete it
@@ -1981,7 +1986,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             self._printf(
                 f"  Collecting '{fvtk}' " +
-                f"-> batch {batchj} ({batchk}/{nbatch})")
+                f"-> batch {batchj} ({batchk}/{nlim})")
             # Write data
             self._write_surfdata(i, nsurf, batchj)
             # Update the batch data
@@ -2137,7 +2142,7 @@ class CaseRunner(casecntl.CaseRunner):
     def _complain_surfdata_iter(self, nsurf: int, n: int):
         raise CapeValueError(
             f"Iteration {n} for surface {nsurf} "
-            f"(surface, surf{nsurf-1:03d})")
+            f"(surface, surf{nsurf-1:03d}) apparently deleted")
 
     @casecntl.run_rootdir
     def _write_surfdata(self, i: int, nsurf: int, batch: int):
@@ -2193,6 +2198,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Calculate length (in bytes)
             l2 = 2 ** (rt.element_bits - 3)
             l3 = 33 + nt*nq*nnode*l2
+            # Position to insert this snapshot
+            l5 = dat.pos['q'] + 45 + (nt-1)*nq*nnode*l2
             # Position for updated record size
             pos3 = fp.tell()
             fromfile_lb8_i(fp, 1)
@@ -2223,7 +2230,7 @@ class CaseRunner(casecntl.CaseRunner):
             fp.seek(pos4)
             tofile_lb8_i(fp, nt)
             # Go to end of file to write new data
-            fp.seek(0, 2)
+            fp.seek(l5)
             # Write state
             if l2 == 8:
                 # Write as double-precision data
