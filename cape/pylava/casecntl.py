@@ -1071,15 +1071,6 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Normalize mode
         mode = self._normalize_mode(mode)
-        # First read metadata
-        self._printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}")
-        db = self.read_cutplane_meta(nsurf, "adaptive")
-        # Number of time steps saved
-        nt = db["nt"]
-        # Get reference iteration
-        iref = self.get_opt("RefIter")
-        # Batch size
-        nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
         # Prefix for VTK files
         prefix = self._genr8_cutplane_prefix(nsurf)
         # Get any current VTK files
@@ -1087,13 +1078,25 @@ class CaseRunner(casecntl.CaseRunner):
         # Shortened file name for logs
         flbl = os.path.join(
             "isosurface",
-            f"surf{nsurf-1:02d}_cutplane....vtk")
+            f"surf{nsurf-1:02d}_cutplane_{{...}}.vtk")
         # Search for them
-        print(f"\n  Searching for files: {flbl}")
+        self._printf(f"  Searching for files: {flbl}\n")
         vtkfiles = self.search_regex(vtkpat)
         # Get integers from these file names
         iters = [int(v.split('.')[1]) for v in vtkfiles]
         iters = np.unique(iters)
+        # Exit if none
+        if iters.size == 0:
+            return
+        # First read metadata
+        self._printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}\n")
+        db = self.read_cutplane_meta(nsurf, "adaptive")
+        # Number of time steps saved
+        nt = db["nt"]
+        # Get reference iteration
+        iref = self.get_opt("RefIter")
+        # Batch size
+        nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
         # Number of saved files
         n = 0
         # Max number of workers
@@ -1116,7 +1119,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Shortened file name for logs
                 flbl = os.path.join(
                     "isosurface",
-                    f"surf{nsurf-1:02d}_cutplane...{j}.vtk")
+                    f"surf{nsurf-1:02d}_cutplane_{{...}}{j}.vtk")
                 # Status update
                 self._printf(
                     f"  Waiting for '{flbl}' " +
@@ -1165,7 +1168,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Shortened file name for logs
             flbl = os.path.join(
                 "isosurface",
-                f"surf{nsurf-1:02d}_cutplane...{i}.vtk")
+                f"surf{nsurf-1:02d}_cutplane_{{...}}{i}.vtk")
             # Status update
             self._printf(f"  Collecting '{flbl}'")
             # Call the fork
@@ -1219,7 +1222,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Shortened file name for logs
             flbl = os.path.join(
                 "isosurface",
-                f"surf{nsurf-1:02d}_cutplane...{j}.vtk")
+                f"surf{nsurf-1:02d}_cutplane_{{...}}{j}.vtk")
             # Status update
             self._printf(
                 f"  Waiting for '{flbl}' " +
