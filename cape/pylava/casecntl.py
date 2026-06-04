@@ -1231,7 +1231,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             self._printf(
                 f"  Waiting for '{flbl}' " +
-                f"-> batch {batchj} ({batchk}/{lim})")
+                f"-> batch {batchj} ({batchk}/{nlim})")
             # Loop until that process ends
             while not self._update_fork(pid):
                 time.sleep(0.1)
@@ -1887,14 +1887,14 @@ class CaseRunner(casecntl.CaseRunner):
             # Calculate length (in bytes)
             l2 = 2 ** (rt.element_bits - 3)
             # Skip over record size
-            rs = fromfile_lb8_i(fp, 1)
+            fromfile_lb8_i(fp, 1)
             # Skip over record name (which should be 'q')
             l4, = fromfile_lb4_i(fp, 1)
             fp.read(l4)
             # Skip number dimensions (3)
-            nd, = fromfile_lb4_i(fp, 1)
+            fromfile_lb4_i(fp, 1)
             # Skip array shape (nnode*nq*nt)
-            nn2, nq2, nt2 = fromfile_lb8_i(fp, 3)
+            fromfile_lb8_i(fp, 3)
             # Now shift to iteration *k*
             fp.seek(k * nnode * nq * l2, 1)
             # Read this slice
@@ -1943,11 +1943,9 @@ class CaseRunner(casecntl.CaseRunner):
         if nt == 0:
             # Starting fresh
             iref = 0
-            imax = 0
         else:
-            # Get latest
+            # Get earliest
             iref = db["i"][0]
-            imax = db["i"][-1]
         # Batch size
         nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
         # Get any current VTK files

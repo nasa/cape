@@ -4048,7 +4048,8 @@ class CaseRunner(CaseRunnerBase):
         if Lref is None:
             raise CapeValueError(f"No reference length specified for {comp}")
         if xmrp is None:
-            raise CapeValueError(f"No moment reference point specified for {comp}")
+            raise CapeValueError(
+                f"No moment reference point specified for {comp}")
         if not isinstance(compID, (list, tuple, np.ndarray)):
             raise TypeError(
                 f"Unable to find compID list for {self.comp}; got {compID}")

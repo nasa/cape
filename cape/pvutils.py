@@ -287,12 +287,15 @@ def make_video(
         frame_func(runner, parser, n=n, j=j)
         # Exit this shell
         os._exit(0)
+    # Wait until the workers are complete
     # Clean up prompt
     print("")
     # Make lists of videos
     outs_png = [f"{out}.%06d.png" for out in outs]
     outs_mp4 = [f"{out}.mp4" for out in outs]
     # Create options for number of frames
+    for pid in workers:
+        os.waitpid(pid, 0)
     # Initialzie error code
     ierr = 0
     # Create videos
