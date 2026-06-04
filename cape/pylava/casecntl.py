@@ -1882,7 +1882,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Calculate length (in bytes)
             l2 = 2 ** (rt.element_bits - 3)
             # Skip over record size
-            fp.seek(8)
+            rs = fromfile_lb8_i(fp, 1)
             # Skip over record name (which should be 'q')
             l4, = fromfile_lb4_i(fp, 1)
             fp.read(l4)
@@ -1891,13 +1891,15 @@ class CaseRunner(casecntl.CaseRunner):
             # Skip array shape (nnode*nq*nt)
             fromfile_lb8_i(fp, 3)
             # Now shift to iteration *k*
-            fp.seek(k * nnode * nq * l2)
+            fp.seek(k * nnode * nq * l2 + 10)
             # Read this slice
             if l2 == 8:
                 q = fromfile_lb8_f(fp, nnode * nq)
             else:
                 q = fromfile_lb4_f(fp, nnode * nq)
             q = np.reshape(q, (nnode, nq))
+            print(np.min(q, axis=0))
+            print(np.max(q, axis=0))
         # Save the data
         mesh.q = q
         # Create PyVista mesh
@@ -2219,7 +2221,7 @@ class CaseRunner(casecntl.CaseRunner):
             tofile_lb8_i(fp, l3)
             # Write updated shape of *q*
             fp.seek(pos4)
-            tofile_lb4_i(fp, nt)
+            tofile_lb8_i(fp, nt)
             # Go to end of file to write new data
             fp.seek(0, 2)
             # Write state
