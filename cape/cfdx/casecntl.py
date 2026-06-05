@@ -7306,6 +7306,21 @@ class CaseRunner(CaseRunnerBase):
 
    # --- Wait ---
     def wait_fork_pid(self, pid: int) -> int:
+        r"""Wait for a forked process to finish and get exit code
+
+        :Call:
+            >>> ierr = runner.wait_fork_pid(pid)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pid*: :class:`int`
+                Process ID of the fork to wait for
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code of the process, or -1 if not found
+        :Versions:
+            * 2024-06-07 ``@user``: Added docstring
+        """
         # Check if this is a fork
         if pid not in self.forks:
             # Already done?
@@ -7323,7 +7338,60 @@ class CaseRunner(CaseRunnerBase):
         # Return status of process
         return ierr
 
+    def kill_fork_pid(self, pid: int) -> int:
+        r"""Kill a forked process if still running and get exit code
+
+        :Call:
+            >>> ierr = runner.kill_fork_pid(pid)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pid*: :class:`int`
+                Process ID of the fork to kill
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code of the process, or -1 if not found
+        :Versions:
+            * 2026-06-05 ``@ddalle``: v1.0
+        """
+        # Check if this is a fork
+        if pid not in self.forks:
+            # Already done?
+            raise CapeValueError(f"No child process {pid}")
+        # Check if still running and kill if needed
+        try:
+            # Check status without blocking
+            outpid, ierr = os.waitpid(pid, os.WNOHANG)
+            # If still running, send SIGTERM
+            if outpid == 0:
+                os.kill(pid, signal.SIGTERM)
+                # Now wait for it to finish
+                _, ierr = os.waitpid(pid, 0)
+        except ChildProcessError:
+            # This worker failed
+            return 128
+        finally:
+            # Remove the PID
+            self._cleanup_fork_pid(pid)
+        # Return status of process
+        return ierr
+
     def check_fork_pid(self, pid: int) -> bool:
+        r"""Check whether a given fork PID is still running
+
+        :Call:
+            >>> q = runner.check_fork_pid(pid)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pid*: :class:`int`
+                Process ID of the fork to check
+        :Outputs:
+            *q*: :class:`bool`
+                True if process is running, False if not
+        :Versions:
+            * 2024-06-07 ``@user``: Added docstring
+        """
         # Check if this is a running fork
         if pid not in self.forks:
             # Already done?
