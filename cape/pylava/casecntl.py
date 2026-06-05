@@ -14,6 +14,7 @@ they are available unless specifically overwritten by specific
 import os
 import re
 import time
+import traceback
 from typing import Optional, Union
 
 # Third-party modules
@@ -1032,9 +1033,12 @@ class CaseRunner(casecntl.CaseRunner):
                 self.collect_cutplane(
                     nsurf, nbatch, mode=mode,
                     clean=clean, nmax=nmax, nproc=nproc)
-            except Exception:
+            except Exception as e:
                 # Continue on to next surface
-                print(f"  Collecting surf{nsurf-1:02d} failed")
+                print(f"\n  Collecting surf{nsurf-1:02d} failed")
+                eargs = [str(a) for a in e.args]
+                self.log_verbose(f"{type(e).__name__}: " + ' '.join(eargs))
+                self.log_verbose(traceback.format_exc())
 
     def collect_cutplane(
             self,
