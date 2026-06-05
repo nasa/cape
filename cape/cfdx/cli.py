@@ -662,6 +662,7 @@ class CfdxCollectSurfArgs(CfdxArgReader):
         "batchsize",
         "clean",
         "nmax",
+        "nprpc",
     )
 
     # Aliases
@@ -2257,6 +2258,7 @@ def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
             Return code
     :Versions:
         * 2026-04-07 ``@ddalle``: v1.0
+        * 2026-06-05 ``@ddalle``: v1.1; add *nproc*
     """
     # Read instance
     runner, kw = read_runner_kwargs(parser)
@@ -2265,12 +2267,14 @@ def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
     nbatch = kw.get("batchsize")
     clean = kw.get("clean")
     nmax = kw.get("nmax")
+    nproc = kw.get("nproc")
     # Run the case
     runner.collect_surfdata(
         nsurf=nsurf,
         nbatch=nbatch,
         clean=clean,
-        nmax=nmax)
+        nmax=nmax,
+        nproc=nproc)
     # Return code
     return IERR_OK
 
