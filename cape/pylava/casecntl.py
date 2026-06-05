@@ -1146,11 +1146,8 @@ class CaseRunner(casecntl.CaseRunner):
                 self._printf(
                     f"  Waiting for '{flbl}' " +
                     f"-> batch {batchj} ({batchk+1}/{nlim})")
-                # Loop until that process ends
-                while not self._update_fork(pid):
-                    time.sleep(0.1)
-                # Remove fork from list
-                self.forks.remove(pid)
+                # Wait until that process ends
+                self.wait_fork_pid(pid)
                 # Increase counter
                 nt += 1
                 # Append to vectors
@@ -1194,11 +1191,9 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             self._printf(f"  Collecting '{flbl}'")
             # Call the fork
-            pid = os.fork()
+            pid = self.fork()
             # Check parent/child
             if pid != 0:
-                # Save process ID of worker
-                self.forks.append(pid)
                 # Ok, here we have an iteration to actually process
                 iters_write.append(i)
                 # Also save it by case
@@ -1249,11 +1244,8 @@ class CaseRunner(casecntl.CaseRunner):
             self._printf(
                 f"  Waiting for '{flbl}' " +
                 f"-> batch {batchj} ({batchk+1}/{nlim})")
-            # Loop until that process ends
-            while not self._update_fork(pid):
-                time.sleep(0.1)
-            # Remove fork
-            self.forks.remove(pid)
+            # Wait until that process ends
+            self.wait_fork_pid(pid)
             # Increase counter
             nt += 1
             # Append to vectors

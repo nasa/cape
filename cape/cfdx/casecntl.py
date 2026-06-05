@@ -7314,6 +7314,44 @@ class CaseRunner(CaseRunnerBase):
         return self.get_opt("MaxForks", vdef=MAX_FORKS)
 
    # --- Wait ---
+    def wait_fork_id(self, n: int) -> int:
+        r"""Wait for a forked process to finish and get exit code
+
+        :Call:
+            >>> ierr = runner.wait_fork_id(n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *n*: :class:`int`
+                Index of fork to wait for
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code of the process, or -1 if not found
+        :Versions:
+            * 2024-06-07 ``@user``: Added docstring
+        """
+        # Get PID
+        pid = self.find_fork_pid(n)
+        # Check for it
+        if pid is None:
+            raise CapeValueError(f"No child process number {n}")
+        # Check if this is a fork
+        if pid not in self.forks:
+            # Already done?
+            raise CapeValueError(f"No child process {pid}")
+        # Wait for process
+        try:
+            # Run the actual check command
+            _, ierr = os.waitpid(pid, 0)
+        except ChildProcessError:
+            # This worker failed
+            return 128
+        finally:
+            # Remove the PID
+            self._cleanup_fork_pid(pid)
+        # Return status of process
+        return ierr
+
     def wait_fork_pid(self, pid: int) -> int:
         r"""Wait for a forked process to finish and get exit code
 
