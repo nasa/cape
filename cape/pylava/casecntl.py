@@ -1145,7 +1145,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Status update
                 self._printf(
                     f"  Waiting for '{flbl}' " +
-                    f"-> batch {batchj} ({batchk}/{nlim})")
+                    f"-> batch {batchj} ({batchk+1}/{nlim})")
                 # Loop until that process ends
                 while not self._update_fork(pid):
                     time.sleep(0.1)
@@ -1248,7 +1248,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             self._printf(
                 f"  Waiting for '{flbl}' " +
-                f"-> batch {batchj} ({batchk}/{nlim})")
+                f"-> batch {batchj} ({batchk+1}/{nlim})")
             # Loop until that process ends
             while not self._update_fork(pid):
                 time.sleep(0.1)
@@ -2008,7 +2008,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Status update
                 self._printf(
                     f"  Waiting for '{fvtkj}' "
-                    f"-> batch {batchj} ({batchk}/{nlim})")
+                    f"-> batch {batchj} ({batchk+1}/{nlim})")
                 # Loop until that process ends
                 while not self._update_fork(pid):
                     time.sleep(0.1)
@@ -2025,6 +2025,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Check for successful temp file
                 if not os.path.isfile(fj):
                     print(f"\n  {fvtkj}: failed to convert")
+                    continue
                 else:
                     # Read pre-loaded q from temp file
                     dbj = DataKit(fj)
@@ -2035,7 +2036,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Update metadata
                 self.write_surfdata_meta(nsurf, db)
                 # Check for clean
-                if clean and (j != iref) and (j > 0):
+                if clean and (j != iref):
                     self.remove_file(fvtk)
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
@@ -2081,7 +2082,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             self._printf(
                 f"  Waiting for '{fvtkj}' "
-                f"-> batch {batchj} ({batchk}/{nlim})")
+                f"-> batch {batchj} ({batchk+1}/{nlim})")
             # Loop until that process ends
             while not self._update_fork(pid):
                 time.sleep(0.1)
