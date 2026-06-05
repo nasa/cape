@@ -1959,7 +1959,8 @@ class CaseRunner(casecntl.CaseRunner):
         # Number of saved files
         n = 0
         # Evaluate right-hand side for progress indicator
-        nlim = min(len(iters), min(nbatch, nmax))
+        nlim = nbatch if nmax is None else min(nbatch, nmax)
+        nlim = min(len(iters), nlim)
         # List of files to remove (this batch)
         rmfiles = []
         # Loop through files
