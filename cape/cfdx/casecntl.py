@@ -108,6 +108,8 @@ JOB_ID_FILES = (
 )
 # Max number of IDs allowed per case
 MAX_JOB_IDS = 20
+# Absolute max number of forks
+MAX_FORKS = 5000
 # Constants
 DEFAULT_SLEEPTIME = 10.0
 
@@ -224,6 +226,8 @@ class CaseRunner(CaseRunnerBase):
         "archivist",
         "child",
         "forks",
+        "fork_pids",
+        "fork_id",
         "fork_pipes",
         "is_fork",
         "is_worker",
@@ -356,6 +360,12 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`list`\ [:class:`int`]
         #: List of subprocess IDs other than "workers"
         self.forks = []
+        #: :class:`dict`\ [:class:`int`]
+        #: Dictionary of process IDs for each fork (if any)
+        self.fork_pids = {0: os.getpid()}
+        #: :class:`int`
+        #: Index of current for (0 for parent process)
+        self.fork_id = 0
         #: :class:`dict`\ [:class:`int`]
         #: Dictionary of read pipes from forks to main process
         self.fork_pipes = {}
@@ -7193,6 +7203,42 @@ class CaseRunner(CaseRunnerBase):
         return self.__class__.__name__
 
   # *** FORK SUBPROCESSES ***
+   # --- Main [utility] ---
+    def fork(self, nproc: Optional[int] = None) -> Tuple[int, int]:
+        # Get next fork index
+        n = self.next_fork(nproc)
+        # Exit if -1
+        if (n is None) or (n < 0):
+            return n, 0
+        # Create a fork
+        pid = os.fork()
+        # Check if parent/child
+        if pid != 0:
+            # Save the process ID of the child
+            self.fork_pids[n] = pid
+        else:
+            # Save the index in the child
+            self.fork_id = n
+        # Return result
+        return n, pid
+
+    def next_fork(self, nproc: Optional[int] = None) -> int:
+        # Normalize max fork limit
+        nproc = self._normalize_nfork(nproc)
+        # Loop through IDs
+        for i in range(1, nproc + 1):
+            # Check if present
+            if i not in self.fork_pids:
+                return i
+        # If not found, use -1
+        return -1
+
+    def _normalize_nfork(self, nproc: Optional[int] = None):
+        # Check if directly specified
+        if isinstance(nproc, (int, np.integer)) and nproc > 0:
+            return nproc
+        # Get option
+        return self.get_opt("MaxForks", vdef=MAX_FORKS)
 
    # --- I/O ---
     def _collect_fork_bytes(self, pid: int) -> bytes:
