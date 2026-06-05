@@ -14,6 +14,7 @@ they are available unless specifically overwritten by specific
 import os
 import re
 import time
+import traceback
 from typing import Optional, Union
 
 # Third-party modules
@@ -1032,9 +1033,12 @@ class CaseRunner(casecntl.CaseRunner):
                 self.collect_cutplane(
                     nsurf, nbatch, mode=mode,
                     clean=clean, nmax=nmax, nproc=nproc)
-            except Exception:
+            except Exception as e:
                 # Continue on to next surface
-                print(f"  Collecting surf{nsurf-1:02d} failed")
+                print(f"\n  Collecting surf{nsurf-1:02d} failed")
+                eargs = [str(a) for a in e.args]
+                self.log_verbose(f"{type(e).__name__}: " + ' '.join(eargs))
+                self.log_verbose(traceback.format_exc())
 
     def collect_cutplane(
             self,
@@ -1928,7 +1932,8 @@ class CaseRunner(casecntl.CaseRunner):
             nsurf: int = 1,
             nbatch: Optional[int] = None,
             clean: bool = False,
-            nmax: Optional[int] = None):
+            nmax: Optional[int] = None,
+            nproc: Optional[int] = None):
         r"""Combine data from LAVA surface VTK files into batches
 
         :Call:
@@ -1945,8 +1950,11 @@ class CaseRunner(casecntl.CaseRunner):
                 Option to delete ``.vtk`` files after processing
             *nmax*: {``None``} | :class:`int`
                 Maximum number of snapshots to collect
+            *nproc*: {``None``} | :class:`int`
+                Number of parallel processes to process surface data
         :Versions:
             * 2026-04-06 ``@ddalle``: v1.0
+            * 2026-06-05 ``@ddalle``: v2.0; parallel fork architecture
         """
         # First read metadata
         db = self.read_surfdata_meta(nsurf)
@@ -1968,61 +1976,144 @@ class CaseRunner(casecntl.CaseRunner):
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
         # Number of saved files
         n = 0
+        # Max number of workers
+        if nproc is None:
+            nproc = self.get_opt("MaxForks", 2)
+        # Create dictionary of subprocess PIDs
+        case_pids = {}
+        # Iterations to write; next to write is entry 0 of this list
+        iters_write = []
         # Evaluate right-hand side for progress indicator
         nlim = nbatch if nmax is None else min(nbatch, nmax)
         nlim = min(len(iters), nlim)
-        # List of files to remove (this batch)
-        rmfiles = []
         # Loop through files
         for i in iters:
             # Name of VTK file
             fvtk = self._genr8_surfdata_reffile(nsurf, i)
+            # Wait until worker count has subsided
+            while len(self.forks) >= nproc:
+                # Get next iteration to write
+                j = iters_write.pop(0)
+                # Get batch number and relative index
+                batchj, batchk = self._get_batch_next(db, nbatch)
+                # Recalculate limit when starting a new batch
+                if batchk == 0 and n > 0:
+                    nlim = len(iters) - n
+                    nlim = nlim if nmax is None else min(nmax - n, nlim)
+                    nlim = min(nbatch, nlim)
+                # Get PID to wait for
+                pid = case_pids[j]
+                # Shortened file name for logs
+                fvtkj = self._genr8_surfdata_reffile(nsurf, j)
+                # Status update
+                self._printf(
+                    f"  Waiting for '{fvtkj}' "
+                    f"-> batch {batchj} ({batchk}/{nlim})")
+                # Loop until that process ends
+                while not self._update_fork(pid):
+                    time.sleep(0.1)
+                # Remove fork from list
+                self.forks.remove(pid)
+                # Temporary file name
+                fj = self._genr8_surfdata_tmpfile(nsurf, j)
+                # Increase counter
+                nt += 1
+                # Append to vectors
+                db["nt"] = nt
+                db["i"] = np.hstack((db["i"], j))
+                db["batch"] = np.hstack((db["batch"], batchj))
+                # Check for successful temp file
+                if not os.path.isfile(fj):
+                    print(f"\n  {fvtkj}: failed to convert")
+                else:
+                    # Read pre-loaded q from temp file
+                    dbj = DataKit(fj)
+                    q = dbj["q"]
+                    os.remove(fj)
+                    # Write to batch
+                    self._write_surfdata(j, nsurf, batchj, q=q)
+                # Update metadata
+                self.write_surfdata_meta(nsurf, db)
+                # Check for clean
+                if clean and (j != iref) and (j > 0):
+                    self.remove_file(fvtk)
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
                 # Check for clean option
-                if clean and (i != iref) and (i > 0):
-                    # Delete it
-                    rmfiles.append(fvtk)
+                if clean and (i != iref):
+                    self.remove_file(fvtk)
                 continue
-            # Increase counter
-            nt += 1
-            # Get batch
-            batchj = (nt - 1) // nbatch
-            batchk = nt % nbatch
-            # Check if new batch
-            newbatch = db["batch"].size and (db["batch"][-1] != batchj)
-            # Append to vectors
-            db["nt"] = nt
-            db["i"] = np.hstack((db["i"], i))
-            db["batch"] = np.hstack((db["batch"], batchj))
+            # Status update
+            self._printf(f"  Collecting '{fvtk}'")
+            # Call the fork
+            pid = os.fork()
+            # Check parent/child
+            if pid != 0:
+                # Parent: record PID and continue to next iter
+                self.forks.append(pid)
+                iters_write.append(i)
+                case_pids[i] = pid
+                n += 1
+                if (nmax is not None) and (n >= nmax):
+                    break
+                continue
+            # Child: read VTK and write q to temp file
+            if not os.path.isfile(fvtk):
+                os._exit(0)
+            # Read VTK file
+            surf = Umesh(fvtk)
+            # Save *q*
+            dbi = DataKit()
+            dbi.save_col("q", surf.q)
+            fi = self._genr8_surfdata_tmpfile(nsurf, i)
+            dbi.write_cdb(fi)
+            os._exit(0)
+        # Wait for final round of forks to end
+        while len(iters_write):
+            # Get next iteration to write
+            j = iters_write.pop(0)
+            # Get batch number and relative index
+            batchj, batchk = self._get_batch_next(db, nbatch)
+            # Get PID to wait for
+            pid = case_pids[j]
+            # Shortened file name for logs
+            fvtkj = self._genr8_surfdata_reffile(nsurf, j)
             # Status update
             self._printf(
-                f"  Collecting '{fvtk}' " +
+                f"  Waiting for '{fvtkj}' "
                 f"-> batch {batchj} ({batchk}/{nlim})")
-            # Write data
-            self._write_surfdata(i, nsurf, batchj)
-            # Update the batch data
+            # Loop until that process ends
+            while not self._update_fork(pid):
+                time.sleep(0.1)
+            # Remove fork
+            self.forks.remove(pid)
+            # Temporary file name
+            fj = self._genr8_surfdata_tmpfile(nsurf, j)
+            # Increase counter
+            nt += 1
+            # Append to vectors
+            db["nt"] = nt
+            db["i"] = np.hstack((db["i"], j))
+            db["batch"] = np.hstack((db["batch"], batchj))
+            # Check for temp file
+            if not os.path.isfile(fj):
+                print(f"\n  {fvtkj}: failed to convert")
+            else:
+                # Read temp data
+                dbj = DataKit(fj)
+                # Extract solution vars
+                q = dbj["q"]
+                # Remove temp file
+                os.remove(fj)
+                # Write to batch file
+                self._write_surfdata(j, nsurf, batchj, q=q)
+            # Update metadata
             self.write_surfdata_meta(nsurf, db)
             # Check for clean
-            if clean and (i != iref) and (i > 0):
-                rmfiles.append(fvtk)
-            # Remove files
-            if newbatch:
-                # Loop through files to delete for this batch
-                for fvtk in rmfiles:
-                    self.remove_file(fvtk)
-                # Reset list of files to delete
-                rmfiles = []
-            # Update
-            n += 1
-            # Check for exit flag
-            if (nmax is not None) and (n >= nmax):
-                break
+            if clean and (j != iref):
+                self.remove_file(fvtk)
         # Clean up prompt
         print("")
-        # Loop through files to delete that didn't line up with a batch
-        for fvtk in rmfiles:
-            self.remove_file(fvtk)
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
 
@@ -2157,23 +2248,23 @@ class CaseRunner(casecntl.CaseRunner):
             f"(surface, surf{nsurf-1:03d}) apparently deleted")
 
     @casecntl.run_rootdir
-    def _write_surfdata(self, i: int, nsurf: int, batch: int):
+    def _write_surfdata(self, i: int, nsurf: int, batch: int, q=None):
         # Name of file to read; create if necessary
         fcdb = self._init_surfdata_batch(nsurf, batch)
-        # Name of VTK file
-        fvtk = self._genr8_surfdata_reffile(nsurf, i)
-        # Check for file
-        if not os.path.isfile(fvtk):
-            self.log_verbose(f"File not found: {fvtk}")
-            return
+        # Read surface data if not pre-loaded
+        if q is None:
+            fvtk = self._genr8_surfdata_reffile(nsurf, i)
+            if not os.path.isfile(fvtk):
+                self.log_verbose(f"File not found: {fvtk}")
+                return
+            surf = Umesh(fvtk)
+            q = surf.q
         if not os.path.isfile(fcdb):
             self.log_verbose(f"File not found: {fcdb}")
             raise CapeFileNotFoundError(
                 f"Surfdata collection file not found: {fcdb}")
         # Open batch file
         dat = capefile.CapeFile(fcdb, meta=True)
-        # Read surface data
-        surf = Umesh(fvtk)
         # Read small fields
         dat.read_record("nt")
         dat.read_record("nnode")
@@ -2182,13 +2273,6 @@ class CaseRunner(casecntl.CaseRunner):
         nt = dat["nt"] + 1
         nq = dat["nq"]
         nnode = dat["nnode"]
-        # Check counts
-        if surf.nq != nq:
-            raise CapeValueError(
-                f"In '{fvtk}', expected nq={nq}; got {surf.nq}")
-        if surf.nnode != nnode:
-            raise CapeValueError(
-                f"In '{fvtk}', expected nnode={nnode}; got {surf.nnode}")
         # Open the batch file for editing
         with open(fcdb, 'r+b') as fp:
             # Go to *nt* position
@@ -2231,10 +2315,10 @@ class CaseRunner(casecntl.CaseRunner):
                     f"does not match q.shape ({nt2})")
             if nn2 != nnode:
                 raise CapeValueError(
-                    f"In {fvtk}: expected {nnode} nodes; got {nn2}")
+                    f"In {fcdb}: expected {nnode} nodes; got {nn2}")
             if nq2 != nq:
                 raise CapeValueError(
-                    f"In {fvtk}: expected {nq} states; got {nq2}")
+                    f"In {fcdb}: expected {nq} states; got {nq2}")
             # Write size
             fp.seek(pos3)
             tofile_lb8_i(fp, l3)
@@ -2246,10 +2330,10 @@ class CaseRunner(casecntl.CaseRunner):
             # Write state
             if l2 == 8:
                 # Write as double-precision data
-                tofile_lb8_f(fp, surf.q.astype("f8"))
+                tofile_lb8_f(fp, q.astype("f8"))
             else:
                 # Write as single-precision data
-                tofile_lb4_f(fp, surf.q.astype("f4"))
+                tofile_lb4_f(fp, q.astype("f4"))
 
     @casecntl.run_rootdir
     def _read_surfdata_ref(self, nsurf: int, i: Optional[int] = None) -> Umesh:
@@ -2318,6 +2402,10 @@ class CaseRunner(casecntl.CaseRunner):
 
     def _genr8_surfdata_metafile(self, nsurf: int = 1) -> str:
         return os.path.join("surface", f"surf{nsurf-1:03d}.Cart.cdb")
+
+    def _genr8_surfdata_tmpfile(self, nsurf: int, i: int) -> str:
+        return os.path.join(
+            "surface", f"surf{nsurf-1:03d}.Cart.{i:09d}.tmp.cdb")
 
     def _genr8_surfdata_batchfile(self, nsurf: int, batch: int) -> str:
         return os.path.join(
