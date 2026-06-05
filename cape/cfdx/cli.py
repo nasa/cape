@@ -662,7 +662,7 @@ class CfdxCollectSurfArgs(CfdxArgReader):
         "batchsize",
         "clean",
         "nmax",
-        "nprpc",
+        "nproc",
     )
 
     # Aliases

@@ -2035,7 +2035,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Update metadata
                 self.write_surfdata_meta(nsurf, db)
                 # Check for clean
-                if clean and (j != iref) and (j > 0):
+                if clean and (j != iref):
                     self.remove_file(fvtk)
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
