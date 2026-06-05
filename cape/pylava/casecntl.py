@@ -2025,6 +2025,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Check for successful temp file
                 if not os.path.isfile(fj):
                     print(f"\n  {fvtkj}: failed to convert")
+                    continue
                 else:
                     # Read pre-loaded q from temp file
                     dbj = DataKit(fj)
