@@ -1145,7 +1145,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Status update
                 self._printf(
                     f"  Waiting for '{flbl}' " +
-                    f"-> batch {batchj} ({batchk}/{nlim})")
+                    f"-> batch {batchj} ({batchk+1}/{nlim})")
                 # Loop until that process ends
                 while not self._update_fork(pid):
                     time.sleep(0.1)
@@ -1248,7 +1248,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             self._printf(
                 f"  Waiting for '{flbl}' " +
-                f"-> batch {batchj} ({batchk}/{nlim})")
+                f"-> batch {batchj} ({batchk+1}/{nlim})")
             # Loop until that process ends
             while not self._update_fork(pid):
                 time.sleep(0.1)
@@ -2008,7 +2008,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Status update
                 self._printf(
                     f"  Waiting for '{fvtkj}' "
-                    f"-> batch {batchj} ({batchk}/{nlim})")
+                    f"-> batch {batchj} ({batchk+1}/{nlim})")
                 # Loop until that process ends
                 while not self._update_fork(pid):
                     time.sleep(0.1)
@@ -2081,7 +2081,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             self._printf(
                 f"  Waiting for '{fvtkj}' "
-                f"-> batch {batchj} ({batchk}/{nlim})")
+                f"-> batch {batchj} ({batchk+1}/{nlim})")
             # Loop until that process ends
             while not self._update_fork(pid):
                 time.sleep(0.1)
