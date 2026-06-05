@@ -6819,9 +6819,7 @@ class CaseRunner(CaseRunnerBase):
             tab = msg[:len(msg) - len(msg.lstrip())]
             msg = msg[len(tab):]
             # Print three parts
-            _printf(tab)
-            _printf(f"[{self.fork_id}] ")
-            _printf(msg)
+            _printf(f"{tab}[{self.fork_id}] {msg}")
         else:
             # Just print original message
             _printf(msg)
@@ -7231,7 +7229,7 @@ class CaseRunner(CaseRunnerBase):
         n = self.get_next_fork(nproc)
         # Exit if -1
         if (n is None) or (n < 0):
-            return 0
+            return -1
         # Create a fork
         pid = os.fork()
         # Check if parent/child
@@ -7335,22 +7333,8 @@ class CaseRunner(CaseRunnerBase):
         # Check for it
         if pid is None:
             raise CapeValueError(f"No child process number {n}")
-        # Check if this is a fork
-        if pid not in self.forks:
-            # Already done?
-            raise CapeValueError(f"No child process {pid}")
-        # Wait for process
-        try:
-            # Run the actual check command
-            _, ierr = os.waitpid(pid, 0)
-        except ChildProcessError:
-            # This worker failed
-            return 128
-        finally:
-            # Remove the PID
-            self._cleanup_fork_pid(pid)
-        # Return status of process
-        return ierr
+        # Call sub func
+        return self.wait_fork_pid(pid)
 
     def wait_fork_pid(self, pid: int) -> int:
         r"""Wait for a forked process to finish and get exit code

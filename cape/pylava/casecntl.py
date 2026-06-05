@@ -1039,6 +1039,10 @@ class CaseRunner(casecntl.CaseRunner):
                 eargs = [str(a) for a in e.args]
                 self.log_verbose(f"{type(e).__name__}: " + ' '.join(eargs))
                 self.log_verbose(traceback.format_exc())
+                # Check for a fork
+                if self.fork_id:
+                    print(f"  Fork {self.fork_id} failed")
+                    os._exit(0)
 
     def collect_cutplane(
             self,
@@ -1191,7 +1195,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Status update
             self._printf(f"  Collecting '{flbl}'")
             # Call the fork
-            pid = self.fork()
+            pid = self.fork(nproc=nproc)
             # Check parent/child
             if pid != 0:
                 # Ok, here we have an iteration to actually process
@@ -1214,6 +1218,8 @@ class CaseRunner(casecntl.CaseRunner):
                 # Prefix for VTK files
                 prefix = self._genr8_cutplane_prefix(nsurf)
                 print(f"\n  {flbl}: VTK file removed during read")
+                if self.fork_id == 0:
+                    breakpoint()
                 os._exit(0)
             # Create DataKit
             dbi = DataKit()
@@ -1227,6 +1233,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Write it
             dbi.write_cdb(fi)
             # Exit this process
+            if self.fork_id == 0:
+                breakpoint()
             os._exit(0)
         # Wait for final round of forks to end
         while len(iters_write):
