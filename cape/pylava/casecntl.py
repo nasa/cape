@@ -1107,7 +1107,8 @@ class CaseRunner(casecntl.CaseRunner):
         # Iterations to write; next to write is entry 0 of this list
         iters_write = []
         # Evaluate right-hand side for progress indicator
-        nlim = min(len(iters), min(nbatch, nmax))
+        nlim = nbatch if nmax is None else min(nbatch, nmax)
+        nlim = min(len(iters), nlim)
         # Loop through files
         for i in iters:
             # Wait until worker count is subsided
@@ -1118,7 +1119,9 @@ class CaseRunner(casecntl.CaseRunner):
                 batchj, batchk = self._get_batch_next(db, nbatch)
                 # Decrease counter if appropriate
                 if batchk == 0 and n > 0:
-                    nlim = min(nbatch, min(nmax - n, len(iters) - n))
+                    nlim = len(iters) - n
+                    nlim = nlim if nmax is None else min(nmax - n, nlim)
+                    nlim = min(nbatch, nlim)
                 # Get PID to wait for
                 pid = case_pids[j]
                 # Shortened file name for logs
