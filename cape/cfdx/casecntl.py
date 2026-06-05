@@ -229,7 +229,6 @@ class CaseRunner(CaseRunnerBase):
         "fork_pids",
         "fork_id",
         "fork_pipes",
-        "is_fork",
         "is_worker",
         "n",
         "nr",
@@ -369,9 +368,6 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`dict`\ [:class:`int`]
         #: Dictionary of read pipes from forks to main process
         self.fork_pipes = {}
-        #: :class:`bool`
-        #: Flag for process forked other than standard "worker"
-        self.is_fork = False
         # Set private slots
         self._mtime_case_json = 0.0
         self._dex_comp = None
@@ -6814,7 +6810,20 @@ class CaseRunner(CaseRunnerBase):
 
    # --- STDOUT (modified) ---
     def _printf(self, msg: str):
-        if not self.is_worker:
+        # Abstain from messages in "workers"
+        if self.is_worker:
+            return
+        # Add header for fork ID if approrpiate
+        if self.fork_id:
+            # Get leading white space
+            tab = msg[:len(msg) - len(msg.lstrip())]
+            msg = msg[len(tab):]
+            # Print three parts
+            _printf(tab)
+            _printf(f"[{self.fork_id}] ")
+            _printf(msg)
+        else:
+            # Just print original message
             _printf(msg)
 
    # --- Function name ---
@@ -7338,6 +7347,44 @@ class CaseRunner(CaseRunnerBase):
         # Return status of process
         return ierr
 
+    def check_fork_pid(self, pid: int) -> bool:
+        r"""Check whether a given fork PID is still running
+
+        :Call:
+            >>> q = runner.check_fork_pid(pid)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pid*: :class:`int`
+                Process ID of the fork to check
+        :Outputs:
+            *q*: :class:`bool`
+                True if process is running, False if not
+        :Versions:
+            * 2024-06-07 ``@user``: Added docstring
+        """
+        # Check if this is a running fork
+        if pid not in self.forks:
+            # Already done?
+            return True
+        # Check status
+        try:
+            # Run the actual check command
+            outpid, _ = os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError:
+            # Cleanup
+            self._cleanup_fork_pid(pid)
+            # Exited
+            return True
+        # Check if process has exited
+        if outpid == 0:
+            # Process has not exited
+            return False
+        else:
+            # Process has exited
+            self._cleanup_fork_pid(pid)
+            return True
+
     def kill_fork_pid(self, pid: int) -> int:
         r"""Kill a forked process if still running and get exit code
 
@@ -7376,43 +7423,48 @@ class CaseRunner(CaseRunnerBase):
         # Return status of process
         return ierr
 
-    def check_fork_pid(self, pid: int) -> bool:
-        r"""Check whether a given fork PID is still running
+    def kill_forks(self, timeout: Optional[float] = None):
+        r"""Wait for forks to finish, then kill any still running
+
+        This function waits for all forks to complete naturally, but if
+        a *timeout* is specified and reached, any remaining forks will
+        be terminated with SIGTERM.
 
         :Call:
-            >>> q = runner.check_fork_pid(pid)
+            >>> runner.kill_forks(timeout=None)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *pid*: :class:`int`
-                Process ID of the fork to check
-        :Outputs:
-            *q*: :class:`bool`
-                True if process is running, False if not
+            *timeout*: {``None``} | :class:`float`
+                Maximum time in seconds to wait for forks to finish
+                naturally before killing them
         :Versions:
-            * 2024-06-07 ``@user``: Added docstring
+            * 2026-06-05 ``@ddalle``: v1.0
         """
-        # Check if this is a running fork
-        if pid not in self.forks:
-            # Already done?
-            return True
-        # Check status
-        try:
-            # Run the actual check command
-            outpid, _ = os.waitpid(pid, os.WNOHANG)
-        except ChildProcessError:
-            # Cleanup
-            self._cleanup_fork_pid(pid)
-            # Exited
-            return True
-        # Check if process has exited
-        if outpid == 0:
-            # Process has not exited
-            return False
-        else:
-            # Process has exited
-            self._cleanup_fork_pid(pid)
-            return True
+        # Record start time if timeout specified
+        tic = time.time()
+        # Loop until all forks are done or timeout reached
+        while len(self.forks):
+            # Check if timeout has been reached
+            if timeout is not None:
+                # Check for time out
+                if time.time() - tic:
+                    break
+            # Check status of all forks
+            for pid in list(self.forks):
+                if self.check_fork_pid(pid):
+                    # Fork has finished, it's already cleaned up
+                    pass
+            # Small sleep to avoid busy-waiting
+            if self.forks:
+                time.sleep(0.01)
+        # Timeout reached, kill remaining forks
+        for pid in list(self.forks):
+            try:
+                self.kill_fork_pid(pid)
+            except (CapeValueError, ChildProcessError):
+                # Already gone or invalid
+                pass
 
     def _cleanup_fork_pid(self, pid: int):
         # Get index

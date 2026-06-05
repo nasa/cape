@@ -23,6 +23,7 @@ from ..errors import CapeError, CapeValueError
 
 # Constants
 IERR_OK = 0
+IERR_INTERRUPT = 2
 IERR_CMD = 16
 IERR_OPT = 32
 IERR_RUNTIME = 128
@@ -2606,6 +2607,9 @@ def main_template(
             # End message and exit
             sys.stderr.flush()
             return IERR_RUNTIME
+        except KeyboardInterrupt:
+            print("KeyboardInterrupt")
+            return IERR_INTERRUPT
     # For now, print the selected command
     return IERR_OK
 
