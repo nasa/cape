@@ -249,7 +249,7 @@ def make_video(
     nmax = parser.get_opt("nmax")
     nproc = parser.get_opt("nproc")
     # Check for start frame
-    nmin = 1 if nmin is None else nmin
+    nmin = 0 if nmin is None else nmin
     # Conversions for *nmin* and *nmax* to frame numbers
     jmin = None
     # Number of frames
@@ -325,12 +325,15 @@ def _update_workers(workers: list):
         # Check if it's active
         try:
             # Check on the requested process
-            outpid, _ = os.waitpid(pid, os.WNOHANG)
+            outpid, ierr = os.waitpid(pid, os.WNOHANG)
         except ChildProcessError:
             print(f"  PID {pid} is um....")
             continue
         # Check if it's running
         if outpid != 0:
+            # Check error code
+            if ierr:
+                raise SystemError(f"Worker {pid} returned code {ierr}")
             # Already done
             workers.remove(pid)
 

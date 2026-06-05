@@ -10274,7 +10274,7 @@ class DataKit(BaseData):
                 "%iD index mask; must be scalar or 1D array" % mask.ndim)
         elif mask.size == 0:
             # Empty mask (``None`` is correct empty mask)
-            raise ValueError("Index mask must not be empty")
+            return
         # Check dimensions
         if V is not None:
             # Get size
