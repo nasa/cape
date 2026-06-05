@@ -7204,25 +7204,52 @@ class CaseRunner(CaseRunnerBase):
 
   # *** FORK SUBPROCESSES ***
    # --- Main [utility] ---
-    def fork(self, nproc: Optional[int] = None) -> Tuple[int, int]:
+    def fork(self, nproc: Optional[int] = None) -> int:
+        r"""Create a new fork and save data (unless max forks reached)
+
+        :Call:
+            >>> pid = runner.fork(nproc=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nproc*: {``None``} | :class:`int`
+                Maximum number of forks allowed
+        :Outputs:
+            *pid*: :class:`int`
+                Process ID of the child fork, child returns ``0``
+        """
         # Get next fork index
-        n = self.next_fork(nproc)
+        n = self.get_next_fork(nproc)
         # Exit if -1
         if (n is None) or (n < 0):
-            return n, 0
+            return 0
         # Create a fork
         pid = os.fork()
         # Check if parent/child
         if pid != 0:
             # Save the process ID of the child
             self.fork_pids[n] = pid
+            self.forks.append(pid)
         else:
             # Save the index in the child
             self.fork_id = n
         # Return result
-        return n, pid
+        return pid
 
-    def next_fork(self, nproc: Optional[int] = None) -> int:
+    def get_next_fork(self, nproc: Optional[int] = None) -> int:
+        r"""Get index of next available fork slot
+
+        :Call:
+            >>> n = runner.get_next_fork(nproc=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nproc*: {``None``} | :class:`int`
+                Maximum number of forks allowed
+        :Outputs:
+            *n*: :class:`int`
+                Index of the new fork, 1..{nproc}
+        """
         # Normalize max fork limit
         nproc = self._normalize_nfork(nproc)
         # Loop through IDs
@@ -7233,12 +7260,99 @@ class CaseRunner(CaseRunnerBase):
         # If not found, use -1
         return -1
 
+    def find_fork_id(self, pid: int) -> int:
+        r"""Find index of a fork by its PID (if possible)
+
+        :Call:
+            >>> n = runner.find_fork_id(pid)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pid*: :class:`int`
+                Process ID of the child fork, child returns ``0``
+        :Outputs:
+            *n*: :class:`int`
+                Index of the new fork, 1..{nproc}
+        """
+        # Loop through map
+        for n, v in self.fork_pids.items():
+            if v == pid:
+                return n
+        # If we reach this point, there was no match
+        return -1
+
+    def find_fork_pid(self, n: int) -> Optional[int]:
+        r"""Get process ID for numbered fork
+
+        :Call:
+            >>> pid = runner.find_fork_pid(n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *n*: :class:`int`
+                Index of the new fork, 1..{nproc}
+        :Outputs:
+            *pid*: ``None`` | :class:`int`
+                Process ID of the fork *n* if found
+        """
+        return self.fork_pids.get(n)
+
     def _normalize_nfork(self, nproc: Optional[int] = None):
         # Check if directly specified
         if isinstance(nproc, (int, np.integer)) and nproc > 0:
             return nproc
         # Get option
         return self.get_opt("MaxForks", vdef=MAX_FORKS)
+
+   # --- Wait ---
+    def wait_fork_pid(self, pid: int) -> int:
+        # Check if this is a fork
+        if pid not in self.forks:
+            # Already done?
+            raise CapeValueError(f"No child process {pid}")
+        # Wait for process
+        try:
+            # Run the actual check command
+            _, ierr = os.waitpid(pid, 0)
+        except ChildProcessError:
+            # This worker failed
+            return 128
+        finally:
+            # Remove the PID
+            self._cleanup_fork_pid(pid)
+        # Return status of process
+        return ierr
+
+    def check_fork_pid(self, pid: int) -> bool:
+        # Check if this is a running fork
+        if pid not in self.forks:
+            # Already done?
+            return True
+        # Check status
+        try:
+            # Run the actual check command
+            outpid, _ = os.waitpid(pid, os.WNOHANG)
+        except ChildProcessError:
+            # Cleanup
+            self._cleanup_fork_pid(pid)
+            # Exited
+            return True
+        # Check if process has exited
+        if outpid == 0:
+            # Process has not exited
+            return False
+        else:
+            # Process has exited
+            self._cleanup_fork_pid(pid)
+            return True
+
+    def _cleanup_fork_pid(self, pid: int):
+        # Get index
+        n = self.find_fork_id(pid)
+        # Remove the PID
+        if n > 0:
+            self.forks.remove(pid)
+            self.fork_pids.pop(n, None)
 
    # --- I/O ---
     def _collect_fork_bytes(self, pid: int) -> bytes:
