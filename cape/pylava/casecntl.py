@@ -1986,8 +1986,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Evaluate right-hand side for progress indicator
         nlim = nbatch if nmax is None else min(nbatch, nmax)
         nlim = min(len(iters), nlim)
-        # List of files to remove (this batch)
-        rmfiles = []
         # Loop through files
         for i in iters:
             # Name of VTK file
@@ -2018,8 +2016,6 @@ class CaseRunner(casecntl.CaseRunner):
                 self.forks.remove(pid)
                 # Temporary file name
                 fj = self._genr8_surfdata_tmpfile(nsurf, j)
-                # Check if new batch (before updating db)
-                newbatch = (db["batch"].size > 0) and (batchk == 0)
                 # Increase counter
                 nt += 1
                 # Append to vectors
@@ -2040,17 +2036,12 @@ class CaseRunner(casecntl.CaseRunner):
                 self.write_surfdata_meta(nsurf, db)
                 # Check for clean
                 if clean and (j != iref) and (j > 0):
-                    rmfiles.append(fvtkj)
-                # Remove files from completed batch
-                if newbatch:
-                    for fclean in rmfiles:
-                        self.remove_file(fclean)
-                    rmfiles = []
+                    self.remove_file(fvtk)
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
                 # Check for clean option
-                if clean and (i != iref) and (i > 0):
-                    rmfiles.append(fvtk)
+                if clean and (i != iref):
+                    self.remove_file(fvtk)
                 continue
             # Status update
             self._printf(f"  Collecting '{fvtk}'")
@@ -2069,7 +2060,9 @@ class CaseRunner(casecntl.CaseRunner):
             # Child: read VTK and write q to temp file
             if not os.path.isfile(fvtk):
                 os._exit(0)
+            # Read VTK file
             surf = Umesh(fvtk)
+            # Save *q*
             dbi = DataKit()
             dbi.save_col("q", surf.q)
             fi = self._genr8_surfdata_tmpfile(nsurf, i)
@@ -2096,8 +2089,6 @@ class CaseRunner(casecntl.CaseRunner):
             self.forks.remove(pid)
             # Temporary file name
             fj = self._genr8_surfdata_tmpfile(nsurf, j)
-            # Check if new batch (before updating db)
-            newbatch = (db["batch"].size > 0) and (batchk == 0)
             # Increase counter
             nt += 1
             # Append to vectors
@@ -2108,25 +2099,21 @@ class CaseRunner(casecntl.CaseRunner):
             if not os.path.isfile(fj):
                 print(f"\n  {fvtkj}: failed to convert")
             else:
+                # Read temp data
                 dbj = DataKit(fj)
+                # Extract solution vars
                 q = dbj["q"]
+                # Remove temp file
                 os.remove(fj)
+                # Write to batch file
                 self._write_surfdata(j, nsurf, batchj, q=q)
             # Update metadata
             self.write_surfdata_meta(nsurf, db)
             # Check for clean
-            if clean and (j != iref) and (j > 0):
-                rmfiles.append(fvtkj)
-            # Remove files from completed batch
-            if newbatch:
-                for fclean in rmfiles:
-                    self.remove_file(fclean)
-                rmfiles = []
+            if clean and (j != iref):
+                self.remove_file(fvtk)
         # Clean up prompt
         print("")
-        # Loop through files to delete that didn't line up with a batch
-        for fvtk in rmfiles:
-            self.remove_file(fvtk)
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
 
