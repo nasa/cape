@@ -1095,6 +1095,16 @@ class CaseRunner(casecntl.CaseRunner):
         nt = db["nt"]
         # Get reference iteration
         iref = self.get_opt("RefIter")
+        # Check for reference iteration if using "fixed" mode
+        if mode == "fixed":
+            # Search for reference iter in two sources
+            mask1 = np.where(iters == iref)[0]
+            mask2 = np.where(db["i"] == iref)[0]
+            # Exit if not available
+            if mask1.size == 0 and mask2.size == 0:
+                self._printf(f"  isosurface/surf{nsurf-1:03d}: ")
+                self._printf(f"iref={iref} not available\n")
+                return
         # Batch size
         nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
         # Number of saved files
@@ -1847,7 +1857,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Generate file name
         surffile = f"{prefix}.{n:09d}.vtk"
         # Check if present
-        if os.path.isfile(surffile) and False:
+        if os.path.isfile(surffile):
             # Read it
             pvmesh = pv.read(surffile)
             # Convert to Umesh
