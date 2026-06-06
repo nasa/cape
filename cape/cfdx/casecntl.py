@@ -7309,7 +7309,7 @@ class CaseRunner(CaseRunnerBase):
         if isinstance(nproc, (int, np.integer)) and nproc > 0:
             return nproc
         # Get option
-        return self.get_opt("MaxForks", vdef=MAX_FORKS)
+        return MAX_FORKS
 
    # --- Wait ---
     def wait_fork_id(self, n: int) -> int:
