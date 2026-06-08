@@ -93,6 +93,7 @@ class RunControlOpts(OptionsDict):
         "ZombieFiles",
         "ZombieTimeout",
         "aflr3",
+        "comp2tri",
         "gpu",
         "intersect",
         "mpi",

@@ -1854,8 +1854,11 @@ def cape_edit(parser: CfdxArgReader) -> int:
     """
     # Read instance
     cntl, kw = read_cntl_kwargs(parser)
+    # Construct inputs
+    txt = kw.get("edit")
+    fjson = kw.get("fjson")
     # Run the command
-    cntl.edit_json(**kw)
+    cntl.edit_json(txt, fjson=fjson)
     # Return code
     return IERR_OK
 

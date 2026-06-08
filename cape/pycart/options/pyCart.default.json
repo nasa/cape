@@ -138,30 +138,6 @@
             "sf": 0,
             // Reorder mesh for better speed
             "reorder": true
-        },
-        
-        // Folder management
-        "Archive": {
-            // Command to remote copy, if necessary
-            "RemoteCopy": "scp",
-            // Format for archives
-            "ArchiveFormat": "tar",
-            // This option will go away
-            "ArchiveAction": "full",
-            // Archive full folder or create group of archives for each case?
-            "ArchiveType": "full",
-            // Files to delete
-            "PreDeleteFiles": [],
-            "PreDeleteDirs": ["ADAPT", "EMBED"],
-            "PreUpdateFiles": [{"adapt??/Mesh.mg.c3d": 1}],
-            "PostDeleteFiles": [],
-            "PostDeleteDirs": [],
-            "PostUpdateFiles": [
-                {"check.*": 2},
-                {"checkTD.*": 1}
-            ],
-            // This is not important because *ArchiveType* is "full"
-            "ArchiveFiles": []
         }
 	},
 
@@ -188,32 +164,6 @@
         "RefLength": 1.0,
         // The moment point can be specified as a dictionary of components.
         "RefPoint": [0.0, 0.0, 0.0]
-    },
-
-    // Plotting options
-    "Plot": {
-        // Components to plot
-        "Components": ["entire"],
-        // Coefficients
-        "Coefficients": ["CA", "CY", "CN", "L1"],
-        // Deltas for each curve
-        "Deltas": {
-            "CA": 0.01,
-            "CY": 0.02,
-            "CN": 0.02,
-            "CLL": 0.005,
-            "CLM": 0.02,
-            "CLN": 0.02
-        },
-        // Extra label to put in bottom center of each plot.
-        "Restriction": "SBU - ITAR",
-        // Number of iterations to show.
-        //"nPlot": 1000,
-        // Number of iterations to use in averge.
-        "nAverage": 100,
-        // Number of rows and columns to plot
-        "nRow": 2,
-        "nCol": 2
     },
     
     // RunMatrix description

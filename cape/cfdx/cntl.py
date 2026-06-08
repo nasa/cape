@@ -73,7 +73,7 @@ from ..config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from ..dkit.rdb import DataKit
 from ..errors import CapeValueError, assert_isinstance
 from ..filecntl.mapbcfile import MapBCFile
-from ..optdict import OptionsDict, WARNMODE_WARN
+from ..optdict import OptionsDict, WARNMODE_WARN, _NPEncoder
 from ..optdict.optitem import getel
 from ..geom import RotatePoints
 from ..trifile import ReadTriFile
@@ -3414,7 +3414,21 @@ class Cntl(CntlBase):
             # Combine
             _update_opts(opts_in, opts_json)
         # Apply all the settings
-        msg = _apply_opts(self.opts, opts_in)
+        msgs = _apply_opts(self.opts, opts_in)
+        # Absolute path to output file
+        fabs = os.path.join(self.RootDir, self.fname)
+        fold = os.path.join(self.RootDir, f"_{self.fname}")
+        # Copy the old file
+        shutil.copy(fabs, fold)
+        # Log the changes
+        for msg in msgs:
+            self.log_main(msg)
+        # Get writer function based on file extension
+        writer = (
+            self.opts.write_yamlfile if fabs.endswith("yaml") else 
+            self.opts.write_jsonfile)
+        # Write options
+        writer(fabs)
 
    # --- Execute script ---
     # Execute script
@@ -5487,9 +5501,33 @@ def _update_opts(opts: dict, a: dict):
 def _apply_opts(opts: dict, a: dict, sec: str = "") -> list:
     # Initialize status updates
     msgs = []
+    # Convert section to list
+    secs = [] if (sec == "") else sec.split(">")
     # Loop through keys of *a*
-    for k, v in sec.items():
+    for opt, v in a.items():
+        # Get current value
+        u = opts.get(opt)
         # Check type
-        ...
+        if isinstance(v, dict):
+            # Append to section name
+            subsec = ">".join(secs + [opt])
+            # Recurse
+            submsgs = _apply_opts(u, v, subsec)
+            # Combine messages
+            msgs.extend(submsgs)
+        else:
+            # Apply the setting
+            if isinstance(opts, OptionsDict):
+                # Apply any checks
+                opts.set_opt(opt, v)
+            else:
+                # Simply set it for other dicts
+                opts[opt] = v
+            # Generate version
+            utxt = json.dumps(u, cls=_NPEncoder)
+            vtxt = json.dumps(v, cls=_NPEncoder)
+            # Add message
+            prefix = f"{sec}>" if sec else ""
+            msgs.append(f"{prefix}{opt}: {utxt} => {vtxt}")
     # Output
     return msgs
