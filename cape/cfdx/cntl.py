@@ -73,7 +73,7 @@ from ..config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from ..dkit.rdb import DataKit
 from ..errors import CapeValueError, assert_isinstance
 from ..filecntl.mapbcfile import MapBCFile
-from ..optdict import WARNMODE_WARN
+from ..optdict import OptionsDict, WARNMODE_WARN
 from ..optdict.optitem import getel
 from ..geom import RotatePoints
 from ..trifile import ReadTriFile
@@ -3383,9 +3383,38 @@ class Cntl(CntlBase):
         self.x.WriteRunMatrixFile()
 
    # --- Edit ---
-    def edit_json(self, txt: str):
-        # Decode text into options
-        opts = json.loads(txt)
+    def edit_json(
+            self,
+            txt: Optional[str] = None,
+            opts: Optional[dict] = None,
+            fjson: Optional[str] = None):
+        # Check types
+        if opts is None:
+            # Initialize to empty :class:`dict`
+            opts_in = {}
+        else:
+            # Make sure it's a dict
+            assert_isinstance(opts, dict, "options to apply to Cntl")
+            # Create a copy
+            opts_in = dict(opts)
+        # Check for text
+        if txt is not None:
+            # Check type
+            assert_isinstance(txt, str, "text-based options to apply to Cntl")
+            # Decode text into options
+            opts_txt = json.loads(txt)
+            # Combine
+            _update_opts(opts_in, opts_txt)
+        # Check for input file
+        if fjson is not None:
+            # Check type
+            assert_isinstance(fjson, str, "JSON file name to apply to Cntl")
+            # Decode file
+            opts_json = OptionsDict(fjson)
+            # Combine
+            _update_opts(opts_in, opts_json)
+        # Apply all the settings
+        msg = _apply_opts(self.opts, opts_in)
 
    # --- Execute script ---
     # Execute script
@@ -5433,3 +5462,34 @@ class Cntl(CntlBase):
         # Build message
         msg = ['  ' + line.rstrip("\n") for line in diff]
         return '\n'.join(msg)
+
+
+# Combine two dicts, recursively
+def _update_opts(opts: dict, a: dict):
+    r"""Combine two dictionaries recursively
+
+    Like ``opts.update(a)`` but combining sub-dicts
+    """
+    # Loop through both
+    for k, v in a.items():
+        # Check for existing value
+        u = opts.get(k)
+        # Check if both are dicts
+        if isinstance(u, dict) and isinstance(v, dict):
+            # Recurse
+            _update_opts(opts[k], v)
+        else:
+            # Overwrite or add new value
+            opts[k] = v
+
+
+# Apply options and create a log message
+def _apply_opts(opts: dict, a: dict, sec: str = "") -> list:
+    # Initialize status updates
+    msgs = []
+    # Loop through keys of *a*
+    for k, v in sec.items():
+        # Check type
+        ...
+    # Output
+    return msgs

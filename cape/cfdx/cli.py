@@ -37,6 +37,7 @@ CMD_NAMES = {
     "FAIL": "fail",
     "unmark": "unmark",
     "dezombie": "dezombie",
+    "edit": "edit-json",
     "extend": "extend",
     "apply": "apply",
     "dbpyfunc": "extract-pyfunc",
@@ -155,6 +156,7 @@ class CfdxArgReader(argread.ArgReader):
         "failed": bool,
         "filter": str,
         "fixed": bool,
+        "fjson": str,
         "force": bool,
         "fm": (bool, str),
         "imax": int,
@@ -274,11 +276,12 @@ class CfdxArgReader(argread.ArgReader):
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
         "e": "Execute the command *EXEC*",
         "early": "Reduce *PhaseIters* to current iter; makes case ``DONE``",
-        "edit": "Modify JSON settings and rewrite",
+        "edit": "Text of JSON settings to edit and rewrite",
         "extend": "Extend case(s) by *N_EXT* copies of last phase",
         "f": "Use the JSON (or YAML) file *JSON*",
         "filter": "Limit to cases containing the string *TXT*",
         "fixed": "Interpolate flow data to common grid",
+        "fjson": "Apply settins from file *FJSON*",
         "fm": "Extract force & moment data [comps matching *PAT*] for case(s)",
         "force": "Update report and ignore subfigure cache",
         "glob": "Limit to cases whose name matches the filename pattern *PAT*",
@@ -336,6 +339,7 @@ class CfdxArgReader(argread.ArgReader):
         "extend": "[N_EXT]",
         "f": "JSON",
         "filter": "TXT",
+        "fjson": "FJSON",
         "fm": "[PAT]",
         "glob": "PAT",
         "hide-cols": "COLS",
@@ -724,11 +728,16 @@ class CfdxEditArgs(CfdxArgReader):
         "h",
         "f",
         "edit",
+        "fjson",
     )
+
+    # Alternate aliases
+    _optmap = {
+        "json": "fjson",
+    }
 
     # Positional parameters
     _arglist = (
-        "f",
         "edit",
     )
 
@@ -1346,10 +1355,12 @@ class CfdxFrontDesk(CfdxArgReader):
         "dezombie",
         "dex",
         "e",
+        "edit",
         "extend",
         "f",
         "filter",
         "fixed",
+        "fjson",
         "fm",
         "force",
         "glob",
@@ -1409,6 +1420,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "collect-cutplane",
         "collect-surf",
         "dezombie",
+        "edit-json",
         "exec",
         "extend",
         "extract",
@@ -1443,6 +1455,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "collect-surfdata": "collect-surf",
         "dex": "extract",
         "e": "exec",
+        "edit": "edit-json",
         "error": "fail",
         "mark-error": "fail",
         "mark-failure": "fail",
@@ -1471,6 +1484,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "collect-cutplane": CfdxCollectCutPlaneArgs,
         "collect-surf": CfdxCollectSurfArgs,
         "dezombie": CfdxDezombieArgs,
+        "edit-json": CfdxEditArgs,
         "exec": CfdxExecArgs,
         "extend": CfdxExtendArgs,
         "extract": CfdxExtractDexArgs,
@@ -1820,6 +1834,28 @@ def cape_dezombie(parser: CfdxArgReader) -> int:
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.Dezombie(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_edit(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --edit`` command
+
+    :Call:
+        >>> ierr == cape_edit(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2026-06-08 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.edit_json(**kw)
     # Return code
     return IERR_OK
 
@@ -2541,6 +2577,7 @@ CMD_DICT = {
     "check-triqfm": cape_check_triqfm,
     "clean": cape_clean,
     "dezombie": cape_dezombie,
+    "edit-json": cape_edit,
     "exec": cape_exec,
     "extend": cape_extend,
     "extract": cape_extract_dex,
