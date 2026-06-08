@@ -3425,7 +3425,7 @@ class Cntl(CntlBase):
             self.log_main(msg)
         # Get writer function based on file extension
         writer = (
-            self.opts.write_yamlfile if fabs.endswith("yaml") else 
+            self.opts.write_yamlfile if fabs.endswith("yaml") else
             self.opts.write_jsonfile)
         # Write options
         writer(fabs)
@@ -5431,6 +5431,7 @@ class Cntl(CntlBase):
             logr.log_cmd(title, msg)
 
     def get_current_log(self, fcurr: str) -> dict:
+        # Initialize in case of no log
         jcurr = {}
         # Check for current log
         if os.path.isfile(fcurr):

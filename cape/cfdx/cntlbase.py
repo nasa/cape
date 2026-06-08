@@ -2254,6 +2254,31 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Edit ---
+    @abstractmethod
+    def edit_json(
+            self,
+            txt: Optional[str] = None,
+            opts: Optional[dict] = None,
+            fjson: Optional[str] = None):
+        r"""Edit JSON settings based on CLI
+
+        :Call:
+            >>> cntl.edit_json(txt=None, opts=None, fjson=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *txt*: {``None``} | :class:`str`
+                JSON-encoded text to apply
+            *opts*: {``None``} | :class:`dict`
+                Python object to apply to *cntl.opts*
+            *fjson*: {``None``} | :class:`str`
+                Name of JSON file to apply to *cntl.opts*
+        :Versions:
+            * 2026-06-08 ``@ddalle``: v1.0
+        """
+        pass
+
    # --- Execute script ---
     # Execute script
     @abstractmethod
