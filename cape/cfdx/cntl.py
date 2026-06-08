@@ -3382,6 +3382,11 @@ class Cntl(CntlBase):
         # Write the trajectory
         self.x.WriteRunMatrixFile()
 
+   # --- Edit ---
+    def edit_json(self, txt: str):
+        # Decode text into options
+        opts = json.loads(txt)
+
    # --- Execute script ---
     # Execute script
     @run_rootdir
