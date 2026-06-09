@@ -86,11 +86,11 @@ class BaseLogger(object):
         self.fp = {}
 
     # Get file handle
-    def open_logfile(self, name: str, fname: str) -> IOBase:
+    def open_logfile(self, name: str, fname: str, mode: str = 'a') -> IOBase:
         r"""Open a log file, or get already open handle
 
         :Call:
-            >>> fp = logger.open_logfile(name, fname)
+            >>> fp = logger.open_logfile(name, fname, mode='a')
         :Inputs:
             *logger*: :class:`CaseLogger`
                 Logger instance for one case
@@ -98,11 +98,14 @@ class BaseLogger(object):
                 Name of logger, used as key in *logger.fp*
             *fname*: :class:`str`
                 Name of log file relative to case's log dir
+            *mode*: {``"a"``} | ``"w"`` | :class:`str`
+                File write mode
         :Outputs:
             *fp*: :class:`IOBase`
                 File handle or string stream for verbose log
         :Versions:
             * 2024-07-31 ``@ddalle``: v1.0
+            * 2026-06-08 ``@ddalle``: v1.1, add *mode*
         """
         # Get existing handle, if able
         fp = self.fp.get(name)
@@ -111,13 +114,13 @@ class BaseLogger(object):
             # Use it
             return fp
         # Otherwise, open it
-        fp = self._open_logfile(fname)
+        fp = self._open_logfile(fname, mode=mode)
         # Save it and return it
         self.fp[name] = fp
         return fp
 
     # Open a file
-    def _open_logfile(self, fname: str) -> IOBase:
+    def _open_logfile(self, fname: str, mode: str = 'a') -> IOBase:
         # Create log folder
         ierr = self._make_logdir()
         ierr = ierr | self._make_subdir(fname)
@@ -129,7 +132,7 @@ class BaseLogger(object):
         # Try to open the file
         try:
             # Create the folder (if able)
-            return open(fabs, 'a')
+            return open(fabs, mode)
         except PermissionError:
             # Could not open file for writing; use text stream
             return StringIO()
@@ -432,14 +435,48 @@ class CntlLogger(BaseLogger):
     def __init__(self, rootdir: str, fname: str):
         # Construct file name
         jsonfile = fname.rsplit('.', 1)[0]
-        # Take folder chars out
-        jsonfile = jsonfile.replace(os.sep, '_-')
         # Save file name
         self.jsonfile = jsonfile
         # Call parent
         BaseLogger.__init__(self, rootdir)
 
+   # --- Read ---
+    def read_hash(self) -> Optional[str]:
+        # Name of file
+        fname = self.genr8_hashfile()
+        # Check if present
+        if not os.path.isfile(fname):
+            return
+        # Read it
+        with open(fname, 'r') as fp:
+            # Should be a single line
+            txt = fp.readline()
+        # Output w/o white space
+        return txt.strip()
+
    # --- Actions ---
+    def log_archive(self, opts: dict):
+        r"""Log the current settings
+
+        :Call:
+            >>> logger.log_archive(opts)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+            *opts*: :class:`dict`
+                Options dictionary to write
+        :Versions:
+            * 2026-06-08 ``@ddalle``: v1.0
+        """
+        # Convert options to text
+        txt = json.dumps(
+            opts,
+            cls=_NPEncoder,
+            separators=(",", ":"),
+            ensure_ascii=False)
+        # Archive it
+        self.rawlog_archive(txt)
+
     def log_cmd(self, title: str, msg: str):
         r"""Write a message to comnand log
 
@@ -461,6 +498,22 @@ class CntlLogger(BaseLogger):
         line = f"{title},{_strftime()},{msg}\n"
         # Write it
         self.rawlog_cmd(line)
+
+    def log_hash(self, txt: str):
+        r"""Log the current hash of the JSON settings
+
+        :Call:
+            >>> logger.log_hash(txt)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+            *txt*: :class:`str`
+                SHA-1 or other hash to write
+        :Versions:
+            * 2026-06-08 ``@ddalle``: v1.0
+        """
+        # Write it
+        self.rawlog_hash(f"{txt}\n")
 
     def log_main(self, title: str, msg: str):
         r"""Write a message to primary case log
@@ -528,6 +581,14 @@ class CntlLogger(BaseLogger):
         # Write it
         self.rawlog_verbose(txt)
 
+   # --- Raw write commands ---
+    def rawlog_archive(self, msg: str):
+        # Get file handle
+        fp = self.open_archive()
+        # Write message
+        fp.write(msg)
+        fp.flush()
+
     def rawlog_cmd(self, msg: str):
         r"""Write a raw message to command log
 
@@ -547,6 +608,25 @@ class CntlLogger(BaseLogger):
         fp.write(msg)
         fp.flush()
 
+    def rawlog_hash(self, msg: str):
+        r"""Write a raw message to hash log
+
+        :Call:
+            >>> logger.rawlog_hash(msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+        :Versions:
+            * 2026-06-08 ``@ddalle``: v1.0
+        """
+        # Get file handle
+        fp = self.open_hash()
+        # Write message
+        fp.write(msg)
+        fp.flush()
+
     def rawlog_main(self, msg: str):
         r"""Write a raw message to primary case log
 
@@ -562,6 +642,13 @@ class CntlLogger(BaseLogger):
         """
         # Get file handle
         fp = self.open_main()
+        # Write message
+        fp.write(msg)
+        fp.flush()
+
+    def rawlog_sate(self, msg: str):
+        # Get file handle
+        fp = self.open_state()
         # Write message
         fp.write(msg)
         fp.flush()
@@ -602,8 +689,7 @@ class CntlLogger(BaseLogger):
             * 2026-01-05 ``@ddalle``: v1.0
         """
         # Output
-        return self.open_logfile(
-            "cmd", os.path.join("cmd", f"{self.jsonfile}.log"))
+        return self.open_logfile("cmd", self.genr8_cmdfile())
 
     # Get main log file
     def open_main(self) -> IOBase:
@@ -621,8 +707,22 @@ class CntlLogger(BaseLogger):
             * 2025-04-30 ``@ddalle``: v1.0
         """
         # Output
+        return self.open_logfile("main", self.genr8_mainfile())
+
+    # Get state log file
+    def open_state(self) -> IOBase:
+        return self.open_logfile("state", self.genr8_statefile())
+
+    # Get current value file
+    def open_archive(self) -> IOBase:
         return self.open_logfile(
-            "main", os.path.join("main", f"{self.jsonfile}.log"))
+            "archive",
+            self.genr8_archivefile(),
+            mode='w')
+
+    # Get most-recent-hash file
+    def open_hashfile(self) -> IOBase:
+        return self.open_logfile("hash", self.genr8_hashfile(), mode='w')
 
     # Get verbose log file
     def open_verbose(self) -> IOBase:
@@ -639,8 +739,26 @@ class CntlLogger(BaseLogger):
         :Versions:
             * 2025-04-30 ``@ddalle``: v1.0
         """
-        return self.open_logfile(
-            "verbose", os.path.join("verbose", f"{self.jsonfile}.log"))
+        return self.open_logfile("verbose", self.genr8_verbosefile())
+
+   # --- File names ---
+    def genr8_archivefile(self) -> str:
+        return os.path.join(self.jsonfile, "archive.jsonl")
+
+    def genr8_cmdfile(self) -> str:
+        return os.path.join(self.jsonfile, "cmd.log")
+
+    def genr8_hashfile(self) -> str:
+        return os.path.join(self.jsonfile, "hash.log")
+
+    def genr8_mainfile(self) -> str:
+        return os.path.join(self.jsonfile, "main.log")
+
+    def genr8_statefile(self) -> str:
+        return os.path.join(self.jsonfile, "state.log")
+
+    def genr8_verbosefile(self) -> str:
+        return os.path.join(self.jsonfile, "verbose.log")
 
 
 # Logger for actions in a case
