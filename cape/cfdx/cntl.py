@@ -5337,8 +5337,7 @@ class Cntl(CntlBase):
     def log_cmd(
             self,
             msg: str,
-            title: Optional[str] = None,
-            parent: int = 0):
+            title: Optional[str] = None):
         # Check for manual title
         title = "CMD"
         # Get logger

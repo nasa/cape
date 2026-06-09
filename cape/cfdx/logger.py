@@ -435,8 +435,6 @@ class CntlLogger(BaseLogger):
     def __init__(self, rootdir: str, fname: str):
         # Construct file name
         jsonfile = fname.rsplit('.', 1)[0]
-        # Take folder chars out
-        jsonfile = jsonfile.replace(os.sep, '_-')
         # Save file name
         self.jsonfile = jsonfile
         # Call parent
@@ -445,7 +443,7 @@ class CntlLogger(BaseLogger):
    # --- Read ---
     def read_hash(self) -> Optional[str]:
         # Name of file
-        fname = self._genr8_hashfile()
+        fname = self.genr8_hashfile()
         # Check if present
         if not os.path.isfile(fname):
             return
@@ -502,8 +500,20 @@ class CntlLogger(BaseLogger):
         self.rawlog_cmd(line)
 
     def log_hash(self, txt: str):
+        r"""Log the current hash of the JSON settings
+
+        :Call:
+            >>> logger.log_hash(txt)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+            *txt*: :class:`str`
+                SHA-1 or other hash to write
+        :Versions:
+            * 2026-06-08 ``@ddalle``: v1.0
+        """
         # Write it
-        self.rawlog_cmd(f"{txt}\n")
+        self.rawlog_hash(f"{txt}\n")
 
     def log_main(self, title: str, msg: str):
         r"""Write a message to primary case log
@@ -679,8 +689,7 @@ class CntlLogger(BaseLogger):
             * 2026-01-05 ``@ddalle``: v1.0
         """
         # Output
-        return self.open_logfile(
-            "cmd", os.path.join("cmd", f"{self.jsonfile}.log"))
+        return self.open_logfile("cmd", self.genr8_cmdfile())
 
     # Get main log file
     def open_main(self) -> IOBase:
@@ -698,24 +707,22 @@ class CntlLogger(BaseLogger):
             * 2025-04-30 ``@ddalle``: v1.0
         """
         # Output
-        return self.open_logfile(
-            "main", os.path.join("main", f"{self.jsonfile}.log"))
+        return self.open_logfile("main", self.genr8_mainfile())
 
     # Get state log file
     def open_state(self) -> IOBase:
-        return self.open_logfile(
-            "state", os.path.join("state", f"{self.jsonfile}.log"))
+        return self.open_logfile("state", self.genr8_statefile())
 
     # Get current value file
     def open_archive(self) -> IOBase:
         return self.open_logfile(
             "archive",
-            self._genr8_archivefile(),
+            self.genr8_archivefile(),
             mode='w')
 
     # Get most-recent-hash file
     def open_hashfile(self) -> IOBase:
-        return self.open_logfile("hash", self._genr8_hashfile(), mode='w')
+        return self.open_logfile("hash", self.genr8_hashfile(), mode='w')
 
     # Get verbose log file
     def open_verbose(self) -> IOBase:
@@ -732,15 +739,26 @@ class CntlLogger(BaseLogger):
         :Versions:
             * 2025-04-30 ``@ddalle``: v1.0
         """
-        return self.open_logfile(
-            "verbose", os.path.join("verbose", f"{self.jsonfile}.log"))
+        return self.open_logfile("verbose", self.genr8_verbosefile())
 
    # --- File names ---
-    def _genr8_archivefile(self) -> str:
-        return os.path.join("archive", f"{self.jsonfile}.jsonl")
+    def genr8_archivefile(self) -> str:
+        return os.path.join(self.jsonfile, "archive.jsonl")
 
-    def _genr8_hashfile(self) -> str:
-        return os.path.join("archive", f"{self.jsonfile}.hash")
+    def genr8_cmdfile(self) -> str:
+        return os.path.join(self.jsonfile, "cmd.log")
+
+    def genr8_hashfile(self) -> str:
+        return os.path.join(self.jsonfile, "hash.log")
+
+    def genr8_mainfile(self) -> str:
+        return os.path.join(self.jsonfile, "main.log")
+
+    def genr8_statefile(self) -> str:
+        return os.path.join(self.jsonfile, "state.log")
+
+    def genr8_verbosefile(self) -> str:
+        return os.path.join(self.jsonfile, "verbose.log")
 
 
 # Logger for actions in a case
