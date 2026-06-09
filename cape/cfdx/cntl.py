@@ -5474,12 +5474,8 @@ class Cntl(CntlBase):
             for msg in msgs:
                 logr.log_verbose("SET", msg)
         # Close "hash" and "last" log files if needed
-        fp = logr.fp.get("hash")
-        if (fp is not None) and (not fp.closed):
-            fp.close()
-        fp = logr.fp.get("last")
-        if (fp is not None) and (not fp.closed):
-            fp.close()
+        logr.fp.pop("hash", None)
+        logr.fp.pop("last", None)
         # Write new hash to placeholder file
         logr.log_hash(hash1)
         # Write current settings
@@ -5521,7 +5517,7 @@ def _apply_opts(opts: dict, a: dict, sec: str = "") -> list:
         # Get current value
         u = opts.get(opt)
         # Check type
-        if isinstance(v, dict):
+        if isinstance(v, dict) and opt in opts:
             # Append to section name
             subsec = ">".join(secs + [opt])
             # Recurse
@@ -5557,7 +5553,7 @@ def _diff_opts(opts: dict, a: dict, sec: str = "") -> list:
         # Get current value
         u = opts.get(opt)
         # Check type
-        if isinstance(v, dict):
+        if isinstance(v, dict) and opt in opts:
             # Append to section name
             subsec = ">".join(secs + [opt])
             # Recurse
