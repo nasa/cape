@@ -443,7 +443,9 @@ class CntlLogger(BaseLogger):
    # --- Read ---
     def read_hash(self) -> Optional[str]:
         # Name of file
-        fname = self.genr8_hashfile()
+        basename = self.genr8_hashfile()
+        # Full name
+        fname = os.path.join(self.root_dir, self.__class__._logdir, basename)
         # Check if present
         if not os.path.isfile(fname):
             return
@@ -454,8 +456,18 @@ class CntlLogger(BaseLogger):
         # Output w/o white space
         return txt.strip()
 
+    def read_last(self) -> Optional[dict]:
+        # Name of file
+        basename = self.genr8_lastfile()
+        # Full name
+        fname = os.path.join(self.root_dir, self.__class__._logdir, basename)
+        # Check if it exists
+        if os.path.isfile(fname):
+            with open(fname, 'r') as fp:
+                return json.load(fp)
+
    # --- Actions ---
-    def log_archive(self, opts: dict):
+    def log_archive(self, txt: str, mode: str = 'a'):
         r"""Log the current settings
 
         :Call:
@@ -463,19 +475,14 @@ class CntlLogger(BaseLogger):
         :Inputs:
             *logger*: :class:`CaseLogger`
                 Logger instance for one case
-            *opts*: :class:`dict`
-                Options dictionary to write
+            *txt*: :class:`str`
+                Raw content to write
         :Versions:
             * 2026-06-08 ``@ddalle``: v1.0
         """
-        # Convert options to text
-        txt = json.dumps(
-            opts,
-            cls=_NPEncoder,
-            separators=(",", ":"),
-            ensure_ascii=False)
         # Archive it
-        self.rawlog_archive(txt)
+        self.rawlog_archive(txt.rstrip(), mode=mode)
+        self.rawlog_archive('\n', mode='a')
 
     def log_cmd(self, title: str, msg: str):
         r"""Write a message to comnand log
@@ -514,6 +521,26 @@ class CntlLogger(BaseLogger):
         """
         # Write it
         self.rawlog_hash(f"{txt}\n")
+
+    def log_last(self, txt, mode: str = 'w'):
+        r"""Log the current JSON settings
+
+        :Call:
+            >>> logger.log_last(txt, mode='w')
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+            *txt*: :class:`str`
+                Single-line JSON of current settings to write
+            *mode*: ``"a"`` | {``"w"``}
+                File mode, append or write
+        :Versions:
+            * 2026-06-09 ``@ddalle``: v1.0
+        """
+        # Ensure single line
+        line = txt.replace("\n", '') + "\n"
+        # Write it
+        self.rawlog_last(line, mode=mode)
 
     def log_main(self, title: str, msg: str):
         r"""Write a message to primary case log
@@ -582,9 +609,9 @@ class CntlLogger(BaseLogger):
         self.rawlog_verbose(txt)
 
    # --- Raw write commands ---
-    def rawlog_archive(self, msg: str):
+    def rawlog_archive(self, msg: str, mode: str = 'a'):
         # Get file handle
-        fp = self.open_archive()
+        fp = self.open_archive(mode=mode)
         # Write message
         fp.write(msg)
         fp.flush()
@@ -622,7 +649,28 @@ class CntlLogger(BaseLogger):
             * 2026-06-08 ``@ddalle``: v1.0
         """
         # Get file handle
-        fp = self.open_hash()
+        fp = self.open_hashfile()
+        # Write message
+        fp.write(msg)
+        fp.flush()
+
+    def rawlog_last(self, msg: str, mode: str = 'w'):
+        r"""Write a raw message to hash log
+
+        :Call:
+            >>> logger.rawlog_last(msg, mode='w')
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+            *mode*: ``"a"`` | {``"w"``}
+                File mode
+        :Versions:
+            * 2026-06-08 ``@ddalle``: v1.0
+        """
+        # Get file handle
+        fp = self.open_last(mode=mode)
         # Write message
         fp.write(msg)
         fp.flush()
@@ -691,6 +739,25 @@ class CntlLogger(BaseLogger):
         # Output
         return self.open_logfile("cmd", self.genr8_cmdfile())
 
+    # Get last file
+    def open_last(self, mode: str = 'w') -> IOBase:
+        r"""Open and return the ``last.json`` log file handle
+
+        :Call:
+            >>> fp = logger.open_last(mode='w')
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for main log
+            *mode*: ``'a'`` | ``'r'`` |  {``'w'``} | :class:`str`
+                File mode, append, read, or write
+        :Versions:
+            * 2026-06-09 ``@ddalle``: v1.0
+        """
+        return self.open_logfile("last", self.genr8_lastfile(), mode=mode)
+
     # Get main log file
     def open_main(self) -> IOBase:
         r"""Open and return the main log file handle
@@ -714,11 +781,11 @@ class CntlLogger(BaseLogger):
         return self.open_logfile("state", self.genr8_statefile())
 
     # Get current value file
-    def open_archive(self) -> IOBase:
+    def open_archive(self, mode: str = 'a') -> IOBase:
         return self.open_logfile(
             "archive",
             self.genr8_archivefile(),
-            mode='w')
+            mode=mode)
 
     # Get most-recent-hash file
     def open_hashfile(self) -> IOBase:
@@ -750,6 +817,9 @@ class CntlLogger(BaseLogger):
 
     def genr8_hashfile(self) -> str:
         return os.path.join(self.jsonfile, "hash.log")
+
+    def genr8_lastfile(self) -> str:
+        return os.path.join(self.jsonfile, "last.json")
 
     def genr8_mainfile(self) -> str:
         return os.path.join(self.jsonfile, "main.log")

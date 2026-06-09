@@ -31,7 +31,6 @@ individualized modules are below.
 
 # Standard library modules
 import copy
-import difflib
 import functools
 import getpass
 import glob
@@ -40,6 +39,7 @@ import importlib
 import json
 import os
 import pickle
+import shlex
 import shutil
 import sys
 import time
@@ -133,6 +133,16 @@ JOB_STATUSES = (
     'ZOMBIE',
     'THIS_JOB',
 )
+
+LOG_LEVEL_MAP = {
+    "none": 0,
+    "lo": 1,
+    "low": 1,
+    "on": 1,
+    "hi": 2,
+    "high": 2,
+    "verbose": 3,
+}
 
 
 # Decorator for moving directories
@@ -438,6 +448,12 @@ class Cntl(CntlBase):
         #: :class:`cape.cfdx.options.Options`
         #: Options interface for this run matrix
         self.opts = None
+        #: :class:`str`
+        #: Decoded single-line representation of options
+        self.opts_jsonl = None
+        #: :class:`str`
+        #: SHA-256 hash of current options
+        self.opts_hash = None
         # Read options
         self.read_options(fname)
         #: :class:`dict`
@@ -3429,6 +3445,8 @@ class Cntl(CntlBase):
             self.opts.write_jsonfile)
         # Write options
         writer(fabs)
+        # Rerun logger
+        self.log_cntl(f=True)
 
    # --- Execute script ---
     # Execute script
@@ -3766,7 +3784,7 @@ class Cntl(CntlBase):
    # --- Log ---
     def log_parser(self, parser: ArgReader):
         # Check logging setting
-        if self.opts.get_LogLevel() == 0:
+        if self.get_log_level() < 1:
             return
         # Check if file name is present
         if 'f' in parser._optlist:
@@ -3778,10 +3796,12 @@ class Cntl(CntlBase):
         cmdexec = os.path.basename(cmdlist[0])
         # Split first command
         cmdfinal = cmdexec.split('-', 1) + cmdlist[1:]
-        # Log it
-        self.log_cmd(' '.join(cmdfinal))
         # Log cntl state
         self.log_cntl()
+        # Log the current hash
+        self.log_cmd(self.opts_hash, "HASH")
+        # Log it
+        self.log_cmd(shlex.join(cmdfinal))
 
   # *** RUN MATRIX ***
    # --- Values ---
@@ -5339,7 +5359,7 @@ class Cntl(CntlBase):
             msg: str,
             title: Optional[str] = None):
         # Check for manual title
-        title = "CMD"
+        title = "CMD" if title is None else title
         # Get logger
         logger = self.get_logger()
         # Log the message
@@ -5378,104 +5398,97 @@ class Cntl(CntlBase):
         # Get name
         return func.co_name
 
+    def get_log_level(self) -> int:
+        # Check for environment variable
+        level = os.environ.get("CAPE_LOG_LEVEL")
+        # Use JSON if env not available
+        level = self.opts.get_LogLevel() if level is None else level
+        # Convert to string
+        rawtxt = str(level).lower()
+        # Apply aliases
+        txt = LOG_LEVEL_MAP.get(rawtxt, rawtxt)
+        # Must be integer
+        try:
+            return int(txt)
+        except ValueError:
+            print(
+                f"Unrecognized log level '{rawtxt}': expected int or "
+                " | ".join(LOG_LEVEL_MAP.keys()))
+
+    # Get hash of current options
+    def get_opts_hash(self, f: bool = False) -> str:
+        # Get current value
+        if (not f) and (self.opts_hash is not None):
+            # Use current value
+            return self.opts_hash
+        # Otherwise calculate
+        self.opts_hash = self.genr8_opts_hash()
+        # Return it
+        return self.opts_hash
+
+    # Get options as single line
+    def get_opts_jsonl(self, f: bool = False) -> str:
+        # Get current value
+        if (not f) and (self.opts_jsonl is not None):
+            # Use current value
+            return self.opts_jsonl
+        # Otherwise calculate
+        self.opts_jsonl = self.genr8_opts_jsonl()
+        # Output
+        return self.opts_jsonl
+
     # Hash json-like dict
-    def get_json_hash(self, jdict: dict) -> str:
+    def genr8_opts_hash(self) -> str:
         # Sort the json keys to ensure consistent hashing
-        opts_str = json.dumps(jdict, sort_keys=True, indent=4)
+        opts_str = self.get_opts_jsonl(f=True)
         # Convert opts dict to sorted items list and then to string
         return hashlib.sha256(opts_str.encode()).hexdigest()
 
+    # Convert options to canonical one-line string
+    def genr8_opts_jsonl(self) -> str:
+        # Create a copy
+        return _dumps(self.opts)
+
     # Function to log cntl changes based on hash comparison
-    def log_cntl(
-            self,
-            title: Optional[str] = None,
-            parent: int = 0):
-        # Check for manual title
-        title = "STATE"
+    def log_cntl(self, f: bool = False):
+        # Check log level
+        level = self.get_log_level()
+        if level < 1:
+            return
         # Get logger
         logr = self.get_logger()
-        # Open cmd log
-        logr.open_cmd()
-        # Get current cntl state name
-        fcurr = os.path.join(
-            logr._logdir,
-            "cmd",
-            "STATE-" + logr.jsonfile + ".jsonl"
-        )
-        # Get "current" log (if exists)
-        opts0 = self.get_current_log(fcurr)
-        opts1 = dict(self.opts)
-        # Get new cntl hash
-        hash1 = self.get_json_hash(opts1)
-        opts1["hash"] = hash1
-        # Compare new and prev cntl hashes
-        if opts0.get("hash", None) != opts1.get("hash"):
-            # Write state of cntl to "current" log
-            self.write_curr_opt(fcurr, opts1)
-            # Add hash of cntl state to basic cmd log
-            msg = f"{hash1}"
-            logr.log_cmd(title, msg)
-            # Check logging setting and that prev cntl state exists
-            if self.opts.get_LogLevel() == 2 and opts0.get("hash", None):
-                # Open verbose log
-                logr.open_verbose()
-                # Add text of cntl diffs to verbose log
-                diffmsg = "\n" + self.get_opts_diff(opts0, opts1)
-                # Write msg to verbose log
-                logr.log_verbose(title, diffmsg)
-        else:
-            # If no new state, still write hash of cntl state under cmd
-            h0 = opts0.get("hash")
-            msg = f"{h0}"
-            logr.log_cmd(title, msg)
-
-    def get_current_log(self, fcurr: str) -> dict:
-        # Initialize in case of no log
-        jcurr = {}
-        # Check for current log
-        if os.path.isfile(fcurr):
-            # If exists, read in cntl state to json
-            with open(fcurr, "r") as fp:
-                jcurr = json.load(fp)
-        # Return "current" cntl state as json object
-        return jcurr
-
-    def write_curr_opt(self, fcurr: str, opts1: dict):
-        # Check if already existing current
-        if os.path.isfile(fcurr):
-            # Remove previous current
-            os.remove(fcurr)
-        # Write new current
-        try:
-            with open(fcurr, "w") as f:
-                json.dump(
-                    opts1, f,
-                    separators=(",", ":"),
-                    ensure_ascii=False
-                )
-        except (PermissionError, FileNotFoundError):
-            pass
-
-    # Get delta from last log
-    def get_opts_diff(self, opts0: dict, opts1: dict) -> str:
-        # Pop hashes from dict
-        h0 = opts0.pop("hash")
-        h1 = opts1.pop("hash")
-        # Dump dicts as json str w/ new lines
-        f0line = json.dumps(opts0, indent=4, sort_keys=True)
-        f1line = json.dumps(opts1, indent=4, sort_keys=True)
-        # Seperate line into lines for diffing
-        f0lines = f0line.splitlines(keepends=True)
-        f1lines = f1line.splitlines(keepends=True)
-        # Get diffs between states
-        diff = difflib.unified_diff(
-            f0lines, f1lines,
-            fromfile=f"old {h0}", tofile=f"new {h1}",
-            lineterm='\n'
-        )
-        # Build message
-        msg = ['  ' + line.rstrip("\n") for line in diff]
-        return '\n'.join(msg)
+        # Read current hash
+        hash0 = logr.read_hash()
+        hash1 = self.get_opts_hash(f=f)
+        # Check if different
+        if hash0 == hash1:
+            return
+        # Check for extra verbose
+        if level > 2:
+            # Read most recent settings
+            opts0 = logr.read_last()
+            # Create a diff
+            msgs = _diff_opts(opts0, self.opts)
+            # Log the changes
+            logr.log_verbose("HASH", hash0)
+            for msg in msgs:
+                logr.log_verbose("SET", msg)
+        # Close "hash" and "last" log files if needed
+        fp = logr.fp.get("hash")
+        if (fp is not None) and (not fp.closed):
+            fp.close()
+        fp = logr.fp.get("last")
+        if (fp is not None) and (not fp.closed):
+            fp.close()
+        # Write new hash to placeholder file
+        logr.log_hash(hash1)
+        # Write current settings
+        logr.log_last(self.opts_jsonl)
+        # Check for verbose
+        if level > 1:
+            # Add current hash and state to cumulative archive
+            logr.log_archive(self.opts_hash)
+            logr.log_archive(self.opts_jsonl)
 
 
 # Combine two dicts, recursively
@@ -5523,11 +5536,52 @@ def _apply_opts(opts: dict, a: dict, sec: str = "") -> list:
             else:
                 # Simply set it for other dicts
                 opts[opt] = v
-            # Generate version
-            utxt = json.dumps(u, cls=_NPEncoder)
-            vtxt = json.dumps(v, cls=_NPEncoder)
+            # Generate text version
+            utxt = _dumps(u)
+            vtxt = _dumps(v)
             # Add message
             prefix = f"{sec}>" if sec else ""
             msgs.append(f"{prefix}{opt}: {utxt} => {vtxt}")
     # Output
     return msgs
+
+
+# Create a log message of diffs
+def _diff_opts(opts: dict, a: dict, sec: str = "") -> list:
+    # Initialize status updates
+    msgs = []
+    # Convert section to list
+    secs = [] if (sec == "") else sec.split(">")
+    # Loop through keys of *a*
+    for opt, v in a.items():
+        # Get current value
+        u = opts.get(opt)
+        # Check type
+        if isinstance(v, dict):
+            # Append to section name
+            subsec = ">".join(secs + [opt])
+            # Recurse
+            submsgs = _diff_opts(u, v, subsec)
+            # Combine messages
+            msgs.extend(submsgs)
+        else:
+            # Generate text version
+            utxt = _dumps(u)
+            vtxt = _dumps(v)
+            # Check if same
+            if utxt == vtxt:
+                continue
+            # Add message
+            prefix = f"{sec}>" if sec else ""
+            msgs.append(f"{prefix}{opt}: {utxt} => {vtxt}")
+    # Output
+    return msgs
+
+
+# Convert dict->[compact]str
+def _dumps(a: dict) -> str:
+    return json.dumps(
+        a,
+        cls=_NPEncoder,
+        separators=(',', ":"),
+        sort_keys=True)
