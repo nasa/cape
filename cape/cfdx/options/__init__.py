@@ -227,13 +227,13 @@ file that are not part of any section.
             "lo": 1,
             "hi": 2,
             "high": 2,
-            "verbose": 2,
+            "verbose": 3,
         },
     }
 
     # Permitted values
     _optvals = {
-        "LogLevel": (0, 1, 2),
+        "LogLevel": (0, 1, 2, 3),
     }
 
     # Option default list depth
@@ -248,6 +248,7 @@ file that are not part of any section.
 
     # Defaults
     _rc = {
+        "LogLevel": 1,
         "NSubmit": 10,
     }
 
