@@ -4046,7 +4046,7 @@ class Cntl(CntlBase):
                 f"No report named '{rep}'; found " +
                 " | ".join(reps))
         # Output
-        return rep
+        return report
 
   # *** DATA EXTRACTION ***
    # --- Data Exchange ---
