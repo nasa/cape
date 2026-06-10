@@ -23,6 +23,7 @@ from ..optdict import _NPEncoder
 # Logger files
 LOGDIR = "cape"
 LOGFILE_MAIN = "cape-main.log"
+LOGFILE_STATE = "cape-state.log"
 LOGFILE_STATUS = "cape-status.log"
 LOGFILE_VERBOSE = "cape-verbose.log"
 LOGFILE_ARCHIVE = "archive.log"
@@ -221,6 +222,28 @@ class CaseLogger(BaseLogger):
         # Write it
         self.rawlog_main(line)
 
+    def log_state(self, title: str, msg: str):
+        r"""Write a message to state case log
+
+        :Call:
+            >>> logger.log_state(title, msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *msg*: :class:`str`
+                Main content of log message
+        :Versions:
+            * 2026-06-10 ``@ddalle``: v1.0
+        """
+        # Remove newline
+        msg = msg.rstrip('\n')
+        # Create overall message
+        line = f"{title},{_strftime()},{msg}\n"
+        # Write it
+        self.rawlog_state(line)
+
     def log_status(self, title: str, msg: str):
         r"""Write a message to status case log
 
@@ -328,6 +351,25 @@ class CaseLogger(BaseLogger):
         fp.write(msg)
         fp.flush()
 
+    def rawlog_state(self, msg: str):
+        r"""Write a raw message to state case log
+
+        :Call:
+            >>> logger.rawlog_state(msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+        :Versions:
+            * 2026-06-10 ``@ddalle``: v1.0
+        """
+        # Get file handle
+        fp = self.open_state()
+        # Write message
+        fp.write(msg)
+        fp.flush()
+
     def rawlog_status(self, msg: str):
         r"""Write a raw message to status case log
 
@@ -417,6 +459,23 @@ class CaseLogger(BaseLogger):
             * 2024-07-31 ``@ddalle``: v1.0
         """
         return self.open_logfile("verbose", LOGFILE_VERBOSE)
+
+    # Get state log file
+    def open_state(self) -> IOBase:
+        r"""Open and return the "state" log file handle
+
+        :Call:
+            >>> fp = logger.open_state()
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance for one case
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for state log
+        :Versions:
+            * 2026-06-10 ``@ddalle``: v1.0
+        """
+        return self.open_logfile("state", LOGFILE_STATE)
 
 
 # Logger for top-level actions in a run matrix

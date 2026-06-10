@@ -5115,6 +5115,20 @@ class CaseRunner(CaseRunnerBase):
         # Return code
         return IERR_OK
 
+  # *** STATE ***
+   # --- Log ---
+
+   # --- State ---
+    def get_state(self) -> dict:
+        ...
+
+   # --- Cntl state ---
+    def get_cntl_hash(self) -> str:
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get hash thereof
+        return cntl.get_opts_hash()
+
   # *** STATUS ***
    # --- Status: Next action ---
     # Check if case should exit for any reason

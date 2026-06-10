@@ -5437,6 +5437,7 @@ class Cntl(CntlBase):
         return fileutils.get_dir_files(fabs)
 
   # *** LOGGING ***
+   # --- Loggers ---
     def log_cmd(
             self,
             msg: str,
@@ -5475,6 +5476,7 @@ class Cntl(CntlBase):
         # Return it
         return self.logger
 
+   # --- Utilities ---
     def get_funcname(self, frame: int = 1) -> str:
         # Get frame of function calling this one
         func = sys._getframe(frame).f_code
@@ -5498,6 +5500,7 @@ class Cntl(CntlBase):
                 f"Unrecognized log level '{rawtxt}': expected int or "
                 " | ".join(LOG_LEVEL_MAP.keys()))
 
+   # --- Hashes ---
     # Get hash of current options
     def get_opts_hash(self, f: bool = False) -> str:
         # Get current value
@@ -5532,6 +5535,7 @@ class Cntl(CntlBase):
         # Create a copy
         return _dumps(self.opts)
 
+   # --- State logger ---
     # Function to log cntl changes based on hash comparison
     def log_cntl(self, f: bool = False):
         # Check log level
