@@ -4045,6 +4045,8 @@ class Cntl(CntlBase):
             raise CapeValueError(
                 f"No report named '{rep}'; found " +
                 " | ".join(reps))
+        # Output
+        return rep
 
   # *** DATA EXTRACTION ***
    # --- Data Exchange ---
