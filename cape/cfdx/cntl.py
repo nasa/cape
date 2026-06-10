@@ -3938,6 +3938,7 @@ class Cntl(CntlBase):
         return self.x.GetCaseIndex(frun)
 
   # *** REPORTING ***
+   # --- Report generation ---
     # Update report
     def UpdateReport(self, **kw):
         # Get name of report
@@ -3964,6 +3965,86 @@ class Cntl(CntlBase):
         rep = self.__class__._report_cls(self, rep)
         # Output
         return rep
+
+   # --- Report options ---
+    # Get list of components tracked in a report subfigure
+    def get_report_comps(self, rep: Optional[str] = None) -> list:
+        # First get list of subfigures
+        subfigs = self.get_report_subfigs(rep)
+        # Initialize list of component/coeff combos
+        comps = []
+        # Loop through subfigures
+        for sfig in subfigs:
+            # Only process *PlotCoeff* type
+            if self.opts.get_SubfigBaseType(sfig) != "PlotCoeff":
+                continue
+            # Get *Component* and *Coefficient*
+            comp = self.opts.get_SubfigOpt(sfig, "Component")
+            coeff = self.opts.get_SubfigOpt(sfig, "Coefficient")
+            # Convert to list
+            sfig_comps = comp if isinstance(comp, list) else [comp]
+            sfig_coeffs = coeff if isinstance(coeff, list) else [coeff]
+            # Check for list
+            if len(sfig_comps) == 1:
+                # Unpack singleton
+                comp, = sfig_comps
+                # Loop through components
+                for coeff in sfig_coeffs:
+                    comps.append(f"{comp}/{coeff}")
+            elif len(sfig_coeffs) == 1:
+                # Unpack singleton
+                coeff, = sfig_coeffs
+                # Loop through components
+                for comp in sfig_comps:
+                    comps.append(f"{comp}/{coeff}")
+            else:
+                # Loop through both
+                for comp, coeff in zip(sfig_comps, sfie_coeffs):
+                    comps.append(f"{comp}/{coeff}")
+        # Output'
+        return comps
+
+    # Get list of subfigures
+    def get_report_subfigs(self, rep: Optional[str] = None) -> list:
+        # Get list of figures
+        figs = self.get_report_figs(rep)
+        # Initialize combined list of subfigures
+        subfigs = []
+        # Loop through figures
+        for figj in figs:
+            # Get the subfigure list
+            subfigsj = self.opts.get_FigOpt(figj, "Subfigures")
+            # Combine w/o repeats
+            for sfig in subfigsj:
+                if sfig not in subfigs:
+                    subfigs.append(sfig)
+        # Output
+        return subfigs
+
+    # Get list of figures
+    def get_report_figs(self, rep: Optional[str] = None) -> list:
+        # Check report name and use default if necessary
+        report = self._normalize_report_name(rep)
+        # Get report definition
+        defn = self.opts["Report"].get(report, {})
+        # Get figure definition
+        figs = defn.get("Figures", [])
+        # Return a copy
+        return list(figs)
+
+    def _normalize_report_name(self, rep: Optional[str] = None) -> str:
+        # Get list of reports
+        reps = self.opts.get_ReportList()
+        # Check for empty defn set
+        if len(reps) == 0:
+            raise CapeValueError("No reports defined")
+        # Check for input
+        report = reps[0] if rep is None else rep
+        # Validate
+        if report not in reps:
+            raise CapeValueError(
+                f"No report named '{rep}'; found " +
+                " | ".join(reps))
 
   # *** DATA EXTRACTION ***
    # --- Data Exchange ---
