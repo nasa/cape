@@ -5162,10 +5162,6 @@ class CaseRunner(CaseRunnerBase):
             "jmax": jmax,
             "errors": {},
         }
-        # Output
-        return state
-
-    def get_fm_state(self) -> list:
         # Get *cntl*
         cntl = self.read_cntl()
         # Get list of components (use default report)
@@ -5174,14 +5170,18 @@ class CaseRunner(CaseRunnerBase):
         cache = {}
         # Loop through components
         for comp, coeff in complist:
+            # Title for this coefficeint
+            title = f"{comp}/{coeff}"
             # Check if it's cache
             fm = cache.get(comp)
             # If not, read it
             fm = fm if (fm is not None) else self.read_dex(comp)
             # Save it (no effect if already cached)
             cache[comp] = fm
-            # Now process it ....
-
+            # Now process it
+            state[title] = fm.get_col_state(coeff)
+        # Output
+        return state
 
    # --- Cntl state ---
     def get_cntl_hash(self) -> str:

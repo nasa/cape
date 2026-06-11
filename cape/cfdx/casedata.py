@@ -237,9 +237,8 @@ class CaseData(DataKit):
         i = self.get("iter.i", self.get("i"))
         n = i.size
         # Get columns
-        cols = self.cols
         ncol = 0 if self.cols is None else len(self.cols)
-        # Get 
+        # Construct name
         return f"<{name}({complbl}n={n}, ncol={ncol})>"
     # String method
     __str__ = __repr__
@@ -1243,7 +1242,30 @@ class CaseData(DataKit):
         """
         # Initialize state
         state = {}
-        # Do stuff ...
+        # Get three vectors
+        v = self[col]
+        i = self[CASE_COL_BASE_ITERS]
+        t = self.get(CASE_COL_TIME, i)
+        # Get window sizes
+        n = v.size
+        n2 = n // 2
+        n4 = n // 4
+        # Save window sizes
+        state["windows"] = [n, n2, n4]
+        # Process each window
+        for m in state["windows"]:
+            # Get vectors
+            vj = v[-m:]
+            tj = t[-m:]
+            # Poly fit
+            m, b = np.polyfit(tj, vj, 1)
+            # Calculate basic stats
+            state[str(m)] = {
+                "mean": np.mean(vj),
+                "std": np.std(vj),
+                "a0": b,
+                "a1": m,
+            }
         # Output
         return state
 
