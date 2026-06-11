@@ -8096,36 +8096,36 @@ def _listify(str_or_list: Union[str, list, tuple]) -> list:
         return [str_or_list]
 
 
-# Customize JSON serializer
-class _StateEncoder(json.JSONEncoder):
-    r"""Encoder for :mod:`json` that can handle NumPy objects"""
-    def default(self, obj):
-        # Check for array
-        if isinstance(obj, np.ndarray):
-            # Check for scalar
-            if obj.ndim > 0:
-                # Convert to list
-                return list(obj)
-            elif np.issubdtype(obj.dtype, np.integer):
-                # Convert to integer
-                return int(obj)
-            else:
-                # Convert to float w/ 3 sig figs
-                return float("%.2e" % obj)
-        elif isinstance(obj, np.integer):
+# Normalize dictionary for ouput
+def _normalize(obj):
+    if isinstance(obj, dict):
+        return {k: _normalize(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_normalize(v) for v in obj]
+    elif isinstance(obj, tuple):
+        return tuple(_normalize(v) for v in obj)
+    elif isinstance(obj, np.ndarray):
+        # Check for scalar
+        if obj.ndim > 0:
+            # Convert to list
+            return _normalize(obj.tolist())
+        elif np.issubdtype(obj.dtype, np.integer):
             # Convert to integer
             return int(obj)
-        elif isinstance(obj, (float, np.floating)):
-            # Convert to float w/ 3 sig figs
-            return float("%.2e" % obj)
-        # Otherwise use the default
-        return super().default(obj)
+        else:
+            # Convert to float
+            return float(obj)
+    elif isinstance(obj, (float, np.floating)):
+        return float("%.2e" % obj)
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    else:
+        return obj
 
 
 # Convert dict->[compact]str
 def _dumpstate(a: dict) -> str:
     return json.dumps(
-        a,
-        cls=_StateEncoder,
+        _normalize(a),
         separators=(',', ":"),
         sort_keys=True)
