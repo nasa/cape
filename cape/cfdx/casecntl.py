@@ -5117,6 +5117,15 @@ class CaseRunner(CaseRunnerBase):
 
   # *** STATE ***
    # --- Log ---
+    def log_state(self):
+        # Get the current state
+        state = self.get_state()
+        # Write identifying information
+        self._log_hash()
+        # Convert state to text
+        msg = _dumpstate(state)
+        # Write it
+        self.log_state_msg(msg, "STATE")
 
     def log_state_msg(self, msg: str, title: str = "STATE"):
         r"""Write a message to the state log
@@ -8085,3 +8094,38 @@ def _listify(str_or_list: Union[str, list, tuple]) -> list:
         return list(str_or_list)
     else:
         return [str_or_list]
+
+
+# Customize JSON serializer
+class _StateEncoder(json.JSONEncoder):
+    r"""Encoder for :mod:`json` that can handle NumPy objects"""
+    def default(self, obj):
+        # Check for array
+        if isinstance(obj, np.ndarray):
+            # Check for scalar
+            if obj.ndim > 0:
+                # Convert to list
+                return list(obj)
+            elif np.issubdtype(obj.dtype, np.integer):
+                # Convert to integer
+                return int(obj)
+            else:
+                # Convert to float w/ 3 sig figs
+                return float("%.2e" % obj)
+        elif isinstance(obj, np.integer):
+            # Convert to integer
+            return int(obj)
+        elif isinstance(obj, (float, np.floating)):
+            # Convert to float w/ 3 sig figs
+            return float("%.2e" % obj)
+        # Otherwise use the default
+        return super().default(obj)
+
+
+# Convert dict->[compact]str
+def _dumpstate(a: dict) -> str:
+    return json.dumps(
+        a,
+        cls=_StateEncoder,
+        separators=(',', ":"),
+        sort_keys=True)
