@@ -3990,13 +3990,13 @@ class Cntl(CntlBase):
                 comp, = sfig_comps
                 # Loop through components
                 for coeff in sfig_coeffs:
-                    comps.append(f"{comp}/{coeff}")
+                    comps.append((comp, coeff))
             elif len(sfig_coeffs) == 1:
                 # Unpack singleton
                 coeff, = sfig_coeffs
                 # Loop through components
                 for comp in sfig_comps:
-                    comps.append(f"{comp}/{coeff}")
+                    comps.append((comp, coeff))
             else:
                 # Loop through both
                 for comp, coeff in zip(sfig_comps, sfig_coeffs):
