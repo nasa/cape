@@ -1244,7 +1244,7 @@ class CaseData(DataKit):
         state = {}
         # Get three vectors
         v = self[col]
-        i = self[CASE_COL_BASE_ITERS]
+        i = self[CASE_COL_ITERS]
         t = self.get(CASE_COL_TIME, i)
         # Get window sizes
         n = v.size
@@ -1253,14 +1253,14 @@ class CaseData(DataKit):
         # Save window sizes
         state["windows"] = [n, n2, n4]
         # Process each window
-        for m in state["windows"]:
+        for nj in state["windows"]:
             # Get vectors
-            vj = v[-m:]
-            tj = t[-m:]
+            vj = v[-nj:]
+            tj = t[-nj:]
             # Poly fit
             m, b = np.polyfit(tj, vj, 1)
             # Calculate basic stats
-            state[str(m)] = {
+            state[str(nj)] = {
                 "mean": np.mean(vj),
                 "std": np.std(vj),
                 "a0": b,
