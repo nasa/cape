@@ -1326,6 +1326,7 @@ class CntlBase(ABC):
         pass
 
   # *** REPORTING ***
+   # --- Report generation ---
     @abstractmethod
     def UpdateReport(self, **kw):
         r"""Update a report
@@ -1360,6 +1361,25 @@ class CntlBase(ABC):
                 Report interface
         :Versions:
             * 2018-10-19 ``@ddalle``: Version 1.0
+        """
+        pass
+
+   # --- Report options ---
+    @abstractmethod
+    def get_report_comps(self, rep: Optional[str] = None) -> list:
+        r"""Get list of components and coefficients in given report
+
+        :Call:
+            >>> comps = cntl.get_report_comps(rep=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE main control instance
+            *rep*: {``None``} | :class:`str`
+                Name of report
+        :Outputs:
+            *comps*: :class:`list`\ [:class:`str`, :class:`str`]
+                List of (*comp*, *coeff*) from each ``"PlotCoeff"``
+                subfigure included in the report *rep*
         """
         pass
 

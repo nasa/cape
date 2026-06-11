@@ -5118,12 +5118,84 @@ class CaseRunner(CaseRunnerBase):
   # *** STATE ***
    # --- Log ---
 
+    def log_state_msg(self, msg: str, title: str = "STATE"):
+        r"""Write a message to the state log
+
+        This function uses simple titles rather than creating a default
+        based on the calling function.
+
+        :Call:
+            >>> runner.log_state_msg(msg, title="STATE")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *msg*: :class:`str`
+                Message to log
+            *titlle*: {``"STATE"``} | :class:`str`
+                Title for line of log file; no commas
+        """
+        # Get logger
+        logger = self.get_logger()
+        # Log message
+        logger.log_state(title, msg)
+
+    def _log_hash(self) -> str:
+        # Get the hash
+        hash = self.get_cntl_hash()
+        # Log it
+        self.log_state_msg(hash, "HASH")
+
    # --- State ---
     def get_state(self) -> dict:
-        ...
+        # Get current iter
+        n = self.get_iter()
+        # Get current phase (recalculate)
+        j = self.get_phase(f=True)
+        # Get targets
+        nmax = self.get_last_iter()
+        jmax = self.get_last_phase()
+        # Create a state
+        state = {
+            "n": n,
+            "j": j,
+            "nmax": nmax,
+            "jmax": jmax,
+            "errors": {},
+        }
+        # Output
+        return state
+
+    def get_fm_state(self) -> list:
+        # Get *cntl*
+        cntl = self.read_cntl()
+        # Get list of components (use default report)
+        complist = cntl.get_report_comps()
+        # Store a cache of force & moment instances
+        cache = {}
+        # Loop through components
+        for comp, coeff in complist:
+            # Check if it's cache
+            fm = cache.get(comp)
+            # If not, read it
+            fm = fm if (fm is not None) else self.read_dex(comp)
+            # Save it (no effect if already cached)
+            cache[comp] = fm
+            # Now process it ....
+
 
    # --- Cntl state ---
     def get_cntl_hash(self) -> str:
+        r"""Get the SHA-256 hash of the current main JSON file
+
+        :Call:
+            >>> hash = runner.get_cntl_hash()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *hash*: :class:`str`
+                SHA-256 hash of expanded run matrix JSON file
+        """
         # Read *cntl*
         cntl = self.read_cntl()
         # Get hash thereof
@@ -6648,7 +6720,7 @@ class CaseRunner(CaseRunnerBase):
         return []
 
   # *** LOGGING ***
-   # --- Logging: actions ---
+   # --- Logging: primary ---
     def log_main(
             self,
             msg: str,
@@ -6821,6 +6893,10 @@ class CaseRunner(CaseRunnerBase):
             self.logger = CaseLogger(self.root_dir)
         # Output
         return self.logger
+
+   # --- Logging: state ---
+    def log_cntl_hash(self):
+        ...
 
    # --- STDOUT (modified) ---
     def _printf(self, msg: str):

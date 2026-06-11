@@ -1224,6 +1224,29 @@ class CaseData(DataKit):
         # Output
         return cols
 
+   # --- State ---
+    def get_col_state(self, col: str, **kw) -> dict:
+        r"""Get detailed state of a column of iterative history
+
+        :Call:
+            >>> sate = db.get_col_state(col)
+        :Inputs:
+            *db*: :class:`CaseData`
+                Iterative history data instance
+            *col*: :class:`str`
+                Name of column to analyze
+        :Outputs:
+            *state*: :class:`dict`
+                State information
+        :Versions:
+            * 2026-06-11 ``@ddalle``: v1.0
+        """
+        # Initialize state
+        state = {}
+        # Do stuff ...
+        # Output
+        return state
+
    # --- Plot ---
     # Basic plotting function
     def PlotValue(self, c: str, col=None, n=None, **kw):

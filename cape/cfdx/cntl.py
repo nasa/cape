@@ -4000,7 +4000,7 @@ class Cntl(CntlBase):
             else:
                 # Loop through both
                 for comp, coeff in zip(sfig_comps, sfig_coeffs):
-                    comps.append(f"{comp}/{coeff}")
+                    comps.append((comp, coeff))
         # Output'
         return comps
 
