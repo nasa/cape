@@ -13,6 +13,8 @@ from typing import Dict, Optional, Tuple, Union
 import numpy as np
 import torch
 from torch import nn
+from torch import optim
+from torch.utils.data import DataLoader
 
 # Local imports
 
@@ -340,6 +342,59 @@ def train_one_epoch(
         scheduler.step()
 
     return total_loss / len(loader.dataset)
+
+
+@torch.no_grad()
+def evaluate(
+        model: ConvAutoencoder,
+        loader: DataLoader,
+        criterion: nn.Module,
+        device: torch.device) -> float:
+    model.eval()
+    total_loss = 0.0
+    for batch in loader:
+        x = batch[0] if isinstance(batch, (list, tuple)) else batch
+        x = x.to(device)
+        recon, _ = model(x)
+        total_loss += criterion(recon, x).item() * x.size(0)
+    return total_loss / len(loader.dataset)
+
+
+def train_model(
+        model: ConvAutoencoder,
+        train_loader: DataLoader,
+        val_loader: Optional[DataLoader],
+        epochs: int,
+        lr: float,
+        device: torch.device,
+        criterion: nn.Module = None,
+        optimizer_cls=optim.Adam,
+        optimizer_kwargs: dict = None,
+        scheduler_cls=None,
+        scheduler_kwargs: dict = None,
+        clip_grad: float = 0.0,
+        verbose: bool = True) -> Dict[str, list]:
+    criterion = criterion or ReconstructionLoss("mse")
+    optimizer_kwargs = optimizer_kwargs or {}
+    optimizer = optimizer_cls(model.parameters(), lr=lr, **optimizer_kwargs)
+    scheduler = scheduler_cls(
+        optimizer, **(scheduler_kwargs or {})) if scheduler_cls else None
+    history = {"train_loss": [], "val_loss": []}
+    for epoch in range(1, epochs + 1):
+        train_loss = train_one_epoch(
+            model, train_loader, optimizer,
+            criterion, device, scheduler, clip_grad)
+        history["train_loss"].append(train_loss)
+        val_loss = None
+        if val_loader is not None:
+            val_loss = evaluate(model, val_loader, criterion, device)
+            history["val_loss"].append(val_loss)
+        if verbose:
+            msg = f"Epoch [{epoch:>4}/{epochs}]  train={train_loss:.6f}"
+            if val_loss is not None:
+                msg += f"  val={val_loss:.6f}"
+            print(msg)
+    return history
 
 
 def _enlist(v: Union[list, int], n: int) -> list:
