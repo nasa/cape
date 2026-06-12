@@ -3990,17 +3990,17 @@ class Cntl(CntlBase):
                 comp, = sfig_comps
                 # Loop through components
                 for coeff in sfig_coeffs:
-                    comps.append(f"{comp}/{coeff}")
+                    comps.append((comp, coeff))
             elif len(sfig_coeffs) == 1:
                 # Unpack singleton
                 coeff, = sfig_coeffs
                 # Loop through components
                 for comp in sfig_comps:
-                    comps.append(f"{comp}/{coeff}")
+                    comps.append((comp, coeff))
             else:
                 # Loop through both
                 for comp, coeff in zip(sfig_comps, sfig_coeffs):
-                    comps.append(f"{comp}/{coeff}")
+                    comps.append((comp, coeff))
         # Output'
         return comps
 
@@ -5437,6 +5437,7 @@ class Cntl(CntlBase):
         return fileutils.get_dir_files(fabs)
 
   # *** LOGGING ***
+   # --- Loggers ---
     def log_cmd(
             self,
             msg: str,
@@ -5475,6 +5476,7 @@ class Cntl(CntlBase):
         # Return it
         return self.logger
 
+   # --- Utilities ---
     def get_funcname(self, frame: int = 1) -> str:
         # Get frame of function calling this one
         func = sys._getframe(frame).f_code
@@ -5498,6 +5500,7 @@ class Cntl(CntlBase):
                 f"Unrecognized log level '{rawtxt}': expected int or "
                 " | ".join(LOG_LEVEL_MAP.keys()))
 
+   # --- Hashes ---
     # Get hash of current options
     def get_opts_hash(self, f: bool = False) -> str:
         # Get current value
@@ -5532,6 +5535,7 @@ class Cntl(CntlBase):
         # Create a copy
         return _dumps(self.opts)
 
+   # --- State logger ---
     # Function to log cntl changes based on hash comparison
     def log_cntl(self, f: bool = False):
         # Check log level

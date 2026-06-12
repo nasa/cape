@@ -237,9 +237,8 @@ class CaseData(DataKit):
         i = self.get("iter.i", self.get("i"))
         n = i.size
         # Get columns
-        cols = self.cols
         ncol = 0 if self.cols is None else len(self.cols)
-        # Get 
+        # Construct name
         return f"<{name}({complbl}n={n}, ncol={ncol})>"
     # String method
     __str__ = __repr__
@@ -1223,6 +1222,52 @@ class CaseData(DataKit):
                 cols.append(colj)
         # Output
         return cols
+
+   # --- State ---
+    def get_col_state(self, col: str, **kw) -> dict:
+        r"""Get detailed state of a column of iterative history
+
+        :Call:
+            >>> sate = db.get_col_state(col)
+        :Inputs:
+            *db*: :class:`CaseData`
+                Iterative history data instance
+            *col*: :class:`str`
+                Name of column to analyze
+        :Outputs:
+            *state*: :class:`dict`
+                State information
+        :Versions:
+            * 2026-06-11 ``@ddalle``: v1.0
+        """
+        # Initialize state
+        state = {}
+        # Get three vectors
+        v = self[col]
+        i = self[CASE_COL_ITERS]
+        t = self.get(CASE_COL_TIME, i)
+        # Get window sizes
+        n = v.size
+        n2 = n // 2
+        n4 = n // 4
+        # Save window sizes
+        state["windows"] = [n, n2, n4]
+        # Process each window
+        for nj in state["windows"]:
+            # Get vectors
+            vj = v[-nj:]
+            tj = t[-nj:]
+            # Poly fit
+            m, b = np.polyfit(tj, vj, 1)
+            # Calculate basic stats
+            state[str(nj)] = {
+                "mean": np.mean(vj),
+                "std": np.std(vj),
+                "a0": b,
+                "a1": m,
+            }
+        # Output
+        return state
 
    # --- Plot ---
     # Basic plotting function

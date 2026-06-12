@@ -1326,6 +1326,7 @@ class CntlBase(ABC):
         pass
 
   # *** REPORTING ***
+   # --- Report generation ---
     @abstractmethod
     def UpdateReport(self, **kw):
         r"""Update a report
@@ -1360,6 +1361,25 @@ class CntlBase(ABC):
                 Report interface
         :Versions:
             * 2018-10-19 ``@ddalle``: Version 1.0
+        """
+        pass
+
+   # --- Report options ---
+    @abstractmethod
+    def get_report_comps(self, rep: Optional[str] = None) -> list:
+        r"""Get list of components and coefficients in given report
+
+        :Call:
+            >>> comps = cntl.get_report_comps(rep=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE main control instance
+            *rep*: {``None``} | :class:`str`
+                Name of report
+        :Outputs:
+            *comps*: :class:`list`\ [:class:`str`, :class:`str`]
+                List of (*comp*, *coeff*) from each ``"PlotCoeff"``
+                subfigure included in the report *rep*
         """
         pass
 
@@ -2976,6 +2996,7 @@ class CntlBase(ABC):
         pass
 
   # *** LOGGING ***
+   # --- Loggers ---
     @abstractmethod
     def log_cmd(
             self,
@@ -3041,6 +3062,7 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Utilities ---
     @abstractmethod
     def get_funcname(self, frame: int = 1) -> str:
         r"""Get name of calling function, mostly for log messages
@@ -3057,6 +3079,103 @@ class CntlBase(ABC):
                 Name of calling function
         :Versions:
             * 2025-04-30 ``@ddalle``
+        """
+        pass
+
+    @abstractmethod
+    def get_log_level(self) -> int:
+        r"""Get the current logging level
+
+        :Call:
+            >>> loglvl = cntl.get_log_level()
+        :Outputs:
+            *loglvl*: :class:`int`
+                Logging level (e.g., 10 for DEBUG, 20 for INFO)
+        :Versions:
+            * 2026-06-10 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Hashes ---
+    # Get hash of current options
+    @abstractmethod
+    def get_opts_hash(self, f: bool = False) -> str:
+        r"""Get hash of current options, with optional recalculation
+
+        :Call:
+            >>> h = cntl.get_opts_hash(f=False)
+        :Inputs:
+            *f*: ``True`` | {``False``}
+                Option to force recalculation
+        :Outputs:
+            *h*: :class:`str`
+                Hash of current options
+        :Versions:
+            * 2026-06-10 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Get options as single line
+    @abstractmethod
+    def get_opts_jsonl(self, f: bool = False) -> str:
+        r"""Get current options as a single-line JSON string
+
+        :Call:
+            >>> jsonl = cntl.get_opts_jsonl(f=False)
+        :Inputs:
+            *f*: ``True`` | {``False``}
+                Option to force recalculation
+        :Outputs:
+            *jsonl*: :class:`str`
+                Single-line JSON representation of options
+        :Versions:
+            * 2026-06-10 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Hash json-like dict
+    @abstractmethod
+    def genr8_opts_hash(self) -> str:
+        r"""Generate hash from current options dictionary
+
+        :Call:
+            >>> h = cntl.genr8_opts_hash()
+        :Outputs:
+            *h*: :class:`str`
+                Hash generated from options dictionary
+        :Versions:
+            * 2026-06-10 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Convert options to canonical one-line string
+    @abstractmethod
+    def genr8_opts_jsonl(self) -> str:
+        r"""Generate single-line JSON string from current options
+
+        :Call:
+            >>> jsonl = cntl.genr8_opts_jsonl()
+        :Outputs:
+            *jsonl*: :class:`str`
+                Canonical single-line JSON representation of options
+        :Versions:
+            * 2026-06-10 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- State logger ---
+    # Function to log cntl changes based on hash comparison
+    @abstractmethod
+    def log_cntl(self, f: bool = False):
+        r"""Record the current JSON settings and document any changes
+
+        :Call:
+            >>> cntl.log_cntl(f=True)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *f*: :``True`` | {``False``}
+                Force recalculation of hash of current options
         """
         pass
 
