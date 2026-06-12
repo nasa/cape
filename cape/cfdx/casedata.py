@@ -1242,6 +1242,9 @@ class CaseData(DataKit):
         """
         # Initialize state
         state = {}
+        # Check if present
+        if col not in self:
+            return state
         # Get three vectors
         v = self[col]
         i = self[CASE_COL_ITERS]
@@ -1250,6 +1253,9 @@ class CaseData(DataKit):
         n = v.size
         n2 = n // 2
         n4 = n // 4
+        # Check history size
+        if n < 5:
+            return state
         # Save window sizes
         state["windows"] = [n, n2, n4]
         # Process each window
