@@ -3556,10 +3556,25 @@ class Cntl(CntlBase):
         qsub = kw.get("restart", kw.get("qsub", False))
         nsub = kw.get("n", 150)
         jsub = 0
+        # Reconstruct file name
+        fjson = os.path.join(self.fdir, self.fname)
+        # Create a command
+        cmdbase = f"{self._name} -f {fjson} --extend {n}"
+        if j is not None:
+            cmdbase += f" -j {j}"
+        if imax is not None:
+            cmdbase += f" --imax {imax}"
         # Loop through folders
         for i in self.x.GetIndices(**kw):
             # Status update
             print(self.x.GetFullFolderNames(i))
+            # Read case
+            runner = self.ReadCaseRunner(i)
+            # Skip if no case
+            if runner is None:
+                continue
+            # Log an action
+            runner.log_cmd(f"{cmdbase} -I {i}")
             # Extend case
             self.ExtendCase(i, n=n, j=j, imax=imax)
             # Start/submit the case?
@@ -3645,6 +3660,10 @@ class Cntl(CntlBase):
         qsub = kw.get("restart", kw.get("qsub", False))
         nsub = kw.get("n", 150)
         jsub = 0
+        # Path to settigns file
+        fjson = os.path.join(self.fdir, self.fname)
+        # Create a command
+        cmdbase = f"{self._name} -f {fjson} --apply"
         # Save current copy of options
         self.SaveOptions()
         # Loop through folders
@@ -3653,6 +3672,13 @@ class Cntl(CntlBase):
             print(self.x.GetFullFolderNames(i))
             # Clear cache
             self.cache_iter.clear_case(i)
+            # Read case
+            runner = self.ReadCaseRunner(i)
+            # Skip if no case
+            if runner is None:
+                continue
+            # Log an action
+            runner.log_cmd(f"{cmdbase} -I {i}")
             # Extend case
             self.ApplyCase(i, nPhase=n)
             # Start/submit the case?
@@ -3676,7 +3702,7 @@ class Cntl(CntlBase):
     # Extend a case
     def ApplyCase(self, i: int, **kw):
         raise NotImplementedError(
-            f"ExtendCase() not implemented for {self._name} module")
+            f"ApplyCase() not implemented for {self._name} module")
 
    # --- Delete/Stop ---
     # Delete jobs
