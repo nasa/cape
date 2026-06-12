@@ -69,6 +69,7 @@ from .triqfm import CaseTriqFM, CaseTriqPoint
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
 from .options.funcopts import UserFuncOpts
+from ..argread import ArgReader
 from ..config import ConfigXML, SurfConfig
 from ..dkit.rdb import DataKit
 from ..errors import CapeFileNotFoundError, CapeRuntimeError, CapeValueError
@@ -493,6 +494,7 @@ class CaseRunner(CaseRunnerBase):
             * 2023-06-21 ``@ddalle``: v2.0; instance method
             * 2024-05-26 ``@ddalle``: v2.1; more exit causes
             * 2025-06-24 ``@ddalle``: v2.2; add rerunable-phase check
+            * 2026-06-12 ``@ddalle``: v2.3; log state
         """
         # Log startup
         self.log_verbose(f"start {self._cls()}.run()")
@@ -505,6 +507,8 @@ class CaseRunner(CaseRunnerBase):
         # Log beginning
         self.log_main(f"{self._cls()}.run()")
         self.log_verbose(f"{self._cls()}.run() phase loop")
+        # Log command
+        self.log_cmd(f"{self._modname} run")
         # Initialize start counter
         nstart = 0
         # Loop until case exits, fails, or reaches start count limit
@@ -5117,6 +5121,22 @@ class CaseRunner(CaseRunnerBase):
 
   # *** STATE ***
    # --- Log ---
+    def log_parser(self, parser: ArgReader):
+        # Reconstruct an argument
+        cmdlist = parser.reconstruct()
+        # Get executable name
+        cmdexec = os.path.basename(cmdlist[0])
+        # Split first command
+        cmdfinal = cmdexec.split('-', 1) + cmdlist[1:]
+        # Log it
+        self.log_cmd(shlex.join(cmdfinal))
+
+    def log_cmd(self, cmdstr: str):
+        # Log the current state
+        self.log_state()
+        # Log the command
+        self.log_state_msg(cmdstr, "CMD")
+
     def log_state(self):
         # Get the current state
         state = self.get_state()
