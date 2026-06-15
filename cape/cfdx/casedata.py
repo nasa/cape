@@ -9,7 +9,7 @@ This module provides the classes :class:`CaseFM` and
 # Standard library
 import os
 from collections import namedtuple
-from typing import Any, Optional, Union, List
+from typing import Any, List, Optional, Tuple, Union
 
 # Third-party modules
 import numpy as np
@@ -1263,14 +1263,26 @@ class CaseData(DataKit):
             # Get vectors
             vj = v[-nj:]
             tj = t[-nj:]
+            # Min/max (for scaling)
+            aj = np.min(vj)
+            bj = np.max(vj)
             # Poly fit
             m, b = np.polyfit(tj, vj, 1)
+            # Get increments
+            dvj = np.diff(vj)
+            # Filter out zero-change steps
+            dvj = dvj[np.abs(dvj) > 1e-6*(bj-aj)]
+            # Count sign changes
+            nchj = np.count_nonzero(dvj[1:] * dvj[-1] < 0)
             # Calculate basic stats
             state[str(nj)] = {
                 "mean": np.mean(vj),
+                "min": aj,
+                "max": bj,
                 "std": np.std(vj),
                 "a0": b,
                 "a1": m,
+                "sign_change_rate": nchj/nj,
             }
         # Output
         return state
@@ -4817,6 +4829,60 @@ class CaseTS(CaseFM):
         # Last time should be largest
         tEnd = self[tcol][-1] if nEnd == nMax else None
         return tEnd
+
+
+# Find autocorrelation peak
+def autocorr(
+        v: np.ndarray,
+        t: Optional[np.ndarray] = None,
+        n: int = 100) -> Tuple[float, float]:
+    r"""Calculate autocorrelation of iterative history with offsets
+
+    :Call:
+        >>> dt, r = autocorr(v, t=None, n=100)
+    :Inputs:
+        *v*: :class:`np.ndarray`\ [:class:`float`]
+            Iterative history
+        *t*: {``None``} | :class:`np.ndarray`
+            Optional time history (or just use iteration number)
+        *n*: {``100``} | :class:`int`
+            Number of offsets to analyze
+    :Outputs:
+        *dt*: :class:`np.ndarray`\ [:class:`float`]
+            Time/iteration shifts
+        *r*: :class:`np.ndarray`\ [:class:`float`]
+            Autocorrelation at each shift
+    :Versions:
+        * 2026-06-14 ``@ddalle``: v1.0
+    """
+    # Number of iterations
+    m = v.size
+    # Interpolate to fixed time step if necessary
+    if t is None or np.count_nonzero(t == 0) > 1:
+        # Use iteration number as "time" series
+        v1 = v
+        t1 = np.linspace(0, m-1, m)
+    else:
+        # Interpolate
+        t1 = np.linspace(t[0], t[-1], t.size)
+        v1 = np.interp(t1, t, v)
+    # Get half-width
+    m2 = int(np.ceil(m/2))
+    # Minimum number of offsets
+    n = min(n, m2)
+    # Get offsets
+    di = np.linspace(0, m2, n+1).astype("i4")
+    di = di[1:]
+    # Initialize autocorrelation vector
+    r = np.zeros(n)
+    # Loop through
+    for j, dj in enumerate(di):
+        # Reconstruct offset history
+        vj = np.hstack((v1[dj:], v1[:dj]))
+        # Calculate autocorrelation
+        r[j] = np.corrcoef(v1, vj)[0, 1]
+    # Output
+    return t1[di] - t1[0], r
 
 
 # Set font
