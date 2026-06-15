@@ -7,9 +7,10 @@ This module provides the classes :class:`CaseFM` and
 """
 
 # Standard library
+import importlib
 import os
 from collections import namedtuple
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 # Third-party modules
 import numpy as np
@@ -21,6 +22,11 @@ from ..dkit import capefile
 from ..dkit.rdb import DataKit
 from ..optdict import OptionsDict
 from ..trifile import Tri, Triq
+
+
+# Optional imports
+MODTYPE = os.__class__
+OPTMODS = {}
 
 # Module placeholder
 plt = None
@@ -92,6 +98,21 @@ Pair = namedtuple("Pair", ("a", "b"))
 
 #: Pair for force and moment vector [histories], *F*, *M*
 FMPair = namedtuple("FMPair", ("F", "M"))
+
+
+# Import signal
+def _import_savgol() -> Callable:
+    # Check for module
+    if "scipy.signal" in OPTMODS:
+        # Get it
+        mod = OPTMODS["scipy.signal"]
+    else:
+        # Import it
+        mod = importlib.import_module("scipy.signal")
+        # Save it
+        OPTMODS["scipy.signal"] = mod
+    # Return the module
+    return mod.savgol_filter
 
 
 # Dedicated function to load Matplotlib only when needed.
@@ -4831,7 +4852,58 @@ class CaseTS(CaseFM):
         return tEnd
 
 
-# Find autocorrelation peak
+# Find peaks of filtered signal
+def find_peaks_filtered(
+        v: np.ndarray,
+        polyorder: int = 3,
+        window_length: int = 10):
+    r"""Find peaks of smoothed iterative history
+
+    :Call:
+        >>> jlo, vlo, jhi, vhi = find_pkeaks_filtered(v, **kw)
+    :Inputs:
+        *v*: :np.ndarray`\ [:class:`float`]
+            Iterative history
+        *polyorder*: {``3``} | :class:`int`
+            Polynomial order for filtering
+        *window_length*: {``10``} | :class:`int`
+            Filter window width
+    :Outputs:
+        *jlo*: :class:`np.ndarray`\ [:class:`int`]
+            Indices of local minima
+        *vlo*: :class:`np.ndarray`\ [:class:`float`]
+            Lightly filetered values of *v* at local minima
+        *jhi*: :class:`np.ndarray`\ [:class:`int`]
+            Indices of local maxima
+        *vhi*: :class:`np.ndarray`\ [:class:`float`]
+            Lightly filtered values of *v* at local maxima
+    :Versions:
+        * 2026-06-15 ``@ddalle``: v1.0
+    """
+    # Get filtering function
+    savgol_filter = _import_savgol()
+    # Filter signal and derivative
+    u = savgol_filter(v, window_length=3, polyorder=2)
+    du = savgol_filter(
+        v, window_length=window_length, polyorder=polyorder, deriv=1)
+    # Scale
+    umin = np.min(u)
+    umax = np.max(u)
+    # Eliminate zeros
+    mask = np.abs(du) > 1e-10 * (umax-umin)
+    # Get indices
+    dw = du[mask]
+    i = np.where(mask)[0]
+    # Find the sign changes of *du*
+    peaks = np.where(dw[1:]*dw[:-1] <= 0)[0]
+    # Get maxima and minima
+    imin = i[peaks[dw[peaks] < 0]] + 1
+    imax = i[peaks[dw[peaks] > 0]] + 1
+    # Output
+    return imin, u[imin], imax, u[imax]
+
+
+# Find autocorrelation array
 def autocorr(
         v: np.ndarray,
         t: Optional[np.ndarray] = None,
