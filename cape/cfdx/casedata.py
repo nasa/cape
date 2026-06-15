@@ -1295,6 +1295,26 @@ class CaseData(DataKit):
             dvj = dvj[np.abs(dvj) > 1e-6*(bj-aj)]
             # Count sign changes
             nchj = np.count_nonzero(dvj[1:] * dvj[-1] < 0)
+            # Perform autocorrelation
+            phj, rj = autocorr(vj)
+            # Find peaks
+            jlo, ulo, jhi, vhi = find_peaks_filtered(rj)
+            # Find first anti-correlation peak
+            kn1 = np.zeros(0) if jlo.size == 0 else np.where(ulo < 0)[0]
+            if kn1.size == 0:
+                # No local minima with negative correlation
+                dph1 = 0.0
+                r1 = 0.0
+                dph2 = 0.0
+                r2 = 0.0
+            else:
+                # Get first local minimum of autocorrelation plot
+                dph1 = phj[kn1[0]]
+                r1 = ulo[kn1[0]]
+                # Get absolute minimum correlation
+                dph2 = phj[jlo[np.argmin(ulo)]]
+                r2 = np.min(ulo)
+            # Find first correlation peak
             # Calculate basic stats
             state[str(nj)] = {
                 "mean": np.mean(vj),
@@ -1304,6 +1324,10 @@ class CaseData(DataKit):
                 "a0": b,
                 "a1": m,
                 "sign_change_rate": nchj/nj,
+                "first_anticorrelation_offset": dph1,
+                "first_anticorrelation_peak": r1,
+                "min_autocorrelation_offset": dph2,
+                "min_autocorrelation": r2,
             }
         # Output
         return state
