@@ -4063,7 +4063,7 @@ class Cntl(CntlBase):
         reps = self.opts.get_ReportList()
         # Check for empty defn set
         if len(reps) == 0:
-            raise CapeValueError("No reports defined")
+            return ''
         # Check for input
         report = reps[0] if rep is None else rep
         # Validate
