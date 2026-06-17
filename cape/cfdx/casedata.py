@@ -1298,36 +1298,52 @@ class CaseData(DataKit):
             # Perform autocorrelation
             phj, rj = autocorr(vj)
             # Find peaks
-            jlo, ulo, jhi, vhi = find_peaks_filtered(rj)
+            jlo, ulo, jhi, uhi = find_autocorr_peaks(rj)
             # Find first anti-correlation peak
-            kn1 = np.zeros(0) if jlo.size == 0 else np.where(ulo < 0)[0]
-            if kn1.size == 0:
-                # No local minima with negative correlation
+            if jlo.size == 0:
+                # No anticorrelation peaks
                 dph1 = 0.0
                 r1 = 0.0
                 dph2 = 0.0
                 r2 = 0.0
             else:
                 # Get first local minimum of autocorrelation plot
-                dph1 = phj[kn1[0]]
-                r1 = ulo[kn1[0]]
+                dph1 = phj[jlo[0]]
+                r1 = ulo[0]
                 # Get absolute minimum correlation
                 dph2 = phj[jlo[np.argmin(ulo)]]
                 r2 = np.min(ulo)
             # Find first correlation peak
+            if jhi.size == 0:
+                # No shifted correlation peaks
+                dph3 = 0.0
+                r2 = 0.0
+                dph3 = 0.0
+                r3 = 0.0
+            else:
+                # Get first local maximum of autocorrelation plot
+                dph3 = phj[jhi[0]]
+                r3 = uhi[0]
+                # Get absolute maximum autocorrelation
+                dph4 = phj[jhi[np.argmax(uhi)]]
+                r4 = np.max(uhi)
             # Calculate basic stats
             state[str(nj)] = {
                 "mean": np.mean(vj),
                 "min": aj,
                 "max": bj,
                 "std": np.std(vj),
-                "a0": b,
-                "a1": m,
+                "linear_fit_a0": b,
+                "linear_fit_a1": m,
                 "sign_change_rate": nchj/nj,
                 "first_anticorrelation_offset": dph1,
                 "first_anticorrelation_peak": r1,
+                "first_autocorrelation_offset": dph3,
+                "first_autocorrelation_peak": r3,
                 "min_autocorrelation_offset": dph2,
                 "min_autocorrelation": r2,
+                "max_autocorrelation_offset": dph4,
+                "max_autocorrelation": r4,
             }
         # Output
         return state
@@ -4874,6 +4890,117 @@ class CaseTS(CaseFM):
         # Last time should be largest
         tEnd = self[tcol][-1] if nEnd == nMax else None
         return tEnd
+
+
+# Find peaks of autocorrelation signal
+def find_autocorr_peaks(
+        v: np.ndarray,
+        polyorder: int = 3,
+        window_length: int = 10) -> tuple:
+    r"""Find autocorrelation peaks; ensure alternating anticorr/corr
+
+    :Call:
+        >>> jlo, vlo, jhi, vhi = find_autocorr_peaks(v, **kw)
+    :Inputs:
+        *v*: :np.ndarray`\ [:class:`float`]
+            Iterative history
+        *polyorder*: {``3``} | :class:`int`
+            Polynomial order for filtering
+        *window_length*: {``10``} | :class:`int`
+            Filter window width
+    :Outputs:
+        *jlo*: :class:`np.ndarray`\ [:class:`int`]
+            Indices of local minima
+        *vlo*: :class:`np.ndarray`\ [:class:`float`]
+            Lightly filetered values of *v* at local minima
+        *jhi*: :class:`np.ndarray`\ [:class:`int`]
+            Indices of local maxima
+        *vhi*: :class:`np.ndarray`\ [:class:`float`]
+            Lightly filtered values of *v* at local maxima
+    :Versions:
+        * 2026-06-17 ``@ddalle``: v1.0
+    """
+    # Get the raw extrema
+    jlo, vlo, jhi, vhi = find_peaks_filtered(v, polyorder, window_length)
+    # Output
+    return _filter_autocorr_peaks(jlo, vlo, jhi, vhi)
+
+
+def _filter_autocorr_peaks(jlo, vlo, jhi, vhi) -> tuple:
+    # Initialize filtered lists
+    jlo1 = []
+    vlo1 = []
+    jhi1 = []
+    vhi1 = []
+    # Loop through any anticorr peaks that are positive
+    for i, va in enumerate(vlo):
+        # Check value
+        if va <= 0:
+            # Save current anticorr peak
+            jlo1.append(jlo[i])
+            vlo1.append(va)
+            # Save next corr peak if possible
+            if i < jhi.size:
+                jhi1.append(jhi[i])
+                vhi1.append(vhi[i])
+            continue
+        # Check for next value
+        if i >= jhi.size:
+            continue
+        # Check for previous correlation peak
+        if len(vhi1) == 0:
+            # Nothing to do
+            continue
+        # Get current peak value
+        vb = vhi[i]
+        # Compare this corr peak to previous
+        if vb > vhi1[-1]:
+            # Replace previous peak
+            vhi1[-1] = vb
+            jhi1[-1] = jhi[i]
+    # Convert back to arrays
+    jlo1 = np.array(jlo1)
+    vlo1 = np.array(vlo1)
+    jhi1 = np.array(jhi1)
+    vhi1 = np.array(vhi1)
+    # Initialize outputs
+    jlo2 = []
+    vlo2 = []
+    jhi2 = []
+    vhi2 = []
+    # Loop through any anticorr peaks that are positive
+    for i, vb in enumerate(vhi1):
+        # Check value
+        if vb >= 0:
+            # Save current corr peak
+            jhi2.append(jhi1[i])
+            vhi2.append(vb)
+            # Save next anticorr peak
+            jlo2.append(jlo1[i])
+            vlo2.append(vlo1[i])
+            continue
+        # Check for previous correlation peak
+        if len(vlo2) == 0:
+            # Nothing to do
+            continue
+        # Get current anticorr peak value
+        va = vlo1[i]
+        # Compare this corr peak to previous
+        if va < vlo2[-1]:
+            # Replace previous peak
+            vlo2[-1] = va
+            jlo2[-1] = jlo1[i]
+    # Check for final anticorr peak
+    if jlo1.size > jhi1.size:
+        jlo2.append(jlo1[-1])
+        vlo2.append(vlo1[-1])
+    # Convert back to arrays
+    jlo2 = np.array(jlo2)
+    vlo2 = np.array(vlo2)
+    jhi2 = np.array(jhi2)
+    vhi2 = np.array(vhi2)
+    # Output
+    return jlo2, vlo2, jhi2, vhi2
 
 
 # Find peaks of filtered signal
