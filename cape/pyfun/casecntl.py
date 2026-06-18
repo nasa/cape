@@ -2737,8 +2737,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Read settings
         rc = self.read_case_json()
         # Check if phase *j* is adaptive
+        if not rc.get_opt("Adaptive", j):
+            return True
         if not rc.get_opt("AdaptPhase", j):
-            # No additional tests
             return True
         # Get option for which type of adaptation
         adapt_opt = rc.get_AdaptMethod()
