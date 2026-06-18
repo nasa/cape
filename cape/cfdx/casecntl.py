@@ -4141,7 +4141,11 @@ class CaseRunner(CaseRunnerBase):
   # *** OPTIONS ***
    # --- Case options ---
     # General
-    def get_opt(self, opt: str, vdef: Optional[Any] = None) -> Any:
+    def get_opt(
+            self,
+            opt: str,
+            j: Optional[int] = None,
+            vdef: Optional[Any] = None) -> Any:
         r"""Get a generic option value from ``case.json``
 
         :Call:
@@ -4151,6 +4155,8 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *opt*: :class:`str`
                 Name of *RunControl* option
+            *j*: {``None``} | :class:`int`
+                Optional phase number
             *vdef*: {``None``} | **any**
                 Default value if *opt* is not found
         :Outputs:
@@ -4158,6 +4164,7 @@ class CaseRunner(CaseRunnerBase):
                 Value of that option in ``case.json``, else *vdef*
         :Versions:
             * 2026-04-10 ``@ddalle``: v1.0
+            * 2026-06-18 ``@ddalle``: v1.1; add *j*
         """
         # Read options
         rc = self.read_case_json()
@@ -4165,7 +4172,7 @@ class CaseRunner(CaseRunnerBase):
         if rc is None:
             return vdef
         # Get option
-        return rc.get_opt(opt, vdef=vdef)
+        return rc.get_opt(opt, j=j, vdef=vdef)
 
     # Get project root name
     def get_project_rootname(self, j: Optional[int] = None) -> str:

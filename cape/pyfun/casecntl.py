@@ -1436,8 +1436,10 @@ class CaseRunner(casecntl.CaseRunner):
                 nml.SetRestart(True)
                 nml.write()
             return
+        # Read case settings
+        rc = self.read_case_json()
         # Check for first run
-        if jold is None:
+        if jold is None or rc.get_PhaseIters(j=jold) is None:
             # Check for warm-start flag
             warmstart = self.prepare_warmstart()
             # Check current flag
@@ -1446,8 +1448,6 @@ class CaseRunner(casecntl.CaseRunner):
                 nml.SetRestart(warmstart)
                 nml.write()
             return
-        # Read case settings
-        rc = self.read_case_json()
         # Check adapt method
         adapt_opt = rc.get_AdaptMethod(jold)
         adapt_old = rc.get_AdaptPhase(jold)
