@@ -1294,7 +1294,7 @@ class CaseData(DataKit):
             # Filter out zero-change steps
             dvj = dvj[np.abs(dvj) > 1e-6*(bj-aj)]
             # Count sign changes
-            nchj = np.count_nonzero(dvj[1:] * dvj[-1] < 0)
+            nchj = np.count_nonzero(dvj[1:] * dvj[:-1] < 0)
             # Perform autocorrelation
             phj, rj = autocorr(vj)
             # Find peaks
@@ -1317,9 +1317,9 @@ class CaseData(DataKit):
             if jhi.size == 0:
                 # No shifted correlation peaks
                 dph3 = 0.0
-                r2 = 0.0
-                dph3 = 0.0
                 r3 = 0.0
+                dph4 = 0.0
+                r4 = 0.0
             else:
                 # Get first local maximum of autocorrelation plot
                 dph3 = phj[jhi[0]]
