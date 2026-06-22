@@ -187,18 +187,23 @@ class ConvDecoder(nn.Module):
 
 
 class ConvAutoencoder(nn.Module):
-    """
-    Full 1-D CAE. Pass all encoder/decoder kwargs directly.
+    r"""Full 1D convolution autoencoder
 
-    Quick start
-    -----------
-    model = ConvAutoencoder(
-        in_channels=1,
-        channel_list=[32, 64, 128],
-        latent_dim=16,
-        input_length=400,
-    )
-    recon, z = model(x)   # x shape: (B, 1, 400)
+    :Call:
+        >>> aec = ConvAutoencoder(**kw)
+    :Inputs:
+        *input_length*: {``400``} | :class:`int`
+            Size of original vector
+        *latent_dim*: {``10``} | :class:`int`
+            Size or reduced vector
+        *channel_list*: {``None``} | :class:`list`\ [:class:`int`]
+            List of convolution channel numbers for each layer
+        *n*: {``None``} | :class:`int`
+            Number of convolution layers; matches ``len(channel_list)``
+        *kernel_size*: {``3``} | :class:`int` | :class:`list`
+            Convolution kernel size; can be different for each layer
+        *stride*: {``1``} | :class:`int` | :class:`list`
+            Stride parameter for each convolution layer
     """
     def __init__(
             self,
@@ -274,9 +279,10 @@ class ConvAutoencoder(nn.Module):
 
 
 class ReconstructionLoss(nn.Module):
-    """Flexible reconstruction loss.
+    """Flexible reconstruction loss
 
     mode: `"mse"` | `"bce"` | `"mae"` | `"ssim"` | `"combined"`
+        Error method
     For "combined", weights dict controls mixing, e.g.:
         weights={"mse": 0.8, "mae": 0.2}
 
@@ -320,27 +326,33 @@ def train_one_epoch(
         device: torch.device,
         scheduler=None,
         clip_grad: float = 0.0) -> float:
+    # Call autoencoder's train method
     model.train()
+    # Count losses
     total_loss = 0.0
     for batch in loader:
-        # accept (x, label) tuples or raw tensors
+        # Accept (x, label) tuples or raw tensors
         x = batch[0] if isinstance(batch, (list, tuple)) else batch
+        # Send to GPU if able
         x = x.to(device)
-
+        # Optimizer methods
         optimizer.zero_grad()
+        # Get prediction from current model
         recon, _ = model(x)
+        # Evaluate loss
         loss = criterion(recon, x)
+        # Calculate derivatives
         loss.backward()
-
+        # Limit gradients
         if clip_grad > 0:
             nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
-
+        # Take the optimizer step
         optimizer.step()
         total_loss += loss.item() * x.size(0)
-
+    # Use scheduler if available
     if scheduler is not None:
         scheduler.step()
-
+    # Normalize
     return total_loss / len(loader.dataset)
 
 
@@ -395,6 +407,18 @@ def train_model(
                 msg += f"  val={val_loss:.6f}"
             print(msg)
     return history
+
+
+def main():
+    # Select best available device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Batch size
+    batch_size = 16
+    # Number of training epochs
+    ephocs = 250
+    # Number of input channels is 1
+    # Length of sequcne
+    seq_len = 41371
 
 
 def _enlist(v: Union[list, int], n: int) -> list:
