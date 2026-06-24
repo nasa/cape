@@ -986,7 +986,7 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Cut-plane data collection ---
     def collect_cutplanes(
             self,
-            nsurf: Optional[int] = 0,
+            nsurf: Optional[Union[int, list]] = None,
             nbatch: Optional[int] = None,
             clean: bool = False,
             nmax: Optional[int] = None,
@@ -995,11 +995,11 @@ class CaseRunner(casecntl.CaseRunner):
         r"""Collect VTK cut-plane data from oner or more isosurfaces
 
         :Call:
-            >>> runner.collect_cutplanes(nsurf=0, nbatch=None, **kw)
+            >>> runner.collect_cutplanes(nsurf=1, nbatch=None, **kw)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *nsurf*: {``None``} | :class:`int` | :class:`list`
+            *nsurf*: ``None``} | :class:`int` | :class:`list`
                 Isosurface index(es) (0-based) or all if ``None``
             *nbatch*: {``None``} | :class:`int`
                 Number of snapshots to collect; default value is
