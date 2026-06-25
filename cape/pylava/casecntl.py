@@ -1177,7 +1177,7 @@ class CaseRunner(casecntl.CaseRunner):
                 self._write_cutplanedata(
                     mode, nsurf, batchj, j, nodes, tris, q)
                 # Update metadata
-                self.write_cutplane_meta(nsurf, db, "adaptive")
+                self.write_cutplane_meta(nsurf, db, mode)
                 # Cleanup
                 if clean:
                     self._cleanup_cutplane_files(nsurf, j)
@@ -1218,8 +1218,6 @@ class CaseRunner(casecntl.CaseRunner):
                 # Prefix for VTK files
                 prefix = self._genr8_cutplane_prefix(nsurf)
                 print(f"\n  {flbl}: VTK file removed during read")
-                if self.fork_id == 0:
-                    breakpoint()
                 os._exit(0)
             # Create DataKit
             dbi = DataKit()
@@ -1233,8 +1231,6 @@ class CaseRunner(casecntl.CaseRunner):
             # Write it
             dbi.write_cdb(fi)
             # Exit this process
-            if self.fork_id == 0:
-                breakpoint()
             os._exit(0)
         # Wait for final round of forks to end
         while len(iters_write):
@@ -1279,7 +1275,7 @@ class CaseRunner(casecntl.CaseRunner):
             self._write_cutplanedata(
                 mode, nsurf, batchj, j, nodes, tris, q)
             # Update metadata
-            self.write_cutplane_meta(nsurf, db, "adaptive")
+            self.write_cutplane_meta(nsurf, db, mode)
             # Cleanup
             if clean:
                 self._cleanup_cutplane_files(nsurf, j)
@@ -1344,7 +1340,7 @@ class CaseRunner(casecntl.CaseRunner):
         r"""Read database of metadata for collected cutplane data
 
         :Call:
-            >>> db = runner.read_surfdata_meta(nsurf, mode)
+            >>> db = runner.read_cutplane_meta(nsurf, mode)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
