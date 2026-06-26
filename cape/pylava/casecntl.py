@@ -176,23 +176,10 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2024-10-11 ``@ddalle``: v1.0
+            * 2026-06-26 ``@ddalle``: v2.0; save old copies
         """
-        # Get the current iteration number
-        n = self.get_iter()
-        # Genrate name of STDOUT log, "run.{phase}.{n}"
-        fhist = "run.%02i.%i" % (j, n)
-        # Get solver
-        rc = self.read_case_json()
-        solver = rc.get_LAVASolver()
-        # Get STDOUT file name
-        stdoutbase = "superlava" if solver == "curvilinear" else "lava"
-        # Rename the STDOUT file
-        if os.path.isfile(f"{stdoutbase}.out"):
-            # Move the file
-            os.rename(f"{stdoutbase}.out", fhist)
-        else:
-            # Create an empty file
-            fileutils.touch(fhist)
+        # Save STDOUT
+        self.finalize_stdoutfile(j)
 
    # --- Status ---
     # Function to get total iteration number
@@ -250,7 +237,7 @@ class CaseRunner(casecntl.CaseRunner):
         return 0.0
 
     # Get current iteration
-    def getx_iter(self):
+    def getx_iter(self, f: bool = True):
         r"""Get the most recent iteration number for a LAVA case
 
         :Call:

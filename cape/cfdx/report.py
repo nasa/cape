@@ -3285,9 +3285,12 @@ class Report(object):
             if nMax is None:
                 nMax = opts.get_DataBookNMaxStats()
             # Numbers of iterations for plots
-            nPlotIter  = opts.get_SubfigOpt(sfig, "NPlotIters", k)
+            nPlotIter = opts.get_SubfigOpt(sfig, "NPlotIters", k)
             nPlotFirst = opts.get_SubfigOpt(sfig, "NPlotFirst", k)
-            nPlotLast  = opts.get_SubfigOpt(sfig, "NPlotLast",  k)
+            nPlotLast = opts.get_SubfigOpt(sfig, "NPlotLast",  k)
+            nPlotAvg = opts.get_SubfigOpt(sfig, "NStats", k)
+            # Check for custom averaging window
+            nStats = nStats if nPlotAvg is None else nPlotAvg
             # Check if there are iterations.
             if nIter < 2:
                 continue
