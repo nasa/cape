@@ -35,6 +35,8 @@ class Encoder(nn.Module):
             activation: Optional[nn.Module] = None):
         # Call parent function
         super().__init__()
+        # Save input length
+        self.input_length = input_length
         # Default list of layer output channels
         if channel_list is None:
             # Default number of layers
@@ -103,6 +105,7 @@ class Encoder(nn.Module):
 class ConvDecoder(nn.Module):
     def __init__(
             self,
+            input_length: int,
             out_channels: int = 1,
             latent_dim: int = 10,
             channel_list: Optional[list] = None,
@@ -115,7 +118,8 @@ class ConvDecoder(nn.Module):
             out_padding: Union[list, int] = 1,
             batchnorm: bool = True,
             dropout: float = 0.0,
-            activation: Optional[nn.Module] = None):
+            activation: Optional[nn.Module] = None,
+            final_activation: Optional[nn.Module] = None):
         # Call parent function
         super().__init__()
         # Default list of layer output channels
@@ -138,6 +142,7 @@ class ConvDecoder(nn.Module):
             nn.ReLU(inplace=True) if activation is None
             else activation)
         # Save parameters
+        self.input_length = input_length
         self.latent_dim = latent_dim
         self.encoder_out_length = encoder_out_length
         self.encoder_flat_size = encoder_flat_size
@@ -148,8 +153,8 @@ class ConvDecoder(nn.Module):
         blocks = []
         for j in range(n - 1):
             # Channel size
-            ch1 = channel_list[j]
-            ch2 = channel_list[j + 1]
+            ch1 = 1
+            ch2 = 1
             # Options for this layer
             sj = strides[j]
             fj = kernel_sizes[j]
@@ -183,7 +188,7 @@ class ConvDecoder(nn.Module):
         ch = self.encoder_flat_size // self.encoder_out_length
         x = x.view(x.size(0), ch, self.encoder_out_length)
         # Run convolution blocks
-        return self.conv_blocks(x)
+        return self.conv_blocks(x)[..., :self.input_length]
 
 
 class ConvAutoencoder(nn.Module):
@@ -216,6 +221,7 @@ class ConvAutoencoder(nn.Module):
             padding: Union[int, list] = 1,
             out_padding: Union[int, list] = 1,
             activation: nn.Module = nn.LeakyReLU(0.2),
+            final_activation: Optional[nn.Module] = None,
             batchnorm: bool = True,
             dropout: float = 0.2,
             weight_init: str = "kaiming"):
@@ -235,9 +241,10 @@ class ConvAutoencoder(nn.Module):
         with torch.no_grad():
             feat, _ = self.encoder(dummy)
         enc_out_length = feat.shape[2]
-        enc_flat       = feat.flatten(1).shape[1]
+        enc_flat = feat.flatten(1).shape[1]
         # Create the decoder
         self.decoder = ConvDecoder(
+            input_length,
             out_channels=1, latent_dim=latent_dim,
             channel_list=channel_list, n=n,
             encoder_flat_size=enc_flat, encoder_out_length=enc_out_length,
@@ -247,7 +254,8 @@ class ConvAutoencoder(nn.Module):
             out_padding=out_padding,
             batchnorm=batchnorm,
             dropout=dropout,
-            activation=activation)
+            activation=activation,
+            final_activation=final_activation)
         # Initialize weights
         self._init_weights(weight_init)
 
@@ -266,8 +274,10 @@ class ConvAutoencoder(nn.Module):
                     nn.init.zeros_(m.bias)
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        # Run encoder
         feat, z = self.encoder(x)
-        recon   = self.decoder(feat, z)
+        # Run decoder
+        recon = self.decoder(feat, z)
         return recon, z
 
     @torch.no_grad()
@@ -407,18 +417,6 @@ def train_model(
                 msg += f"  val={val_loss:.6f}"
             print(msg)
     return history
-
-
-def main():
-    # Select best available device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # Batch size
-    batch_size = 16
-    # Number of training epochs
-    ephocs = 250
-    # Number of input channels is 1
-    # Length of sequcne
-    seq_len = 41371
 
 
 def _enlist(v: Union[list, int], n: int) -> list:
