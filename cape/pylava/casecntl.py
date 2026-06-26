@@ -1279,8 +1279,6 @@ class CaseRunner(casecntl.CaseRunner):
             # Cleanup
             if clean:
                 self._cleanup_cutplane_files(nsurf, j)
-        # Clean up prompt
-        print("")
 
     def _normalize_mode(self, mode: Union[str, int] = "adaptive") -> str:
         # Check mode
@@ -2109,8 +2107,6 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for clean
             if clean and (j != iref):
                 self.remove_file(fvtk)
-        # Clean up prompt
-        print("")
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
 
