@@ -2315,6 +2315,8 @@ def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
         clean=clean,
         nmax=nmax,
         nproc=nproc)
+    # Clean up prompt
+    print("")
     # Return code
     return IERR_OK
 
@@ -2362,6 +2364,8 @@ def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
         mode=mode,
         nmax=nmax,
         nproc=nproc)
+    # Clean up prompt
+    print("")
     # Return code
     return IERR_OK
 

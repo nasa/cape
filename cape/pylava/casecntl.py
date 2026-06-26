@@ -1035,7 +1035,7 @@ class CaseRunner(casecntl.CaseRunner):
                     clean=clean, nmax=nmax, nproc=nproc)
             except Exception as e:
                 # Continue on to next surface
-                print(f"\n  Collecting surf{nsurf-1:02d} failed")
+                print(f"\n  Collecting isosurf{nsurf-1:02d} failed")
                 eargs = [str(a) for a in e.args]
                 self.log_verbose(f"{type(e).__name__}: " + ' '.join(eargs))
                 self.log_verbose(traceback.format_exc())
@@ -1279,8 +1279,6 @@ class CaseRunner(casecntl.CaseRunner):
             # Cleanup
             if clean:
                 self._cleanup_cutplane_files(nsurf, j)
-        # Clean up prompt
-        print("")
 
     def _normalize_mode(self, mode: Union[str, int] = "adaptive") -> str:
         # Check mode
@@ -2109,8 +2107,6 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for clean
             if clean and (j != iref):
                 self.remove_file(fvtk)
-        # Clean up prompt
-        print("")
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
 
