@@ -3235,12 +3235,9 @@ class CntlBase(ABC):
         if kw.get("norestart") or (not kw.get("restart", True)):
             # Do not submit jobs labeled "INCOMP"
             stat_submit = ["---"]
-        elif q_strt:
+        else:
             # Submit either new jobs or "INCOMP"
             stat_submit = ["---", "INCOMP"]
-        else:
-            # If not starting jobs, no reason for "INCOMP"
-            stat_submit = ["---"]
         # Check for --no-qsub option
         if not kw.get('qsub', True):
             self.opts.set_qsub(False)
@@ -3436,7 +3433,7 @@ class CntlBase(ABC):
             # Check status.
             if qCheck:
                 continue
-            # If submitting is allowed, check the job status.
+            # If submitting is allowed, check the job status
             if (sts in stat_submit) and self.FilterUser(i, **kw):
                 # Prepare the job
                 self.PrepareCase(i)
@@ -3455,9 +3452,9 @@ class CntlBase(ABC):
        # ---------
        # Summary
        # ---------
-        # Extra line.
+        # Extra line
         print("")
-        # State how many jobs submitted.
+        # State how many jobs submitted
         if nSub:
             # Submitted/started?
             if q_strt:

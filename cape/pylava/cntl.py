@@ -265,22 +265,22 @@ class Cntl(capecntl.Cntl):
         self.opts.setx_i(i)
         # Get the existing status
         n = self.CheckCase(i)
-        # Quit if prepared.
-        if n is not None:
-            return None
+        # Quit if prepared
+        if n is not None and n > 0:
+            return
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
         # Case function
         self.CaseFunction(i)
-        # Prepare the mesh (and create folders if necessary).
+        # Prepare the mesh (and create folders if necessary)
         self.PrepareMesh(i)
         # Go to case folder
         os.chdir(frun)
-        # Write the conditions to a simple JSON file.
+        # Write the conditions to a simple JSON file
         self.x.WriteConditionsJSON(i)
         # Write a JSON file with contents of "RunControl" section
         self.WriteCaseJSON(i)
-        # Write the PBS script.
+        # Write the PBS script
         self.WritePBS(i)
         # Write YAML file
         self.PrepareInputFile(i)
