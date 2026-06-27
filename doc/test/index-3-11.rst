@@ -7,11 +7,11 @@ Test report for ``cape`` (Python 3.11)
     :python-version: 3.11
     :name: pytest
     :errors: 0
-    :failures: 0
+    :failures: 6
     :skipped: 0
     :tests: 370
-    :time: 537.302
-    :timestamp: 2026-06-26T01:33:11.202206
-    :hostname: r202c2t7n1
+    :time: 459.058
+    :timestamp: 2026-06-27T01:32:36.707304
+    :hostname: r205c4t8n3
     :python-fullversion: 3.11.5 (main, Oct 26 2023, 15:30:22) [GCC 8.5.0 20210514 (Red Hat 8.5.0-18)]
     :python-executable: /nasa/pkgsrc/toss4/2023Q3/views/python/3.11.5/bin/python3
