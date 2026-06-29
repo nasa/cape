@@ -839,7 +839,6 @@ def assert_regex(c: str, regex, desc=None):
         msg1 = f"After {desc} expected to match: "
     # Show what we got
     msg3 = f"; got '{c}'"
-    breakpoint()
     # Raise an exception
     raise ValueError(msg1 + msg2 + msg3)
 
