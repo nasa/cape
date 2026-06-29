@@ -1275,7 +1275,7 @@ class CaseData(DataKit):
         n2 = n // 2
         n4 = n // 4
         # Check history size
-        if n < 5:
+        if n < 50:
             return state
         # Save window sizes
         state["windows"] = [n, n2, n4]

@@ -1022,7 +1022,7 @@ class CaseRunner(casecntl.CaseRunner):
                     clean=clean, nmax=nmax, nproc=nproc)
             except Exception as e:
                 # Continue on to next surface
-                print(f"\n  Collecting isosurf{nsurf-1:02d} failed")
+                self._printf(f"\n  Collecting isosurf{nsurf-1:02d} failed")
                 eargs = [str(a) for a in e.args]
                 self.log_verbose(f"{type(e).__name__}: " + ' '.join(eargs))
                 self.log_verbose(traceback.format_exc())
