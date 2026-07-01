@@ -5210,7 +5210,11 @@ class CaseRunner(CaseRunnerBase):
             # Check if it's cache
             fm = cache.get(comp)
             # If not, read it
-            fm = fm if (fm is not None) else self.read_dex(comp)
+            if fm is None:
+                try:
+                    fm = self.read_dex(comp)
+                except Exception:
+                    continue
             # Save it (no effect if already cached)
             cache[comp] = fm
             # Now process it
