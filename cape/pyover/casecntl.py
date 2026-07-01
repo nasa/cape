@@ -327,7 +327,7 @@ class CaseRunner(casecntl.CaseRunner):
         return rc.get_PhaseSequence(i)
 
     # Get current iteration
-    def getx_iter(self):
+    def getx_iter(self, f: bool = False) -> Optional[int]:
         r"""Get the most recent iteration number for OVERFLOW case
 
         :Call:

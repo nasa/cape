@@ -192,11 +192,11 @@ class CaseRunner(casecntl.CaseRunner):
     # --- Case status ---
     # Get current iter
     @casecntl.run_rootdir
-    def getx_iter(self):
+    def getx_iter(self, f: bool = True):
         r"""Get the most recent iteration number
 
         :Call:
-            >>> n = runner.getx_iter()
+            >>> n = runner.getx_iter(f=True)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver

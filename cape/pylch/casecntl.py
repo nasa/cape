@@ -162,7 +162,7 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Status ---
     # Get current iteration
     @casecntl.run_rootdir
-    def getx_iter(self) -> Optional[int]:
+    def getx_iter(self, f: bool = True) -> Optional[int]:
         r"""Get the most recent iteration number for Loci/CHEM case
 
         :Call:
