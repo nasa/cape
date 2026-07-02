@@ -1166,7 +1166,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Update metadata
                 self.write_cutplane_meta(nsurf, db, mode)
                 # Cleanup
-                if clean:
+                if clean and (i != iref):
                     self._cleanup_cutplane_files(nsurf, j)
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
@@ -1264,7 +1264,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Update metadata
             self.write_cutplane_meta(nsurf, db, mode)
             # Cleanup
-            if clean:
+            if clean and (i != iref):
                 self._cleanup_cutplane_files(nsurf, j)
 
     def _normalize_mode(self, mode: Union[str, int] = "adaptive") -> str:
