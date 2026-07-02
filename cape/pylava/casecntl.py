@@ -529,7 +529,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for files
         if os.path.isfile(ftri):
             # Cleanup
-            if clean and os.path.isfile(fvtk):
+            if clean and os.path.isfile(fvtk) and n > 0:
                 self.remove_file(fvtk)
             return False
         elif not os.path.isfile(fvtk):
@@ -544,7 +544,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Write it
         mesh.write_vtk(ftri)
         # Cleanup
-        if clean:
+        if clean and n > 0:
             self.remove_file(fvtk)
         # Output
         return True
@@ -1085,7 +1085,7 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # First read metadata
         self._printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}\n")
-        db = self.read_cutplane_meta(nsurf, "adaptive")
+        db = self.read_cutplane_meta(nsurf, mode)
         # Number of time steps saved
         nt = db["nt"]
         # Get reference iteration
@@ -1277,6 +1277,9 @@ class CaseRunner(casecntl.CaseRunner):
             return "raw"
 
     def _cleanup_cutplane_files(self, nsurf: int, i: int):
+        # Always abort fir i=0
+        if i == 0:
+            return
         # Prefix for VTK files
         prefix = self._genr8_cutplane_prefix(nsurf)
         # Name of VTK files
@@ -1284,7 +1287,12 @@ class CaseRunner(casecntl.CaseRunner):
         fvtk = f"{prefixi}.vtk"
         ftri = f"{prefixi}.tri.vtk"
         ffix = f"{prefixi}.fixed.vtk"
-        vtks = [fvtk, ftri, ffix]
+        # CDB files
+        prefix2 = os.path.join("isosurface", f"surf{nsurf-1:02d}")
+        frawc = f"{prefix2}_raw.{i:09d}.cdb"
+        ftric = f"{prefix2}_adaptive.{i:09d}.cdb"
+        ffixc = f"{prefix2}_fixed.{i:09d}.cdb"
+        vtks = [fvtk, ftri, ffix, frawc, ftric, ffixc]
         # Delete them
         for fi in vtks:
             if os.path.isfile(fi):
@@ -2017,7 +2025,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Update metadata
                 self.write_surfdata_meta(nsurf, db)
                 # Check for clean
-                if clean and (j != iref):
+                if clean and (i != iref):
                     self.remove_file(fvtk)
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
@@ -2093,7 +2101,7 @@ class CaseRunner(casecntl.CaseRunner):
             self.write_surfdata_meta(nsurf, db)
             # Check for clean
             if clean and (j != iref):
-                self.remove_file(fvtk)
+                self.remove_file(fvtkj)
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
 
