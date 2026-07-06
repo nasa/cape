@@ -26,7 +26,6 @@ except ImportError:
 
 # Local imports
 from . import cmdgen
-from .. import fileutils
 from .databook import CaseFM, CasePointProbe, CaseResid
 from .dataiterfile import DataIterFile
 from .runinpfile import CartInputFile
@@ -1208,7 +1207,7 @@ class CaseRunner(casecntl.CaseRunner):
                 os._exit(0)
             # Create DataKit
             dbi = DataKit()
-            if mode != "fixed":
+            if mode not in ("fixed", "constant"):
                 dbi.save_col("nodes", surf.nodes)
                 dbi.save_col("tris", surf.tris)
             dbi.save_col("q", surf.q)
