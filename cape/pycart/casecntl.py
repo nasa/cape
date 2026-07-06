@@ -653,7 +653,7 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Case status ---
     # Function to get most recent iteration
-    def getx_iter(self):
+    def getx_iter(self, f=True):
         r"""Get the residual of the most recent iteration
 
         :Call:

@@ -1270,12 +1270,14 @@ class CaseData(DataKit):
         v = self[col]
         i = self[CASE_COL_ITERS]
         t = self.get(CASE_COL_TIME, i)
+        # Check for empty time vector
+        t = i if (t.size == 0) else t
         # Get window sizes
         n = v.size
         n2 = n // 2
         n4 = n // 4
         # Check history size
-        if n < 5:
+        if n < 50:
             return state
         # Save window sizes
         state["windows"] = [n, n2, n4]

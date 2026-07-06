@@ -1575,18 +1575,17 @@ class CaseRunner(CaseRunnerBase):
         fhist = f"{self._logprefix}.{j:02d}.{n}"
         # Assuming that worked, move the temp output file
         if os.path.isfile(fout):
-            if not os.path.isfile(fhist):
-                # Move the file
-                os.rename(fout, fhist)
-            else:
-                # Loop until new file name found
-                for j in range(100):
-                    # Add suffix
-                    fhist = f"{self._logprefix}.{j:02d}.{n}.{j}"
-                    # Check
-                    if not os.path.isfile(fhist):
-                        os.rename(fout, fhist)
+            # Check for conflicting file
+            if os.path.isfile(fhist):
+                for k in range(100):
+                    # Add a suffix
+                    fold = f"{fhist}.{k}"
+                    # Check for that one
+                    if not os.path.isfile(fold):
+                        self.rename_file(fhist, fold)
                         break
+            # Now rename the STDOUT file
+            self.rename_file(fout, fhist)
         else:
             # Create an empty file
             fileutils.touch(fhist)
@@ -5211,7 +5210,11 @@ class CaseRunner(CaseRunnerBase):
             # Check if it's cache
             fm = cache.get(comp)
             # If not, read it
-            fm = fm if (fm is not None) else self.read_dex(comp)
+            if fm is None:
+                try:
+                    fm = self.read_dex(comp)
+                except Exception:
+                    continue
             # Save it (no effect if already cached)
             cache[comp] = fm
             # Now process it
@@ -6167,7 +6170,6 @@ class CaseRunner(CaseRunnerBase):
 
    # --- Status: Iteration ---
     # Get most recent observable iteration
-    @run_rootdir
     def get_iter(self, f: bool = True) -> int:
         r"""Detect most recent iteration
 
@@ -6184,7 +6186,7 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2023-06-20 ``@ddalle``: v1.0
         """
-        return self.get_iter_simple(f)
+        return self.getx_iter(f)
 
     # Get iteration using simpler methods
     @run_rootdir
@@ -6261,14 +6263,16 @@ class CaseRunner(CaseRunnerBase):
         return max(0, nt-nc)
 
     # Get most recent observable iteration
-    def getx_iter(self) -> int:
+    def getx_iter(self, f: bool = False) -> int:
         r"""Calculate most recent iteration
 
         :Call:
-            >>> n = runner.getx_iter()
+            >>> n = runner.getx_iter(f=False)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+            *f*: ``True`` | {``False``}
+                Force reread; ignore cache
         :Outputs:
             *n*: :class:`int`
                 Iteration number
@@ -6276,7 +6280,7 @@ class CaseRunner(CaseRunnerBase):
             * 2023-06-20 ``@ddalle``: v1.0
         """
         # CFD{X} version
-        return 0
+        return self.get_iter_simple()
 
     # Get last iteration
     def get_last_iter(self) -> int:

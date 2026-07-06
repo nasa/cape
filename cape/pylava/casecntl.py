@@ -176,23 +176,10 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2024-10-11 ``@ddalle``: v1.0
+            * 2026-06-26 ``@ddalle``: v2.0; save old copies
         """
-        # Get the current iteration number
-        n = self.get_iter()
-        # Genrate name of STDOUT log, "run.{phase}.{n}"
-        fhist = "run.%02i.%i" % (j, n)
-        # Get solver
-        rc = self.read_case_json()
-        solver = rc.get_LAVASolver()
-        # Get STDOUT file name
-        stdoutbase = "superlava" if solver == "curvilinear" else "lava"
-        # Rename the STDOUT file
-        if os.path.isfile(f"{stdoutbase}.out"):
-            # Move the file
-            os.rename(f"{stdoutbase}.out", fhist)
-        else:
-            # Create an empty file
-            fileutils.touch(fhist)
+        # Save STDOUT
+        self.finalize_stdoutfile(j)
 
    # --- Status ---
     # Function to get total iteration number
@@ -250,7 +237,7 @@ class CaseRunner(casecntl.CaseRunner):
         return 0.0
 
     # Get current iteration
-    def getx_iter(self):
+    def getx_iter(self, f: bool = True):
         r"""Get the most recent iteration number for a LAVA case
 
         :Call:
@@ -542,7 +529,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for files
         if os.path.isfile(ftri):
             # Cleanup
-            if clean and os.path.isfile(fvtk):
+            if clean and os.path.isfile(fvtk) and n > 0:
                 self.remove_file(fvtk)
             return False
         elif not os.path.isfile(fvtk):
@@ -557,7 +544,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Write it
         mesh.write_vtk(ftri)
         # Cleanup
-        if clean:
+        if clean and n > 0:
             self.remove_file(fvtk)
         # Output
         return True
@@ -1035,7 +1022,7 @@ class CaseRunner(casecntl.CaseRunner):
                     clean=clean, nmax=nmax, nproc=nproc)
             except Exception as e:
                 # Continue on to next surface
-                print(f"\n  Collecting isosurf{nsurf-1:02d} failed")
+                self._printf(f"\n  Collecting isosurf{nsurf-1:02d} failed")
                 eargs = [str(a) for a in e.args]
                 self.log_verbose(f"{type(e).__name__}: " + ' '.join(eargs))
                 self.log_verbose(traceback.format_exc())
@@ -1098,7 +1085,7 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # First read metadata
         self._printf(f"  Reading metadata for isosurface/surf{nsurf-1:02d}\n")
-        db = self.read_cutplane_meta(nsurf, "adaptive")
+        db = self.read_cutplane_meta(nsurf, mode)
         # Number of time steps saved
         nt = db["nt"]
         # Get reference iteration
@@ -1179,7 +1166,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Update metadata
                 self.write_cutplane_meta(nsurf, db, mode)
                 # Cleanup
-                if clean:
+                if clean and (i != iref):
                     self._cleanup_cutplane_files(nsurf, j)
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
@@ -1277,7 +1264,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Update metadata
             self.write_cutplane_meta(nsurf, db, mode)
             # Cleanup
-            if clean:
+            if clean and (i != iref):
                 self._cleanup_cutplane_files(nsurf, j)
 
     def _normalize_mode(self, mode: Union[str, int] = "adaptive") -> str:
@@ -1292,6 +1279,9 @@ class CaseRunner(casecntl.CaseRunner):
             return "raw"
 
     def _cleanup_cutplane_files(self, nsurf: int, i: int):
+        # Always abort fir i=0
+        if i == 0:
+            return
         # Prefix for VTK files
         prefix = self._genr8_cutplane_prefix(nsurf)
         # Name of VTK files
@@ -1299,7 +1289,12 @@ class CaseRunner(casecntl.CaseRunner):
         fvtk = f"{prefixi}.vtk"
         ftri = f"{prefixi}.tri.vtk"
         ffix = f"{prefixi}.fixed.vtk"
-        vtks = [fvtk, ftri, ffix]
+        # CDB files
+        prefix2 = os.path.join("isosurface", f"surf{nsurf-1:02d}")
+        frawc = f"{prefix2}_raw.{i:09d}.cdb"
+        ftric = f"{prefix2}_adaptive.{i:09d}.cdb"
+        ffixc = f"{prefix2}_fixed.{i:09d}.cdb"
+        vtks = [fvtk, ftri, ffix, frawc, ftric, ffixc]
         # Delete them
         for fi in vtks:
             if os.path.isfile(fi):
@@ -2032,7 +2027,7 @@ class CaseRunner(casecntl.CaseRunner):
                 # Update metadata
                 self.write_surfdata_meta(nsurf, db)
                 # Check for clean
-                if clean and (j != iref):
+                if clean and (i != iref):
                     self.remove_file(fvtk)
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
@@ -2108,7 +2103,7 @@ class CaseRunner(casecntl.CaseRunner):
             self.write_surfdata_meta(nsurf, db)
             # Check for clean
             if clean and (j != iref):
-                self.remove_file(fvtk)
+                self.remove_file(fvtkj)
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
 
