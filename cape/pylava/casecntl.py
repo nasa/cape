@@ -1286,6 +1286,8 @@ class CaseRunner(casecntl.CaseRunner):
             return "fixed"
         elif mode in (1, "adaptive"):
             return "adaptive"
+        elif mode in (3, "const", "constant"):
+            return "constant"
         else:
             return "raw"
 
