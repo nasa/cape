@@ -1367,6 +1367,17 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return j, k
 
+    def _read_cutplane_ref(self, nsurf: int, mode: str = "fixed") -> Umesh:
+        # Get reference iteration
+        n = self.get_opt("RefIter")
+        # Function name based on mode
+        infix = "_raw" if (mode == "raw") else "_tri"
+        # Get the function
+        func = getattr(self, f"read_cutplane{infix}")
+        # Read triangulated data for that iter
+        return func(nsurf, n)
+
+   # --- Cut-plane metadata ---
     @casecntl.run_rootdir
     def read_cutplane_meta(self, nsurf: int, mode: str) -> DataKit:
         r"""Read database of metadata for collected cutplane data
@@ -1428,6 +1439,24 @@ class CaseRunner(casecntl.CaseRunner):
         # Write it
         db.write(fname)
 
+    def _genr8_cutplane_metafile(
+            self, nsurf: int = 0, mode: str = "fixed") -> str:
+        # Generate infix if necessary
+        infix = "" if (mode == "adaptive") else f"_{mode}"
+        # Get name of file
+        return os.path.join(
+            "isosurface", f"surf{nsurf-1:02d}{infix}.Cart.cdb")
+
+    def _genr8_cutplane_batchfile(
+            self, nsurf: int, batch: int, mode: str = "fixed") -> str:
+        # Generate infix
+        infix = "" if (mode == "adaptive") else f"_{mode}"
+        # Get name of file
+        return os.path.join(
+            "isosurface",
+            f"surf{nsurf-1:02d}{infix}.Cart.batch{batch:04d}.cdb")
+
+   # --- Cut-plane data writers ---
     def _write_cutplanedata(
             self,
             mode: str,
@@ -1691,33 +1720,6 @@ class CaseRunner(casecntl.CaseRunner):
             cdb.write(fname)
         # Return name of file
         return fname
-
-    def _read_cutplane_ref(self, nsurf: int, mode: str = "fixed") -> Umesh:
-        # Get reference iteration
-        n = self.get_opt("RefIter")
-        # Function name based on mode
-        infix = "_raw" if (mode == "raw") else "_tri"
-        # Get the function
-        func = getattr(self, f"read_cutplane{infix}")
-        # Read triangulated data for that iter
-        return func(nsurf, n)
-
-    def _genr8_cutplane_metafile(
-            self, nsurf: int = 0, mode: str = "fixed") -> str:
-        # Generate infix if necessary
-        infix = "" if (mode == "adaptive") else f"_{mode}"
-        # Get name of file
-        return os.path.join(
-            "isosurface", f"surf{nsurf-1:02d}{infix}.Cart.cdb")
-
-    def _genr8_cutplane_batchfile(
-            self, nsurf: int, batch: int, mode: str = "fixed") -> str:
-        # Generate infix
-        infix = "" if (mode == "adaptive") else f"_{mode}"
-        # Get name of file
-        return os.path.join(
-            "isosurface",
-            f"surf{nsurf-1:02d}{infix}.Cart.batch{batch:04d}.cdb")
 
    # --- Cut-plane definitions ---
     def get_cutplanes(self) -> list:
