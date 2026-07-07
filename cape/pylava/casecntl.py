@@ -904,8 +904,9 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Normalize mode
         mode = self._normalize_mode(mode)
+        readmode = "raw" if (mode == "constant") else mode
         # Get reader
-        suffix = "tri" if (mode == "adaptive") else mode
+        suffix = "tri" if (mode == "adaptive") else readmode
         # Get function name
         funcname = f"read_cutplane_{suffix}"
         # Get function
@@ -1122,6 +1123,7 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Normalize mode
         mode = self._normalize_mode(mode)
+        readmode = "raw" if (mode == "constant") else mode
         # Get iterations
         iters = self.search_cutplane_iters(nsurf, mode)
         # Exit if none
@@ -1530,6 +1532,9 @@ class CaseRunner(casecntl.CaseRunner):
         elif mode == "adaptive":
             self._write_cutplanedata_adaptive(
                 nsurf, batch, i, nodes, tris, q)
+        elif mode == "constant":
+            self._write_cutplanedata_constant(
+                nsurf, batch, i, q)
         else:
             self._write_cutplanedata_raw(
                 nsurf, batch, i, nodes, tris, q)
@@ -1540,7 +1545,7 @@ class CaseRunner(casecntl.CaseRunner):
             batch: int,
             i: int,
             q: np.ndarray):
-        self._write_cutplanedata1("constant", nsurf, batch, i, q)
+        self._write_cutplanedata1("fixed", nsurf, batch, i, q)
 
     def _write_cutplanedata_constant(
             self,
@@ -1633,7 +1638,7 @@ class CaseRunner(casecntl.CaseRunner):
             i: int,
             q: np.ndarray):
         # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch1(nsurf, batch)
+        fcdb = self._init_cutplane_batch1(nsurf, batch, mode)
         # Check for file
         if not os.path.isfile(fcdb):
             self.log_verbose(f"File not found: {fcdb}")
@@ -1755,8 +1760,10 @@ class CaseRunner(casecntl.CaseRunner):
         fname = self._genr8_cutplane_batchfile(nsurf, batch, mode=mode)
         # Check if file exists
         if not os.path.isfile(fname):
+            # Mode for ref file
+            refmode = "raw" if (mode == "constant") else mode
             # Read reference VTK file
-            surf = self._read_cutplane_ref(nsurf)
+            surf = self._read_cutplane_ref(nsurf, mode=refmode)
             # Get number of states and nodes
             nnode = surf.nnode
             nq = surf.nq
