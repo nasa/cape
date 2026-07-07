@@ -1293,6 +1293,14 @@ class CaseRunner(casecntl.CaseRunner):
         # Get integers from these file names
         iters = [int(v.split('.')[1]) for v in vtkfiles]
         iters = np.unique(iters)
+        # Read "raw" metadata if appropriate
+        if mode in ("adaptive", "fixed", "constant"):
+            db = self.read_cutplane_meta(nsurf, "raw")
+            iters = np.union1d(iters, db["i"])
+        # Read "adaptive" metadata if appropriate
+        if mode in ("fixed",):
+            db = self.read_cutplane_meta(nsurf, "adaptive")
+            iters = np.union1d(iters, db["i"])
         # Output
         return iters
 
