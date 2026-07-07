@@ -101,6 +101,7 @@ class CfdxArgReader(argread.ArgReader):
         "checkFM": "check-fm",
         "checkLL": "check-ll",
         "checkTriqFM": "check-triqfm",
+        "const": "constant",
         "constraints": "cons",
         "early-exit": "early",
         "edit-json": "edit",
@@ -142,6 +143,7 @@ class CfdxArgReader(argread.ArgReader):
         "clean": bool,
         "compile": bool,
         "cons": str,
+        "constant": bool,
         "cmd": str,
         "cutoff": str,
         "dbpyfunc": (bool, str),
@@ -269,6 +271,7 @@ class CfdxArgReader(argread.ArgReader):
         "cols": "Explicit list of status columns",
         "counters": "Explicit list of keys to show totals for in ``py{x} -c``",
         "cons": 'Constraints on run matrix keys, e.g. ``"mach>1.0"``',
+        "constant": "Assume a fixed (not adaptive) mesh for data collection",
         "cutoff": "Min file size or count for 'large'",
         "dbpyfunc": "Extract scalar data from custom Python function",
         "delete": "Delete DataBook entries instead of adding new ones",
@@ -698,6 +701,7 @@ class CfdxCollectCutPlaneArgs(CfdxCollectSurfArgs):
     # Additional options
     _optlist = (
         "adaptive",
+        "constant",
         "fixed",
         "nproc",
         "raw",
@@ -1348,6 +1352,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "compile",
         "cols",
         "cons",
+        "constant",
         "counters",
         "cutoff",
         "dbpyfunc",
@@ -2346,7 +2351,7 @@ def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
     nproc = kw.get("nproc")
     # Process mode options
     modes = [
-        opt for opt in ("adaptive", "fixed", "raw")
+        opt for opt in ("adaptive", "constant", "fixed", "raw")
         if kw.get(opt) is not None
     ]
     # Check for multiple options

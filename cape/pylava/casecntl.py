@@ -549,44 +549,40 @@ class CaseRunner(casecntl.CaseRunner):
         return True
 
    # --- Cut-plane readers ---
-    @casecntl.run_rootdir
-    def read_cutplane_best(self, nsurf: int, n: int) -> Optional[Umesh]:
-        r"""Read cut-plane file, using triangulated if available
+    def read_cutplane(
+            self,
+            nsurf: int,
+            n: Optional[int] = None,
+            mode: str = "raw") -> Umesh:
+        r"""Read a cut plane using best available method
 
         :Call:
-            >>> mesh = runner.read_cutplane_best(nsurf, n)
+            >>> mesh = runner.read_cutplane(nsurf, n=None, mode="raw")
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *nsurf*: :class:`int`
-                Surface index
+                LAVA surface number (1-based)
             *n*: :class:`int`
                 Iteration number
-        :Outputs:
-            *mesh*: ``None`` | :class:`cape.gruvoc.umesh.Umesh`
-                Triangulated cut plane instance
+            *mode*: ``"raw"`` | {``"adaptive"``} | ``"fixed"``
+                Mode of how to save data, raw data, triangulated, and
+                interpolated to a common mesh. If the data has no mesh
+                adaptation, ``"fixed"`` is recommended
         :Versions:
-            * 2026-04-09 ``@ddalle``: v1.0
+            * 2026-07-07 ``@ddalle``: v1.0
         """
-        # Read cut plane definition
-        defn = self.read_cutplane_defn(nsurf)
-        # Check for valid cut plane
-        if defn is None:
-            return
-        # Get name of file
-        prefix = self._genr8_cutplane_prefix(nsurf, defn)
-        basename = f"{prefix}.{n:09d}"
-        # Potential file names
-        fvtk = f"{basename}.vtk"
-        ftri = f"{basename}.tri.vtk"
-        ffix = f"{basename}.fixed.vtk"
-        # Check for file
-        if os.path.isfile(ftri):
-            return Umesh(ftri)
-        if os.path.isfile(fvtk):
-            return Umesh(fvtk)
-        if os.path.isfile(ffix):
-            return Umesh(ffix)
+        # Normalize mode
+        mode = self._normalize_mode(mode)
+        readmode = "raw" if (mode == "constant") else mode
+        # Get reader
+        suffix = "tri" if (mode == "adaptive") else readmode
+        # Get function name
+        funcname = f"read_cutplane_{suffix}"
+        # Get function
+        func = getattr(self, funcname)
+        # Call it
+        return func(nsurf, n)
 
     @casecntl.run_rootdir
     def read_cutplane_fixed(
@@ -628,13 +624,21 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for fixed-mesh file
         if os.path.isfile(ffix):
             return Umesh(ffix)
+        # Try to read from DB
+        mesh = self._read_cutplane_db_fixed(nsurf, n)
+        # Use that if able
+        if mesh is not None:
+            return mesh
+        # Read triangulated data on main iteration
+        mesh = self.read_cutplane_tri(nsurf, n)
+        # Check for success
+        if mesh is None:
+            return
         # Read triangulated data on the reference iteration
         refmesh = self.read_cutplane_tri(nsurf, nref)
         # Write it if not present
         if not os.path.isfile(ftri):
             refmesh.write(ftri)
-        # Read data (any version) on this iteration
-        mesh = self.read_cutplane_best(nsurf, n)
         # Create interpolation weights
         w, i = mesh.genr8_interp_weights(refmesh.nodes)
         # Extract state on nodes *i*
@@ -663,6 +667,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Cut plane instance
         :Versions:
             * 2026-05-28 ``@ddalle``: v1.0
+            * 2026-07-07 ``@ddalle``: v1.1; fallback to cutplane DB
         """
         # Read cut plane definition
         defn = self.read_cutplane_defn(nsurf)
@@ -677,6 +682,15 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for file
         if os.path.isfile(fvtk):
             return Umesh(fvtk)
+        # Try to read from database
+        mesh = self._read_cutplane_db_raw(nsurf, n)
+        # Return it if able
+        if mesh is not None:
+            return mesh
+        # Try to read from "constant" database
+        mesh = self._read_cutplane_db_constant(nsurf, n)
+        # That was the final try
+        return mesh
 
     @casecntl.run_rootdir
     def read_cutplane_tri(self, nsurf: int, n: int) -> Optional[Umesh]:
@@ -696,6 +710,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Triangulated cut plane instance
         :Versions:
             * 2026-04-09 ``@ddalle``: v1.0
+            * 2026-07-07 ``@ddalle``: v1.1; fallback to cutplane DB
         """
         # Read cut plane definition
         defn = self.read_cutplane_defn(nsurf)
@@ -706,28 +721,142 @@ class CaseRunner(casecntl.CaseRunner):
         prefix = self._genr8_cutplane_prefix(nsurf, defn)
         basename = f"{prefix}.{n:09d}"
         # Potential file names
-        fvtk = f"{basename}.vtk"
         ftri = f"{basename}.tri.vtk"
         # Check for file
         if os.path.isfile(ftri):
             return Umesh(ftri)
-        # Check for raw cut plane file
-        if not os.path.isfile(fvtk):
+        # Try to read from DB
+        mesh = self._read_cutplane_db_adaptive(nsurf, n)
+        # Use that if able
+        if mesh is not None:
+            return mesh
+        # Check for raw cut plane data
+        mesh = self.read_cutplane_raw(nsurf, n)
+        # Check for success
+        if mesh is not None:
+            # Project the nodes to the cut plane
+            triangulate_mesh(mesh, defn["normal"], defn["point"])
+            # Return that
+            return mesh
+
+    def _read_cutplane_db_adaptive(self, nsurf: int, n: int):
+        return self._read_cutplane_db0("adaptive", nsurf, n)
+
+    def _read_cutplane_db_constant(self, nsurf: int, n: int):
+        return self._read_cutplane_db1("constant", nsurf, n)
+
+    def _read_cutplane_db_raw(self, nsurf: int, n: int):
+        return self._read_cutplane_db0("raw", nsurf, n)
+
+    def _read_cutplane_db_fixed(self, nsurf: int, n: int):
+        return self._read_cutplane_db1("fixed", nsurf, n)
+
+    def _read_cutplane_db0(self, mode: str, nsurf: int, n: int):
+        # Read metadata
+        meta = self.read_cutplane_meta(nsurf, mode)
+        # Check that *n* is present
+        mask, _ = meta.find(["i"], n)
+        # Exit if no match
+        if mask.size == 0:
             return
-        # Read the tri file
-        mesh = Umesh(fvtk)
-        # Project the nodes to the cut plane
-        triangulate_mesh(mesh, defn["normal"], defn["point"])
-        # Return that
+        # Get batch number
+        i = mask[0]
+        j = meta["batch"][i]
+        # Create name of batch file
+        fcdb = self._genr8_cutplane_batchfile(nsurf, j, mode)
+        # Check for batch file
+        if not os.path.isfile(fcdb):  # pragma no-cover
+            self._complain_cutplane_iter(nsurf, n, mode)
+        # Read the batch file in meta-mode
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Initialize mesh
+        mesh = Umesh()
+        # Set list of variables
+        mesh.qvars = meta["qvars"]
+        # Name of columns to read
+        col1 = f"nodes.{n}"
+        col2 = f"tris.{n}"
+        col3 = f"q.{n}"
+        # Read those columns
+        dat.read_record(col1)
+        dat.read_record(col2)
+        dat.read_record(col3)
+        # Save data
+        mesh.nodes = dat[col1]
+        mesh.tris = dat[col2]
+        mesh.q = dat[col3]
+        # Size
+        mesh.nnode = mesh.nodes.shape[0]
+        mesh.ntri = mesh.tris.shape[0]
+        mesh.nq = mesh.q.shape[1]
+        # Create PyVista mesh
+        mesh.make_pvmesh_surf()
+        # Output
         return mesh
 
-    def _read_cutplane(self, mode: str, nsurf: int, n: int) -> Optional[Umesh]:
-        if mode == "fixed":
-            return self.read_cutplane_fixed(nsurf, n)
-        elif mode == "adaptive":
-            return self.read_cutplane_tri(nsurf, n)
-        else:
-            return self.read_cutplane_raw(nsurf, n)
+    def _read_cutplane_db1(self, mode: str, nsurf: int, n: int):
+        # Read metadata
+        meta = self.read_cutplane_meta(nsurf, mode)
+        # Check that *n* is present
+        mask, _ = meta.find(["i"], n)
+        # Exit if no match
+        if mask.size == 0:
+            return
+        # Get batch number
+        i = mask[0]
+        j = meta["batch"][i]
+        # Create name of batch file
+        fcdb = self._genr8_cutplane_batchfile(nsurf, j, mode)
+        # Check for batch file
+        if not os.path.isfile(fcdb):  # pragma no-cover
+            self._complain_cutplane_iter(nsurf, n, mode)
+        # Read the batch file in meta-mode
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # We need to find the index of this case w/i the batch
+        mask, _ = meta.find(["batch"], j)
+        k = np.where(meta["i"][mask] == n)[0][0]
+        # Read small fields
+        dat.read_record("nq")
+        # Check how to read reference iteration
+        refmode = "raw" if (mode == "constant") else "fixed"
+        # Read the reference iteration for geometry and shape
+        mesh = self._read_cutplane_ref(nsurf, mode=refmode)
+        # Unpack sizes
+        nnode = mesh.nnode
+        nq = mesh.nq
+        # Open the .cdb file for precise reading
+        with open(fcdb, 'rb') as fp:
+            # Go to correct position in the .cdb file
+            fp.seek(dat.pos['q'])
+            # Read record type
+            rtype_code, = fromfile_lb4_i(fp, 1)
+            # Parse record type details
+            rt = capefile.RecordType(rtype_code)
+            # Calculate length (in bytes)
+            l2 = 2 ** (rt.element_bits - 3)
+            # Skip over record size
+            fp.seek(8)
+            # Skip over record name (which should be 'q')
+            l4, = fromfile_lb4_i(fp, 1)
+            fp.read(l4)
+            # Skip number dimensions (3)
+            fromfile_lb4_i(fp, 1)
+            # Skip array shape (nnode*nq*nt)
+            fromfile_lb8_i(fp, 3)
+            # Now shift to iteration *k*
+            fp.seek(k * nnode * nq * l2)
+            # Read this slice
+            if l2 == 8:
+                q = fromfile_lb8_f(fp, nnode * nq)
+            else:
+                q = fromfile_lb4_f(fp, nnode * nq)
+            q = np.reshape(q, (nnode, nq))
+        # Save the data
+        mesh.q = q
+        # Create PyVista mesh
+        mesh.make_pvmesh_surf()
+        # Output
+        return mesh
 
     def _genr8_cutplane_infix(self, mode: str):
         if mode == "adaptive":
@@ -738,124 +867,6 @@ class CaseRunner(casecntl.CaseRunner):
             return ""
 
    # --- Cutplane data ---
-    def read_cutplane(
-            self,
-            nsurf: int,
-            n: Optional[int] = None,
-            mode: str = "raw") -> Umesh:
-        # Get definition
-        defn = self.read_cutplane_defn(nsurf)
-        self._assert_cutplane(nsurf, defn)
-        # File name prefix for this cutplane
-        prefix = self._genr8_cutplane_prefix(nsurf, defn)
-        # Get file name infix
-        infix = self._genr8_cutplane_infix(mode)
-        # Determine iteration if necessary
-        n = self.infer_cutplane_n(nsurf, n)
-        # Generate file name
-        cutplanefile = f"{prefix}.{n:09d}{infix}.vtk"
-        altfile = f"{prefix}.{n:09d}.vtk"
-        # Check if present
-        if os.path.isfile(cutplanefile):
-            # Read it
-            pvmesh = pv.read(cutplanefile)
-            # Convert to Umesh
-            return Umesh.from_pvmesh(pvmesh)
-        # Read metadata
-        meta = self.read_cutplane_meta(nsurf, mode)
-        # Check that *n* is present
-        mask, _ = meta.find(["i"], n)
-        # Check for a find in metadata (it's been collected)
-        if mask.size == 0:
-            # Check for raw file available but not mode-specific
-            if os.path.isfile(altfile):
-                # Read raw file and triangulate[, interpolate]
-                if mode == "adaptive":
-                    return self.read_cutplane_tri(nsurf, n)
-                elif mode == "fixed":
-                    return self.read_cutplane_fixed(nsurf, n)
-            # pragma no-cover
-            self._complain_cutplane_iter(nsurf, n, mode)
-        # Get batch number
-        i = mask[0]
-        j = meta["batch"][i]
-        # Infix for batch
-        infix_batch = "_adaptive" if (mode == "adaptive") else ""
-        infix_batch = "_raw" if (mode == "raw") else infix_batch
-        # Create name of batch file
-        fcdb = self._genr8_cutplane_batchfile(nsurf, j, mode)
-        # Check for batch file
-        if not os.path.isfile(fcdb):  # pragma no-cover
-            self._complain_cutplane_iter(nsurf, n, mode)
-        # Read the batch file in meta-mode
-        dat = capefile.CapeFile(fcdb, meta=True)
-        # Check which mode we are in
-        if mode == "fixed":
-            # We need to find the index of this case w/i the batch
-            mask, _ = meta.find(["batch"], j)
-            k = np.where(meta["i"][mask] == n)[0][0]
-            # Read small fields
-            dat.read_record("nq")
-            # Read the reference iteration for geometry and shape
-            mesh = self._read_cutplane_ref(nsurf, mode="fixed")
-            # Unpack sizes
-            nnode = mesh.nnode
-            nq = mesh.nq
-            # Open the .cdb file for precise reading
-            with open(fcdb, 'rb') as fp:
-                # Go to correct position in the .cdb file
-                fp.seek(dat.pos['q'])
-                # Read record type
-                rtype_code, = fromfile_lb4_i(fp, 1)
-                # Parse record type details
-                rt = capefile.RecordType(rtype_code)
-                # Calculate length (in bytes)
-                l2 = 2 ** (rt.element_bits - 3)
-                # Skip over record size
-                fp.seek(8)
-                # Skip over record name (which should be 'q')
-                l4, = fromfile_lb4_i(fp, 1)
-                fp.read(l4)
-                # Skip number dimensions (3)
-                fromfile_lb4_i(fp, 1)
-                # Skip array shape (nnode*nq*nt)
-                fromfile_lb8_i(fp, 3)
-                # Now shift to iteration *k*
-                fp.seek(k * nnode * nq * l2)
-                # Read this slice
-                if l2 == 8:
-                    q = fromfile_lb8_f(fp, nnode * nq)
-                else:
-                    q = fromfile_lb4_f(fp, nnode * nq)
-                q = np.reshape(q, (nnode, nq))
-            # Save the data
-            mesh.q = q
-        else:
-            # Initialize mesh
-            mesh = Umesh()
-            # Set list of variables
-            mesh.qvars = meta["qvars"]
-            # Name of columns to read
-            col1 = f"nodes.{n}"
-            col2 = f"tris.{n}"
-            col3 = f"q.{n}"
-            # Read those columns
-            dat.read_record(col1)
-            dat.read_record(col2)
-            dat.read_record(col3)
-            # Save data
-            mesh.nodes = dat[col1]
-            mesh.tris = dat[col2]
-            mesh.q = dat[col3]
-            # Size
-            mesh.nnode = mesh.nodes.shape[0]
-            mesh.ntri = mesh.tris.shape[0]
-            mesh.nq = mesh.q.shape[1]
-        # Create PyVista mesh
-        mesh.make_pvmesh_surf()
-        # Output
-        return mesh
-
     def infer_cutplane_n(
             self,
             nsurf: int,
@@ -1054,14 +1065,15 @@ class CaseRunner(casecntl.CaseRunner):
                 Option to delete ``.vtk`` files after processing
             *nmax*: {``None``} | :class:`int`
                 Maximum number of snapshots to collect
-            *mode*: ``"raw"`` | {``"adaptive"``} | ``"fixed"``
+            *mode*: {`"adaptive"`} | `"constant"` | `"raw"` | `"fixed"`
                 Mode of how to save data, raw data, triangulated, and
                 interpolated to a common mesh. If the data has no mesh
-                adaptation, ``"fixed"`` is recommended
+                adaptation, ``"constant"`` is recommended
             *nproc*: {``None``} | :class:`int`
                 Number of parallel processes to process cut planes
         :Versions:
             * 2026-04-10 ``@ddalle``: v1.0
+            * 2026-07-07 ``@ddalle``: v1.1; add "constant" mode
         """
         # Normalize mode
         mode = self._normalize_mode(mode)
@@ -1155,6 +1167,8 @@ class CaseRunner(casecntl.CaseRunner):
                 # Cleanup
                 if clean and (i != iref):
                     self._cleanup_cutplane_files(nsurf, j)
+                # Update counter
+                n += 1
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
                 # Delete files if appropriate
@@ -1176,8 +1190,6 @@ class CaseRunner(casecntl.CaseRunner):
                 iters_write.append(i)
                 # Also save it by case
                 case_pids[i] = pid
-                # Update counter
-                n += 1
                 # Check for exit flag
                 if (nmax is not None) and (n >= nmax):
                     # Exit loop and start collector
@@ -1186,7 +1198,7 @@ class CaseRunner(casecntl.CaseRunner):
                     # Go to next iteration
                     continue
             # Read the data
-            surf = self._read_cutplane(mode, nsurf, i)
+            surf = self.read_cutplane(nsurf, i, mode)
             # Check for output
             if not isinstance(surf, Umesh):
                 # Prefix for VTK files
@@ -1211,6 +1223,11 @@ class CaseRunner(casecntl.CaseRunner):
             j = iters_write.pop(0)
             # Get batch number and relative index
             batchj, batchk = self._get_batch_next(db, nbatch)
+            # Decrease counter if appropriate
+            if batchk == 0 and n > 0:
+                nlim = len(iters) - n
+                nlim = nlim if nmax is None else min(nmax - n, nlim)
+                nlim = min(nbatch, nlim)
             # Get PID to wait for
             pid = case_pids[j]
             # Shortened file name for logs
@@ -1252,6 +1269,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Cleanup
             if clean and (i != iref):
                 self._cleanup_cutplane_files(nsurf, j)
+            # Update counter
+            n += 1
 
     def search_cutplane_iters(
             self,
@@ -1293,6 +1312,14 @@ class CaseRunner(casecntl.CaseRunner):
         # Get integers from these file names
         iters = [int(v.split('.')[1]) for v in vtkfiles]
         iters = np.unique(iters)
+        # Read "raw" metadata if appropriate
+        if mode in ("adaptive", "fixed", "constant"):
+            db = self.read_cutplane_meta(nsurf, "raw")
+            iters = np.union1d(iters, db["i"])
+        # Read "adaptive" metadata if appropriate
+        if mode in ("fixed",):
+            db = self.read_cutplane_meta(nsurf, "adaptive")
+            iters = np.union1d(iters, db["i"])
         # Output
         return iters
 
@@ -1359,6 +1386,17 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return j, k
 
+    def _read_cutplane_ref(self, nsurf: int, mode: str = "fixed") -> Umesh:
+        # Get reference iteration
+        n = self.get_opt("RefIter")
+        # Function name based on mode
+        infix = "_raw" if (mode == "raw") else "_tri"
+        # Get the function
+        func = getattr(self, f"read_cutplane{infix}")
+        # Read triangulated data for that iter
+        return func(nsurf, n)
+
+   # --- Cut-plane metadata ---
     @casecntl.run_rootdir
     def read_cutplane_meta(self, nsurf: int, mode: str) -> DataKit:
         r"""Read database of metadata for collected cutplane data
@@ -1420,6 +1458,24 @@ class CaseRunner(casecntl.CaseRunner):
         # Write it
         db.write(fname)
 
+    def _genr8_cutplane_metafile(
+            self, nsurf: int = 0, mode: str = "fixed") -> str:
+        # Generate infix if necessary
+        infix = "" if (mode == "adaptive") else f"_{mode}"
+        # Get name of file
+        return os.path.join(
+            "isosurface", f"surf{nsurf-1:02d}{infix}.Cart.cdb")
+
+    def _genr8_cutplane_batchfile(
+            self, nsurf: int, batch: int, mode: str = "fixed") -> str:
+        # Generate infix
+        infix = "" if (mode == "adaptive") else f"_{mode}"
+        # Get name of file
+        return os.path.join(
+            "isosurface",
+            f"surf{nsurf-1:02d}{infix}.Cart.batch{batch:04d}.cdb")
+
+   # --- Cut-plane data writers ---
     def _write_cutplanedata(
             self,
             mode: str,
@@ -1436,6 +1492,9 @@ class CaseRunner(casecntl.CaseRunner):
         elif mode == "adaptive":
             self._write_cutplanedata_adaptive(
                 nsurf, batch, i, nodes, tris, q)
+        elif mode == "constant":
+            self._write_cutplanedata_constant(
+                nsurf, batch, i, q)
         else:
             self._write_cutplanedata_raw(
                 nsurf, batch, i, nodes, tris, q)
@@ -1446,8 +1505,100 @@ class CaseRunner(casecntl.CaseRunner):
             batch: int,
             i: int,
             q: np.ndarray):
+        self._write_cutplanedata1("fixed", nsurf, batch, i, q)
+
+    def _write_cutplanedata_constant(
+            self,
+            nsurf: int,
+            batch: int,
+            i: int,
+            q: np.ndarray):
+        self._write_cutplanedata1("constant", nsurf, batch, i, q)
+
+    def _write_cutplanedata_adaptive(
+            self,
+            nsurf: int,
+            batch: int,
+            i: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
+        self._write_cutplanedata0("adaptive", nsurf, batch, i, nodes, tris, q)
+
+    def _write_cutplanedata_raw(
+            self,
+            nsurf: int,
+            batch: int,
+            i: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
+        self._write_cutplanedata0("raw", nsurf, batch, i, nodes, tris, q)
+
+    def _write_cutplanedata0(
+            self,
+            mode: str,
+            nsurf: int,
+            batch: int,
+            i: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
         # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_fixed(nsurf, batch)
+        fcdb = self._init_cutplane_batch0(nsurf, batch, mode)
+        # Check for file
+        if not os.path.isfile(fcdb):
+            self.log_verbose(f"File not found: {fcdb}")
+            raise CapeFileNotFoundError(
+                f"Cut-plane collection file not found: {fcdb}")
+        # Open batch file
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Read small fields
+        dat.read_record("nt")
+        dat.read_record("nq")
+        # Get counts from batch file
+        nt = dat["nt"] + 1
+        nq = dat["nq"]
+        # Check counts
+        if q.shape[1] != nq:
+            raise CapeValueError(
+                f"In surf{nsurf+1} iter {i}; "
+                f"expected nq={nq}, got {q.shape[1]}")
+        # Open the batch file for editing
+        with open(fcdb, 'r+b') as fp:
+            # Add three records
+            fp.seek(8)
+            np.uint64(len(dat.cols) + 3).tofile(fp)
+            # Go to *nt* position
+            fp.seek(dat.pos['nt'])
+            # Read record type and size
+            fromfile_lb4_i(fp, 2)
+            # Read length of name
+            l1, = fromfile_lb4_i(fp, 1)
+            # Skip name
+            fp.read(l1)
+            # Now overwrite number of time steps in file
+            tofile_lb4_i(fp, nt)
+            # Now go to end of file
+            fp.seek(0, 2)
+            # Save data
+            dat.save_col(f"nodes.{i}", nodes.astype("f4"))
+            dat.save_col(f"tris.{i}", tris.astype("i4"))
+            dat.save_col(f"q.{i}", q.astype("f4"))
+            # Write additional data
+            dat._write_record(fp, f"nodes.{i}")
+            dat._write_record(fp, f"tris.{i}")
+            dat._write_record(fp, f"q.{i}")
+
+    def _write_cutplanedata1(
+            self,
+            mode: str,
+            nsurf: int,
+            batch: int,
+            i: int,
+            q: np.ndarray):
+        # Name of file to read; create if necessary
+        fcdb = self._init_cutplane_batch1(nsurf, batch, mode)
         # Check for file
         if not os.path.isfile(fcdb):
             self.log_verbose(f"File not found: {fcdb}")
@@ -1533,159 +1684,46 @@ class CaseRunner(casecntl.CaseRunner):
                 # Write as single-precision data
                 tofile_lb4_f(fp, q.astype("f4"))
 
-    def _write_cutplanedata_adaptive(
-            self,
-            nsurf: int,
-            batch: int,
-            i: int,
-            nodes: np.ndarray,
-            tris: np.ndarray,
-            q: np.ndarray):
-        # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_adaptive(nsurf, batch)
-        # Check for file
-        if not os.path.isfile(fcdb):
-            self.log_verbose(f"File not found: {fcdb}")
-            raise CapeFileNotFoundError(
-                f"Cut-plane collection file not found: {fcdb}")
-        # Open batch file
-        dat = capefile.CapeFile(fcdb, meta=True)
-        # Read small fields
-        dat.read_record("nt")
-        dat.read_record("nq")
-        # Get counts from batch file
-        nt = dat["nt"] + 1
-        nq = dat["nq"]
-        # Check counts
-        if q.shape[1] != nq:
-            raise CapeValueError(
-                f"In surf{nsurf+1} iter {i}; "
-                f"expected nq={nq}, got {q.shape[1]}")
-        # Open the batch file for editing
-        with open(fcdb, 'r+b') as fp:
-            # Add three records
-            fp.seek(8)
-            np.uint64(len(dat.cols) + 3).tofile(fp)
-            # Go to *nt* position
-            fp.seek(dat.pos['nt'])
-            # Read record type and size
-            fromfile_lb4_i(fp, 2)
-            # Read length of name
-            l1, = fromfile_lb4_i(fp, 1)
-            # Skip name
-            fp.read(l1)
-            # Now overwrite number of time steps in file
-            tofile_lb4_i(fp, nt)
-            # Now go to end of file
-            fp.seek(0, 2)
-            # Save data
-            dat.save_col(f"nodes.{i}", nodes.astype("f4"))
-            dat.save_col(f"tris.{i}", tris.astype("i4"))
-            dat.save_col(f"q.{i}", q.astype("f4"))
-            # Write additional data
-            dat._write_record(fp, f"nodes.{i}")
-            dat._write_record(fp, f"tris.{i}")
-            dat._write_record(fp, f"q.{i}")
-
-    def _write_cutplanedata_raw(
-            self,
-            nsurf: int,
-            batch: int,
-            i: int,
-            nodes: np.ndarray,
-            tris: np.ndarray,
-            q: np.ndarray):
-        # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_raw(nsurf, batch)
-        # Check for file
-        if not os.path.isfile(fcdb):
-            self.log_verbose(f"File not found: {fcdb}")
-            raise CapeFileNotFoundError(
-                f"Cut-plane collection file not found: {fcdb}")
-        # Open batch file
-        dat = capefile.CapeFile(fcdb, meta=True)
-        # Read small fields
-        dat.read_record("nt")
-        dat.read_record("nq")
-        # Get counts from batch file
-        nt = dat["nt"] + 1
-        nq = dat["nq"]
-        # Check counts
-        if q.shape[1] != nq:
-            raise CapeValueError(
-                f"In surf{nsurf+1} iter {i}; "
-                f"expected nq={nq}, got {q.shape[1]}")
-        # Open the batch file for editing
-        with open(fcdb, 'r+b') as fp:
-            # Add three records
-            fp.seek(8)
-            np.uint64(len(dat.cols) + 3).tofile(fp)
-            # Go to *nt* position
-            fp.seek(dat.pos['nt'])
-            # Read record type and size
-            fromfile_lb4_i(fp, 2)
-            # Read length of name
-            l1, = fromfile_lb4_i(fp, 1)
-            # Skip name
-            fp.read(l1)
-            # Now overwrite number of time steps in file
-            tofile_lb4_i(fp, nt)
-            # Now go to end of file
-            fp.seek(0, 2)
-            # Save data
-            dat.save_col(f"nodes.{i}", nodes.astype("f4"))
-            dat.save_col(f"tris.{i}", tris.astype("i4"))
-            dat.save_col(f"q.{i}", q.astype("f4"))
-            # Write additional data
-            dat._write_record(fp, f"nodes.{i}")
-            dat._write_record(fp, f"tris.{i}")
-            dat._write_record(fp, f"q.{i}")
-
     def _init_cutplane_batch_adaptive(self, nsurf: int, batch: int) -> str:
-        # Name of file
-        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode="adaptive")
-        # Check if file exists
-        if not os.path.isfile(fname):
-            # Read reference VTK file
-            surf = self._read_cutplane_ref(nsurf, mode="raw")
-            # Get number of states
-            nq = surf.nq
-            # Create a DataKit
-            db = DataKit()
-            # Initialize
-            db.save_col("nt", 0)
-            db.save_col("nq", nq)
-            # Write it
-            db.write(fname)
-        # Return name of file
-        return fname
+        return self._init_cutplane_batch0(nsurf, batch, "adaptive")
 
-    def _init_cutplane_batch_raw(self, nsurf: int, batch: int) -> str:
-        # Name of file
-        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode="raw")
-        # Check if file exists
-        if not os.path.isfile(fname):
-            # Read reference VTK file
-            surf = self._read_cutplane_ref(nsurf, mode="raw")
-            # Get number of states
-            nq = surf.nq
-            # Create a DataKit
-            db = DataKit()
-            # Initialize
-            db.save_col("nt", 0)
-            db.save_col("nq", nq)
-            # Write it
-            db.write(fname)
-        # Return name of file
-        return fname
+    def _init_cutplane_batch_constant(self, nsurf: int, batch: int) -> str:
+        return self._init_cutplane_batch1(nsurf, batch, "constant")
 
     def _init_cutplane_batch_fixed(self, nsurf: int, batch: int) -> str:
+        return self._init_cutplane_batch1(nsurf, batch, "fixed")
+
+    def _init_cutplane_batch_raw(self, nsurf: int, batch: int) -> str:
+        return self._init_cutplane_batch0(nsurf, batch, "raw")
+
+    def _init_cutplane_batch0(self, nsurf: int, batch: int, mode: str) -> str:
         # Name of file
-        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode="fixed")
+        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode=mode)
         # Check if file exists
         if not os.path.isfile(fname):
             # Read reference VTK file
-            surf = self._read_cutplane_ref(nsurf)
+            surf = self._read_cutplane_ref(nsurf, mode="raw")
+            # Get number of states
+            nq = surf.nq
+            # Create a DataKit
+            db = DataKit()
+            # Initialize
+            db.save_col("nt", 0)
+            db.save_col("nq", nq)
+            # Write it
+            db.write(fname)
+        # Return name of file
+        return fname
+
+    def _init_cutplane_batch1(self, nsurf: int, batch: int, mode: str) -> str:
+        # Name of file
+        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode=mode)
+        # Check if file exists
+        if not os.path.isfile(fname):
+            # Mode for ref file
+            refmode = "raw" if (mode == "constant") else mode
+            # Read reference VTK file
+            surf = self._read_cutplane_ref(nsurf, mode=refmode)
             # Get number of states and nodes
             nnode = surf.nnode
             nq = surf.nq
@@ -1706,33 +1744,6 @@ class CaseRunner(casecntl.CaseRunner):
             cdb.write(fname)
         # Return name of file
         return fname
-
-    def _read_cutplane_ref(self, nsurf: int, mode: str = "fixed") -> Umesh:
-        # Get reference iteration
-        n = self.get_opt("RefIter")
-        # Function name based on mode
-        infix = "_raw" if (mode == "raw") else "_tri"
-        # Get the function
-        func = getattr(self, f"read_cutplane{infix}")
-        # Read triangulated data for that iter
-        return func(nsurf, n)
-
-    def _genr8_cutplane_metafile(
-            self, nsurf: int = 0, mode: str = "fixed") -> str:
-        # Generate infix if necessary
-        infix = "" if (mode == "adaptive") else f"_{mode}"
-        # Get name of file
-        return os.path.join(
-            "isosurface", f"surf{nsurf-1:02d}{infix}.Cart.cdb")
-
-    def _genr8_cutplane_batchfile(
-            self, nsurf: int, batch: int, mode: str = "fixed") -> str:
-        # Generate infix
-        infix = "" if (mode == "adaptive") else f"_{mode}"
-        # Get name of file
-        return os.path.join(
-            "isosurface",
-            f"surf{nsurf-1:02d}{infix}.Cart.batch{batch:04d}.cdb")
 
    # --- Cut-plane definitions ---
     def get_cutplanes(self) -> list:
@@ -2058,6 +2069,8 @@ class CaseRunner(casecntl.CaseRunner):
                 # Check for clean
                 if clean and (i != iref):
                     self.remove_file(fvtk)
+                # Increase counter
+                n += 1
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
                 # Check for clean option
@@ -2074,7 +2087,6 @@ class CaseRunner(casecntl.CaseRunner):
                 self.forks.append(pid)
                 iters_write.append(i)
                 case_pids[i] = pid
-                n += 1
                 if (nmax is not None) and (n >= nmax):
                     break
                 continue
@@ -2095,6 +2107,11 @@ class CaseRunner(casecntl.CaseRunner):
             j = iters_write.pop(0)
             # Get batch number and relative index
             batchj, batchk = self._get_batch_next(db, nbatch)
+            # Recalculate limit when starting a new batch
+            if batchk == 0 and n > 0:
+                nlim = len(iters) - n
+                nlim = nlim if nmax is None else min(nmax - n, nlim)
+                nlim = min(nbatch, nlim)
             # Get PID to wait for
             pid = case_pids[j]
             # Shortened file name for logs
@@ -2133,6 +2150,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for clean
             if clean and (j != iref):
                 self.remove_file(fvtkj)
+            # Increase counter
+            n += 1
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
 
