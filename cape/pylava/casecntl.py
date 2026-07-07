@@ -884,118 +884,34 @@ class CaseRunner(casecntl.CaseRunner):
             nsurf: int,
             n: Optional[int] = None,
             mode: str = "raw") -> Umesh:
-        # Get definition
-        defn = self.read_cutplane_defn(nsurf)
-        self._assert_cutplane(nsurf, defn)
-        # File name prefix for this cutplane
-        prefix = self._genr8_cutplane_prefix(nsurf, defn)
-        # Get file name infix
-        infix = self._genr8_cutplane_infix(mode)
-        # Determine iteration if necessary
-        n = self.infer_cutplane_n(nsurf, n)
-        # Generate file name
-        cutplanefile = f"{prefix}.{n:09d}{infix}.vtk"
-        altfile = f"{prefix}.{n:09d}.vtk"
-        # Check if present
-        if os.path.isfile(cutplanefile):
-            # Read it
-            pvmesh = pv.read(cutplanefile)
-            # Convert to Umesh
-            return Umesh.from_pvmesh(pvmesh)
-        # Read metadata
-        meta = self.read_cutplane_meta(nsurf, mode)
-        # Check that *n* is present
-        mask, _ = meta.find(["i"], n)
-        # Check for a find in metadata (it's been collected)
-        if mask.size == 0:
-            # Check for raw file available but not mode-specific
-            if os.path.isfile(altfile):
-                # Read raw file and triangulate[, interpolate]
-                if mode == "adaptive":
-                    return self.read_cutplane_tri(nsurf, n)
-                elif mode == "fixed":
-                    return self.read_cutplane_fixed(nsurf, n)
-            # pragma no-cover
-            self._complain_cutplane_iter(nsurf, n, mode)
-        # Get batch number
-        i = mask[0]
-        j = meta["batch"][i]
-        # Infix for batch
-        infix_batch = "_adaptive" if (mode == "adaptive") else ""
-        infix_batch = "_raw" if (mode == "raw") else infix_batch
-        # Create name of batch file
-        fcdb = self._genr8_cutplane_batchfile(nsurf, j, mode)
-        # Check for batch file
-        if not os.path.isfile(fcdb):  # pragma no-cover
-            self._complain_cutplane_iter(nsurf, n, mode)
-        # Read the batch file in meta-mode
-        dat = capefile.CapeFile(fcdb, meta=True)
-        # Check which mode we are in
-        if mode == "fixed":
-            # We need to find the index of this case w/i the batch
-            mask, _ = meta.find(["batch"], j)
-            k = np.where(meta["i"][mask] == n)[0][0]
-            # Read small fields
-            dat.read_record("nq")
-            # Read the reference iteration for geometry and shape
-            mesh = self._read_cutplane_ref(nsurf, mode="fixed")
-            # Unpack sizes
-            nnode = mesh.nnode
-            nq = mesh.nq
-            # Open the .cdb file for precise reading
-            with open(fcdb, 'rb') as fp:
-                # Go to correct position in the .cdb file
-                fp.seek(dat.pos['q'])
-                # Read record type
-                rtype_code, = fromfile_lb4_i(fp, 1)
-                # Parse record type details
-                rt = capefile.RecordType(rtype_code)
-                # Calculate length (in bytes)
-                l2 = 2 ** (rt.element_bits - 3)
-                # Skip over record size
-                fp.seek(8)
-                # Skip over record name (which should be 'q')
-                l4, = fromfile_lb4_i(fp, 1)
-                fp.read(l4)
-                # Skip number dimensions (3)
-                fromfile_lb4_i(fp, 1)
-                # Skip array shape (nnode*nq*nt)
-                fromfile_lb8_i(fp, 3)
-                # Now shift to iteration *k*
-                fp.seek(k * nnode * nq * l2)
-                # Read this slice
-                if l2 == 8:
-                    q = fromfile_lb8_f(fp, nnode * nq)
-                else:
-                    q = fromfile_lb4_f(fp, nnode * nq)
-                q = np.reshape(q, (nnode, nq))
-            # Save the data
-            mesh.q = q
-        else:
-            # Initialize mesh
-            mesh = Umesh()
-            # Set list of variables
-            mesh.qvars = meta["qvars"]
-            # Name of columns to read
-            col1 = f"nodes.{n}"
-            col2 = f"tris.{n}"
-            col3 = f"q.{n}"
-            # Read those columns
-            dat.read_record(col1)
-            dat.read_record(col2)
-            dat.read_record(col3)
-            # Save data
-            mesh.nodes = dat[col1]
-            mesh.tris = dat[col2]
-            mesh.q = dat[col3]
-            # Size
-            mesh.nnode = mesh.nodes.shape[0]
-            mesh.ntri = mesh.tris.shape[0]
-            mesh.nq = mesh.q.shape[1]
-        # Create PyVista mesh
-        mesh.make_pvmesh_surf()
-        # Output
-        return mesh
+        r"""Read a cut plane using best available method
+
+        :Call:
+            >>> mesh = runner.read_cutplane(nsurf, n=None, mode="raw")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                LAVA surface number (1-based)
+            *n*: :class:`int`
+                Iteration number
+            *mode*: ``"raw"`` | {``"adaptive"``} | ``"fixed"``
+                Mode of how to save data, raw data, triangulated, and
+                interpolated to a common mesh. If the data has no mesh
+                adaptation, ``"fixed"`` is recommended
+        :Versions:
+            * 2026-07-07 ``@ddalle``: v1.0
+        """
+        # Normalize mode
+        mode = self._normalize_mode(mode)
+        # Get reader
+        suffix = "tri" if (mode == "adaptive") else mode
+        # Get function name
+        funcname = f"read_cutplane_{suffix}"
+        # Get function
+        func = getattr(self, funcname)
+        # Call it
+        return func(nsurf, n)
 
     def infer_cutplane_n(
             self,
@@ -1327,7 +1243,7 @@ class CaseRunner(casecntl.CaseRunner):
                     # Go to next iteration
                     continue
             # Read the data
-            surf = self._read_cutplane(mode, nsurf, i)
+            surf = self.read_cutplane(nsurf, i, mode)
             # Check for output
             if not isinstance(surf, Umesh):
                 # Prefix for VTK files
