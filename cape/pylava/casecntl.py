@@ -1045,7 +1045,7 @@ class CaseRunner(casecntl.CaseRunner):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *nsurf*: {``0``} | :class:`int`
+            *nsurf*: {``1``} | :class:`int`
                 LAVA surface number
             *nbatch*: {``None``} | :class:`int`
                 Number of snapshots to collect; default value is
@@ -1065,20 +1065,8 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Normalize mode
         mode = self._normalize_mode(mode)
-        # Prefix for VTK files
-        prefix = self._genr8_cutplane_prefix(nsurf)
-        # Get any current VTK files
-        vtkpat = f"{prefix}\\.[0-9]+\\.(?:tri\\.|fixed\\.)?vtk"
-        # Shortened file name for logs
-        flbl = os.path.join(
-            "isosurface",
-            f"surf{nsurf-1:02d}_cutplane_{{...}}.vtk")
-        # Search for them
-        self._printf(f"  Searching for files: {flbl}\n")
-        vtkfiles = self.search_regex(vtkpat)
-        # Get integers from these file names
-        iters = [int(v.split('.')[1]) for v in vtkfiles]
-        iters = np.unique(iters)
+        # Get iterations
+        iters = self.search_cutplane_iters(nsurf, mode)
         # Exit if none
         if iters.size == 0:
             return
@@ -1202,7 +1190,6 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for output
             if not isinstance(surf, Umesh):
                 # Prefix for VTK files
-                prefix = self._genr8_cutplane_prefix(nsurf)
                 print(f"\n  {flbl}: VTK file removed during read")
                 os._exit(0)
             # Create DataKit
@@ -1265,6 +1252,49 @@ class CaseRunner(casecntl.CaseRunner):
             # Cleanup
             if clean and (i != iref):
                 self._cleanup_cutplane_files(nsurf, j)
+
+    def search_cutplane_iters(
+            self,
+            nsurf: int,
+            mode: Union[str, int] = "raw") -> np.ndarray:
+        r"""Find iterations available for cut-planes
+
+        :Call:
+            >>> iters = runner.search_cutplane_iters(nsurf, mode="raw")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *nsurf*: :class:`int`
+                LAVA surface number (1-based)
+        :Outputs:
+            *iters*: :class:`np.ndarray`\ [:class:`int`]
+                Iterations
+        :Versions:
+            * 2026-07-07 ``@ddalle``: v1.0
+        """
+        # Prefix for VTK files
+        prefix = self._genr8_cutplane_prefix(nsurf)
+        # Extra suffixes
+        if mode == "fixed":
+            suffix = "(?:tri\\.|fixed\\.)?"
+        elif mode == "adaptive":
+            suffix = "(?:tri)?"
+        elif mode in ("raw", "constant"):
+            suffix = ""
+        # Get any current VTK files
+        vtkpat = f"{prefix}\\.[0-9]+\\.{suffix}vtk"
+        # Shortened file name for logs
+        flbl = os.path.join(
+            "isosurface",
+            f"surf{nsurf-1:02d}_cutplane_{{...}}.vtk")
+        # Search for them
+        self._printf(f"  Searching for files: {flbl}\n")
+        vtkfiles = self.search_regex(vtkpat)
+        # Get integers from these file names
+        iters = [int(v.split('.')[1]) for v in vtkfiles]
+        iters = np.unique(iters)
+        # Output
+        return iters
 
     def _normalize_mode(self, mode: Union[str, int] = "adaptive") -> str:
         # Check mode
