@@ -1167,6 +1167,8 @@ class CaseRunner(casecntl.CaseRunner):
                 # Cleanup
                 if clean and (i != iref):
                     self._cleanup_cutplane_files(nsurf, j)
+                # Update counter
+                n += 1
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
                 # Delete files if appropriate
@@ -1188,8 +1190,6 @@ class CaseRunner(casecntl.CaseRunner):
                 iters_write.append(i)
                 # Also save it by case
                 case_pids[i] = pid
-                # Update counter
-                n += 1
                 # Check for exit flag
                 if (nmax is not None) and (n >= nmax):
                     # Exit loop and start collector
@@ -1223,6 +1223,11 @@ class CaseRunner(casecntl.CaseRunner):
             j = iters_write.pop(0)
             # Get batch number and relative index
             batchj, batchk = self._get_batch_next(db, nbatch)
+            # Decrease counter if appropriate
+            if batchk == 0 and n > 0:
+                nlim = len(iters) - n
+                nlim = nlim if nmax is None else min(nmax - n, nlim)
+                nlim = min(nbatch, nlim)
             # Get PID to wait for
             pid = case_pids[j]
             # Shortened file name for logs
@@ -1264,6 +1269,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Cleanup
             if clean and (i != iref):
                 self._cleanup_cutplane_files(nsurf, j)
+            # Update counter
+            n += 1
 
     def search_cutplane_iters(
             self,
@@ -2062,6 +2069,8 @@ class CaseRunner(casecntl.CaseRunner):
                 # Check for clean
                 if clean and (i != iref):
                     self.remove_file(fvtk)
+                # Increase counter
+                n += 1
             # Check if already covered
             if np.where(db["i"] == i)[0].size > 0:
                 # Check for clean option
@@ -2078,7 +2087,6 @@ class CaseRunner(casecntl.CaseRunner):
                 self.forks.append(pid)
                 iters_write.append(i)
                 case_pids[i] = pid
-                n += 1
                 if (nmax is not None) and (n >= nmax):
                     break
                 continue
@@ -2099,6 +2107,11 @@ class CaseRunner(casecntl.CaseRunner):
             j = iters_write.pop(0)
             # Get batch number and relative index
             batchj, batchk = self._get_batch_next(db, nbatch)
+            # Recalculate limit when starting a new batch
+            if batchk == 0 and n > 0:
+                nlim = len(iters) - n
+                nlim = nlim if nmax is None else min(nmax - n, nlim)
+                nlim = min(nbatch, nlim)
             # Get PID to wait for
             pid = case_pids[j]
             # Shortened file name for logs
@@ -2137,6 +2150,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for clean
             if clean and (j != iref):
                 self.remove_file(fvtkj)
+            # Increase counter
+            n += 1
         # Update metadata
         self.write_surfdata_meta(nsurf, db)
 

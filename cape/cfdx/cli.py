@@ -101,6 +101,7 @@ class CfdxArgReader(argread.ArgReader):
         "checkFM": "check-fm",
         "checkLL": "check-ll",
         "checkTriqFM": "check-triqfm",
+        "const": "constant",
         "constraints": "cons",
         "early-exit": "early",
         "edit-json": "edit",
