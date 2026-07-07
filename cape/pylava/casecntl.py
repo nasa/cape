@@ -628,13 +628,21 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for fixed-mesh file
         if os.path.isfile(ffix):
             return Umesh(ffix)
+        # Try to read from DB
+        mesh = self._read_cutplane_db_fixed(nsurf, n)
+        # Use that if able
+        if mesh is not None:
+            return mesh
+        # Read triangulated data on main iteration
+        mesh = self.read_cutplane_tri(nsurf, n)
+        # Check for success
+        if mesh is None:
+            return
         # Read triangulated data on the reference iteration
         refmesh = self.read_cutplane_tri(nsurf, nref)
         # Write it if not present
         if not os.path.isfile(ftri):
             refmesh.write(ftri)
-        # Read data (any version) on this iteration
-        mesh = self.read_cutplane_best(nsurf, n)
         # Create interpolation weights
         w, i = mesh.genr8_interp_weights(refmesh.nodes)
         # Extract state on nodes *i*
@@ -663,6 +671,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Cut plane instance
         :Versions:
             * 2026-05-28 ``@ddalle``: v1.0
+            * 2026-07-07 ``@ddalle``: v1.1; fallback to cutplane DB
         """
         # Read cut plane definition
         defn = self.read_cutplane_defn(nsurf)
@@ -677,6 +686,15 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for file
         if os.path.isfile(fvtk):
             return Umesh(fvtk)
+        # Try to read from database
+        mesh = self._read_cutplane_db_raw(nsurf, n)
+        # Return it if able
+        if mesh is not None:
+            return mesh
+        # Try to read from "constant" database
+        mesh = self._read_cutplane_db_constant(nsurf, n)
+        # That was the final try
+        return mesh
 
     @casecntl.run_rootdir
     def read_cutplane_tri(self, nsurf: int, n: int) -> Optional[Umesh]:
@@ -696,6 +714,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Triangulated cut plane instance
         :Versions:
             * 2026-04-09 ``@ddalle``: v1.0
+            * 2026-07-07 ``@ddalle``: v1.1; fallback to cutplane DB
         """
         # Read cut plane definition
         defn = self.read_cutplane_defn(nsurf)
@@ -706,20 +725,23 @@ class CaseRunner(casecntl.CaseRunner):
         prefix = self._genr8_cutplane_prefix(nsurf, defn)
         basename = f"{prefix}.{n:09d}"
         # Potential file names
-        fvtk = f"{basename}.vtk"
         ftri = f"{basename}.tri.vtk"
         # Check for file
         if os.path.isfile(ftri):
             return Umesh(ftri)
-        # Check for raw cut plane file
-        if not os.path.isfile(fvtk):
-            return
-        # Read the tri file
-        mesh = Umesh(fvtk)
-        # Project the nodes to the cut plane
-        triangulate_mesh(mesh, defn["normal"], defn["point"])
-        # Return that
-        return mesh
+        # Try to read from DB
+        mesh = self._read_cutplane_db_adaptive(nsurf, n)
+        # Use that if able
+        if mesh is not None:
+            return mesh
+        # Check for raw cut plane data
+        mesh = self.read_cutplane_raw(nsurf, n)
+        # Check for success
+        if mesh is not None:
+            # Project the nodes to the cut plane
+            triangulate_mesh(mesh, defn["normal"], defn["point"])
+            # Return that
+            return mesh
 
     def _read_cutplane(self, mode: str, nsurf: int, n: int) -> Optional[Umesh]:
         if mode == "fixed":
@@ -728,6 +750,125 @@ class CaseRunner(casecntl.CaseRunner):
             return self.read_cutplane_tri(nsurf, n)
         else:
             return self.read_cutplane_raw(nsurf, n)
+
+    def _read_cutplane_db_adaptive(self, nsurf: int, n: int):
+        return self._read_cutplane_db0("adaptive", nsurf, n)
+
+    def _read_cutplane_db_constant(self, nsurf: int, n: int):
+        return self._read_cutplane_db1("constant", nsurf, n)
+
+    def _read_cutplane_db_raw(self, nsurf: int, n: int):
+        return self._read_cutplane_db0("raw", nsurf, n)
+
+    def _read_cutplane_db_fixed(self, nsurf: int, n: int):
+        return self._read_cutplane_db1("fixed", nsurf, n)
+
+    def _read_cutplane_db0(self, mode: str, nsurf: int, n: int):
+        # Read metadata
+        meta = self.read_cutplane_meta(nsurf, mode)
+        # Check that *n* is present
+        mask, _ = meta.find(["i"], n)
+        # Exit if no match
+        if mask.size == 0:
+            return
+        # Get batch number
+        i = mask[0]
+        j = meta["batch"][i]
+        # Create name of batch file
+        fcdb = self._genr8_cutplane_batchfile(nsurf, j, mode)
+        # Check for batch file
+        if not os.path.isfile(fcdb):  # pragma no-cover
+            self._complain_cutplane_iter(nsurf, n, mode)
+        # Read the batch file in meta-mode
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Initialize mesh
+        mesh = Umesh()
+        # Set list of variables
+        mesh.qvars = meta["qvars"]
+        # Name of columns to read
+        col1 = f"nodes.{n}"
+        col2 = f"tris.{n}"
+        col3 = f"q.{n}"
+        # Read those columns
+        dat.read_record(col1)
+        dat.read_record(col2)
+        dat.read_record(col3)
+        # Save data
+        mesh.nodes = dat[col1]
+        mesh.tris = dat[col2]
+        mesh.q = dat[col3]
+        # Size
+        mesh.nnode = mesh.nodes.shape[0]
+        mesh.ntri = mesh.tris.shape[0]
+        mesh.nq = mesh.q.shape[1]
+        # Create PyVista mesh
+        mesh.make_pvmesh_surf()
+        # Output
+        return mesh
+
+    def _read_cutplane_db1(self, mode: str, nsurf: int, n: int):
+        # Read metadata
+        meta = self.read_cutplane_meta(nsurf, mode)
+        # Check that *n* is present
+        mask, _ = meta.find(["i"], n)
+        # Exit if no match
+        if mask.size == 0:
+            return
+        # Get batch number
+        i = mask[0]
+        j = meta["batch"][i]
+        # Create name of batch file
+        fcdb = self._genr8_cutplane_batchfile(nsurf, j, mode)
+        # Check for batch file
+        if not os.path.isfile(fcdb):  # pragma no-cover
+            self._complain_cutplane_iter(nsurf, n, mode)
+        # Read the batch file in meta-mode
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # We need to find the index of this case w/i the batch
+        mask, _ = meta.find(["batch"], j)
+        k = np.where(meta["i"][mask] == n)[0][0]
+        # Read small fields
+        dat.read_record("nq")
+        # Check how to read reference iteration
+        refmode = "raw" if (mode == "constant") else "fixed"
+        # Read the reference iteration for geometry and shape
+        mesh = self._read_cutplane_ref(nsurf, mode=refmode)
+        # Unpack sizes
+        nnode = mesh.nnode
+        nq = mesh.nq
+        # Open the .cdb file for precise reading
+        with open(fcdb, 'rb') as fp:
+            # Go to correct position in the .cdb file
+            fp.seek(dat.pos['q'])
+            # Read record type
+            rtype_code, = fromfile_lb4_i(fp, 1)
+            # Parse record type details
+            rt = capefile.RecordType(rtype_code)
+            # Calculate length (in bytes)
+            l2 = 2 ** (rt.element_bits - 3)
+            # Skip over record size
+            fp.seek(8)
+            # Skip over record name (which should be 'q')
+            l4, = fromfile_lb4_i(fp, 1)
+            fp.read(l4)
+            # Skip number dimensions (3)
+            fromfile_lb4_i(fp, 1)
+            # Skip array shape (nnode*nq*nt)
+            fromfile_lb8_i(fp, 3)
+            # Now shift to iteration *k*
+            fp.seek(k * nnode * nq * l2)
+            # Read this slice
+            if l2 == 8:
+                q = fromfile_lb8_f(fp, nnode * nq)
+            else:
+                q = fromfile_lb4_f(fp, nnode * nq)
+            q = np.reshape(q, (nnode, nq))
+        # Save the data
+        mesh.q = q
+        # Create PyVista mesh
+        mesh.make_pvmesh_surf()
+        # Output
+        return mesh
 
     def _genr8_cutplane_infix(self, mode: str):
         if mode == "adaptive":
