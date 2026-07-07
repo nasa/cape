@@ -1454,8 +1454,100 @@ class CaseRunner(casecntl.CaseRunner):
             batch: int,
             i: int,
             q: np.ndarray):
+        self._write_cutplanedata1("constant", nsurf, batch, i, q)
+
+    def _write_cutplanedata_constant(
+            self,
+            nsurf: int,
+            batch: int,
+            i: int,
+            q: np.ndarray):
+        self._write_cutplanedata1("constant", nsurf, batch, i, q)
+
+    def _write_cutplanedata_adaptive(
+            self,
+            nsurf: int,
+            batch: int,
+            i: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
+        self._write_cutplanedata0("adaptive", nsurf, batch, i, nodes, tris, q)
+
+    def _write_cutplanedata_raw(
+            self,
+            nsurf: int,
+            batch: int,
+            i: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
+        self._write_cutplanedata0("raw", nsurf, batch, i, nodes, tris, q)
+
+    def _write_cutplanedata0(
+            self,
+            mode: str,
+            nsurf: int,
+            batch: int,
+            i: int,
+            nodes: np.ndarray,
+            tris: np.ndarray,
+            q: np.ndarray):
         # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_fixed(nsurf, batch)
+        fcdb = self._init_cutplane_batch0(nsurf, batch, mode)
+        # Check for file
+        if not os.path.isfile(fcdb):
+            self.log_verbose(f"File not found: {fcdb}")
+            raise CapeFileNotFoundError(
+                f"Cut-plane collection file not found: {fcdb}")
+        # Open batch file
+        dat = capefile.CapeFile(fcdb, meta=True)
+        # Read small fields
+        dat.read_record("nt")
+        dat.read_record("nq")
+        # Get counts from batch file
+        nt = dat["nt"] + 1
+        nq = dat["nq"]
+        # Check counts
+        if q.shape[1] != nq:
+            raise CapeValueError(
+                f"In surf{nsurf+1} iter {i}; "
+                f"expected nq={nq}, got {q.shape[1]}")
+        # Open the batch file for editing
+        with open(fcdb, 'r+b') as fp:
+            # Add three records
+            fp.seek(8)
+            np.uint64(len(dat.cols) + 3).tofile(fp)
+            # Go to *nt* position
+            fp.seek(dat.pos['nt'])
+            # Read record type and size
+            fromfile_lb4_i(fp, 2)
+            # Read length of name
+            l1, = fromfile_lb4_i(fp, 1)
+            # Skip name
+            fp.read(l1)
+            # Now overwrite number of time steps in file
+            tofile_lb4_i(fp, nt)
+            # Now go to end of file
+            fp.seek(0, 2)
+            # Save data
+            dat.save_col(f"nodes.{i}", nodes.astype("f4"))
+            dat.save_col(f"tris.{i}", tris.astype("i4"))
+            dat.save_col(f"q.{i}", q.astype("f4"))
+            # Write additional data
+            dat._write_record(fp, f"nodes.{i}")
+            dat._write_record(fp, f"tris.{i}")
+            dat._write_record(fp, f"q.{i}")
+
+    def _write_cutplanedata1(
+            self,
+            mode: str,
+            nsurf: int,
+            batch: int,
+            i: int,
+            q: np.ndarray):
+        # Name of file to read; create if necessary
+        fcdb = self._init_cutplane_batch1(nsurf, batch)
         # Check for file
         if not os.path.isfile(fcdb):
             self.log_verbose(f"File not found: {fcdb}")
@@ -1541,155 +1633,40 @@ class CaseRunner(casecntl.CaseRunner):
                 # Write as single-precision data
                 tofile_lb4_f(fp, q.astype("f4"))
 
-    def _write_cutplanedata_adaptive(
-            self,
-            nsurf: int,
-            batch: int,
-            i: int,
-            nodes: np.ndarray,
-            tris: np.ndarray,
-            q: np.ndarray):
-        # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_adaptive(nsurf, batch)
-        # Check for file
-        if not os.path.isfile(fcdb):
-            self.log_verbose(f"File not found: {fcdb}")
-            raise CapeFileNotFoundError(
-                f"Cut-plane collection file not found: {fcdb}")
-        # Open batch file
-        dat = capefile.CapeFile(fcdb, meta=True)
-        # Read small fields
-        dat.read_record("nt")
-        dat.read_record("nq")
-        # Get counts from batch file
-        nt = dat["nt"] + 1
-        nq = dat["nq"]
-        # Check counts
-        if q.shape[1] != nq:
-            raise CapeValueError(
-                f"In surf{nsurf+1} iter {i}; "
-                f"expected nq={nq}, got {q.shape[1]}")
-        # Open the batch file for editing
-        with open(fcdb, 'r+b') as fp:
-            # Add three records
-            fp.seek(8)
-            np.uint64(len(dat.cols) + 3).tofile(fp)
-            # Go to *nt* position
-            fp.seek(dat.pos['nt'])
-            # Read record type and size
-            fromfile_lb4_i(fp, 2)
-            # Read length of name
-            l1, = fromfile_lb4_i(fp, 1)
-            # Skip name
-            fp.read(l1)
-            # Now overwrite number of time steps in file
-            tofile_lb4_i(fp, nt)
-            # Now go to end of file
-            fp.seek(0, 2)
-            # Save data
-            dat.save_col(f"nodes.{i}", nodes.astype("f4"))
-            dat.save_col(f"tris.{i}", tris.astype("i4"))
-            dat.save_col(f"q.{i}", q.astype("f4"))
-            # Write additional data
-            dat._write_record(fp, f"nodes.{i}")
-            dat._write_record(fp, f"tris.{i}")
-            dat._write_record(fp, f"q.{i}")
-
-    def _write_cutplanedata_raw(
-            self,
-            nsurf: int,
-            batch: int,
-            i: int,
-            nodes: np.ndarray,
-            tris: np.ndarray,
-            q: np.ndarray):
-        # Name of file to read; create if necessary
-        fcdb = self._init_cutplane_batch_raw(nsurf, batch)
-        # Check for file
-        if not os.path.isfile(fcdb):
-            self.log_verbose(f"File not found: {fcdb}")
-            raise CapeFileNotFoundError(
-                f"Cut-plane collection file not found: {fcdb}")
-        # Open batch file
-        dat = capefile.CapeFile(fcdb, meta=True)
-        # Read small fields
-        dat.read_record("nt")
-        dat.read_record("nq")
-        # Get counts from batch file
-        nt = dat["nt"] + 1
-        nq = dat["nq"]
-        # Check counts
-        if q.shape[1] != nq:
-            raise CapeValueError(
-                f"In surf{nsurf+1} iter {i}; "
-                f"expected nq={nq}, got {q.shape[1]}")
-        # Open the batch file for editing
-        with open(fcdb, 'r+b') as fp:
-            # Add three records
-            fp.seek(8)
-            np.uint64(len(dat.cols) + 3).tofile(fp)
-            # Go to *nt* position
-            fp.seek(dat.pos['nt'])
-            # Read record type and size
-            fromfile_lb4_i(fp, 2)
-            # Read length of name
-            l1, = fromfile_lb4_i(fp, 1)
-            # Skip name
-            fp.read(l1)
-            # Now overwrite number of time steps in file
-            tofile_lb4_i(fp, nt)
-            # Now go to end of file
-            fp.seek(0, 2)
-            # Save data
-            dat.save_col(f"nodes.{i}", nodes.astype("f4"))
-            dat.save_col(f"tris.{i}", tris.astype("i4"))
-            dat.save_col(f"q.{i}", q.astype("f4"))
-            # Write additional data
-            dat._write_record(fp, f"nodes.{i}")
-            dat._write_record(fp, f"tris.{i}")
-            dat._write_record(fp, f"q.{i}")
-
     def _init_cutplane_batch_adaptive(self, nsurf: int, batch: int) -> str:
-        # Name of file
-        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode="adaptive")
-        # Check if file exists
-        if not os.path.isfile(fname):
-            # Read reference VTK file
-            surf = self._read_cutplane_ref(nsurf, mode="raw")
-            # Get number of states
-            nq = surf.nq
-            # Create a DataKit
-            db = DataKit()
-            # Initialize
-            db.save_col("nt", 0)
-            db.save_col("nq", nq)
-            # Write it
-            db.write(fname)
-        # Return name of file
-        return fname
+        return self._init_cutplane_batch0(nsurf, batch, "adaptive")
 
-    def _init_cutplane_batch_raw(self, nsurf: int, batch: int) -> str:
-        # Name of file
-        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode="raw")
-        # Check if file exists
-        if not os.path.isfile(fname):
-            # Read reference VTK file
-            surf = self._read_cutplane_ref(nsurf, mode="raw")
-            # Get number of states
-            nq = surf.nq
-            # Create a DataKit
-            db = DataKit()
-            # Initialize
-            db.save_col("nt", 0)
-            db.save_col("nq", nq)
-            # Write it
-            db.write(fname)
-        # Return name of file
-        return fname
+    def _init_cutplane_batch_constant(self, nsurf: int, batch: int) -> str:
+        return self._init_cutplane_batch1(nsurf, batch, "constant")
 
     def _init_cutplane_batch_fixed(self, nsurf: int, batch: int) -> str:
+        return self._init_cutplane_batch1(nsurf, batch, "fixed")
+
+    def _init_cutplane_batch_raw(self, nsurf: int, batch: int) -> str:
+        return self._init_cutplane_batch0(nsurf, batch, "raw")
+
+    def _init_cutplane_batch0(self, nsurf: int, batch: int, mode: str) -> str:
         # Name of file
-        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode="fixed")
+        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode=mode)
+        # Check if file exists
+        if not os.path.isfile(fname):
+            # Read reference VTK file
+            surf = self._read_cutplane_ref(nsurf, mode="raw")
+            # Get number of states
+            nq = surf.nq
+            # Create a DataKit
+            db = DataKit()
+            # Initialize
+            db.save_col("nt", 0)
+            db.save_col("nq", nq)
+            # Write it
+            db.write(fname)
+        # Return name of file
+        return fname
+
+    def _init_cutplane_batch1(self, nsurf: int, batch: int, mode: str) -> str:
+        # Name of file
+        fname = self._genr8_cutplane_batchfile(nsurf, batch, mode=mode)
         # Check if file exists
         if not os.path.isfile(fname):
             # Read reference VTK file
