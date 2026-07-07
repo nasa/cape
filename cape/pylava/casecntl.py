@@ -549,44 +549,40 @@ class CaseRunner(casecntl.CaseRunner):
         return True
 
    # --- Cut-plane readers ---
-    @casecntl.run_rootdir
-    def read_cutplane_best(self, nsurf: int, n: int) -> Optional[Umesh]:
-        r"""Read cut-plane file, using triangulated if available
+    def read_cutplane(
+            self,
+            nsurf: int,
+            n: Optional[int] = None,
+            mode: str = "raw") -> Umesh:
+        r"""Read a cut plane using best available method
 
         :Call:
-            >>> mesh = runner.read_cutplane_best(nsurf, n)
+            >>> mesh = runner.read_cutplane(nsurf, n=None, mode="raw")
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *nsurf*: :class:`int`
-                Surface index
+                LAVA surface number (1-based)
             *n*: :class:`int`
                 Iteration number
-        :Outputs:
-            *mesh*: ``None`` | :class:`cape.gruvoc.umesh.Umesh`
-                Triangulated cut plane instance
+            *mode*: ``"raw"`` | {``"adaptive"``} | ``"fixed"``
+                Mode of how to save data, raw data, triangulated, and
+                interpolated to a common mesh. If the data has no mesh
+                adaptation, ``"fixed"`` is recommended
         :Versions:
-            * 2026-04-09 ``@ddalle``: v1.0
+            * 2026-07-07 ``@ddalle``: v1.0
         """
-        # Read cut plane definition
-        defn = self.read_cutplane_defn(nsurf)
-        # Check for valid cut plane
-        if defn is None:
-            return
-        # Get name of file
-        prefix = self._genr8_cutplane_prefix(nsurf, defn)
-        basename = f"{prefix}.{n:09d}"
-        # Potential file names
-        fvtk = f"{basename}.vtk"
-        ftri = f"{basename}.tri.vtk"
-        ffix = f"{basename}.fixed.vtk"
-        # Check for file
-        if os.path.isfile(ftri):
-            return Umesh(ftri)
-        if os.path.isfile(fvtk):
-            return Umesh(fvtk)
-        if os.path.isfile(ffix):
-            return Umesh(ffix)
+        # Normalize mode
+        mode = self._normalize_mode(mode)
+        readmode = "raw" if (mode == "constant") else mode
+        # Get reader
+        suffix = "tri" if (mode == "adaptive") else readmode
+        # Get function name
+        funcname = f"read_cutplane_{suffix}"
+        # Get function
+        func = getattr(self, funcname)
+        # Call it
+        return func(nsurf, n)
 
     @casecntl.run_rootdir
     def read_cutplane_fixed(
@@ -743,14 +739,6 @@ class CaseRunner(casecntl.CaseRunner):
             # Return that
             return mesh
 
-    def _read_cutplane(self, mode: str, nsurf: int, n: int) -> Optional[Umesh]:
-        if mode == "fixed":
-            return self.read_cutplane_fixed(nsurf, n)
-        elif mode == "adaptive":
-            return self.read_cutplane_tri(nsurf, n)
-        else:
-            return self.read_cutplane_raw(nsurf, n)
-
     def _read_cutplane_db_adaptive(self, nsurf: int, n: int):
         return self._read_cutplane_db0("adaptive", nsurf, n)
 
@@ -879,41 +867,6 @@ class CaseRunner(casecntl.CaseRunner):
             return ""
 
    # --- Cutplane data ---
-    def read_cutplane(
-            self,
-            nsurf: int,
-            n: Optional[int] = None,
-            mode: str = "raw") -> Umesh:
-        r"""Read a cut plane using best available method
-
-        :Call:
-            >>> mesh = runner.read_cutplane(nsurf, n=None, mode="raw")
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *nsurf*: :class:`int`
-                LAVA surface number (1-based)
-            *n*: :class:`int`
-                Iteration number
-            *mode*: ``"raw"`` | {``"adaptive"``} | ``"fixed"``
-                Mode of how to save data, raw data, triangulated, and
-                interpolated to a common mesh. If the data has no mesh
-                adaptation, ``"fixed"`` is recommended
-        :Versions:
-            * 2026-07-07 ``@ddalle``: v1.0
-        """
-        # Normalize mode
-        mode = self._normalize_mode(mode)
-        readmode = "raw" if (mode == "constant") else mode
-        # Get reader
-        suffix = "tri" if (mode == "adaptive") else readmode
-        # Get function name
-        funcname = f"read_cutplane_{suffix}"
-        # Get function
-        func = getattr(self, funcname)
-        # Call it
-        return func(nsurf, n)
-
     def infer_cutplane_n(
             self,
             nsurf: int,
@@ -1112,18 +1065,18 @@ class CaseRunner(casecntl.CaseRunner):
                 Option to delete ``.vtk`` files after processing
             *nmax*: {``None``} | :class:`int`
                 Maximum number of snapshots to collect
-            *mode*: ``"raw"`` | {``"adaptive"``} | ``"fixed"``
+            *mode*: {`"adaptive"`} | `"constant"` | `"raw"` | `"fixed"`
                 Mode of how to save data, raw data, triangulated, and
                 interpolated to a common mesh. If the data has no mesh
-                adaptation, ``"fixed"`` is recommended
+                adaptation, ``"constant"`` is recommended
             *nproc*: {``None``} | :class:`int`
                 Number of parallel processes to process cut planes
         :Versions:
             * 2026-04-10 ``@ddalle``: v1.0
+            * 2026-07-07 ``@ddalle``: v1.1; add "constant" mode
         """
         # Normalize mode
         mode = self._normalize_mode(mode)
-        readmode = "raw" if (mode == "constant") else mode
         # Get iterations
         iters = self.search_cutplane_iters(nsurf, mode)
         # Exit if none
