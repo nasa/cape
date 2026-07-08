@@ -1130,7 +1130,8 @@ class CaseRunner(casecntl.CaseRunner):
                 return
         # Batch size
         nbatch = nbatch if (nbatch is not None) else self.get_opt("BatchSize")
-        # Number of saved files
+        # Number of started and saved files
+        m = 0
         n = 0
         # Max number of workers
         if nproc is None:
@@ -1219,8 +1220,10 @@ class CaseRunner(casecntl.CaseRunner):
                 iters_write.append(i)
                 # Also save it by case
                 case_pids[i] = pid
+                # Update "started" counter
+                m += 1
                 # Check for exit flag
-                if (nmax is not None) and (n >= nmax):
+                if (nmax is not None) and (m >= nmax):
                     # Exit loop and start collector
                     break
                 else:
@@ -2039,6 +2042,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get integers from these file names
         iters = [int(v.rsplit('.', 2)[-2]) for v in vtkfiles]
         # Number of saved files
+        m = 0
         n = 0
         # Max number of workers
         if nproc is None:
@@ -2120,7 +2124,9 @@ class CaseRunner(casecntl.CaseRunner):
                 self.forks.append(pid)
                 iters_write.append(i)
                 case_pids[i] = pid
-                if (nmax is not None) and (n >= nmax):
+                # Update "started" counter
+                m += 1
+                if (nmax is not None) and (m >= nmax):
                     break
                 continue
             # Child: read VTK and write q to temp file
