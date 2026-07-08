@@ -978,16 +978,30 @@ class CaseRunner(casecntl.CaseRunner):
         # Search for latest
         mtch1 = self.search_regex(pat1)
         mtch2 = [] if (pat1 == pat2) else self.search_regex(pat2)
-        # Read metadata file
-        meta = self.read_cutplane_meta(nsurf, mode)
+        # Read metadata file(s)
+        meta3 = self.read_cutplane_meta(nsurf, "raw")
+        meta4 = self.read_cutplane_meta(nsurf, "constant")
         # Convert file searches to lists of integers
         n1 = [int(fname.split('.')[1]) for fname in mtch1]
         n2 = [int(fname.split('.')[1]) for fname in mtch2]
         n1 = np.array(n1, dtype="int32")
         n2 = np.array(n2, dtype="int32")
-        n3 = meta["i"].astype("int32")
+        n3 = meta3["i"].astype("int32")
+        n4 = meta4["i"].astype("int32")
         # Combine lists
-        return np.unique(np.hstack((n1, n2, n3)))
+        n = np.unique(np.hstack((n1, n2, n3, n4)))
+        # Check if "adaptive" (triangualted) data is usable
+        if mode in ("adaptive", "fixed"):
+            meta = self.read_cutplane_meta(nsurf, "adaptive")
+            n5 = meta["i"].astype("int32")
+            n = np.unique(np.hstack((n, n5)))
+        # Check if "adaptive" (triangualted) data is usable
+        if mode in ("fixed",):
+            meta = self.read_cutplane_meta(nsurf, "fixed")
+            n5 = meta["i"].astype("int32")
+            n = np.unique(np.hstack((n, n5)))
+        # Output
+        return n
 
     def _complain_cutplane_iter(self, nsurf: int, n: int, mode: str):
         raise CapeValueError(
