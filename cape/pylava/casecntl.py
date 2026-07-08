@@ -919,10 +919,25 @@ class CaseRunner(casecntl.CaseRunner):
             mtch2 = self.match_regex(pat2)
             # Check if that found anything
             n2 = 0 if mtch2 is None else int(mtch2.group(1))
-        # Check for batch data
-        meta = self.read_cutplane_meta(nsurf, mode)
+        # Check for collected "raw" data; applies to all modes
+        meta = self.read_cutplane_meta(nsurf, "raw")
         # Check for data
         n3 = 0 if (meta["nt"] == 0) else meta["i"][-1]
+        # Check for collected "constant" data; applies to all modes
+        meta = self.read_cutplane_meta(nsurf, "constant")
+        # Check for data
+        n4 = 0 if (meta["nt"] == 0) else meta["i"][-1]
+        n3 = max(n3, n4)
+        # Check for "adaptive" (triangulated) data
+        if mode in ("adaptive", "fixed"):
+            meta = self.read_cutplane_meta(nsurf, "adaptive")
+            n4 = 0 if (meta["nt"] == 0) else meta["i"][-1]
+            n3 = max(n3, n4)
+        # Check for "fixed" (interpolated) data
+        if mode == "fixed":
+            meta = self.read_cutplane_meta(nsurf, "fixed")
+            n4 = 0 if (meta["nt"] == 0) else meta["i"][-1]
+            n3 = max(n3, n4)
         # Check for empty result from all three
         if (meta["nt"] == 0) and (mtch1 is None) and (mtch2 is None):
             raise CapeFileNotFoundError(
