@@ -835,7 +835,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Calculate length (in bytes)
             l2 = 2 ** (rt.element_bits - 3)
             # Skip over record size
-            fp.seek(8)
+            fromfile_lb8_i(fp, 1)
             # Skip over record name (which should be 'q')
             l4, = fromfile_lb4_i(fp, 1)
             fp.read(l4)
@@ -844,7 +844,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Skip array shape (nnode*nq*nt)
             fromfile_lb8_i(fp, 3)
             # Now shift to iteration *k*
-            fp.seek(k * nnode * nq * l2)
+            fp.seek(k * nnode * nq * l2, 1)
             # Read this slice
             if l2 == 8:
                 q = fromfile_lb8_f(fp, nnode * nq)
@@ -1672,6 +1672,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Calculate length (in bytes)
             l2 = 2 ** (rt.element_bits - 3)
             l3 = 33 + nt*nq*nnode*l2
+            # Position to insert this snapshot
+            pos5 = dat.pos['q'] + 45 + (nt-1)*nq*nnode*l2
             # Position for updated record size
             pos3 = fp.tell()
             fromfile_lb8_i(fp, 1)
@@ -1704,13 +1706,15 @@ class CaseRunner(casecntl.CaseRunner):
             fp.seek(pos4)
             tofile_lb4_i(fp, nt)
             # Go to end of file to write new data
+            fp.seek(pos5)
+            # Go to end of file to write new data
             fp.seek(0, 2)
             # Write state
             if l2 == 8:
                 # Write as double-precision data
                 tofile_lb8_f(fp, q.astype("f8"))
             else:
-                # Write as single-precision data
+                # Write as single-precision data Казань
                 tofile_lb4_f(fp, q.astype("f4"))
 
     def _init_cutplane_batch_adaptive(self, nsurf: int, batch: int) -> str:
@@ -2362,7 +2366,7 @@ class CaseRunner(casecntl.CaseRunner):
             l2 = 2 ** (rt.element_bits - 3)
             l3 = 33 + nt*nq*nnode*l2
             # Position to insert this snapshot
-            l5 = dat.pos['q'] + 45 + (nt-1)*nq*nnode*l2
+            pos5 = dat.pos['q'] + 45 + (nt-1)*nq*nnode*l2
             # Position for updated record size
             pos3 = fp.tell()
             fromfile_lb8_i(fp, 1)
@@ -2393,7 +2397,7 @@ class CaseRunner(casecntl.CaseRunner):
             fp.seek(pos4)
             tofile_lb8_i(fp, nt)
             # Go to end of file to write new data
-            fp.seek(l5)
+            fp.seek(pos5)
             # Write state
             if l2 == 8:
                 # Write as double-precision data
