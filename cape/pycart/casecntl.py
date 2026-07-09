@@ -653,6 +653,7 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Case status ---
     # Function to get most recent iteration
+    @casecntl.run_rootdir
     def getx_iter(self, f=True):
         r"""Get the residual of the most recent iteration
 
