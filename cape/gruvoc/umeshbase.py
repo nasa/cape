@@ -31,13 +31,18 @@ try:
 except ModuleNotFoundError:
     pv = None
 try:
-    import pyvista.core._vtk_core as _vtk
     from pyvista.core.filters import _get_output, _update_alg
     from vtkmodules.vtkCommonDataModel import vtkPlane
     from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
 except ModuleNotFoundError:
     # Empty imports
     vtkPlane = None
+
+try:
+    from pyvista.core._vtk_core import vtkGradientFilter
+except ModuleNotFoundError:
+    vtkGradientFilter = None
+
 try:
     from scipy.spatial import cKDTree, KDTree
 except ModuleNotFoundError:
@@ -747,7 +752,7 @@ class UmeshBase(ABC):
         #     progress_bar=True)
 
         # Use the gradient filter to compute the velocity gradient/divergence
-        alg = _vtk.vtkGradientFilter()
+        alg = vtkGradientFilter()
         # Input is the surface plus first cell
         alg.SetInputData(surf.pvmesh)
         # Input scalar is the velocity field
