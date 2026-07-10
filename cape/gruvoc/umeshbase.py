@@ -37,17 +37,18 @@ try:
 except ModuleNotFoundError:
     # Empty imports
     vtkPlane = None
-
 try:
-    from pyvista.core._vtk_core import vtkGradientFilter
+    from vtk import vtkGradientFilter
 except ModuleNotFoundError:
     vtkGradientFilter = None
-
 try:
-    from scipy.spatial import cKDTree, KDTree
+    from scipy.spatial import KDTree
+except ModuleNotFoundError:
+    KDTree = None
+try:
+    from scipy.spatial import cKDTree
 except ModuleNotFoundError:
     cKDTree = None
-    KDTree = None
 
 
 # Class for Tecplot zones; nodes and indices
@@ -4315,6 +4316,26 @@ class UmeshBase(ABC):
         # Save edges
         self.edges = edges[mask]
         self.nedge = self.edges.shape[0]
+
+   # --- Nodes ---
+    def find_duplicate_nodes(self, tol: float = 1e-8) -> np.ndarray:
+        # Build tree
+        tree = cKDTree(self.nodes)
+        # Find duplicates
+        pairs = tree.query_pairs(r=tol, output_type="ndarray")
+        # Check for empty list
+        if pairs.size == 0:
+            return np.empty((0, 2), dtype=int)
+        # Normalize each row to [dup_idx, keep_idx], sorted
+        dup_pairs = np.sort(pairs, axis=1)[:, ::-1]
+        # Output
+        return dup_pairs
+
+  # === Repair ===
+   # --- Zip zone boundaries ---
+    def zip_duplicate_edges(self, tol: float = 1e-8):
+        # Find duplicate nodes
+        dup_nodes = self.find_duplicate_nodes(tol)
 
 
 def get_intersect_elems(eles, ptsz):
