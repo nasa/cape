@@ -4338,7 +4338,7 @@ class UmeshBase(ABC):
         dup_nodes = self.find_duplicate_nodes(tol)
         # Initialize array of node mapping; most nodes are unchanged
         # This is a map from node i -> nodemap[i-1]
-        nodemap = np.arange(self.nnode, dtype=self.tris.dtype)
+        nodemap = np.arange(1, self.nnode + 1, dtype=self.tris.dtype)
         # Mark the duplicated nodes for replacement
         nodemap[dup_nodes[:, 0] - 1] = dup_nodes[:, 1]
         # Renumber triangles using *I* as a map
