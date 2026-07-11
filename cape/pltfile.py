@@ -1374,8 +1374,12 @@ class Plt(object):
             # Check for quads
             if T.shape[1] == 4:
                 # Check for duplicated index
-                iQuad = np.where(T[:, -1] != T[:, -2])[0]
-                kQuad = len(iQuad)
+                i23 = T[:, 2] == T[:, 3]
+                i30 = T[:, 3] == T[:, 0]
+                iQuad = np.where(np.logical_not(i23 | i30))[0]
+                kQuad = iQuad.size
+                # Rearange tris to have repeated index at end
+                T[i30] = T[i30][:, [1, 2, 3, 0]]
             else:
                 # Pure triangles
                 iQuad = np.zeros(0, dtype="int")

@@ -4329,13 +4329,22 @@ class UmeshBase(ABC):
         # Normalize each row to [dup_idx, keep_idx], sorted
         dup_pairs = np.sort(pairs, axis=1)[:, ::-1]
         # Output
-        return dup_pairs
+        return dup_pairs + 1
 
   # === Repair ===
    # --- Zip zone boundaries ---
     def zip_duplicate_edges(self, tol: float = 1e-8):
         # Find duplicate nodes
         dup_nodes = self.find_duplicate_nodes(tol)
+        # Initialize array of node mapping; most nodes are unchanged
+        # This is a map from node i -> nodemap[i-1]
+        nodemap = np.arange(self.nnode, dtype=self.tris.dtype)
+        # Mark the duplicated nodes for replacement
+        nodemap[dup_nodes[:, 0] - 1] = dup_nodes[:, 1]
+        # Renumber triangles using *I* as a map
+        self.tris = nodemap[self.tris-1]
+        # Remove unused triangles
+        self.remove_unused_nodes()
 
 
 def get_intersect_elems(eles, ptsz):
