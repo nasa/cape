@@ -31,7 +31,6 @@ try:
 except ModuleNotFoundError:
     pv = None
 try:
-    import pyvista.core._vtk_core as _vtk
     from pyvista.core.filters import _get_output, _update_alg
     from vtkmodules.vtkCommonDataModel import vtkPlane
     from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
@@ -39,10 +38,17 @@ except ModuleNotFoundError:
     # Empty imports
     vtkPlane = None
 try:
-    from scipy.spatial import cKDTree, KDTree
+    from vtk import vtkGradientFilter
+except ModuleNotFoundError:
+    vtkGradientFilter = None
+try:
+    from scipy.spatial import KDTree
+except ModuleNotFoundError:
+    KDTree = None
+try:
+    from scipy.spatial import cKDTree
 except ModuleNotFoundError:
     cKDTree = None
-    KDTree = None
 
 
 # Class for Tecplot zones; nodes and indices
@@ -747,7 +753,7 @@ class UmeshBase(ABC):
         #     progress_bar=True)
 
         # Use the gradient filter to compute the velocity gradient/divergence
-        alg = _vtk.vtkGradientFilter()
+        alg = vtkGradientFilter()
         # Input is the surface plus first cell
         alg.SetInputData(surf.pvmesh)
         # Input scalar is the velocity field
@@ -4310,6 +4316,35 @@ class UmeshBase(ABC):
         # Save edges
         self.edges = edges[mask]
         self.nedge = self.edges.shape[0]
+
+   # --- Nodes ---
+    def find_duplicate_nodes(self, tol: float = 1e-8) -> np.ndarray:
+        # Build tree
+        tree = cKDTree(self.nodes)
+        # Find duplicates
+        pairs = tree.query_pairs(r=tol, output_type="ndarray")
+        # Check for empty list
+        if pairs.size == 0:
+            return np.empty((0, 2), dtype=int)
+        # Normalize each row to [dup_idx, keep_idx], sorted
+        dup_pairs = np.sort(pairs, axis=1)[:, ::-1]
+        # Output
+        return dup_pairs + 1
+
+  # === Repair ===
+   # --- Zip zone boundaries ---
+    def zip_duplicate_edges(self, tol: float = 1e-8):
+        # Find duplicate nodes
+        dup_nodes = self.find_duplicate_nodes(tol)
+        # Initialize array of node mapping; most nodes are unchanged
+        # This is a map from node i -> nodemap[i-1]
+        nodemap = np.arange(self.nnode, dtype=self.tris.dtype)
+        # Mark the duplicated nodes for replacement
+        nodemap[dup_nodes[:, 0] - 1] = dup_nodes[:, 1]
+        # Renumber triangles using *I* as a map
+        self.tris = nodemap[self.tris-1]
+        # Remove unused triangles
+        self.remove_unused_nodes()
 
 
 def get_intersect_elems(eles, ptsz):

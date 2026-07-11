@@ -31,7 +31,7 @@ import numpy as np
 
 # Local imports
 from . import capeio
-from . import trifile as trifile
+from . import trifile
 from . import util as capeutil
 
 
@@ -393,18 +393,27 @@ class Plt(object):
             # Zone number to share with
             zshare, = np.fromfile(f, dtype='i4', count=1)
             # Read the min and max variables
-            qi = np.fromfile(f, dtype='f8', count=(self.nVar*2))
-            self.qmin[n] = qi[0::2]
-            self.qmax[n] = qi[1::2]
-            # Read the actual data
-            if self.fmt[n][0] == 2:
-                # Read doubles
-                qi = np.fromfile(f, dtype="f8", count=self.nVar*npt)
-            else:
-                # Read floats
-                qi = np.fromfile(f, dtype='f4', count=self.nVar*npt)
-            # Reshape
-            qi = np.transpose(np.reshape(qi, (self.nVar, npt)))
+            qlim = np.fromfile(f, dtype='f8', count=(self.nVar*2))
+            self.qmin[n] = qlim[0::2]
+            self.qmax[n] = qlim[1::2]
+            # Initialzie data
+            dtype = "f8" if (self.fmt[n][0] == 2) else "f4"
+            qi = np.zeros((npt, self.nVar), dtype=dtype)
+            # Loop through zones
+            for j, colj in enumerate(self.Vars):
+                # Get data type for this zone
+                dtj = "f8" if (self.fmt[n][j] == 2) else "f4"
+                nbj = 8 if (dtj == "f8") else 4
+                # Read data
+                qi[:, j] = np.fromfile(f, dtype=dtj, count=npt).astype(dtype)
+                # Check for cell-centered data
+                if self.VarLocs[n][j] == 1:
+                    # Warning
+                    if n == 0:
+                        print(f"Warning: var {j}, '{colj}' is cell-centered")
+                    # Move to expected location
+                    f.seek(nbj*(nelem-npt), 1)
+            # Save state variables for this zone
             self.q.append(qi)
             # Get zone type
             zt = self.ZoneType[n]
@@ -1365,8 +1374,12 @@ class Plt(object):
             # Check for quads
             if T.shape[1] == 4:
                 # Check for duplicated index
-                iQuad = np.where(T[:, -1] != T[:, -2])[0]
-                kQuad = len(iQuad)
+                i23 = T[:, 2] == T[:, 3]
+                i30 = T[:, 3] == T[:, 0]
+                iQuad = np.where(np.logical_not(i23 | i30))[0]
+                kQuad = iQuad.size
+                # Rearange tris to have repeated index at end
+                T[i30] = T[i30][:, [1, 2, 3, 0]]
             else:
                 # Pure triangles
                 iQuad = np.zeros(0, dtype="int")
