@@ -5209,16 +5209,16 @@ class CaseRunner(CaseRunnerBase):
             title = f"{comp}/{coeff}"
             # Check if it's cache
             fm = cache.get(comp)
-            # If not, read it
-            if fm is None:
-                try:
+            try:
+                # If not, read it
+                if fm is None:
                     fm = self.read_dex(comp)
-                except Exception:
-                    continue
-            # Save it (no effect if already cached)
-            cache[comp] = fm
-            # Now process it
-            state[title] = fm.get_col_state(coeff)
+                # Save it (no effect if already cached)
+                cache[comp] = fm
+                # Now process it
+                state[title] = fm.get_col_state(coeff)
+            except Exception:
+                continue
         # Output
         return state
 
