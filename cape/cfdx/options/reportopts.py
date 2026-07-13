@@ -443,7 +443,7 @@ class SubfigOpts(OptionsDict):
         "Caption": str,
         "Position": str,
         "Type": str,
-        "Width": FLOAT_TYPES,
+        "Width": FLOAT_TYPES + INT_TYPES,
     }
 
     # Permitted values
@@ -1530,7 +1530,7 @@ class TecplotSubfigOpts(SubfigOpts):
         "ColorMaps": dict,
         "ContourLevels": dict,
         "FieldMap": INT_TYPES + (str,),
-        "FigWidth": INT_TYPES,
+        "FigWidth": INT_TYPES + FLOAT_TYPES,
         "Keys": dict,
         "Layout": str,
         "VTKFIles": str,
