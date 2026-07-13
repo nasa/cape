@@ -5341,13 +5341,13 @@ class CaseRunner(CaseRunnerBase):
             * 2023-07-08 ``@ddalle``: v1.1; support ``STOP``
         """
         # Determine current phase
-        j = self.get_phase_next()
+        j = self.get_phase_recent()
         # Final phase and iter
         jb = self.get_last_phase()
         nb = self.get_last_iter()
         # Check if final phase
         if j < jb:
-            self.log_verbose(f"case not complete; {j} < {jb}")
+            self.log_verbose(f"case not complete; phase {j} < {jb}")
             return False
         # Get absolute iter
         n = self.get_iter()
