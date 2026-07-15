@@ -1585,7 +1585,7 @@ class CaseRunner(CaseRunnerBase):
                         self.rename_file(fhist, fold)
                         break
             # Now rename the STDOUT file
-            self.rename_file(fout, fhist)
+            self.copy_file(fout, fhist)
         else:
             # Create an empty file
             fileutils.touch(fhist)
