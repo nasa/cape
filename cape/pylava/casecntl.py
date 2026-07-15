@@ -179,6 +179,42 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Save STDOUT
         self.finalize_stdoutfile(j)
+        # Save lout.0
+        self.finalze_lout(j)
+
+    # Process the `lout.0` file
+    def finalize_lout(self, j: int):
+        r"""Move the ``lout.0`` file to ``lout.{j}.{n}``
+
+        :Call:
+            >>> runner.finalize_stdoutfile(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2026-07-14 ``@ddalle``: v1.0
+        """
+        # Status file
+        fout = "lout.0"
+        # Iteration number
+        n = self.get_iter()
+        # History remains in present folder
+        fhist = f"lout.{j:02d}.{n}"
+        # Assuming that worked, move the temp output file
+        if os.path.isfile(fout):
+            # Check for conflicting file
+            if os.path.isfile(fhist):
+                for k in range(100):
+                    # Add a suffix
+                    fold = f"{fhist}.{k}"
+                    # Check for that one
+                    if not os.path.isfile(fold):
+                        self.rename_file(fhist, fold)
+                        break
+            # Now rename the STDOUT file
+            self.copy_file(fout, fhist)
 
    # --- Status ---
     # Function to get total iteration number
