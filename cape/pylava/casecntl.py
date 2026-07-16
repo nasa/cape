@@ -180,7 +180,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Save STDOUT
         self.finalize_stdoutfile(j)
         # Save lout.0
-        self.finalze_lout(j)
+        self.finalize_lout(j)
 
     # Process the `lout.0` file
     def finalize_lout(self, j: int):
