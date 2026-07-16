@@ -1927,7 +1927,10 @@ class Cntl(CntlBase):
             # Read JSON config file
             self.config = ConfigJSON(fxml)
             # Check for a ``.mapbc`` file
-            fmapbc = self.opts.get_MapBCFile()
+            fmapbcc = self.opts.get_ConfigMapBCFile()
+            fmapbcg = self.opts.get_MapBCFile()
+            # use ConfigMapBCFile if able
+            fmapbc = fmapbcg if (fmapbcc is None) else fmapbcc
             # If found, renumber CompIDs and remove unused ones
             if fmapbc:
                 self.config.ApplyMapBC(fmapbc)
