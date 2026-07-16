@@ -1558,6 +1558,17 @@ class Cntl(CntlBase):
                 qsurf = 1
             # Read the next triangulation
             trii = ReadTriFile(f)
+            # Check for intersections
+            compid_isect = np.intersect1d(
+                np.unique(tri.CompID), np.unique(trii.CompID))
+            if compid_isect.size > 0:
+                # Convert ints to string
+                comps = ' '.join([str(int(c)) for c in compid_isect])
+                name = cfg.GetCompName(compid_isect[0])
+                raise CapeValueError(
+                    f"TriFile '{f}' has one or more CompIDs that overlap "
+                    f"previous TriFile(s): {comps}\n"
+                    f"First component name: {name}")
             # Apply configuration
             if cfg is not None:
                 trii.ApplyConfig(cfg)
