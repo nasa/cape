@@ -27,6 +27,7 @@ class MeshOpts(OptionsDict):
 
     # List of options
     _optlist = {
+        "ConfigMapBCFile",
         "CopyAsFiles",
         "CopyFiles",
         "LinkAsFiles",
@@ -40,6 +41,7 @@ class MeshOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "ConfigFile": "ConfigMapBCFile",
         "BCFile": "MapBCFile",
         "MapBC": "MapBCFile",
     }
@@ -58,6 +60,7 @@ class MeshOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "ConfigMapBCFile": str,
         "CopyAsFiles": dict,
         "CopyFiles": str,
         "LinkAsFiles": dict,
@@ -71,6 +74,8 @@ class MeshOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "ConfigMapBCFile": (
+            "seperate ``.mapbc`` file only for naming surface components"),
         "CopyAsFiles": (
             "file(s) to copy and rename; source file is left-hand side and "
             "target file name is right-hand side"),
