@@ -551,16 +551,26 @@ def _check_tri_mode(fp, little=True, record=False):
         if record:
             # Read record marker
             R = np.fromfile(fp, count=1, dtype=dtype)
-            # Should be for 2 x int(32|64)
-            if R[0] != isize * nelem_types:
+            # Should be for (2 | 3) x int(32|64)
+            if R[0] == isize*nelem_types:
+                # Normal .tri file
+                pass
+            elif R[0] == isize * (nelem_types + 1):
+                # Annotated .triq file
+                nelem_types = 3
+            else:
                 return
-        # Read first 2 ints
+        # Read first 2|3 ints
         ns = np.fromfile(fp, count=nelem_types, dtype=dtype)
+        # Number of bytes in first "record"
+        size_offset = nelem_types * isize
         # Check for negative dimensions
         if np.min(ns) < 0:
             return
         # Unpack individual sizes (implicitly checks size of *ns*)
-        npt, ntri = np.array(ns, dtype="int64")
+        npt = ns[0]
+        ntri = ns[1]
+        nq = 0 if (ns.size < 3) else ns[2]
         # Calculate size of required records for single-precision
         n4 = 4*(npt*3 + ntri*3)
         # Add in size of first record and record markers (if any)
@@ -569,9 +579,12 @@ def _check_tri_mode(fp, little=True, record=False):
         n8 = n4 + 4*(npt*3)
         # Size for optional CompID array
         compID = 4*ntri + record_offset
+        # Size for *q*
+        q4 = 4*npt*nq + record_offset
+        q8 = 8*npt*nq + record_offset
         # Assemble arrays of possi + record_offsetble sizes
-        s4 = np.cumsum([n4, compID])
-        s8 = np.cumsum([n8, compID])
+        s4 = np.cumsum([n4, compID, q4])
+        s8 = np.cumsum([n8, compID, q8])
         # Check sizes
         if size in s4:
             # Matched single-precision size

@@ -3440,9 +3440,10 @@ class TriBase(object):
                 # Do not keep this zone
                 kKeep[k1:-k2] = False
         # Ignore negative triangles
-        tri.Tris   = tri.Tris[kKeep, :]
+        tri.Tris = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
-        tri.nTri   = tri.Tris.shape[0]
+        tri.nTri = tri.Tris.shape[0]
+        tri.nq = None
         # Write the triangulation to file
         tri.WriteSlow_lr4(fname)
 
