@@ -3487,6 +3487,7 @@ class TriBase(object):
         tri.CompID = tri.CompID[kKeep]
         tri.Tris = tri.Tris[kKeep, :]
         tri.nTri = tri.Tris.shape[0]
+        tri.nq = 0
         # Write the triangulation to file
         if tri.nTri:
             tri.WriteSlow_lr4(fname)
