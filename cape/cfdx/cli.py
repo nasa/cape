@@ -2171,7 +2171,7 @@ def cape_find_json(parser: CfdxArgReader) -> int:
     # Parse args
     kw = parser.get_kwargs()
     # Find files
-    json_files = manage.find_json(kw.get("pat"))
+    json_files = manage.find_json_solver(kw.get("pat"))
     # List them
     for fname in json_files:
         print(fname)
@@ -2183,7 +2183,7 @@ def cape_find_large(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --find-large`` command
 
     :Call:
-        >>> ierr == cape_fail(parser)
+        >>> ierr == cape_fnd_large(parser)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
