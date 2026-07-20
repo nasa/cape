@@ -3,9 +3,9 @@
 import sys
 
 # Local imports
-from .cli import main1
+from .cli import main2
 
 
 # Check if run as a script.
 if __name__ == "__main__":
-    sys.exit(main1())
+    sys.exit(main2())

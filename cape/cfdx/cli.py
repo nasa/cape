@@ -2597,8 +2597,13 @@ def read_cntl(**kw):
                     break
             else:
                 raise CapeValueError("Found no CAPE JSON files in repo")
+        # Report which file we're using!
+        print(f"Using {solver} JSON file: {fname}")
+    elif solver is None:
+        # Determine solver
+        solver = manage.identify_solver(fname)
     # Name of module
-    modname = f"cape.{solver}"
+    modname = f"cape.{solver}.cntl"
     # Import it
     cntlmod = importlib.import_module(modname)
     # Instantiate
@@ -2679,6 +2684,9 @@ CMD_DICT = {
     "unarchive": cape_unarchive,
     "unmark": cape_unmark,
 }
+CMD_DICT2 = {
+    "check": run_cape_c,
+}
 
 
 # Template for each solver
@@ -2726,8 +2734,63 @@ def main_template(
     return IERR_OK
 
 
+# Template for each solver
+def maint2(
+        parser_cls: CfdxFrontDesk,
+        argv: Optional[list] = None) -> int:
+    # Create parser
+    parser = parser_cls()
+    # Use sys.argv if necessary
+    argv = _get_argv(argv)
+    # Identify subcommand
+    cmdname, subparser, ierr = parser.fullparse_check(argv)
+    # Check for errors
+    if ierr:
+        return IERR_OPT
+    # Check for valid command name or other front-desk help triggers
+    if parser.help_frontdesk(cmdname):
+        return IERR_OK
+    # Check for ``-h``
+    if subparser.show_help("h"):
+        return IERR_OK
+    # Set Cntl/CaseRunner classes for this solver
+    subparser.casecntl_mod = parser_cls._casecntl_mod
+    # Parse args
+    a, kw = subparser.parse(argv)
+    # Set default "solver"
+    modname = parser_cls._cntl_mod
+    if modname.startswith("cape.py"):
+        kw.setdefault("solver", modname.split('.')[1])
+    # Get function
+    func = CMD_DICT2.get(cmdname)
+    # Call the function
+    if func:
+        # Use a try/except to catch user-input errors
+        try:
+            IERR, _ = func(*a, **kw)
+            return IERR
+        except CapeError as e:
+            # Print the error type
+            sys.stderr.write(f"{e.__class__.__name__[4:]}:\n")
+            # Now the error message
+            for a in e.args:
+                sys.stderr.write(f"    {a}\n")
+            # End message and exit
+            sys.stderr.flush()
+            return IERR_RUNTIME
+        except KeyboardInterrupt:
+            print("KeyboardInterrupt")
+            return IERR_INTERRUPT
+    # For now, print the selected command
+    return IERR_OK
+
+
 def main1(argv: Optional[list] = None) -> int:
     return main_template(CfdxFrontDesk, argv)
+
+
+def main2(argv: Optional[list] = None) -> int:
+    return maint2(CfdxFrontDesk, argv)
 
 
 # Primary interface
