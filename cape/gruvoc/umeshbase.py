@@ -4319,6 +4319,26 @@ class UmeshBase(ABC):
 
    # --- Nodes ---
     def find_duplicate_nodes(self, tol: float = 1e-8) -> np.ndarray:
+        r"""Find duplicated nodes
+
+        Find identical copies of nodes, which are often generated along
+        boundaries between neighboring zones.
+
+        :Call:
+            >>> dup_pairs mesh.find_duplicate_nodes(tol=1e-8)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *tol*: {``1e-8``} | :class:`float`
+                Spatial distance tolerance for repeat nodes
+        :Outputs:
+            *dup_pairs*: :class:`np.ndarray`\ [:class:`int`]
+                An Nx2 array of 1-based node numbers where *N* is the
+                number of duplicated nodes, the first column is the
+                number of the duplicated node, and second column is the
+                matching node. Within the same row, column 1 always has
+                a lower value than column 0.
+        """
         # Build tree
         tree = cKDTree(self.nodes)
         # Find duplicates
@@ -4334,6 +4354,21 @@ class UmeshBase(ABC):
   # === Repair ===
    # --- Zip zone boundaries ---
     def zip_duplicate_edges(self, tol: float = 1e-8):
+        r"""Find identical edges and zip them into shared edges
+
+        This fixes issues in meshes where two zones are defined
+        independently, for example in a Tecplot surface file. It zips
+        the duplicated edges by finding a common set of nodes along
+        each duplicated edge and then removing the duplicate nodes.
+
+        :Call:
+            >>> mesh.zip_duplicate_edges(tol=1e-8)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *tol*: {``1e-8``} | :class:`float`
+                Spatial distance tolerance for repeat nodes
+        """
         # Find duplicate nodes
         dup_nodes = self.find_duplicate_nodes(tol)
         # Initialize array of node mapping; most nodes are unchanged
