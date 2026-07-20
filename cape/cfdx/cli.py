@@ -130,6 +130,8 @@ class CfdxArgReader(argread.ArgReader):
         "FAIL": bool,
         "PASS": bool,
         "adaptive": bool,
+        "add-cols": (str, list),
+        "add-counters": (str, list),
         "apply": bool,
         "archive": bool,
         "auto": bool,
@@ -141,9 +143,11 @@ class CfdxArgReader(argread.ArgReader):
         "check-ll": bool,
         "check-triqfm": bool,
         "clean": bool,
+        "cols": (str, list),
         "compile": bool,
         "cons": str,
         "constant": bool,
+        "counters": (str, list),
         "cmd": str,
         "cutoff": str,
         "dbpyfunc": (bool, str),
@@ -161,6 +165,10 @@ class CfdxArgReader(argread.ArgReader):
         "fjson": str,
         "force": bool,
         "fm": (bool, str),
+        "glob": str,
+        "h": bool,
+        "hide-cols": (str, list),
+        "hide-counters": (str, list),
         "imax": int,
         "incremental": bool,
         "iter-fm": (bool, str),
@@ -1739,6 +1747,11 @@ def cape_c(parser: CfdxArgReader) -> int:
 
 @CfdxCheckArgs.check
 def run_cape_c(*a, **kw):
+    r"""Run ``cape -c`` command
+
+    :Inputs:
+        %(options)s
+    """
     # Read *cntl*
     cntl, kw = read_cntl(**kw)
     # Run the main command
