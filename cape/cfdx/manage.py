@@ -14,6 +14,7 @@ and more.
 # Standard library
 import fnmatch
 import os
+from os.path import isfile
 from typing import Optional, Union
 
 # Local imports
@@ -26,6 +27,16 @@ from ..optdict import OptionsDict
 
 # Default warning mode
 _WARNMODE = Cntl._warnmode_default
+
+
+# List of default JSON file names
+DEFAULT_JSON_FILES = (
+    "pyCart.json",
+    "pyFun.json",
+    "pyKes.json",
+    "pyLava.json",
+    "pyOver.json",
+)
 
 
 # Find JSON files
@@ -101,6 +112,7 @@ def find_json_solver(pat: Optional[str] = None) -> list:
             List of apparent CAPE JSON files
     :Versions:
         * 2026-07-18 ``@ddalle``: v1.0
+        * 2026-07-20 ``@ddalle``: v1.1; special rules for `py{X}.json``
     """
     # Read a git repository
     repo = GitRepo()
@@ -109,11 +121,15 @@ def find_json_solver(pat: Optional[str] = None) -> list:
     # Default pattern
     pat = "*.json" if pat is None else pat
     # Filter them to JSON files
-    json_files = fnmatch.filter(fnames, pat)
+    raw_json_files = fnmatch.filter(fnames, pat)
+    # Append pyCart.json, etc., if found (usually not tracked)
+    for fname in DEFAULT_JSON_FILES:
+        if isfile(fname) and fname not in raw_json_files:
+            raw_json_files.append(fname)
     # Initialize list
     cape_json_files = []
     # Loop through candidates
-    for candidate in json_files:
+    for candidate in raw_json_files:
         # Identify the solver
         solver = identify_solver(candidate)
         # Check result
@@ -127,12 +143,39 @@ def find_json_solver(pat: Optional[str] = None) -> list:
     cape_json_files.sort(key=lambda x: x[2], reverse=True)
     # Eliminate mod times
     json_files = [mtch[:2] for mtch in cape_json_files]
+    # Re-sort so that py{X}.json links are at the top
+    for fname in DEFAULT_JSON_FILES:
+        if not os.path.islink(fname):
+            continue
+        # Find the entry
+        fname_list = [v[1] for v in json_files]
+        i = fname_list.index(fname)
+        # Remove that entry and move it to the top
+        entry = json_files.pop(i)
+        json_files.insert(0, entry)
     # Output
     return json_files
 
 
 # Identify solver
 def identify_solver(fjson: str) -> Optional[str]:
+    r"""Determine the intended solver for a CAPE JSON file
+
+    :Call:
+        >>> solver = identify_solver(fjson)
+    :Inputs:
+        *fjson*: :class:`str`
+            Name of JSON file to investigate
+    :Outputs:
+        *solver*: :class:`str` | ``None``
+            Intended solver ``"pycart"``, ``"pyfun"``, etc., if one
+            could be determined. If no `"RunControl"` section is found,
+            returns ``None``. If  `"RunControl"` section is present but
+            no other identifying features were found for a specific
+            solver, returns ``"cfdx"``
+    :Versions:
+        * 2026-07-18 ``@ddalle``: v1.0
+    """
     # Check for "RunControl"
     if len(grep('"RunControl"', fjson)) == 0:
         return
@@ -148,7 +191,6 @@ def identify_solver(fjson: str) -> Optional[str]:
     rc = opts["RunControl"]
     if not isinstance(rc, dict):
         return
-    # Select
     # Check for identifying sections
     if "LAVASolver" in rc:
         solver = "pylava"
@@ -169,6 +211,58 @@ def identify_solver(fjson: str) -> Optional[str]:
     elif "AeroCsh" in opts:
         solver = "pycart"
     else:
+        solver = "cfdx"
+    # Output
+    return solver
+
+
+def identify_case_solver() -> Optional[str]:
+    r"""Determine the intended solver of the current case folder
+
+    :Call:
+        >>> solver = identify_case_solver()
+    :Outputs:
+        *solver*: :class:`str` | ``None``
+            Intended solver ``"pycart"``, ``"pyfun"``, etc., if one
+            could be determined. If no ``case.json`` file is found,
+            returns ``None``. If  ``case.json`` is present but
+            no other identifying features were found for a specific
+            solver, returns ``"cfdx"``
+    :Versions:
+        * 2026-07-20 ``@ddalle``: v1.0
+    """
+    # Check for main file
+    if not isfile("case.json"):
+        return
+    # Check for identifying conditions
+    if isfile("run_fun3d.pbs"):
+        solver = "pyfun"
+    elif isfile("run_cart3d.pbs"):
+        solver = "pycart"
+    elif isfile("run_overflow.pbs"):
+        solver = "pyover"
+    elif isfile("run_lava.pbs"):
+        solver = "pylava"
+    elif isfile("run_kestrel.pbs"):
+        solver = "pykes"
+    elif isfile("run_fun3d.00.pbs"):
+        solver = "pyfun"
+    elif isfile("run_cart3d.00.pbs"):
+        solver = "pycart"
+    elif isfile("run_overflow.00.pbs"):
+        solver = "pyover"
+    elif isfile("run_lava.00.pbs"):
+        solver = "pylava"
+    elif isfile("run_kestrel.00.pbs"):
+        solver = "pykes"
+    elif isfile("fun3d.nml") or isfile("fun3d.00.nml"):
+        solver = "pyfun"
+    elif isfile("input.cntl") or isfile("input.00.cntl"):
+        solver = "pycart"
+    elif isfile("run.00.inputs"):
+        solver = "pylava"
+    else:
+        # Default
         solver = "cfdx"
     # Output
     return solver
