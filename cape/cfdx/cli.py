@@ -184,9 +184,10 @@ class CfdxArgReader(argread.ArgReader):
         "report": (bool, str),
         "restart": bool,
         "rm": bool,
-        "surfcp": (bool, str),
         "skeleton": bool,
+        "solver": str,
         "start": bool,
+        "surfcp": (bool, str),
         "triqfm": (bool, str),
         "ts": (bool, str),
         "u": str,
@@ -246,6 +247,31 @@ class CfdxArgReader(argread.ArgReader):
         "unmarked",
         "v",
     )
+
+    # Translations for option values
+    _optvalmap = {
+        "solver": {
+            "cart": "pycart",
+            "cart3d": "pycart",
+            "f3d": "pyfun",
+            "fun3d": "pyfun",
+            "kestrel": "pykes",
+            "lava": "pylava",
+            "ofl": "pyover",
+            "overflow": "pyover",
+        },
+    }
+
+    # Allowed values
+    _optvals = {
+        "solver": (
+            "pycart",
+            "pyfun",
+            "pykes",
+            "pylava",
+            "pyover",
+        ),
+    }
 
     # Description of each option
     _help_opt = {
@@ -312,9 +338,10 @@ class CfdxArgReader(argread.ArgReader):
         "re": "Limit to cases containing regular expression *REGEX*",
         "report": "Generate the report *RP* or the first in the list",
         "restart": "When submitting new jobs, only submit new cases",
+        "skeleton": "Delete most files from indicaded PASSED cases",
+        "solver": "Name of CAPE module to use (or determine automatically)",
         "surf": "Name of surface to collect/process",
         "surfcp": "Extract surface pressure data for case(s)",
-        "skeleton": "Delete most files from indicaded PASSED cases",
         "raw": "Collect raw flow data w/o triangulating or interpolating",
         "rm": "Remove indicated cases",
         "start": "Set up but do not start (or submit) cases",
@@ -414,6 +441,7 @@ class _CfdxCaseLoopArgs(_CfdxSubsetArgs):
         "hide-cols",
         "hide-counters",
         "j",
+        "solver",
     )
 
     # Common aliases
@@ -2804,7 +2832,7 @@ def main(argv: Optional[list] = None) -> int:
     :Versions:
         * 2021-03-04 ``@ddalle``: v1.0
     """
-    return main1(argv)
+    return main2(argv)
 
 
 def _get_argv(argv: Optional[list]) -> list:
