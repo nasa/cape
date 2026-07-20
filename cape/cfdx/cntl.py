@@ -1562,6 +1562,7 @@ class Cntl(CntlBase):
             compid_isect = np.intersect1d(
                 np.unique(tri.CompID), np.unique(trii.CompID))
             if compid_isect.size > 0:
+                breakpoint()
                 # Convert ints to string
                 comps = ' '.join([str(int(c)) for c in compid_isect])
                 name = cfg.GetCompName(compid_isect[0])

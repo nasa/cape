@@ -568,8 +568,8 @@ def _check_tri_mode(fp, little=True, record=False):
         if np.min(ns) < 0:
             return
         # Unpack individual sizes (implicitly checks size of *ns*)
-        npt = ns[0]
-        ntri = ns[1]
+        npt = np.int64(ns[0])
+        ntri = np.int64(ns[1])
         nq = 0 if (ns.size < 3) else ns[2]
         # Calculate size of required records for single-precision
         n4 = 4*(npt*3 + ntri*3)
