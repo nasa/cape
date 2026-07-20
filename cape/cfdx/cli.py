@@ -1709,6 +1709,16 @@ def cape_c(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxCheckArgs.check
+def run_cape_c(*a, **kw):
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the main command
+    sts = cntl.DisplayStatus(**kw)
+    # Output
+    return IERR_OK, sts
+
+
 def cape_check_db(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --check-db`` command
 
@@ -2542,6 +2552,59 @@ def read_cntl_kwargs(parser: CfdxArgReader):
     cntl.preprocess_kwargs(kw)
     # Log
     cntl.log_parser(parser)
+    # Output
+    return cntl, kw
+
+
+def read_cntl(**kw):
+    r"""Read a CAPE run matrix control instance of appropriate class
+
+    :Call:
+        >>> cntl, parsed_kw = read_cntl(fname=None, solver=None, **kw)
+    :Inputs:
+        *fname*: {``None``} | :class:`str`
+            Name of JSON file (or use most recent)
+        *solver*: {``None``} | :class:`str`
+            Solver module (or determine based on *fname*)
+    :Outputs:
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            CAPE run matrix control instance (solver-specific)
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+        * 2025-01-24 ``@ddalle``: v2.0; use module name instead of cls
+    """
+    # Get required options
+    fname = kw.pop("f", None)
+    solver = kw.pop("solver", None)
+    # Get module name if necessary
+    if fname is None:
+        # Find valid JSON files
+        json_files = manage.find_json_solver()
+        # Check for match
+        if len(json_files) == 0:
+            raise CapeValueError("Found no CAPE JSON files in repo")
+        # Filter by solver if needed
+        if solver is None:
+            # No filter
+            solver, fname = json_files[0]
+        else:
+            # Loop through matches
+            for sj, fj in json_files:
+                # Check solver
+                if sj == solver:
+                    # Found match
+                    fname = fj
+                    break
+            else:
+                raise CapeValueError("Found no CAPE JSON files in repo")
+    # Name of module
+    modname = f"cape.{solver}"
+    # Import it
+    cntlmod = importlib.import_module(modname)
+    # Instantiate
+    cntl = cntlmod.Cntl(fname)
+    # Preprocess
+    cntl.preprocess_kwargs(kw)
     # Output
     return cntl, kw
 

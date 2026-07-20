@@ -128,7 +128,7 @@ def find_json_solver(pat: Optional[str] = None) -> list:
     # Eliminate mod times
     json_files = [mtch[:2] for mtch in cape_json_files]
     # Output
-    return cape_json_files
+    return json_files
 
 
 # Identify solver
