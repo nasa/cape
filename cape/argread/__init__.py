@@ -712,7 +712,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
 
   # *** DECORATORS ***
     @classmethod
-    def check(cls: type, func: Callable):
+    def check(cls: type, func: Callable) -> Callable:
         r"""Decorator for a function to parse and validate its inputs
 
         :Call:
@@ -1720,6 +1720,113 @@ class ArgReader(dict, metaclass=MetaArgReader):
                 names.append(alias)
         # Output
         return names
+
+   # --- API help ---
+    @classmethod
+    def expand_doc(cls, func: Callable) -> Callable:
+        r"""Decorator for a function to parse and validate its inputs
+
+        :Call:
+            >>> wrapper = cls.parse(func)
+        :Example:
+            .. code-block:: python
+
+                @cls.check
+                def func(*a, **kw):
+                    ...
+
+        :Inputs:
+            *func*: :class:`callable`
+                A function, class, or callable instance
+        :Outputs:
+            *cls*: :class:`type`
+                A subclass of :class:`ArgReader`
+            *wrap*: :class:`callable`
+                A wrapped version of *func* that parses and validates
+                args and kwargs according to *cls* before calling *func*
+        """
+        # Check for docstring
+        if func.__doc__ is None:
+            return func
+        # Create format dictionary
+        fmt = {
+            "opts": cls._genr8_opts_rst()
+        }
+        # Apply both formatting substitutions
+        func.__doc__ = func.__doc__ % fmt
+        func.__doc__ = func.__doc__.format(fmt)
+        # Return same function
+        return func
+
+    @classmethod
+    def _genr8_opts_rst(cls) -> str:
+        r"""Generate help message for all the options in _optlist
+
+        :Call:
+            >>> msg = parser.genr8_optshelp()
+        :Inputs:
+            *parser*: :class:`ArgReader`
+                Command-line argument parser
+        :Outputs:
+            *msg*: :class:`str`
+                Help message for all options
+        """
+        # Get option list
+        optlist = cls._help_optlist
+        # Default to _optlist if not defined
+        optlist = optlist if optlist is not None else cls._optlist
+        # Generate text for each option
+        msgs = [cls._genr8_opt_rst(opt) for opt in optlist]
+        # Add header and join mesages
+        return "\n".join(msgs)
+
+    @classmethod
+    def _genr8_opt_rst(cls, opt: str) -> str:
+        r"""Generate a help message for a particular option
+
+        :Call:
+            >>> msg = parser.genr8_opthelp(opt)
+        :Inputs:
+            *parser*: :class:`ArgReader`
+                Command-line argument parser
+            *opt*: :class:`str`
+                Name of option
+        :Outputs:
+            *msg*: :class:`str`
+                Help message for option *opt*
+        """
+        # Get main option name
+        mainopt = cls._optmap.get(opt, opt)
+        # Initialize
+        msg = f"*{mainopt}*: "
+        # Get default value
+        vdef = cls._rc.get(mainopt)
+        # Check for default value
+        if vdef is not None:
+            # Convert to string
+            vmsg = str(vdef)
+            # Add it if short enough
+            if len(vmsg) <= 12:
+                msg += " {``%s``} | " % vmsg
+        # Get types
+        typs = cls._opttypes.get(mainopt)
+        # Convert to list
+        if isinstance(typs, (list, tuple)):
+            typstrs = [f":class:`{t.__name__}`" for t in typs]
+            typstr = " | ".join(typstrs)
+        elif typs is None:
+            typstr = "**any**"
+        else:
+            typstr = f":class:`{typs.__name__}`"
+        # Append types
+        msg += typstr
+        # Get description
+        optdescr = cls._help_opt.get(mainopt)
+        # Append if necessary
+        if optdescr:
+            msg += f"\n{TAB}{optdescr}"
+        # Output
+        return msg
 
    # --- CLI help ---
     def show_help(self, opt: str = "help") -> bool:
