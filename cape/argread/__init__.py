@@ -324,6 +324,8 @@ OPTLIST_TYPES = (
     frozenset,
     list)
 
+# Regular expressions for search docstrings
+REGEX_OPTIONS = re.compile(r"( *)%\(options\)s")
 
 #: Option name/value pair
 OptPair = namedtuple("OptPair", ["opt", "val"])
@@ -1723,15 +1725,15 @@ class ArgReader(dict, metaclass=MetaArgReader):
 
    # --- API help ---
     @classmethod
-    def expand_doc(cls, func: Callable) -> Callable:
-        r"""Decorator for a function to parse and validate its inputs
+    def doc_rst(cls, func: Callable) -> Callable:
+        r"""Decorator for a function to document options in reST
 
         :Call:
-            >>> wrapper = cls.parse(func)
+            >>> wrap = cls.doc_rst(func)
         :Example:
             .. code-block:: python
 
-                @cls.check
+                @cls.doc_rst
                 def func(*a, **kw):
                     ...
 
@@ -1742,19 +1744,25 @@ class ArgReader(dict, metaclass=MetaArgReader):
             *cls*: :class:`type`
                 A subclass of :class:`ArgReader`
             *wrap*: :class:`callable`
-                A wrapped version of *func* that parses and validates
-                args and kwargs according to *cls* before calling *func*
+                Same function *func* with docstring potentially updated
         """
         # Check for docstring
         if func.__doc__ is None:
             return func
-        # Create format dictionary
-        fmt = {
-            "opts": cls._genr8_opts_rst()
-        }
-        # Apply both formatting substitutions
-        func.__doc__ = func.__doc__ % fmt
-        func.__doc__ = func.__doc__.format(fmt)
+        # Get docsring
+        doc = func.__doc__
+        # Check for args
+        if "%(options)s" in doc:
+            # Create options list
+            argstr = cls._genr8_opts_rst()
+            # Find the format flag and preceding spaces
+            mtch = REGEX_OPTIONS.search(doc, re.MULTILINE)
+            # Find the space group
+            tab = " "*len(mtch.group(1))
+            # Add tabs to each line of *argstr*
+            argfmt = f"\n{tab}".join(argstr.split('\n')).rstrip()
+            # Make substitution
+            func.__doc__ = doc % {"options": argfmt}
         # Return same function
         return func
 
