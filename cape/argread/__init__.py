@@ -803,10 +803,8 @@ class ArgReader(dict, metaclass=MetaArgReader):
         for arg in cls._arglist:
             # Normalize parameter name
             name = arg.replace("-", "_")
-            # Get the type
-            t = cls._opttypes.get(arg)
-            # Convert to anntation
-            annotation = _to_param_annotation(t)
+            # Get the type annotation
+            annotation = cls._to_annotation(arg)
             # Get type
             params.append(
                 inspect.Parameter(
@@ -823,10 +821,8 @@ class ArgReader(dict, metaclass=MetaArgReader):
                 continue
             # Get default value
             vdef = cls._rc.get(name)
-            # Get the type
-            t = cls._opttypes.get(name)
-            # Convert to anntation
-            annotation = _to_kwarg_annotation(t)
+            # Get the type annotation
+            annotation = cls._to_annotation(name)
             # Append parameter
             params.append(
                 inspect.Parameter(
@@ -839,6 +835,26 @@ class ArgReader(dict, metaclass=MetaArgReader):
             "return", inspect.Signature.empty)
         # Output
         return inspect.Signature(params, return_annotation=out_annote)
+
+    @classmethod
+    def _to_annotation(cls, opt: str):
+        # Get type specification
+        t = cls._opttypes.get(opt)
+        # Check type specifications
+        if t is None:
+            return inspect.Signature.empty
+        # Convert tuple -> Union if necessary
+        if isinstance(t, tuple):
+            annotation = Union[t]
+        else:
+            annotation = t
+        # Check if required
+        if opt in cls._optlistreq or opt in cls._rc:
+            # Required
+            return annotation
+        else:
+            # Allow ``None``
+            return Optional[annotation]
 
   # *** GET/SET ***
    # --- Get ---
@@ -3200,19 +3216,3 @@ def _get_argv(argv: Optional[list]) -> list:
     # Output
     return argv
 
-
-# Convert type defn to annotation
-def _to_param_annotation(t):
-    if t is None:
-        return inspect.Signature.empty
-    elif isinstance(t, tuple):
-        return Union[t]
-    else:
-        return t
-
-
-def _to_kwarg_annotation(t: Union[type, tuple]):
-    if t is None:
-        return inspect.Signature.empty
-    else:
-        return Optional[_to_param_annotation(t)]
