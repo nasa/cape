@@ -714,11 +714,11 @@ class ArgReader(dict, metaclass=MetaArgReader):
 
   # *** DECORATORS ***
     @classmethod
-    def check(cls: type, func: Callable) -> Callable:
-        r"""Decorator for a function to parse and validate its inputs
+    def rst(cls: type, func: Callable) -> Callable:
+        r"""Parse and validate function input and expand documentation
 
         :Call:
-            >>> wrapper = cls.parse(func)
+            >>> wrapper = cls.rst(func)
         :Example:
             .. code-block:: python
 
@@ -727,6 +727,35 @@ class ArgReader(dict, metaclass=MetaArgReader):
                     ...
 
         :Inputs:
+            *cls*: :class:`type`
+                :class:`ArgReader` or subclass
+            *func*: :class:`callable`
+                A function, class, or callable instance
+        :Outputs:
+            *cls*: :class:`type`
+                A subclass of :class:`ArgReader`
+            *wrap*: :class:`callable`
+                A wrapped version of *func* that parses and validates
+                args and kwargs according to *cls* before calling *func*
+        """
+        return cls.check(cls.doc_rst(func))
+
+    @classmethod
+    def check(cls: type, func: Callable) -> Callable:
+        r"""Decorator for a function to parse and validate its inputs
+
+        :Call:
+            >>> wrapper = cls.check(func)
+        :Example:
+            .. code-block:: python
+
+                @cls.check
+                def func(*a, **kw):
+                    ...
+
+        :Inputs:
+            *cls*: :class:`type`
+                :class:`ArgReader` or subclass
             *func*: :class:`callable`
                 A function, class, or callable instance
         :Outputs:

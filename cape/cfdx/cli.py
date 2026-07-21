@@ -1751,8 +1751,7 @@ def cape_c(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
-@CfdxCheckArgs.check
-@CfdxCheckArgs.doc_rst
+@CfdxCheckArgs.rst
 def run_cape_c(*a, **kw):
     r"""Run ``cape -c`` command
 
@@ -2348,20 +2347,19 @@ def cape_run(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
-@CfdxRunArgs.check
+@CfdxRunArgs.rst
 def run_cape_run(*a, **kw) -> Tuple[int, Any]:
     r"""Run the ``cape run`` command to run case in current folder
 
     :Call:
-        >>> ierr == cape_start(parser)
+        >>> ierr, v == cape_run(*a, **kw)
     :Inputs:
-        *parser*: :class:`CfdxArgReader`
-            Parsed CLI args
+        %(options)s
     :Outputs:
         *ierr*: :class:`int`
             Return code
-    :Versions:
-        * 2024-12-30 ``@ddalle``: v1.0
+        *v*: **any**
+            Output of :func:`CaseRunner.run`, if any
     """
     # Read instance
     runner, kw = read_runner_kwargs(**kw)
@@ -2789,6 +2787,7 @@ CMD_DICT = {
 }
 CMD_DICT2 = {
     "check": run_cape_c,
+    "run": run_cape_run,
 }
 
 
