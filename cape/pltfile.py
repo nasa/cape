@@ -407,7 +407,8 @@ class Plt(object):
                 # Read data
                 qi[:, j] = np.fromfile(f, dtype=dtj, count=npt).astype(dtype)
                 # Check for cell-centered data
-                if self.VarLocs[n][j] == 1:
+                varlocs = self.VarLocs[n]
+                if len(varlocs) > j and varlocs[j] == 1:
                     # Warning
                     if n == 0:
                         print(f"Warning: var {j}, '{colj}' is cell-centered")
