@@ -324,6 +324,8 @@ OPTLIST_TYPES = (
     frozenset,
     list)
 
+# Regular expressions for search docstrings
+REGEX_OPTIONS = re.compile(r"( *)%\(options\)s")
 
 #: Option name/value pair
 OptPair = namedtuple("OptPair", ["opt", "val"])
@@ -1748,13 +1750,20 @@ class ArgReader(dict, metaclass=MetaArgReader):
         # Check for docstring
         if func.__doc__ is None:
             return func
-        # Create format dictionary
-        fmt = {
-            "opts": cls._genr8_opts_rst()
-        }
-        # Apply both formatting substitutions
-        func.__doc__ = func.__doc__ % fmt
-        func.__doc__ = func.__doc__.format(fmt)
+        # Get docsring
+        doc = func.__doc__
+        # Check for args
+        if "%(options)s" in doc:
+            # Create options list
+            argstr = cls._genr8_opts_rst()
+            # Find the format flag and preceding spaces
+            mtch = REGEX_OPTIONS.search(doc, re.MULTILINE)
+            # Find the space group
+            tab = " "*len(mtch.group(1))
+            # Add tabs to each line of *argstr*
+            argfmt = f"\n{tab}".join(argstr.split('\n')).rstrip()
+            # Make substitution
+            func.__doc__ = doc % {"options": argfmt}
         # Return same function
         return func
 
