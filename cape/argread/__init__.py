@@ -1725,15 +1725,15 @@ class ArgReader(dict, metaclass=MetaArgReader):
 
    # --- API help ---
     @classmethod
-    def expand_doc(cls, func: Callable) -> Callable:
-        r"""Decorator for a function to parse and validate its inputs
+    def doc_rst(cls, func: Callable) -> Callable:
+        r"""Decorator for a function to document options in reST
 
         :Call:
-            >>> wrapper = cls.parse(func)
+            >>> wrap = cls.doc_rst(func)
         :Example:
             .. code-block:: python
 
-                @cls.check
+                @cls.doc_rst
                 def func(*a, **kw):
                     ...
 
@@ -1744,8 +1744,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
             *cls*: :class:`type`
                 A subclass of :class:`ArgReader`
             *wrap*: :class:`callable`
-                A wrapped version of *func* that parses and validates
-                args and kwargs according to *cls* before calling *func*
+                Same function *func* with docstring potentially updated
         """
         # Check for docstring
         if func.__doc__ is None:

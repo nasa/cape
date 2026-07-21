@@ -1746,7 +1746,7 @@ def cape_c(parser: CfdxArgReader) -> int:
 
 
 @CfdxCheckArgs.check
-@CfdxCheckArgs.expand_doc
+@CfdxCheckArgs.doc_rst
 def run_cape_c(*a, **kw):
     r"""Run ``cape -c`` command
 
