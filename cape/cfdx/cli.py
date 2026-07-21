@@ -11,7 +11,7 @@ executable called ``cape``.
 import importlib
 import os
 import sys
-from typing import Optional, Union
+from typing import Any, Optional, Union, Tuple
 
 # CAPE modules
 from . import manage
@@ -87,6 +87,12 @@ class CfdxArgReader(argread.ArgReader):
         "casecntl_mod",
         "cntl_cls",
         "runner_cls",
+    )
+
+    # Common options
+    _optlist = (
+        "h",
+        "solver",
     )
 
     # Common aliases
@@ -2341,6 +2347,29 @@ def cape_run(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxRunArgs.check
+def run_cape_run(*a, **kw) -> Tuple[int, Any]:
+    r"""Run the ``cape run`` command to run case in current folder
+
+    :Call:
+        >>> ierr == cape_start(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-30 ``@ddalle``: v1.0
+    """
+    # Read instance
+    runner, kw = read_runner_kwargs(**kw)
+    # Run the case
+    v = runner.run()
+    # Return code
+    return IERR_OK, v
+
+
 def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
     r"""Collect surface data into batches
 
@@ -2614,7 +2643,7 @@ def read_cntl(**kw):
         * 2024-12-19 ``@ddalle``: v1.0
         * 2025-01-24 ``@ddalle``: v2.0; use module name instead of cls
     """
-    # Get required options
+    # Get options
     fname = kw.pop("f", None)
     solver = kw.pop("solver", None)
     # Get module name if necessary
@@ -2653,6 +2682,38 @@ def read_cntl(**kw):
     cntl.preprocess_kwargs(kw)
     # Output
     return cntl, kw
+
+
+def read_runner(**kw) -> tuple:
+    r"""Read a CAPE case runner instance to interact with CFD in `$PWD`
+
+    :Call:
+        >>> runner, kw = read_runner(**kw)
+    :Inputs:
+        *solver*: {``None``} | :class:`str`
+            Solver module (e.g. ``"pyfun"``), or auto-determine
+    :Outputs:
+        *runner*: :class:`cape.cfdx.casecntl.CaseRunner`
+            Case runner instance to control case in current folder
+        *kw*: :class:`dict`
+            Preprocessed keyword arguments
+    :Versions:
+        * 2024-12-30 ``@ddalle``: v1.0
+        * 2025-01-24 ``@ddalle``: v2.0; use module name instead of cls
+    """
+    # Get options
+    solver = kw.pop("solver", None)
+    # Determine solver if necessary
+    if solver is None:
+        solver = manage.identify_case_solver()
+    # Name of module
+    modname = f"cape.{solver}.casecntl"
+    # Import it
+    cntlmod = importlib.import_module(modname)
+    # Instantiate
+    runner = cntlmod.CaseRunner()
+    # Output
+    return runner, kw
 
 
 def read_runner_kwargs(parser: CfdxArgReader):
