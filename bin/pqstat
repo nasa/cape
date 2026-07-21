@@ -53,11 +53,12 @@ r"""
 import getpass
 import grp
 import os
+import shutil
 import subprocess as sp
 
 # CAPE modules
-import cape.argread
-import cape.text
+from cape.argread import readkeys
+from cape.textutils import markdown
 
 
 # Primary function
@@ -96,7 +97,7 @@ def main(**kw):
     """
     # Check for help
     if kw.get("help", kw.get("h")):
-        print(cape.text.markdown(__doc__))
+        print(markdown(__doc__))
         return
     # Get user name
     u = kw.get("user", kw.get('u'))
@@ -125,7 +126,7 @@ def main(**kw):
         g = None
     if m is True:
         print("WARNING: option '-m' needs a value; ignoring")
-        g = None
+        m = None
     # Default user
     if (q is None) and (u is None) and (g is None):
         # Use current user
@@ -136,8 +137,14 @@ def main(**kw):
         group = grp.getgrnam(g)
         # Convert to user
         u = ",".join(group.gr_mem)
-    # Initialize command
-    cmd = ["qstat", "-W", "-o=+model", "-W", "-o=+group"]
+        breakpoint()
+    # Select a command
+    if shutil.which("nas_qstat"):
+        # Newer version
+        cmd = ["nas_qstat", "-W", "o=+model", "-W", "o=+group"]
+    else:
+        # Initialize command
+        cmd = ["qstat", "-W", "-o=+model", "-W", "-o=+group"]
     # Check for specific queue/user
     if u:
         cmd.extend(["-u", u])
@@ -328,7 +335,7 @@ def check_lines(cmd):
 # Check for CLI call
 if __name__ == "__main__":
     # Process inputs.
-    a, kw = cape.argread.readkeys(os.sys.argv)
+    a, kw = readkeys(os.sys.argv)
     # Call the main function
     main(**kw)
 
