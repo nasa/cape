@@ -430,7 +430,8 @@ class CaseRunner(casecntl.CaseRunner):
                 "turb2": True
             }
         # Overwrite volume output variables
-        nml.pop("volume_output_variables", None)
+        if "volume_output_variables" in nml:
+            nml["volume_output_variables"].clear()
         # Save vol output options to nml
         nml.set_sec("volume_output_variables", vov_req)
         # Ensure volume freq is set
