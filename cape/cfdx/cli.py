@@ -2362,7 +2362,7 @@ def run_cape_run(*a, **kw) -> Tuple[int, Any]:
             Output of :func:`CaseRunner.run`, if any
     """
     # Read instance
-    runner, kw = read_runner_kwargs(**kw)
+    runner, kw = read_runner(**kw)
     # Run the case
     v = runner.run()
     # Return code
@@ -2704,7 +2704,10 @@ def read_runner(**kw) -> tuple:
     solver = kw.pop("solver", None)
     # Determine solver if necessary
     if solver is None:
+        # Identify
         solver = manage.identify_case_solver()
+        # Report usage
+        print(f"Using solver module '{solver}'")
     # Name of module
     modname = f"cape.{solver}.casecntl"
     # Import it
