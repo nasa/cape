@@ -242,6 +242,7 @@ check for *h*.
 
 # Standard library
 import difflib
+import inspect
 import os
 import re
 import sys
@@ -713,6 +714,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
         pass
 
   # *** DECORATORS ***
+   # --- Combination ---
     @classmethod
     def rst(cls: type, func: Callable) -> Callable:
         r"""Parse and validate function input and expand documentation
@@ -740,6 +742,7 @@ class ArgReader(dict, metaclass=MetaArgReader):
         """
         return cls.check(cls.doc_rst(func))
 
+   # --- Validation ---
     @classmethod
     def check(cls: type, func: Callable) -> Callable:
         r"""Decorator for a function to parse and validate its inputs
@@ -786,8 +789,72 @@ class ArgReader(dict, metaclass=MetaArgReader):
                 raise err.__class__(msg) from None
             # Call original function with parsed options
             return func(*parsed_args, **parsed_kw)
+        # Update the signature
+        wrapper.__signature__ = cls.build_signature(func)
         # Return wrapper
         return wrapper
+
+   # --- Signature ---
+    @classmethod
+    def build_signature(cls, func: Callable) -> inspect.Signature:
+        # Initialize list
+        params = []
+        # Loop through positional parameters
+        for arg in cls._arglist:
+            # Normalize parameter name
+            name = arg.replace("-", "_")
+            # Get the type annotation
+            annotation = cls._to_annotation(arg)
+            # Get type
+            params.append(
+                inspect.Parameter(
+                    name,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=annotation))
+        # Loop through other parameters
+        for name in cls._optlist:
+            # Check if already applied
+            if name in cls._arglist:
+                continue
+            # Check validity
+            if "-" in name:
+                continue
+            # Get default value
+            vdef = cls._rc.get(name)
+            # Get the type annotation
+            annotation = cls._to_annotation(name)
+            # Append parameter
+            params.append(
+                inspect.Parameter(
+                    name,
+                    inspect.Parameter.KEYWORD_ONLY,
+                    default=vdef,
+                    annotation=annotation))
+        # Copy the return annotation
+        out_annote = func.__annotations__.get(
+            "return", inspect.Signature.empty)
+        # Output
+        return inspect.Signature(params, return_annotation=out_annote)
+
+    @classmethod
+    def _to_annotation(cls, opt: str):
+        # Get type specification
+        t = cls._opttypes.get(opt)
+        # Check type specifications
+        if t is None:
+            return inspect.Signature.empty
+        # Convert tuple -> Union if necessary
+        if isinstance(t, tuple):
+            annotation = Union[t]
+        else:
+            annotation = t
+        # Check if required
+        if opt in cls._optlistreq or opt in cls._rc:
+            # Required
+            return annotation
+        else:
+            # Allow ``None``
+            return Optional[annotation]
 
   # *** GET/SET ***
    # --- Get ---
@@ -3148,3 +3215,4 @@ def _get_argv(argv: Optional[list]) -> list:
         argv[0] = os.path.basename(os.path.dirname(cmdname))
     # Output
     return argv
+
