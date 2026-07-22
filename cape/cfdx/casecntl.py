@@ -6256,11 +6256,7 @@ class CaseRunner(CaseRunnerBase):
             * 2025-03-21 ``@ddalle``: v1.0
             * 2025-04-01 ``@ddalle``: v1.1; use getx_iter() for default
         """
-        # Default: overall minus completed
-        nc = self.get_iter_completed()
-        nt = self.getx_iter()
-        nt = 0 if nt is None else nt
-        return max(0, nt-nc)
+        return 0
 
     # Get most recent observable iteration
     def getx_iter(self, f: bool = False) -> int:
