@@ -2882,6 +2882,31 @@ def cape_find_json(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxFindJSONArgs.rst
+def run_cape_find_json(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Find files
+    json_files = manage.find_json_solver(kw.get("pat"))
+    # List them
+    for fname in json_files:
+        print(fname)
+    # Return code
+    return IERR_OK, json_files
+
+
 def cape_find_large(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --find-large`` command
 
@@ -2902,6 +2927,30 @@ def cape_find_large(parser: CfdxArgReader) -> int:
     cntl.find_large_cases(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxFindLargeArgs.rst
+def run_cape_find_large(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read instance
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.find_large_cases(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_qdel(parser: CfdxArgReader) -> int:
@@ -3125,6 +3174,41 @@ def cape_runner_collect_surfdata(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxCollectSurfArgs.rst
+def run_cape_collect_surfdata(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read instance
+    runner, kw = read_runner(**kw)
+    # Process args
+    nsurf = kw.get("nsurf")
+    nbatch = kw.get("batchsize")
+    clean = kw.get("clean")
+    nmax = kw.get("nmax")
+    nproc = kw.get("nproc")
+    # Run the case
+    v = runner.collect_surfdata(
+        nsurf=nsurf,
+        nbatch=nbatch,
+        clean=clean,
+        nmax=nmax,
+        nproc=nproc)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
     r"""Collect data from one or more cut planes into batches
 
@@ -3174,11 +3258,59 @@ def cape_runner_collect_cutplane(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
-def cape_runner_triangulate_cuplane(parser: CfdxArgReader) -> int:
+@CfdxCollectCutPlaneArgs.rst
+def run_cape_collect_cutplane(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read instance
+    runner, kw = read_runner(**kw)
+    # Process args
+    nsurf = kw.get("nsurf")
+    nbatch = kw.get("batchsize")
+    clean = kw.get("clean")
+    nmax = kw.get("nmax")
+    nproc = kw.get("nproc")
+    # Process mode options
+    modes = [
+        opt for opt in ("adaptive", "constant", "fixed", "raw")
+        if kw.get(opt) is not None
+    ]
+    # Check for multiple options
+    if len(modes) > 1:
+        # Show which options were given
+        optmodes = [f"--{o}" for o in modes]
+        raise CapeValueError(f"Got: {' '.join(optmodes)}; can only use one")
+    # Set mode
+    mode = "adaptive" if (len(modes) == 0) else modes[0]
+    # Run the case
+    v = runner.collect_cutplanes(
+        nsurf=nsurf,
+        nbatch=nbatch,
+        clean=clean,
+        mode=mode,
+        nmax=nmax,
+        nproc=nproc)
+    # Return code
+    return IERR_OK, v
+
+
+def cape_runner_triangulate_cutplane(parser: CfdxArgReader) -> int:
     r"""Convert raw cut-plane VTK files to triangulations
 
     :Call:
-        >>> ierr == cape_runner_triangulate_cuplane(parser)
+        >>> ierr == cape_runner_triangulate_cutplane(parser)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
@@ -3198,6 +3330,34 @@ def cape_runner_triangulate_cuplane(parser: CfdxArgReader) -> int:
     runner.triangulate_cutplane(nsurf, clean=clean, nproc=nproc)
     # Return code
     return IERR_OK
+
+
+@CfdxCollectCutPlaneArgs.rst
+def run_cape_triangulate_cutplane(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read instance
+    runner, kw = read_runner(**kw)
+    # Process args
+    nproc = kw.get("nproc")
+    nsurf = kw.get("nsurf")
+    clean = kw.get("clean")
+    # Run the case
+    v = runner.triangulate_cutplane(nsurf, clean=clean, nproc=nproc)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_search_large(parser: CfdxArgReader) -> int:
@@ -3220,6 +3380,28 @@ def cape_search_large(parser: CfdxArgReader) -> int:
     manage.search_repo_large(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxSearchLargeArgs.rst
+def run_cape_search_large(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Run the case
+    v = manage.search_repo_large(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_skeleton(parser: CfdxArgReader) -> int:
@@ -3600,13 +3782,51 @@ CMD_DICT = {
     "search-large": cape_search_large,
     "skeleton": cape_skeleton,
     "start": cape_start,
-    "triangulate-cutplane": cape_runner_triangulate_cuplane,
+    "triangulate-cutplane": cape_runner_triangulate_cutplane,
     "unarchive": cape_unarchive,
     "unmark": cape_unmark,
 }
 CMD_DICT2 = {
+    "1to2": run_cape_1to2,
+    "apply": run_cape_apply,
+    "approve": run_cape_approve,
+    "archive": run_cape_archive,
+    "batch": run_cape_batch,
+    "collect-cutplane": run_cape_collect_cutplane,
+    "collect-surf": run_cape_collect_surfdata,
     "check": run_cape_c,
+    "check-db": run_cape_check_db,
+    "check-fm": run_cape_check_fm,
+    "check-ll": run_cape_check_ll,
+    "check-triqfm": run_cape_check_triqfm,
+    "clean": run_cape_clean,
+    "dezombie": run_cape_dezombie,
+    "edit-json": run_cape_edit,
+    "exec": run_cape_exec,
+    "extend": run_cape_extend,
+    "extract": run_cape_extract_dex,
+    "extract-fm": run_cape_extract_fm,
+    "extract-iter-fm": run_cape_extract_iterfm,
+    "extract-ll": run_cape_extract_ll,
+    "extract-prop": run_cape_extract_prop,
+    "extract-pyfunc": run_cape_extract_pyfunc,
+    "extract-surfcp": run_cape_extract_surfcp,
+    "extract-timeseries": run_cape_extract_timeseries,
+    "extract-triqfm": run_cape_extract_triqfm,
+    "extract-triqpt": run_cape_extract_triqpt,
+    "fail": run_cape_fail,
+    "find-json": run_cape_find_json,
+    "find-large": run_cape_find_large,
+    "qdel": run_cape_qdel,
+    "report": run_cape_report,
+    "rm": run_cape_rm,
     "run": run_cape_run,
+    "search-large": run_cape_search_large,
+    "skeleton": run_cape_skeleton,
+    "start": run_cape_start,
+    "triangulate-cutplane": run_cape_triangulate_cutplane,
+    "unarchive": run_cape_unarchive,
+    "unmark": run_cape_unmark,
 }
 
 
