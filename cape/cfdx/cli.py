@@ -15,9 +15,7 @@ from typing import Any, Optional, Union, Tuple
 
 # CAPE modules
 from . import manage
-from .. import argread
-from .. import convert1to2
-from ..argread import BOOL_TYPES, INT_TYPES
+from ..argread import ArgReader, BOOL_TYPES, INT_TYPES
 from ..errors import CapeError, CapeValueError
 
 
@@ -80,7 +78,7 @@ def _true_int(txt: Union[bool, str]) -> int:
 
 
 # Common argument settings
-class CfdxArgReader(argread.ArgReader):
+class CfdxArgReader(ArgReader):
     # No attributes
     __slots__ = (
         "cntl_mod",
@@ -1618,8 +1616,31 @@ def cape_1to2(parser: CfdxArgReader) -> int:
         * 2025-01-03 ``@ddalle``: v1.0
     """
     print("Updating CAPE 1 -> 2")
+    from cape import convert1to2
     convert1to2.upgrade1to2()
     return 0
+
+
+@Cfdx1to2Args.rst
+def run_cape_1to2(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --1to2`` command
+
+    Updates import statements in local Python files
+
+    :Call:
+        >>> ierr, v = run_cape_1to2(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    print("Updating CAPE 1 -> 2")
+    from cape import convert1to2
+    convert1to2.upgrade1to2()
+    return IERR_OK, None
 
 
 def cape_apply(parser: CfdxArgReader) -> int:
@@ -1644,6 +1665,30 @@ def cape_apply(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxApplyArgs.rst
+def run_cape_apply(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --apply`` command
+
+    Applies current CAPE settings to 1 or more existing cases
+
+    :Call:
+        >>> ierr, v = run_cape_apply(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.ApplyCases(**kw)
+    # Output
+    return IERR_OK, v
+
+
 def cape_approve(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --PASS`` command
 
@@ -1666,6 +1711,30 @@ def cape_approve(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxApproveArgs.rst
+def run_cape_approve(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --PASS`` command
+
+    Marks cases PASS
+
+    :Call:
+        >>> ierr, v = run_cape_approve(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # REad *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run command
+    v = cntl.MarkPASS(**kw)
+    # Output
+    return IERR_OK, v
+
+
 def cape_archive(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --archive`` command
 
@@ -1686,6 +1755,30 @@ def cape_archive(parser: CfdxArgReader) -> int:
     cntl.ArchiveCases(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxArchiveArgs.rst
+def run_cape_archive(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --archive`` command
+
+    Saves archival copies of run files and performs some cleanup
+
+    :Call:
+        >>> ierr, v = run_cape_archive(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # REad *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run command
+    v = cntl.ArchiveCases(**kw)
+    # Output
+    return IERR_OK, v
 
 
 def cape_batch(parser: CfdxArgReader) -> int:
@@ -1729,6 +1822,54 @@ def cape_batch(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxBatchArgs.rst
+def run_cape_batch(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --batch`` command
+
+    Runs the specified command as a PBS/Slurm job
+
+    :Call:
+        >>> ierr, v = run_cape_batch(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read instance
+    cntl, _ = read_cntl(**kw)
+    # Get a parser
+    parser = CfdxBatchArgs()
+    # Save the kwargs
+    parser.kwargs_double_dash = kw
+    # Select the program based on the resulting module
+    parser.prog = cntl.__module__.split('.')[1]
+    # Reconstruct command-line args
+    argv = parser.reconstruct()
+    # Remove ``-batch`` from command name
+    cmdname = argv[0]
+    if cmdname.endswith("-batch"):
+        argv[0] = cmdname.rsplit('-', 1)[0]
+    # Check for explicit executable
+    pyexec = cntl.opts.get_PythonExec()
+    if pyexec:
+        # Get name of module, e.g "cape.pyfun"
+        modname = cntl.__module__.rsplit('.', 1)[0]
+        # Full name of module: "cfdx" -> "cape.cfdx"
+        argv[0] = modname
+        # Prepend python3 -m ...
+        argv = [pyexec, '-m'] + argv
+    # Remove recursive batch
+    if "--batch" in argv:
+        argv.remove("--batch")
+    # Run the command
+    v = cntl.run_batch(argv)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_c(parser: CfdxArgReader) -> int:
     r"""Run the ``cape -c`` command
 
@@ -1752,18 +1893,27 @@ def cape_c(parser: CfdxArgReader) -> int:
 
 
 @CfdxCheckArgs.rst
-def run_cape_c(*a, **kw):
-    r"""Run ``cape -c`` command
+def run_cape_c(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --c`` command
 
+    Reports the status of one or more cases
+
+    :Call:
+        >>> ierr, v = run_cape_c(*a, **kw)
     :Inputs:
         %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
     """
     # Read *cntl*
     cntl, kw = read_cntl(**kw)
     # Run the main command
-    sts = cntl.DisplayStatus(**kw)
+    v = cntl.DisplayStatus(**kw)
     # Output
-    return IERR_OK, sts
+    return IERR_OK, v
 
 
 def cape_check_db(parser: CfdxArgReader) -> int:
@@ -1790,6 +1940,32 @@ def cape_check_db(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxCheckDBArgs.rst
+def run_cape_check_db(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --check-db`` command
+
+    Checks databook for completeness
+
+    :Call:
+        >>> ierr, v = run_cape_check_db(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    cntl.CheckFM(**kw)
+    cntl.CheckLL(**kw)
+    cntl.CheckTriqFM(**kw)
+    # Return code
+    return IERR_OK, None
+
+
 def cape_check_fm(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --check-fm`` command
 
@@ -1810,6 +1986,30 @@ def cape_check_fm(parser: CfdxArgReader) -> int:
     cntl.CheckFM(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxCheckFMArgs.rst
+def run_cape_check_fm(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --check-fm`` command
+
+    Checks force & moment databook for completeness
+
+    :Call:
+        >>> ierr, v = run_cape_check_fm(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.CheckFM(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_check_ll(parser: CfdxArgReader) -> int:
@@ -1834,6 +2034,30 @@ def cape_check_ll(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxCheckLLArgs.rst
+def run_cape_check_ll(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --check-ll`` command
+
+    Checks line load databook for completeness
+
+    :Call:
+        >>> ierr, v = run_cape_check_ll(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.CheckLL(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_check_triqfm(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --check-triqfm`` command
 
@@ -1856,6 +2080,30 @@ def cape_check_triqfm(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxCheckTriqFMArgs.rst
+def run_cape_check_triqfm(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --check-triqfm`` command
+
+    Checks TriqFM (patch force & moment loads) databook for completeness
+
+    :Call:
+        >>> ierr, v = run_cape_check_triqfm(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.CheckTriqFM(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_clean(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --clean`` command
 
@@ -1876,6 +2124,30 @@ def cape_clean(parser: CfdxArgReader) -> int:
     cntl.CleanCases(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxCleanArgs.rst
+def run_cape_clean(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``cape --clean`` command
+
+    Perform safe file cleanup on one or more cases
+
+    :Call:
+        >>> ierr, v = run_cape_clean(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.CleanCases(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_dezombie(parser: CfdxArgReader) -> int:
