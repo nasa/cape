@@ -326,6 +326,7 @@ OPTLIST_TYPES = (
     list)
 
 # Regular expressions for search docstrings
+REGEX_NAME = re.compile("[a-zA-Z_][a-zA-Z0-9_]*")
 REGEX_OPTIONS = re.compile(r"( *)%\(options\)s")
 
 #: Option name/value pair
@@ -803,21 +804,35 @@ class ArgReader(dict, metaclass=MetaArgReader):
         for arg in cls._arglist:
             # Normalize parameter name
             name = arg.replace("-", "_")
+            if not REGEX_NAME.fullmatch(name):
+                continue
             # Get the type annotation
             annotation = cls._to_annotation(arg)
-            # Get type
-            params.append(
-                inspect.Parameter(
+            # Get default value
+            vdef = cls._rc.get(arg)
+            # Save annotation
+            if arg in cls._optlistreq:
+                # No default value for required params
+                param = inspect.Parameter(
                     name,
                     inspect.Parameter.POSITIONAL_OR_KEYWORD,
-                    annotation=annotation))
+                    annotation=annotation)
+            else:
+                # Include default value
+                param = inspect.Parameter(
+                    name,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    default=vdef,
+                    annotation=annotation)
+            # Save to list
+            params.append(param)
         # Loop through other parameters
         for name in cls._optlist:
             # Check if already applied
             if name in cls._arglist:
                 continue
             # Check validity
-            if "-" in name:
+            if not REGEX_NAME.fullmatch(name):
                 continue
             # Get default value
             vdef = cls._rc.get(name)
@@ -1847,6 +1862,15 @@ class ArgReader(dict, metaclass=MetaArgReader):
             return func
         # Get docsring
         doc = func.__doc__
+        # Create fixed format substitutions
+        fmt = {
+            "description": cls._help_title,
+            "summary": cls._help_title,
+            "name": func.__name__,
+            "function": func.__name__,
+            "funcname": func.__name__,
+            "title": cls._name,
+        }
         # Check for args
         if "%(options)s" in doc:
             # Create options list
@@ -1857,8 +1881,10 @@ class ArgReader(dict, metaclass=MetaArgReader):
             tab = " "*len(mtch.group(1))
             # Add tabs to each line of *argstr*
             argfmt = f"\n{tab}".join(argstr.split('\n')).rstrip()
-            # Make substitution
-            func.__doc__ = doc % {"options": argfmt}
+            # Save format substitution
+            fmt["options"] = argfmt
+        # Make substitution
+        func.__doc__ = doc % fmt
         # Return same function
         return func
 
