@@ -2557,6 +2557,30 @@ def cape_extract_prop(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxExtractPropArgs.rst
+def run_cape_extract_prop(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.UpdateCaseProp(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_extract_pyfunc(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --dbpyfunc`` command
 
@@ -2577,6 +2601,30 @@ def cape_extract_pyfunc(parser: CfdxArgReader) -> int:
     cntl.UpdatePyFuncDataBook(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxExtractPyFuncArgs.rst
+def run_cape_extract_pyfunc(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.UpdatePyFuncDataBook(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_extract_surfcp(parser: CfdxArgReader) -> int:
@@ -2601,6 +2649,30 @@ def cape_extract_surfcp(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxExtractSurfCpArgs.rst
+def run_cape_extract_surfcp(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.UpdateSurfCp(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_extract_timeseries(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --ts`` command
 
@@ -2621,6 +2693,30 @@ def cape_extract_timeseries(parser: CfdxArgReader) -> int:
     cntl.UpdateTS(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxExtractTimeSeriesArgs.rst
+def run_cape_extract_timeseries(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.UpdateTS(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_extract_triqfm(parser: CfdxArgReader) -> int:
@@ -2645,6 +2741,30 @@ def cape_extract_triqfm(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxExtractTriqFMArgs.rst
+def run_cape_extract_triqfm(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.UpdateTriqFM(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_extract_triqpt(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --pt`` command
 
@@ -2667,6 +2787,30 @@ def cape_extract_triqpt(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxExtractTriqPTArgs.rst
+def run_cape_extract_triqpt(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.UpdateTriqPoint(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_fail(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --FAIL`` command
 
@@ -2687,6 +2831,30 @@ def cape_fail(parser: CfdxArgReader) -> int:
     cntl.MarkERROR(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxFailArgs.rst
+def run_cape_fail(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.MarkERROR(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_find_json(parser: CfdxArgReader) -> int:
@@ -2758,6 +2926,30 @@ def cape_qdel(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxQdelArgs.rst
+def run_cape_qdel(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.qdel_cases(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_report(parser: CfdxArgReader) -> int:
     r"""Run the ``cape`` command to submit cases
 
@@ -2778,6 +2970,30 @@ def cape_report(parser: CfdxArgReader) -> int:
     cntl.UpdateReport(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxReportArgs.rst
+def run_cape_report(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run command
+    v = cntl.UpdateReport(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_rm(parser: CfdxArgReader) -> int:
@@ -2801,6 +3017,30 @@ def cape_rm(parser: CfdxArgReader) -> int:
     cntl.rm_cases(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxRemoveCasesArgs.rst
+def run_cape_rm(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.rm_cases(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_run(parser: CfdxArgReader) -> int:
@@ -2827,17 +3067,19 @@ def cape_run(parser: CfdxArgReader) -> int:
 
 @CfdxRunArgs.rst
 def run_cape_run(*a, **kw) -> Tuple[int, Any]:
-    r"""Run the ``cape run`` command to run case in current folder
+    r"""Run ``%(title)s`` command
+
+    %(description)s
 
     :Call:
-        >>> ierr, v == cape_run(*a, **kw)
+        >>> ierr, v = %(name)s(*a, **kw)
     :Inputs:
         %(options)s
     :Outputs:
         *ierr*: :class:`int`
             Return code
         *v*: **any**
-            Output of :func:`CaseRunner.run`, if any
+            Output from API function
     """
     # Read instance
     runner, kw = read_runner(**kw)
@@ -3002,6 +3244,30 @@ def cape_skeleton(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxSkeletonArgs.rst
+def run_cape_skeleton(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.SkeletonCases(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_start(parser: CfdxArgReader) -> int:
     r"""Run the ``cape`` command to submit cases
 
@@ -3022,6 +3288,30 @@ def cape_start(parser: CfdxArgReader) -> int:
     cntl.SubmitJobs(nproc=1, **kw)
     # Return code
     return IERR_OK
+
+
+@CfdxStartArgs.rst
+def run_cape_start(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.SubmitJobs(nproc=1, **kw)
+    # Return code
+    return IERR_OK, v
 
 
 def cape_unarchive(parser: CfdxArgReader) -> int:
@@ -3046,6 +3336,30 @@ def cape_unarchive(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+@CfdxUnarchiveArgs.rst
+def run_cape_unarchive(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.UnarchiveCases(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 def cape_unmark(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --unmark`` command
 
@@ -3066,6 +3380,30 @@ def cape_unmark(parser: CfdxArgReader) -> int:
     cntl.UnmarkCase(**kw)
     # Return code
     return IERR_OK
+
+
+@CfdxUnmarkArgs.rst
+def run_cape_unmark(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(**kw)
+    # Run the command
+    v = cntl.UnmarkCase(**kw)
+    # Return code
+    return IERR_OK, v
 
 
 def read_cntl_kwargs(parser: CfdxArgReader):
