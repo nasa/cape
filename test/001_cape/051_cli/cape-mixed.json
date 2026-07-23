@@ -11,7 +11,7 @@
         // Command-line inputs to `flowCart`
         "flowCart": {
             // flowCart order
-            "first_order": 0,
+            "first_order": false,
             // Basic number of iterations
             "it_fc": 200,
             // Use MPI?
@@ -24,7 +24,7 @@
             // Limiter type
             "limiter": 2,
             // Cut cells first-order?
-            "tm": 0,
+            "tm": false,
             // If this is set to true, angle of attack changes z-velocity
             "y_is_spanwise": true
 	    },

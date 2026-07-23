@@ -1,2 +1,2 @@
 ValueError:
-    No cape control file 'cape.json' found
+    Found no CAPE JSON files in repo
