@@ -34,6 +34,7 @@ CMD_NAMES = {
     "PASS": "approve",
     "FAIL": "fail",
     "unmark": "unmark",
+    "defail": "defail",
     "dezombie": "dezombie",
     "edit": "edit-json",
     "extend": "extend",
@@ -157,6 +158,7 @@ class CfdxArgReader(ArgReader):
         "dbpyfunc": (bool, str),
         "delete": bool,
         "dex": (bool, str),
+        "defail": bool,
         "dezombie": bool,
         "e": str,
         "early": bool,
@@ -243,6 +245,7 @@ class CfdxArgReader(ArgReader):
         "c",
         "compile",
         "early",
+        "defail",
         "delete",
         "dezombie",
         "force",
@@ -314,6 +317,7 @@ class CfdxArgReader(ArgReader):
         "dbpyfunc": "Extract scalar data from custom Python function",
         "delete": "Delete DataBook entries instead of adding new ones",
         "dex": "Extract DataBook components matching pattern *DEX*",
+        "defail": "Clean up FAIL cases, deletes ``FAIL`` and others",
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
         "e": "Execute the command *EXEC*",
         "early": "Reduce *PhaseIters* to current iter; makes case ``DONE``",
@@ -760,6 +764,23 @@ class CfdxCollectCutPlaneArgs(CfdxCollectSurfArgs):
     _rc = {
         "nsurf": None,
     }
+
+
+# Settings for --defail
+class CfdxDefailArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-defail"
+
+    # Description
+    _help_title = "Remove FAIL files from case(s)and other failure artifacts"
+
+    # Additional options
+    _optlist = (
+        "defail"
+    )
 
 
 # Settings for --dezombie
@@ -1402,6 +1423,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "counters",
         "cutoff",
         "dbpyfunc",
+        "defail",
         "delete",
         "dezombie",
         "dex",
@@ -1470,6 +1492,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "clean",
         "collect-cutplane",
         "collect-surf",
+        "defail",
         "dezombie",
         "edit-json",
         "exec",
@@ -1534,6 +1557,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "clean": CfdxCleanArgs,
         "collect-cutplane": CfdxCollectCutPlaneArgs,
         "collect-surf": CfdxCollectSurfArgs,
+        "defail": CfdxDefailArgs,
         "dezombie": CfdxDezombieArgs,
         "edit-json": CfdxEditArgs,
         "exec": CfdxExecArgs,
@@ -1891,6 +1915,30 @@ def run_cape_clean(*a, **kw) -> Tuple[int, Any]:
     cntl, kw = read_cntl(CfdxCleanArgs, *a, **kw)
     # Run the command
     v = cntl.CleanCases(**kw)
+    # Return code
+    return IERR_OK, v
+
+
+@CfdxDefailArgs.rst
+def run_cape_defail(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(CfdxDezombieArgs, *a, **kw)
+    # Run the command
+    v = cntl.Defail(**kw)
     # Return code
     return IERR_OK, v
 
@@ -2749,6 +2797,7 @@ CMD_DICT = {
     "check-ll": run_cape_check_ll,
     "check-triqfm": run_cape_check_triqfm,
     "clean": run_cape_clean,
+    "defail": run_cape_defail,
     "dezombie": run_cape_dezombie,
     "edit-json": run_cape_edit,
     "exec": run_cape_exec,

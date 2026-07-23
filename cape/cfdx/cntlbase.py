@@ -2325,6 +2325,31 @@ class CntlBase(ABC):
         pass
 
    # --- Cleanup ---
+    # Function to clear out FAIL files
+    @abstractmethod
+    def Defail(self, **kw):
+        r"""Clean up any **FAIL** cases
+
+        :Call:
+            >>> cntl.Defail(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of overall control interface
+            *extend*: {``True``} | positive :class:`int`
+                Extend phase *j* by *extend* nominal runs
+            *j*: {``None``} | :class:`int` >= 0
+                Phase number
+            *imax*: {``None``} | :class:`int`
+                Do not increase iteration number beyond *imax*
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+        :Versions:
+            * 2026-07-23 ``@ddalle``: v1.0
+        """
+        pass
+
     # Function to clear out zombies
     @abstractmethod
     def Dezombie(self, **kw):
