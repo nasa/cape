@@ -35,6 +35,7 @@ SETUP_SETTINGS = dict(
         "cape.cfdx.options",
         "cape.filecntl",
         "cape.gitutils",
+        "cape.gitutils._vendor",
         "cape.gruvoc",
         "cape.nmlfile",
         "cape.optdict",
