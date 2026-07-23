@@ -327,6 +327,7 @@ class CaseLoopArgs(ArgReader):
         "hide-counters": _split,
     }
     _arglist = (
+        "cntl",
         "casefunc",
     )
     _rc = {

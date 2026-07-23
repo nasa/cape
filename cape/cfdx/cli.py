@@ -883,11 +883,6 @@ class CfdxExtractDexArgs(_CfdxExtractArgs):
         "dex",
     )
 
-    # Positional parameters
-    _arglist = (
-        "dex",
-    )
-
 
 # Settings for --fm
 class CfdxExtractFMArgs(_CfdxExtractArgs):
