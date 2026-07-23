@@ -30,9 +30,9 @@ SETUP_SETTINGS = dict(
     packages=[
         "cape",
         "cape.argread",
-        "cape.dkit",
         "cape.cfdx",
         "cape.cfdx.options",
+        "cape.dkit",
         "cape.filecntl",
         "cape.gitutils",
         "cape.gitutils._vendor",

@@ -413,6 +413,10 @@ class Cntl(CntlBase):
     #: :class:`list`\ [:class:`str`]
     _zombie_files = ["*.out"]
 
+    #: List of file name patterns for FAIL status
+    #: :class:`list`\ [:class:`str`]
+    _fail_file_pats = []
+
   # *** DUNDER ***
     # Initialization method
     def __init__(self, fname: Optional[str] = None):
@@ -3545,6 +3549,55 @@ class Cntl(CntlBase):
             nzombie += 1
         # Final status
         print("Cleared up %i ZOMBIEs" % nzombie)
+
+    # Function to clear out errors
+    def Defail(self, **kw):
+        # Failure counter
+        nfail = 0
+        nfile = 0
+        # Cases
+        I = self.x.GetIndices(**kw)
+        # Largest size
+        nlog = int(np.ceil(np.log10(max(1, np.max(I)))))
+        # Print format
+        fmt = "%%%ii %%s" % nlog
+        # Loop through folders
+        for i in I:
+            # Get status
+            sts = self.check_case_status(i)
+            # Move to next case if not zombie
+            if sts != "FAIL":
+                continue
+            # Status update
+            print(fmt % (i, self.x.GetFullFolderNames(i)))
+            # Check for FAIL file
+            if os.path.isfile("FAIL"):
+                nfile += 1
+                os.remove("FAIL")
+            # Check for core.[] files
+            for fcore in glob.glob("core.[0-9]*"):
+                print(f"  rm {fcore}")
+                nfile += 1
+                os.remove(fcore)
+            # Loop through additional globs
+            for pat in self.__class__._fail_file_pats:
+                # Counter
+                j = 0
+                # Search
+                for fname in glob.glob(pat):
+                    # Status update
+                    if j == 0:
+                        print(f"  > glob '{pat}'")
+                    print(f"    rm {fname}")
+                    # Delete the file
+                    os.remove(fname)
+                    # Counters
+                    nfile += 1
+                    j += 1
+            # Counter
+            nfail += 1
+        # Final status
+        print(f"Cleared up {nfail} FAIL cases and deleted {nfile} cases")
 
     # Declare early exit
     def declare_early_exit_case(self, i: int):
