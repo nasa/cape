@@ -1688,7 +1688,7 @@ def run_cape_apply(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxApplyArgs, *a, **kw)
     # Run the command
     v = cntl.ApplyCases(**kw)
     # Output
@@ -1734,7 +1734,7 @@ def run_cape_approve(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # REad *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxApproveArgs, *a, **kw)
     # Run command
     v = cntl.MarkPASS(**kw)
     # Output
@@ -1780,7 +1780,7 @@ def run_cape_archive(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # REad *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxArchiveArgs, *a, **kw)
     # Run command
     v = cntl.ArchiveCases(**kw)
     # Output
@@ -1845,7 +1845,7 @@ def run_cape_batch(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read instance
-    cntl, _ = read_cntl(**kw)
+    cntl, _ = read_cntl(CfdxBatchArgs, *a, **kw)
     # Get a parser
     parser = CfdxBatchArgs()
     # Save the kwargs
@@ -1915,7 +1915,7 @@ def run_cape_c(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxCheckArgs, *a, **kw)
     # Run the main command
     v = cntl.DisplayStatus(**kw)
     # Output
@@ -1963,7 +1963,7 @@ def run_cape_check_db(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxCheckDBArgs, *a, **kw)
     # Run the command
     cntl.CheckFM(**kw)
     cntl.CheckLL(**kw)
@@ -2011,7 +2011,7 @@ def run_cape_check_fm(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxCheckFMArgs, *a, **kw)
     # Run the command
     v = cntl.CheckFM(**kw)
     # Return code
@@ -2057,7 +2057,7 @@ def run_cape_check_ll(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxCheckLLArgs, *a, **kw)
     # Run the command
     v = cntl.CheckLL(**kw)
     # Return code
@@ -2103,7 +2103,7 @@ def run_cape_check_triqfm(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxCheckTriqFMArgs, *a, **kw)
     # Run the command
     v = cntl.CheckTriqFM(**kw)
     # Return code
@@ -2149,7 +2149,7 @@ def run_cape_clean(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxCleanArgs, *a, **kw)
     # Run the command
     v = cntl.CleanCases(**kw)
     # Return code
@@ -2195,7 +2195,7 @@ def run_cape_dezombie(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxDezombieArgs, *a, **kw)
     # Run the command
     v = cntl.Dezombie(**kw)
     # Return code
@@ -2244,9 +2244,9 @@ def run_cape_edit(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxEditArgs, *a, **kw)
     # Construct inputs
-    txt = kw.get("edit")
+    txt = a[0]
     fjson = kw.get("fjson")
     # Run the command
     v = cntl.edit_json(txt, fjson=fjson)
@@ -2293,7 +2293,7 @@ def run_cape_exec(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExecArgs, *a, **kw)
     # Run the command
     v = cntl.ExecScript(**kw)
     # Return code
@@ -2339,7 +2339,7 @@ def run_cape_extend(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtendArgs, *a, **kw)
     # Run the command
     v = cntl.ExtendCases(**kw)
     # Return code
@@ -2385,7 +2385,7 @@ def run_cape_extract_dex(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractDexArgs, *a, **kw)
     # Run the command
     v = cntl.update_dex(**kw)
     # Return code
@@ -2431,7 +2431,7 @@ def run_cape_extract_fm(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractFMArgs, *a, **kw)
     # Run the command
     v = cntl.UpdateFM(**kw)
     # Return code
@@ -2477,7 +2477,7 @@ def run_cape_extract_iterfm(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractIterFMArgs, *a, **kw)
     # Run the command
     v = cntl.UpdateIterFM(**kw)
     # Return code
@@ -2523,7 +2523,7 @@ def run_cape_extract_ll(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractLLArgs, *a, **kw)
     # Run the command
     v = cntl.UpdateLL(**kw)
     # Return code
@@ -2569,7 +2569,7 @@ def run_cape_extract_prop(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractPropArgs, *a, **kw)
     # Run the command
     v = cntl.UpdateCaseProp(**kw)
     # Return code
@@ -2615,7 +2615,7 @@ def run_cape_extract_pyfunc(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractPyFuncArgs, *a, **kw)
     # Run the command
     v = cntl.UpdatePyFuncDataBook(**kw)
     # Return code
@@ -2661,7 +2661,7 @@ def run_cape_extract_surfcp(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractSurfCpArgs, *a, **kw)
     # Run the command
     v = cntl.UpdateSurfCp(**kw)
     # Return code
@@ -2707,7 +2707,7 @@ def run_cape_extract_timeseries(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractTimeSeriesArgs, *a, **kw)
     # Run the command
     v = cntl.UpdateTS(**kw)
     # Return code
@@ -2753,7 +2753,7 @@ def run_cape_extract_triqfm(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractTriqFMArgs, *a, **kw)
     # Run the command
     v = cntl.UpdateTriqFM(**kw)
     # Return code
@@ -2799,7 +2799,7 @@ def run_cape_extract_triqpt(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxExtractTriqPTArgs, *a, **kw)
     # Run the command
     v = cntl.UpdateTriqPoint(**kw)
     # Return code
@@ -2845,7 +2845,7 @@ def run_cape_fail(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxFailArgs, *a, **kw)
     # Run the command
     v = cntl.MarkERROR(**kw)
     # Return code
@@ -2941,7 +2941,7 @@ def run_cape_find_large(*a, **kw) -> Tuple[int, list]:
             Output from API function
     """
     # Read instance
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxFindLargeArgs, *a, **kw)
     # Run the command
     v = cntl.find_large_cases(**kw)
     # Return code
@@ -2987,7 +2987,7 @@ def run_cape_qdel(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxQdelArgs, *a, **kw)
     # Run the command
     v = cntl.qdel_cases(**kw)
     # Return code
@@ -3033,7 +3033,7 @@ def run_cape_report(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxReportArgs, *a, **kw)
     # Run command
     v = cntl.UpdateReport(**kw)
     # Return code
@@ -3080,7 +3080,7 @@ def run_cape_rm(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxRemoveCasesArgs, *a, **kw)
     # Run the command
     v = cntl.rm_cases(**kw)
     # Return code
@@ -3438,7 +3438,7 @@ def run_cape_skeleton(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxSkeletonArgs, *a, **kw)
     # Run the command
     v = cntl.SkeletonCases(**kw)
     # Return code
@@ -3484,7 +3484,7 @@ def run_cape_start(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxStartArgs, *a, **kw)
     # Run the command
     v = cntl.SubmitJobs(nproc=1, **kw)
     # Return code
@@ -3530,7 +3530,7 @@ def run_cape_unarchive(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxUnarchiveArgs, *a, **kw)
     # Run the command
     v = cntl.UnarchiveCases(**kw)
     # Return code
@@ -3576,7 +3576,7 @@ def run_cape_unmark(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(**kw)
+    cntl, kw = read_cntl(CfdxUnmarkArgs, *a, **kw)
     # Run the command
     v = cntl.UnmarkCase(**kw)
     # Return code
@@ -3618,7 +3618,7 @@ def read_cntl_kwargs(parser: CfdxArgReader):
     return cntl, kw
 
 
-def read_cntl(**kw):
+def read_cntl(cls: ArgReader, *a, **kw):
     r"""Read a CAPE run matrix control instance of appropriate class
 
     :Call:
@@ -3634,6 +3634,7 @@ def read_cntl(**kw):
     :Versions:
         * 2024-12-19 ``@ddalle``: v1.0
         * 2025-01-24 ``@ddalle``: v2.0; use module name instead of cls
+
     """
     # Get options
     fname = kw.pop("f", None)
@@ -3670,6 +3671,14 @@ def read_cntl(**kw):
     cntlmod = importlib.import_module(modname)
     # Instantiate
     cntl = cntlmod.Cntl(fname)
+    # Instantiate args
+    parser = cls(*a, **kw)
+    parser.prog = parser._name.replace("cfdx-", f"{solver} ")
+    # Record the JSON file if not given
+    if "f" not in kw:
+        parser.param_sequence.append(("f", fname))
+    # Record it
+    cntl.log_parser(parser)
     # Preprocess
     cntl.preprocess_kwargs(kw)
     # Output
@@ -3892,7 +3901,7 @@ def maint2(
     # Set Cntl/CaseRunner classes for this solver
     subparser.casecntl_mod = parser_cls._casecntl_mod
     # Parse args
-    a, kw = subparser.parse(argv)
+    a, kw = subparser.get_a_kw()
     # Set default "solver"
     modname = parser_cls._cntl_mod
     if modname.startswith("cape.py"):

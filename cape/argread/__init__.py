@@ -1079,7 +1079,10 @@ class ArgReader(dict, metaclass=MetaArgReader):
         assert_isinstance(a, dict, msg)
         # Loop through option/value paris
         for opt, val in a.items():
+            # Set option
             self.set_opt(opt, val)
+            # Record it
+            self.param_sequence.append((opt, val))
 
     # Set single option
     def set_opt(self, rawopt: str, rawval: Any):
@@ -1173,6 +1176,8 @@ class ArgReader(dict, metaclass=MetaArgReader):
         for j, rawval in enumerate(args):
             # Save it
             self.set_arg(j, rawval)
+            # Record it
+            self.param_sequence.append((None, rawval))
 
     # Set positional parameter value
     def set_arg(self, j: int, rawval: Any):
@@ -1695,8 +1700,11 @@ class ArgReader(dict, metaclass=MetaArgReader):
             *cmdlist*: :class:`list`\ [:class:`str`]
                 Reconstruction of originally parsed command
         """
+        # Get program name
+        prog = getattr(self, "prog")
+        prog = self._name if prog is None else prog
         # Start with programname
-        cmdlist = [self.prog.replace('>', '-')]
+        cmdlist = [prog.replace('>', '-')]
         # Use default parameter sequence
         param_sequence = self.param_sequence if params is None else params
         # Loop through parameters in order they were read
