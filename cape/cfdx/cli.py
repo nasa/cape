@@ -2845,7 +2845,7 @@ def main(argv: Optional[list] = None) -> int:
     :Versions:
         * 2021-03-04 ``@ddalle``: v1.0
     """
-    return main_template(argv)
+    return main_template(CfdxFrontDesk, argv)
 
 
 def _get_argv(argv: Optional[list]) -> list:

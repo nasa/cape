@@ -5,7 +5,7 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/902_pyfun/002_ellipsoid" \
+    "test/001_cape/050_cli" \
     --junitxml=test/junit.xml \
     --pdb \
 

@@ -36,6 +36,7 @@ DEFAULT_JSON_FILES = (
     "pyKes.json",
     "pyLava.json",
     "pyOver.json",
+    "cape.json",
 )
 
 
@@ -209,6 +210,8 @@ def identify_solver(fjson: str) -> Optional[str]:
     elif "Fun3D" in opts and isinstance(opts["Fun3D"], dict):
         solver = "pyfun"
     elif "AeroCsh" in opts:
+        solver = "pycart"
+    elif "flowCart" in rc and isinstance(rc["flowCart"], dict):
         solver = "pycart"
     else:
         solver = "cfdx"
