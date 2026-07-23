@@ -38,5 +38,5 @@ def main(argv: Optional[list] = None) -> int:
         * 2024-12-30 ``@ddalle``: v2.0; use ``argread``
     """
     # Output
-    return cli.maint2(PyfunFrontDesk, argv)
+    return cli.main_template(PyfunFrontDesk, argv)
 
