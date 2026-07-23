@@ -1632,7 +1632,7 @@ class CfdxFrontDesk(CfdxArgReader):
 
 
 @Cfdx1to2Args.rst
-def run_cape_1to2(*a, **kw) -> Tuple[int, Any]:
+def cape_1to2(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1654,7 +1654,7 @@ def run_cape_1to2(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxApplyArgs.rst
-def run_cape_apply(*a, **kw) -> Tuple[int, Any]:
+def cape_apply(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1678,7 +1678,7 @@ def run_cape_apply(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxApproveArgs.rst
-def run_cape_approve(*a, **kw) -> Tuple[int, Any]:
+def cape_approve(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1702,7 +1702,7 @@ def run_cape_approve(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxArchiveArgs.rst
-def run_cape_archive(*a, **kw) -> Tuple[int, Any]:
+def cape_archive(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1726,7 +1726,7 @@ def run_cape_archive(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxBatchArgs.rst
-def run_cape_batch(*a, **kw) -> Tuple[int, Any]:
+def cape_batch(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1774,7 +1774,7 @@ def run_cape_batch(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxCheckArgs.rst
-def run_cape_c(*a, **kw) -> Tuple[int, Any]:
+def cape_c(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1798,7 +1798,7 @@ def run_cape_c(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxCheckDBArgs.rst
-def run_cape_check_db(*a, **kw) -> Tuple[int, Any]:
+def cape_check_db(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1824,7 +1824,7 @@ def run_cape_check_db(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxCheckFMArgs.rst
-def run_cape_check_fm(*a, **kw) -> Tuple[int, Any]:
+def cape_check_fm(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1848,7 +1848,7 @@ def run_cape_check_fm(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxCheckLLArgs.rst
-def run_cape_check_ll(*a, **kw) -> Tuple[int, Any]:
+def cape_check_ll(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1872,7 +1872,7 @@ def run_cape_check_ll(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxCheckTriqFMArgs.rst
-def run_cape_check_triqfm(*a, **kw) -> Tuple[int, Any]:
+def cape_check_triqfm(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1896,7 +1896,7 @@ def run_cape_check_triqfm(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxCleanArgs.rst
-def run_cape_clean(*a, **kw) -> Tuple[int, Any]:
+def cape_clean(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1920,7 +1920,7 @@ def run_cape_clean(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxDefailArgs.rst
-def run_cape_defail(*a, **kw) -> Tuple[int, Any]:
+def cape_defail(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1944,7 +1944,7 @@ def run_cape_defail(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxDezombieArgs.rst
-def run_cape_dezombie(*a, **kw) -> Tuple[int, Any]:
+def cape_dezombie(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1968,7 +1968,7 @@ def run_cape_dezombie(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxEditArgs.rst
-def run_cape_edit(*a, **kw) -> Tuple[int, Any]:
+def cape_edit(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -1995,7 +1995,7 @@ def run_cape_edit(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExecArgs.rst
-def run_cape_exec(*a, **kw) -> Tuple[int, Any]:
+def cape_exec(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2019,7 +2019,7 @@ def run_cape_exec(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtendArgs.rst
-def run_cape_extend(*a, **kw) -> Tuple[int, Any]:
+def cape_extend(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2043,7 +2043,7 @@ def run_cape_extend(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractDexArgs.rst
-def run_cape_extract_dex(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_dex(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2067,7 +2067,7 @@ def run_cape_extract_dex(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractFMArgs.rst
-def run_cape_extract_fm(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_fm(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2091,7 +2091,7 @@ def run_cape_extract_fm(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractIterFMArgs.rst
-def run_cape_extract_iterfm(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_iterfm(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2115,7 +2115,7 @@ def run_cape_extract_iterfm(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractLLArgs.rst
-def run_cape_extract_ll(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_ll(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2139,7 +2139,7 @@ def run_cape_extract_ll(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractPropArgs.rst
-def run_cape_extract_prop(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_prop(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2163,7 +2163,7 @@ def run_cape_extract_prop(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractPyFuncArgs.rst
-def run_cape_extract_pyfunc(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_pyfunc(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2187,7 +2187,7 @@ def run_cape_extract_pyfunc(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractSurfCpArgs.rst
-def run_cape_extract_surfcp(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_surfcp(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2211,7 +2211,7 @@ def run_cape_extract_surfcp(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractTimeSeriesArgs.rst
-def run_cape_extract_timeseries(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_timeseries(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2235,7 +2235,7 @@ def run_cape_extract_timeseries(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractTriqFMArgs.rst
-def run_cape_extract_triqfm(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_triqfm(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2259,7 +2259,7 @@ def run_cape_extract_triqfm(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxExtractTriqPTArgs.rst
-def run_cape_extract_triqpt(*a, **kw) -> Tuple[int, Any]:
+def cape_extract_triqpt(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2283,7 +2283,7 @@ def run_cape_extract_triqpt(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxFailArgs.rst
-def run_cape_fail(*a, **kw) -> Tuple[int, Any]:
+def cape_fail(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2307,7 +2307,7 @@ def run_cape_fail(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxFindJSONArgs.rst
-def run_cape_find_json(*a, **kw) -> Tuple[int, list]:
+def cape_find_json(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2332,7 +2332,7 @@ def run_cape_find_json(*a, **kw) -> Tuple[int, list]:
 
 
 @CfdxFindLargeArgs.rst
-def run_cape_find_large(*a, **kw) -> Tuple[int, list]:
+def cape_find_large(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2356,7 +2356,7 @@ def run_cape_find_large(*a, **kw) -> Tuple[int, list]:
 
 
 @CfdxQdelArgs.rst
-def run_cape_qdel(*a, **kw) -> Tuple[int, Any]:
+def cape_qdel(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2380,7 +2380,7 @@ def run_cape_qdel(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxReportArgs.rst
-def run_cape_report(*a, **kw) -> Tuple[int, Any]:
+def cape_report(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2404,7 +2404,7 @@ def run_cape_report(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxRemoveCasesArgs.rst
-def run_cape_rm(*a, **kw) -> Tuple[int, Any]:
+def cape_rm(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2428,7 +2428,7 @@ def run_cape_rm(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxRunArgs.rst
-def run_cape_run(*a, **kw) -> Tuple[int, Any]:
+def cape_run(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2452,7 +2452,7 @@ def run_cape_run(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxCollectSurfArgs.rst
-def run_cape_collect_surfdata(*a, **kw) -> Tuple[int, Any]:
+def cape_collect_surfdata(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2487,7 +2487,7 @@ def run_cape_collect_surfdata(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxCollectCutPlaneArgs.rst
-def run_cape_collect_cutplane(*a, **kw) -> Tuple[int, Any]:
+def cape_collect_cutplane(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2535,7 +2535,7 @@ def run_cape_collect_cutplane(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxCollectCutPlaneArgs.rst
-def run_cape_triangulate_cutplane(*a, **kw) -> Tuple[int, Any]:
+def cape_triangulate_cutplane(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2563,7 +2563,7 @@ def run_cape_triangulate_cutplane(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxSearchLargeArgs.rst
-def run_cape_search_large(*a, **kw) -> Tuple[int, Any]:
+def cape_search_large(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2585,7 +2585,7 @@ def run_cape_search_large(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxSkeletonArgs.rst
-def run_cape_skeleton(*a, **kw) -> Tuple[int, Any]:
+def cape_skeleton(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2609,7 +2609,7 @@ def run_cape_skeleton(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxStartArgs.rst
-def run_cape_start(*a, **kw) -> Tuple[int, Any]:
+def cape_start(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2633,7 +2633,7 @@ def run_cape_start(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxUnarchiveArgs.rst
-def run_cape_unarchive(*a, **kw) -> Tuple[int, Any]:
+def cape_unarchive(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2657,7 +2657,7 @@ def run_cape_unarchive(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxUnmarkArgs.rst
-def run_cape_unmark(*a, **kw) -> Tuple[int, Any]:
+def cape_unmark(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -2784,47 +2784,47 @@ def read_runner(**kw) -> tuple:
 
 # Name -> Function
 CMD_DICT = {
-    "1to2": run_cape_1to2,
-    "apply": run_cape_apply,
-    "approve": run_cape_approve,
-    "archive": run_cape_archive,
-    "batch": run_cape_batch,
-    "collect-cutplane": run_cape_collect_cutplane,
-    "collect-surf": run_cape_collect_surfdata,
-    "check": run_cape_c,
-    "check-db": run_cape_check_db,
-    "check-fm": run_cape_check_fm,
-    "check-ll": run_cape_check_ll,
-    "check-triqfm": run_cape_check_triqfm,
-    "clean": run_cape_clean,
-    "defail": run_cape_defail,
-    "dezombie": run_cape_dezombie,
-    "edit-json": run_cape_edit,
-    "exec": run_cape_exec,
-    "extend": run_cape_extend,
-    "extract": run_cape_extract_dex,
-    "extract-fm": run_cape_extract_fm,
-    "extract-iter-fm": run_cape_extract_iterfm,
-    "extract-ll": run_cape_extract_ll,
-    "extract-prop": run_cape_extract_prop,
-    "extract-pyfunc": run_cape_extract_pyfunc,
-    "extract-surfcp": run_cape_extract_surfcp,
-    "extract-timeseries": run_cape_extract_timeseries,
-    "extract-triqfm": run_cape_extract_triqfm,
-    "extract-triqpt": run_cape_extract_triqpt,
-    "fail": run_cape_fail,
-    "find-json": run_cape_find_json,
-    "find-large": run_cape_find_large,
-    "qdel": run_cape_qdel,
-    "report": run_cape_report,
-    "rm": run_cape_rm,
-    "run": run_cape_run,
-    "search-large": run_cape_search_large,
-    "skeleton": run_cape_skeleton,
-    "start": run_cape_start,
-    "triangulate-cutplane": run_cape_triangulate_cutplane,
-    "unarchive": run_cape_unarchive,
-    "unmark": run_cape_unmark,
+    "1to2": cape_1to2,
+    "apply": cape_apply,
+    "approve": cape_approve,
+    "archive": cape_archive,
+    "batch": cape_batch,
+    "collect-cutplane": cape_collect_cutplane,
+    "collect-surf": cape_collect_surfdata,
+    "check": cape_c,
+    "check-db": cape_check_db,
+    "check-fm": cape_check_fm,
+    "check-ll": cape_check_ll,
+    "check-triqfm": cape_check_triqfm,
+    "clean": cape_clean,
+    "defail": cape_defail,
+    "dezombie": cape_dezombie,
+    "edit-json": cape_edit,
+    "exec": cape_exec,
+    "extend": cape_extend,
+    "extract": cape_extract_dex,
+    "extract-fm": cape_extract_fm,
+    "extract-iter-fm": cape_extract_iterfm,
+    "extract-ll": cape_extract_ll,
+    "extract-prop": cape_extract_prop,
+    "extract-pyfunc": cape_extract_pyfunc,
+    "extract-surfcp": cape_extract_surfcp,
+    "extract-timeseries": cape_extract_timeseries,
+    "extract-triqfm": cape_extract_triqfm,
+    "extract-triqpt": cape_extract_triqpt,
+    "fail": cape_fail,
+    "find-json": cape_find_json,
+    "find-large": cape_find_large,
+    "qdel": cape_qdel,
+    "report": cape_report,
+    "rm": cape_rm,
+    "run": cape_run,
+    "search-large": cape_search_large,
+    "skeleton": cape_skeleton,
+    "start": cape_start,
+    "triangulate-cutplane": cape_triangulate_cutplane,
+    "unarchive": cape_unarchive,
+    "unmark": cape_unmark,
 }
 
 
