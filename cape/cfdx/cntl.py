@@ -3551,6 +3551,7 @@ class Cntl(CntlBase):
         print("Cleared up %i ZOMBIEs" % nzombie)
 
     # Function to clear out errors
+    @run_rootdir
     def Defail(self, **kw):
         # Failure counter
         nfail = 0
@@ -3568,8 +3569,12 @@ class Cntl(CntlBase):
             # Move to next case if not zombie
             if sts != "FAIL":
                 continue
+            # Case name
+            frun = self.x.GetFullFolderNames(i)
             # Status update
-            print(fmt % (i, self.x.GetFullFolderNames(i)))
+            print(fmt % (i, frun))
+            # Go to folder
+            os.chdir(frun)
             # Check for FAIL file
             if os.path.isfile("FAIL"):
                 nfile += 1
@@ -3597,7 +3602,7 @@ class Cntl(CntlBase):
             # Counter
             nfail += 1
         # Final status
-        print(f"Cleared up {nfail} FAIL cases and deleted {nfile} cases")
+        print(f"Cleared up {nfail} FAIL cases and deleted {nfile} files")
 
     # Declare early exit
     def declare_early_exit_case(self, i: int):

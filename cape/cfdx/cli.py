@@ -1423,6 +1423,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "counters",
         "cutoff",
         "dbpyfunc",
+        "defail",
         "delete",
         "dezombie",
         "dex",
