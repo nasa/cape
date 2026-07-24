@@ -34,6 +34,7 @@ DEFAULT_JSON_FILES = (
     "pyCart.json",
     "pyFun.json",
     "pyKes.json",
+    "pyLCH.json",
     "pyLava.json",
     "pyOver.json",
     "cape.json",
@@ -203,6 +204,8 @@ def identify_solver(fjson: str) -> Optional[str]:
         solver = "pyover"
     elif "JobXML" in opts:
         solver = "pykes"
+    elif "VarsFile" in opts:
+        solver = "pylch"
     elif "Overflow" in opts and isinstance(opts["Overflow"], dict):
         solver = "pyover"
     elif "RunInputs" in opts and isinstance(opts["RunInputs"], dict):
@@ -213,6 +216,8 @@ def identify_solver(fjson: str) -> Optional[str]:
         solver = "pycart"
     elif "flowCart" in rc and isinstance(rc["flowCart"], dict):
         solver = "pycart"
+    elif "Vars" in opts and isinstance(opts["Vars"], dict):
+        solver = "pylch"
     else:
         solver = "cfdx"
     # Output

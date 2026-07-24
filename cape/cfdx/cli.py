@@ -15,7 +15,7 @@ from typing import Any, Optional, Union, Tuple
 
 # CAPE modules
 from . import manage
-from ..argread import ArgReader, BOOL_TYPES, INT_TYPES
+from ..argread import ArgReader, ArgReadError, BOOL_TYPES, INT_TYPES
 from ..errors import CapeError, CapeValueError
 
 
@@ -284,6 +284,7 @@ class CfdxArgReader(ArgReader):
             "pyfun",
             "pykes",
             "pylava",
+            "pylch",
             "pyover",
         ),
     }
@@ -2863,7 +2864,7 @@ def main_template(
         try:
             IERR, _ = func(*a, **kw)
             return IERR
-        except CapeError as e:
+        except (CapeError, ArgReadError) as e:
             # Print the error type
             sys.stderr.write(f"{e.__class__.__name__[4:]}:\n")
             # Now the error message

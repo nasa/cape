@@ -5515,11 +5515,14 @@ class CaseRunner(CaseRunnerBase):
             sts = "DONE"
             # Try to update the settings
             self.handle_alt_exit(jmax)
+        # Get iteration
+        n = self.get_iter()
+        n = n if n is None else int(n)
         # Log status
         self.log_status(
             {
                 "status": sts,
-                "iter": int(self.get_iter()),
+                "iter": n,
                 "maxiter": self.get_last_iter(),
             }, title="STATUS")
         # Output
