@@ -170,7 +170,7 @@ class CaseFM(databook.CaseFM):
         for col in ("Mx", "My", "Mz"):
             db.save_col(col, mdb[col])
 
-    def normalize_fm(self, cntl: Cntl, i: int):
+    def normalize_fm(self):
         r"""Normalize a force & moment history using run matrix
 
         :Call:
@@ -195,7 +195,7 @@ class CaseFM(databook.CaseFM):
         # Get case index
         i = runner.get_case_index()
         # Get dynamic pressure
-        q = cntl.x.GetDynamicPressure(i)
+        q = cntl.x.GetDynamicPressure(i, units="kg/m^3")
         # Get reference area
         aref = cntl.opts.get_RefArea(self.comp)
         lref = cntl.opts.get_RefLength(self.comp)

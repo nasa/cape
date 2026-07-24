@@ -16,6 +16,7 @@ import h5py
 # Local imports
 from . import cmdgen
 from .. import fileutils
+from .databook import CaseFM
 from .varsfile import VarsFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
@@ -56,6 +57,10 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _dex_cls = {
+        "fm": CaseFM,
+        "iterfm": CaseFM,
+    }
 
    # --- Config ---
     def init_post(self):
@@ -290,3 +295,39 @@ class CaseRunner(casecntl.CaseRunner):
             mbcg.create_dataset("surfid", data=cntl.MapBC.SurfID)
             mbcg.create_dataset("compid", data=cntl.MapBC.CompID)
             mbcg.create_dataset("bcs", data=cntl.MapBC.BCs)
+
+   # --- Data/DEX ---
+    # Create tuple of args after *comp*
+    def get_dex_args_post_fm(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_fm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one arg, *runner*
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        return (self,)
+
+    # Create tuple of args after *comp*
+    def get_dex_args_post_iterfm(self) -> tuple:
+        r"""Get list of args prior to component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_iterfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`\ [:class:`str`]
+                Tuple of one arg, *runner*
+        :Versions:
+            * 2025-09-25 ``@ddalle``: v1.0
+        """
+        return (self,)
+
