@@ -71,12 +71,15 @@ from ..argread import ArgReader
 from ..argread.clitext import compile_rst
 from ..config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from ..dkit.rdb import DataKit
-from ..errors import CapeValueError, assert_isinstance
 from ..filecntl.mapbcfile import MapBCFile
 from ..optdict import OptionsDict, WARNMODE_WARN, _NPEncoder
 from ..optdict.optitem import getel
 from ..geom import RotatePoints
 from ..trifile import ReadTriFile
+from ..errors import (
+    CapeNotImplementedError,
+    CapeValueError,
+    assert_isinstance)
 
 
 # Constants
@@ -3775,7 +3778,7 @@ class Cntl(CntlBase):
 
     # Extend a case
     def ApplyCase(self, i: int, **kw):
-        raise NotImplementedError(
+        raise CapeNotImplementedError(
             f"ApplyCase() not implemented for {self._name} module")
 
    # --- Delete/Stop ---

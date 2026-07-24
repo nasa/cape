@@ -247,6 +247,8 @@ def identify_case_solver() -> Optional[str]:
         solver = "pyfun"
     elif isfile("run_cart3d.pbs"):
         solver = "pycart"
+    elif isfile("run_chem.pbs"):
+        solver = "pylch"
     elif isfile("run_overflow.pbs"):
         solver = "pyover"
     elif isfile("run_lava.pbs"):
@@ -257,6 +259,8 @@ def identify_case_solver() -> Optional[str]:
         solver = "pyfun"
     elif isfile("run_cart3d.00.pbs"):
         solver = "pycart"
+    elif isfile("run_chem.00.pbs"):
+        solver = "pylch"
     elif isfile("run_overflow.00.pbs"):
         solver = "pyover"
     elif isfile("run_lava.00.pbs"):

@@ -45,6 +45,12 @@ class CapeIndexError(IndexError, CapeError):
     pass
 
 
+# Not implemented error
+class CapeNotImplementedError(NotImplementedError, CapeError):
+    r"""CAPE exception for capability not yet implemented"""
+    pass
+
+
 # Runtime error
 class CapeRuntimeError(RuntimeError, CapeError):
     r"""CAPE exception that does not fit other categories"""

@@ -25,6 +25,7 @@ class Cntl(cntl.Cntl):
   # === Class attributes ===
     # Names
     _solver = "chem"
+    _name = "pylch"
     # Hooks to py{x} specific modules
     # _report_cls = report.Report
     # Hooks to py{x} specific classes
