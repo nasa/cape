@@ -48,6 +48,8 @@ SETUP_SETTINGS = dict(
         "cape.pykes.options",
         "cape.pylava",
         "cape.pylava.options",
+        "cape.pylch",
+        "cape.pylch.options",
         "cape.pyover",
         "cape.pyover.options",
         "cape.tnakit",
