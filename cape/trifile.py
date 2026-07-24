@@ -4491,7 +4491,7 @@ class TriBase(object):
             elif isinstance(compID, str) and compID == 'entire':
                 # Return all the tris.
                 return np.arange(self.nQuad)
-            elif self.nQuad == 0:
+            elif self.nQuad == 0 or self.nQuad is None:
                 # No quads to check for
                 return np.array([], dtype=int)
             # Get list of components
