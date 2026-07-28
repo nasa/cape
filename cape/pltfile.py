@@ -421,7 +421,7 @@ class Plt(object):
             # Number of nodes per face
             if zt == FETRIANGLE:
                 # Triangles
-                melem = 4
+                melem = 3
             elif zt == FEQUADRILATERAL:
                 # Quads (often used for tris, too, w/ repeated node)
                 melem = 4

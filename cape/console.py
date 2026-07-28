@@ -44,7 +44,7 @@ con = {
 # Function to get user input using a colored prompt
 def prompt_color(txt, vdef=None, color="green"):
     r"""Get user input using a colorized prompt
-    
+
     :Call:
         >>> v = prompt_color(txt, vdef=None)
     :Inputs:
@@ -69,13 +69,8 @@ def prompt_color(txt, vdef=None, color="green"):
         ptxt = "> %s: " % txt
     # Prepend and append escape sequences
     ptxt = con.get(color, con["black"]) + ptxt + con["reset"]
-    # Check version
-    if os.sys.version.startswith("3"):
-        # Use the :func:`input` function
-        v = input(ptxt)
-    else:
-        # Use the older :func:`raw_input` function
-        v = raw_input(ptxt)
+    # Use the :func:`input` function
+    v = input(ptxt)
     # Check default value again
     if vdef and (not v):
         # Use the default value instead

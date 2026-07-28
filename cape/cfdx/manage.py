@@ -20,6 +20,7 @@ from typing import Optional, Union
 # Local imports
 from .cntl import Cntl
 from ..argread import clitext
+from ..errors import CapeFileNotFoundError
 from ..fileutils import grep
 from ..gitutils import GitRepo
 from ..optdict import OptionsDict
@@ -178,6 +179,9 @@ def identify_solver(fjson: str) -> Optional[str]:
     :Versions:
         * 2026-07-18 ``@ddalle``: v1.0
     """
+    # Check for file
+    if not os.path.isfile(fjson):
+        raise CapeFileNotFoundError(f"No such file: '{fjson}'")
     # Check for "RunControl"
     if len(grep('"RunControl"', fjson)) == 0:
         return
