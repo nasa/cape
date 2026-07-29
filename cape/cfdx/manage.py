@@ -13,6 +13,7 @@ and more.
 
 # Standard library
 import fnmatch
+import glob
 import os
 from os.path import isfile
 from typing import Optional, Union
@@ -68,7 +69,7 @@ def find_json(pat: Optional[str] = None) -> list:
         * 2025-09-25 ``@ddalle``: v1.0
         * 2026-07-18 ``@ddalle``: v1.1; search ``"RunControl"``
     """
-    # Read a git repository
+    # Read a git repository, if possible
     repo = GitRepo()
     # Get list of tracked files
     fnames = repo.ls_tree()
@@ -116,15 +117,22 @@ def find_json_solver(pat: Optional[str] = None) -> list:
     :Versions:
         * 2026-07-18 ``@ddalle``: v1.0
         * 2026-07-20 ``@ddalle``: v1.1; special rules for `py{X}.json``
+        * 2026-07-29 ``@ddalle``: v1.2; work outside of git repo
     """
-    # Read a git repository
-    repo = GitRepo()
-    # Get list of tracked files
-    fnames = repo.ls_tree()
     # Default pattern
     pat = "*.json" if pat is None else pat
-    # Filter them to JSON files
-    raw_json_files = fnmatch.filter(fnames, pat)
+    # Read a git repository, if possible
+    try:
+        repo = GitRepo()
+        # Get list of tracked files
+        fnames = repo.ls_tree()
+        # Filter them to JSON files
+        raw_json_files = fnmatch.filter(fnames, pat)
+    except SystemError:
+        # No git repo to search for candidate files
+        raw_json_files = (
+            glob.glob(pat) +
+            glob.glob(os.path.join("run", pat)))
     # Append pyCart.json, etc., if found (usually not tracked)
     for fname in DEFAULT_JSON_FILES:
         if isfile(fname) and fname not in raw_json_files:
