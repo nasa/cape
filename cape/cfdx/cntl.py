@@ -3189,7 +3189,7 @@ class Cntl(CntlBase):
                 for vj, nj in counter.items():
                     print("%s- %*s: %i" % (tab, lj, vj, nj))
         # Output the accumulator
-        return dict(result)
+        return {"status": dict(result)}
 
     # Loop through cases
     def caseloop(self, casefunc: Callable, **kw):
