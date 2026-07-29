@@ -1718,7 +1718,14 @@ class ArgReader(dict, metaclass=MetaArgReader):
                 cmdlist.append(f"{k}={v}")
                 continue
             # Check which prefix to use
-            prefix = '--' if k in self.kwargs_double_dash else '-'
+            if k in self.kwargs_double_dash:
+                prefix = '--'
+            elif k in self.kwargs_single_dash:
+                prefix = '-'
+            elif len(k) <= 1:
+                prefix = '-'
+            else:
+                prefix = '--'
             # Check for value
             if (v is None) or (v is True):
                 # No value

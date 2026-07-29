@@ -2827,6 +2827,8 @@ CMD_DICT = {
     "unarchive": cape_unarchive,
     "unmark": cape_unmark,
 }
+# Invert *CMD_DICT*, Function Name -> Command Name
+CMD_FUNCS = {v.__name__: k for k, v in CMD_DICT.items()}
 
 
 # Template for each solver
