@@ -43,7 +43,7 @@ import shlex
 import shutil
 import sys
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime
 from io import IOBase
 from typing import Any, Callable, Optional, Union
@@ -2963,7 +2963,7 @@ class Cntl(CntlBase):
     # Loop through cases
     @CaseLoopArgs.check
     def caseloop_verbose(
-            self, casefunc: Optional[Callable] = None, **kw) -> int:
+            self, casefunc: Optional[Callable] = None, **kw) -> dict:
         # Get list of indices
         inds = self.x.GetIndices(**kw)
         # Default list of columns to display
@@ -3047,6 +3047,8 @@ class Cntl(CntlBase):
         case_ids = {}
         # Cases that have not been printed yet
         remaining_inds = list(inds)
+        # Initialize output
+        result = defaultdict(list)
         # Loop through cases
         for i in inds:
             # Wait until worker count is subsided
@@ -3073,8 +3075,11 @@ class Cntl(CntlBase):
                     for col in counters:
                         vi = ci.get(col)
                         if vi is not None:
-                            counters[col].update(vi)
-                    # Return counter
+                            counters[col].update([vi])
+                    # Update result with status
+                    if "status" in ci:
+                        result[ci["status"]].append(int(j))
+                    # Update case counter
                     n += ni
             # Print lines as available
             for j in list(remaining_inds):
@@ -3137,8 +3142,11 @@ class Cntl(CntlBase):
                 for col in counters:
                     vi = ci.get(col)
                     if vi is not None:
-                        counters[col].update(vi)
-                # Return counter
+                        counters[col].update([vi])
+                # Update result with status
+                if "status" in ci:
+                    result[ci["status"]].append(int(j))
+                # Update total case counter
                 n += ni
             # Wait
             time.sleep(DEFAULT_SLEEPTIME)
@@ -3181,7 +3189,7 @@ class Cntl(CntlBase):
                 for vj, nj in counter.items():
                     print("%s- %*s: %i" % (tab, lj, vj, nj))
         # Output the accumulator
-        return n
+        return dict(result)
 
     # Loop through cases
     def caseloop(self, casefunc: Callable, **kw):
@@ -3209,8 +3217,8 @@ class Cntl(CntlBase):
             sep: str):
         # Number of columns
         ncol = len(cols)
-        # Initialize headers
-        counters = {col: Counter() for col in ctrs}
+        # Initialize output
+        v = {}
         # Initialize line
         line = ''
         # Loop through columns
@@ -3224,9 +3232,7 @@ class Cntl(CntlBase):
             # Print separator
             sepj = '\n' if (j + 1 >= ncol) else sep
             line += sepj
-            # Count value if appropriate
-            if col in counters:
-                counters[col].update((vj,))
+            v[col] = vj
         # Run case function
         if callable(casefunc):
             vi = casefunc(i)
@@ -3235,7 +3241,7 @@ class Cntl(CntlBase):
         else:
             ni = 0
         # Output
-        return ni, line, counters
+        return ni, line, v
 
     # Get header for display column
     def _header(self, opt: str) -> str:
@@ -3364,7 +3370,7 @@ class Cntl(CntlBase):
     # Function to display current status
     def DisplayStatus(self, **kw):
         # Call verbose caseloop
-        self.caseloop_verbose(**kw)
+        return self.caseloop_verbose(**kw)
 
    # --- Mark ---
     # Mark a case as PASS
