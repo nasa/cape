@@ -23,6 +23,8 @@ import numpy as np
 # Local imports
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
 from ..tnakit import typeutils
+from ..util import split_line
+
 
 
 # Regular expressions
@@ -313,8 +315,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         line = f.readline()
         # Get variable names
         rhs = line.split('=', 1)[1]
-        cols = rhs.strip().split(' ')
-        cols = [col.strip('"') for col in cols]
+        cols = [col.strip().strip('"') for col in rhs.split(",")]
         # Save column names if reaching this point
         self.cols = self.translate_colnames(cols)
         # Output column names for kicks
@@ -352,7 +353,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         line = f.readline()
         # Check start
         parts = line.split('=', 1)
-        if parts[0].lower() != "zone":
+        if parts[0].lower().split()[0] != "zone":
             f.seek(pos)
             return
         # Get variable names
@@ -406,26 +407,67 @@ class TecDatFile(BaseFile, TextInterpreter):
             * 2023-08-25 ``@ddalle``: v1.0
             * 2025-01-02 ``@ddalle``: v2.0; transposed
         """
-        # Loop through lines
-        # Loop through columns
+        # Initialize columns
+        self.init_cols(self.cols)
+        # Initialize types
+        self._types = [self.get_col_type(col) for col in self.cols]
+        # Set count
+        self.n = 0
+        # Read data lines
+        while True:
+            # Process next line
+            eof = self.read_dataline(f)
+            # Check for end of file
+            if eof == -1:
+                break
+            # Increase count
+            self.n += 1
+        # Delete types
+        del self._types
+        # Trim each column
         for col in self.cols:
-            print(col)
-            # Initialize  empty numpy array
-            V = np.array([])
-            # Loop until number of items reaced
-            while np.size(V) < self.i:
-                # Read line
-                line = f.readline()
-                # Get Values
-                vals = line.strip().split()
-                # Convert to float
-                vals_f = [float(x) for x in vals]
-                # Append to V
-                V = np.append(V, vals_f)
-                print(np.size(V))
+            self.trim_colarray(col)
 
-            # Save col
-            self.save_col(col, V)
+    # Read data line
+    def read_dataline(self, f):
+        r"""Read one data line of a CSV file
+
+        :Call:
+            >>> db.read_csv_dataline(f)
+        :Inputs:
+            *db*: :class:`cape.dkit.ftypes.csvfile.CSVFile`
+                CSV file interface
+            *f*: :class:`file`
+                Open file handle
+        :Versions:
+            * 2019-11-25 ``@ddalle``: v1.0
+        """
+        # Read line
+        line = f.readline()
+        # Check for end of file
+        if line == "":
+            return -1
+        # Check for comment
+        if line.startswith("#"):
+            return
+        # Check for empty line
+        if line.strip() == "":
+            return
+        coltxts = []
+        # Split line
+        coltxts = split_line(line, None, len(self.cols))
+        # Clear whitespace
+        coltxts = [txt.strip() for txt in coltxts]
+        # List of types
+        _types = self._types
+        # Loop through columns
+        for (j, col) in enumerate(self.cols):
+            # Get type
+            clsname = _types[j]
+            # Convert text
+            v = self.fromtext_val(coltxts[j], clsname)
+            # Save data
+            self.append_colval(col, v)
 
   # >
 
