@@ -3188,6 +3188,9 @@ class Cntl(CntlBase):
                 # Loop through values
                 for vj, nj in counter.items():
                     print("%s- %*s: %i" % (tab, lj, vj, nj))
+        # Ensure proper ordering for result
+        for k in result:
+            result[k].sort()
         # Output the accumulator
         return {"status": dict(result)}
 
