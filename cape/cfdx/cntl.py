@@ -4049,7 +4049,7 @@ class Cntl(CntlBase):
   # *** REPORTING ***
    # --- Report generation ---
     # Update report
-    def UpdateReport(self, **kw):
+    def UpdateReport(self, **kw) -> dict:
         # Get name of report
         reportname = kw.pop("report", True)
         # Use first report if no name given
@@ -4063,9 +4063,12 @@ class Cntl(CntlBase):
         if kw.pop("rm", False):
             # Remove the case(s) dir(s)
             report.RemoveCases(**kw)
+            result = {}
         else:
             # Update report
-            report.update_report(**kw)
+            result = report.update_report(**kw)
+        # Output
+        return result
 
     # Read report
     @run_rootdir

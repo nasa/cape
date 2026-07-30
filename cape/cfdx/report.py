@@ -234,11 +234,11 @@ class Report(object):
    # --- Updaters ---
     # Function to update report
     @run_maindir
-    def update_report(self, **kw):
+    def update_report(self, **kw) -> dict:
         r"""Update a report based on the list of figures
 
         :Call:
-            >>> r.UpdateReport(**kw)
+            >>> result = r.UpdateReport(**kw)
         :Inputs:
             *r*: :class:`cape.cfdx.report.Report`
                 Automated report interface
@@ -247,8 +247,12 @@ class Report(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints to define what cases to update
         :Versions:
+            *result*: :class:`dict`
+                Information about compilation file and status
+        :Versions:
             * 2015-05-22 ``@ddalle``: v1.0, :func:`UpdateReport`
             * 2025-08-25 ``@ddalle``: v2.0, use *Location*
+            * 2026-07-30 ``@ddalle``: v2.1, add output
         """
         # Set force_update setting
         self.force_update = kw.get("force", False)
@@ -260,9 +264,18 @@ class Report(object):
         self.update_cases()
         # Compile if requested
         if kw.get("compile", True):
-            self.compile_tex()
+            ierr = self.compile_tex()
         # Archive if appropriate
         self.clean_up_cases()
+        # Result for use with agents
+        result = {
+            "cases": self.mask,
+            "pdflatexreturncode": ierr,
+            "reportname": self.rep,
+            "reportfile": self.get_PDFFileName(),
+        }
+        # Output
+        return result
 
     # Update overall report
     def update_cases(self):
