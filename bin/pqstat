@@ -137,7 +137,6 @@ def main(**kw):
         group = grp.getgrnam(g)
         # Convert to user
         u = ",".join(group.gr_mem)
-        breakpoint()
     # Select a command
     if shutil.which("nas_qstat"):
         # Newer version
