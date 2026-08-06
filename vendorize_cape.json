@@ -1,7 +1,7 @@
 {
     "target": "cape",
     "hub": [
-        "git+ssh://ufe/nobackupnfs1/ddalle/cape/hub/src",
+        "git+ssh://athfe04/nobackupnfs1/ddalle/cape/hub/src",
         "git+ssh://linux252/nobackup/ddalle/cape/hub/src"
     ],
     "packages": [
