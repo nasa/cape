@@ -3195,12 +3195,14 @@ class Cntl(CntlBase):
         return {"status": dict(result)}
 
     # Loop through cases
-    def caseloop(self, casefunc: Callable, **kw):
+    def caseloop(self, casefunc: Callable, **kw) -> list:
         # Get list of indices
         inds = self.x.GetIndices(**kw)
         # Get indent
         indent = kw.get("indent", 0)
         tab = ' ' * indent
+        # Initialize result
+        result = []
         # Loop through cases
         for i in inds:
             # Get case name
@@ -3208,7 +3210,12 @@ class Cntl(CntlBase):
             # Display it
             print(f"{tab}{frun}")
             # Run the function
-            casefunc(i)
+            if callable(casefunc):
+                casefunc(i)
+            # Update result
+            result.append((i, frun))
+        # Output
+        return result
 
     def _caseloop_v_case(
             self,
