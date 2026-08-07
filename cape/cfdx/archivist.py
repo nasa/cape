@@ -26,6 +26,7 @@ from typing import Optional, Union
 
 # Local imports
 from .. import fileutils
+from ..errors import CapeValueError
 from .caseutils import run_rootdir
 from .logger import ArchivistLogger
 from .options.archiveopts import ArchiveOpts, expand_fileopt
@@ -1984,7 +1985,10 @@ def rematch(pat: str) -> dict:
     # Split into parts
     pats = pat.split(os.sep)
     # Compile full regex
-    regex = re.compile(pat)
+    try:
+        regex = re.compile(pat)
+    except re.error as e:
+        raise CapeValueError(f"RegEx '{pat}' invalid:\n      {e.args[0]}")
     # Construct cumulative patterns (by folder depth level)
     fullpat = ""
     regexs = []
