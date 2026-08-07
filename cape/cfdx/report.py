@@ -272,7 +272,7 @@ class Report(object):
             "cases": self.mask,
             "pdflatexreturncode": ierr,
             "reportname": self.rep,
-            "reportfile": self.get_PDFFileName(),
+            "reportfile": os.path.join('report', self.get_PDFFileName()),
         }
         # Output
         return result
