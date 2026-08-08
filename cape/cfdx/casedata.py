@@ -1270,6 +1270,9 @@ class CaseData(DataKit):
         v = self[col]
         i = self[CASE_COL_ITERS]
         t = self.get(CASE_COL_TIME, i)
+        # Sometimes *t* is filled in with NaN
+        if np.any(np.isnan(t)) or (np.max(t) <= np.min(t)):
+            t = i
         # Check for empty time vector
         t = i if (t.size == 0) else t
         # Get window sizes
