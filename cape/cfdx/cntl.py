@@ -3586,6 +3586,7 @@ class Cntl(CntlBase):
             # Status update
             print(fmt % (i, frun))
             # Go to folder
+            os.chdir(self.RootDir)
             os.chdir(frun)
             # Check for FAIL file
             if os.path.isfile("FAIL"):
