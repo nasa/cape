@@ -201,13 +201,13 @@ def compile_rst(doc: str) -> str:
     # Reform doc string
     txt = '\n'.join(lines_out)
     # Replace section headers
-    txt = re.sub(r":(\w[\w/ _-]*):\s*\n", replsec, txt)
+    txt = re.sub(r":(\w[\w/ _.-]*):\s*\n", replsec, txt)
     # Replace modifiers, such as :mod:`cape.pycart`
-    txt = re.sub(r":(\w[\w/ _-]*):`([^`\n]+)`", replfn, txt)
+    txt = re.sub(r":(\w[\w/ _.-]*):`([^`\n]+)`", replfn, txt)
     # Simplify user names
     txt = re.sub(r"``(@\w+)``", repluid, txt)
     # Simplify bolds
-    txt = re.sub(r"\*\*(\w[\w ]*)\*\*", replemph, txt)
+    txt = re.sub(r"\*\*(\w[\w/ _.-]*)\*\*", replemph, txt)
     # Simplify italic
     txt = re.sub(r"\*(\w[\w ]*)\*", replit, txt)
     # Mark string literals
