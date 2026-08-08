@@ -1571,6 +1571,7 @@ class CaseRunner(CaseRunnerBase):
         fout = self.get_stdout_filename()
         # Iteration number
         n = self.get_iter()
+        n = 0 if n is None else n
         # History remains in present folder
         fhist = f"{self._logprefix}.{j:02d}.{n}"
         # Assuming that worked, move the temp output file

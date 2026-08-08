@@ -152,17 +152,7 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2024-10-17 ``@ddalle``: v1.0
         """
-        # Get the current iteration number
-        n = self.get_iter()
-        # Genrate name of STDOUT log, "run.{phase}.{n}"
-        fhist = "run.%02i.%i" % (j, n)
-        # Rename the STDOUT file
-        if os.path.isfile("chem.out"):
-            # Move the file
-            os.rename("chem.out", fhist)
-        else:
-            # Create an empty file
-            fileutils.touch(fhist)
+        self.finalize_stdoutfile(j)
 
    # --- Status ---
     # Get current iteration

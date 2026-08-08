@@ -2132,18 +2132,22 @@ class CntlBase(ABC):
 
     # Loop through cases
     @abstractmethod
-    def caseloop(self, casefunc: Callable, **kw):
+    def caseloop(self, casefunc: Callable, **kw) -> list:
         r"""Loop through cases and execute function for each case
 
         :Call:
-            >>> cntl.caseloop(casefun, **kw)
+            >>> cases = cntl.caseloop(casefun, **kw)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE run matrix control instance
             *indent*: {``0``} | :class:`int`
                 Number of spaces to indent each case name
+        :Outputs:
+            *cases*: :class:`list`\ [:class:`tuple`]
+                List of (*case index*, *case name*) for each case
         :Versions:
             * 2025-02-12 ``@ddalle``: v1.0
+            * 2026-08-07 ``@ddalle``: v1.1; add output
         """
         pass
 
