@@ -9004,8 +9004,8 @@ class DataKit(BaseData):
                 # Append
                 self.append_col(col, v, nref=n)
             else:
-                # Replace
-                self[col][j] = v
+                # Replace (use last dimenstion)
+                self[col][..., j] = v
 
     # Append data from multi-case entry
     def xiappend(
