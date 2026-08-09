@@ -1105,6 +1105,8 @@ class CaseRunner(casecntl.CaseRunner):
                 if self.fork_id:
                     print(f"  Fork {self.fork_id} failed")
                     os._exit(0)
+        # Clean up prompt
+        self._printf("\n")
 
     def collect_cutplane(
             self,
@@ -1365,7 +1367,7 @@ class CaseRunner(casecntl.CaseRunner):
         if mode == "fixed":
             suffix = "(?:tri\\.|fixed\\.)?"
         elif mode == "adaptive":
-            suffix = "(?:tri)?"
+            suffix = "(?:tri\\.)?"
         elif mode in ("raw", "constant"):
             suffix = ""
         # Get any current VTK files
@@ -1381,11 +1383,11 @@ class CaseRunner(casecntl.CaseRunner):
         iters = [int(v.split('.')[1]) for v in vtkfiles]
         iters = np.unique(iters)
         # Read "raw" metadata if appropriate
-        if mode in ("adaptive", "fixed", "constant"):
+        if mode in ("raw", "fixed", "constant"):
             db = self.read_cutplane_meta(nsurf, "raw")
             iters = np.union1d(iters, db["i"])
         # Read "adaptive" metadata if appropriate
-        if mode in ("fixed",):
+        if mode in ("adaptive", "fixed",):
             db = self.read_cutplane_meta(nsurf, "adaptive")
             iters = np.union1d(iters, db["i"])
         # Output
@@ -1491,7 +1493,10 @@ class CaseRunner(casecntl.CaseRunner):
             # Initialize datakit
             db = DataKit()
             # Read reference grid to get list of vars
-            mesh = self._read_cutplane_ref(nsurf, mode="raw")
+            try:
+                mesh = self._read_cutplane_ref(nsurf, mode="raw")
+            except Exception:
+                mesh = self._read_cutplane_ref(nsurf, mode=mode)
             # Save parameters
             db.save_col("nt", 0)
             db.save_col("i", np.zeros(0, dtype="i4"))
