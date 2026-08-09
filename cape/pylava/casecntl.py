@@ -1493,10 +1493,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Initialize datakit
             db = DataKit()
             # Read reference grid to get list of vars
-            try:
-                mesh = self._read_cutplane_ref(nsurf, mode="raw")
-            except Exception:
-                mesh = self._read_cutplane_ref(nsurf, mode=mode)
+            mesh = self._read_cutplane_ref(nsurf, mode=mode)
             # Save parameters
             db.save_col("nt", 0)
             db.save_col("i", np.zeros(0, dtype="i4"))
@@ -1779,7 +1776,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check if file exists
         if not os.path.isfile(fname):
             # Read reference VTK file
-            surf = self._read_cutplane_ref(nsurf, mode="raw")
+            surf = self._read_cutplane_ref(nsurf, mode=mode)
             # Get number of states
             nq = surf.nq
             # Create a DataKit
