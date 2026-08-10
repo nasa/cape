@@ -2829,18 +2829,22 @@ class CaseFM(CaseData):
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
         # Get iterations
-        selfi = self.get_values("i")
-        fmi = self.get_values("i")
-        # Check dimensions
+        selfi = self.get_values(CASE_COL_ITERS)
+        fmi = fm.get_values(CASE_COL_ITERS)
+        # Check for matching histories
         if (selfi.size != fmi.size) or np.any(selfi != fmi):
-            # Trim any reversions of iterations
-            self.TrimIters()
-            fm.TrimIters()
-        # Check dimensions
-        if selfi.size > fmi.size:
-            # Trim all
-            for col in ("i", "CA", "CY", "CN", "CLL", "CLM", "CLN"):
-                self[col] = self[col][:fmi.size]
+            # Find matches
+            maskself, maskfm = self.match(fm, cols=[CASE_COL_ITERS])
+            # Apply masks to appropriate columns
+            for col, parent in self.get('col_parent', {}).items():
+                # Only apply to iterative histories
+                if parent != CASE_COL_ITERS:
+                    continue
+                # Apply *self* mask
+                self[col] = self[col][maskself]
+                # Apply *fm* mask
+                if col in fm:
+                    fm[col] = fm[col][maskfm]
         # Loop through columns
         for col in self.coeffs:
             # Get value
