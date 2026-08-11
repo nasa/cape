@@ -2522,7 +2522,7 @@ def cape_collect_cutplane(*a, **kw) -> Tuple[int, Any]:
         optmodes = [f"--{o}" for o in modes]
         raise CapeValueError(f"Got: {' '.join(optmodes)}; can only use one")
     # Set mode
-    mode = "adaptive" if (len(modes) == 0) else modes[0]
+    mode = "raw" if (len(modes) == 0) else modes[0]
     # Run the case
     v = runner.collect_cutplanes(
         nsurf=nsurf,
