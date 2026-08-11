@@ -1341,6 +1341,8 @@ class CaseRunner(casecntl.CaseRunner):
                 self._cleanup_cutplane_files(nsurf, j)
             # Update counter
             n += 1
+        # Remove the forks
+        self.cleanup_forks()
 
     def search_cutplane_iters(
             self,

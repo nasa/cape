@@ -7618,6 +7618,10 @@ class CaseRunner(CaseRunnerBase):
                 # Already gone or invalid
                 pass
 
+    def cleanup_forks(self):
+        for pid in list(self.forks):
+            self.cleanup_fork_pid(pid)
+
     def _cleanup_fork_pid(self, pid: int):
         # Get index
         n = self.find_fork_id(pid)
