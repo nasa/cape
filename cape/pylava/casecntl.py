@@ -2213,6 +2213,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for temp file
             if not os.path.isfile(fj):
                 print(f"\n  {fvtkj}: failed to convert")
+                continue
             else:
                 # Read temp data
                 dbj = DataKit(fj)
