@@ -3046,7 +3046,7 @@ class Cntl(CntlBase):
         case_ids = {}
         # Cases that have not been printed yet
         remaining_inds = list(inds)
-        # Initialize output
+        # Initialize outputs
         result = defaultdict(list)
         # Loop through cases
         for i in inds:
@@ -3826,6 +3826,8 @@ class Cntl(CntlBase):
                 prompti = n or (sts not in ("INCOMP", "ERROR", "---"))
             # Delete
             return self.DeleteCase(i, prompt=prompti)
+        # Enforce a single process
+        kw["nproc"] = 1
         # Case loop
         n = self.caseloop_verbose(rm_case, **kw)
         # Status message
