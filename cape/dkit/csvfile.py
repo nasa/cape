@@ -25,6 +25,7 @@ import numpy as np
 # Local imports
 from . import arrayutils
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
+from ..errors import CapeValueError
 from ..tnakit import typeutils
 from ..util import split_line
 
@@ -701,7 +702,14 @@ class CSVFile(BaseFile, TextInterpreter):
             # Get type
             clsname = _types[j]
             # Convert text
-            v = self.fromtext_val(coltxts[j], clsname)
+            try:
+                v = self.fromtext_val(coltxts[j], clsname)
+            except IndexError:
+                fname = os.path.basename(f.name)
+                raise CapeValueError(
+                    f"Line of '{fname}' has {j} entries; "
+                    f"expecting {len(self.cols)}\nOffending line:\n"
+                    f"{line[:72]}")
             # Save data
             self.append_colval(col, v)
 
