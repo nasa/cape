@@ -705,19 +705,11 @@ class CaseRunner(casecntl.CaseRunner):
             * 2026-05-28 ``@ddalle``: v1.0
             * 2026-07-07 ``@ddalle``: v1.1; fallback to cutplane DB
         """
-        # Read cut plane definition
-        defn = self.read_cutplane_defn(nsurf)
-        # Check for valid cut plane
-        if defn is None:
-            return
-        # Get name of file
-        prefix = self._genr8_cutplane_prefix(nsurf, defn)
-        basename = f"{prefix}.{n:09d}"
-        # Potential file names
-        fvtk = f"{basename}.vtk"
-        # Check for file
-        if os.path.isfile(fvtk):
-            return Umesh(fvtk)
+        # Read directly from file if able
+        mesh = self._read_cutplane_raw(nsurf, n)
+        # Check if found
+        if mesh is not None:
+            return mesh
         # Try to read from database
         mesh = self._read_cutplane_db_raw(nsurf, n)
         # Return it if able
@@ -748,6 +740,43 @@ class CaseRunner(casecntl.CaseRunner):
             * 2026-04-09 ``@ddalle``: v1.0
             * 2026-07-07 ``@ddalle``: v1.1; fallback to cutplane DB
         """
+        # Read from file if able
+        mesh = self._read_cutplane_tri(nsurf, n)
+        # Use it if found
+        if mesh is not None:
+            return mesh
+        # Try to read from DB
+        mesh = self._read_cutplane_db_adaptive(nsurf, n)
+        # Use that if able
+        if mesh is not None:
+            return mesh
+        # Check for raw cut plane data
+        mesh = self.read_cutplane_raw(nsurf, n)
+        # Check for success
+        if mesh is not None:
+            # Read cut plane definition
+            defn = self.read_cutplane_defn(nsurf)
+            # Project the nodes to the cut plane
+            triangulate_mesh(mesh, defn["normal"], defn["point"])
+            # Return that
+            return mesh
+
+    def _read_cutplane_raw(self, nsurf: int, n: int) -> Optional[Umesh]:
+        # Read cut plane definition
+        defn = self.read_cutplane_defn(nsurf)
+        # Check for valid cut plane
+        if defn is None:
+            return
+        # Get name of file
+        prefix = self._genr8_cutplane_prefix(nsurf, defn)
+        basename = f"{prefix}.{n:09d}"
+        # Potential file names
+        fvtk = f"{basename}.vtk"
+        # Check for file
+        if os.path.isfile(fvtk):
+            return Umesh(fvtk)
+
+    def _read_cutplane_tri(self, nsurf: int, n: int) -> Optional[Umesh]:
         # Read cut plane definition
         defn = self.read_cutplane_defn(nsurf)
         # Check for valid cut plane
@@ -761,19 +790,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for file
         if os.path.isfile(ftri):
             return Umesh(ftri)
-        # Try to read from DB
-        mesh = self._read_cutplane_db_adaptive(nsurf, n)
-        # Use that if able
-        if mesh is not None:
-            return mesh
-        # Check for raw cut plane data
-        mesh = self.read_cutplane_raw(nsurf, n)
-        # Check for success
-        if mesh is not None:
-            # Project the nodes to the cut plane
-            triangulate_mesh(mesh, defn["normal"], defn["point"])
-            # Return that
-            return mesh
 
     def _read_cutplane_db_adaptive(self, nsurf: int, n: int):
         return self._read_cutplane_db0("adaptive", nsurf, n)
@@ -1464,7 +1480,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Function name based on mode
         infix = "_raw" if (mode == "raw") else "_tri"
         # Get the function
-        func = getattr(self, f"read_cutplane{infix}")
+        func = getattr(self, f"_read_cutplane{infix}")
         # Read triangulated data for that iter
         return func(nsurf, n)
 
