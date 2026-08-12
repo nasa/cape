@@ -3191,7 +3191,10 @@ class Cntl(CntlBase):
         for k in result:
             result[k].sort()
         # Output the accumulator
-        return {"status": dict(result)}
+        return {
+            "status": dict(result),
+            "n": n,
+        }
 
     # Loop through cases
     def caseloop(self, casefunc: Callable, **kw) -> list:
@@ -3829,10 +3832,14 @@ class Cntl(CntlBase):
         # Enforce a single process
         kw["nproc"] = 1
         # Case loop
-        n = self.caseloop_verbose(rm_case, **kw)
+        result = self.caseloop_verbose(rm_case, **kw)
+        # Update name of counter
+        n = result.pop("n", 0)
+        result["n_deleted"] = n
         # Status message
         print(f"Deleted {n} cases")
-        return n
+        # Output
+        return result
 
     # Function to delete a case folder: qdel and rm
     @run_rootdir
