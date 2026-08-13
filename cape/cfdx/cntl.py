@@ -4048,10 +4048,13 @@ class Cntl(CntlBase):
    # --- Filter ---
     # General
     def GetIndices(self, **kw) -> np.ndarray:
-        # Status filter
-        status = kw.pop("status", None)
         # Get indices w/o status check
         inds = self.x.GetIndices(**kw)
+        # Status filter
+        status = kw.pop("status", None)
+        # Exit it no --status check
+        if status is None:
+            return inds
         # Create mask of which cases are included
         mask = np.zeros(inds.size, dtype="bool")
         # Loop through matches not considering status
