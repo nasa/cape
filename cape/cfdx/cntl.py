@@ -3080,6 +3080,8 @@ class Cntl(CntlBase):
                     # Check for status condition
                     if status_cond:
                         if "status" in ci and ci["status"] != status_cond:
+                            # Done with processing this case
+                            remaining_inds.remove(j)
                             continue
                     # Get case for that process ID
                     j = case_ids[pid]
@@ -3105,7 +3107,7 @@ class Cntl(CntlBase):
                 # Print
                 sys.stdout.write(line)
                 sys.stdout.flush()
-                # Case finished
+                # Done with processing this case
                 remaining_inds.remove(j)
             # Create pipe before forking
             r_fd, w_fd = os.pipe()
@@ -3151,6 +3153,8 @@ class Cntl(CntlBase):
                 # Check for status condition
                 if status_cond:
                     if "status" in ci and ci["status"] != status_cond:
+                        # Done with processing this case
+                        remaining_inds.remove(j)
                         continue
                 # Get case for that process ID
                 j = case_ids[pid]
