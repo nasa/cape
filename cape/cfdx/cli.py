@@ -181,6 +181,7 @@ class CfdxArgReader(ArgReader):
         "j": bool,
         "ll": (bool, str),
         "marked": bool,
+        "me": bool,
         "n": int,
         "nmax": int,
         "nproc": int,
@@ -208,6 +209,7 @@ class CfdxArgReader(ArgReader):
         "u": str,
         "unmark": bool,
         "unmarked": bool,
+        "user": str,
         "v": bool,
         "x": str,
     }
@@ -353,6 +355,7 @@ class CfdxArgReader(ArgReader):
         "kill": "Remove jobs from the queue and stop them",
         "ll": "Extract line load data [comps matching *PAT*] for case(s)",
         "marked": "Show only cases marked either PASS or ERROR",
+        "me": "Limit to cases owned by current user (equiv. ``--user $USER``)",
         "n": "Submit at most *N* cases",
         "nmax": "Maximum number of snapshots to process",
         "nproc": "Number of parallel processes to use",
@@ -380,6 +383,7 @@ class CfdxArgReader(ArgReader):
         "u": "Pretend to be user *UID*",
         "unmark": "Remove PASS/ERROR marking for case(s)",
         "unmarked": "Show cases with no PASS/ERROR markings",
+        "user": "Restrict to cases with this username",
         "x": "Execute Python script *PYSCRIPT* after reading JSON",
     }
 
@@ -424,6 +428,7 @@ class CfdxArgReader(ArgReader):
         "triqfm": "[PAT]",
         "ts": "[PAT]",
         "u": "UID",
+        "user": "USER",
         "x": "PYSCRIPT",
     }
 
@@ -452,9 +457,11 @@ class _CfdxSubsetArgs(CfdxArgReader):
         "filter",
         "glob",
         "marked",
+        "me",
         "re",
         "status",
         "unmarked",
+        "user",
         "x",
     )
 
@@ -1463,6 +1470,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "kill",
         "ll",
         "marked",
+        "me",
         "n",
         "nmax",
         "nproc",
@@ -1488,6 +1496,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "unarchive",
         "unmark",
         "unmarked",
+        "user",
         "x",
     )
 

@@ -78,6 +78,7 @@ before creating the run matrix conditions.
 """
 
 # Standard library modules
+import getpass
 import os
 import re
 import fnmatch
@@ -1850,6 +1851,87 @@ class RunMatrix(dict):
         return np.where(i)[0]
 
     # Function to filter by checking if string is in the name
+    def FilterRegex(self, txt, I=None):
+        r"""Filter cases by a regular expression
+
+        :Call:
+            >>> i = x.FilterRegex(txt)
+            >>> i = x.FilterRegex(txt, I)
+        :Inputs:
+            *x*: :class:`cape.runmatrix.RunMatrix`
+                CAPE run matrix instance
+            *txt*: :class:`str`
+                Wildcard to use as filter
+            *I*: :class:`list`\ [:class:`int`]
+                List of initial indices to consider
+        :Outputs:
+            *i*: :class:`np.ndarray`\ [:class:`int`]
+                List of indices that match constraints
+        :Versions:
+            * 2015-11-02 ``@ddalle``: v1.0
+        """
+        # Initialize the conditions.
+        if I is None:
+            # Consider all indices
+            i = np.arange(self.nCase) > -1
+        else:
+            # Start with all indices failed.
+            i = np.arange(self.nCase) < -1
+            # Set the specified indices to True
+            i[I] = True
+        # Loop through conditions
+        for j in np.where(i)[0]:
+            # Get the case name.
+            frun = self.GetFullFolderNames(j)
+            # Check if the name matches the regular expression.
+            if not re.search(txt, frun):
+                i[j] = False
+        # Output
+        return np.where(i)[0]
+
+    # Function to filter by checking for a specific user
+    def FilterUser(self, username: str, I: Optional[np.ndarray] = None):
+        r"""Filter cases by a regular expression
+
+        :Call:
+            >>> i = x.FilterUser(username, I=None
+        :Inputs:
+            *x*: :class:`cape.runmatrix.RunMatrix`
+                CAPE run matrix instance
+            *username*: :class:`str`
+                Wildcard to use as filter
+            *I*: :class:`list`\ [:class:`int`]
+                List of initial indices to consider
+        :Outputs:
+            *i*: :class:`np.ndarray`\ [:class:`int`]
+                List of indices that match constraints
+        :Versions:
+            * 2026-08-13 ``@ddalle``: v1.0
+        """
+        # Initialize which cases to look at
+        mask = self._init_mask(I)
+        # Convert to indics
+        i = np.where(mask)[0]
+        # Get any 'user' trajectory keys
+        userkeys = self.GetKeysByType('user')
+        # Exit if no user key to filter
+        if userkeys is None:
+            return i
+        # Use first variable from matching "user" keys
+        ku = userkeys[0]
+        # Strip secial chars from username
+        uj = username.strip().lstrip('@').strip()
+        # Loop through conditions
+        for j in i:
+            # Get value for user for this case
+            vj = self[ku][j].strip().lstrip('@').strip()
+            # Check for match
+            if vj != uj:
+                mask[j] = False
+        # Output
+        return np.where(mask)[0]
+
+    # Function to filter by checking if string is in the name
     def FilterWildcard(self, txt, I=None):
         r"""Filter cases by whether or not they contain a substring
 
@@ -1894,44 +1976,18 @@ class RunMatrix(dict):
         # Output
         return np.where(i)[0]
 
-    # Function to filter by checking if string is in the name
-    def FilterRegex(self, txt, I=None):
-        r"""Filter cases by a regular expression
-
-        :Call:
-            >>> i = x.FilterRegex(txt)
-            >>> i = x.FilterRegex(txt, I)
-        :Inputs:
-            *x*: :class:`cape.runmatrix.RunMatrix`
-                CAPE run matrix instance
-            *txt*: :class:`str`
-                Wildcard to use as filter
-            *I*: :class:`list`\ [:class:`int`]
-                List of initial indices to consider
-        :Outputs:
-            *i*: :class:`np.ndarray`\ [:class:`int`]
-                List of indices that match constraints
-        :Versions:
-            * 2015-11-02 ``@ddalle``: v1.0
-        """
-        # Initialize the conditions.
+    def _init_mask(self, I: Optional[np.ndarray] = None) -> np.ndarray:
+        # Initialize the conditions
         if I is None:
             # Consider all indices
-            i = np.arange(self.nCase) > -1
+            i = np.ones(self.nCase, dtype="int")
         else:
-            # Start with all indices failed.
-            i = np.arange(self.nCase) < -1
+            # Start with all indices failed
+            i = np.zeros(self.nCase, dtype="bool")
             # Set the specified indices to True
             i[I] = True
-        # Loop through conditions
-        for j in np.where(i)[0]:
-            # Get the case name.
-            frun = self.GetFullFolderNames(j)
-            # Check if the name matches the regular expression.
-            if not re.search(txt, frun):
-                i[j] = False
         # Output
-        return np.where(i)[0]
+        return i
 
     # Function to expand indices
     def ExpandIndices(self, itxt):
@@ -2033,22 +2089,27 @@ class RunMatrix(dict):
                 Exact test to test against folder names
             *glob*: :class:`str`
                 Wild card to test against folder names
+            *user*: {``None``} | :class:`str`
+                Limit to cases owned by a specific user
+            *me*: ``True`` | {``False``}
+                Limit to cases owned by user calling CAPE
         :Outputs:
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 Array of indices
         :Versions:
             * 2015-03-10 ``@ddalle``: v1.0
             * 2016-02-17 ``@ddalle``: v2.0; handle text
+            * 2025-08-13 ``@ddalle``: v2.1; add --user
         """
         # Get special kwargs
         I = kw.get("I")
         cons = kw.get("cons", [])
         # Check index for string
-        if type(I).__name__ in ['str', 'unicode']:
+        if isinstance(I, str):
             # Process indices
             I = self.ExpandIndices(I)
         # Check constraints for string
-        if type(cons).__name__ in ['str', 'unicode']:
+        if isinstance(cons, str):
             # Separate into list of constraints
             cons = cons.split(',')
         # Initialize indices using "I" and "cons"
@@ -2065,6 +2126,13 @@ class RunMatrix(dict):
         if kw.get('filter') not in [None, '']:
             # Filter by substring
             I = self.FilterString(kw.get('filter'), I)
+        # Check for specified user
+        if kw.get("user"):
+            # Filter by user name
+            I = self.FilterUser(kw["user"], I)
+        if kw.get("me"):
+            # Filter by username == {current user}
+            I = self.FilterUser(getpass.getuser(), I)
         # Check for "--unmarked" or "--marked"
         if kw.get("unmarked", False):
             # Remove PASS and FAIL cases
