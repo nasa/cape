@@ -2974,8 +2974,6 @@ class Cntl(CntlBase):
             self, casefunc: Optional[Callable] = None, **kw) -> dict:
         # Check for status condition
         status_cond = kw.pop("status", None)
-        # Get list of indices
-        inds = self.x.GetIndices(**kw)
         # Default list of columns to display
         defaultcols = [
             "i",
@@ -3029,6 +3027,13 @@ class Cntl(CntlBase):
         headers = {
             col: self._header(col) for col in cols
         }
+        # Get list of indices
+        if "status" in cols:
+            # Status check performed on-the-fly to preserve parallelism
+            inds = self.x.GetIndices(**kw)
+        else:
+            # Apply status check now since loop will not check it
+            inds = self.GetIndices(**kw)
         # Ensure lengths are large enough for header
         maxlens = {
             col: max(self._maxlen(col, inds), len(headers[col]))
@@ -3077,14 +3082,14 @@ class Cntl(CntlBase):
                         continue
                     # Otherwise unpack
                     ni, line, ci = vi
+                    # Get case for that process ID
+                    j = case_ids[pid]
                     # Check for status condition
                     if status_cond:
                         if "status" in ci and ci["status"] != status_cond:
                             # Done with processing this case
                             remaining_inds.remove(j)
                             continue
-                    # Get case for that process ID
-                    j = case_ids[pid]
                     # Save the line
                     lines[j] = line
                     # Update counters
@@ -3150,14 +3155,14 @@ class Cntl(CntlBase):
                     continue
                 # Otherwise unpack
                 ni, line, ci = vi
+                # Get case for that process ID
+                j = case_ids[pid]
                 # Check for status condition
                 if status_cond:
                     if "status" in ci and ci["status"] != status_cond:
                         # Done with processing this case
                         remaining_inds.remove(j)
                         continue
-                # Get case for that process ID
-                j = case_ids[pid]
                 # Save
                 lines[j] = line
                 # Update counters
