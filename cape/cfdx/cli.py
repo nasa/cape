@@ -201,6 +201,7 @@ class CfdxArgReader(ArgReader):
         "skeleton": bool,
         "solver": str,
         "start": bool,
+        "status": str,
         "surfcp": (bool, str),
         "triqfm": (bool, str),
         "ts": (bool, str),
@@ -287,6 +288,17 @@ class CfdxArgReader(ArgReader):
             "pylch",
             "pyover",
         ),
+        "status": (
+            "---",
+            "INCOMP",
+            "QUEUE",
+            "ERROR",
+            "FAIL",
+            "DONE",
+            "PASS",
+            "PASS*",
+            "ZOMBIE",
+        )
     }
 
     # Description of each option
@@ -356,6 +368,7 @@ class CfdxArgReader(ArgReader):
         "report": "Generate the report *RP* or the first in the list",
         "restart": "When submitting new jobs, only submit new cases",
         "skeleton": "Delete most files from indicaded PASSED cases",
+        "status": "Find cases with a specific status",
         "solver": "Name of CAPE module to use (or determine automatically)",
         "surf": "Name of surface to collect/process",
         "surfcp": "Extract surface pressure data for case(s)",
@@ -407,6 +420,7 @@ class CfdxArgReader(ArgReader):
         "re": "REGEX",
         "report": "[RP]",
         "surf": "SURF",
+        "status": "STATUS",
         "triqfm": "[PAT]",
         "ts": "[PAT]",
         "u": "UID",
@@ -439,6 +453,7 @@ class _CfdxSubsetArgs(CfdxArgReader):
         "glob",
         "marked",
         "re",
+        "status",
         "unmarked",
         "x",
     )
@@ -1467,6 +1482,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "surfcp",
         "rm",
         "start",
+        "status",
         "triqfm",
         "u",
         "unarchive",

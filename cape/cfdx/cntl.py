@@ -363,6 +363,7 @@ class Cntl(CntlBase):
     :Attributes:
         * :attr:`RootDir`
         * :attr:`cache_iter`
+        * :attr:`cache_status`
         * :attr:`caseindex`
         * :attr:`caserunner`
         * :attr:`data`
@@ -505,6 +506,9 @@ class Cntl(CntlBase):
         #: :class:`CaseCache`
         #: Cache of current iteration for each case
         self.cache_iter = CaseCache("iter")
+        #: :class:`CaseCache`
+        #: Cache of current status for each case
+        self.cache_status = CaseCache("status")
 
     # Output representation
     def __repr__(self) -> str:
@@ -2608,7 +2612,7 @@ class Cntl(CntlBase):
         # Initialize counter
         total_running = 0
         # Get full set of cases
-        I = self.x.GetIndices(I=I, **kw)
+        I = self.GetIndices(I=I, **kw)
         # Process jobs list
         jobs = self.get_pbs_jobs(u=u)
         # Loop through cases
@@ -2622,7 +2626,12 @@ class Cntl(CntlBase):
         return total_running
 
    # --- Status ---
-    def check_case_status(self, i: int, active: bool = True) -> str:
+    def check_case_status(
+            self, i: int, active: bool = True, force: bool = False) -> str:
+        # Check if case is cached
+        if (not force) and self.cache_status.check_case(i):
+            # Return cached value
+            return self.cache_status.get_value(i)
         # Get case runner
         runner = self._read_runner(i, active)
         # Check for empty case
@@ -2964,7 +2973,7 @@ class Cntl(CntlBase):
     def caseloop_verbose(
             self, casefunc: Optional[Callable] = None, **kw) -> dict:
         # Get list of indices
-        inds = self.x.GetIndices(**kw)
+        inds = self.GetIndices(**kw)
         # Default list of columns to display
         defaultcols = [
             "i",
@@ -3199,7 +3208,7 @@ class Cntl(CntlBase):
     # Loop through cases
     def caseloop(self, casefunc: Callable, **kw) -> list:
         # Get list of indices
-        inds = self.x.GetIndices(**kw)
+        inds = self.GetIndices(**kw)
         # Get indent
         indent = kw.get("indent", 0)
         tab = ' ' * indent
@@ -3389,7 +3398,7 @@ class Cntl(CntlBase):
     @run_rootdir
     def MarkPASS(self, **kw):
         # Get indices
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Check sanity
         if len(I) > 100:
             raise ValueError(
@@ -3407,7 +3416,7 @@ class Cntl(CntlBase):
     @run_rootdir
     def MarkERROR(self, **kw):
         # Get indices
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Check sanity
         if len(I) > 100:
             raise ValueError(
@@ -3431,7 +3440,7 @@ class Cntl(CntlBase):
     @run_rootdir
     def UnmarkCase(self, **kw):
         # Get indices
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Loop through cases
         for i in I:
             # Mark case
@@ -3494,7 +3503,7 @@ class Cntl(CntlBase):
     @run_rootdir
     def ExecScript(self, **kw) -> int:
         # Apply constraints
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Initialize return code
         ierr = 0
         # Get execute command
@@ -3545,7 +3554,7 @@ class Cntl(CntlBase):
         # Zombie counter
         nzombie = 0
         # Cases
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Largest size
         nlog = int(np.ceil(np.log10(max(1, np.max(I)))))
         # Print format
@@ -3578,7 +3587,7 @@ class Cntl(CntlBase):
         nfail = 0
         nfile = 0
         # Cases
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Largest size
         nlog = int(np.ceil(np.log10(max(1, np.max(I)))))
         # Print format
@@ -3661,7 +3670,7 @@ class Cntl(CntlBase):
         if imax is not None:
             cmdbase += f" --imax {imax}"
         # Loop through folders
-        for i in self.x.GetIndices(**kw):
+        for i in self.GetIndices(**kw):
             # Status update
             print(self.x.GetFullFolderNames(i))
             # Read case
@@ -3763,7 +3772,7 @@ class Cntl(CntlBase):
         # Save current copy of options
         self.SaveOptions()
         # Loop through folders
-        for i in self.x.GetIndices(**kw):
+        for i in self.GetIndices(**kw):
             # Status update
             print(self.x.GetFullFolderNames(i))
             # Clear cache
@@ -4033,17 +4042,17 @@ class Cntl(CntlBase):
         status = kw.pop("status", None)
         # Get indices w/o status check
         inds = self.x.GetIndices(**kw)
-        # Initialize final indices
-        final_inds = []
+        # Create mask of which cases are included
+        mask = np.zeros(inds.size, dtype="bool")
         # Loop through matches not considering status
-        for i in inds:
+        for j, i in enumerate(inds):
             # Get status of that case
             stsi = self.check_case_status(i)
             # Check it
             if stsi == status:
-                final_inds.append(i)
+                mask[j] = True
         # Return final list
-        return np.ndarray(final_inds)
+        return inds[mask]
 
     # Apply user filter
     def FilterUser(self, i: int, **kw) -> bool:
@@ -4251,7 +4260,7 @@ class Cntl(CntlBase):
         # Status update
         print(compile_rst(f"Component ``{comp}`` (type=*{typ}*)"))
         # Get indices
-        inds = self.x.GetIndices(**kw)
+        inds = self.GetIndices(**kw)
         # Read databook comp
         db = self.read_dex(comp)
         # Ensure folders exists
@@ -4544,7 +4553,7 @@ class Cntl(CntlBase):
         # Get full list of components
         comp = self.opts.get_DataBookByGlob("CaseProp", comp)
         # Apply constraints
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Make sure databook is present
         self.ReadDataBook(comp=[])
         # Check if we are deleting or adding.
@@ -4579,7 +4588,7 @@ class Cntl(CntlBase):
         # Get full list of components
         comp = self.opts.get_DataBookByGlob("PyFunc", comp)
         # Apply constraints
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Make sure databook is present
         self.ReadDataBook(comp=[])
         # Check if we are deleting or adding.
@@ -4695,7 +4704,7 @@ class Cntl(CntlBase):
         # Get full list of components
         comp = self.opts.get_DataBookByGlob("TimeSeries", comp)
         # Apply constraints
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Read the data book handle
         self.ReadDataBook(comp=[])
         self.ReadConfig()
@@ -4799,7 +4808,7 @@ class Cntl(CntlBase):
         if len(comps) == 0:
             return
         # Apply constraints
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Check for a user key
         ku = self.x.GetKeysByType("user")
         # Check for a find
@@ -4922,7 +4931,7 @@ class Cntl(CntlBase):
         if len(comps) == 0:
             return
         # Apply constraints
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Check for a user key
         ku = self.x.GetKeysByType("user")
         # Check for a find
@@ -5043,7 +5052,7 @@ class Cntl(CntlBase):
         if len(comps) == 0:
             return
         # Apply constraints
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Check for a user key
         ku = self.x.GetKeysByType("user")
         # Check for a find
@@ -5163,7 +5172,7 @@ class Cntl(CntlBase):
         if len(comps) == 0:
             return
         # Apply constraints
-        I = self.x.GetIndices(**kw)
+        I = self.GetIndices(**kw)
         # Check for a user key
         ku = self.x.GetKeysByType("user")
         # Check for a find
@@ -5435,7 +5444,7 @@ class Cntl(CntlBase):
         # Get test option
         test = kw.get("test", False)
         # Loop through the folders
-        for i in self.x.GetIndices(**kw):
+        for i in self.GetIndices(**kw):
             # Get folder name
             frun = self.x.GetFullFolderNames(i)
             fabs = os.path.join(self.RootDir, frun)
@@ -5466,7 +5475,7 @@ class Cntl(CntlBase):
         # Get test option
         test = kw.get("test", False)
         # Loop through the folders
-        for i in self.x.GetIndices(**kw):
+        for i in self.GetIndices(**kw):
             # Get folder name
             frun = self.x.GetFullFolderNames(i)
             fabs = os.path.join(self.RootDir, frun)
@@ -5497,7 +5506,7 @@ class Cntl(CntlBase):
         # Test status
         test = kw.get("test", False)
         # Loop through the folders
-        for i in self.x.GetIndices(**kw):
+        for i in self.GetIndices(**kw):
             # Get folder name
             frun = self.x.GetFullFolderNames(i)
             fabs = os.path.join(self.RootDir, frun)
@@ -5521,7 +5530,7 @@ class Cntl(CntlBase):
         # Test status
         test = kw.get("test", False)
         # Loop through the folders
-        for i in self.x.GetIndices(**kw):
+        for i in self.GetIndices(**kw):
             # Print case name
             print(self.x.GetFullFolderNames(i))
             # Create the case folder
@@ -5535,7 +5544,7 @@ class Cntl(CntlBase):
     @run_rootdir
     def find_large_cases(self, cutoff: str = "100MB", **kw) -> list:
         # Get cases
-        mask = self.x.GetIndices(**kw)
+        mask = self.GetIndices(**kw)
         # Get folder names
         fruns = self.x.GetFullFolderNames(mask)
         # Expand the cutoff

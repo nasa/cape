@@ -1689,7 +1689,8 @@ class CntlBase(ABC):
    # --- Status ---
     # Get overall status using runner
     @abstractmethod
-    def check_case_status(self, i: int, active: bool = True) -> str:
+    def check_case_status(
+            self, i: int, active: bool = True, force: bool = False) -> str:
         r"""Get queue status of the PBS/Slurm job from case *i*
 
         :Call:
@@ -1701,6 +1702,8 @@ class CntlBase(ABC):
                 Case index
             *active*: {``True``} | ``False``
                 Whether or not to allow new calls to ``qstat``
+            *force*: ``True`` | {``False``}
+                Option to override cache and reevaluate
         :Outputs:
             *sts*: :class:`str`
                 Case status
@@ -1717,6 +1720,7 @@ class CntlBase(ABC):
                 * ``FAIL``: case failed but not marked by user
         :Versions:
             * 2025-05-04 ``@ddalle``: v1.0
+            * 2026-08-13 ``@ddalle``: v1.1; use cache
         """
         pass
 
