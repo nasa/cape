@@ -4027,6 +4027,24 @@ class Cntl(CntlBase):
             return str(v)
 
    # --- Filter ---
+    # General
+    def GetIndices(self, **kw) -> np.ndarray:
+        # Status filter
+        status = kw.pop("status", None)
+        # Get indices w/o status check
+        inds = self.x.GetIndices(**kw)
+        # Initialize final indices
+        final_inds = []
+        # Loop through matches not considering status
+        for i in inds:
+            # Get status of that case
+            stsi = self.check_case_status(i)
+            # Check it
+            if stsi == status:
+                final_inds.append(i)
+        # Return final list
+        return np.ndarray(final_inds)
+
     # Apply user filter
     def FilterUser(self, i: int, **kw) -> bool:
         # Get any 'user' trajectory keys

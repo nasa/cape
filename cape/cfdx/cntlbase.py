@@ -2686,6 +2686,26 @@ class CntlBase(ABC):
         pass
 
    # --- Filter ---
+    # General filter
+    @abstractmethod
+    def GetIndices(self, **kw) -> np.ndarray:
+        r"""Find cases using multiple conditions
+
+        :Call:
+            >>> inds = cntl.GetIndices(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *status*: {``None``} | ``"DONE"`` | :class:`str`
+                Status filter
+        :Outputs:
+            *inds*: :np.ndarray`\ [:class:`int`]
+                List of case indices that meet all conditions
+        :Versions:
+            * 2026-08-13 ``@ddalle``: v1.0 (was part of *cntl.x*
+        """
+        pass
+
     # Apply user filter
     @abstractmethod
     def FilterUser(self, i: int, **kw) -> bool:
