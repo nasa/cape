@@ -2972,8 +2972,10 @@ class Cntl(CntlBase):
     @CaseLoopArgs.check
     def caseloop_verbose(
             self, casefunc: Optional[Callable] = None, **kw) -> dict:
+        # Check for status condition
+        status_cond = kw.pop("status", None)
         # Get list of indices
-        inds = self.GetIndices(**kw)
+        inds = self.x.GetIndices(**kw)
         # Default list of columns to display
         defaultcols = [
             "i",
@@ -3075,6 +3077,10 @@ class Cntl(CntlBase):
                         continue
                     # Otherwise unpack
                     ni, line, ci = vi
+                    # Check for status condition
+                    if status_cond:
+                        if "status" in ci and ci["status"] != status_cond:
+                            continue
                     # Get case for that process ID
                     j = case_ids[pid]
                     # Save the line
@@ -3142,6 +3148,10 @@ class Cntl(CntlBase):
                     continue
                 # Otherwise unpack
                 ni, line, ci = vi
+                # Check for status condition
+                if status_cond:
+                    if "status" in ci and ci["status"] != status_cond:
+                        continue
                 # Get case for that process ID
                 j = case_ids[pid]
                 # Save
