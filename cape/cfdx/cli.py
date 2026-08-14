@@ -99,6 +99,8 @@ class CfdxArgReader(ArgReader):
         "ERROR": "FAIL",
         "F": "force",
         "add-col": "add-cols",
+        "add_col": "add-cols",
+        "add_cols": "add-cols",
         "aero": "fm",
         "approve": "PASS",
         "check": "c",
