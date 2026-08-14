@@ -241,7 +241,7 @@ def str2slices1(txt: str) -> list:
 
 
 # Convert a list of numbers to a compact string
-def RangeString(rng):
+def RangeString(rng: np.ndarray) -> str:
     r"""Convert a list of integers to a string like "1-10,12,14-15"
 
     :Call:
@@ -261,7 +261,7 @@ def RangeString(rng):
     if n == 0:
         return ""
     if n == 1:
-        return ("%s" % rng[0])
+        return str(rng[0])
     # Initialize the string and indices
     txt = []
     ibeg = rng[0]
@@ -283,6 +283,60 @@ def RangeString(rng):
             else:
                 # Write list
                 txt.append("%s-%s" % (ibeg, iend))
+            # Check if last entry is single
+            if i == n-1 and icur > iend+1:
+                txt.append("%s" % icur)
+            # Reset.
+            ibeg = icur
+            iend = icur
+    # Output
+    return ",".join(txt)
+
+
+# Convert a list of numbers to a compact string
+def pyrangestr(rng: np.ndarray) -> str:
+    r"""Convert a list of integers to a string like "1:11,12,14:16"
+
+    :Call:
+        >>> txt = pyrangestr(rng)
+    :Inputs:
+        *rng*: :class:`list`\ [:class:`int`]
+            Range of integers
+    :Outputs:
+        *txt*: :class:`str`
+            Formatted string combining contiguous ranges with ``":"``
+    :Versions:
+        * 2016-10-20 ``@ddalle``: v1.0 (``RangeString()``)
+        * 2026-08-14 ``@ddalle``: v1.0
+    """
+    # Number of components
+    n = len(rng)
+    # Check for single component or no components
+    if n == 0:
+        return ""
+    if n == 1:
+        return str(rng[0])
+    # Initialize the string and indices
+    txt = []
+    ibeg = rng[0]
+    iend = rng[0]
+    # Loop through the grid numbers, which are ascending and unique.
+    for i in range(1, n):
+        # Get the compID
+        icur = rng[i]
+        # Check if this is one greater than the previous one
+        if icur == iend + 1:
+            # Add to the current list
+            iend += 1
+        # Write if appropriate
+        if i == n-1 or icur > iend+1:
+            # Check if single element or list
+            if ibeg == iend:
+                # Write single
+                txt.append(str(ibeg))
+            else:
+                # Write list
+                txt.append(f"{ibeg}:{iend+1}")
             # Check if last entry is single
             if i == n-1 and icur > iend+1:
                 txt.append("%s" % icur)

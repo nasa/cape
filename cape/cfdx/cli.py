@@ -219,13 +219,6 @@ class CfdxArgReader(ArgReader):
         "extend": BOOL_TYPES + INT_TYPES + (str,),
     }
 
-    # Default values
-    _rc = {
-        "nproc": 8,
-        "restart": True,
-        "start": True,
-    }
-
     # Conversion functions
     _optconverters = {
         "batchsize": int,
@@ -546,6 +539,11 @@ class CfdxCheckArgs(_CfdxCaseLoopArgs):
         "nproc",
         "u",
     )
+
+    # Default values
+    _rc = {
+        "nproc": 8,
+    }
 
 
 # Settings for --apply
@@ -1161,6 +1159,18 @@ class CfdxFailArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for --find
+class CfdxFindArgs(_CfdxCaseLoopArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-find"
+
+    # Description
+    _help_title = "Find indices of cases meeting constraints"
+
+
 # Settings for --find-large
 class CfdxFindLargeArgs(_CfdxSubsetArgs):
     # No attributes
@@ -1332,6 +1342,12 @@ class CfdxStartArgs(_CfdxSubsetArgs):
         "u",
         "start",
     )
+
+    # Default values
+    _rc = {
+        "restart": True,
+        "start": True,
+    }
 
 
 # Settings for triangulate-cutplane
@@ -1534,6 +1550,8 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqfm",
         "extract-triqpt",
         "fail",
+        "find",
+        "find-cases",
         "find-json",
         "find-large",
         "qdel",
@@ -1557,6 +1575,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "e": "exec",
         "edit": "edit-json",
         "error": "fail",
+        "find": "find-cases",
         "mark-error": "fail",
         "mark-failure": "fail",
         "mark-pass": "approve",
@@ -1599,6 +1618,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqfm": CfdxExtractTriqFMArgs,
         "extract-triqpt": CfdxExtractTriqPTArgs,
         "fail": CfdxFailArgs,
+        "find": CfdxFindArgs,
         "find-json": CfdxFindJSONArgs,
         "find-large": CfdxFindLargeArgs,
         "qdel": CfdxQdelArgs,
@@ -1624,20 +1644,17 @@ class CfdxFrontDesk(CfdxArgReader):
     _help_optlist = (
         "h",
         "f",
-        "j",
         "n",
         "I",
         "cons",
         "re",
-        "filter",
+        "me",
         "marked",
         "unmarked",
         "batch",
         "e",
         "restart",
         "start",
-        "q",
-        "u",
         "x",
     )
 
@@ -2332,6 +2349,38 @@ def cape_fail(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, v
 
 
+@CfdxFindArgs.rst
+def cape_find(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Localized inputs
+    import contextlib
+    from ..util import pyrangestr
+    # Suppress STDOUT during GetIndices()
+    with open(os.devnull, "w") as devnull:
+        with contextlib.redirect_stdout(devnull):
+            # Read *cntl*
+            cntl, kw = read_cntl(CfdxFindArgs, *a, **kw)
+    # Find cases
+    v = cntl.GetIndices(**kw)
+    # Display as a string
+    print(pyrangestr(v))
+    # Output
+    return IERR_OK, v
+
+
 @CfdxFindJSONArgs.rst
 def cape_find_json(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
@@ -2839,6 +2888,7 @@ CMD_DICT = {
     "extract-triqfm": cape_extract_triqfm,
     "extract-triqpt": cape_extract_triqpt,
     "fail": cape_fail,
+    "find-cases": cape_find,
     "find-json": cape_find_json,
     "find-large": cape_find_large,
     "qdel": cape_qdel,
