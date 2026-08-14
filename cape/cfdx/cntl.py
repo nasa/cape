@@ -205,6 +205,13 @@ def _split(v: Union[str, list]) -> list:
         return v
 
 
+# Define shlex.join() for Python 3.[67]
+if not hasattr(shlex, 'join'):
+    def _shlex_join(split_command):
+        return ' '.join(shlex.quote(arg) for arg in split_command)
+    shlex.join = _shlex_join
+
+
 # Cache of one property for each case
 class CaseCache(dict):
     r"""Cache of one property for cases in a run matrix
