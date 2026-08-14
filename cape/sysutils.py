@@ -24,6 +24,62 @@ DEFAULT_PDF_VIEWERS_LINUX = [
     "firefox",
 ]
 
+# Cache file name
+CACHE_FILE = "tmp.tar.gz"
+
+
+# Get current CACHE location
+def get_cape_cachedir() -> str:
+    r"""Get cache location for temp CAPE files
+
+    Defaults to ``~/.cache/cape/``; override with ``$CAPE_CACHE_DIR``
+    environment variable.
+
+    :Call:
+        >>> dirname = get_cape_cachedir()
+    :Outputs:
+        *dirname*: :class:`str`
+            Name of folder; creates folder if necessary
+    """
+    # Default cache dir
+    cachedir = os.path.expanduser("~/.cache/cape")
+    # Check for environment variable
+    cachedir = os.environ.get("CAPE_CACHE_DIR", cachedir)
+    # Create it if necessary
+    os.makedirs(cachedir, exist_ok=True)
+    # Output
+    return cachedir
+
+
+# Get current configuration folder
+def get_cape_configfile() -> str:
+    ...
+
+
+# Post file(s)
+def post_file(pat1: str, *pats, v: bool = False) -> int:
+    # Get [and create] cache dir
+    cachedir = get_cape_cachedir()
+    # Check verbose option
+    flag = "czvf" if v else "czf"
+    # Command to tar up requested file(s)
+    cmdlist = ["tar", flag, os.path.join(cachedir, CACHE_FILE), pat1]
+    cmdlist.extend(pats)
+    # Run the command
+    proc = Popen(cmdlist, stderr=PIPE)
+    # Wait for command
+    proc.communicate()
+    # Check error status
+    if proc.returncode:
+        print(f"Failed to post file(s) '{pat1} {' '.join(pats)}'")
+    # Exit code
+    return proc.returncode
+
+
+# Receive file(s)
+def receive_file() -> list:
+    ...
+
 
 # Get preferred PDF viewer
 def get_pdf_viewer() -> str:
