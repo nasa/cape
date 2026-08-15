@@ -13,6 +13,7 @@ import shutil
 from subprocess import Popen, PIPE
 
 # Local imports
+from . import capeconfig
 from .errors import CapeFileNotFoundError
 
 
@@ -28,38 +29,10 @@ DEFAULT_PDF_VIEWERS_LINUX = [
 CACHE_FILE = "tmp.tar.gz"
 
 
-# Get current CACHE location
-def get_cape_cachedir() -> str:
-    r"""Get cache location for temp CAPE files
-
-    Defaults to ``~/.cache/cape/``; override with ``$CAPE_CACHE_DIR``
-    environment variable.
-
-    :Call:
-        >>> dirname = get_cape_cachedir()
-    :Outputs:
-        *dirname*: :class:`str`
-            Name of folder; creates folder if necessary
-    """
-    # Default cache dir
-    cachedir = os.path.expanduser("~/.cache/cape")
-    # Check for environment variable
-    cachedir = os.environ.get("CAPE_CACHE_DIR", cachedir)
-    # Create it if necessary
-    os.makedirs(cachedir, exist_ok=True)
-    # Output
-    return cachedir
-
-
-# Get current configuration folder
-def get_cape_configfile() -> str:
-    ...
-
-
 # Post file(s)
 def post_file(pat1: str, *pats, v: bool = False) -> int:
     # Get [and create] cache dir
-    cachedir = get_cape_cachedir()
+    cachedir = capeconfig.get_cape_cachedir()
     # Check verbose option
     flag = "czvf" if v else "czf"
     # Command to tar up requested file(s)

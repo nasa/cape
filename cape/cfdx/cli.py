@@ -15,6 +15,7 @@ from typing import Any, Optional, Union, Tuple
 
 # CAPE modules
 from . import manage
+from .. import capeconfig
 from ..argread import ArgReader, ArgReadError, BOOL_TYPES, INT_TYPES
 from ..errors import CapeError, CapeValueError
 
@@ -189,6 +190,7 @@ class CfdxArgReader(ArgReader):
         "nproc": int,
         "nsurf": int,
         "o": str,
+        "opt": str,
         "passed": bool,
         "pat": str,
         "prompt": bool,
@@ -213,6 +215,7 @@ class CfdxArgReader(ArgReader):
         "unmarked": bool,
         "user": str,
         "v": bool,
+        "val": str,
         "x": str,
     }
 
@@ -295,7 +298,7 @@ class CfdxArgReader(ArgReader):
             "PASS",
             "PASS*",
             "ZOMBIE",
-        )
+        ),
     }
 
     # Description of each option
@@ -356,6 +359,7 @@ class CfdxArgReader(ArgReader):
         "nproc": "Number of parallel processes to use",
         "nsurf": "Index of surface to process",
         "o": "Name of output JSON file (defaults to same as *f*)",
+        "opt": "CAPE user configuration variable name",
         "pat": "Consider file names matching pattern *PAT*",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
@@ -379,6 +383,7 @@ class CfdxArgReader(ArgReader):
         "unmark": "Remove PASS/ERROR marking for case(s)",
         "unmarked": "Show cases with no PASS/ERROR markings",
         "user": "Restrict to cases with this username",
+        "val": "Value to set option to",
         "x": "Execute Python script *PYSCRIPT* after reading JSON",
     }
 
@@ -412,6 +417,7 @@ class CfdxArgReader(ArgReader):
         "nproc": "NPROC",
         "nsurf": "SURF",
         "o": "OUT_JSON",
+        "opt": "OPT",
         "pat": "PAT",
         "prop": "[PAT]",
         "pt": "[PAT]",
@@ -424,6 +430,7 @@ class CfdxArgReader(ArgReader):
         "ts": "[PAT]",
         "u": "UID",
         "user": "USER",
+        "val": "VALUE",
         "x": "PYSCRIPT",
     }
 
@@ -1195,6 +1202,33 @@ class CfdxFindLargeArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for get-config
+class CfdxGetConfigArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-get-config"
+
+    # Description
+    _help_title = "Show value of user CAPE configuration"
+
+    # Additional options
+    _optlist = (
+        "opt",
+    )
+
+    # Required options
+    _optlistreq = (
+        "opt",
+    )
+
+    # Arguemnts
+    _arglist = (
+        "opt",
+    )
+
+
 # Settings for --qdel
 class CfdxQdelArgs(_CfdxCaseLoopArgs):
     # No attributes
@@ -1493,6 +1527,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "nmax",
         "nproc",
         "nsurf",
+        "opt",
         "pat",
         "pt",
         "prompt",
@@ -1515,6 +1550,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "unmark",
         "unmarked",
         "user",
+        "val",
         "x",
     )
 
@@ -1556,10 +1592,12 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-cases",
         "find-json",
         "find-large",
+        "get-config",
         "qdel",
         "report",
         "rm",
         "search-large",
+        "set-config",
         "skeleton",
         "triangulate-cutplane",
         "unarchive",
@@ -1573,17 +1611,20 @@ class CfdxFrontDesk(CfdxArgReader):
         "collect-cutp": "collect-cutplane",
         "collect-plane": "collect-cutplane",
         "collect-surfdata": "collect-surf",
+        "config": "set-config",
         "dex": "extract",
         "e": "exec",
         "edit": "edit-json",
         "error": "fail",
         "find": "find-cases",
+        "get": "get-config",
         "mark-error": "fail",
         "mark-failure": "fail",
         "mark-pass": "approve",
         "pass": "approve",
         "qsub": "start",
         "r": "run",
+        "set": "set-config",
         "submit": "start",
         "triplane": "triangulate-cutplane",
         "tri-plane": "triangulate-cutplane",
@@ -1623,6 +1664,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find": CfdxFindArgs,
         "find-json": CfdxFindJSONArgs,
         "find-large": CfdxFindLargeArgs,
+        "get-config": CfdxGetConfigArgs,
         "qdel": CfdxQdelArgs,
         "report": CfdxReportArgs,
         "rm": CfdxRemoveCasesArgs,
@@ -2432,6 +2474,30 @@ def cape_find_large(*a, **kw) -> Tuple[int, list]:
     return IERR_OK, v
 
 
+@CfdxGetConfigArgs.rst
+def cape_get_config(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Get value
+    v = capeconfig.show_cape_config(a[0])
+    # Show it
+    print(v)
+    # Return code
+    return IERR_OK, v
+
+
 @CfdxQdelArgs.rst
 def cape_qdel(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
@@ -2893,6 +2959,7 @@ CMD_DICT = {
     "find-cases": cape_find,
     "find-json": cape_find_json,
     "find-large": cape_find_large,
+    "get-config": cape_get_config,
     "qdel": cape_qdel,
     "report": cape_report,
     "rm": cape_rm,

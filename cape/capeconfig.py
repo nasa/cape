@@ -14,6 +14,8 @@ from an HPC login node to a local workstation and open it there.
 """
 
 # Standard library
+import getpass
+import json
 import os
 import re
 import socket
@@ -22,6 +24,16 @@ from typing import Any, Optional
 # Local imports
 from .errors import CapeValueError
 from .optdict import OptionsDict
+
+
+# Environment variable name
+CONFIG_ENVVAR = "CAPE_CONFIG_FILE"
+
+# Cache to avoid a global variable
+CONFIG_CACHE = {}
+
+# Name of current user
+USER = getpass.getuser()
 
 
 # Class for processing jumphost
@@ -72,6 +84,11 @@ class CapeConfig(OptionsDict):
         "RemoteHostPatterns": 1,
     }
 
+    # Defaults
+    _rc = {
+        "CacheDir": os.path.join("~", ".cache", "cape"),
+    }
+
     # Environment variable
     _envvar = {
         "CacheDir": "CAPE_CACHE_DIR",
@@ -110,7 +127,7 @@ class CapeConfig(OptionsDict):
         r"""Get value of an option with environment var override
 
         :Call:
-            >>> v = opts.get_opt(opt, vdef=None)\
+            >>> v = opts.get_opt(opt, vdef=None)
         :Inputs:
             *opts*: :class:`CapeConfig`
                 Cape configuration options instance
@@ -137,6 +154,19 @@ class CapeConfig(OptionsDict):
 
     # Special getter; get *JumpHost* for *this* machine
     def get_JumpHost(self) -> Optional[str]:
+        r"""Get name of SSH JumpHost needed to transfer files
+
+        The result is based on the name of the current host
+
+        :Call:
+            >>> jumphost = opts.get_JumpHost()
+        :Inputs:
+            *opts*: :class:`CapeConfig`
+                Cape configuration options instance
+        :Outputs:
+            *jumphost*: ``None`` | :class:`str`
+                Name of jump host, if any
+        """
         # Get jumphost map
         jumphostmap = self.get("JumpHost", {})
         # Get local host name
@@ -152,6 +182,55 @@ class CapeConfig(OptionsDict):
                     f"Invalid *JumpHost* regex in .capeconfig:\n  '{lh}'\n"
                     f"Original message: {e.args[0]}")
 
+    # Check if this is a local host
+    def check_local(self) -> bool:
+        r"""Check if the current host is "local"
+
+        :Call:
+            >>> q = opts.check_local()
+        :Inputs:
+            *opts*: :class:`CapeConfig`
+                Cape configuration options instance
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether current host is "local"
+        """
+        # Default to *LocalHost* if *LocalHostPatterns* not specified
+        pat = self.get_opt("LocalHost")
+        pat1 = [] if (pat is None) else [pat]
+        # Get list of "local" host patterns
+        pats = self.get_opt("LocalHostPatterns", vdef=pat1)
+        # Get local host name
+        host = socket.gethostname()
+        # Check patterhs
+        for lpat in pats:
+            # Check for match
+            try:
+                if re.fullmatch(lpat, host):
+                    return True
+            except Exception as e:
+                raise CapeValueError(
+                    "Invalid *LocalHostPatterns* regex in .capeconfig:"
+                    f"\n  '{lpat}'\n"
+                    f"Original message: {e.args[0]}")
+        # No matches
+        return False
+
+    # Check if this is a remote host
+    def check_remote(self) -> bool:
+        r"""Check if the current host is "remote"
+
+        :Call:
+            >>> q = opts.check_remote()
+        :Inputs:
+            *opts*: :class:`CapeConfig`
+                Cape configuration options instance
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether current host is "remote"
+        """
+        return not self.check_local()
+
 
 # Add getters and setters(
 _properties = (
@@ -163,3 +242,130 @@ _properties = (
     "RemoteHostPatterns",
 )
 CapeConfig.add_properties(_properties)
+
+
+# Command-line interface
+def show_cape_config(opt: str) -> str:
+    # Get option value
+    v = get_cape_opt(opt)
+    # Convert to string
+    if isinstance(v, list):
+        return ','.join([str(vj) for vj in v])
+    elif isinstance(v, dict):
+        return json.dumps(v)
+    else:
+        return str(v)
+
+
+def get_cape_opt(opt: str) -> str:
+    # Read config
+    opts = read_cape_config()
+    # Get value
+    return opts.get_opt(opt)
+
+
+# Get cache dir
+def get_cape_cachedir() -> str:
+    r"""Get (and create) cache folder
+
+    The order of precedence is
+
+    1.  The environment variable ``$CAPE_CACHE_DIR``
+    2.  The *CacheDir* setting in ``~/.capeconfig``
+    3.  The global default ``~/.cache/cape/``
+
+    :Call:
+        >>> cachedir = get_cape_cachedir()
+    :Outputs:
+        *cachedir*: :class:`str`
+            Location of cache to use for temporary CAPE files
+    """
+    # Read config
+    opts = read_cape_config()
+    # Get CacheDir setting
+    cachedir = opts.get_CacheDir()
+    # Expand '~'
+    cachedir = os.path.expanduser(cachedir)
+    # Create it if necessary
+    try:
+        os.makedirs(cachedir, exist_ok=True)
+    except PermissionError:
+        pass
+    # Output
+    return cachedir
+
+
+# Check if local
+def check_cape_local() -> bool:
+    r"""Check if the current host is "local"
+
+    :Call:
+        >>> q = check_cape_local()
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether current host is "local"
+    """
+    # Read config
+    opts = read_cape_config()
+    # Check local
+    return opts.check_local()
+
+
+# Check fi remote
+def check_cape_remote() -> bool:
+    r"""Check if the current host is "remote"
+
+    :Call:
+        >>> q = check_cape_remote()
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether current host is "remote"
+    """
+    # Read config
+    opts = read_cape_config()
+    # Check remote
+    return opts.check_remote()
+
+
+# Read config file
+def read_cape_config() -> CapeConfig:
+    r"""Read config file from ``~/.capeconfig`` or ``$CAPE_CONFIG_FILE``
+
+    :Call:
+        >>> opts = read_cape_config()
+    :Outputs:
+        *opts*: :class:`CapeConfig`
+            CAPE user settings
+    """
+    # Check cache
+    if USER in CONFIG_CACHE:
+        return CONFIG_CACHE[USER]
+    # Get config file
+    configfile = get_cape_configfile()
+    # Check if file exists
+    if os.path.isfile(configfile):
+        opts = CapeConfig(configfile)
+    else:
+        # Create initial instance
+        opts = CapeConfig()
+        # Write it
+        try:
+            opts.write_jsonfile(configfile)
+        except PermissionError:
+            pass
+    # Cache this instance
+    CONFIG_CACHE[USER] = opts
+    # Output
+    return opts
+
+
+# Get current configuration folder
+def get_cape_configfile() -> str:
+    # Check for environment variable
+    configfile = os.environ.get(CONFIG_ENVVAR)
+    # Default value
+    if not configfile:
+        configfile = os.path.join("~", ".capeconfig")
+    # Expand '~'
+    return os.path.expanduser(configfile)
+
