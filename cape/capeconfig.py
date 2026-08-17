@@ -66,7 +66,8 @@ class CapeConfig(OptionsDict):
 
     # Aliases
     _optmap = {
-        "pdf": "PDFReader"
+        "pdf": "PDFReader",
+        "PDFViewer": "PDFReader",
     }
 
     # Types

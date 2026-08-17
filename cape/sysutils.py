@@ -34,6 +34,16 @@ CACHE_FILE = "tmp.tar.gz"
 
 # Post file(s)
 def post_file(pat1: str, *pats, v: bool = False) -> Tuple[int, list]:
+    r"""Collect file(s) in tar ball; send to *RemoteHost* if necessary
+
+    :Call:
+        >>> ierr, filenames = post_file(pat1, *pats)
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *filenames*: :class:`list`\ [:class:`str`]
+            List of posted file names
+    """
     # Get [and create] cache dir
     cachedir = capeconfig.get_cape_cachedir()
     # Path to tar file
@@ -73,10 +83,43 @@ def post_file(pat1: str, *pats, v: bool = False) -> Tuple[int, list]:
 
 # Receive file(s)
 def receive_file() -> list:
+    r"""Receive the current cached tarball
+
+    :Call:
+        >>> filenames = receive_file()
+    :Outputs:
+        *filenames*: :class:`list`\ [:class:`str`]
+            List of unpacked files
+    """
     # Get cache dir
     cachedir = capeconfig.get_cape_cachedir()
     # Path to tar file
     tarpath = os.path.join(cachedir, CACHE_FILE)
+    # Receive file if necessary
+    if capeconfig.check_cape_local():
+        # Get remote host and config commands
+        remote_host = capeconfig.get_cape_opt("RemoteHost")
+        remote_cmds = capeconfig.get_cape_opt("RemoteLoginCommands")
+        # Validate
+        if remote_host is None:
+            raise CapeValueError("No CAPE 'RemoteHost' setting found")
+        # Format environment prep commands
+        if remote_cmds:
+            remote_env = '; '.join(remote_cmds) + '; '
+        else:
+            remote_env = ''
+        # Remote command
+        remote_cmd = (
+            f'{remote_env}D=$(cape get-config CacheDir); '
+            f'cat "$D/{CACHE_FILE}"')
+        # Open local file to pipe into STDIN
+        with open(tarpath, 'wb') as fp:
+            # Run SSH and receive file there
+            proc = run(['ssh', remote_host, remote_cmd], stdout=fp)
+        # Check status
+        if proc.returncode:
+            raise CapeFileNotFoundError(
+                f"Failed to receive {CACHE_FILE} from {remote_host}")
     # Check if tar file exists
     if not os.path.isfile(tarpath):
         return []
@@ -87,7 +130,7 @@ def receive_file() -> list:
         # Get list of members
         members = tar.getmembers()
         # Extract all files to cache dir
-        tar.extractall(path=cachedir)
+        tar.extractall(path=os.getcwd(), filter='data')
         # Collect file names
         extracted_files = [member.name for member in members]
     # Return list of extracted files
@@ -121,9 +164,8 @@ def _send_file(localfile: Optional[str] = None):
     # Remote command
     remote_cmd = (
         f'{remote_env}D=$(cape get-config CacheDir); '
-        f'cat  > "$D/{basename}"')
+        f'cat > "$D/{basename}"')
     # Open local file to pipe into STDIN
-    breakpoint()
     with open(localfile, 'rb') as fp:
         # Run SSH and receive file there
         run(['ssh', remote_host, remote_cmd], stdin=fp, check=True)
@@ -141,6 +183,11 @@ def get_pdf_viewer() -> str:
     :Versions:
         * 2026-08-07 ``@ddalle``: v1.0
     """
+    # Get user preference
+    viewer = capeconfig.get_cape_opt("PDFReader")
+    # Use it if specified
+    if viewer is not None:
+        return viewer
     # Get system
     system = platform.system()
     if system == "Windows":

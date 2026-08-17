@@ -175,6 +175,7 @@ class CfdxArgReader(ArgReader):
         "fixed": bool,
         "fjson": str,
         "force": bool,
+        "fpdf": str,
         "fm": (bool, str),
         "glob": str,
         "h": bool,
@@ -184,6 +185,7 @@ class CfdxArgReader(ArgReader):
         "incremental": bool,
         "iter-fm": (bool, str),
         "j": bool,
+        "local": bool,
         "ll": (bool, str),
         "marked": bool,
         "me": bool,
@@ -219,6 +221,7 @@ class CfdxArgReader(ArgReader):
         "user": str,
         "v": bool,
         "val": str,
+        "wait": bool,
         "x": str,
     }
 
@@ -256,6 +259,7 @@ class CfdxArgReader(ArgReader):
         "force",
         "incremental",
         "j",
+        "local",
         "marked",
         "prompt",
         "qsub",
@@ -266,6 +270,7 @@ class CfdxArgReader(ArgReader):
         "unmark",
         "unmarked",
         "v",
+        "wait",
     )
 
     # Translations for option values
@@ -344,7 +349,8 @@ class CfdxArgReader(ArgReader):
         "f": "Use the JSON (or YAML) file *JSON*",
         "filter": "Limit to cases containing the string *TXT*",
         "fixed": "Interpolate flow data to common grid",
-        "fjson": "Apply settins from file *FJSON*",
+        "fjson": "Apply settings from file *FJSON*",
+        "fpdf": "Name of PDF file to open/write/send",
         "fm": "Extract force & moment data [comps matching *PAT*] for case(s)",
         "force": "Update report and ignore subfigure cache",
         "glob": "Limit to cases whose name matches the filename pattern *PAT*",
@@ -356,6 +362,7 @@ class CfdxArgReader(ArgReader):
         "iter-fm": "Extract iterative force & moment histories",
         "j": "List PBS/Slurm job ID in ``-c`` output",
         "kill": "Remove jobs from the queue and stop them",
+        "local": "Force an action to be done locally, without SSH transfer",
         "ll": "Extract line load data [comps matching *PAT*] for case(s)",
         "marked": "Show only cases marked either PASS or ERROR",
         "me": "Limit to cases owned by current user (equiv. ``--user $USER``)",
@@ -391,6 +398,7 @@ class CfdxArgReader(ArgReader):
         "user": "Restrict to cases with this username",
         "v": "Show additional output while running command",
         "val": "Value to set option to",
+        "wait": "Wait until application closed before returning control",
         "x": "Execute Python script *PYSCRIPT* after reading JSON",
     }
 
@@ -412,6 +420,7 @@ class CfdxArgReader(ArgReader):
         "filter": "TXT",
         "fjson": "FJSON",
         "fm": "[PAT]",
+        "fpdf": "PDFFILE",
         "glob": "PAT",
         "hide-cols": "COLS",
         "hide-counters": "COLS",
@@ -1237,6 +1246,35 @@ class CfdxGetConfigArgs(CfdxArgReader):
     )
 
 
+# Settings for open-pdf
+class CfdxOpenPDFArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-open-pdf"
+
+    # Description
+    _help_title = "Open a PDF file in preferred reader"
+
+    # Additional options
+    _optlist = (
+        "fpdf",
+        "local",
+        "wait",
+    )
+
+    # Required options
+    _optlistreq = (
+        "fpdf",
+    )
+
+    # Arguemnts
+    _arglist = (
+        "fpdf",
+    )
+
+
 # Settings for set-config
 class CfdxPostFileArgs(CfdxArgReader):
     # No attributes
@@ -1282,6 +1320,18 @@ class CfdxQdelArgs(_CfdxCaseLoopArgs):
     _rc = {
         "qdel": True,
     }
+
+
+# Settings for receive-file
+class CfdxReceiveFileArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-receive-file"
+
+    # Description
+    _help_title = "Receive posted file from remote host"
 
 
 # Settings for --report
@@ -1575,6 +1625,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "fjson",
         "fm",
         "force",
+        "fpdf",
         "glob",
         "h",
         "hide-cols",
@@ -1615,6 +1666,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "unmarked",
         "user",
         "val",
+        "wait",
         "x",
     )
 
@@ -1657,8 +1709,10 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-json",
         "find-large",
         "get-config",
+        "open-pdf",
         "post-file",
         "qdel",
+        "receive-file",
         "report",
         "rm",
         "search-large",
@@ -1683,6 +1737,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "error": "fail",
         "find": "find-cases",
         "get": "get-config",
+        "get-file": "receive-file",
         "mark-error": "fail",
         "mark-failure": "fail",
         "mark-pass": "approve",
@@ -1690,6 +1745,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "post-files": "post-file",
         "qsub": "start",
         "r": "run",
+        "receive-files": "receive-file",
         "send-file": "post-file",
         "send-files": "post-file",
         "set": "set-config",
@@ -1733,8 +1789,10 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-json": CfdxFindJSONArgs,
         "find-large": CfdxFindLargeArgs,
         "get-config": CfdxGetConfigArgs,
+        "open-pdf": CfdxOpenPDFArgs,
         "post-file": CfdxPostFileArgs,
         "qdel": CfdxQdelArgs,
+        "receive-file": CfdxReceiveFileArgs,
         "report": CfdxReportArgs,
         "rm": CfdxRemoveCasesArgs,
         "run": CfdxRunArgs,
@@ -2568,6 +2626,33 @@ def cape_get_config(*a, **kw) -> Tuple[int, list]:
     return IERR_OK, v
 
 
+@CfdxOpenPDFArgs.rst
+def cape_open_pdf(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Get required argument
+    fpdf = a[0]
+    # Get options
+    wait = kw.get("wait", False)
+    local = kw.get("local", False)
+    # Open the pdf
+    sysutils.open_pdf(fpdf, wait=wait, local=local)
+    # Return code
+    return IERR_OK, None
+
+
 @CfdxPostFileArgs.rst
 def cape_post_file(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
@@ -2614,6 +2699,28 @@ def cape_qdel(*a, **kw) -> Tuple[int, Any]:
     v = cntl.qdel_cases(**kw)
     # Return code
     return IERR_OK, v
+
+
+@CfdxReceiveFileArgs.rst
+def cape_receive_file(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Get value
+    filenames = sysutils.receive_file()
+    # Return code
+    return IERR_OK, filenames
 
 
 @CfdxReportArgs.rst
@@ -3076,8 +3183,10 @@ CMD_DICT = {
     "find-json": cape_find_json,
     "find-large": cape_find_large,
     "get-config": cape_get_config,
+    "open-pdf": cape_open_pdf,
     "post-file": cape_post_file,
     "qdel": cape_qdel,
+    "receive-file": cape_receive_file,
     "report": cape_report,
     "rm": cape_rm,
     "run": cape_run,
