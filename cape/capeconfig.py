@@ -61,6 +61,7 @@ class CapeConfig(OptionsDict):
         "PDFReader",
         "RemoteHost",
         "RemoteHostPatterns",
+        "RemoteLoginCommands",
     )
 
     # Aliases
@@ -76,12 +77,14 @@ class CapeConfig(OptionsDict):
         "PDFReader": str,
         "RemoteHost": str,
         "RemoteHostPatterns": str,
+        "RemoteLoginCommands": str,
     }
 
     # Required lists
     _optlistdepth = {
         "LocalHostPatterns": 1,
         "RemoteHostPatterns": 1,
+        "RemoteLoginCommands": 1,
     }
 
     # Defaults
@@ -120,6 +123,9 @@ class CapeConfig(OptionsDict):
             "List of regexes for host names to tell CAPE that current host "
             "is 'remote'; ``cape post-file`` and ``cape receive-file`` will "
             "not transfer files."),
+        "RemoteLoginCommands": (
+            "List of commands to configure CAPE on *RemoteHost*. A common "
+            'example for HPC might be ``"module load cape"``.'),
     }
 
     # Get option (environment variable override)
@@ -282,6 +288,11 @@ def get_cape_opt(opt: str):
     """
     # Read config
     opts = read_cape_config()
+    # Standardize option name
+    fullopt = opts.apply_optmap(opt)
+    # Check for special cases
+    if fullopt == "CacheDir":
+        return get_cape_cachedir()
     # Get value
     return opts.get_opt(opt)
 
@@ -362,7 +373,7 @@ def get_cape_cachedir() -> str:
     # Read config
     opts = read_cape_config()
     # Get CacheDir setting
-    cachedir = opts.get_CacheDir()
+    cachedir = opts.get_opt("CacheDir")
     # Expand '~'
     cachedir = os.path.expanduser(cachedir)
     # Create it if necessary

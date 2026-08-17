@@ -16,6 +16,7 @@ from typing import Any, Optional, Union, Tuple
 # CAPE modules
 from . import manage
 from .. import capeconfig
+from .. import sysutils
 from ..argread import ArgReader, ArgReadError, BOOL_TYPES, INT_TYPES
 from ..errors import CapeError, CapeValueError
 
@@ -194,6 +195,7 @@ class CfdxArgReader(ArgReader):
         "opt": str,
         "passed": bool,
         "pat": str,
+        "pats": str,
         "prompt": bool,
         "prop": (bool, str),
         "pt": (bool, str),
@@ -364,6 +366,7 @@ class CfdxArgReader(ArgReader):
         "o": "Name of output JSON file (defaults to same as *f*)",
         "opt": "CAPE user configuration variable name",
         "pat": "Consider file names matching pattern *PAT*",
+        "pats": "Additional file name patterns",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
         "prop": "Extract scalar properties [comps matching *PAT*]",
@@ -386,6 +389,7 @@ class CfdxArgReader(ArgReader):
         "unmark": "Remove PASS/ERROR marking for case(s)",
         "unmarked": "Show cases with no PASS/ERROR markings",
         "user": "Restrict to cases with this username",
+        "v": "Show additional output while running command",
         "val": "Value to set option to",
         "x": "Execute Python script *PYSCRIPT* after reading JSON",
     }
@@ -422,6 +426,7 @@ class CfdxArgReader(ArgReader):
         "o": "OUT_JSON",
         "opt": "OPT",
         "pat": "PAT",
+        "pats": "PATTERNS",
         "prop": "[PAT]",
         "pt": "[PAT]",
         "q": "QUEUE",
@@ -1232,6 +1237,31 @@ class CfdxGetConfigArgs(CfdxArgReader):
     )
 
 
+# Settings for set-config
+class CfdxPostFileArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-post-file"
+
+    # Minimum args
+    _nargmin = 1
+
+    # Arg names
+    _optlist = (
+        "pat",
+        "v",
+    )
+    _arglist = (
+        "pat",
+        "pats",
+    )
+
+    # Description
+    _help_title = "Send one or more files to *RemoteHost*"
+
+
 # Settings for --qdel
 class CfdxQdelArgs(_CfdxCaseLoopArgs):
     # No attributes
@@ -1627,6 +1657,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-json",
         "find-large",
         "get-config",
+        "post-file",
         "qdel",
         "report",
         "rm",
@@ -1656,8 +1687,11 @@ class CfdxFrontDesk(CfdxArgReader):
         "mark-failure": "fail",
         "mark-pass": "approve",
         "pass": "approve",
+        "post-files": "post-file",
         "qsub": "start",
         "r": "run",
+        "send-file": "post-file",
+        "send-files": "post-file",
         "set": "set-config",
         "submit": "start",
         "triplane": "triangulate-cutplane",
@@ -1699,6 +1733,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-json": CfdxFindJSONArgs,
         "find-large": CfdxFindLargeArgs,
         "get-config": CfdxGetConfigArgs,
+        "post-file": CfdxPostFileArgs,
         "qdel": CfdxQdelArgs,
         "report": CfdxReportArgs,
         "rm": CfdxRemoveCasesArgs,
@@ -2533,6 +2568,30 @@ def cape_get_config(*a, **kw) -> Tuple[int, list]:
     return IERR_OK, v
 
 
+@CfdxPostFileArgs.rst
+def cape_post_file(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Verbose option
+    verbose = kw.get("v", False)
+    # Get value
+    returncode, filenames = sysutils.post_file(*a, v=verbose)
+    # Return code
+    return returncode, filenames
+
+
 @CfdxQdelArgs.rst
 def cape_qdel(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
@@ -3017,6 +3076,7 @@ CMD_DICT = {
     "find-json": cape_find_json,
     "find-large": cape_find_large,
     "get-config": cape_get_config,
+    "post-file": cape_post_file,
     "qdel": cape_qdel,
     "report": cape_report,
     "rm": cape_rm,

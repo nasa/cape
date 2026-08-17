@@ -7,14 +7,17 @@ universal Python method to open a PDF file for viewing.
 """
 
 # Standard library
+import glob
 import os
 import platform
 import shutil
-from subprocess import Popen, PIPE
+import tarfile
+from subprocess import Popen, run, PIPE
+from typing import Optional, Tuple
 
 # Local imports
 from . import capeconfig
-from .errors import CapeFileNotFoundError
+from .errors import CapeFileNotFoundError, CapeValueError
 
 
 # Default PDF applications for Linux
@@ -30,28 +33,100 @@ CACHE_FILE = "tmp.tar.gz"
 
 
 # Post file(s)
-def post_file(pat1: str, *pats, v: bool = False) -> int:
+def post_file(pat1: str, *pats, v: bool = False) -> Tuple[int, list]:
     # Get [and create] cache dir
     cachedir = capeconfig.get_cape_cachedir()
-    # Check verbose option
-    flag = "czvf" if v else "czf"
-    # Command to tar up requested file(s)
-    cmdlist = ["tar", flag, os.path.join(cachedir, CACHE_FILE), pat1]
-    cmdlist.extend(pats)
-    # Run the command
-    proc = Popen(cmdlist, stderr=PIPE)
-    # Wait for command
-    proc.communicate()
-    # Check error status
-    if proc.returncode:
-        print(f"Failed to post file(s) '{pat1} {' '.join(pats)}'")
-    # Exit code
-    return proc.returncode
+    # Path to tar file
+    tarpath = os.path.join(cachedir, CACHE_FILE)
+    # Combine all patterns
+    patterns = [pat1] + list(pats)
+    # Create tar.gz file
+    try:
+        # Create tar file
+        with tarfile.open(tarpath, "w:gz") as tar:
+            # Full list of file names
+            filenames = []
+            # Loop through file name patterns
+            for pattern in patterns:
+                # Expand glob pattern
+                matches = glob.glob(pattern)
+                # Check if pattern matched anything
+                if not matches:
+                    print(f"Warning: pattern '{pattern}' matched no files")
+                    continue
+                # Add each matched file to archive
+                for filepath in matches:
+                    if v:
+                        print(f"Adding: {filepath}")
+                    # Add file to tarball
+                    tar.add(filepath)
+                    # Add to output
+                    filenames.append(filepath)
+        # Send the file
+        _send_file(tarpath)
+        # Return code
+        return 0, filenames
+    except Exception as e:
+        print(f"Failed to post file(s) '{pat1} {' '.join(pats)}': {e}")
+        return 1, []
 
 
 # Receive file(s)
 def receive_file() -> list:
-    ...
+    # Get cache dir
+    cachedir = capeconfig.get_cape_cachedir()
+    # Path to tar file
+    tarpath = os.path.join(cachedir, CACHE_FILE)
+    # Check if tar file exists
+    if not os.path.isfile(tarpath):
+        return []
+    # List to hold extracted file names
+    extracted_files = []
+    # Open and extract tar file
+    with tarfile.open(tarpath, "r:gz") as tar:
+        # Get list of members
+        members = tar.getmembers()
+        # Extract all files to cache dir
+        tar.extractall(path=cachedir)
+        # Collect file names
+        extracted_files = [member.name for member in members]
+    # Return list of extracted files
+    return extracted_files
+
+
+# Send file to remote host
+def _send_file(localfile: Optional[str] = None):
+    # Check if already remote
+    if capeconfig.check_cape_remote():
+        return
+    # Default file name is the CACHE file
+    if localfile is None:
+        localfile = os.path.join(capeconfig.get_cape_cachedir(), CACHE_FILE)
+    # Check for local file
+    if not os.path.isfile(localfile):
+        raise CapeFileNotFoundError(f"No file '{localfile}'")
+    # Get remote host and config commands
+    remote_host = capeconfig.get_cape_opt("RemoteHost")
+    remote_cmds = capeconfig.get_cape_opt("RemoteLoginCommands")
+    # Validate
+    if remote_host is None:
+        raise CapeValueError("No CAPE 'RemoteHost' setting found")
+    # Format environment prep commands
+    if remote_cmds:
+        remote_env = '; '.join(remote_cmds) + '; '
+    else:
+        remote_env = ''
+    # Base name of file (for destination to mimic)
+    basename = os.path.basename(localfile)
+    # Remote command
+    remote_cmd = (
+        f'{remote_env}D=$(cape get-config CacheDir); '
+        f'cat  > "$D/{basename}"')
+    # Open local file to pipe into STDIN
+    breakpoint()
+    with open(localfile, 'rb') as fp:
+        # Run SSH and receive file there
+        run(['ssh', remote_host, remote_cmd], stdin=fp, check=True)
 
 
 # Get preferred PDF viewer
@@ -79,7 +154,10 @@ def get_pdf_viewer() -> str:
 
 
 # Open a PDF
-def open_pdf(fname: str, wait: bool = False) -> Popen:
+def open_pdf(
+        fname: str,
+        wait: bool = False,
+        local: Optional[bool] = None) -> Popen:
     r"""Open a PDF file if found
 
     :Call:
@@ -95,6 +173,25 @@ def open_pdf(fname: str, wait: bool = False) -> Popen:
     :Versions:
         * 2026-08-07 ``@ddalle``: v1.0
     """
+    # Check local option
+    if local or capeconfig.check_cape_local():
+        return _open_pdf_local(fname, wait)
+    # Otherwise ... post file
+    # Check for file
+    if not os.path.isfile(fname):
+        raise CapeFileNotFoundError(f"No file '{fname}'")
+    # Get viewer
+    viewer = get_pdf_viewer()
+    # Command to open it
+    proc = Popen([viewer, fname], stdout=PIPE, stderr=PIPE)
+    # Wait option
+    if wait:
+        proc.wait()
+    # Return subprocess handle
+    return proc
+
+
+def _open_pdf_local(fname: str, wait: bool = False) -> Popen:
     # Check for file
     if not os.path.isfile(fname):
         raise CapeFileNotFoundError(f"No file '{fname}'")
