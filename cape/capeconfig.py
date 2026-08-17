@@ -17,7 +17,9 @@ from an HPC login node to a local workstation and open it there.
 import getpass
 import json
 import os
+import platform
 import re
+import shutil
 import socket
 from typing import Any, Optional
 
@@ -34,6 +36,15 @@ CONFIG_CACHE = {}
 
 # Name of current user
 USER = getpass.getuser()
+
+
+# Default PDF applications for Linux
+DEFAULT_PDF_VIEWERS_LINUX = [
+    "okular",
+    "evince",
+    "google-chrome",
+    "firefox",
+]
 
 
 # Class for processing jumphost
@@ -189,6 +200,24 @@ class CapeConfig(OptionsDict):
                     f"Invalid *JumpHost* regex in .capeconfig:\n  '{lh}'\n"
                     f"Original message: {e.args[0]}")
 
+    # Special getter; get *PDFReader* wtih appropriate default
+    def get_PDFReader(self) -> Optional[str]:
+        # Get user preference
+        viewer = self.get_opt("PDFReader")
+        # Use it if specified
+        if viewer is not None:
+            return viewer
+        # Get system
+        system = platform.system()
+        if system == "Windows":
+            return "start"
+        elif system == "Darwin":
+            return "open"
+        # For Linux, find best available
+        for viewer in DEFAULT_PDF_VIEWERS_LINUX:
+            if shutil.which(viewer) is not None:
+                return viewer
+
     # Check if this is a local host
     def check_local(self) -> bool:
         r"""Check if the current host is "local"
@@ -244,11 +273,11 @@ _properties = (
     "CacheDir",
     "LocalHost",
     "LocalHostPatterns",
-    "PDFReader",
     "RemoteHost",
     "RemoteHostPatterns",
 )
 CapeConfig.add_properties(_properties)
+CapeConfig.add_setters(("PDFReader",))
 
 
 # Command-line interface
@@ -294,6 +323,8 @@ def get_cape_opt(opt: str):
     # Check for special cases
     if fullopt == "CacheDir":
         return get_cape_cachedir()
+    elif fullopt == "PDFReader":
+        return get_pdf_viewer()
     # Get value
     return opts.get_opt(opt)
 
@@ -400,6 +431,24 @@ def get_cape_jumphost() -> Optional[str]:
     opts = read_cape_config()
     # Get *JumpHost*
     return opts.get_JumpHost()
+
+
+# Get preferred PDF viewer
+def get_pdf_viewer() -> str:
+    r"""Get the preferred PDF viewer application based on system
+
+    :Call:
+        >>> viewer = get_pdf_viewer()
+    :Outputs:
+        *viewer*: :class:`str`
+            Name of application to open PDF
+    :Versions:
+        * 2026-08-07 ``@ddalle``: v1.0
+    """
+    # Read config
+    opts = read_cape_config()
+    # Get *PDFReader*
+    return opts.get_PDFReader()
 
 
 # Check if local

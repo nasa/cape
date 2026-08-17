@@ -9,8 +9,6 @@ universal Python method to open a PDF file for viewing.
 # Standard library
 import glob
 import os
-import platform
-import shutil
 import tarfile
 from subprocess import Popen, run, PIPE
 from typing import Optional, Tuple
@@ -18,15 +16,6 @@ from typing import Optional, Tuple
 # Local imports
 from . import capeconfig
 from .errors import CapeFileNotFoundError, CapeValueError
-
-
-# Default PDF applications for Linux
-DEFAULT_PDF_VIEWERS_LINUX = [
-    "okular",
-    "evince",
-    "google-chrome",
-    "firefox",
-]
 
 # Cache file name
 CACHE_FILE = "tmp.tar.gz"
@@ -183,21 +172,7 @@ def get_pdf_viewer() -> str:
     :Versions:
         * 2026-08-07 ``@ddalle``: v1.0
     """
-    # Get user preference
-    viewer = capeconfig.get_cape_opt("PDFReader")
-    # Use it if specified
-    if viewer is not None:
-        return viewer
-    # Get system
-    system = platform.system()
-    if system == "Windows":
-        return "start"
-    elif system == "Darwin":
-        return "open"
-    # For Linux, find best available
-    for viewer in DEFAULT_PDF_VIEWERS_LINUX:
-        if shutil.which(viewer) is not None:
-            return viewer
+    return capeconfig.get_pdf_viewer()
 
 
 # Open a PDF
@@ -246,20 +221,23 @@ def open_pdf(
         base_cmd = ["ssh", "-J", jump_host, local_host]
     else:
         # Direct SSH login
-        base_cmd = ["ssh", localhost]
+        base_cmd = ["ssh", local_host]
     # Base name of file (for destination to mimic)
     basename = os.path.basename(fname)
     # Remote command
     remote_cmd = (
         f'{remote_env}D=$(cape get-config CacheDir); '
+        'V=$(cape get-config PDFReader); '
         f'cat > "$D/{basename}"; '
-        f'cape open-pdf "$D/{basename}" --local &'
+        f'$V "$D/{basename}" &'
     )
     # Open the PDF file locally so we can pipe it through STDIN
     with open(fname, 'rb') as fp:
         proc = run(
             base_cmd + [remote_cmd],
-            stdin=fp)
+            stdin=fp,
+            stderr=PIPE,
+            stdout=PIPE)
     # Wait option
     if wait:
         proc.wait()
