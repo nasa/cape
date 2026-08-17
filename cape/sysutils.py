@@ -196,15 +196,15 @@ def open_pdf(
     :Versions:
         * 2026-08-07 ``@ddalle``: v1.0
     """
+    # Check for "pull" option
+    if pull:
+        return _open_pdf_pull(fname, wait)
     # Check for file
     if not os.path.isfile(fname):
         raise CapeFileNotFoundError(f"No file '{fname}'")
     # Check local option
     if local or capeconfig.check_cape_local():
         return _open_pdf_local(fname, wait)
-    # Check for "pull" option
-    if pull and capeconfig.check_cape_local():
-        return _open_pdf_pull(fname, wait)
     # Get name of "local" host to push file to
     local_host = capeconfig.get_cape_opt("LocalHost")
     # Fall-back if not specified
