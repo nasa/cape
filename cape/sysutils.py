@@ -231,13 +231,22 @@ def open_pdf(
     # Fall-back if not specified
     if local_host is None:
         return _open_pdf_local(fname, wait)
+    # Check if SSH jump-host is needed
+    jump_host = capeconfig.get_cape_jumphost()
     # Commands to initialzie environment there
     remote_cmds = capeconfig.get_cape_opt("RemoteLoginCommands")
-   # Format environment prep commands
+    # Format environment prep commands
     if remote_cmds:
         remote_env = '; '.join(remote_cmds) + '; '
     else:
         remote_env = ''
+    # Format jumphost command
+    if jump_host:
+        # Include `-J` step
+        base_cmd = ["ssh", "-J", jump_host, local_host]
+    else:
+        # Direct SSH login
+        base_cmd = ["ssh", localhost]
     # Base name of file (for destination to mimic)
     basename = os.path.basename(fname)
     # Remote command
@@ -249,8 +258,8 @@ def open_pdf(
     # Open the PDF file locally so we can pipe it through STDIN
     with open(fname, 'rb') as fp:
         proc = run(
-            ["ssh", local_host, remote_cmd],
-            stdin=fp, stdout=PIPE, stderr=PIPE)
+            base_cmd + [remote_cmd],
+            stdin=fp)
     # Wait option
     if wait:
         proc.wait()

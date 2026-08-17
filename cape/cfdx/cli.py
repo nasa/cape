@@ -1636,6 +1636,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "j",
         "kill",
         "ll",
+        "local",
         "marked",
         "me",
         "n",

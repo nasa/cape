@@ -386,6 +386,22 @@ def get_cape_cachedir() -> str:
     return cachedir
 
 
+# Get *JumpHost*
+def get_cape_jumphost() -> Optional[str]:
+    r"""Get *JumpHost* for SSH to reach intended target, based on $HOST
+
+    :Call:
+        >>> jumphost = get_cape_jumphost()
+    :Outputs:
+        *jumphost*: ``None`` | :class:`str`
+            Name of SSH JumpHost needed, if needed
+    """
+    # Read config
+    opts = read_cape_config()
+    # Get *JumpHost*
+    return opts.get_JumpHost()
+
+
 # Check if local
 def check_cape_local() -> bool:
     r"""Check if the current host is "local"
