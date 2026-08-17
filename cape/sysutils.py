@@ -229,18 +229,18 @@ def open_pdf(
         f'{remote_env}D=$(cape get-config CacheDir); '
         'V=$(cape get-config PDFReader); '
         f'cat > "$D/{basename}"; '
-        f'$V "$D/{basename}" &'
+        f'$V "$D/{basename}" > /dev/null 2>&1 < /dev/null &'
     )
     # Open the PDF file locally so we can pipe it through STDIN
     with open(fname, 'rb') as fp:
-        proc = run(
+        proc = Popen(
             base_cmd + [remote_cmd],
             stdin=fp,
-            stderr=PIPE,
-            stdout=PIPE)
+            stdout=PIPE,
+            stderr=PIPE)
     # Wait option
     if wait:
-        proc.wait()
+        proc.communicate()
     # Return subprocess handle
     return proc
 
