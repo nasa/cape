@@ -246,6 +246,17 @@ CapeConfig.add_properties(_properties)
 
 # Command-line interface
 def show_cape_config(opt: str) -> str:
+    r"""Get a CAPE user configuration option as a string
+
+    :Call:
+        >>> txt = show_cape_config(opt)
+    :Inputs:
+        *opt*: :class:`str`
+            Name of option
+    :Outputs:
+        *txt*: :class:`str`
+            Value of option
+    """
     # Get option value
     v = get_cape_opt(opt)
     # Convert to string
@@ -319,6 +330,12 @@ def set_cape_opt(opt: str, v: Any, blend: bool = False):
             v0 = v
         # Save
         opts[opt] = v0
+    elif "." in opt:
+        # Get parts
+        sec, subopt = opt.split('.', 1)
+        # Get current option
+        vsec = opts.setdefault(sec, {})
+        vsec[subopt] = v
     else:
         # Save option
         opts[opt] = v
@@ -410,7 +427,7 @@ def read_cape_config() -> CapeConfig:
     else:
         # Create initial instance
         opts = CapeConfig()
-        # Write it
+        # Write one
         try:
             opts.write_jsonfile(configfile)
         except PermissionError:

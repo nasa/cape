@@ -2779,7 +2779,7 @@ def cape_set_config(*a, **kw) -> Tuple[int, list]:
             Output from API function
     """
     # Get value
-    capeconfig.set_cape_config(a[0], a[1], blend=kw.get("blend", False))
+    capeconfig.set_cape_opt(a[0], a[1], blend=kw.get("blend", False))
     # Return code
     return IERR_OK, a[1]
 
