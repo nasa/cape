@@ -179,6 +179,7 @@ def get_pdf_viewer() -> str:
 def open_pdf(
         fname: str,
         wait: bool = False,
+        pull: bool = False,
         local: Optional[bool] = None) -> Popen:
     r"""Open a PDF file if found
 
@@ -201,6 +202,9 @@ def open_pdf(
     # Check local option
     if local or capeconfig.check_cape_local():
         return _open_pdf_local(fname, wait)
+    # Check for "pull" option
+    if pull and capeconfig.check_cape_local():
+        return _open_pdf_pull(fname, wait)
     # Get name of "local" host to push file to
     local_host = capeconfig.get_cape_opt("LocalHost")
     # Fall-back if not specified
@@ -245,6 +249,33 @@ def open_pdf(
         proc.communicate()
     # Return subprocess handle
     return proc
+
+
+def _open_pdf_pull(fname: str, wait: bool = False) -> Popen:
+    # Check for absolute path
+    if os.path.isabs(fname):
+        raise CapeValueError(
+            "'cape open-pdf --pull' is meant to work with relative files; "
+            f"'{fname}' is absolute")
+    # Get remote host and config commands
+    remote_host = capeconfig.get_cape_opt("RemoteHost")
+    # Validate
+    if remote_host is None:
+        raise CapeValueError("No CAPE 'RemoteHost' setting found")
+    # Get folder name
+    dirname = os.path.dirname(fname)
+    # Create subfolders if necessary
+    os.makedirs(dirname, exist_ok=True)
+    # Path to remote file
+    fabs = os.path.abspath(fname)
+    # Copyt the file
+    proc = run(['scp', f"{remote_host}:{fabs}", dirname])
+    # Check status
+    if proc.returncode:
+        raise CapeFileNotFoundError(
+            f"Failed to receive {CACHE_FILE} from {remote_host}")
+    # Open the (now-updated) local file
+    return _open_pdf_local(fname, wait)
 
 
 def _open_pdf_local(fname: str, wait: bool = False) -> Popen:

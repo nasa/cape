@@ -201,6 +201,7 @@ class CfdxArgReader(ArgReader):
         "prompt": bool,
         "prop": (bool, str),
         "pt": (bool, str),
+        "pull": bool,
         "q": bool,
         "qsub": bool,
         "raw": bool,
@@ -375,6 +376,7 @@ class CfdxArgReader(ArgReader):
         "pat": "Consider file names matching pattern *PAT*",
         "pats": "Additional file name patterns",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
+        "pull": "Pull remote file to local dir before opening",
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
         "prop": "Extract scalar properties [comps matching *PAT*]",
         "q": "Submit to PBS/Slurm queue *QUEUE*, overrides value in JSON file",
@@ -1261,6 +1263,7 @@ class CfdxOpenPDFArgs(CfdxArgReader):
     _optlist = (
         "fpdf",
         "local",
+        "pull",
         "wait",
     )
 
@@ -1646,6 +1649,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "opt",
         "pat",
         "pt",
+        "pull",
         "prompt",
         "q",
         "qdel",
@@ -2648,8 +2652,9 @@ def cape_open_pdf(*a, **kw) -> Tuple[int, list]:
     # Get options
     wait = kw.get("wait", False)
     local = kw.get("local", False)
+    pull = kw.get("pull", False)
     # Open the pdf
-    sysutils.open_pdf(fpdf, wait=wait, local=local)
+    sysutils.open_pdf(fpdf, wait=wait, local=local, pull=pull)
     # Return code
     return IERR_OK, None
 
