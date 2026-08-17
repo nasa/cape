@@ -220,17 +220,37 @@ def open_pdf(
     :Versions:
         * 2026-08-07 ``@ddalle``: v1.0
     """
-    # Check local option
-    if local or capeconfig.check_cape_local():
-        return _open_pdf_local(fname, wait)
-    # Otherwise ... post file
     # Check for file
     if not os.path.isfile(fname):
         raise CapeFileNotFoundError(f"No file '{fname}'")
-    # Get viewer
-    viewer = get_pdf_viewer()
-    # Command to open it
-    proc = Popen([viewer, fname], stdout=PIPE, stderr=PIPE)
+    # Check local option
+    if local or capeconfig.check_cape_local():
+        return _open_pdf_local(fname, wait)
+    # Get name of "local" host to push file to
+    local_host = capeconfig.get_cape_opt("LocalHost")
+    # Fall-back if not specified
+    if local_host is None:
+        return _open_pdf_local(fname, wait)
+    # Commands to initialzie environment there
+    remote_cmds = capeconfig.get_cape_opt("RemoteLoginCommands")
+   # Format environment prep commands
+    if remote_cmds:
+        remote_env = '; '.join(remote_cmds) + '; '
+    else:
+        remote_env = ''
+    # Base name of file (for destination to mimic)
+    basename = os.path.basename(fname)
+    # Remote command
+    remote_cmd = (
+        f'{remote_env}D=$(cape get-config CacheDir); '
+        f'cat > "$D/{basename}"; '
+        f'cape open-pdf "$D/{basename}" --local &'
+    )
+    # Open the PDF file locally so we can pipe it through STDIN
+    with open(fname, 'rb') as fp:
+        proc = run(
+            ["ssh", local_host, remote_cmd],
+            stdin=fp, stdout=PIPE, stderr=PIPE)
     # Wait option
     if wait:
         proc.wait()
@@ -239,9 +259,6 @@ def open_pdf(
 
 
 def _open_pdf_local(fname: str, wait: bool = False) -> Popen:
-    # Check for file
-    if not os.path.isfile(fname):
-        raise CapeFileNotFoundError(f"No file '{fname}'")
     # Get viewer
     viewer = get_pdf_viewer()
     # Command to open it
