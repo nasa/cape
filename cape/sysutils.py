@@ -10,7 +10,7 @@ universal Python method to open a PDF file for viewing.
 import glob
 import os
 import tarfile
-from subprocess import Popen, run, PIPE
+from subprocess import Popen, run, DEVNULL, PIPE
 from typing import Optional, Tuple
 
 # Local imports
@@ -224,20 +224,22 @@ def open_pdf(
         base_cmd = ["ssh", local_host]
     # Base name of file (for destination to mimic)
     basename = os.path.basename(fname)
+    # Special command to detach remote app from SSH
+    setsid = "" if wait else "setsid "
     # Remote command
     remote_cmd = (
         f'{remote_env}D=$(cape get-config CacheDir); '
         'V=$(cape get-config PDFReader); '
         f'cat > "$D/{basename}"; '
-        f'$V "$D/{basename}" > /dev/null 2>&1 < /dev/null &'
+        f'{setsid}$V "$D/{basename}" &'
     )
     # Open the PDF file locally so we can pipe it through STDIN
     with open(fname, 'rb') as fp:
         proc = Popen(
             base_cmd + [remote_cmd],
             stdin=fp,
-            stdout=PIPE,
-            stderr=PIPE)
+            stdout=DEVNULL,
+            stderr=DEVNULL)
     # Wait option
     if wait:
         proc.communicate()
