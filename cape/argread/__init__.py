@@ -933,14 +933,16 @@ class ArgReader(dict, metaclass=MetaArgReader):
         for opt, val in rc.items():
             if (optlist is None) or opt in optlist:
                 optsdict.setdefault(opt, val)
-        # Get list of required options (don't combine with bases) (?)
-        reqopts = cls._optlistreq
-        # Loop through the same
-        for opt in reqopts:
-            # Check if it's present
-            if opt not in self:
-                raise ArgReadKeyError(
-                    f"{cls.__name__}() missing required kwarg '{opt}'")
+        # Don't check required options if -h, --help is there
+        if not (optsdict.get('h') or optsdict.get("help")):
+            # Get list of required options
+            reqopts = cls._optlistreq
+            # Loop through the same
+            for opt in reqopts:
+                # Check if it's present
+                if opt not in self:
+                    raise ArgReadKeyError(
+                        f"{cls.__name__}() missing required kwarg '{opt}'")
         # Output
         return optsdict
 

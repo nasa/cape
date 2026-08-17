@@ -145,6 +145,7 @@ class CfdxArgReader(ArgReader):
         "auto": bool,
         "batch": bool,
         "batchsize": int,
+        "blend": bool,
         "c": bool,
         "check-db": bool,
         "check-fm": bool,
@@ -243,6 +244,7 @@ class CfdxArgReader(ArgReader):
         "apply",
         "auto",
         "batch",
+        "blend",
         "c",
         "compile",
         "early",
@@ -315,6 +317,7 @@ class CfdxArgReader(ArgReader):
         "auto": "Ignore *RunControl* > *NJob* if set",
         "batch": "Submit PBS/Slurm job and run this command there",
         "batchsize": "Number of snapshots to collect into each batch files",
+        "blend": "Combine option values rather than overwrite",
         "c": "Check and display case(s) status",
         "check-db": "Check completion of all databook products",
         "check-fm": "Check completion of force & moment components",
@@ -1340,6 +1343,37 @@ class CfdxSearchLargeArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for set-config
+class CfdxSetConfigArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-set-config"
+
+    # Description
+    _help_title = "Set value of a user CAPE configuration"
+
+    # Additional options
+    _optlist = (
+        "opt",
+        "val",
+        "blend",
+    )
+
+    # Required options
+    _optlistreq = (
+        "opt",
+        "val",
+    )
+
+    # Arguemnts
+    _arglist = (
+        "opt",
+        "val",
+    )
+
+
 # Settings for --skeleton
 class CfdxSkeletonArgs(_CfdxSubsetArgs):
     # No attributes
@@ -1670,6 +1704,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "rm": CfdxRemoveCasesArgs,
         "run": CfdxRunArgs,
         "search-large": CfdxSearchLargeArgs,
+        "set-config": CfdxSetConfigArgs,
         "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
         "triangulate-cutplane": CfdxTriangulateCutPlaneArgs,
@@ -2727,6 +2762,28 @@ def cape_search_large(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, v
 
 
+@CfdxGetConfigArgs.rst
+def cape_set_config(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Get value
+    capeconfig.set_cape_config(a[0], a[1], blend=kw.get("blend", False))
+    # Return code
+    return IERR_OK, a[1]
+
+
 @CfdxSkeletonArgs.rst
 def cape_skeleton(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
@@ -2965,6 +3022,7 @@ CMD_DICT = {
     "rm": cape_rm,
     "run": cape_run,
     "search-large": cape_search_large,
+    "set-config": cape_set_config,
     "skeleton": cape_skeleton,
     "start": cape_start,
     "triangulate-cutplane": cape_triangulate_cutplane,

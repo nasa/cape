@@ -2,7 +2,7 @@ r"""
 :mod:`cape.capeconfig`: Interface to user-specific CAPE configuration
 ======================================================================
 
-This file interacts with the settings file in either ``~/.capeconfig``
+This file reads the settings file in either ``~/.capeconfig.json``
 or ``$CAPE_CONFIGFILE``, as controlled by :mod:`cape.sysutils`. It
 provides the class :class:`CapeConfig`. The purpose of this
 configuration file is to set user-specific preferences and SSH paths.
@@ -257,11 +257,73 @@ def show_cape_config(opt: str) -> str:
         return str(v)
 
 
-def get_cape_opt(opt: str) -> str:
+def get_cape_opt(opt: str):
+    r"""Get a CAPE user configuration option
+
+    :Call:
+        >>> v = get_cape_opt(opt)
+    :Inputs:
+        *opt*: :class:`str`
+            Name of option
+    :Outputs:
+        *v*: :class:`str` | :class:`list` | :class:`dict`
+            Value of option
+    """
     # Read config
     opts = read_cape_config()
     # Get value
     return opts.get_opt(opt)
+
+
+def set_cape_opt(opt: str, v: Any, blend: bool = False):
+    r"""Set (or blend) a CAPE user configuration option
+
+    :Call:
+        >>> set_cape_opt(opt, v, blend=False)
+    :Inputs:
+        *opt*: :class:`str`
+            Name of option
+        *v*: :class:`str`
+            Value to set
+        *blend*: ``True`` | {``False``}
+            Combine user's option with existing for list | dict
+    """
+    # Read config
+    opts = read_cape_config()
+    # Convert value ...
+    if opt in CapeConfig._optlistdepth:
+        # Convert to list
+        v = v.split(',')
+        # Check blending option
+        if blend:
+            # Get existing value if possible
+            v0 = opts.get(opt, [])
+            v0.extend(v)
+        else:
+            # Overwrite
+            v0 = v
+        # Save
+        opts[opt] = v0
+    elif opt == "JumpHost":
+        # Convert to dictionary
+        if isinstance(v, str):
+            v = json.loads(v)
+        # Check blending option
+        if blend:
+            # Get current option
+            v0 = opts.get(opt, {})
+            # Combine
+            v0.update(v)
+        else:
+            # Overwrite
+            v0 = v
+        # Save
+        opts[opt] = v0
+    else:
+        # Save option
+        opts[opt] = v
+    # Write updated uption
+    opts.write_jsonfile(get_cape_configfile())
 
 
 # Get cache dir
@@ -271,7 +333,7 @@ def get_cape_cachedir() -> str:
     The order of precedence is
 
     1.  The environment variable ``$CAPE_CACHE_DIR``
-    2.  The *CacheDir* setting in ``~/.capeconfig``
+    2.  The *CacheDir* setting in ``~/.capeconfig.json``
     3.  The global default ``~/.cache/cape/``
 
     :Call:
@@ -329,7 +391,7 @@ def check_cape_remote() -> bool:
 
 # Read config file
 def read_cape_config() -> CapeConfig:
-    r"""Read config file from ``~/.capeconfig`` or ``$CAPE_CONFIG_FILE``
+    r"""Read config from ``~/.capeconfig.json`` or ``$CAPE_CONFIG_FILE``
 
     :Call:
         >>> opts = read_cape_config()
@@ -365,7 +427,7 @@ def get_cape_configfile() -> str:
     configfile = os.environ.get(CONFIG_ENVVAR)
     # Default value
     if not configfile:
-        configfile = os.path.join("~", ".capeconfig")
+        configfile = os.path.join("~", ".capeconfig.json")
     # Expand '~'
     return os.path.expanduser(configfile)
 
