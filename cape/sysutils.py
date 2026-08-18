@@ -178,6 +178,7 @@ def get_pdf_viewer() -> str:
 # Open a PDF
 def open_pdf(
         fname: str,
+        remote: Optional[str] = None,
         wait: bool = False,
         pull: bool = False,
         local: Optional[bool] = None) -> Popen:
@@ -188,8 +189,14 @@ def open_pdf(
     :Inputs:
         *fname*: :class:`str`
             Name of file to open
+        *remote*: {``None``} | :class:`str`
+            Absolute folder on remote host (or ``$PWD``)
         *wait*: ``True`` | {``False``}
             Option to wait until PDF is closed
+        *pull*: ``True`` | {``False``}
+            Pull PDF from *RemoteHost* and open
+        *local*: {``None``} | ``True`` | ``False``
+            Force "local" host instead of determining automatically
     :Output:
         *proc*: :class:`subprocess.Popen`
             Subprocess handle
@@ -198,7 +205,7 @@ def open_pdf(
     """
     # Check for "pull" option
     if pull:
-        return _open_pdf_pull(fname, wait)
+        return _open_pdf_pull(fname, remote, wait)
     # Check for file
     if not os.path.isfile(fname):
         raise CapeFileNotFoundError(f"No file '{fname}'")
@@ -251,7 +258,10 @@ def open_pdf(
     return proc
 
 
-def _open_pdf_pull(fname: str, wait: bool = False) -> Popen:
+def _open_pdf_pull(
+        fname: str,
+        remote: Optional[str],
+        wait: bool = False) -> Popen:
     # Check for absolute path
     if os.path.isabs(fname):
         raise CapeValueError(
@@ -267,7 +277,9 @@ def _open_pdf_pull(fname: str, wait: bool = False) -> Popen:
     # Create subfolders if necessary
     os.makedirs(dirname, exist_ok=True)
     # Path to remote file
-    fabs = os.path.abspath(fname)
+    fdir = os.getcwd() if remote is None else remote
+    fabs = os.path.join(fdir, fname)
+    fabs = fabs.replace(os.path.sep, '/')
     # Copyt the file
     proc = run(['scp', f"{remote_host}:{fabs}", dirname])
     # Check status

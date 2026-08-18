@@ -206,6 +206,7 @@ class CfdxArgReader(ArgReader):
         "qsub": bool,
         "raw": bool,
         "re": str,
+        "remote-dir": str,
         "report": (bool, str),
         "restart": bool,
         "rm": bool,
@@ -263,6 +264,7 @@ class CfdxArgReader(ArgReader):
         "local",
         "marked",
         "prompt",
+        "pull",
         "qsub",
         "qdel",
         "restart",
@@ -382,6 +384,7 @@ class CfdxArgReader(ArgReader):
         "q": "Submit to PBS/Slurm queue *QUEUE*, overrides value in JSON file",
         "qsub": "Don't submit PBS/Slurm jobs even if otherwise specified",
         "re": "Limit to cases containing regular expression *REGEX*",
+        "remote-dir": "Base path to use on remote host",
         "report": "Generate the report *RP* or the first in the list",
         "restart": "When submitting new jobs, only submit new cases",
         "skeleton": "Delete most files from indicaded PASSED cases",
@@ -442,6 +445,7 @@ class CfdxArgReader(ArgReader):
         "pt": "[PAT]",
         "q": "QUEUE",
         "re": "REGEX",
+        "remote-dir": "DIRNAME",
         "report": "[RP]",
         "surf": "SURF",
         "status": "STATUS",
@@ -1264,6 +1268,7 @@ class CfdxOpenPDFArgs(CfdxArgReader):
         "fpdf",
         "local",
         "pull",
+        "remote-dir",
         "wait",
     )
 
@@ -1656,6 +1661,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "qsub",
         "raw",
         "re",
+        "remote-dir",
         "report",
         "restart",
         "skeleton",
@@ -2650,11 +2656,12 @@ def cape_open_pdf(*a, **kw) -> Tuple[int, list]:
     # Get required argument
     fpdf = a[0]
     # Get options
+    rdir = kw.get("remote-dir")
     wait = kw.get("wait", False)
     local = kw.get("local", False)
     pull = kw.get("pull", False)
     # Open the pdf
-    sysutils.open_pdf(fpdf, wait=wait, local=local, pull=pull)
+    sysutils.open_pdf(fpdf, remote=rdir, wait=wait, local=local, pull=pull)
     # Return code
     return IERR_OK, None
 
