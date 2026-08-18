@@ -252,7 +252,10 @@ from functools import wraps
 from typing import Any, Callable, Optional, Union
 
 # Third-party imports
-import numpy as np
+try:
+    import numpy as np
+except ModuleNotFoundError:
+    np = None
 
 # Local imports
 from .clitext import compile_rst
@@ -291,9 +294,7 @@ SubParserCheck = namedtuple("SubParserCheck", ("cmdname", "subparser", "ierr"))
 #: | :class:`numpy.float32`
 #: | :class:`numpy.float64`
 #: | :class:`numpy.float128`
-FLOAT_TYPES = (
-    float,
-    np.floating)
+FLOAT_TYPES = (float,) if (np is None) else (float, np.floating)
 
 #: Collection of integer (including unsigned) types:
 #: :class:`int`
@@ -305,19 +306,13 @@ FLOAT_TYPES = (
 #: | :class:`numpy.uint16`
 #: | :class:`numpy.uint32`
 #: | :class:`numpy.uint64`
-INT_TYPES = (
-    int,
-    np.integer)
+INT_TYPES = (int,) if (np is None) else (int, np.integer)
 #: Collection of boolean-like types:
 #: :class:`bool` | :class:`numpy.bool_`
-BOOL_TYPES = (
-    bool,
-    np.bool_)
+BOOL_TYPES = (bool,) if (np is None) else (bool, np.bool_)
 #: Collection of string-like types:
 #: :class:`str` | :class:`numpy.str_`
-STR_TYPES = (
-    str,
-    np.str_)
+STR_TYPES = (str,) if (np is None) else (str, np.str_)
 #: Acceptable types for :data:`ArgReader._optlist`
 OPTLIST_TYPES = (
     set,
