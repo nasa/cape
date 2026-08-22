@@ -1,14 +1,14 @@
---------------------------------------------
-``PostSlurm``: options for Slurm job control
---------------------------------------------
+-------------
+``PostSlurm``
+-------------
 
 **Option aliases:**
 
-* *account* → *A*
-* *begin* → *b*
-* *constraint* → *C*
-* *q* → *p*
-* *t* → *time*
+* *account* ? *A*
+* *begin* ? *b*
+* *constraint* ? *C*
+* *q* ? *p*
+* *t* ? *time*
 
 **Recognized options:**
 

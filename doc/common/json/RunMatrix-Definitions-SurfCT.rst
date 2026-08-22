@@ -1,14 +1,18 @@
----------------------------------------------
-``SurfCT``: options for run matrix definition
----------------------------------------------
+----------------------
+Options for ``SurfCT``
+----------------------
 
 **Option aliases:**
 
-* *nSpecies* → *NSpecies*
-* *DType* → *Value*
-* *DataType* → *Value*
-* *DisplayScale* → *FormatMultiplier*
-* *ScaleDisplay* → *FormatMultiplier*
+* *DType* ? *Value*
+* *DataType* ? *Value*
+* *DisplayScale* ? *FormatMultiplier*
+* *FormatReplace* ? *Replace*
+* *Replacements* ? *Replace*
+* *ScaleDisplay* ? *FormatMultiplier*
+* *Subs* ? *RegexSubs*
+* *Substitute* ? *RegexSubs*
+* *nSpecies* ? *NSpecies*
 
 **Recognized options:**
 
@@ -66,6 +70,10 @@
     value of option "RefPressure"
 *RefTemperature*: {``None``} | :class:`float` | :class:`str`
     value of option "RefTemperature"
+*RegexSubs*: {``None``} | :class:`ReplaceOpts`
+    value of option "RegexSubs"
+*Replace*: {``None``} | :class:`ReplaceOpts`
+    value of option "Replace"
 *SkipIfZero*: {``False``} | ``True``
     value of option "SkipIfZero"
 *Source*: {``None``} | :class:`str`

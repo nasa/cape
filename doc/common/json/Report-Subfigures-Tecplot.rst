@@ -1,16 +1,16 @@
--------------------------------------
-``Tecplot``: tecplot layout subfigure
--------------------------------------
+---------------------------------
+Options for ``Tecplot`` subfigure
+---------------------------------
 
 **Option aliases:**
 
-* *ActiveFields* → *ActiveFieldMaps*
-* *ActiveFieldMap* → *ActiveFieldMaps*
-* *Parent* → *Type*
-* *parent* → *Type*
-* *pos* → *Position*
-* *type* → *Type*
-* *width* → *Width*
+* *Parent* ? *Type*
+* *parent* ? *Type*
+* *pos* ? *Position*
+* *type* ? *Type*
+* *width* ? *Width*
+* *ActiveFields* ? *ActiveFieldMaps*
+* *ActiveFieldMap* ? *ActiveFieldMaps*
 
 **Recognized options:**
 
@@ -26,7 +26,7 @@
     customized settings for Tecplot contour levels
 *FieldMap*: {``None``} | :class:`int` | :class:`str`
     list of zone numbers for Tecplot layout group boundaries
-*FigWidth*: {``1024``} | :class:`int`
+*FigWidth*: {``1024``} | :class:`int` | :class:`float`
     width of output image in pixels
 *Keys*: {``None``} | :class:`dict`
     dict of Tecplot layout statements to customize
@@ -40,6 +40,6 @@
     files to convert .vtk -> .plt
 *VarSet*: {``{}``} | :class:`dict`
     variables and their values to define in Tecplot layout
-*Width*: {``0.5``} | :class:`float`
+*Width*: {``0.5``} | :class:`int` | :class:`float`
     value of option "Width"
 

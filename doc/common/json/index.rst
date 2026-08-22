@@ -106,8 +106,8 @@ file that are not part of any section.
 
 **Option aliases:**
 
-* *Trajectory* → *RunMatrix*
-* *nSubmit* → *NSubmit*
+* *Trajectory* ? *RunMatrix*
+* *nSubmit* ? *NSubmit*
 
 **Recognized options:**
 
@@ -117,6 +117,8 @@ file that are not part of any section.
     function(s) to execute in case right before starting
 *InitFunction*: {``None``} | :class:`list`\ [:class:`str`]
     function(s) to run immediately after parsing JSON
+*LogLevel*: ``0`` | {``1``} | ``2`` | ``3``
+    amount of logging for run matrix controller
 *ModuleNames*: {``None``} | :class:`dict`
     dict of short names for imported modules
 *Modules*: {``None``} | :class:`list`\ [:class:`str`]

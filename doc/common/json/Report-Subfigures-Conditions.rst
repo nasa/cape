@@ -1,14 +1,14 @@
-----------------------------------------------
-``Conditions``: table of run matrix conditions
-----------------------------------------------
+------------------------------------
+Options for ``Conditions`` subfigure
+------------------------------------
 
 **Option aliases:**
 
-* *Parent* → *Type*
-* *parent* → *Type*
-* *pos* → *Position*
-* *type* → *Type*
-* *width* → *Width*
+* *Parent* ? *Type*
+* *parent* ? *Type*
+* *pos* ? *Position*
+* *type* ? *Type*
+* *width* ? *Width*
 
 **Recognized options:**
 
@@ -26,6 +26,6 @@
     keys not in run matrix to attempt to calculate
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``0.33``} | :class:`float`
+*Width*: {``0.33``} | :class:`int` | :class:`float`
     value of option "Width"
 

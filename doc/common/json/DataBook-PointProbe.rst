@@ -1,6 +1,6 @@
--------------------------------------------
-Options for ``LineLoad`` databook component
--------------------------------------------
+---------------------------------------------
+Options for ``PointProbe`` databook component
+---------------------------------------------
 
 **Option aliases:**
 
@@ -26,34 +26,34 @@ Options for ``LineLoad`` databook component
 * *nStats* ? *NStats*
 * *nStatsMax* ? *NMaxStats*
 * *tagets* ? *Targets*
-* *Cut* ? *CutPlaneNormal*
-* *CutDir* ? *CutPlaneNormal*
-* *CutPlane* ? *CutPlaneNormal*
-* *SlicePlane* ? *CutPlaneNormal*
-* *nCut* ? *NCut*
+* *CTUMin* ? *MinCTU*
+* *CTUmin* ? *MinCTU*
+* *MinTime* ? *MinT*
+* *TMin* ? *MinT*
+* *TimeMin* ? *MinT*
+* *ctumin* ? *MinCTU*
+* *tmin* ? *MinT*
 
 **Recognized options:**
 
 *Body*: {``None``} | :class:`int` | :class:`str`
     reference body name for motion of this component
-*Cols*: {``'x'``} | :class:`str`
+*Cols*: {``'cp'``} | :class:`str`
     list of primary solver output variables to include
 *CompID*: {``None``} | :class:`object`
     surface componet(s) to use for this databook component
-*CutPlaneNormal*: {``'x'``} | ``'y'`` | ``'z'``
-    direction to step between each cut
 *DNStats*: {``None``} | :class:`int`
     increment for candidate window sizes
-*FloatCols*: {``'XMRP'``} | :class:`str`
+*FloatCols*: {``[]``} | :class:`str`
     additional databook cols with floating-point values
-*Gauge*: {``True``} | ``False``
-    option to use gauge pressures in computations
+*Index*: {``None``} | :class:`int`
+    index of point probe in list, if necessary
 *IntCols*: {``'nIter'``} | :class:`str`
     additional databook cols with integer values
-*Momentum*: {``False``} | ``True``
-    whether to use momentum flux in line load computations
-*NCut*: {``200``} | :class:`int`
-    number of cuts to make using ``triload`` (-> +1 slice)
+*MinCTU*: {``None``} | :class:`float`
+    discard history before *MinCTU* char. time units
+*MinT*: {``None``} | :class:`float`
+    discard history before *MinT* seconds
 *NLastStats*: {``None``} | :class:`int`
     specific iteration at which to extract stats
 *NMaxStats*: {``None``} | :class:`int`
@@ -62,16 +62,12 @@ Options for ``LineLoad`` databook component
     first iter to consider for use in databook [for a comp]
 *NStats*: {``None``} | :class:`int`
     iterations to use in averaging window [for a comp]
-*SectionType*: ``'clds'`` | {``'dlds'``} | ``'slds'``
-    line load section type
+*Point*: {``None``} | :class:`str`
+    name of point probe
 *Targets*: {``{}``} | :class:`dict`
     targets for this databook component
 *Transformations*: {``[]``} | :class:`dict`
     list of transformations applied to component
-*Trim*: {``1``} | :class:`int`
-    *trim* flag to ``triload``
-*TriqFormat*: ``''`` | ``'b4'`` | {``'lb4'``} | ``'lr4'`` | ``'r4'``
-    format for any ``.triq`` files written
 *Type*: {``'FM'``} | :class:`str`
     databook component type
 

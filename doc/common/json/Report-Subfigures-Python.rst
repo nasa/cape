@@ -1,6 +1,6 @@
-----------------------------------
-Options for ``Paraview`` subfigure
-----------------------------------
+--------------------------------
+Options for ``Python`` subfigure
+--------------------------------
 
 **Option aliases:**
 
@@ -9,6 +9,8 @@ Options for ``Paraview`` subfigure
 * *pos* ? *Position*
 * *type* ? *Type*
 * *width* ? *Width*
+* *PyExec* ? *PythonExec*
+* *PythonScript* ? *PythonFile*
 
 **Recognized options:**
 
@@ -16,16 +18,14 @@ Options for ``Paraview`` subfigure
     value of option "Alignment"
 *Caption*: {``None``} | :class:`str`
     subfigure caption
-*Command*: {``'pvpython'``} | :class:`str`
-    name of Python/Paraview executable to call
-*Format*: {``'png'``} | :class:`str`
-    image file format
 *ImageFile*: {``'export.png'``} | :class:`str`
-    name of image file created by *Layout*
-*Layout*: {``'layout.py'``} | :class:`str`
-    name of Python file to execute with Paraview
+    name of image file to copy from case folder
 *Position*: {``'b'``} | ``'c'`` | ``'t'``
     subfigure vertical alignment
+*PythonExec*: {``None``} | :class:`str`
+    Python executable (default to sys.executable)
+*PythonFile*: {``None``} | :class:`str`
+    path to Python file to copy and run
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
 *Width*: {``0.5``} | :class:`int` | :class:`float`

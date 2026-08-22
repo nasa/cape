@@ -1,39 +1,47 @@
---------------------------------------------------------------------------
-``RunControl``: options for case control, phase definitions, CLI, and more
---------------------------------------------------------------------------
+--------------
+``RunControl``
+--------------
 
 **Option aliases:**
 
-* *CAPEFile* → *JSONFile*
-* *ConcurrentPythonFuncs* → *WorkerPythonFuncs*
-* *ConcurrentShellCmds* → *WorkerShellCmds*
-* *Continue* → *ContinuePhase*
-* *GPU* → *gpu*
-* *PostCmds* → *PostShellCmds*
-* *PostFuncs* → *PostPythonFuncs*
-* *PostPyFuncs* → *PostPythonFuncs*
-* *PreCmds* → *PreShellCmds*
-* *PreFuncs* → *PrePythonFuncs*
-* *PrePyFuncs* → *PrePythonFuncs*
-* *Resubmit* → *ResubmitNextPhase*
-* *WatcherCmds* → *WorkerShellCmds*
-* *WatcherFuncs* → *WorkerPythonFuncs*
-* *WatherTimeout* → *WorkerTimeout*
-* *WorkerCmds* → *WorkerShellCmds*
-* *WorkerFuncs* → *WorkerPythonFuncs*
-* *WorkerMaxWaitTime* → *WorkerTimeout*
-* *WorkerTimeOut* → *WorkerTimeout*
-* *nJob* → *NJob*
-* *sbatch* → *slurm*
+* *CAPEFile* ? *JSONFile*
+* *ConcurrentPythonFuncs* ? *WorkerPythonFuncs*
+* *ConcurrentShellCmds* ? *WorkerShellCmds*
+* *Continue* ? *ContinuePhase*
+* *GPU* ? *gpu*
+* *NSubProc* ? *Maxforks*
+* *NSubProcess* ? *MaxForks*
+* *PostCmds* ? *PostShellCmds*
+* *PostFuncs* ? *PostPythonFuncs*
+* *PostPyFuncs* ? *PostPythonFuncs*
+* *PreCmds* ? *PreShellCmds*
+* *PreFuncs* ? *PrePythonFuncs*
+* *PrePyFuncs* ? *PrePythonFuncs*
+* *Resubmit* ? *ResubmitNextPhase*
+* *WatcherCmds* ? *WorkerShellCmds*
+* *WatcherFuncs* ? *WorkerPythonFuncs*
+* *WatherTimeout* ? *WorkerTimeout*
+* *WorkerCmds* ? *WorkerShellCmds*
+* *WorkerFuncs* ? *WorkerPythonFuncs*
+* *WorkerMaxWaitTime* ? *WorkerTimeout*
+* *WorkerTimeOut* ? *WorkerTimeout*
+* *nJob* ? *NJob*
+* *sbatch* ? *slurm*
 
 **Recognized options:**
 
+*BatchSize*: {``1000``} | :class:`int`
+    number of iters to store in single batch
 *ContinuePhase*: {``None``} | ``True`` | ``False``
     whether restarts of same phase can use same job
 *JSONFile*: {``None``} | :class:`str`
     name of JSON file from which settings originated
 *MPI*: {``False``} | ``True``
     whether or not to run MPI in phase
+*MaxForks*: {``4``} | :class:`int`
+    maximum forks to use for parallel post-processing
+*MaxWorkers*: {``8``} | :class:`int`
+    maximum threads to use for parallel post-processing
 *NJob*: {``0``} | :class:`int`
     number of jobs to run concurrently
 *PhaseIters*: {``None``} | :class:`int`
@@ -49,7 +57,7 @@
 *PostShellCmds*: {``None``} | :class:`list`\ [:class:`dict` | :class:`str`]
     list of commands to run after each cycle
 *PreMesh*: {``False``} | ``True``
-    whether or not to generate volume mesh before submitting
+    option to generate mesh before submitting job
 *PrePythonFuncs*: {``None``} | :class:`list`\ [:class:`dict` | :class:`str`]
     Python functions to run before each cycle
 *PreShellCmds*: {``None``} | :class:`list`\ [:class:`dict` | :class:`str`]
@@ -94,6 +102,8 @@
     number (or fraction) of cores to use (or omit if negative)
 *qsub*: {``False``} | ``True``
     whether or not to submit jobs with PBS
+*quickstart*: {``False``} | ``True``
+    option to generate mesh before submitting job
 *slurm*: {``False``} | ``True``
     whether or not to submit jobs with Slurm
 

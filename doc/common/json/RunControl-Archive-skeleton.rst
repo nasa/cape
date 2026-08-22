@@ -1,15 +1,15 @@
-------------------------------------------------------------------------------
-``skeleton``: options for further clean-up after archiving and post-processing
-------------------------------------------------------------------------------
+------------
+``skeleton``
+------------
 
 **Option aliases:**
 
-* *CopyFiles* → *ArchiveFiles*
-* *DeleteDirs* → *PostDeleteDirs*
-* *DeleteFiles* → *PostDeleteFiles*
-* *TailFiles* → *PostTailFiles*
-* *TarDirs* → *ArchiveTarDirs*
-* *TarGroups* → *ArchiveTarGroups*
+* *CopyFiles* ? *ArchiveFiles*
+* *DeleteDirs* ? *PostDeleteDirs*
+* *DeleteFiles* ? *PostDeleteFiles*
+* *TailFiles* ? *PostTailFiles*
+* *TarDirs* ? *ArchiveTarDirs*
+* *TarGroups* ? *ArchiveTarGroups*
 
 **Recognized options:**
 

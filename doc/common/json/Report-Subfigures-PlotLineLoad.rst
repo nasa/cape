@@ -1,29 +1,29 @@
--------------------------------------
-``PlotLineLoad``: line load subfigure
--------------------------------------
+--------------------------------------
+Options for ``PlotLineLoad`` subfigure
+--------------------------------------
 
 **Option aliases:**
 
-* *SeamCurves* → *SeamCurve*
-* *SeamLocations* → *SeamLocation*
-* *SeamCurveOptions* → *SeamOptions*
-* *Targets* → *Target*
-* *FigHeight* → *FigureHeight*
-* *FigWidth* → *FigureWidth*
-* *GridStyle* → *GridPlotOptions*
-* *LineOptions* → *PlotOptions*
-* *MinorGridStyle* → *MinorGridPlotOptions*
-* *RestrictionLocation* → *RestrictionLoc*
-* *RestrictionX* → *RestrictionXPosition*
-* *RestrictionY* → *RestrictionYPosition*
-* *dpi* → *DPI*
-* *nPlotFirst* → *NPlotFirst*
-* *nFirst* → *NPlotFirst*
-* *Parent* → *Type*
-* *parent* → *Type*
-* *pos* → *Position*
-* *type* → *Type*
-* *width* → *Width*
+* *Parent* ? *Type*
+* *parent* ? *Type*
+* *pos* ? *Position*
+* *type* ? *Type*
+* *width* ? *Width*
+* *FigHeight* ? *FigureHeight*
+* *FigWidth* ? *FigureWidth*
+* *GridStyle* ? *GridPlotOptions*
+* *LineOptions* ? *PlotOptions*
+* *MinorGridStyle* ? *MinorGridPlotOptions*
+* *RestrictionLocation* ? *RestrictionLoc*
+* *RestrictionX* ? *RestrictionXPosition*
+* *RestrictionY* ? *RestrictionYPosition*
+* *dpi* ? *DPI*
+* *nPlotFirst* ? *NPlotFirst*
+* *nFirst* ? *NPlotFirst*
+* *SeamCurves* ? *SeamCurve*
+* *SeamLocations* ? *SeamLocation*
+* *SeamCurveOptions* ? *SeamOptions*
+* *Targets* ? *Target*
 
 **Recognized options:**
 
@@ -95,7 +95,7 @@
     value of option "Ticks"
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``0.33``} | :class:`float`
+*Width*: {``0.33``} | :class:`int` | :class:`float`
     value of option "Width"
 *XLabel*: {``None``} | :class:`str`
     manual label for x-axis

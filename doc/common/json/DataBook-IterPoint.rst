@@ -1,33 +1,36 @@
--------------------------------------------------------------
-``IterPoint``: options for a group of iterative point sensors
--------------------------------------------------------------
+--------------------------------------------
+Options for ``IterPoint`` databook component
+--------------------------------------------
 
 **Option aliases:**
 
-* *Coeffs* → *Cols*
-* *Coefficients* → *Cols*
-* *Component* → *CompID*
-* *NAvg* → *nStats*
-* *NFirst* → *NMin*
-* *NLast* → *NLastStats*
-* *NMax* → *NLastStats*
-* *NStatsMax* → *NMaxStats*
-* *coeffs* → *Cols*
-* *cols* → *Cols*
-* *dnStats* → *DNStats*
-* *nAvg* → *NStats*
-* *nFirst* → *NMin*
-* *nLast* → *NLastStats*
-* *nLastStats* → *NLastStats*
-* *nMax* → *NLastStats*
-* *nMaxStats* → *NMaxStats*
-* *nMin* → *NMin*
-* *nStats* → *NStats*
-* *nStatsMax* → *NMaxStats*
-* *tagets* → *Targets*
+* *Coeffs* ? *Cols*
+* *Coefficients* ? *Cols*
+* *Component* ? *CompID*
+* *NAvg* ? *nStats*
+* *NFirst* ? *NMin*
+* *NLast* ? *NLastStats*
+* *NMax* ? *NLastStats*
+* *NStatsMax* ? *NMaxStats*
+* *body* ? *Body*
+* *coeffs* ? *Cols*
+* *cols* ? *Cols*
+* *dnStats* ? *DNStats*
+* *nAvg* ? *NStats*
+* *nFirst* ? *NMin*
+* *nLast* ? *NLastStats*
+* *nLastStats* ? *NLastStats*
+* *nMax* ? *NLastStats*
+* *nMaxStats* ? *NMaxStats*
+* *nMin* ? *NMin*
+* *nStats* ? *NStats*
+* *nStatsMax* ? *NMaxStats*
+* *tagets* ? *Targets*
 
 **Recognized options:**
 
+*Body*: {``None``} | :class:`int` | :class:`str`
+    reference body name for motion of this component
 *Cols*: {``'cp'``} | :class:`str`
     list of primary solver output variables to include
 *CompID*: {``None``} | :class:`object`

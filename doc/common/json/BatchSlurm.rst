@@ -1,14 +1,14 @@
-----------------------------------------------------------------
-``BatchSlurm``: options for Slurm job control for batch commands
-----------------------------------------------------------------
+--------------
+``BatchSlurm``
+--------------
 
 **Option aliases:**
 
-* *account* → *A*
-* *begin* → *b*
-* *constraint* → *C*
-* *q* → *p*
-* *t* → *time*
+* *account* ? *A*
+* *begin* ? *b*
+* *constraint* ? *C*
+* *q* ? *p*
+* *t* ? *time*
 
 **Recognized options:**
 

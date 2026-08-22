@@ -59,6 +59,13 @@ New Features
     ``cape -c`` is now automatically parallelized, so that it can analyze
     several cases in parallel, controlled by the new ``--nproc`` option.
 
+*   *Smarter error handling*
+
+    Many errors caused by incorrect input (and also ``KeyboardInterrupt`` or
+    ``Ctrl-C``) will now produce a small error message rather than a full
+    Python traceback. Progress will continue to be made on this front in future
+    versions of CAPE.
+
 *   Logging: most command-line CAPE calls are now recorded in a log file.
 
     Whenever you run a CAPE command that involves a Cntl instance, it will now
@@ -112,7 +119,18 @@ New Features
             }
         }
     
-    to get conversions like ``m2.50a2.0`` → ``m250a20``.
+    to get conversions like ``m2.50a2.0`` → ``m250a20``. One more example:
+
+    .. code-block:: javascript
+
+        "RunMatrix": {
+            "Replace": {
+                ".0": "",
+                ".": ""
+            }
+        }
+    
+    to get ``m2.50a2.0`` → ``m250a2``.
 
 
 Release 2.2.1

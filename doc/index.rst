@@ -215,7 +215,7 @@ defined.  In general the required files are the following.
 
     * ``@ddalle``: Derek Dalle <derek.j.dalle@nasa.gov>
     * ``@dvicker``: Darby Vicker <darby.vicker-1@nasa.gov>
-    * ``@serogers``: Stuart Rogers <stuart.e.rogers@nasa.gov>
+    * ``@serogers``: Stuart Rogers (retired)
     * ``@jmeeroff``: Jamie Meeroff <jamie.g.meeroff@nasa.gov>
     * ``@aburkhea``: Aaron Burkhead <aaron.c.burkhead@nasa.gov>
     * ``@jfdiaz3``: Josh Diaz <joshua.f.diaz@nasa.gov>

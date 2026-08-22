@@ -1,10 +1,10 @@
--------------------------------------------------------
-``Config``: surface configuration and reference options
--------------------------------------------------------
+----------
+``Config``
+----------
 
 **Option aliases:**
 
-* *File* → *ConfigFile*
+* *File* ? *ConfigFile*
 
 **Recognized options:**
 

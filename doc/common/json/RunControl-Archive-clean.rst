@@ -1,15 +1,15 @@
-----------------------------------------------------------------
-``clean``: options for file clean-up while case is still running
-----------------------------------------------------------------
+---------
+``clean``
+---------
 
 **Option aliases:**
 
-* *CopyFiles* → *ArchiveFiles*
-* *DeleteDirs* → *PostDeleteDirs*
-* *DeleteFiles* → *PostDeleteFiles*
-* *TailFiles* → *PostTailFiles*
-* *TarDirs* → *ArchiveTarDirs*
-* *TarGroups* → *ArchiveTarGroups*
+* *CopyFiles* ? *ArchiveFiles*
+* *DeleteDirs* ? *PostDeleteDirs*
+* *DeleteFiles* ? *PostDeleteFiles*
+* *TailFiles* ? *PostTailFiles*
+* *TarDirs* ? *ArchiveTarDirs*
+* *TarGroups* ? *ArchiveTarGroups*
 
 **Recognized options:**
 

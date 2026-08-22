@@ -1,14 +1,14 @@
--------------------------------------------------
-``Image``: subfigure based on exsiting image file
--------------------------------------------------
+-------------------------------
+Options for ``Image`` subfigure
+-------------------------------
 
 **Option aliases:**
 
-* *Parent* → *Type*
-* *parent* → *Type*
-* *pos* → *Position*
-* *type* → *Type*
-* *width* → *Width*
+* *Parent* ? *Type*
+* *parent* ? *Type*
+* *pos* ? *Position*
+* *type* ? *Type*
+* *width* ? *Width*
 
 **Recognized options:**
 
@@ -22,6 +22,6 @@
     subfigure vertical alignment
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``0.5``} | :class:`float`
+*Width*: {``0.5``} | :class:`int` | :class:`float`
     value of option "Width"
 

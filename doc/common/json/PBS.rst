@@ -1,10 +1,10 @@
-------------------------------------
-``PBS``: options for PBS job control
-------------------------------------
+-------
+``PBS``
+-------
 
 **Option aliases:**
 
-* *site-needed* → *site_needed*
+* *site-needed* ? *site_needed*
 
 **Recognized options:**
 

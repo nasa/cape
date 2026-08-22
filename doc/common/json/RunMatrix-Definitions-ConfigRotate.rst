@@ -1,15 +1,19 @@
----------------------------------------------------
-``ConfigRotate``: options for run matrix definition
----------------------------------------------------
+----------------------------
+Options for ``ConfigRotate``
+----------------------------
 
 **Option aliases:**
 
-* *AxisSymmetry* → *VectorSymmetry*
-* *CenterSymmetry* → *VectorSymmetry*
-* *DType* → *Value*
-* *DataType* → *Value*
-* *DisplayScale* → *FormatMultiplier*
-* *ScaleDisplay* → *FormatMultiplier*
+* *DType* ? *Value*
+* *DataType* ? *Value*
+* *DisplayScale* ? *FormatMultiplier*
+* *FormatReplace* ? *Replace*
+* *Replacements* ? *Replace*
+* *ScaleDisplay* ? *FormatMultiplier*
+* *Subs* ? *RegexSubs*
+* *Substitute* ? *RegexSubs*
+* *AxisSymmetry* ? *VectorSymmetry*
+* *CenterSymmetry* ? *VectorSymmetry*
 
 **Recognized options:**
 
@@ -49,6 +53,10 @@
     value of option "Points"
 *PointsSymmetric*: {``None``} | :class:`list`\ [:class:`object`]
     value of option "PointsSymmetric"
+*RegexSubs*: {``None``} | :class:`ReplaceOpts`
+    value of option "RegexSubs"
+*Replace*: {``None``} | :class:`ReplaceOpts`
+    value of option "Replace"
 *SkipIfZero*: {``False``} | ``True``
     value of option "SkipIfZero"
 *Source*: {``None``} | :class:`str`

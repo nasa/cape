@@ -34,7 +34,7 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.cntl`
        - :mod:`cape.cfdx.options`
        - :mod:`cape.cfdx.case`
-       - :mod:`cape.runmatrix`
+       - :mod:`cape.cfdx.runmatrix`
        - :mod:`cape.cfdx.dataBook`
        - :mod:`cape.cfdx.pointSensor`
        - :mod:`cape.cfdx.lineload`
