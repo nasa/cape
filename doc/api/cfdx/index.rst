@@ -19,7 +19,6 @@
     casecntlbase
     archivist
     autocomplete
-    cfdx_doc
     cli
     cmdgen
     cmdrun
@@ -38,4 +37,3 @@
     triqfm
     volcomp
     options/index
-    cli_doc

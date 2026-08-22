@@ -9,6 +9,7 @@ __pychache__
 *.egg-info
 *.dist-info
 /dist
+/log
 
 # Test files
 .coverage

@@ -15,7 +15,6 @@
     options/index
     casecntl
     cli
-    cli_doc
     cmdgen
     databook
     overnmlfile

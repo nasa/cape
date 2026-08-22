@@ -8,7 +8,6 @@
     
     casecntl
     cli
-    cli_doc
     cmdgen
     cmdrun
     cntl

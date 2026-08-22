@@ -11,7 +11,6 @@
     options/index
     casecntl
     cli
-    cli_doc
     jobxml
     cmdgen
     databook
