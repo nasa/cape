@@ -10,6 +10,8 @@
     cntl
     options/index
     casecntl
+    cli
+    cli_doc
     cmdgen
     databook
     dataiterfile

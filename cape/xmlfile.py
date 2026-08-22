@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.xmlfile`: XML file interface
+========================================
+
 This module provides the class :class:`XMLFile`, which extends slightly
 the built-in class :class:`xml.etree.ElmentTree`. Compared to the
 standard library class, :class:`XMLFile` has a more top-level interface.

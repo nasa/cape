@@ -1,6 +1,6 @@
 r"""
-:class:`nmlerr`: Errors for :class:`NmlFile` data
-==================================================
+:mod:`cape.nmlfile.nmlerr`: Errors for :class:`NmlFile` data
+==============================================================
 
 This module provides a collection of error types for reading Fortran
 namelist files. It also contains functions that utilize these exception

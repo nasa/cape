@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.units`: Unit conversions
+====================================
+
 CAPE includes this unit-conversion module to interpret various units for
 inputs and post-processing.  Many CFD solvers, and some trajectory tools
 that are used to provide flight conditions, expect imperial units, which

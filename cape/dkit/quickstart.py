@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+r"""
+:mod:`cape.dkit.quickstart`: DataKit quickstart utilities
+==========================================================
+
+This module provides utilities for getting started with DataKit,
+including project initialization and template management.
+"""
 
 # Standard library
 import importlib

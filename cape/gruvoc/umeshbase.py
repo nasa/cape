@@ -1,3 +1,10 @@
+r"""
+:mod:`cape.gruvoc.umeshbase`: Base class for unstructured mesh
+===============================================================
+
+This module provides the base class for unstructured mesh handling
+in the GRU VOC tools.
+"""
 
 # Standard library
 import copy

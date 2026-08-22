@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
---------------------------------------------------------------------
+r"""
 :mod:`cape.plot_mpl.mplopts`: Matplotlib/Pyplot Options
---------------------------------------------------------------------
+========================================================
 
 This module creates the class :class:`MPLOpts`, which contains all
 options recognized by the primary :mod:`cape.tnakit.plot_mpl` module

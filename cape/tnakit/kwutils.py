@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
+r"""
+:mod:`cape.tnakit.kwutils`: Keyword argument utilities
+=======================================================
+
 This module contains methods to process keyword argument dictionaries
 by checking them against
 

@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
---------------------------------------------------------------------
 :mod:`cape.plot_mpl.mpl`: Direct PyPlot Interface
---------------------------------------------------------------------
+==================================================
 
 This module contains handles to various :mod:`matplotlib` plotting
 methods.  It contains the direct calls to functions like

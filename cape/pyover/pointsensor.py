@@ -1,6 +1,9 @@
 r"""
-OVERFLOW point sensor data interface
+:mod:`cape.pyover.pointsensor`: OVERFLOW point sensor data interface
+=====================================================================
 
+This module provides an interface to read and process point sensor data
+from OVERFLOW simulations.
 """
 
 # Standard library

@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+r"""
+:mod:`cape.dkit.cli`: datakit command-line interface
+=====================================================
+
+This module provides the command-line interface for the datakit tools.
+"""
 
 # Standard library modules
 import sys

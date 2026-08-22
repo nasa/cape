@@ -1,3 +1,10 @@
+r"""
+:mod:`cape.cfdx.autocomplete`: Shell completion for CAPE CLI
+=============================================================
+
+This module provides shell completion capabilities for the CAPE
+command-line interface.
+"""
 
 # Standard library
 import fnmatch

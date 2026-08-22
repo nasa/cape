@@ -1,3 +1,10 @@
+r"""
+:mod:`cape.cfdx.ll`: Line load interfaces
+==========================================
+
+This module provides interfaces for reading and processing line load
+data from CFD simulations.
+"""
 
 # Standard library
 import os

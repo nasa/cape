@@ -1,9 +1,11 @@
 r"""
+:mod:`cape.convert`: Aerodynamic conversions and utilities
+===========================================================
+
 Perform conversions such as (alpha total, phi) to (alpha, beta).  It
 also contains various utilities such as calculating Sutherland's law for
 estimating viscosity with the standard parameters, which are commonly
 needed tools for CFD solvers.
-
 """
 
 # Standard library

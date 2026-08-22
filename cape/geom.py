@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.geom`: Geometric manipulations
+==========================================
+
 This module provides several methods for modifying points or performing
 other geometric manipulations in a way accessible to each of the
 subclasses.
@@ -7,7 +10,6 @@ The main categories are:
 
     * performing manipulations on sets of points, such as rotations
     * checking for intersections, polygon membership, etc.
-
 """
 
 # Third-party modules

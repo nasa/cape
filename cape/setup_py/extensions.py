@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+r"""
+:mod:`cape.setup_py.extensions`: Python extension builder utilities
+====================================================================
+
+This module provides utilities for building Python C extensions for CAPE.
+"""
 
 # Standard library
 import json

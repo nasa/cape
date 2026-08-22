@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.tnakit.textutils.wrap`: Text wrapping utilities
+===========================================================
+
 This module contains common functions for wrapping long strings into a
 limited-length lines
 """

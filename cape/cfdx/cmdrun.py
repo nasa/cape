@@ -1,6 +1,6 @@
 r"""
-``cape.cfdx.cmdrun``: Execute system calls for CAPE
-======================================================
+:mod:`cape.cfdx.cmdrun`: Execute system calls for CAPE
+========================================================
 
 This template module provides an interface for simple command-line
 tools. The general approach for CAPE is to create a function for each

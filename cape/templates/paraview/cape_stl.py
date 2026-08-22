@@ -1,3 +1,11 @@
+r"""
+:mod:`cape.templates.paraview.cape_stl`: ParaView STL processing template
+==========================================================================
+
+This module provides a ParaView Python script template for processing
+STL files in CAPE workflows.
+"""
+
 try: paraview.simple
 except: from paraview.simple import *
 

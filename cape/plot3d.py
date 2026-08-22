@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.plot3d`: Plot3D file interface
+==========================================
+
 This module provides a generic Plot3D file interface for reading Plot3D
 grid files using the class :class:`cape.plot3d.X`.  This class
 automatically detects endianness of the grid and can handle IBLANKS in
@@ -7,7 +10,6 @@ addition to single-grid or multiple-grid formats.
 The :class:`cape.plot3d.Q` interface to solution files also exists, but
 it is not reliable since Plot3D solution files are dependent on the
 solver used to create the solution file.
-
 """
 
 # Standard library

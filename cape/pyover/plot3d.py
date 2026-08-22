@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""
-:class:`cape.pyover.plot3d`: Interface to OVERFLOW Plot3D files
-================================================================
+r"""
+:mod:`cape.pyover.plot3d`: Interface to OVERFLOW Plot3D files
+==============================================================
 
 This module provides a generic Plot3D file interface for reading
 OVERFLOW grid system and solution files using the classes

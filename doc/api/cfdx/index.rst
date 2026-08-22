@@ -12,19 +12,30 @@
     :maxdepth: 1
     
     cntl
+    cntlbase
     casecntl
     casedata
     caseutils
     casecntlbase
+    archivist
+    autocomplete
+    cfdx_doc
+    cli
     cmdgen
     cmdrun
     databook
+    databookbase
+    dex
     lineload
     logger
+    ll
+    manage
     pointsensor
     queue
     report
     runmatrix
+    tarcmd
+    triqfm
     volcomp
     options/index
     cli_doc

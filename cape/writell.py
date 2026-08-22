@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 r"""
+:mod:`cape.writell`: Line load file merger
+===========================================
+
 This module provides tools to combine the individual-case line load
 files from a CAPE "databook" (which are extracted using a command like
 ``pyfun --ll``) into a single ``.mat`` file.

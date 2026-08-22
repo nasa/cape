@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pyover.options.util`: pyOVER options utilities
+==========================================================
+
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pyover`. It is based off of the :mod:`cape.cfdx.options.util` module and
 provides a special class :class:`cape.cfdx.options.odict` that is subclassed from

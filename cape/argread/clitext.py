@@ -1,6 +1,6 @@
 r"""
-``argread.clitext``: Process help messages for console output
-=============================================================
+:mod:`cape.argread.clitext`: Process help messages for console output
+======================================================================
 
 This module provides the function :func:`compile_rst` to turn a
 docstring or other Python string into a format that is appropriate to

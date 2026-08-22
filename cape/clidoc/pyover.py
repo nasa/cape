@@ -1,3 +1,9 @@
+r"""
+:mod:`cape.clidoc.pyover`: pyOver command-line help
+====================================================
+
+Auto-generated help message for the pyOver command-line interface.
+"""
 
 from ..pyover import cli
 

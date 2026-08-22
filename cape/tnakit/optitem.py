@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.tnakit.optitem`: Option item utilities
+==================================================
+
 This module provides several utilities for accessing items from a list
 or a so-called "psuedo-list."
 

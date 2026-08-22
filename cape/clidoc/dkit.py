@@ -1,3 +1,9 @@
+r"""
+:mod:`cape.clidoc.dkit`: dkit help
+===================================
+
+Auto-generated help message for the dkit command-line interface.
+"""
 
 from ..dkit import cli
 
