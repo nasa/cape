@@ -22,37 +22,24 @@ you intended.)
         import cape.pyus
         cntl = cape.pyus.Cntl()
         
-Most of the pyFun submodules essentially contain a single class definition,
-which is derived from a similarly named :mod:`cape` module.  For example,
-:class:`pyFun.databook.DBComp` is subclassed to :class:`cape.cfdx.databook.DBComp`,
-but several functions are edited because their functionality needs
-customization for FUN3D.  For example, reading iterative force & moment
-histories require a customized method for each solver.
-
 The following classes are imported in this module, so that code like
 ``pyFun.Cntl`` will work (although ``cape.pyfun.cntl.Cntl`` will also work).
 
-    * :class:`cape.pyus.us3d.US3D`
-    * :class:`cape.pyus.runmatrix.RunMatrix`
+    * :class:`cape.pyus.cntl.Cntl`
 
 Modules included within this one are outlined below.
 
     * Core modules:
-        - :mod:`cape.pyus.fun3d`
-        - :mod:`cape.pyus.case`
-        - :mod:`cape.pyus.manage`
-        - :mod:`cape.pyus.dataBook`
+        - :mod:`cape.pyus.cntl`
+        - :mod:`cape.pyus.casecntl`
         - :mod:`cape.pyus.options`
         
     * US3D and Cape files
-        - :mod:`cape.pyus.inputInp`
+        - :mod:`cape.pyus.inputinpfile`
         
     * Supporting modules
-        - :mod:`cape.pyus.cmd`
-        - :mod:`cape.pyus.bin`
-        - :mod:`cape.pyus.report`
-        - :mod:`cape.pyus.queue`
-        - :mod:`cape.pyus.util`
+        - :mod:`cape.pyus.cmdgen`
+        - :mod:`cape.pyus`
 
 """
 

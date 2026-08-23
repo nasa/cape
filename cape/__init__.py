@@ -35,8 +35,8 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.cfdx.options`
        - :mod:`cape.cfdx.case`
        - :mod:`cape.cfdx.runmatrix`
-       - :mod:`cape.cfdx.dataBook`
-       - :mod:`cape.cfdx.pointSensor`
+       - :mod:`cape.cfdx.databook`
+       - :mod:`cape.cfdx.pointsensor`
        - :mod:`cape.cfdx.lineload`
        - :mod:`cape.cfdx.report`
 
@@ -112,7 +112,7 @@ import os
 
 
 # Save version number
-version = "1.2.0"
+version = "2.3.0"
 __version__ = version
 
 # Get the root directory of the module.

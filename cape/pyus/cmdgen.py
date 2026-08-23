@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pyus.cmd`: Create commands for US3D executables
+:mod:`cape.pyus.cmdgen`: Create commands for US3D executables
 =============================================================
 
 This module creates system commands as lists of strings for executable
@@ -27,21 +27,20 @@ The decision to use ``mpiexec`` or not is based on the keyword input
         ["mpiexec", "-np", "1", "us3d-prepar" "--grid", "pyus.cas"]
 
 :See also:
-    * :mod:`cape.cfdx.cmd`
-    * :mod:`cape.cfdx.bin`
-    * :mod:`cape.pyus.bin`
-    * :mod:`cape.pyus.options.runControl`
+    * :mod:`cape.cfdx.cmdgen`
+    * :mod:`cape.cfdx.cmdrun`
+    * :mod:`cape.pyus.cmdrun`
+    * :mod:`cape.pyus.options.runctlopts`
 
 """
 
 # Local imports
 from ..cfdx.cmdgen import isolate_subsection, append_cmd_if
 from .options import Options
-from .options import runControl
+from .options.runctlopts import RunControlOpts
 
 
 # Handle to defaults
-rc0 = runControl.rc0
 
 
 # Function to execute ``us3d-prepar``

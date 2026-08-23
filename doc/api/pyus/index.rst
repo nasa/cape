@@ -11,7 +11,5 @@
     cmdgen
     cmdrun
     cntl
-    databook
     inputinpfile
     options/index
-    runmatrix

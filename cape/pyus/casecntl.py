@@ -1,6 +1,6 @@
-"""
-:mod:`cape.pyus.case`: Case control module
-======================================
+r"""
+:mod:`cape.pyus.casecntl`: US3D Case control module
+=====================================================
 
 This module contains the important function :func:`casecntl.run_us3d`, which
 actually runs ``us3d`` or ``us3d_mpi``, along with the utilities that
@@ -25,17 +25,17 @@ import resource
 from datetime import datetime
 
 # CAPE modules
-from ..cfdx import case as cc
+from ..cfdx import casecntl
 from ..cfdx import queue
-from .. import manage
+from ..cfdx import manage
 
 # Local imports
 from . import cmdrun
 from . import cmdgen
 
 # Partial local imports
-from .options.runControl import RunControl
-from .inputInp import InputInp
+from .options.runctlopts import RunControlOpts
+from .inputinpfile import InputInp
 
 
 
@@ -65,7 +65,7 @@ def run_us3d():
     # Prepare files
     PrepareFiles(rc, i)
     # Prepare environment variables (other than OMP_NUM_THREADS)
-    cc.prepare_env(rc, i)
+    casecntl.prepare_env(rc, i)
     # Run the appropriate commands
     RunPhase(rc, i)
     # Clean up files
@@ -133,7 +133,7 @@ def ReadCaseJSON():
         # Read the settings
         opts = json.load(f)
     # Convert to a flowCart object.
-    rc = RunControl(**opts)
+    rc = RunControlOpts(**opts)
     # Output
     return rc
 
@@ -346,7 +346,7 @@ def WriteStartTime(tic, rc, i, fname="pyus_start.dat"):
         * 2019-06-27 ``@ddalle``: US3D version
     """
     # Call the function from :mod:`cape.case`
-    cc.WriteStartTimeProg(tic, rc, i, fname, 'run_us3d.py')
+    casecntl.WriteStartTimeProg(tic, rc, i, fname, 'run_us3d.py')
 
     
 # Write time used
@@ -372,7 +372,7 @@ def WriteUserTime(tic, rc, i, fname="pyus_time.dat"):
         * 2019-06-27 ``@ddalle``: US3D version
     """
     # Call the function from :mod:`cape.case`
-    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_us3d.py')
+    casecntl.WriteUserTimeProg(tic, rc, i, fname, 'run_us3d.py')
 
 
 # Function to determine which PBS script to call
