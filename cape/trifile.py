@@ -5302,6 +5302,7 @@ class TriBase(object):
     # Get normals and areas
     def GetTriScale(self) -> np.ndarray:
         r"""Get the length scale for each triangle
+
         :Call:
             >>> l = tri.GetTriScale()
         :Inputs:

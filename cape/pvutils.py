@@ -202,7 +202,7 @@ def make_video(
             Template file name to search for iterations of
         *frame_func*: :class:`callable`
             Function to process a single frame, takes args as follows:
-            ``frame_func(runner, parser, n=None, j=None)
+            ``frame_func(runner, parser, n=None, j=None)``
         *parser*: :class:`PVArgs`
             CLI args parsed using ``PVAgs``
     """
@@ -347,7 +347,7 @@ def main_template(frame_func: Callable, outs: list, pat: str) -> int:
     :Inputs:
         *frame_func*: :class:`callable`
             Function to process a single frame, takes args as follows:
-            ``frame_func(runner, parser, n=None, j=None)
+            ``frame_func(runner, parser, n=None, j=None)``
         *outs*: :class:`list`\ [:class:`str`]
             List of prefixes for file names
         *pat*: :class:`str`
