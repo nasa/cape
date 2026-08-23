@@ -3962,7 +3962,7 @@ class Cntl(CntlBase):
         # Get executable name
         cmdexec = os.path.basename(cmdlist[0])
         # Split first command
-        cmdfinal = cmdexec.split('-', 1) + cmdlist[1:]
+        cmdfinal = cmdexec.split(maxsplit=1) + cmdlist[1:]
         # Log cntl state
         self.log_cntl()
         # Log the current hash

@@ -2639,7 +2639,7 @@ class CntlBase(ABC):
             *parser*: :class:`cape.argread.ArgReader`
                 CLI parser based on :mod:`cape.cfdx.cli`
         :Versions:
-            *2026-01-05 ``@ddalle``: v1.0
+            * 2026-01-05 ``@ddalle``: v1.0
         """
         pass
 
