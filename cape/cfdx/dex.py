@@ -65,7 +65,7 @@ class DataExchanger(DataKit):
         #: :class:`str`
         #: DataBook component type
         self.comptype = cntl.opts.get_DataBookType(comp)
-        #: :class:`str
+        #: :class:`str`
         #: Path to DataBook
         self.rootdir = cntl.opts.get_DataBookFolder()
         # Absolutize
