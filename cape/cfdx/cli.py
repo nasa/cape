@@ -203,6 +203,7 @@ class CfdxArgReader(ArgReader):
         "pt": (bool, str),
         "pull": bool,
         "q": bool,
+        "qdel": bool,
         "qsub": bool,
         "raw": bool,
         "re": str,
@@ -218,6 +219,7 @@ class CfdxArgReader(ArgReader):
         "triqfm": (bool, str),
         "ts": (bool, str),
         "u": str,
+        "unarchive": bool,
         "unmark": bool,
         "unmarked": bool,
         "user": str,
@@ -270,6 +272,7 @@ class CfdxArgReader(ArgReader):
         "restart",
         "rm",
         "start",
+        "unarchive",
         "unmark",
         "unmarked",
         "v",
@@ -382,6 +385,7 @@ class CfdxArgReader(ArgReader):
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
         "prop": "Extract scalar properties [comps matching *PAT*]",
         "q": "Submit to PBS/Slurm queue *QUEUE*, overrides value in JSON file",
+        "qdel": "Delete a PBS/Slurm job",
         "qsub": "Don't submit PBS/Slurm jobs even if otherwise specified",
         "re": "Limit to cases containing regular expression *REGEX*",
         "remote-dir": "Base path to use on remote host",
@@ -398,6 +402,7 @@ class CfdxArgReader(ArgReader):
         "triqfm": "Extract triq F&M data [comps matching *PAT*] for case(s)",
         "ts": "Extract time-series data [comps matching *PAT*]",
         "u": "Pretend to be user *UID*",
+        "unarchive": "Unarchive one or more cases",
         "unmark": "Remove PASS/ERROR marking for case(s)",
         "unmarked": "Show cases with no PASS/ERROR markings",
         "user": "Restrict to cases with this username",
@@ -832,7 +837,7 @@ class CfdxDefailArgs(_CfdxSubsetArgs):
 
     # Additional options
     _optlist = (
-        "defail"
+        "defail",
     )
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 
-The :mod:`cape.pyfun` module contains the top-level interface for FUN3D setup,
+The :mod:`cape.pyus` module contains the top-level interface for US3D setup,
 execution, and post-processing. It loads some of the most important methods
 from the various submodules so that they are easier to access. Most tasks using
 the pyFun API can be accessed by loading this module and reading one instance

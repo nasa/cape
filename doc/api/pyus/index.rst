@@ -1,3 +1,8 @@
+
+*************************************
+:mod:`cape.pyus`: US3D interfaces
+*************************************
+
 .. automodule:: cape.pyus
     :members:
     :undoc-members:

@@ -5,6 +5,11 @@ Description
 CAPE is software to improve Computational Aerosciences Productivity &
 Execution.
 
+A discussion of some of the newer features from a NASA Advanced Modeling &
+Simulation seminar can be found here:
+
+https://www.nas.nasa.gov/pubs/ams/2025/07-17-25.html
+
 Here is a link to a recording of a NASA Advanced Modeling & Simulation seminar
 that announced the release of CAPE 1.0.0
 
@@ -12,13 +17,14 @@ https://www.nas.nasa.gov/pubs/ams/2023/03-09-23.html
 
 CAPE has two main purposes:
 
-1. To execute and post-process three different Computational Fluid Dynamics
-(CFD) solvers:
+1. To execute and post-process multiple Computational Fluid Dynamics (CFD)
+   solvers:
 
     A. Cart3D
     B. FUN3D
     C. OVERFLOW
-    D. Kestrel (CAPE 1.1+)
+    D. CREATE-AV Kestrel (CAPE 1.1+)
+    E. LAVA Cartesian (CAPE 2.3+)
 
 2. Create and use "datakits" a combination of database and toolkit. These are
    data structures particularly well-suited to databases created from
