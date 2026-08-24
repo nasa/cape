@@ -50,7 +50,7 @@ extensions = [
 ]
 
 # Main title
-title = "Manual for CAPE version 2.0"
+title = "Manual for CAPE version 2.2.2"
 
 # Switches
 latex_opts = {
