@@ -15,6 +15,7 @@ final comment before the beginning of data.
 """
 
 # Standard library
+import json
 import os
 import re
 import sys
@@ -1147,8 +1148,15 @@ class CSVFile(BaseFile, TextInterpreter):
             for (j, col) in enumerate(parsedcols):
                 # Get value
                 v = vals[col][i]
+                # Check for quotes
+                if isinstance(v, str) and (delim in v):
+                    # Escape
+                    vj = json.dumps(v)
+                else:
+                    # Use value as is
+                    vj = v
                 # Write according to appropriate flag
-                fp.write(wflags[j] % v)
+                fp.write(wflags[j] % vj)
                 # Check for last column
                 if (j + 1 == ncol):
                     # End of line
