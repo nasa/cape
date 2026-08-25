@@ -122,7 +122,6 @@ classes that form the basis for the key CAPE functionality.
 .. toctree::
     :maxdepth: 2
 
-    cape/index
     cfdx/index
     pycart/index
     pyfun/index
@@ -130,5 +129,6 @@ classes that form the basis for the key CAPE functionality.
     pylch/index
     pykes/index
     pyover/index
+    pyus/index
     dkit/index
     tnakit/index

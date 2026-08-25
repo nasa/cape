@@ -1,4 +1,6 @@
 r"""
+:mod:`cape.pyus.options.configopts`: US3D configuration options
+================================================================
 
 This module provides options for defining some aspects of the surface
 configuration for a US3D run.  It can point to a surface configuration

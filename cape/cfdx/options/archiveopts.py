@@ -1,6 +1,6 @@
 r"""
-``cape.cfdx.options.archiveopts``: Case archiving options
-=========================================================
+:mod:`cape.cfdx.options.archiveopts`: Case archiving options
+==============================================================
 
 This module provides a class to access options relating to archiving
 folders that were used to run CFD simulations.

@@ -1,17 +1,17 @@
-------------------------------------------------------
-``Summary``: table of key scalar or coefficient values
-------------------------------------------------------
+---------------------------------
+Options for ``Summary`` subfigure
+---------------------------------
 
 **Option aliases:**
 
-* *nStats* → *NStats*
-* *nMinStats* → *NMinStats*
-* *nMaxStats* → *NMaxStats*
-* *Parent* → *Type*
-* *parent* → *Type*
-* *pos* → *Position*
-* *type* → *Type*
-* *width* → *Width*
+* *Parent* ? *Type*
+* *parent* ? *Type*
+* *pos* ? *Position*
+* *type* ? *Type*
+* *width* ? *Width*
+* *nStats* ? *NStats*
+* *nMinStats* ? *NMinStats*
+* *nMaxStats* ? *NMaxStats*
 
 **Recognized options:**
 
@@ -55,6 +55,6 @@
     printf-sylte text format for standard deviation
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``0.33``} | :class:`float`
+*Width*: {``0.33``} | :class:`int` | :class:`float`
     value of option "Width"
 

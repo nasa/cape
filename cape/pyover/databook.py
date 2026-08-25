@@ -1,6 +1,6 @@
 r"""
-``cape.pyover.databook``: DataBook module for OVERFLOW
-=======================================================
+:mod:`cape.pyover.databook`: DataBook module for OVERFLOW
+==========================================================
 
 This module contains functions for reading and processing forces,
 moments, and other statistics from cases in a trajectory. Data books are

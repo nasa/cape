@@ -12,7 +12,9 @@
     cntl
     options/index
     aerocshfile
+    archivist
     casecntl
+    cli
     cmdgen
     cmdrun
     databook

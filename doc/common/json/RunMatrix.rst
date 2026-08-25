@@ -4,15 +4,22 @@
 
 **Option aliases:**
 
-* *Cols* → *Keys*
-* *Defns* → *Definitions*
-* *JobNameMaxLength* → *MaxJobNameLength*
-* *cols* → *Keys*
-* *defns* → *Definitions*
-* *file* → *File*
-* *gas* → *Freestream*
-* *keys* → *Keys*
-* *prefix* → *Prefix*
+* *Cols* ? *Keys*
+* *Defns* ? *Definitions*
+* *JobNameMaxLength* ? *MaxJobNameLength*
+* *Replacements* ? *Replace*
+* *Subs* ? *RegexSubs*
+* *Substitute* ? *RegexSubs*
+* *cols* ? *Keys*
+* *defns* ? *Definitions*
+* *file* ? *File*
+* *gas* ? *Freestream*
+* *keys* ? *Keys*
+* *replace* ? *Replace*
+* *replacements* ? *Replace*
+* *subs* ? *RegexSubs*
+* *substitute* ? *RegexSubs*
+* *prefix* ? *Prefix*
 
 **Recognized options:**
 
@@ -30,6 +37,10 @@
     maximum length of PBS/Slurm job name
 *Prefix*: {``''``} | :class:`str`
     default prefix for case folders
+*RegexSubs*: {``None``} | :class:`ReplaceOpts`
+    regular expression substitutions to apply to case name
+*Replace*: {``None``} | :class:`ReplaceOpts`
+    replacements from one string to another in case name
 *Values*: {``{}``} | :class:`dict`
     value of option "Values"
 

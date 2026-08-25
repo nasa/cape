@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pyus.bin`: US3D binary interface module
+:mod:`cape.pyus.cmdrun`: US3D binary interface module
 =====================================================
 
 This module provides an interface to the various US3D executables and
 other command-line utilities from :mod:`cape.bin`.  However, due to some
 of the subtleties of how the main US3D executables are called,
 :func:`cape.pyus.casecntl.RunPhase` constructs the commands to run US3D
-from :mod:`cape.pyfun.cmd` locally and runs them using
-:func:`cape.bin.callf`.
+from :mod:`cape.pyus.cmdgen` locally and runs them using
+:func:`cape.cmdrun.callf`.
 
 :See also:
-    * :mod:`cape.cfdx.bin`
-    * :mod:`cape.cfdx.cmd`
-    * :mod:`cape.pyus.cmd`
+    * :mod:`cape.cfdx.cmdrun`
+    * :mod:`cape.cfdx.cmdgen`
+    * :mod:`cape.pyus.cmdgen`
 
 """
 

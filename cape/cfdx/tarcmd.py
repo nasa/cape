@@ -1,6 +1,6 @@
 r"""
-:class:`cape.cfdx.tarcmd`: Common tar/untar utilities
-======================================================
+:mod:`cape.cfdx.tarcmd`: Common tar/untar utilities
+=====================================================
 
 This module provides simple functions like :func:`tar` and :func:`untar`
 that either call the command-line executable (if available) or the

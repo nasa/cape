@@ -1,28 +1,28 @@
----------------------------------------------------
-``PlotL1``: subfigure to plot *L1* residual history
----------------------------------------------------
+--------------------------------
+Options for ``PlotL1`` subfigure
+--------------------------------
 
 **Option aliases:**
 
-* *LineOptions0* → *PlotOptions0*
-* *nPlotFirst* → *NPlotFirst*
-* *nFirst* → *NPlotFirst*
-* *nPlotIters* → *NPlotIters*
-* *nPlotLast* → *NPlotLast*
-* *FigHeight* → *FigureHeight*
-* *FigWidth* → *FigureWidth*
-* *GridStyle* → *GridPlotOptions*
-* *LineOptions* → *PlotOptions*
-* *MinorGridStyle* → *MinorGridPlotOptions*
-* *RestrictionLocation* → *RestrictionLoc*
-* *RestrictionX* → *RestrictionXPosition*
-* *RestrictionY* → *RestrictionYPosition*
-* *dpi* → *DPI*
-* *Parent* → *Type*
-* *parent* → *Type*
-* *pos* → *Position*
-* *type* → *Type*
-* *width* → *Width*
+* *Parent* ? *Type*
+* *parent* ? *Type*
+* *pos* ? *Position*
+* *type* ? *Type*
+* *width* ? *Width*
+* *FigHeight* ? *FigureHeight*
+* *FigWidth* ? *FigureWidth*
+* *GridStyle* ? *GridPlotOptions*
+* *LineOptions* ? *PlotOptions*
+* *MinorGridStyle* ? *MinorGridPlotOptions*
+* *RestrictionLocation* ? *RestrictionLoc*
+* *RestrictionX* ? *RestrictionXPosition*
+* *RestrictionY* ? *RestrictionYPosition*
+* *dpi* ? *DPI*
+* *nPlotFirst* ? *NPlotFirst*
+* *nFirst* ? *NPlotFirst*
+* *nPlotIters* ? *NPlotIters*
+* *nPlotLast* ? *NPlotLast*
+* *LineOptions0* ? *PlotOptions0*
 
 **Recognized options:**
 
@@ -80,7 +80,7 @@
     value of option "Ticks"
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``0.33``} | :class:`float`
+*Width*: {``0.33``} | :class:`int` | :class:`float`
     value of option "Width"
 *XLabel*: {``None``} | :class:`str`
     manual label for x-axis

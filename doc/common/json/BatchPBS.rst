@@ -1,10 +1,10 @@
-------------------------------------------------------------
-``BatchPBS``: options for PBS job control for batch commands
-------------------------------------------------------------
+------------
+``BatchPBS``
+------------
 
 **Option aliases:**
 
-* *site-needed* → *site_needed*
+* *site-needed* ? *site_needed*
 
 **Recognized options:**
 

@@ -1,48 +1,53 @@
-----------------------------------------------
-``PlotCoeffIter``: iterative history subfigure
-----------------------------------------------
+---------------------------------------
+Options for ``PlotCoeffIter`` subfigure
+---------------------------------------
 
 **Option aliases:**
 
-* *ErrPltOptions* → *EpsilonPlotOptions*
-* *ErrorFormat* → *EpsilonFormat*
-* *DeltaOptions* → *DeltaPlotOptions*
-* *IterativeError* → *KEpsilon*
-* *LineOptions* → *PlotOptions*
-* *MeanOptions* → *MuPlotOptions*
-* *NMin* → *NMinStats*
-* *StDevOptions* → *SigmaPlotOptions*
-* *col* → *Coefficient*
-* *nMaxStats* → *NMaxStats*
-* *nMin* → *NMinStats*
-* *nMinStats* → *NMinStats*
-* *nStats* → *NStats*
-* *nAverage* → *NStats*
-* *nAvg* → *NStats*
-* *nEpsilon* → *KEpsilon*
-* *nPlotFirst* → *NPlotFirst*
-* *nFirst* → *NPlotFirst*
-* *nPlotIters* → *NPlotIters*
-* *nPlotLast* → *NPlotLast*
-* *FigHeight* → *FigureHeight*
-* *FigWidth* → *FigureWidth*
-* *GridStyle* → *GridPlotOptions*
-* *MinorGridStyle* → *MinorGridPlotOptions*
-* *RestrictionLocation* → *RestrictionLoc*
-* *RestrictionX* → *RestrictionXPosition*
-* *RestrictionY* → *RestrictionYPosition*
-* *dpi* → *DPI*
-* *Parent* → *Type*
-* *parent* → *Type*
-* *pos* → *Position*
-* *type* → *Type*
-* *width* → *Width*
-* *Sigma* → *KSigma*
-* *StandardDeviation* → *KSigma*
-* *ksig* → *KSigma*
-* *nSigma* → *KSigma*
-* *sig* → *NSigma*
-* *sigma* → *KSigma*
+* *LineOptions* ? *PlotOptions*
+* *Sigma* ? *KSigma*
+* *StDevOptions* ? *SigmaPlotOptions*
+* *StandardDeviation* ? *KSigma*
+* *col* ? *Coefficient*
+* *ksig* ? *KSigma*
+* *nSigma* ? *KSigma*
+* *sig* ? *NSigma*
+* *sigma* ? *KSigma*
+* *Parent* ? *Type*
+* *parent* ? *Type*
+* *pos* ? *Position*
+* *type* ? *Type*
+* *width* ? *Width*
+* *FigHeight* ? *FigureHeight*
+* *FigWidth* ? *FigureWidth*
+* *GridStyle* ? *GridPlotOptions*
+* *MinorGridStyle* ? *MinorGridPlotOptions*
+* *RestrictionLocation* ? *RestrictionLoc*
+* *RestrictionX* ? *RestrictionXPosition*
+* *RestrictionY* ? *RestrictionYPosition*
+* *dpi* ? *DPI*
+* *nPlotFirst* ? *NPlotFirst*
+* *nFirst* ? *NPlotFirst*
+* *nPlotIters* ? *NPlotIters*
+* *nPlotLast* ? *NPlotLast*
+* *ComponentCaption* ? *CaptionComponent*
+* *ErrPltOptions* ? *EpsilonPlotOptions*
+* *ErrorFormat* ? *EpsilonFormat*
+* *DeltaOptions* ? *DeltaPlotOptions*
+* *IterativeError* ? *KEpsilon*
+* *MeanOptions* ? *MuPlotOptions*
+* *NMin* ? *NMinStats*
+* *SemiLogY* ? *LogY*
+* *nMaxStats* ? *NMaxStats*
+* *nMin* ? *NMinStats*
+* *nMinStats* ? *NMinStats*
+* *nStats* ? *NStats*
+* *nAverage* ? *NStats*
+* *nAvg* ? *NStats*
+* *nEpsilon* ? *KEpsilon*
+* *semilogy* ? *LogY*
+* *xcol* ? *XCol*
+* *xk* ? *XCol*
 
 **Recognized options:**
 
@@ -84,6 +89,8 @@
     multiple of iterative error to plot
 *KSigma*: {``0.0``} | :class:`float`
     multiple of sigma to plot above and below mean
+*LogY*: {``False``} | ``True``
+    use log scaling for y-axis
 *MinorGrid*: {``None``} | ``True`` | ``False``
     whether to show axes minor grid
 *MinorGridPlotOptions*: {``{}``} | :class:`dict`
@@ -138,8 +145,10 @@
     value of option "Ticks"
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``0.33``} | :class:`float`
+*Width*: {``0.33``} | :class:`int` | :class:`float`
     value of option "Width"
+*XCol*: {``'i'``} | :class:`str`
+    column to use for *x*-axis
 *XLabel*: {``None``} | :class:`str`
     manual label for x-axis
 *XLabelOptions*: {``None``} | :class:`dict`

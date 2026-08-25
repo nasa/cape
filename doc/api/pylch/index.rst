@@ -10,6 +10,7 @@
     cntl
     options/index
     casecntl
+    cli
     cmdgen
     databook
     fmfile

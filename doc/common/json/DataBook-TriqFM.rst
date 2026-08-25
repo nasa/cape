@@ -1,38 +1,39 @@
------------------------------------------------------------------
-``TriqFM``: options for a patch load or triqfm databook component
------------------------------------------------------------------
+-----------------------------------------
+Options for ``TriqFM`` databook component
+-----------------------------------------
 
 **Option aliases:**
 
-* *Config* → *ConfigFile*
-* *MapTriFile* → *MapTri*
-* *antol* → *AbsProjTol*
-* *atol* → *AbsTol*
-* *cntol* → *CompProjTol*
-* *ctol* → *CompTol*
-* *rntol* → *RelProjTol*
-* *rtol* → *RelTol*
-* *Coeffs* → *Cols*
-* *Coefficients* → *Cols*
-* *Component* → *CompID*
-* *NAvg* → *nStats*
-* *NFirst* → *NMin*
-* *NLast* → *NLastStats*
-* *NMax* → *NLastStats*
-* *NStatsMax* → *NMaxStats*
-* *coeffs* → *Cols*
-* *cols* → *Cols*
-* *dnStats* → *DNStats*
-* *nAvg* → *NStats*
-* *nFirst* → *NMin*
-* *nLast* → *NLastStats*
-* *nLastStats* → *NLastStats*
-* *nMax* → *NLastStats*
-* *nMaxStats* → *NMaxStats*
-* *nMin* → *NMin*
-* *nStats* → *NStats*
-* *nStatsMax* → *NMaxStats*
-* *tagets* → *Targets*
+* *Coeffs* ? *Cols*
+* *Coefficients* ? *Cols*
+* *Component* ? *CompID*
+* *NAvg* ? *nStats*
+* *NFirst* ? *NMin*
+* *NLast* ? *NLastStats*
+* *NMax* ? *NLastStats*
+* *NStatsMax* ? *NMaxStats*
+* *body* ? *Body*
+* *coeffs* ? *Cols*
+* *cols* ? *Cols*
+* *dnStats* ? *DNStats*
+* *nAvg* ? *NStats*
+* *nFirst* ? *NMin*
+* *nLast* ? *NLastStats*
+* *nLastStats* ? *NLastStats*
+* *nMax* ? *NLastStats*
+* *nMaxStats* ? *NMaxStats*
+* *nMin* ? *NMin*
+* *nStats* ? *NStats*
+* *nStatsMax* ? *NMaxStats*
+* *tagets* ? *Targets*
+* *Config* ? *ConfigFile*
+* *MapTriFile* ? *MapTri*
+* *antol* ? *AbsProjTol*
+* *atol* ? *AbsTol*
+* *cntol* ? *CompProjTol*
+* *ctol* ? *CompTol*
+* *rntol* ? *RelProjTol*
+* *rtol* ? *RelTol*
 
 **Recognized options:**
 
@@ -40,6 +41,8 @@
     absolute projection tolerance
 *AbsTol*: {``None``} | :class:`float`
     absolute tangent tolerance for surface mapping
+*Body*: {``None``} | :class:`int` | :class:`str`
+    reference body name for motion of this component
 *Cols*: {``'CA'``} | :class:`str`
     list of primary solver output variables to include
 *CompID*: {``None``} | :class:`object`

@@ -1,33 +1,36 @@
-------------------------------------------------------------------
-``_default_``: definitions for a force & moment databook component
-------------------------------------------------------------------
+--------------------------------------
+Options for default databook component
+--------------------------------------
 
 **Option aliases:**
 
-* *Coeffs* → *Cols*
-* *Coefficients* → *Cols*
-* *Component* → *CompID*
-* *NAvg* → *nStats*
-* *NFirst* → *NMin*
-* *NLast* → *NLastStats*
-* *NMax* → *NLastStats*
-* *NStatsMax* → *NMaxStats*
-* *coeffs* → *Cols*
-* *cols* → *Cols*
-* *dnStats* → *DNStats*
-* *nAvg* → *NStats*
-* *nFirst* → *NMin*
-* *nLast* → *NLastStats*
-* *nLastStats* → *NLastStats*
-* *nMax* → *NLastStats*
-* *nMaxStats* → *NMaxStats*
-* *nMin* → *NMin*
-* *nStats* → *NStats*
-* *nStatsMax* → *NMaxStats*
-* *tagets* → *Targets*
+* *Coeffs* ? *Cols*
+* *Coefficients* ? *Cols*
+* *Component* ? *CompID*
+* *NAvg* ? *nStats*
+* *NFirst* ? *NMin*
+* *NLast* ? *NLastStats*
+* *NMax* ? *NLastStats*
+* *NStatsMax* ? *NMaxStats*
+* *body* ? *Body*
+* *coeffs* ? *Cols*
+* *cols* ? *Cols*
+* *dnStats* ? *DNStats*
+* *nAvg* ? *NStats*
+* *nFirst* ? *NMin*
+* *nLast* ? *NLastStats*
+* *nLastStats* ? *NLastStats*
+* *nMax* ? *NLastStats*
+* *nMaxStats* ? *NMaxStats*
+* *nMin* ? *NMin*
+* *nStats* ? *NStats*
+* *nStatsMax* ? *NMaxStats*
+* *tagets* ? *Targets*
 
 **Recognized options:**
 
+*Body*: {``None``} | :class:`int` | :class:`str`
+    reference body name for motion of this component
 *Cols*: {``'CA'``} | :class:`str`
     list of primary solver output variables to include
 *CompID*: {``None``} | :class:`object`

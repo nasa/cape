@@ -1,10 +1,12 @@
 r"""
+:mod:`cape.msh`: FLUENT mesh interface
+=======================================
+
 It provides a class :class:`Msh` whose primary goal is to read a FLUENT
 mesh and write an AFLR3 UGRID mesh.
 
 The class provided in this module, :class:`cape.msh.Msh`, is only
 partially implemented, so extensive usage may run into limitations.
-
 """
 
 # Standard library

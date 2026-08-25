@@ -1,3 +1,9 @@
+r"""
+:mod:`cape.clidoc.cape_writell`: writell help
+==============================================
+
+Auto-generated help message for the writell utility.
+"""
 
 from .. import writell
 

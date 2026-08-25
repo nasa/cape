@@ -12,6 +12,7 @@
     cntl
     options/index
     casecntl
+    cli
     cmdgen
     cmdrun
     databook

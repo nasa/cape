@@ -203,9 +203,11 @@ class CfdxArgReader(ArgReader):
         "pt": (bool, str),
         "pull": bool,
         "q": bool,
+        "qdel": bool,
         "qsub": bool,
         "raw": bool,
         "re": str,
+        "remote-dir": str,
         "report": (bool, str),
         "restart": bool,
         "rm": bool,
@@ -217,6 +219,7 @@ class CfdxArgReader(ArgReader):
         "triqfm": (bool, str),
         "ts": (bool, str),
         "u": str,
+        "unarchive": bool,
         "unmark": bool,
         "unmarked": bool,
         "user": str,
@@ -263,11 +266,13 @@ class CfdxArgReader(ArgReader):
         "local",
         "marked",
         "prompt",
+        "pull",
         "qsub",
         "qdel",
         "restart",
         "rm",
         "start",
+        "unarchive",
         "unmark",
         "unmarked",
         "v",
@@ -380,8 +385,10 @@ class CfdxArgReader(ArgReader):
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
         "prop": "Extract scalar properties [comps matching *PAT*]",
         "q": "Submit to PBS/Slurm queue *QUEUE*, overrides value in JSON file",
+        "qdel": "Delete a PBS/Slurm job",
         "qsub": "Don't submit PBS/Slurm jobs even if otherwise specified",
         "re": "Limit to cases containing regular expression *REGEX*",
+        "remote-dir": "Base path to use on remote host",
         "report": "Generate the report *RP* or the first in the list",
         "restart": "When submitting new jobs, only submit new cases",
         "skeleton": "Delete most files from indicaded PASSED cases",
@@ -395,6 +402,7 @@ class CfdxArgReader(ArgReader):
         "triqfm": "Extract triq F&M data [comps matching *PAT*] for case(s)",
         "ts": "Extract time-series data [comps matching *PAT*]",
         "u": "Pretend to be user *UID*",
+        "unarchive": "Unarchive one or more cases",
         "unmark": "Remove PASS/ERROR marking for case(s)",
         "unmarked": "Show cases with no PASS/ERROR markings",
         "user": "Restrict to cases with this username",
@@ -442,6 +450,7 @@ class CfdxArgReader(ArgReader):
         "pt": "[PAT]",
         "q": "QUEUE",
         "re": "REGEX",
+        "remote-dir": "DIRNAME",
         "report": "[RP]",
         "surf": "SURF",
         "status": "STATUS",
@@ -828,7 +837,7 @@ class CfdxDefailArgs(_CfdxSubsetArgs):
 
     # Additional options
     _optlist = (
-        "defail"
+        "defail",
     )
 
 
@@ -1264,6 +1273,7 @@ class CfdxOpenPDFArgs(CfdxArgReader):
         "fpdf",
         "local",
         "pull",
+        "remote-dir",
         "wait",
     )
 
@@ -1656,6 +1666,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "qsub",
         "raw",
         "re",
+        "remote-dir",
         "report",
         "restart",
         "skeleton",
@@ -2650,11 +2661,12 @@ def cape_open_pdf(*a, **kw) -> Tuple[int, list]:
     # Get required argument
     fpdf = a[0]
     # Get options
+    rdir = kw.get("remote-dir")
     wait = kw.get("wait", False)
     local = kw.get("local", False)
     pull = kw.get("pull", False)
     # Open the pdf
-    sysutils.open_pdf(fpdf, wait=wait, local=local, pull=pull)
+    sysutils.open_pdf(fpdf, remote=rdir, wait=wait, local=local, pull=pull)
     # Return code
     return IERR_OK, None
 

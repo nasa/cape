@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.filecntl.filecntl`: Generic file control interface
+==============================================================
+
 This provides common methods to control objects for various specific
 files.  This includes various methods for reading files, splitting it
 into sections, and replacing lines based on patterns or regular

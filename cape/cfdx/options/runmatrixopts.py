@@ -1,9 +1,9 @@
 r"""
-Basic options for CAPE run matrix options
+:mod:`cape.cfdx.options.runmatrixopts`: Run matrix options
+===========================================================
 
 This module provides the class :class:`RunMatrixOpts`, which reads the
 settings in the ``"RunMatrix"`` section of the main CAPE control file.
-
 """
 
 

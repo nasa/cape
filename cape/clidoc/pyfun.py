@@ -1,3 +1,9 @@
+r"""
+:mod:`cape.clidoc.pyfun`: pyFun command-line help
+==================================================
+
+Auto-generated help message for the pyFun command-line interface.
+"""
 
 from ..pyfun import cli
 

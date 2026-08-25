@@ -1,33 +1,33 @@
---------------------------------------------------------------
-``SweepCoeff``: subfigure to plot sweep through multiple cases
---------------------------------------------------------------
+------------------------------------
+Options for ``SweepCoeff`` subfigure
+------------------------------------
 
 **Option aliases:**
 
-* *FigHeight* → *FigureHeight*
-* *FigWidth* → *FigureWidth*
-* *GridStyle* → *GridPlotOptions*
-* *LineOptions* → *PlotOptions*
-* *MinorGridStyle* → *MinorGridPlotOptions*
-* *RestrictionLocation* → *RestrictionLoc*
-* *RestrictionX* → *RestrictionXPosition*
-* *RestrictionY* → *RestrictionYPosition*
-* *dpi* → *DPI*
-* *nPlotFirst* → *NPlotFirst*
-* *nFirst* → *NPlotFirst*
-* *Parent* → *Type*
-* *parent* → *Type*
-* *pos* → *Position*
-* *type* → *Type*
-* *width* → *Width*
-* *Sigma* → *KSigma*
-* *StDevOptions* → *SigmaPlotOptions*
-* *StandardDeviation* → *KSigma*
-* *col* → *Coefficient*
-* *ksig* → *KSigma*
-* *nSigma* → *KSigma*
-* *sig* → *NSigma*
-* *sigma* → *KSigma*
+* *LineOptions* ? *PlotOptions*
+* *Sigma* ? *KSigma*
+* *StDevOptions* ? *SigmaPlotOptions*
+* *StandardDeviation* ? *KSigma*
+* *col* ? *Coefficient*
+* *ksig* ? *KSigma*
+* *nSigma* ? *KSigma*
+* *sig* ? *NSigma*
+* *sigma* ? *KSigma*
+* *Parent* ? *Type*
+* *parent* ? *Type*
+* *pos* ? *Position*
+* *type* ? *Type*
+* *width* ? *Width*
+* *FigHeight* ? *FigureHeight*
+* *FigWidth* ? *FigureWidth*
+* *GridStyle* ? *GridPlotOptions*
+* *MinorGridStyle* ? *MinorGridPlotOptions*
+* *RestrictionLocation* ? *RestrictionLoc*
+* *RestrictionX* ? *RestrictionXPosition*
+* *RestrictionY* ? *RestrictionYPosition*
+* *dpi* ? *DPI*
+* *nPlotFirst* ? *NPlotFirst*
+* *nFirst* ? *NPlotFirst*
 
 **Recognized options:**
 
@@ -91,7 +91,7 @@
     value of option "Ticks"
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``0.33``} | :class:`float`
+*Width*: {``0.33``} | :class:`int` | :class:`float`
     value of option "Width"
 *XLabel*: {``None``} | :class:`str`
     manual label for x-axis

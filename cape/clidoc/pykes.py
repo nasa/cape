@@ -1,3 +1,9 @@
+r"""
+:mod:`cape.clidoc.pykes`: pyKestrel command-line help
+======================================================
+
+Auto-generated help message for the pyKestrel command-line interface.
+"""
 
 from ..pykes import cli
 

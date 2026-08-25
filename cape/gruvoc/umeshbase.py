@@ -1,3 +1,10 @@
+r"""
+:mod:`cape.gruvoc.umeshbase`: Base class for unstructured mesh
+===============================================================
+
+This module provides the base class for unstructured mesh handling
+in the GRU VOC tools.
+"""
 
 # Standard library
 import copy
@@ -678,7 +685,8 @@ class UmeshBase(ABC):
             self, p, T, M, R=None, gam=1.4,
             mu0=None, T0=None, C=None, mks=True):
         r"""Compute skin friction using pyvista methods
-            :Call:
+
+        :Call:
             >>>surf = mesh.make_pv_skin_friction(p, T, M)
         :Inputs:
             *mesh*: :class:`Umesh`
@@ -882,7 +890,8 @@ class UmeshBase(ABC):
             self, p, T, M, R=None, gam=1.4,
             mu0=None, T0=None, C=None, mks=True):
         r"""Compute skin friction
-            :Call:
+
+        :Call:
             >>>surf = mesh.make_skin_friction(p, T, M)
         :Inputs:
             *mesh*: :class:`Umesh`
@@ -3143,9 +3152,9 @@ class UmeshBase(ABC):
         :Inputs:
             *mesh*: :class:`Umesh`
                 Unstructured mesh instance
-            *origin: :class:`tuple`\ [:class:`float`]
+            *origin*: :class:`tuple`\ [:class:`float`]
                 Point in specified cut plane
-            *normal: :class:`tuple`\ [:class:`float`]
+            *normal*: :class:`tuple`\ [:class:`float`]
                 Normal to define cut plane
         :Outputs:
             *vslice*: :class:`Umesh`
@@ -3803,6 +3812,7 @@ class UmeshBase(ABC):
             L=1.0, bound0=None, R=None, gam=None,
             mu0=None, T0=None, C=None, mks=True):
         r"""Calculate wall normal distances
+
         :Call:
             >>> yplus = genr8_yplus(p, T, M)
         :Inputs:
@@ -4407,7 +4417,7 @@ def rotate_points_to_plane(points, plane_center, plane_normal):
     Outputs:
         *rotated_points*: class:`np.array`
             A numpy array of the rotated coordinates.
-    r"""
+    """
     # Center the points according to plane
     points = points - plane_center
     # Calculate a rotation axis that rotates the normal vector to the z-axis

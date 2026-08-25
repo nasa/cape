@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.tnakit.promptutils`: Command-line prompt utilities
+==============================================================
+
 This module provides for interactive command-line prompts, including
 support for BASH color modifications. By default, it will display
 prompts in green, and user-responses will use the system text color.

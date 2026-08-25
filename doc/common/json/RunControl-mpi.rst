@@ -1,10 +1,10 @@
-------------------------------------------------------------
-``mpi``: options for MPI executable and command-line options
-------------------------------------------------------------
+-------
+``mpi``
+-------
 
 **Option aliases:**
 
-* *nhost* → *perhost*
+* *nhost* ? *perhost*
 
 **Recognized options:**
 

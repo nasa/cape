@@ -1,27 +1,33 @@
 .. _cape-json-databook:
 
---------------------------------------------------------------
-``DataBook``: options for which post-processed data to collect
---------------------------------------------------------------
+------------
+``DataBook``
+------------
 
 **Option aliases:**
 
-* *Dir* → *Folder*
-* *NAvg* → *nStats*
-* *NFirst* → *NMin*
-* *NLast* → *NLastStats*
-* *NMax* → *NLastStats*
-* *delim* → *Delimiter*
-* *dnStats* → *DNStats*
-* *nAvg* → *NStats*
-* *nFirst* → *NMin*
-* *nLast* → *NLastStats*
-* *nLastStats* → *NLastStats*
-* *nMax* → *NLastStats*
-* *nMaxStats* → *NMaxStats*
-* *nMin* → *NMin*
-* *nStats* → *NStats*
-* *nStatsMax* → *NMaxStats*
+* *CTUMin* ? *MinCTU*
+* *CTUmin* ? *MinCTU*
+* *Dir* ? *Folder*
+* *MinTime* ? *MinT*
+* *NAvg* ? *nStats*
+* *NFirst* ? *NMin*
+* *NLast* ? *NLastStats*
+* *NMax* ? *NLastStats*
+* *TMin* ? *MinT*
+* *ctumin* ? *MinCTU*
+* *delim* ? *Delimiter*
+* *dnStats* ? *DNStats*
+* *nAvg* ? *NStats*
+* *nFirst* ? *NMin*
+* *nLast* ? *NLastStats*
+* *nLastStats* ? *NLastStats*
+* *nMax* ? *NLastStats*
+* *nMaxStats* ? *NMaxStats*
+* *nMin* ? *NMin*
+* *nStats* ? *NStats*
+* *nStatsMax* ? *NMaxStats*
+* *tmin* ? *MinT*
 
 **Recognized options:**
 
@@ -33,6 +39,10 @@
     delimiter to use in databook files
 *Folder*: {``'data'``} | :class:`str`
     folder for root of databook
+*MinCTU*: {``None``} | :class:`float`
+    value of option "MinCTU"
+*MinT*: {``None``} | :class:`float`
+    value of option "MinT"
 *NLastStats*: {``None``} | :class:`int`
     specific iteration at which to extract stats
 *NMaxStats*: {``None``} | :class:`int`
@@ -52,8 +62,11 @@
     DataBook-Targets
     DataBook-_default_
     DataBook-FM
+    DataBook-IterFM
     DataBook-IterPoint
     DataBook-LineLoad
+    DataBook-PointProbe
     DataBook-PyFunc
+    DataBook-SurfCp
     DataBook-TriqFM
     DataBook-TriqPoint

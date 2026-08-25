@@ -15,10 +15,15 @@ The :mod:`cape` module
     argread
     atm
     capeio
+    capeconfig
     cgns
+    cli
     color
     config
+    console
     convert
+    convert1to2
+    errors
     geom
     gruvoc/index
     fileutils
@@ -28,12 +33,17 @@ The :mod:`cape` module
     plot3d
     pltfile
     pvutils
+    sequtils
+    splitzones
     statutils
     step
+    sysutils
     teccli
+    text
     textutils
     trifile
     tricli
+    triqfm
     units
     util
     writell

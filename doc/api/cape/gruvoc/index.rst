@@ -5,8 +5,12 @@
 .. toctree::
 
     umesh
+    umeshbase
     avmfile
     flowfile
+    frofile
+    meshbfile
+    solbfile
     pltfile
     surf3dfile
     trifile
@@ -14,6 +18,8 @@
     ugridfile
     uh3dfile
     cli
+    errors
+    fileutils
     geom
     surfconfig
     volcomp

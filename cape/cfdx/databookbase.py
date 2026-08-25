@@ -1,6 +1,6 @@
 r"""
-:class:`cape.cfdx.databookbase`: Abstract base classes for DataBook
-=====================================================================
+:mod:`cape.cfdx.databookbase`: Abstract base classes for DataBook
+===================================================================
 
 This module provides abstract base classes for the "DataBook" capability
 in CAPE, which collects post-processed data from CFD cases.

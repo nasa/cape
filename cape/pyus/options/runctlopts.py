@@ -1,4 +1,6 @@
 r"""
+:mod:`cape.pyus.options.runctlopts`: US3D run control options
+==============================================================
 
 Options interface for aspects of running a case of US3D. The settings
 are read from the ``"RunControl"`` of a JSON file, and the contents of

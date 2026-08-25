@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.tnakit.rstutils`: reStructuredText utilities
+========================================================
+
 This module contains tools to write text formatted for reStructuredText
 (reST). This includes various markup options and tools for creating the
 directives to include images.  Of particular interest are the functions

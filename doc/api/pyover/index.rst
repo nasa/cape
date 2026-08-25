@@ -14,10 +14,12 @@
     cntl
     options/index
     casecntl
+    cli
     cmdgen
     databook
     overnmlfile
     plot3d
+    pointsensor
     report
     util
 

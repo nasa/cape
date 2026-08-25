@@ -10,6 +10,7 @@
     cntl
     options/index
     casecntl
+    cli
     jobxml
     cmdgen
     databook

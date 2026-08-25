@@ -138,12 +138,16 @@ JOB_STATUSES = (
 )
 
 LOG_LEVEL_MAP = {
+    "0": 0,
     "none": 0,
+    "1": 1,
     "lo": 1,
     "low": 1,
     "on": 1,
+    "2": 2,
     "hi": 2,
     "high": 2,
+    "3": 3,
     "verbose": 3,
 }
 
@@ -3958,7 +3962,7 @@ class Cntl(CntlBase):
         # Get executable name
         cmdexec = os.path.basename(cmdlist[0])
         # Split first command
-        cmdfinal = cmdexec.split('-', 1) + cmdlist[1:]
+        cmdfinal = cmdexec.split(maxsplit=1) + cmdlist[1:]
         # Log cntl state
         self.log_cntl()
         # Log the current hash

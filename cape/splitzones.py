@@ -1,3 +1,11 @@
+r"""
+:mod:`cape.splitzones`: Mesh zone splitting utilities
+======================================================
+
+This module provides utilities for splitting mesh zones for efficient
+spatial searching.
+"""
+
 import numpy as np
 
 

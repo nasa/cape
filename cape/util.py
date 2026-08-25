@@ -58,7 +58,7 @@ def stackcol(cols):
 
 
 # Split a line
-def split_line(line: str, delim: str, ncol: int):
+def split_line(line: str, delim: str, ncol: int) -> list:
     r"""Split a line into values, respecting quotes if necessary
 
     :Call:
@@ -93,26 +93,28 @@ def split_line(line: str, delim: str, ncol: int):
     open_char = None
     # Loop through raw parts
     for part in raw_parts:
+        # Strip
+        vpart = part.strip()
         # Set flag for start of escaped continued string
         start = 0
         # Check if we're already in a continued string
         if flag_quote:
             # Append to current value
             v += delim + part
-        elif part.startswith("'") or part.startswith('"'):
+        elif vpart.startswith("'") or vpart.startswith('"'):
             # Start of (new) escaped string
             start = 1
             flag_quote = True
-            open_char = part[0]
+            open_char = vpart[0]
             # Initialize part
             v = part
         # Check if we ended the part
-        if flag_quote and part.endswith(open_char):
+        if flag_quote and vpart.endswith(open_char):
             # We're in a continued quote and have the right end-char
             # But we need to check if we have an even number of quotes
             if part.count(open_char) % 2 != start:
                 # End of current string
-                parts.append(v.strip(open_char))
+                parts.append(v.strip().strip(open_char))
                 flag_quote = False
                 continue
         elif not flag_quote:

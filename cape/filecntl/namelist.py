@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.filecntl.namelist`: Fortran namelist interface
+==========================================================
+
 This is a module built off of the :mod:`cape.filecntl.FileCntl` module
 customized for manipulating Fortran namelists.  Such files are split
 into sections which are called "name lists."  Each name list has syntax

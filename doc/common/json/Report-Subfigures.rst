@@ -1,8 +1,8 @@
 .. _cape-json-reportsubfigure:
 
--------------------------------------------------------------
-``Subfigures``: ``Subfigures``: dict of subfigure definitions
--------------------------------------------------------------
+--------------
+``Subfigures``
+--------------
 
 **Recognized options:**
 
@@ -29,6 +29,7 @@
     Report-Subfigures-PlotL2
     Report-Subfigures-PlotLineLoad
     Report-Subfigures-PlotResid
+    Report-Subfigures-Python
     Report-Subfigures-Summary
     Report-Subfigures-SweepCases
     Report-Subfigures-SweepCoeff

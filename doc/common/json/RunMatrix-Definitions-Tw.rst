@@ -1,13 +1,17 @@
------------------------------------------
-``Tw``: options for run matrix definition
------------------------------------------
+------------------
+Options for ``Tw``
+------------------
 
 **Option aliases:**
 
-* *DType* → *Value*
-* *DataType* → *Value*
-* *DisplayScale* → *FormatMultiplier*
-* *ScaleDisplay* → *FormatMultiplier*
+* *DType* ? *Value*
+* *DataType* ? *Value*
+* *DisplayScale* ? *FormatMultiplier*
+* *FormatReplace* ? *Replace*
+* *Replacements* ? *Replace*
+* *ScaleDisplay* ? *FormatMultiplier*
+* *Subs* ? *RegexSubs*
+* *Substitute* ? *RegexSubs*
 
 **Recognized options:**
 
@@ -29,6 +33,10 @@
     value of option "PBSFormat"
 *PBSLabel*: {``None``} | ``True`` | ``False``
     value of option "PBSLabel"
+*RegexSubs*: {``None``} | :class:`ReplaceOpts`
+    value of option "RegexSubs"
+*Replace*: {``None``} | :class:`ReplaceOpts`
+    value of option "Replace"
 *SkipIfZero*: {``False``} | ``True``
     value of option "SkipIfZero"
 *Source*: {``None``} | :class:`str`

@@ -1,10 +1,10 @@
-----------------------------------------------------
-``Archive``: options for archiving and file clean-up
-----------------------------------------------------
+-----------
+``Archive``
+-----------
 
 **Option aliases:**
 
-* *progress* → *clean*
+* *progress* ? *clean*
 
 **Recognized options:**
 

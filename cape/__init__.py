@@ -31,12 +31,12 @@ definition, and many of these classes are accessible directly from the
 A categorized list of modules available to the API are listed below.
 
     * Core modules
-       - :mod:`cape.cntl`
+       - :mod:`cape.cfdx.cntl`
        - :mod:`cape.cfdx.options`
-       - :mod:`cape.cfdx.case`
-       - :mod:`cape.runmatrix`
-       - :mod:`cape.cfdx.dataBook`
-       - :mod:`cape.cfdx.pointSensor`
+       - :mod:`cape.cfdx.casecntl`
+       - :mod:`cape.cfdx.runmatrix`
+       - :mod:`cape.cfdx.databook`
+       - :mod:`cape.cfdx.pointsensor`
        - :mod:`cape.cfdx.lineload`
        - :mod:`cape.cfdx.report`
 
@@ -46,20 +46,14 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.cfdx.queue`
        - :mod:`cape.argread`
        - :mod:`cape.capeio`
-       - :mod:`cape.manage`
+       - :mod:`cape.cfdx.manage`
 
     * File interfaces
        - :mod:`cape.filecntl`
        - :mod:`cape.filecntl.namelist`
        - :mod:`cape.filecntl.namelist2`
-       - :mod:`cape.filecntl.tecplot`
-       - :mod:`cape.filecntl.tex`
-       - :mod:`cape.tri`
-       - :mod:`cape.cgns`
-       - :mod:`cape.msh`
-       - :mod:`cape.plot3d`
-       - :mod:`cape.plt`
-       - :mod:`cape.step`
+       - :mod:`cape.trifile`
+       - :mod:`cape.gruvoc`
 
     * Utilities
        - :mod:`cape.util`
@@ -67,8 +61,6 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.config`
        - :mod:`cape.convert`
        - :mod:`cape.geom`
-       - :mod:`cape.tar`
-       - :mod:`cape.text`
        - :mod:`cape.cfdx.volcomp`
 
 
@@ -112,7 +104,7 @@ import os
 
 
 # Save version number
-version = "1.2.0"
+version = "2.3.0"
 __version__ = version
 
 # Get the root directory of the module.

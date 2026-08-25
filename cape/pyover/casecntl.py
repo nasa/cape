@@ -569,7 +569,8 @@ class CaseRunner(casecntl.CaseRunner):
         opts = cntl.opts
         # Get path to fomofolder
         fomodir = opts.get_DataBook_fomo()
-        fomodir = fomodir if (fomodir is not None) else opts.get_ConfigFomoFolder()
+        fomodir = fomodir if (
+            fomodir is not None) else opts.get_ConfigFomoFolder()
         fomodir = cntl.abspath(fomodir)
         # Get method
         if "TriqMethod" in opts["Config"]:

@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.cgns`: CGNS file interface
+======================================
+
 This module provides a class for reading CGNS files of certain types
 that have been implemented.  The main purpose is to read surface
 triangulations with quads and convert it into a :class:`cape.trifile.Tri`
 object.  However, the class provided in this module,
-:mod:`cape.cgns.CGNS`, must be converted into a :class:`cape.trifile.Tri`
+:class:`cape.cgns.CGNS`, must be converted into a :class:`cape.trifile.Tri`
 or other object externally.  This module merely reads the file, reads
 the data from each node, and constructs a sub-node table.
 
