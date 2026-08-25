@@ -395,13 +395,16 @@ def train_model(
         scheduler_cls=None,
         scheduler_kwargs: dict = None,
         clip_grad: float = 0.0,
-        verbose: bool = True) -> Dict[str, list]:
+        verbose: bool = True,
+        return_best: bool = False) -> Dict[str, list]:
     criterion = criterion or ReconstructionLoss("mse")
     optimizer_kwargs = optimizer_kwargs or {}
     optimizer = optimizer_cls(model.parameters(), lr=lr, **optimizer_kwargs)
     scheduler = scheduler_cls(
         optimizer, **(scheduler_kwargs or {})) if scheduler_cls else None
     history = {"train_loss": [], "val_loss": []}
+    best_train_loss = 1e16
+    best_state = None
     for epoch in range(1, epochs + 1):
         train_loss = train_one_epoch(
             model, train_loader, optimizer,
@@ -411,12 +414,19 @@ def train_model(
         if val_loader is not None:
             val_loss = evaluate(model, val_loader, criterion, device)
             history["val_loss"].append(val_loss)
+
+        # Save best model based on training loss
+        if train_loss < best_train_loss and return_best:
+            best_train_loss = train_loss
+            # Deep copy the parameters
+            best_state = copy.deepcopy(model.state_dict())
+
         if verbose:
             msg = f"Epoch [{epoch:>4}/{epochs}]  train={train_loss:.6f}"
             if val_loss is not None:
                 msg += f"  val={val_loss:.6f}"
             print(msg)
-    return history
+    return history, best_state
 
 
 def _enlist(v: Union[list, int], n: int) -> list:
