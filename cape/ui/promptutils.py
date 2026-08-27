@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
-``promptutils``: Useful tools for interactive CLI prompts
-============================================================
+:mod:`cape.promptutils`: Useful tools for interactive CLI prompts
+===================================================================
+
+This includes a CAPE-specific autocompletion class
+:class:`CfdxCompleter`, which is used in :mod:`cape.ui`.
 
 """
 
@@ -32,36 +35,69 @@ except ModuleNotFoundError:
 
 # Console colors and attributes
 CONSOLE = {
+    # Foreground colors
     'black':     '\x1b[30m',
-    'blink':     '\x1b[05m',
-    'blue':      '\x1b[34;01m',
-    'bold':      '\x1b[01m',
-    'brown':     '\x1b[33m',
-    'darkblue':  '\x1b[34m',
     'darkgray':  '\x1b[30;01m',
-    'darkgreen': '\x1b[32m',
-    'darkred':   '\x1b[31m',
-    'faint':     '\x1b[02m',
-    'fuchsia':   '\x1b[35;01m',
-    'green':     '\x1b[32;01m',
-    'italic':    "\x1b[3m",
-    'lightgray': '\x1b[37m',
-    'plain':     "\x1b[0m",
-    'purple':    '\x1b[35m',
     'red':       '\x1b[31;01m',
-    'reset':     '\x1b[39;49;00m',
-    'standout':  '\x1b[03m',
-    'strikethrough': '\x1b[29m',
-    'teal':      '\x1b[36;01m',
-    'turquoise': '\x1b[36m',
-    'underline': '\x1b[04m',
-    'white':     '\x1b[37;01m',
+    'darkred':   '\x1b[31m',
+    'green':     '\x1b[32;01m',
+    'darkgreen': '\x1b[32m',
     'yellow':    '\x1b[33;01m',
+    'brown':     '\x1b[33m',
+    'blue':      '\x1b[34;01m',
+    'darkblue':  '\x1b[34m',
+    'purple':    '\x1b[35m',
+    'fuchsia':   '\x1b[35;01m',
+    'turquoise': '\x1b[36m',
+    'teal':      '\x1b[36;01m',
+    'white':     '\x1b[37;01m',
+    'lightgray': '\x1b[37m',
+    # Bright foreground colors
+    'bright-black':   '\x1b[90m',
+    'bright-red':     '\x1b[91m',
+    'bright-green':   '\x1b[92m',
+    'bright-yellow':  '\x1b[93m',
+    'bright-blue':    '\x1b[94m',
+    'bright-magenta': '\x1b[95m',
+    'bright-cyan':    '\x1b[96m',
+    'bright-white':   '\x1b[97m',
+    # Background colors
+    'bg-black':     '\x1b[40m',
+    'bg-red':       '\x1b[41m',
+    'bg-green':     '\x1b[42m',
+    'bg-yellow':    '\x1b[43m',
+    'bg-blue':      '\x1b[44m',
+    'bg-magenta':   '\x1b[45m',
+    'bg-cyan':      '\x1b[46m',
+    'bg-white':     '\x1b[47m',
+    # Bright background colors
+    'bg-bright-black':   '\x1b[100m',
+    'bg-bright-red':     '\x1b[101m',
+    'bg-bright-green':   '\x1b[102m',
+    'bg-bright-yellow':  '\x1b[103m',
+    'bg-bright-blue':    '\x1b[104m',
+    'bg-bright-magenta': '\x1b[105m',
+    'bg-bright-cyan':    '\x1b[106m',
+    'bg-bright-white':   '\x1b[107m',
+    # Text attributes
+    'bold':       '\x1b[01m',
+    'faint':      '\x1b[02m',
+    'italic':     '\x1b[03m',
+    'underline':  '\x1b[04m',
+    'blink':      '\x1b[05m',
+    'standout':   '\x1b[03m',
+    'reverse':    '\x1b[07m',
+    'conceal':    '\x1b[08m',
+    'strikethrough': '\x1b[09m',
+    # Reset
+    'plain':      '\x1b[0m',
+    'reset':      '\x1b[39;49;00m',
 }
 
 
 # Regular expression to recognize "@{n}" entries
 REGEX_AT = re.compile("@([0-9]+)")
+REGEX_QUOTE = re.compile('"' + "'")
 
 # Generic completer settings
 readline.set_completer_delims(' \t\n')
@@ -84,6 +120,7 @@ class CfdxCompleter:
         "matches",
         "cls",
         "solver",
+        "role",
     )
 
     def __init__(self, cls: type["ArgReader"]):
@@ -96,6 +133,10 @@ class CfdxCompleter:
         self.cls = cls
         #: :class:`str` | ``None``
         #: Name of current solver based on first word of command
+        self.solver = None
+        #: :class:`str` | ``None``
+        #: Role of current word
+        self.role = None
 
     def __call__(self, text: str, state: int) -> Optional[str]:
         # Get list of suggestions starting with *text*
@@ -107,7 +148,20 @@ class CfdxCompleter:
         # Default to None
         return None
 
-    def get_suggestions(self, text: str) -> list:
+    def get_suggestions(self, text: str) -> list[str]:
+        r"""Get completions; add ``' '`` or ``'/'`` if appropriate
+
+        :Call:
+            >>> suggestions = comp.genr8_get_suggestionssuggestions(text)
+        :Inputs:
+            *comp*: :class:`CfdxCompleter`
+                CAPE front desk autocompleter
+            *text*: :class:`str`
+                Current text of current word
+        :Outputs
+            *suggestions*: :class:`list`\ [:class:`str`]
+                List of suggested completions for current word
+        """
         # Get matches
         matches = self.genr8_suggestions(text)
         # Move on to next word if unique suggestion and not a folder
@@ -115,16 +169,16 @@ class CfdxCompleter:
             # Get that unique match
             mtch = matches[0]
             # Check if it's a folder
-            if os.path.isdir(mtch):
+            if (self.role == "filename") and os.path.isdir(mtch):
                 # Add a slash
-                matches[0] = mtch + os.path.sep
+                matches[0] = mtch + os.sep
             else:
                 # Add a space to move onto next option
                 matches[0] = mtch + " "
         # Output
         return matches
 
-    def genr8_suggestions(self, text: str) -> list:
+    def genr8_suggestions(self, text: str) -> list[str]:
         r"""Generate list of suggestions based on current prompt
 
         :Call:
@@ -138,10 +192,12 @@ class CfdxCompleter:
             *suggestions*: :class:`list`\ [:class:`str`]
                 List of suggested completions for current word
         """
+        # Reset role
+        self.role = None
         # Get position
         line = readline.get_line_buffer()
         # Split line back into argv
-        argv = shlex.split(line)
+        argv = shlex.split(line.lstrip('$').lstrip())
         # Get index of current word
         if text in argv:
             # Proper index
@@ -155,6 +211,7 @@ class CfdxCompleter:
             xcape = complete_xcape(text)
             xpath = complete_pathcmds(text)
             xfile = complete_xfilenames(text)
+            self.role = "pathcmd"
             # Output
             return xcape + xpath + xfile
         # Set solver name based on word 0
@@ -163,13 +220,12 @@ class CfdxCompleter:
             self.solver = argv[0]
         else:
             # Not a CAPE command
+            self.role = "filename"
             return complete_filenames(text)
         # Check for option vs value
         if text.startswith("-"):
-            # Get name of option so far (w/o '--')
-            optpat = text.lstrip('-')
             # Filter existing options
-            opts = fnmatch.filter(self.cls._optlist, f"{optpat}*")
+            opts = self.genr8_optlist(text)
             # Initialize output
             suggestions = []
             # Add one or two dashes
@@ -180,8 +236,113 @@ class CfdxCompleter:
                 suggestions.append(f"{prefix}{opt}")
             # Good
             return suggestions
+        elif ("=" in text) and not REGEX_QUOTE.match(text):
+            # Using alternate option=value syntax
+            opt, text = text.split('=', 1)
+            # Get suggested values
+            vals = self.genr8_optvals(opt, text)
+            # Append LHS to completesions
+            suggestions = [f'{opt}={v}' for v in vals]
+            return suggestions
+        # For arg 1, suggest using canonical format
+        if j == 1 and len(argv) == 2:
+            return self.genr8_cmdnames(text)
+        # Check if we're in an option or not
+        if j > 1:
+            # Get previous argument to see if it's an option
+            prev = argv[j - 1]
+            opt = prev.lstrip('-')
+            if prev.startswith("-") and opt not in self.cls._optlist_noval:
+                # Get completions for that value
+                return self.genr8_optvals(opt, text)
+        # For new words, let's recommend options
+        if len(text) == 0:
+            # Get list of options
+            opts = self.cls._optlist
+            # Append '-' to each
+            suggestions = []
+            # Add one or two dashes
+            for opt in opts:
+                # Check length
+                prefix = '-' if (len(opt) == 1) else '--'
+                # Append to list
+                suggestions.append(f"{prefix}{opt}")
+            # Output
+            self.role = "optname"
+            return suggestions
         # Default to file names
+        self.role = "filename"
         return complete_filenames(text)
+
+    def genr8_cmdnames(self, text: str) -> list[str]:
+        r"""Suggest list of CAPE command name completions
+
+        :Call:
+            >>> cmds = comp.genr8_cmdnames(text)
+        :Inputs:
+            *comp*: :class:`CfdxCompleter`
+                CAPE front desk autocompleter
+            *text*: :class:`str`
+                Current user input to match against command names
+        :Outputs:
+            *cmds*: :class:`list`\ [:class:`str`]
+                List of command names matching *text* pattern
+        """
+        # Fitler existing options
+        self.role = "cmdname"
+        return fnmatch.filter(self.cls._cmdlist, f"{text}*")
+
+    def genr8_optlist(self, text: str) -> list[str]:
+        r"""Suggest list of option name completions
+
+        :Call:
+            >>> opts = comp.genr8_optlist(text)
+        :Inputs:
+            *comp*: :class:`CfdxCompleter`
+                CAPE front desk autocompleter
+            *text*: :class:`str`
+                Current user input to match against option names
+        :Outputs:
+            *opts*: :class:`list`\ [:class:`str`]
+                List of options matching *text* pattern
+        """
+        # Get name of option so far (w/o '--')
+        optpat = text.lstrip('-')
+        # Filter existing options
+        opts = fnmatch.filter(self.cls._optlist, f"{optpat}*")
+        # Output
+        self.role = "optname"
+        return opts
+
+    def genr8_optvals(self, opt: str, text: str) -> list[str]:
+        r"""Suggest list of possible option values
+
+        :Call:
+            >>> suggestions = comp.genr8_optvals(opt, text)
+        :Inputs:
+            *comp*: :class:`CfdxCompleter`
+                CAPE front desk autocompleter
+            *opt*: :class:`str`
+                Name of option whose values are being completed
+            *text*: :class:`str`
+                Current user input to match against allowed values
+        :Outputs:
+            *suggestions*: :class:`list`\\[:class:`str`]
+                List of allowed values for *opt* that start with *text*
+        """
+        # Create pattern
+        pat = f"{text}*"
+        # Check what kind of option it is
+        if opt in self.cls._optvals:
+            # Filter the allowed option values
+            self.role = "optval"
+            return fnmatch.filter(self.cls.get_optvals(opt), pat)
+        elif opt in self.cls._optlist_file:
+            # Search for files
+            self.role = "filename"
+            return complete_filenames(text)
+        # Otherwise no special completions
+        return []
 
 
 # Get list of files matching current glob
