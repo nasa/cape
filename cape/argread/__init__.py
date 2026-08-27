@@ -538,6 +538,10 @@ class ArgReader(dict, metaclass=MetaArgReader):
     #: (:class:`tuple` | :class:`set`)\ [:class:`str`]
     _optlist_noval = ()
 
+    #: List of options that usually take the name of an existing file
+    #: :class:`tuple`\ [:class:`str`
+    _optlist_file = ()
+
     #: Aliases for kwarg names; key gets replaced with value:
     #: :class:`dict`\ [:class:`str`]
     _optmap = {}

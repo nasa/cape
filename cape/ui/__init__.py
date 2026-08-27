@@ -10,11 +10,11 @@ import readline
 import shlex
 import socket
 import subprocess
-from typing import Tuple
+from typing import Optional, Tuple
 
 # Local imports
-from . import capeconfig
-from .promptutils import sprintf_color_rl
+from .. import capeconfig
+from .promptutils import CfdxCompleter, sprintf_color_rl
 
 
 # Constatnts
@@ -22,7 +22,7 @@ CAPE_HISTORY_LENGTH = 1000
 
 
 # Main function
-def main() -> Tuple[int, dict]:
+def main(cls: Optional[type] = None) -> Tuple[int, dict]:
     # Get history file
     histfile = capeconfig.get_cape_opt("HistoryFile")
     # If relative path, join with CacheDir
@@ -39,7 +39,11 @@ def main() -> Tuple[int, dict]:
     # Get hostname
     hostname = socket.gethostname().split('.')[0]
     # Count number of commands run
+    n_failure = 0
     n_commands = 0
+    # Create autocompleter
+    completer = CfdxCompleter(cls)
+    readline.set_completer(completer)
     # Loop until user requests exit
     while True:
         # Get last two parts
@@ -53,6 +57,7 @@ def main() -> Tuple[int, dict]:
             user_message = input(user_prompt).strip()
         except (EOFError, KeyboardInterrupt):
             print()
+            ierr = 0
             break
         # Recycle if empty prompt given
         if not user_message:
@@ -64,13 +69,27 @@ def main() -> Tuple[int, dict]:
                 os.chdir(parts[1])
             except FileNotFoundError:
                 print(f"CAPE> Folder not found: '{parts[1]}")
+                n_failure += 1
             except PermissionError:
                 print(f"CAPE> Permission denied: '{parts[1]}'")
+                n_failure += 1
+            # Count as a command
+            n_commands += 1
+            # Skip cd
+            continue
         # Run the command
-        ierr = subprocess.run(shlex.split(user_message))
+        try:
+            proc = subprocess.run(shlex.split(user_message))
+            ierr = proc.returncode
+        except PermissionError:
+            ierr = 13
+        except Exception:
+            ierr = 1
         # Count commands
         n_commands += 1
+        if ierr:
+            n_failure += 1
     # Return code
-    return ierr.returncode, {"n_commands": n_commands}
+    return ierr, {"commands": n_commands, "failures": n_failure}
 
 

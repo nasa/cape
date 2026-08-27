@@ -11,16 +11,23 @@ from __future__ import annotations
 # Standard library
 import fnmatch
 import glob
+import os
 import re
 import readline
+import shlex
 from typing import Any, Callable, Optional
 
-# Third-party
-from colorama import init
+# Local imports
+from ..argread import ArgReader
 
-
-# Initialize colorama to support ANSI escape codes on Windows
-init(autoreset=True)
+# Fix prompt colors for Windows
+try:
+    # Import colorama
+    from colorama import init
+    # Initialize colorama to support ANSI escape codes on Windows
+    init(autoreset=True)
+except ModuleNotFoundError:
+    init = None
 
 
 # Console colors and attributes
@@ -60,65 +67,170 @@ REGEX_AT = re.compile("@([0-9]+)")
 readline.set_completer_delims(' \t\n')
 readline.parse_and_bind("tab: complete")
 
+# CAPE main executable names
+CAPE_EXECS = [
+    "cape",
+    "pycart",
+    "pyfun",
+    "pykes",
+    "pylava",
+    "pylch",
+    "pyover",
+]
 
-class PromptCompleter:
+
+class CfdxCompleter:
     __slots__ = (
-        "glob",
-        "vopt",
-        "func",
+        "matches",
+        "cls",
     )
 
-    def __init__(self, glob: bool = False, vopt: Optional[list] = None):
-        self.glob = glob
-        self.vopt = vopt
-        self.func = None
+    def __init__(self, cls: type["ArgReader"]):
+        r"""Initialize a CAPE autocompleter"""
+        #: :class:`list`\ [:class:`str`]
+        #: Current list of matches
+        self.matches = None
+        #: :class:`type`
+        #: Subclass of :class:`cape.argread.ArgReader` for completion
+        self.cls = cls
 
     def __call__(self, text: str, state: int) -> Optional[str]:
         # Get list of suggestions starting with *text*
-        suggestions = self.genr8_suggestions(text)
-        # Append ``None`` (for no-match case) and index it
-        suggestions.append(None)
-        return suggestions[state]
+        if state == 0:
+            self.matches = self.genr8_suggestions(text)
+        # Use suggestion if given
+        if state < len(self.matches):
+            return self.matches[state]
+        # Default to None
+        return None
 
     def genr8_suggestions(self, text: str) -> list:
-        # Initialize list of values
-        suggestions = []
-        # Get list of values
-        if isinstance(self.vopt, (tuple, list)):
-            suggestions.extend(fnmatch.filter(self.vopt, f"{text}*"))
-        # Complete on file names if appropriate
-        if self.glob:
-            suggestions.extend(glob.glob(f"{text}*"))
-        # Add any extra suggestions (custom)
-        extra = self.genr8_extra_suggestions(text)
-        suggestions.extend(extra)
-        # Check for extra function
-        if callable(self.func):
-            custom = self.func(text)
-            if isinstance(custom, (list, tuple)):
-                suggestions.extend(custom)
-        # Output
-        return suggestions
+        # Get position
+        line = readline.get_line_buffer()
+        # Split line back into argv
+        argv = shlex.split(line)
+        # Get index of current word
+        if text in argv:
+            # Proper index
+            j = argv.index(text)
+        else:
+            # Failed, probably because of quotes
+            j = max(0, len(argv) - 1)
+        # Special case for first word
+        if j == 0:
+            # Get three types of completions
+            xcape = complete_xcape(text)
+            xpath = complete_pathcmds(text)
+            xfile = complete_xfilenames(text)
+            print(f"\n> cape: {xcape}")
+            print(f"> path: {xpath}")
+            print(f"> file: {xfile}")
+            # Output
+            return xcape + xpath + xfile
+        # Default to file names
+        return complete_filenames(text)
 
     def genr8_extra_suggestions(self, text: str) -> list:
         return []
 
 
-def complete_glob(text: str, state: int) -> Optional[str]:
+# Get list of files matching current glob
+def complete_filenames(text: str) -> list[str]:
     r"""Return a tab-completion suggestion based on file names
 
     :Call:
-        >>> suggestion = complete_glob(text, state)
+        >>> suggestions = complete_filenames(text)
     :Inputs:
         *text*: :class:`str`
             User input so far
-        *state*: :class:`int`
-            Return the suggestion of index *state*, (usually ``0``)
     :Outputs:
-        *suggestion*: :class:`str` | ``None``
-            A file whose name starts with *text* if possible
+        *suggestions*: ::class:`list`\ [class:`str`]
+            Extant files whose names start with *text*
     """
-    return (glob.glob(text + '*') + [None])[state]
+    return sorted(glob.glob(text + '*'))
+
+
+# Get list of matching CAPE executables
+def complete_xcape(text: str) -> list[str]:
+    r"""Return tab-completion suggestions of CAPE executables
+
+    :Call:
+        >>> suggestions = complete_xcape(text)
+    :Inputs:
+        *text*: :class:`str`
+            User input so far
+    :Outputs:
+        *suggestions*: ::class:`list`\ [class:`str`]
+            Sortec CAPE file names that start with *text*
+    """
+    return fnmatch.filter(CAPE_EXECS, f"{text}*")
+
+
+# Get list of executable files matching current glob
+def complete_xfilenames(text: str) -> list[str]:
+    r"""Return a filtered list of executable file names
+
+    :Call:
+        >>> suggestions = complete_xfilenames(text, state)
+    :Inputs:
+        *text*: :class:`str`
+            User input so far; must start with ``"./"``
+    :Outputs:
+        *suggestions*: ::class:`list`\ [class:`str`]
+            Extant files whose names start with *text*
+    """
+    # Only check ./ completions
+    if not text.startswith("./"):
+        return []
+    # Initialize output
+    matches = set()
+    # Loop through matching files
+    for fname in complete_filenames(text):
+        # Check if executable
+        if os.path.exists(fname) and os.access(fname, os.X_OK):
+            # Criteria met!
+            matches.add(fname)
+    # Output
+    return sorted(matches)
+
+
+# Get list of $PATH executables matching current pattern
+def complete_pathcmds(text: str) -> list[str]:
+    r"""Return a tab-completion suggestion from ``$PATH`` executables
+
+    :Call:
+        >>> suggestions = complete_pathcmds(text)
+    :Inputs:
+        *text*: :class:`str`
+            User input so far
+    :Outputs:
+        *suggestions*: ::class:`list`\ [class:`str`]
+            Reachable executalbes whose names start with *text*
+    """
+    # Initialize output
+    matches = set()
+    # Loop through PATH folders
+    for folder in os.environ.get("PATH", "").split(os.pathsep):
+        # Ensure folder actually exists
+        if not folder:
+            continue
+        # Look for executables in that folder
+        try:
+            # Loop through files in folder
+            for name in os.listdir(folder):
+                # Apply filder
+                if not name.startswith(text):
+                    continue
+                # Get absolute path
+                path = os.path.join(folder, name)
+                # Check if executable
+                if os.path.isfile(path) and os.access(path, os.X_OK):
+                    # Criteria met!
+                    matches.add(name)
+        except OSError:
+            pass
+    # Convert to list
+    return sorted(matches)
 
 
 # Function to get user input using a colored prompt
