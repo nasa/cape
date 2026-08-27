@@ -66,6 +66,7 @@ CMD_NAMES = {
     "check-ll": "check-ll",
     "check-triqfm": "check-triqfm",
     "h": "help",
+    "ui": "ui",
 }
 
 
@@ -219,6 +220,7 @@ class CfdxArgReader(ArgReader):
         "triqfm": (bool, str),
         "ts": (bool, str),
         "u": str,
+        "ui": bool,
         "unarchive": bool,
         "unmark": bool,
         "unmarked": bool,
@@ -272,6 +274,7 @@ class CfdxArgReader(ArgReader):
         "restart",
         "rm",
         "start",
+        "ui",
         "unarchive",
         "unmark",
         "unmarked",
@@ -402,6 +405,7 @@ class CfdxArgReader(ArgReader):
         "triqfm": "Extract triq F&M data [comps matching *PAT*] for case(s)",
         "ts": "Extract time-series data [comps matching *PAT*]",
         "u": "Pretend to be user *UID*",
+        "ui": "Run interactive CAPE user interface",
         "unarchive": "Unarchive one or more cases",
         "unmark": "Remove PASS/ERROR marking for case(s)",
         "unmarked": "Show cases with no PASS/ERROR markings",
@@ -452,6 +456,7 @@ class CfdxArgReader(ArgReader):
         "re": "REGEX",
         "remote-dir": "DIRNAME",
         "report": "[RP]",
+        "solver": "SOLVER",
         "surf": "SURF",
         "status": "STATUS",
         "triqfm": "[PAT]",
@@ -1497,7 +1502,7 @@ class CfdxUIArgs(CfdxArgReader):
 
     # Options
     _optlist = (
-        "h",
+        "ui",
     )
 
 
