@@ -15,7 +15,7 @@ import os
 import re
 import readline
 import shlex
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 # Local imports
 from ..argread import ArgReader
@@ -83,6 +83,7 @@ class CfdxCompleter:
     __slots__ = (
         "matches",
         "cls",
+        "solver",
     )
 
     def __init__(self, cls: type["ArgReader"]):
@@ -93,18 +94,50 @@ class CfdxCompleter:
         #: :class:`type`
         #: Subclass of :class:`cape.argread.ArgReader` for completion
         self.cls = cls
+        #: :class:`str` | ``None``
+        #: Name of current solver based on first word of command
 
     def __call__(self, text: str, state: int) -> Optional[str]:
         # Get list of suggestions starting with *text*
         if state == 0:
-            self.matches = self.genr8_suggestions(text)
+            self.matches = self.get_suggestions(text)
         # Use suggestion if given
         if state < len(self.matches):
             return self.matches[state]
         # Default to None
         return None
 
+    def get_suggestions(self, text: str) -> list:
+        # Get matches
+        matches = self.genr8_suggestions(text)
+        # Move on to next word if unique suggestion and not a folder
+        if len(matches) == 1:
+            # Get that unique match
+            mtch = matches[0]
+            # Check if it's a folder
+            if os.path.isdir(mtch):
+                # Add a slash
+                matches[0] = mtch + os.path.sep
+            else:
+                # Add a space to move onto next option
+                matches[0] = mtch + " "
+        # Output
+        return matches
+
     def genr8_suggestions(self, text: str) -> list:
+        r"""Generate list of suggestions based on current prompt
+
+        :Call:
+            >>> suggestions = comp.genr8_suggestions(text)
+        :Inputs:
+            *comp*: :class:`CfdxCompleter`
+                CAPE front desk autocompleter
+            *text*: :class:`str`
+                Current text of current word
+        :Outputs
+            *suggestions*: :class:`list`\ [:class:`str`]
+                List of suggested completions for current word
+        """
         # Get position
         line = readline.get_line_buffer()
         # Split line back into argv
@@ -122,16 +155,33 @@ class CfdxCompleter:
             xcape = complete_xcape(text)
             xpath = complete_pathcmds(text)
             xfile = complete_xfilenames(text)
-            print(f"\n> cape: {xcape}")
-            print(f"> path: {xpath}")
-            print(f"> file: {xfile}")
             # Output
             return xcape + xpath + xfile
+        # Set solver name based on word 0
+        if argv[0] in CAPE_EXECS:
+            # Running one of the CAPE commands
+            self.solver = argv[0]
+        else:
+            # Not a CAPE command
+            return complete_filenames(text)
+        # Check for option vs value
+        if text.startswith("-"):
+            # Get name of option so far (w/o '--')
+            optpat = text.lstrip('-')
+            # Filter existing options
+            opts = fnmatch.filter(self.cls._optlist, f"{optpat}*")
+            # Initialize output
+            suggestions = []
+            # Add one or two dashes
+            for opt in opts:
+                # Check length
+                prefix = '-' if (len(opt) == 1) else '--'
+                # Append to list
+                suggestions.append(f"{prefix}{opt}")
+            # Good
+            return suggestions
         # Default to file names
         return complete_filenames(text)
-
-    def genr8_extra_suggestions(self, text: str) -> list:
-        return []
 
 
 # Get list of files matching current glob
@@ -231,73 +281,6 @@ def complete_pathcmds(text: str) -> list[str]:
             pass
     # Convert to list
     return sorted(matches)
-
-
-# Function to get user input using a colored prompt
-def prompt_color(
-        txt: str,
-        vdef: Optional[Any] = None,
-        vopt: Optional[list] = None,
-        color: str = "green",
-        prompt: str = '>',
-        completer: Optional[Callable] = None,
-        glob: bool = False) -> Any:
-    r"""Get user input using a colorized prompt
-
-    :Call:
-        >>> v = prompt_color(txt, vdef=None)
-    :Inputs:
-        *txt*: :class:`str`
-            Text of the question on the same line as prompt
-        *vdef*: {``None``} | :class:`object`
-            Default value (if any)
-        *vopt*: {``None``} | :class:`list`
-            List of possible or suggested values (optional)
-        *color*: {``"green"``} | :class:`str`
-            Color name
-        *completer*: {``None``} | **callable**
-            Function to return list of suggestions given current text
-        *prompt*: {``">"``} | :class:`str`
-            Character(s) to use as prompt
-    :Outputs:
-        *v*: :class:`str` | *vdef* | ``vopt[j]``
-            User input or default value
-    """
-    # Default vdef --> vopt
-    vopt = vdef if (vopt is None) else vopt
-    # Three versions of option list; two will be empty
-    msg1 = _dumps_vopt_list(txt, vdef, vopt, prompt)
-    msg2 = _dumps_vdef(txt, vdef, vopt, prompt)
-    msg3 = _dumps_plain(txt, vdef, vopt, prompt)
-    # Combine all three
-    msg = msg1 + msg2 + msg3
-    # Create a completer
-    comp = PromptCompleter(glob, vopt)
-    # Check for custom function
-    comp.func = completer
-    # Turn custom completin class on
-    readline.set_completer(comp)
-    # Substantiate default
-    vdef = vopt if vdef is None else vdef
-    vdef = vdef if not isinstance(vdef, list) else vdef[0]
-    # Read input from command line (ignore lead/trail spaces)
-    vraw = input_color(msg, color)
-    # Check if it's an "@"
-    if msg1 and REGEX_AT.fullmatch(vraw):
-        # Get the number provided by user
-        n = int(REGEX_AT.match(vraw).group(1))
-        # Return that value (0-based)
-        v = vopt[n - 1]
-    elif vdef and (not vraw):
-        # Use the default value instead
-        v = vdef
-    else:
-        # Return the user's value, even if empty
-        v = vraw
-    # Inform user what value was used
-    print(f"--> using '{v}'")
-    # Output
-    return v
 
 
 # Make a raw request
