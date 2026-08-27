@@ -64,6 +64,8 @@ def main() -> Tuple[int, dict]:
                 os.chdir(parts[1])
             except FileNotFoundError:
                 print(f"CAPE> Folder not found: '{parts[1]}")
+            except PermissionError:
+                print(f"CAPE> Permission denied: '{parts[1]}'")
         # Run the command
         ierr = subprocess.run(shlex.split(user_message))
         # Count commands
