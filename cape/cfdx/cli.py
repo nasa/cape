@@ -66,6 +66,7 @@ CMD_NAMES = {
     "check-ll": "check-ll",
     "check-triqfm": "check-triqfm",
     "h": "help",
+    "ui": "ui",
 }
 
 
@@ -219,6 +220,7 @@ class CfdxArgReader(ArgReader):
         "triqfm": (bool, str),
         "ts": (bool, str),
         "u": str,
+        "ui": bool,
         "unarchive": bool,
         "unmark": bool,
         "unmarked": bool,
@@ -272,11 +274,20 @@ class CfdxArgReader(ArgReader):
         "restart",
         "rm",
         "start",
+        "ui",
         "unarchive",
         "unmark",
         "unmarked",
         "v",
         "wait",
+    )
+
+    # List of options that usually take a file name value
+    _optlist_file = (
+        "f",
+        "fjson",
+        "fpdf",
+        "x",
     )
 
     # Translations for option values
@@ -402,6 +413,7 @@ class CfdxArgReader(ArgReader):
         "triqfm": "Extract triq F&M data [comps matching *PAT*] for case(s)",
         "ts": "Extract time-series data [comps matching *PAT*]",
         "u": "Pretend to be user *UID*",
+        "ui": "Run interactive CAPE user interface",
         "unarchive": "Unarchive one or more cases",
         "unmark": "Remove PASS/ERROR marking for case(s)",
         "unmarked": "Show cases with no PASS/ERROR markings",
@@ -452,6 +464,7 @@ class CfdxArgReader(ArgReader):
         "re": "REGEX",
         "remote-dir": "DIRNAME",
         "report": "[RP]",
+        "solver": "SOLVER",
         "surf": "SURF",
         "status": "STATUS",
         "triqfm": "[PAT]",
@@ -542,7 +555,7 @@ class Cfdx1to2Args(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-1to2"
+    _name = "cape 1to2"
 
     # Description
     _help_title = "Convert Python and JSON files from CAPE 1 to 2 standard"
@@ -565,7 +578,7 @@ class CfdxCheckArgs(_CfdxCaseLoopArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-check"
+    _name = "cape check"
 
     # Description
     _help_title = "Check status of one or more cases"
@@ -589,7 +602,7 @@ class CfdxApplyArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-apply"
+    _name = "cape apply"
 
     # Description
     _help_title = "Re-apply current settings to case(s)"
@@ -612,7 +625,7 @@ class CfdxApproveArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-approve"
+    _name = "cape approve"
 
     # Description
     _help_title = "Mark selected cases as complete"
@@ -629,7 +642,7 @@ class CfdxArchiveArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-archive"
+    _name = "cape archive"
 
     # Description
     _help_title = "Archive cases; delete files not needed for post-processing"
@@ -646,7 +659,7 @@ class CfdxBatchArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-batch"
+    _name = "cape batch"
 
     # Description
     _help_title = "Submit CAPE command as a PBS/Slurm batch job"
@@ -658,7 +671,7 @@ class CfdxCheckDBArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-check-db"
+    _name = "cape check-db"
 
     # Description
     _help_title = "Check completion of all databook components"
@@ -683,7 +696,7 @@ class CfdxCheckFMArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-check-fm"
+    _name = "cape check-fm"
 
     # Description
     _help_title = "Check completion of all force & moment components"
@@ -705,7 +718,7 @@ class CfdxCheckLLArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-check-ll"
+    _name = "cape check-ll"
 
     # Description
     _help_title = "Check completion of all line load components"
@@ -727,7 +740,7 @@ class CfdxCheckTriqFMArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-check-triqfm"
+    _name = "cape check-triqfm"
 
     # Description
     _help_title = "Check completion of TriqFM components"
@@ -749,7 +762,7 @@ class CfdxCleanArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-clean"
+    _name = "cape clean"
 
     # Description
     _help_title = "Remove extra files not necessary for running a case"
@@ -766,7 +779,7 @@ class CfdxCollectSurfArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-collect-surf"
+    _name = "cape collect-surf"
 
     # Description
     _help_title = "Collect surface data in current case folder"
@@ -804,7 +817,7 @@ class CfdxCollectCutPlaneArgs(CfdxCollectSurfArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-collect-cutplane"
+    _name = "cape collect-cutplane"
 
     # Additional options
     _optlist = (
@@ -830,7 +843,7 @@ class CfdxDefailArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-defail"
+    _name = "cape defail"
 
     # Description
     _help_title = "Remove FAIL files from case(s)and other failure artifacts"
@@ -847,7 +860,7 @@ class CfdxDezombieArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-dezombie"
+    _name = "cape dezombie"
 
     # Description
     _help_title = "Delete job and clean-up stalled cases (aka 'zombie' cases)"
@@ -870,7 +883,7 @@ class CfdxEditArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-edit-json"
+    _name = "cape edit-json"
 
     # Description
     _help_title = "Edit JSON settings from command-line"
@@ -905,7 +918,7 @@ class CfdxExecArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-exec"
+    _name = "cape exec"
 
     # Description
     _help_title = "Run a shell command in folder of case(s)"
@@ -922,7 +935,7 @@ class CfdxExtendArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extend"
+    _name = "cape extend"
 
     # Description
     _help_title = "Extend unmarked cases"
@@ -947,7 +960,7 @@ class CfdxExtractDexArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract"
+    _name = "cape extract"
 
     # Description
     _help_title = "Extract DataBook components"
@@ -969,7 +982,7 @@ class CfdxExtractFMArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract-fm"
+    _name = "cape extract-fm"
 
     # Description
     _help_title = "Extract averaged force & moment results"
@@ -991,7 +1004,7 @@ class CfdxExtractIterFMArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract-iter-fm"
+    _name = "cape extract-iter-fm"
 
     # Description
     _help_title = "Extract iterative force & moment histories"
@@ -1013,7 +1026,7 @@ class CfdxExtractLLArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract-ll"
+    _name = "cape extract-ll"
 
     # Description
     _help_title = "Compute and extract line load results"
@@ -1035,7 +1048,7 @@ class CfdxExtractPropArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract-prop"
+    _name = "cape extract-prop"
 
     # Description
     _help_title = "Extract other scalar results"
@@ -1057,7 +1070,7 @@ class CfdxExtractPyFuncArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract-pyfunc"
+    _name = "cape extract-pyfunc"
 
     # Description
     _help_title = "Extract data from custom Python functions"
@@ -1079,7 +1092,7 @@ class CfdxExtractSurfCpArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract-surfcp"
+    _name = "cape extract-surfcp"
 
     # Description
     _help_title = "Extract surfcp data"
@@ -1101,7 +1114,7 @@ class CfdxExtractTimeSeriesArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract-timeseries"
+    _name = "cape extract-timeseries"
 
     # Description
     _help_title = "Extract time series data"
@@ -1123,7 +1136,7 @@ class CfdxExtractTriqFMArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract-triqfm"
+    _name = "cape extract-triqfm"
 
     # Description
     _help_title = "Extract post-processed patch loads"
@@ -1145,7 +1158,7 @@ class CfdxExtractTriqPTArgs(_CfdxExtractArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-extract-triqpt"
+    _name = "cape extract-triqpt"
 
     # Description
     _help_title = "Collect post-processed point sensor data"
@@ -1162,7 +1175,7 @@ class CfdxFindJSONArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-find-json"
+    _name = "cape find-json"
 
     # Description
     _help_title = "Find CAPE JSON files"
@@ -1185,7 +1198,7 @@ class CfdxFailArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-fail"
+    _name = "cape fail"
 
     # Description
     _help_title = "Mark selected cases as ERRORs"
@@ -1202,7 +1215,7 @@ class CfdxFindArgs(_CfdxCaseLoopArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-find"
+    _name = "cape find"
 
     # Description
     _help_title = "Find indices of cases meeting constraints"
@@ -1214,7 +1227,7 @@ class CfdxFindLargeArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-find-large"
+    _name = "cape find-large"
 
     # Description
     _help_title = "Find folders with large file size"
@@ -1236,7 +1249,7 @@ class CfdxGetConfigArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-get-config"
+    _name = "cape get-config"
 
     # Description
     _help_title = "Show value of user CAPE configuration"
@@ -1263,7 +1276,7 @@ class CfdxOpenPDFArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-open-pdf"
+    _name = "cape open-pdf"
 
     # Description
     _help_title = "Open a PDF file in preferred reader"
@@ -1294,7 +1307,7 @@ class CfdxPostFileArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-post-file"
+    _name = "cape post-file"
 
     # Minimum args
     _nargmin = 1
@@ -1319,7 +1332,7 @@ class CfdxQdelArgs(_CfdxCaseLoopArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-qdel"
+    _name = "cape qdel"
 
     # Description
     _help_title = "Delete PBS/Slurm job of case(s)"
@@ -1341,7 +1354,7 @@ class CfdxReceiveFileArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-receive-file"
+    _name = "cape receive-file"
 
     # Description
     _help_title = "Receive posted file from remote host"
@@ -1353,7 +1366,7 @@ class CfdxReportArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-report"
+    _name = "cape report"
 
     # Description
     _help_title = "Update automated PDF reports"
@@ -1378,7 +1391,7 @@ class CfdxRemoveCasesArgs(_CfdxCaseLoopArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-rm"
+    _name = "cape rm"
 
     # Description
     _help_title = "Delete entire case folders"
@@ -1401,7 +1414,7 @@ class CfdxRunArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-run"
+    _name = "cape run"
 
     # Description
     _help_title = "Run case in current folder"
@@ -1418,7 +1431,7 @@ class CfdxSearchLargeArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-search-large"
+    _name = "cape search-large"
 
     # Description
     _help_title = "Find large cases from all run matrices in repo"
@@ -1442,7 +1455,7 @@ class CfdxSetConfigArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-set-config"
+    _name = "cape set-config"
 
     # Description
     _help_title = "Set value of a user CAPE configuration"
@@ -1473,7 +1486,7 @@ class CfdxSkeletonArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-skeleton"
+    _name = "cape skeleton"
 
     # Description
     _help_title = "Clean up case folder; leave only key files"
@@ -1484,13 +1497,30 @@ class CfdxSkeletonArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for interactive UI
+class CfdxUIArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape ui"
+
+    # Description
+    _help_title = "Run interactive CAPE user interface"
+
+    # Options
+    _optlist = (
+        "ui",
+    )
+
+
 # Settings for -n
 class CfdxStartArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-start"
+    _name = "cape start"
 
     # Description
     _help_title = "Setup, start, and/or submit cases"
@@ -1519,7 +1549,7 @@ class CfdxTriangulateCutPlaneArgs(CfdxArgReader):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-triangulate-cutplane"
+    _name = "cape triangulate-cutplane"
 
     # Description
     _help_title = "Triangulate oversetting cut-plane flow viz files"
@@ -1555,7 +1585,7 @@ class CfdxUnarchiveArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-unarchive"
+    _name = "cape unarchive"
 
     # Description
     _help_title = "Expand files from archive"
@@ -1572,7 +1602,7 @@ class CfdxUnmarkArgs(_CfdxSubsetArgs):
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-unmark"
+    _name = "cape unmark"
 
     # Description
     _help_title = "Remove PASS/ERROR markings for selected cases"
@@ -1656,6 +1686,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "nmax",
         "nproc",
         "nsurf",
+        "o",
         "opt",
         "pat",
         "pt",
@@ -1735,6 +1766,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "set-config",
         "skeleton",
         "triangulate-cutplane",
+        "ui",
         "unarchive",
         "unmark",
     )
@@ -1817,6 +1849,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
         "triangulate-cutplane": CfdxTriangulateCutPlaneArgs,
+        "ui": CfdxUIArgs,
         "unarchive": CfdxUnarchiveArgs,
         "unmark": CfdxUnmarkArgs,
     }
@@ -1858,8 +1891,11 @@ class CfdxFrontDesk(CfdxArgReader):
                     self.pop_opt_param(opt)
                 # Return the command name
                 return cmdname
-        # Default is "start"
-        return "start"
+        # Default is "start" unless no optiosn given
+        if len(self.keys()) == 0:
+            return "ui"
+        else:
+            return "start"
 
 
 @Cfdx1to2Args.rst
@@ -3064,6 +3100,28 @@ def cape_unmark(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, v
 
 
+@CfdxUIArgs.rst
+def cape_ui() -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Import user interface
+    from .. import ui
+    # Run code
+    return ui.main(CfdxFrontDesk)
+
+
 def read_cntl(cls: ArgReader, *a, **kw):
     r"""Read a CAPE run matrix control instance of appropriate class
 
@@ -3213,6 +3271,7 @@ CMD_DICT = {
     "skeleton": cape_skeleton,
     "start": cape_start,
     "triangulate-cutplane": cape_triangulate_cutplane,
+    "ui": cape_ui,
     "unarchive": cape_unarchive,
     "unmark": cape_unmark,
 }

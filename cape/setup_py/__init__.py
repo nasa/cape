@@ -53,7 +53,8 @@ SETUP_SETTINGS = dict(
         "cape.pyover",
         "cape.pyover.options",
         "cape.tnakit",
-        "cape.tnakit.textutils"
+        "cape.tnakit.textutils",
+        "cape.ui"
     ],
     install_requires=[
         "PyYAML",
