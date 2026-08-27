@@ -1484,6 +1484,23 @@ class CfdxSkeletonArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for interactive UI
+class CfdxUIArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-ui"
+
+    # Description
+    _help_title = "Run interactive CAPE user interface"
+
+    # Options
+    _optlist = (
+        "h",
+    )
+
+
 # Settings for -n
 class CfdxStartArgs(_CfdxSubsetArgs):
     # No attributes
@@ -1656,6 +1673,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "nmax",
         "nproc",
         "nsurf",
+        "o",
         "opt",
         "pat",
         "pt",
@@ -1735,6 +1753,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "set-config",
         "skeleton",
         "triangulate-cutplane",
+        "ui",
         "unarchive",
         "unmark",
     )
@@ -1817,6 +1836,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
         "triangulate-cutplane": CfdxTriangulateCutPlaneArgs,
+        "ui": CfdxUIArgs,
         "unarchive": CfdxUnarchiveArgs,
         "unmark": CfdxUnmarkArgs,
     }
@@ -1858,8 +1878,11 @@ class CfdxFrontDesk(CfdxArgReader):
                     self.pop_opt_param(opt)
                 # Return the command name
                 return cmdname
-        # Default is "start"
-        return "start"
+        # Default is "start" unless no optiosn given
+        if len(self.keys()) == 0:
+            return "ui"
+        else:
+            return "start"
 
 
 @Cfdx1to2Args.rst
@@ -3064,6 +3087,28 @@ def cape_unmark(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, v
 
 
+@CfdxUIArgs.rst
+def cape_ui() -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Import user interface
+    from .. import ui
+    # Run code
+    return ui.main()
+
+
 def read_cntl(cls: ArgReader, *a, **kw):
     r"""Read a CAPE run matrix control instance of appropriate class
 
@@ -3213,6 +3258,7 @@ CMD_DICT = {
     "skeleton": cape_skeleton,
     "start": cape_start,
     "triangulate-cutplane": cape_triangulate_cutplane,
+    "ui": cape_ui,
     "unarchive": cape_unarchive,
     "unmark": cape_unmark,
 }

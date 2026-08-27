@@ -65,7 +65,9 @@ class CapeConfig(OptionsDict):
 
     # Allowed options
     _optlist = (
+        "AgentHistoryFile",
         "CacheDir",
+        "HistoryFile",
         "JumpHost",
         "LocalHost",
         "LocalHostPatterns",
@@ -83,7 +85,9 @@ class CapeConfig(OptionsDict):
 
     # Types
     _opttypes = {
+        "AgentHistoryFile": str,
         "CacheDir": str,
+        "HistoryFile": str,
         "LocalHost": str,
         "LocalHostPatterns": str,
         "PDFReader": str,
@@ -101,12 +105,16 @@ class CapeConfig(OptionsDict):
 
     # Defaults
     _rc = {
+        "AgentHistoryFile": ".cape_agent_history",
         "CacheDir": os.path.join("~", ".cache", "cape"),
+        "HistoryFile": ".cape_history",
     }
 
     # Environment variable
     _envvar = {
+        "AgentHistoryFile": "CAPE_AGENT_HISTORY_FILE",
         "CacheDir": "CAPE_CACHE_DIR",
+        "HistoryFile": "CAPE_HISTORY_FILE",
         "LocalHost": "CAPE_LOCAL_HOST",
         "PDFReader": "CAPE_PDF_READER",
         "RemoteHost": "CAPE_REMOTE_HOST",
@@ -119,7 +127,9 @@ class CapeConfig(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "AgentHistoryFile": "Location for history of CAPE-agentic commands",
         "CacheDir": "Location for CAPE to cache files",
+        "HistoryFile": "Location for history of CAPE commands",
         "LocalHost": (
             "Name of 'local' machine; CAPE on remote systems will transfer "
             "files to this location for easier viewing. Override with "
