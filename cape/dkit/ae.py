@@ -191,6 +191,82 @@ class ConvDecoder(nn.Module):
         return self.conv_blocks(x)[..., :self.input_length]
 
 
+# Fully Connected Decoder
+class FCDecoder(nn.Module):
+    def __init__(
+            self,
+            input_length: int,
+            out_channels: int = 1,
+            latent_dim: int = 10,
+            channel_list: Optional[list] = None,
+            n: Optional[int] = None,
+            encoder_flat_size: int = 0,
+            batchnorm: bool = True,
+            dropout: float = 0.0,
+            activation: Optional[nn.Module] = None,
+            final_activation: Optional[nn.Module] = None):
+        # Call parent function
+        super().__init__()
+        # Handle channel_list for FC layer sizes (similar to ConvDecoder logic)
+        if channel_list is None:
+            # Default number of layers
+            n = 4 if n is None else n
+            # Default FC layer sizes: progressive reduction
+            channel_list = 2**np.arange(n)
+            channel_list[1:] *= 2
+        else:
+            # Number of layers implied by list
+            n = len(channel_list)
+        # Store parameters
+        self.input_length = input_length
+        self.out_channels = out_channels
+        self.latent_dim = latent_dim
+        self.encoder_flat_size = encoder_flat_size
+        # Set up initial fully connected layer, map latent to encoder_flat_size
+        self.fc = nn.Linear(latent_dim, encoder_flat_size)
+        # Set up FC blocks for progressive upsampling
+        blocks = []
+        # Input size to first FC block is encoder_flat_size
+        prev_size = encoder_flat_size
+        # Loop through FC layers defined by channel_list
+        for j in range(n):
+            out_size = channel_list[j]
+            # Initialize neural network layer
+            layers = [nn.Linear(prev_size, out_size)]
+            # Append batch norm option if implied
+            if batchnorm:
+                layers.append(nn.BatchNorm1d(out_size))
+            # Add activation layer
+            if activation is not None:
+                layers.append(copy.deepcopy(activation))
+            # Add dropout layer
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+            # Convert to NN
+            blocks.append(nn.Sequential(*layers))
+            # Update previous layer size
+            prev_size = out_size
+        # Final layer: map to output size
+        final_layers = [nn.Linear(prev_size, input_length * out_channels)]
+        # Add final activation if provided (don't add batchnorm/dropout)
+        if final_activation is not None:
+            final_layers.append(final_activation)
+        self.final_fc = nn.Sequential(*final_layers)
+        # Save FC blocks
+        self.fc_blocks = nn.Sequential(*blocks)
+
+    # Evaluation method
+    def forward(self, feat: torch.Tensor, z: torch.Tensor) -> torch.Tensor:
+        # First fully connected layer (same as ConvDecoder)
+        x = self.fc(z)
+        # Pass through FC blocks
+        x = self.fc_blocks(x)
+        # Final projection to output size
+        x = self.final_fc(x)
+        # Reshape to match expected output dimensions
+        return x.view(x.size(0), self.out_channels, self.input_length)
+
+
 class ConvAutoencoder(nn.Module):
     r"""Full 1D convolution autoencoder
 
@@ -286,6 +362,100 @@ class ConvAutoencoder(nn.Module):
         device = next(self.parameters()).device
         x = x.to(device)
         return self(x)
+
+
+class ConvFCAutoencoder(nn.Module):
+    r"""Full 1D convolution autoencoder
+
+    :Call:
+        >>> aec = ConvAutoencoder(**kw)
+    :Inputs:
+        *input_length*: {``400``} | :class:`int`
+            Size of original vector
+        *latent_dim*: {``10``} | :class:`int`
+            Size or reduced vector
+        *channel_list*: {``None``} | :class:`list`\ [:class:`int`]
+            List of convolution channel numbers for each layer
+        *n*: {``None``} | :class:`int`
+            Number of convolution layers; matches ``len(channel_list)``
+        *kernel_size*: {``3``} | :class:`int` | :class:`list`
+            Convolution kernel size; can be different for each layer
+        *stride*: {``1``} | :class:`int` | :class:`list`
+            Stride parameter for each convolution layer
+    """
+    def __init__(
+            self,
+            input_length: int = 400,
+            latent_dim: int = 10,
+            channel_list: Optional[list] = None,
+            n: Optional[int] = None,
+            kernel_size: Union[int, list] = 3,
+            stride: Union[int, list] = 2,
+            padding: Union[int, list] = 1,
+            out_padding: Union[int, list] = 1,
+            activation: nn.Module = nn.LeakyReLU(0.2),
+            final_activation: Optional[nn.Module] = None,
+            batchnorm: bool = True,
+            dropout: float = 0.2,
+            weight_init: str = "kaiming"):
+        # Parent initialization
+        super().__init__()
+        # Create encoder block
+        self.encoder = Encoder(
+            input_length, latent_dim, channel_list, n,
+            stride=stride,
+            kernel_size=kernel_size,
+            padding=padding,
+            batchnorm=batchnorm,
+            dropout=dropout,
+            activation=activation)
+        # infer encoder conv output shape for decoder
+        dummy = torch.zeros(1, 1, input_length)
+        with torch.no_grad():
+            feat, _ = self.encoder(dummy)
+        enc_out_length = feat.shape[2]
+        enc_flat = feat.flatten(1).shape[1]
+        # Create the decoder
+        self.decoder = FCDecoder(
+            input_length,
+            out_channels=1, latent_dim=latent_dim,
+            channel_list=channel_list, n=n,
+            encoder_flat_size=enc_flat,
+            batchnorm=batchnorm,
+            dropout=dropout,
+            activation=activation,
+            final_activation=final_activation)
+        # Initialize weights
+        self._init_weights(weight_init)
+
+    def _init_weights(self, mode: str):
+        for m in self.modules():
+            if isinstance(m, (nn.Conv1d, nn.ConvTranspose1d, nn.Linear)):
+                if mode == "kaiming":
+                    nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
+                elif mode == "xavier":
+                    nn.init.xavier_uniform_(m.weight)
+                elif mode == "orthogonal":
+                    nn.init.orthogonal_(m.weight)
+                elif mode == "normal":
+                    nn.init.normal_(m.weight, 0, 0.02)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        # Run encoder
+        feat, z = self.encoder(x)
+        # Run decoder
+        recon = self.decoder(feat, z)
+        return recon, z
+
+    @torch.no_grad()
+    def predict(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        self.eval()
+        device = next(self.parameters()).device
+        x = x.to(device)
+        return self(x)
+
 
 
 class ReconstructionLoss(nn.Module):
