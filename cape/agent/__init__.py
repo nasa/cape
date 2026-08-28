@@ -31,7 +31,8 @@ from openai import OpenAI, InternalServerError
 # Local imports
 from . import agentutils
 from .. import capeconfig
-from .tools import TOOL_SCHEMAS, TOOLS, normalize_kwargs
+from .tools import TOOL_SCHEMAS, TOOLS
+from .tools.toolutils import normalize_kwargs
 from ..argread.clitext import compile_rst, wrapline
 from ..ui.promptutils import CfdxCompleter, sprintf_color, sprintf_color_rl
 
@@ -109,16 +110,19 @@ HLINE = sprintf_color(HLINE, ["purple"])
 def run_agent(
         user_message: str,
         client: OpenAI,
-        history: Optional[list[dict]] = None) -> list[dict]:
+        history: Optional[list[dict]] = None) -> tuple[list[dict], dict]:
     r"""Run one pass of model with multi-round tool calling
 
     Run one user turn with up to *MAX_TOOL_CALL_LOOPS* rounds of tool
     calls. This allows the agent to chain tool calls, e.g., calling
     :func:`cape_find` followed by :func:`cape_c` with the results from
     the first call.
-
-
     """
+    # Start some counters
+    result = {
+        "n_tool_calls": 0,
+        "n_tool_fails": 0,
+    }
     # Use message history or start with system prompt
     messages = history if history is not None else [
         {
@@ -137,7 +141,7 @@ def run_agent(
         # Run it
         cli.main(argv=cmdlist)
         print(HLINE)
-        return messages
+        return messages, result
     elif user_message.startswith("$"):
         # Run into command
         cmdlist = shlex.split(user_message.lstrip("$").strip())
@@ -149,11 +153,10 @@ def run_agent(
         proc = Popen(cmdlist)
         proc.communicate()
         print(HLINE)
-        return messages
+        return messages, result
     # Append the user input
     messages.append({"role": "user", "content": user_message})
     print(HLINE_BOLD)
-
     # Main tool-calling loop (allow multiple rounds of tool calls)
     for loop_iter in range(MAX_TOOL_CALL_LOOPS):
         # Interact with LLM and get a response
@@ -191,10 +194,13 @@ def run_agent(
                 print(f"{CLI_CALL_PROMPT} {tool_call_cli}")
             # Get the actual tool
             tool_fn = TOOLS.get(name)
+            # Increase tool-call count
+            result["n_tool_calls"] += 1
             # Call tool if possible
             if tool_fn is None:
                 # No actual tool call
                 tool_result = {"ok": False, "error": f"unknown tool: {name}"}
+                result["n_tool_fails"] += 1
             else:
                 # Tool call: add prompt
                 tool_result = tool_fn(**kwargs)
@@ -225,7 +231,7 @@ def run_agent(
     # Show the response
     show_formatted_response(final_msg.content)
     # Return the messages so to be used as history for the next prompt
-    return messages
+    return messages, result
 
 
 # Format the tool's response
@@ -317,11 +323,12 @@ def _normalize_result(result: dict):
 
 def main(cls: Optional[type] = None) -> None:
     # Initialize a results dictionary
-    result = {}
-    n_msgs = 0
-    n_cmds = 0
-    n_tool_calls = 0
-    n_failures = 0
+    result = {
+        "n_user_msgs": 0,
+        "n_tool_calls": 0,
+        "n_tool_fails": 0,
+        "n_fails": 0,
+    }
     # Get history file
     histfile = capeconfig.get_cape_opt("AgentHistoryFile")
     # If relative path, join with CacheDir
@@ -370,14 +377,17 @@ def main(cls: Optional[type] = None) -> None:
             print()
             break
         # Update number of messages
-        n_msgs += 1
+        result["n_user_msgs"] += 1
         # Interact with LLM
         try:
             # Pass message and wait
-            history = run_agent(user_message, client, history)
+            history, agent_result = run_agent(user_message, client, history)
+            # Add to totals
+            for k, n in agent_result.items():
+                result[k] += n
         except InternalServerError as e:
             # Count failures
-            n_failures += 1
+            result["n_fails"] += 1
             # Parse error message
             parts = e.args[0].split(' - ', 1)
             details = None if len(parts) < 2 else parts[1]
@@ -392,7 +402,7 @@ def main(cls: Optional[type] = None) -> None:
     except Exception:
         pass
     # Output
-    return 0, {"n_messages", n_msgs}
+    return 0, result
 
 
 # Convert to string

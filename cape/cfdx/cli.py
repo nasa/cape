@@ -92,7 +92,6 @@ class CfdxArgReader(ArgReader):
 
     # Common options
     _optlist = (
-        "agentic",
         "h",
         "solver",
     )

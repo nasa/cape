@@ -351,7 +351,7 @@ def compile_rst(doc: str) -> str:
     # Simplify user names
     txt = re.sub(r"``(@\w+)``", repluid, txt)
     # Simplify bolds
-    txt = re.sub(r"\*\*(\w[^*\n]*\**)\*\*", replemph, txt)
+    txt = re.sub(r"\*\*([^*\n]*\**)\*\*", replemph, txt)
     # Simplify italic (more targeted)
     txt = re.sub(r"\*(\w[^*\n]*\**)\*", replit, txt)
     # Manual format characters
