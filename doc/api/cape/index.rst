@@ -12,6 +12,7 @@ The :mod:`cape` module
     :maxdepth: 1
     
     filecntl/index
+    ui/index
     argread
     atm
     capeio

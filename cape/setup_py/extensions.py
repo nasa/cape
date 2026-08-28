@@ -11,6 +11,7 @@ This module provides utilities for building Python C extensions for CAPE.
 import json
 import platform
 import os
+import socket
 import sys
 from configparser import ConfigParser
 
@@ -24,6 +25,9 @@ from setuptools import Extension
 # Python version infor
 PY_MAJOR_VERSION = sys.version_info.major
 PY_MINOR_VERSION = sys.version_info.minor
+
+# Host name for extra customization
+HOSTNAME = socket.gethostname().split('.')[0]
 
 # Extension binary file extension
 EXT_SUFFIX = sysconfig.get_config_var("EXT_SUFFIX")
@@ -56,7 +60,9 @@ LIB_EXT = "%s-%s" % (sysplatform, syspyversion)
 LIB_DIR = os.path.join("build", "lib.%s" % LIB_EXT)
 
 # Config file
-_CONFIG_FILE = "config%i%i.cfg" % (PY_MAJOR_VERSION, PY_MINOR_VERSION)
+_PYVER = f"{PY_MAJOR_VERSION}{PY_MINOR_VERSION}"
+_CONFIG_FILE1 = f"config{_PYVER}.cfg"
+_CONFIG_FILE2 = f"config{_PYVER}_{HOSTNAME}.cfg"
 _EXTENSION_FILE = "extensions.json"
 
 # This folder
@@ -65,8 +71,10 @@ CAPE_DIR = os.path.dirname(THIS_DIR)
 REPO_DIR = os.path.dirname(CAPE_DIR)
 
 # Absolute paths
-CONFIG_FILE = os.path.join(THIS_DIR, _CONFIG_FILE)
+CONFIG_FILE1 = os.path.join(THIS_DIR, _CONFIG_FILE1)
+CONFIG_FILE2 = os.path.join(THIS_DIR, _CONFIG_FILE2)
 EXTENSION_FILE = os.path.join(THIS_DIR, _EXTENSION_FILE)
+CONFIG_FILE = CONFIG_FILE2 if os.path.isfile(CONFIG_FILE2) else CONFIG_FILE1
 
 # Get a get/set type object
 CONFIG = ConfigParser()
