@@ -105,6 +105,7 @@ class CfdxArgReader(ArgReader):
         "add_col": "add-cols",
         "add_cols": "add-cols",
         "aero": "fm",
+        "agent": "agentic",
         "approve": "PASS",
         "check": "c",
         "checkDB": "check-db",

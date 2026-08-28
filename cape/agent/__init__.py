@@ -29,8 +29,8 @@ from cape.util import pyrangestr
 from openai import OpenAI, InternalServerError
 
 # Local imports
+from . import agentutils
 from .. import capeconfig
-from .agentutils import ThinkingSpinner
 from .tools import TOOL_SCHEMAS, TOOLS, normalize_kwargs
 from ..argread.clitext import compile_rst, wrapline
 from ..ui.promptutils import CfdxCompleter, sprintf_color, sprintf_color_rl
@@ -157,7 +157,7 @@ def run_agent(
     # Main tool-calling loop (allow multiple rounds of tool calls)
     for loop_iter in range(MAX_TOOL_CALL_LOOPS):
         # Interact with LLM and get a response
-        with ThinkingSpinner("Thinking ..."):
+        with agentutils.ThinkingSpinner("Thinking ..."):
             response = client.chat.completions.create(
                 model=MODEL,
                 messages=messages,
@@ -213,7 +213,7 @@ def run_agent(
     else:
         # If we've hit the max loops, force a final plain-text answer
         # Deliberately NOT passing `tools` here to force a text response
-        with ThinkingSpinner("Processing results ..."):
+        with agentutils.ThinkingSpinner("Processing results ..."):
             followup = client.chat.completions.create(
                 model=MODEL,
                 messages=messages,
@@ -334,10 +334,9 @@ def main(cls: Optional[type] = None) -> None:
     if cls is None:
         from ..cfdx.cli import CfdxFrontDesk
         cls = CfdxFrontDesk
-    # Create autocompleter
+    # Create and used CAPE-based autocompleter
     completer = CfdxCompleter(cls)
     readline.set_completer(completer)
-
     # Open the OpenAI interface to the LLM client
     client = OpenAI(base_url=BASE_URL, api_key="not-needed")
     # Initialize history
@@ -386,34 +385,5 @@ def main(cls: Optional[type] = None) -> None:
 
 # Convert to string
 def dumps(v, **kw) -> str:
-    return json.dumps(v, cls=_NPEncoder, **kw)
+    return json.dumps(v, cls=agentutils._NPEncoder, **kw)
 
-
-# Customize JSON serializer
-class _NPEncoder(json.JSONEncoder):
-    r"""Encoder for :mod:`json` that can handle NumPy objects"""
-    def default(self, obj):
-        # Check for array
-        if isinstance(obj, np.ndarray):
-            # Check for scalar
-            if obj.ndim > 0:
-                # Convert to list
-                return list(obj)
-            elif np.issubdtype(obj.dtype, np.integer):
-                # Convert to integer
-                return int(obj)
-            else:
-                # Convert to float
-                return float(obj)
-        elif isinstance(obj, np.integer):
-            # Convert to integer
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            # Convert to float
-            return float(obj)
-        # Otherwise use the default
-        return super().default(obj)
-
-
-if __name__ == "__main__":
-    main()

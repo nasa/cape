@@ -1,5 +1,5 @@
 r"""
-:mod:`cape_agentic.agentutils`: Extra utilities for agentic interface
+:mod:`cape.agent.agentutils`: Extra utilities for agentic interface
 =====================================================================
 
 This module provides tools used for the main CAPE agentic interface
@@ -8,13 +8,17 @@ source code.
 """
 
 # Standard library
+import json
 import shutil
 import sys
 import threading
 import time
 
+# Third-party
+import numpy as np
+
 # Local imports
-from .promptutils import sprintf_color
+from ..ui.promptutils import sprintf_color
 
 
 # Spinner class
@@ -61,3 +65,29 @@ class ThinkingSpinner:
             sys.stdout.flush()
             idx = (idx + 1) % len(self.spinner_chars)
             time.sleep(0.25)
+
+
+# Customize JSON serializer
+class _NPEncoder(json.JSONEncoder):
+    r"""Encoder for :mod:`json` that can handle NumPy objects"""
+    def default(self, obj):
+        # Check for array
+        if isinstance(obj, np.ndarray):
+            # Check for scalar
+            if obj.ndim > 0:
+                # Convert to list
+                return list(obj)
+            elif np.issubdtype(obj.dtype, np.integer):
+                # Convert to integer
+                return int(obj)
+            else:
+                # Convert to float
+                return float(obj)
+        elif isinstance(obj, np.integer):
+            # Convert to integer
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            # Convert to float
+            return float(obj)
+        # Otherwise use the default
+        return super().default(obj)
