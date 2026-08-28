@@ -88,7 +88,7 @@ the appropiate `I` parameter to use.
 
 # Special case: use CAPE directly
 _solvrs = "(fun|cart|over|kes|lava|lch|us)"
-REGEX_CAPE_CLI = re.compile(rf"\$?\s*(cape|py{_solvrs})( -?-?[a-z][a-z-]*)?")
+REGEX_CAPE_CLI = re.compile(rf"\$?\s*(cape|py{_solvrs}) -")
 
 
 # Agent prompt
@@ -150,8 +150,11 @@ def run_agent(
         print(RAW_TOOL_MESSAGE)
         print(f"{CLI_CALL_PROMPT} {shlex.join(cmdlist)}")
         # Run it
-        proc = Popen(cmdlist)
-        proc.communicate()
+        try:
+            proc = Popen(cmdlist)
+            proc.communicate()
+        except Exception:
+            print("System command failed")
         print(HLINE)
         return messages, result
     # Append the user input
