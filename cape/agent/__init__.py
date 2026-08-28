@@ -206,7 +206,14 @@ def run_agent(
                 result["n_tool_fails"] += 1
             else:
                 # Tool call: add prompt
-                tool_result = tool_fn(**kwargs)
+                try:
+                    tool_result = tool_fn(**kwargs)
+                except KeyboardInterrupt:
+                    print("KeyboardInterrupt")
+                    tool_result = {
+                        "success": False,
+                        "reson": "User interrupted tool call",
+                    }
                 print(HLINE)
             # Display output
             show_tool_result(tool_result)
