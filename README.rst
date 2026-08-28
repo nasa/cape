@@ -15,6 +15,8 @@ that announced the release of CAPE 1.0.0
 
 https://www.nas.nasa.gov/pubs/ams/2023/03-09-23.html
 
+*Some of the code in this repository after July 1, 2026 was written by AI.*
+
 CAPE has two main purposes:
 
 1. To execute and post-process multiple Computational Fluid Dynamics (CFD)
