@@ -31,42 +31,41 @@ IERR_RUNTIME = 128
 # Inferred commands from options
 CMD_NAMES = {
     "1to2": "1to2",
+    "agentic": "agentic",
+    "apply": "apply",
+    "archive": "archive",
     "batch": "batch",
     "c": "check",
-    "PASS": "approve",
-    "FAIL": "fail",
-    "unmark": "unmark",
-    "defail": "defail",
-    "dezombie": "dezombie",
-    "edit": "edit-json",
-    "extend": "extend",
-    "apply": "apply",
-    "dbpyfunc": "extract-pyfunc",
-    "dex": "extract",
-    "fm": "extract-fm",
-    "iter-fm": "extract-iter-fm",
-    "ll": "extract-ll",
-    "prop": "extract-prop",
-    "surfcp": "extract-surfcp",
-    "pt": "extract-triqpt",
-    "triqfm": "extract-triqfm",
-    "ts": "extract-timeseries",
-    "report": "report",
-    "check-db": "check-db",
-    "e": "exec",
-    "qdel": "qdel",
-    "clean": "clean",
-    "archive": "archive",
-    "skeleton": "skeleton",
-    "unarchive": "unarchive",
-    "report": "report",
-    "rm": "rm",
     "check-db": "check-db",
     "check-fm": "check-fm",
     "check-ll": "check-ll",
     "check-triqfm": "check-triqfm",
+    "clean": "clean",
+    "dbpyfunc": "extract-pyfunc",
+    "defail": "defail",
+    "dex": "extract",
+    "dezombie": "dezombie",
+    "e": "exec",
+    "edit": "edit-json",
+    "extend": "extend",
+    "FAIL": "fail",
+    "fm": "extract-fm",
     "h": "help",
+    "iter-fm": "extract-iter-fm",
+    "ll": "extract-ll",
+    "PASS": "approve",
+    "prop": "extract-prop",
+    "pt": "extract-triqpt",
+    "qdel": "qdel",
+    "report": "report",
+    "rm": "rm",
+    "skeleton": "skeleton",
+    "surfcp": "extract-surfcp",
+    "triqfm": "extract-triqfm",
+    "ts": "extract-timeseries",
     "ui": "ui",
+    "unarchive": "unarchive",
+    "unmark": "unmark",
 }
 
 
@@ -93,6 +92,7 @@ class CfdxArgReader(ArgReader):
 
     # Common options
     _optlist = (
+        "agentic",
         "h",
         "solver",
     )
@@ -142,7 +142,7 @@ class CfdxArgReader(ArgReader):
         "adaptive": bool,
         "add-cols": (str, list),
         "add-counters": (str, list),
-        "agent": bool,
+        "agentic": bool,
         "apply": bool,
         "archive": bool,
         "auto": bool,
@@ -337,6 +337,7 @@ class CfdxArgReader(ArgReader):
         "adaptive": "Save the adapted-mesh version of flow data (more data)",
         "add-cols": "Additional columns to show in run matrix status table",
         "add-counters": "Additional keys to show totals after run mat table",
+        "agentic": "Run CAPE in interactive agentic mode",
         "apply": "Apply current JSON settings to existing case(s)",
         "archive": "Archive files from case(s) and delete extra files",
         "auto": "Ignore *RunControl* > *NJob* if set",
@@ -654,20 +655,20 @@ class CfdxArchiveArgs(_CfdxSubsetArgs):
     )
 
 
-# Settings for --agent
-class CfdxAgentArgs(CfdxArgReader):
+# Settings for --agentic
+class CfdxAgenticArgs(CfdxArgReader):
     # No attributes
     __slots__ = ()
 
     # Name of function
-    _name = "cape agent"
+    _name = "cape agentic"
 
     # Description
     _help_title = "Run CAPE in agentic mode"
 
     # Options
     _optlist = (
-        "agent",
+        "agentic",
     )
 
 
@@ -1653,10 +1654,10 @@ class CfdxFrontDesk(CfdxArgReader):
         "I",
         "PASS",
         "adaptive",
-        "apply",
         "add-cols",
         "add-counters",
-        "agent",
+        "agentic",
+        "apply",
         "archive",
         "auto",
         "batch",
@@ -1742,6 +1743,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "run",
         "start",
         "check",
+        "agentic",
         "1to2",
         "apply",
         "approve",
@@ -1792,6 +1794,7 @@ class CfdxFrontDesk(CfdxArgReader):
 
     # Alternate command names
     _cmdmap = {
+        "agent": "agentic",
         "c": "check",
         "collect-cut": "collect-cutplane",
         "collect-cutp": "collect-cutplane",
@@ -1824,9 +1827,10 @@ class CfdxFrontDesk(CfdxArgReader):
     # Subparsers
     _cmdparsers = {
         "1to2": Cfdx1to2Args,
-        "archive": CfdxArchiveArgs,
+        "agentic": CfdxAgenticArgs,
         "apply": CfdxApplyArgs,
         "approve": CfdxApproveArgs,
+        "archive": CfdxArchiveArgs,
         "batch": CfdxBatchArgs,
         "check": CfdxCheckArgs,
         "check-db": CfdxCheckDBArgs,
@@ -3141,7 +3145,7 @@ def cape_ui() -> Tuple[int, Any]:
     return ui.main(CfdxFrontDesk)
 
 
-def cape_agent() -> Tuple[int, Any]:
+def cape_agentic() -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -3314,6 +3318,7 @@ CMD_DICT = {
     "ui": cape_ui,
     "unarchive": cape_unarchive,
     "unmark": cape_unmark,
+    "agentic": cape_agentic,
 }
 # Invert *CMD_DICT*, Function Name -> Command Name
 CMD_FUNCS = {v.__name__: k for k, v in CMD_DICT.items()}
