@@ -142,6 +142,7 @@ class CfdxArgReader(ArgReader):
         "adaptive": bool,
         "add-cols": (str, list),
         "add-counters": (str, list),
+        "agent": bool,
         "apply": bool,
         "archive": bool,
         "auto": bool,
@@ -650,6 +651,23 @@ class CfdxArchiveArgs(_CfdxSubsetArgs):
     # Additional options
     _optlist = (
         "archive",
+    )
+
+
+# Settings for --agent
+class CfdxAgentArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape agent"
+
+    # Description
+    _help_title = "Run CAPE in agentic mode"
+
+    # Options
+    _optlist = (
+        "agent",
     )
 
 
@@ -1638,6 +1656,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "apply",
         "add-cols",
         "add-counters",
+        "agent",
         "archive",
         "auto",
         "batch",
@@ -3120,6 +3139,27 @@ def cape_ui() -> Tuple[int, Any]:
     from .. import ui
     # Run code
     return ui.main(CfdxFrontDesk)
+
+
+def cape_agent() -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Import agent interface
+    from .. import agent
+    # Run code
+    return agent.main(CfdxFrontDesk)
 
 
 def read_cntl(cls: ArgReader, *a, **kw):

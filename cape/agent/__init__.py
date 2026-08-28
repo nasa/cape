@@ -29,16 +29,26 @@ from cape.util import pyrangestr
 from openai import OpenAI, InternalServerError
 
 # Local imports
+from .. import capeconfig
 from .agentutils import ThinkingSpinner
-from ..ui.promptutils import sprintf_color, sprintf_color_rl
 from .tools import TOOL_SCHEMAS, TOOLS, normalize_kwargs
 from ..argread.clitext import compile_rst, wrapline
+from ..ui.promptutils import CfdxCompleter, sprintf_color, sprintf_color_rl
 
 
-# Constants
+# Model selection
 BASE_URL = "http://localhost:8000/v1"
 MODEL = "Llama-3.2-3B-Instruct-Q4_K_M"
 MODEL = "Qwen/Qwen3.5-122B-A10B-FP8"
+
+# Constants
+CAPE_HISTORY_LENGTH = 1000
+EXIT_CMDS = (
+    "exit",
+    "quit",
+    "exit()",
+    "quit()",
+)
 
 # LLM parameters
 MAX_TOOL_CALL_LOOPS = 3
@@ -305,16 +315,28 @@ def _normalize_result(result: dict):
     return output
 
 
-def main() -> None:
-    # Configure readline for better input editing
-    histfile = os.path.expanduser("~/.cape_agent_history")
+def main(cls: Optional[type] = None) -> None:
+    # Get history file
+    histfile = capeconfig.get_cape_opt("AgentHistoryFile")
+    # If relative path, join with CacheDir
+    if not os.path.isabs(histfile):
+        cachedir = capeconfig.get_cape_opt("CacheDir")
+        histfile = os.path.join(cachedir, histfile)
+    # Read CAPE history from previous sessions
     try:
         readline.read_history_file(histfile)
-        readline.set_history_length(1000)
+        readline.set_history_length(CAPE_HISTORY_LENGTH)
     except FileNotFoundError:
         pass
     # Enable tab completion (optional)
     readline.parse_and_bind("tab: complete")
+    # Default completions class
+    if cls is None:
+        from ..cfdx.cli import CfdxFrontDesk
+        cls = CfdxFrontDesk
+    # Create autocompleter
+    completer = CfdxCompleter(cls)
+    readline.set_completer(completer)
 
     # Open the OpenAI interface to the LLM client
     client = OpenAI(base_url=BASE_URL, api_key="not-needed")
@@ -338,6 +360,10 @@ def main() -> None:
         # Recycle if empty prompt given
         if not user_message:
             continue
+        # Check for manual exit
+        if user_message.strip() in EXIT_CMDS:
+            print()
+            break
         # Interact with LLM
         try:
             # Pass message and wait
@@ -351,7 +377,6 @@ def main() -> None:
                 pprint.pprint(details)
             print(f"{type(e).__name__}: {parts[0]}")
             break
-
     # Save readline history on exit
     try:
         readline.write_history_file(histfile)
