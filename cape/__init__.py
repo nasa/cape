@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 r"""
 
+ ██████╗ █████╗ ██████╗ ███████╗
+██╔════╝██╔══██╗██╔══██╗██╔════╝
+██║     ███████║██████╔╝█████╗
+██║     ██╔══██║██╔═══╝ ██╔══╝
+╚██████╗██║  ██║██║     ███████╗
+ ╚═════╝╚═╝  ╚═╝╚═╝     ╚══════╝
+
 The :mod:`cape` module contains the top-level interface setup of various
 solvers. It loads the most important methods from the various submodules
 so that they are easier to access. Most tasks using the Cape API can be

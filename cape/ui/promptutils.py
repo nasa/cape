@@ -119,6 +119,9 @@ class CfdxCompleter:
     __slots__ = (
         "matches",
         "cls",
+        "cmdname",
+        "parser",
+        "subparser",
         "solver",
         "role",
     )
@@ -131,6 +134,12 @@ class CfdxCompleter:
         #: :class:`type`
         #: Subclass of :class:`cape.argread.ArgReader` for completion
         self.cls = cls
+        #: :class:`cape.argread.ArgReader`
+        #: Instance of *cls* instantiated with args so far
+        self.parser = cls()
+        #: :class:`str` | ``None``
+        #: Name of sub-command
+        self.cmdname = None
         #: :class:`str` | ``None``
         #: Name of current solver based on first word of command
         self.solver = None
@@ -222,6 +231,23 @@ class CfdxCompleter:
             # Not a CAPE command
             self.role = "filename"
             return complete_filenames(text)
+        # Attempt to decide sub-command
+        try:
+            # Parse arguments so far
+            cmdname, _ = self.parser.decide_cmdname(argv[:j])
+            # Save it if successful
+            if cmdname == "run" and len(argv) > 1 and argv[1] != "run":
+                # Avoid defaulting to "run" too early
+                self.cmdname = None
+            elif cmdname == "ui" and len(argv) > 1 and argv[1] != "ui":
+                # Avoid defaulting to "ui" too early
+                self.cmdname = None
+            else:
+                # Save the result
+                self.cmdname = cmdname
+        except Exception:
+            # Current command doesn't map to sub-parser or is invalid
+            self.cmdname = None
         # Check for option vs value
         if text.startswith("-"):
             # Filter existing options
@@ -245,7 +271,7 @@ class CfdxCompleter:
             suggestions = [f'{opt}={v}' for v in vals]
             return suggestions
         # For arg 1, suggest using canonical format
-        if j == 1 and len(argv) == 2:
+        if j == 1 and len(argv) <= 2:
             return self.genr8_cmdnames(text)
         # Check if we're in an option or not
         if j > 1:
@@ -308,8 +334,20 @@ class CfdxCompleter:
         """
         # Get name of option so far (w/o '--')
         optpat = text.lstrip('-')
+        # Get full list of available options
+        if self.cmdname is None:
+            # Use full set
+            optlist = self.cls._optlist
+        else:
+            # Use subset
+            subcls = self.cls._cmdmap.get(self.cmdname)
+            # Check before assuming that worked
+            if subcls is None:
+                optlist = self.cls._optlist
+            else:
+                optlist = subcls._optlist
         # Filter existing options
-        opts = fnmatch.filter(self.cls._optlist, f"{optpat}*")
+        opts = fnmatch.filter(optlist, f"{optpat}*")
         # Output
         self.role = "optname"
         return opts
