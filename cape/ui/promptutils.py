@@ -231,27 +231,15 @@ class CfdxCompleter:
             # Not a CAPE command
             self.role = "filename"
             return complete_filenames(text)
-        # Attempt to decide sub-command
-        try:
-            # Parse arguments so far
-            cmdname, _ = self.parser.decide_cmdname(argv[:j])
-            # Save it if successful
-            if cmdname == "run" and len(argv) > 1 and argv[1] != "run":
-                # Avoid defaulting to "run" too early
-                self.cmdname = None
-            elif cmdname == "ui" and len(argv) > 1 and argv[1] != "ui":
-                # Avoid defaulting to "ui" too early
-                self.cmdname = None
-            else:
-                # Save the result
-                self.cmdname = cmdname
-        except Exception:
-            # Current command doesn't map to sub-parser or is invalid
-            self.cmdname = None
         # Check for option vs value
         if text.startswith("-"):
+            # Filter option list
+            self.decide_cmdname(argv, j)
             # Filter existing options
             opts = self.genr8_optlist(text)
+            # Filter to multi-letter if given two dashes
+            if text.startswith("--"):
+                opts = [o for o in opts if len(o) > 1]
             # Initialize output
             suggestions = []
             # Add one or two dashes
@@ -283,8 +271,9 @@ class CfdxCompleter:
                 return self.genr8_optvals(opt, text)
         # For new words, let's recommend options
         if len(text) == 0:
-            # Get list of options
-            opts = self.cls._optlist
+            # Filter option list
+            self.decide_cmdname(argv, j)
+            opts = self.genr8_optlist('')
             # Append '-' to each
             suggestions = []
             # Add one or two dashes
@@ -299,6 +288,25 @@ class CfdxCompleter:
         # Default to file names
         self.role = "filename"
         return complete_filenames(text)
+
+    def decide_cmdname(self, argv: list, j: int):
+        # Attempt to decide sub-command
+        try:
+            # Parse arguments so far
+            cmdname, _ = self.parser.decide_cmdname(argv[:j])
+            # Save it if successful
+            if cmdname == "run" and len(argv) > 1 and argv[1] != "run":
+                # Avoid defaulting to "run" too early
+                self.cmdname = None
+            elif cmdname == "ui" and len(argv) > 1 and argv[1] != "ui":
+                # Avoid defaulting to "ui" too early
+                self.cmdname = None
+            else:
+                # Save the result
+                self.cmdname = cmdname
+        except Exception:
+            # Current command doesn't map to sub-parser or is invalid
+            self.cmdname = None
 
     def genr8_cmdnames(self, text: str) -> list[str]:
         r"""Suggest list of CAPE command name completions
@@ -340,7 +348,7 @@ class CfdxCompleter:
             optlist = self.cls._optlist
         else:
             # Use subset
-            subcls = self.cls._cmdmap.get(self.cmdname)
+            subcls = self.cls._cmdparsers.get(self.cmdname)
             # Check before assuming that worked
             if subcls is None:
                 optlist = self.cls._optlist
