@@ -29,7 +29,7 @@ IERR_OPT = 32
 IERR_RUNTIME = 128
 
 # Inferred commands from options
-CMD_NAMES = {
+IMPLIED_CMDNAMES = {
     "1to2": "1to2",
     "agentic": "agentic",
     "apply": "apply",
@@ -1906,7 +1906,7 @@ class CfdxFrontDesk(CfdxArgReader):
     # Decide on sub-command if none specified
     def infer_cmdname(self) -> str:
         # Check for various options
-        for opt, cmdname in CMD_NAMES.items():
+        for opt, cmdname in IMPLIED_CMDNAMES.items():
             # Check if present
             if opt in self:
                 # Get value
