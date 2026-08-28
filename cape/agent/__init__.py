@@ -316,6 +316,12 @@ def _normalize_result(result: dict):
 
 
 def main(cls: Optional[type] = None) -> None:
+    # Initialize a results dictionary
+    result = {}
+    n_msgs = 0
+    n_cmds = 0
+    n_tool_calls = 0
+    n_failures = 0
     # Get history file
     histfile = capeconfig.get_cape_opt("AgentHistoryFile")
     # If relative path, join with CacheDir
@@ -363,11 +369,15 @@ def main(cls: Optional[type] = None) -> None:
         if user_message.strip() in EXIT_CMDS:
             print()
             break
+        # Update number of messages
+        n_msgs += 1
         # Interact with LLM
         try:
             # Pass message and wait
             history = run_agent(user_message, client, history)
         except InternalServerError as e:
+            # Count failures
+            n_failures += 1
             # Parse error message
             parts = e.args[0].split(' - ', 1)
             details = None if len(parts) < 2 else parts[1]
@@ -381,6 +391,8 @@ def main(cls: Optional[type] = None) -> None:
         readline.write_history_file(histfile)
     except Exception:
         pass
+    # Output
+    return 0, {"n_messages", n_msgs}
 
 
 # Convert to string
