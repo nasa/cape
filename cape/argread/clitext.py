@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.argread.clitext`: Process help messages for console output
-======================================================================
+``argread.clitext``: Process help messages for console output
+=============================================================
 
 This module provides the function :func:`compile_rst` to turn a
 docstring or other Python string into a format that is appropriate to
@@ -10,6 +10,8 @@ available.
 
 # Standard library
 import re
+import shutil
+from typing import Optional
 
 # Third-party
 try:
@@ -206,12 +208,12 @@ def compile_rst(doc: str) -> str:
     txt = re.sub(r":(\w[\w/ _.-]*):`([^`\n]+)`", replfn, txt)
     # Simplify user names
     txt = re.sub(r"``(@\w+)``", repluid, txt)
-    # Simplify bolds
-    txt = re.sub(r"\*\*(\w[\w/ _.-]*)\*\*", replemph, txt)
-    # Simplify italic
+    # Simplify italic (more targeted)
     txt = re.sub(r"\*(\w[\w ]*)\*", replit, txt)
+    # Simplify bolds
+    txt = re.sub(r"\*\*(\w[^*\n]*)\*\*", replemph, txt)
     # Mark string literals
-    txt = re.sub(r"``([^`\n]*)``", repllit, txt)
+    txt = re.sub(r"``?([^`\n]*)``?", repllit, txt)
     # Output
     return txt
 
@@ -240,3 +242,65 @@ def get_nstart(line: str, c: str) -> int:
         else:
             # Position *nc* is not *c* or line is over
             return nc
+
+
+def wrapline(msg: str, w: Optional[int] = None) -> str:
+    r"""Wrap a message at word boundaries
+
+    :Call:
+        >>> formatted = wrapline(msg, w=None)
+    :Inputs:
+        *msg*: :class:`str`
+            Original message, possibly with long lines
+        *w*: {``None``} | :class:`int`
+            Max cols in one line, default is the smaller of 79 and the
+            current terminal width
+    :Outputs:
+        *formatted*: :class:`str`
+            Formatted line with line breaks inserted where necessary
+    """
+    # Default width
+    if w is None:
+        w = min(79, shutil.get_terminal_size().columns)
+    # Start output
+    lines = []
+    # Loop through lines
+    for line in msg.split('\n'):
+        # Check if line is short enough already
+        if len(line) <= w:
+            lines.append(line)
+            continue
+        # Get leading whitespace for indentation
+        nw = get_nstart(line, " ")
+        indent = " " * nw
+        # Strip leading whitespace for wrapping
+        line_stripped = line[nw:]
+        # Split into words
+        words = line_stripped.split()
+        # Start building wrapped lines
+        current_line = indent
+        for word in words:
+            # Check if adding this word would exceed width
+            if len(current_line) > len(indent):
+                # Not the first word on this line
+                test_line = current_line + " " + word
+            else:
+                # First word on this line
+                test_line = current_line + word
+            # Check length
+            if len(test_line) <= w:
+                # Word fits on current line
+                current_line = test_line
+            else:
+                # Word doesn't fit; start new line
+                if len(current_line) > len(indent):
+                    # Save current line if it has content
+                    lines.append(current_line)
+                # Start new line with same indentation
+                current_line = indent + word
+        # Add final line if it has content
+        if len(current_line) > len(indent):
+            lines.append(current_line)
+    # Join with newlines
+    return '\n'.join(lines)
+

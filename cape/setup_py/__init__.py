@@ -20,7 +20,7 @@ LONG_DESCRIPTION = open(DESCRIPTION_FILE).read()
 # Compile and link
 SETUP_SETTINGS = dict(
     name="cape",
-    version="2.3.0",
+    version="3.0.0a1",
     description="CAPE computational aerosciences package",
     long_description=LONG_DESCRIPTION,
     url="https://www.github.com/nasa/cape",
@@ -29,6 +29,8 @@ SETUP_SETTINGS = dict(
     license="NASA Open Source Agreement Version 1.3",
     packages=[
         "cape",
+        "cape.agent",
+        "cape.agent.tools",
         "cape.argread",
         "cape.cfdx",
         "cape.cfdx.options",
