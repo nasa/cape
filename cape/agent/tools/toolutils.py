@@ -59,6 +59,29 @@ def normalize_tool_arg(v):
 
 
 def wrap_cli(func: Callable, *a, **kw) -> dict:
+    r"""Run a CAPE command-line tool through :mod:`cape.cfdx.cli`
+
+    This performs several preprocessing, error handling, and
+    postprocessing steps. The output of this function includes the
+    results of the underlying function and appends the returncode. It
+    also captures STDOUT and appends that to the result
+
+    :Call:
+        >>> result = wrap_cli(func, *a, **kw)
+    :Inputs:
+        *func*: **callable**
+            A function to be wrapped
+        *a*: :class:`tuple`
+            Args passed into *func* after preprocessing
+        *kw*: :class:`dict`
+            Keyword args passed into *func* after preprocessing
+    :Outputs:
+        *result*: :class:`dict`
+            Results of code; includes keys *result*, *success*,
+            *returncode*, and *stdout*
+    """
+    # Special flag to allow arbitarily long STDOUT
+    long_ok = kw.pop("__long_stdout", False)
     # Normalize the args
     a_tool = (normalize_tool_arg(aj) for aj in a)
     # Normalize the kwargs
@@ -88,9 +111,52 @@ def wrap_cli(func: Callable, *a, **kw) -> dict:
                 "error": f"{type(e).__name__}: {e}",
             }
     # Save the captured STDOUT
-    result["stdout"] = buf.getvalue()
+    stdout = buf.getvalue()
+    # Tuncate it unless cape_c
+    if long_ok:
+        result["stdout"] = stdout
+    else:
+        result["stdout"] = _truncate_stdout(stdout)
     # Output
     return result
+
+
+def _truncate_stdout(stdout: str) -> str:
+    # Filter STDOUT if too long
+    if len(stdout) > 2000:
+        # Filter out lines that begin with a space
+        lines = stdout.splitlines(keepends=True)
+        lines = [line for line in lines if not line.startswith(' ')]
+        stdout = ''.join(lines)
+    # If still too long, trim beginning and end
+    if len(stdout) > 1000:
+        lines = stdout.splitlines(keepends=True)
+        # Accumulate from beginning up to 500 chars
+        head_lines = []
+        head_len = 0
+        for line in lines:
+            line = line[:128]
+            head_lines.append(line)
+            head_len += len(line)
+            if head_len >= 500:
+                break
+        # Accumulate from end up to 500 chars
+        tail_lines = []
+        tail_len = 0
+        for line in reversed(lines):
+            line = line[:128]
+            tail_lines.append(line)
+            tail_len += len(line)
+            if tail_len >= 500:
+                break
+        tail_lines.reverse()
+        # Combine, avoiding overlap
+        if head_len + tail_len >= len(stdout):
+            # Overlap: just use the whole thing
+            stdout = ''.join(lines)
+        else:
+            stdout = ''.join(head_lines) + ''.join(tail_lines)
+    return stdout
 
 
 # Class to capture STDOUT and report it
