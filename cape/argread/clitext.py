@@ -27,11 +27,82 @@ if colorama is not None:
 # Standard regular expressions
 REGEX_DIRECTIVE = re.compile(r"\.\. +[a-z-]+::")
 
+
+# Console colors and attributes
+CONSOLE = {
+    # Foreground colors
+    'black':     '\x1b[30m',
+    'darkgray':  '\x1b[30;01m',
+    'red':       '\x1b[31;01m',
+    'darkred':   '\x1b[31m',
+    'green':     '\x1b[32;01m',
+    'darkgreen': '\x1b[32m',
+    'yellow':    '\x1b[33;01m',
+    'brown':     '\x1b[33m',
+    'blue':      '\x1b[34;01m',
+    'darkblue':  '\x1b[34m',
+    'purple':    '\x1b[35m',
+    'fuchsia':   '\x1b[35;01m',
+    'turquoise': '\x1b[36m',
+    'teal':      '\x1b[36;01m',
+    'white':     '\x1b[37;01m',
+    'lightgray': '\x1b[37m',
+    # Bright foreground colors
+    'bright-black':   '\x1b[90m',
+    'bright-red':     '\x1b[91m',
+    'bright-green':   '\x1b[92m',
+    'bright-yellow':  '\x1b[93m',
+    'bright-blue':    '\x1b[94m',
+    'bright-magenta': '\x1b[95m',
+    'bright-cyan':    '\x1b[96m',
+    'bright-white':   '\x1b[97m',
+    # Background colors
+    'bg-black':     '\x1b[40m',
+    'bg-red':       '\x1b[41m',
+    'bg-green':     '\x1b[42m',
+    'bg-yellow':    '\x1b[43m',
+    'bg-blue':      '\x1b[44m',
+    'bg-magenta':   '\x1b[45m',
+    'bg-cyan':      '\x1b[46m',
+    'bg-white':     '\x1b[47m',
+    # Bright background colors
+    'bg-bright-black':   '\x1b[100m',
+    'bg-bright-red':     '\x1b[101m',
+    'bg-bright-green':   '\x1b[102m',
+    'bg-bright-yellow':  '\x1b[103m',
+    'bg-bright-blue':    '\x1b[104m',
+    'bg-bright-magenta': '\x1b[105m',
+    'bg-bright-cyan':    '\x1b[106m',
+    'bg-bright-white':   '\x1b[107m',
+    # Text attributes
+    'bold':          '\x1b[01m',
+    'faint':         '\x1b[02m',
+    'italic':        '\x1b[03m',
+    'underline':     '\x1b[04m',
+    'blink':         '\x1b[05m',
+    'standout':      '\x1b[03m',
+    'reverse':       '\x1b[07m',
+    'conceal':       '\x1b[08m',
+    'strikethrough': '\x1b[09m',
+    # Special turn-off sequences
+    'un-bold':          "\x1b[22m",
+    'un-italic':        "\x1b[23m",
+    'un-underline':     "\x1b[24m",
+    'un-blink':         "\x1b[25m",
+    'un-reverse':       "\x1b[27m",
+    'un-strikethrough': "\x1b[29m",
+    # Reset
+    'plain':      '\x1b[0m',
+    'reset':      '\x1b[39;49;00m',
+}
+
+
 # Standard characters
-BOLD = "\x1b[1m"
-ITALIC = "\x1b[3m"
-PLAIN = "\x1b[0m"
+BOLD = CONSOLE["bold"]
+ITALIC = CONSOLE["italic"]
+PLAIN = CONSOLE["plain"]
 BOLDITALIC = f"{BOLD}{ITALIC}"
+UNDERLINE = CONSOLE["underline"]
 
 
 # Function to print bold text
@@ -47,7 +118,7 @@ def bold(txt: str) -> str:
         *out*: :class:`str`
             Compiled text
     """
-    return BOLD + txt + PLAIN
+    return BOLD + txt + CONSOLE["un-bold"]
 
 
 # Function to print italic text
@@ -63,7 +134,7 @@ def italic(txt: str) -> str:
         *out*: :class:`str`
             Compiled text
     """
-    return ITALIC + txt + PLAIN
+    return ITALIC + txt + CONSOLE["un-italic"]
 
 
 # Function to print bold & italic
@@ -79,7 +150,7 @@ def bolditalic(txt: str) -> str:
         *out*: :class:`str`
             Compiled text
     """
-    return BOLDITALIC + txt + PLAIN
+    return BOLDITALIC + txt + CONSOLE["un-bold"] + CONSOLE["un-italic"]
 
 
 # Function to take out extensive markup for help messages
@@ -100,6 +171,28 @@ def compile_rst(doc: str) -> str:
         # Replace :Options: -> OPTIONS
         return g.group(1).upper() + "\n\n"
 
+    # Markdown-style sections
+    def replmdsec1(g):
+        # Top-level section, add many levels
+        return (
+            BOLD + UNDERLINE +
+            CONSOLE["bg-black"] + CONSOLE["yellow"] +
+            g.group(1) + PLAIN + '\n')
+
+    # Markdown-style sections
+    def replmdsec2(g):
+        # Top-level section, add many levels
+        return (
+            BOLD + UNDERLINE +
+            g.group(1) + PLAIN + '\n')
+
+    # Markdown-style sections
+    def replmdsec3(g):
+        # Top-level section, add many levels
+        return (
+            UNDERLINE +
+            g.group(1) + PLAIN + '\n')
+
     # Replace ReST identifiers
     def replfn(g):
         # Get the modifier name
@@ -113,6 +206,45 @@ def compile_rst(doc: str) -> str:
         else:
             # No markup
             return "%s" % val
+
+    # Replace with an arbitrary color
+    def replcolor(g):
+        # Get color name
+        color = g.group(1)
+        # Get text
+        text = g.group(2)
+        # CHeck if color was recognized
+        if color in CONSOLE:
+            # Put some text in a color
+            return CONSOLE[color] + text + PLAIN
+        else:
+            # Return original string
+            return BOLD + text + PLAIN
+
+    # Insert general format character
+    def replfmt(g):
+        # Get char name
+        color = g.group(1)
+        # Use it if possible
+        return CONSOLE.get(color, '')
+
+    # Set an arbitrary RGB color
+    def replrgb(g):
+        # Get r,g,b values
+        cr = g.group(2)
+        cg = g.group(3)
+        cb = g.group(4)
+        # Insert special character
+        return f"\x1b[38;2;{cr};{cg};{cb}m"
+
+    # Set an arbitrary RGB background color
+    def replrgbbg(g):
+        # Get r,g,b values
+        cr = g.group(1)
+        cg = g.group(2)
+        cb = g.group(3)
+        # Insert special character
+        return f"\x1b[48;2;{cr};{cg};{cb}m"
 
     # Remove literals around usernames
     def repluid(g):
@@ -140,6 +272,10 @@ def compile_rst(doc: str) -> str:
     line_in_txt = ""
     # Initialize output lines
     lines_out = []
+    # Shortcut for color spec
+    c = "([012]?[0-9]?[0-9])"
+    pat1 = rf"\&(fg)?\({c}[;,]{c}[;,]{c}\)"
+    pat2 = rf"\&bg\({c}[;,]{c}[;,]{c}\)"
     # Loop through lines
     while len(lines_in):
         # Save previous (raw) line
@@ -202,16 +338,27 @@ def compile_rst(doc: str) -> str:
         lines_out.append(line_in.rstrip())
     # Reform doc string
     txt = '\n'.join(lines_out)
-    # Replace section headers
+    # Take out markdown-style section headers
+    txt = re.sub(r"^# *(.*)\n", replmdsec1, txt)
+    txt = re.sub(r"^## *(.*)\n", replmdsec2, txt)
+    txt = re.sub(r"^### *(.*)\n", replmdsec3, txt)
+    # Apply custom "roles"
+    txt = re.sub(r":([a-zA-Z][\w_-]*):`([^`\n]+)`", replcolor, txt)
+    # Replace field-list headers
     txt = re.sub(r":(\w[\w/ _.-]*):\s*\n", replsec, txt)
     # Replace modifiers, such as :mod:`cape.pycart`
     txt = re.sub(r":(\w[\w/ _.-]*):`([^`\n]+)`", replfn, txt)
     # Simplify user names
     txt = re.sub(r"``(@\w+)``", repluid, txt)
-    # Simplify italic (more targeted)
-    txt = re.sub(r"\*(\w[\w ]*)\*", replit, txt)
     # Simplify bolds
-    txt = re.sub(r"\*\*(\w[^*\n]*)\*\*", replemph, txt)
+    txt = re.sub(r"\*\*(\w[^*\n]*\**)\*\*", replemph, txt)
+    # Simplify italic (more targeted)
+    txt = re.sub(r"\*(\w[^*\n]*\**)\*", replit, txt)
+    # Manual format characters
+    txt = re.sub(r"\&\(([\w-]+)\)", replfmt, txt)
+    # Arbitrary colors
+    txt = re.sub(pat1, replrgb, txt)
+    txt = re.sub(pat2, replrgbbg, txt)
     # Mark string literals
     txt = re.sub(r"``?([^`\n]*)``?", repllit, txt)
     # Output

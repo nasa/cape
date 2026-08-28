@@ -89,6 +89,13 @@ CONSOLE = {
     'reverse':    '\x1b[07m',
     'conceal':    '\x1b[08m',
     'strikethrough': '\x1b[09m',
+    # Special turn-off sequences
+    'un-bold':          "\x1b[22m",
+    'un-italic':        "\x1b[23m",
+    'un-underline':     "\x1b[24m",
+    'un-blink':         "\x1b[25m",
+    'un-reverse':       "\x1b[27m",
+    'un-strikethrough': "\x1b[29m",
     # Reset
     'plain':      '\x1b[0m',
     'reset':      '\x1b[39;49;00m',
