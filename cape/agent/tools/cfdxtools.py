@@ -362,6 +362,35 @@ TOOL_SCHEMAS = []
 TOOLS = {}
 
 
+# Tool sets per capability
+TOOL_SETS = {
+    "low": [
+        "cape_find",
+        "cape_c",
+        "cape_clean",
+        "cape_open_pdf",
+        "cape_report",
+        "cape_start",
+    ],
+    "medium": [
+        "cape_find",
+        "cape_c",
+        "cape_approve",
+        "cape_check_db",
+        "cape_clean",
+        "cape_fail",
+        "cape_open_pdf",
+        "cape_qdel",
+        "cape_report",
+        "cape_rm",
+        "cape_run",
+        "cape_start",
+        "cape_unmark",
+    ],
+    "full": list(TOOL_DICT.keys())
+}
+
+
 # Fill out definitions for one tool
 def _add_schema(name: str):
     # Get short options
@@ -402,7 +431,4 @@ def _add_schema(name: str):
 
 # Add the definitions
 for name in TOOL_DICT:
-    try:
-        _add_schema(name)
-    except Exception:
-        breakpoint()
+    _add_schema(name)
