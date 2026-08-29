@@ -15,6 +15,7 @@ run-matrix management tool that:
 - `cape/cli.py` - Auxiliary commands (e.g., `cape-expandjson`)
 - `cape/agent/__init__.py` - Agentic LLM interface (`cape --agentic`)
 - `cape/ui/__init__.py` - Readline-based interactive UI (`cape --ui`)
+- `cape/tui/__init__.py` - Rich-based interactive TUI (`cape tui`)
 
 ### Core Modules
 - `cape/cfdx/cntl.py` - Main `Cntl` class for run matrix control
@@ -86,6 +87,7 @@ cape/
 ├── gruvoc/      # Grid/visualization formats
 ├── nmlfile/     # Fortran namelist handling
 ├── optdict/     # Option dictionary
+├── tui/         # Rich-based interactive TUI
 └── ui/          # Readline-based UI
 ```
 

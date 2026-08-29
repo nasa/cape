@@ -305,6 +305,9 @@ class CfdxCompleter:
             if cmdname == "run" and len(argv) > 1 and argv[1] != "run":
                 # Avoid defaulting to "run" too early
                 self.cmdname = None
+            elif cmdname == "tui" and len(argv) > 1 and argv[1] != "tui":
+                # Avoid defaulting to "tui" too early
+                self.cmdname = None
             elif cmdname == "ui" and len(argv) > 1 and argv[1] != "ui":
                 # Avoid defaulting to "ui" too early
                 self.cmdname = None
