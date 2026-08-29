@@ -60,10 +60,16 @@ Run pytest with coverage using current Python version:
 python3 drive_pytest.py
 ```
 
-Run limited tests for debugging
+Run limited tests for debugging and developing new tests
 ```bash
 bash run_capetest.sh        # Run pytest with coverage
 ```
+
+Tests are added in the ``test/`` folder and roughly organized by module name.
+Each module usually has its own folder, e.g. ``test/001_cape/001_runmatrix``
+for ``cape.cfdx.runmatrix``. Test folders numbered 900 or higher (e.g.
+``test/901_pycart``) require actually running CFD and can only be run on HPC
+systems.
 
 ### Lint
 ```bash

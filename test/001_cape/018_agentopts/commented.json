@@ -1,0 +1,12 @@
+
+    {
+        "ModelList": [
+            "model1",  // First model
+            "model2"   // Second model
+        ],
+        "model1": {
+            "ToolSet": "low",  // Limited tools
+            "SkillSet": "none" // No skills
+        }
+    }
+    
