@@ -13,6 +13,7 @@ The :mod:`cape` module
     
     filecntl/index
     agent/index
+    ui/index
     argread
     atm
     capeio
