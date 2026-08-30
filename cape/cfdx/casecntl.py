@@ -7271,8 +7271,10 @@ class CaseRunner(CaseRunnerBase):
         # Program name
         prog = self._progname
         # Number of processors
-        nproc = cmdgen.get_mpi_procs()
+        nproc1 = cmdgen.get_mpi_procs()
+        nproc2 = self.get_opt("nProc", j=j)
         # Set to one if `None`
+        nproc = nproc1 if nproc2 is None else nproc2
         nproc = 1 if nproc is None else nproc
         # Format time
         t_text = self.tic.strftime('%Y-%m-%d %H:%M:%S %Z')
