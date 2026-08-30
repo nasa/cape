@@ -14,6 +14,7 @@ run-matrix management tool that:
 - `cape/cfdx/cli.py` - Main CLI with `CfdxFrontDesk` parser and `CMD_DICT` routing
 - `cape/cli.py` - Auxiliary commands (e.g., `cape-expandjson`)
 - `cape/agent/__init__.py` - Agentic LLM interface (`cape --agentic`)
+- `cape/agent/agentcntl.py` - `AgentCntl` class implementing the agent loop
 - `cape/ui/__init__.py` - Readline-based interactive UI (`cape --ui`)
 
 ### Core Modules
@@ -119,8 +120,9 @@ cape/
    aliases in `_optmap`
 3. **Docstrings**: RST format with `:Call:`, `:Inputs:`, `:Outputs:` sections
 4. **Slots**: Classes use `__slots__` for memory efficiency
-5. **Agentic Mode**: New `--agentic` flag uses `cape/agent/__init__.py` with
-   LLM tool calling
+5. **Agentic Mode**: New `--agentic` flag calls `main()` in
+   `cape/agent/__init__.py`, which runs the agent loop via
+   `cape.agent.agentcntl.AgentCntl` with LLM tool calling
 
 ## Documentation
 

@@ -140,17 +140,16 @@ def test_05_get_modelopt():
         model_a={"ToolSet": "low", "SkillSet": "medium"}
     )
 
-    # Get option for defined model - note: get_ModelOpt has a bug where it
-    # returns Parent value instead of the requested option when model exists
-    # For direct access, use the model's ModelOpts instance
+    # Get option for defined model
     model_a_opts = opts["model_a"]
     assert model_a_opts.get_opt("ToolSet") == "low"
     assert model_a_opts.get_opt("SkillSet") == "medium"
 
-    # get_ModelOpt returns Parent for existing models (bug in implementation)
-    # This tests the actual behavior
+    # get_ModelOpt returns Parent setting for existing models
     parent_val = opts.get_ModelOpt("model_a", "Parent")
     assert parent_val is None  # model_a has no Parent
+    # get_ModelOpt returns model's own settings, when present
+    assert opts.get_ModelOpt("model_a", "ToolSet") == "low"
 
     # Get option for undefined model (should return default)
     toolset_b = opts.get_ModelOpt("model_b", "ToolSet")
@@ -282,8 +281,7 @@ def test_14_parent_cascading():
     child_opts = opts["child_model"]
     assert child_opts.get_opt("Parent") == "parent_model"
 
-    # get_ModelOpt should return Parent for child (current behavior)
-    # Note: Full cascading would require additional implementation
+    # get_ModelOpt returns the child's immediate parent
     parent_ref = opts.get_ModelOpt("child_model", "Parent")
     assert parent_ref == "parent_model"
 

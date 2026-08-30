@@ -96,7 +96,9 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
 
     # Accepted options/sections
     _optlist = {
+        "Model",
         "ModelList",
+        "URL",
     }
 
     # Key defining additional *_xoptlist* components
@@ -110,7 +112,9 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
     # Known option types
     _opttypes = {
         "_default_": ModelOpts,
+        "Model": str,
         "ModelList": str,
+        "URL": str,
     }
 
     # Option default list depth
@@ -120,7 +124,9 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
 
     # Descriptions for methods
     _rst_descriptions = {
+        "Model": "name of LLM to use; overrides model list from server",
         "ModelList": "list of models with tailored settings",
+        "URL": "base URL of LLM server's OpenAI-compatible API",
     }
 
     # Section classes
@@ -134,10 +140,13 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
             # Create default instance
             opts = ModelOpts()
             # Return default value
-            return opts.get_opt(opt)
+            return opts.get_opt(opt, vdef=vdef)
+        # Special case: return (immediate) parent w/o cascading
+        if opt == "Parent":
+            return self[model].get_opt(opt, vdef=vdef)
         # Use cascading options
-        return self.get_subopt(model, "Parent")
+        return self.get_subopt(model, opt, key="Parent", vdef=vdef)
 
 
 # Add global properties
-AgentOpts.add_properties(("ModelList",))
+AgentOpts.add_properties(("Model", "ModelList", "URL"))

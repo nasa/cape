@@ -149,6 +149,51 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Inspect ---
+    # Get item or subset of options using jq-style path
+    @abstractmethod
+    def inspect_json(
+            self,
+            jq: str = ".",
+            maxdepth: Optional[int] = None) -> Any:
+        r"""Inspect an item or subset of the expanded options
+
+        This uses a simple subset of the path syntax used by the common
+        system utility ``jq -r``; supported syntax is:
+
+            * ``.``: the entire options
+            * ``.KEY``: one key from a dict
+            * ``."KEY"``: dict key containing spaces or other specials
+            * ``.["KEY"]``: dict key using string syntax
+            * ``.[I]`` or ``.KEY[I]``: index into a list
+            * ``.KEY[I1:I2]``: slice of a list
+
+        If *maxdepth* is given, any dicts deeper than *maxdepth* levels
+        (relative to the selected item) are replaced by ``{}`` in the
+        output.
+
+        :Call:
+            >>> v = cntl.inspect_json(jq=".", maxdepth=None)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Instance of CAPE control interface
+            *jq*: {``"."``} | :class:`str`
+                Path to item to retrieve, using ``jq`` path syntax
+            *maxdepth*: {``None``} | :class:`int`
+                Maximum depth of dicts to include in output
+        :Outputs:
+            *v*: **any**
+                Selected item or subset of *cntl.opts*
+        :Examples:
+            >>> cntl.inspect_json(".PBS.select")
+            10
+            >>> cntl.inspect_json(".PBS", maxdepth=0)
+            {}
+        :Versions:
+            * 2026-08-30: v1.0
+        """
+        pass
+
    # --- Top-level options ---
     # Get the project rootname
     @abstractmethod

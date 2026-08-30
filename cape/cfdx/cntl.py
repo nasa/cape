@@ -39,6 +39,7 @@ import importlib
 import json
 import os
 import pickle
+import re
 import shlex
 import shutil
 import sys
@@ -598,6 +599,22 @@ class Cntl(CntlBase):
                 f"CAPE {self._solver} option has no '{fn}()' method")
         # Call it
         func(v)
+
+   # --- Inspect ---
+    # Get item or subset of options using jq-style path
+    def inspect_json(
+            self,
+            jq: str = ".",
+            maxdepth: Optional[int] = None) -> Any:
+        # Split jq path into keys and indices
+        keys = _split_jq_path(jq)
+        # Start at root of options
+        v = self.opts
+        # Navigate path
+        for key in keys:
+            v = v[key]
+        # Truncate and output
+        return _truncate_jq(v, maxdepth)
 
    # --- Top-level options ---
     # Get the project rootname
@@ -5763,6 +5780,169 @@ class Cntl(CntlBase):
             # Add current hash and state to cumulative archive
             logr.log_archive(self.opts_hash)
             logr.log_archive(self.opts_jsonl)
+
+
+# Regex for a plain key in a jq-style path
+_REGEX_JQ_KEY = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+
+
+# Split a jq-style path into keys, indices, and slices
+def _split_jq_path(jq: str) -> list:
+    r"""Split a ``jq``-style path into dict keys and list indices
+
+    :Call:
+        >>> keys = _split_jq_path(jq)
+    :Inputs:
+        *jq*: :class:`str`
+            Path to an item, using ``jq`` path syntax
+    :Outputs:
+        *keys*: :class:`list`\ [:class:`str` | :class:`int` | slice]
+            Keys and indices for each segment of *jq*
+    :Versions:
+        * 2026-08-30: v1.0
+    """
+    # Must start with '.'
+    if not (isinstance(jq, str) and jq.startswith(".")):
+        raise ValueError(f"Invalid jq path: {jq!r}")
+    # Initialize parts
+    parts = []
+    # Index of next char to parse (skip leading '.')
+    i = 1
+    n = len(jq)
+    # Parse segments
+    while i < n:
+        # Get next char
+        ch = jq[i]
+        if ch == "[":
+            # Read index, slice, or key between brackets
+            part, i = _read_jq_bracket(jq, i)
+            parts.append(part)
+            continue
+        # Otherwise expect '.KEY' (or first key after leading '.')
+        if ch == ".":
+            # Recursive descent ('..') not supported
+            if i == 1:
+                raise ValueError(f"Invalid jq path at index {i}: {jq!r}")
+            # Move past '.'
+            i += 1
+            # Re-read char ('.' must be followed by a key)
+            ch = jq[i] if i < n else ""
+        elif i > 1:
+            # Only the first segment may skip the '.'
+            raise ValueError(f"Invalid jq path at index {i}: {jq!r}")
+        # Read a key (plain or quoted)
+        if ch == '"':
+            # Quoted key: ."Odd Key"
+            key, i = _read_jq_string(jq, i)
+            parts.append(key)
+            continue
+        # Otherwise expect a plain key
+        m = _REGEX_JQ_KEY.match(jq, i)
+        if m is None:
+            raise ValueError(f"Invalid jq path at index {i}: {jq!r}")
+        # Save key and move on
+        parts.append(m.group())
+        i = m.end()
+    # Output
+    return parts
+
+
+# Read an index, slice, or key between [] brackets of a jq-style path
+def _read_jq_bracket(jq: str, i: int) -> tuple:
+    # Move past opening '['
+    j = i + 1
+    # Check for quoted key
+    if (j < len(jq)) and (jq[j] == '"'):
+        # Read the key
+        part, j = _read_jq_string(jq, j)
+        # Skip spaces to closing bracket
+        while (j < len(jq)) and (jq[j] == " "):
+            j += 1
+        # Expect closing bracket
+        if (j >= len(jq)) or (jq[j] != "]"):
+            raise ValueError(f"Missing ']' in jq path: {jq!r}")
+        return part, j + 1
+    # Find closing bracket
+    k = jq.find("]", j)
+    if k < 0:
+        raise ValueError(f"Missing ']' in jq path: {jq!r}")
+    # Get contents between brackets
+    inner = jq[j:k].strip()
+    # Check type of bracket contents
+    try:
+        if ":" in inner:
+            # Slice: split into start/stop
+            txt1, txt2 = inner.split(":")
+            part = slice(
+                None if txt1 == "" else int(txt1),
+                None if txt2 == "" else int(txt2))
+        else:
+            # Simple index
+            part = int(inner)
+    except ValueError:
+        raise ValueError(f"Invalid index in jq path: '[{inner}]'") from None
+    # Move past closing bracket
+    return part, k + 1
+
+
+# Read a quoted string starting at index *i*
+def _read_jq_string(jq: str, i: int) -> tuple:
+    # Read chars until closing quote
+    chars = []
+    j = i + 1
+    n = len(jq)
+    # Parse chars
+    while j < n:
+        # Get next char
+        c = jq[j]
+        if (c == "\\") and (j + 1 < n):
+            # Escaped char
+            chars.append(jq[j+1])
+            j += 2
+        elif c == '"':
+            # Found closing quote
+            return ''.join(chars), j + 1
+        else:
+            # Normal char
+            chars.append(c)
+            j += 1
+    # Never found closing quote
+    raise ValueError(f"Unterminated string in jq path: {jq!r}")
+
+
+# Limit depth of dicts in an inspected item
+def _truncate_jq(v, maxdepth: Optional[int] = None, _depth: int = 0):
+    r"""Replace dicts deeper than *maxdepth* levels with ``{}``
+
+    :Call:
+        >>> v1 = _truncate_jq(v, maxdepth=None)
+    :Inputs:
+        *v*: **any**
+            Item or subset of options
+        *maxdepth*: {``None``} | :class:`int`
+            Maximum depth of dicts to include in output
+    :Outputs:
+        *v1*: **any**
+            Copy of *v* with deeper dicts replaced by ``{}``
+    :Versions:
+        * 2026-08-30: v1.0
+    """
+    # No truncation
+    if maxdepth is None:
+        return v
+    # Replace dicts past *maxdepth*
+    if isinstance(v, dict) and (_depth >= maxdepth):
+        return {}
+    # Recurse through dicts
+    if isinstance(v, dict):
+        return {
+            k: _truncate_jq(vj, maxdepth, _depth+1) for k, vj in v.items()}
+    # Recurse through lists and tuples
+    if isinstance(v, (list, tuple)):
+        return type(v)(
+            _truncate_jq(vj, maxdepth, _depth+1) for vj in v)
+    # Scalar value
+    return v
 
 
 # Combine two dicts, recursively

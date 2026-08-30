@@ -364,6 +364,7 @@ TOOLS = {}
 
 # Tool sets per capability
 TOOL_SETS = {
+    "none": [],
     "low": [
         "cape_find",
         "cape_c",
