@@ -1296,6 +1296,25 @@ class CfdxGetConfigArgs(CfdxArgReader):
     )
 
 
+# Settings for get-keys
+class CfdxGetKeysArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape get-keys"
+
+    # Description
+    _help_title = "Show properties of run matrix keys as JSON"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "solver",
+    )
+
+
 # Settings for inspect-json
 class CfdxInspectJsonArgs(CfdxArgReader):
     # No attributes
@@ -1319,6 +1338,25 @@ class CfdxInspectJsonArgs(CfdxArgReader):
     # Positional parameters
     _arglist = (
         "jq",
+    )
+
+
+# Settings for list-keys
+class CfdxListKeysArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape list-keys"
+
+    # Description
+    _help_title = "List run matrix keys"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "solver",
     )
 
 
@@ -1812,7 +1850,9 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-json",
         "find-large",
         "get-config",
+        "get-keys",
         "inspect-json",
+        "list-keys",
         "open-pdf",
         "post-file",
         "qdel",
@@ -1896,7 +1936,9 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-json": CfdxFindJSONArgs,
         "find-large": CfdxFindLargeArgs,
         "get-config": CfdxGetConfigArgs,
+        "get-keys": CfdxGetKeysArgs,
         "inspect-json": CfdxInspectJsonArgs,
+        "list-keys": CfdxListKeysArgs,
         "open-pdf": CfdxOpenPDFArgs,
         "post-file": CfdxPostFileArgs,
         "qdel": CfdxQdelArgs,
@@ -2734,6 +2776,35 @@ def cape_get_config(*a, **kw) -> Tuple[int, list]:
     return IERR_OK, v
 
 
+@CfdxGetKeysArgs.rst
+def cape_get_keys(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Localized inputs
+    import json
+    from ..optdict import _NPEncoder
+    # Read *cntl* w/o status updates
+    cntl, kw = read_cntl_quiet(CfdxGetKeysArgs, *a, **kw)
+    # Get key properties
+    v = cntl.get_runmatrix_keys()
+    # Show as compact JSON
+    print(json.dumps(v, cls=_NPEncoder, separators=(",", ":")))
+    # Return code
+    return IERR_OK, v
+
+
 @CfdxInspectJsonArgs.rst
 def cape_inspect_json(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
@@ -2765,6 +2836,33 @@ def cape_inspect_json(*a, **kw) -> Tuple[int, Any]:
     print(json.dumps(v, cls=_NPEncoder, indent=4, default=str))
     # Return code
     return IERR_OK, v
+
+
+@CfdxListKeysArgs.rst
+def cape_list_keys(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl* w/o status updates
+    cntl, kw = read_cntl_quiet(CfdxListKeysArgs, *a, **kw)
+    # Get list of keys
+    keys = cntl.opts.get_RunMatrixKeys()
+    # Show them, one key per line
+    for key in keys:
+        print(key)
+    # Return code
+    return IERR_OK, keys
 
 
 @CfdxOpenPDFArgs.rst
@@ -3380,7 +3478,9 @@ CMD_DICT = {
     "find-json": cape_find_json,
     "find-large": cape_find_large,
     "get-config": cape_get_config,
+    "get-keys": cape_get_keys,
     "inspect-json": cape_inspect_json,
+    "list-keys": cape_list_keys,
     "open-pdf": cape_open_pdf,
     "post-file": cape_post_file,
     "qdel": cape_qdel,
