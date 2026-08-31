@@ -3,9 +3,12 @@
 from cape.argread.clitext import (
     BOLD,
     BOLDITALIC,
+    CONSOLE,
     ITALIC,
-    PLAIN,
     compile_rst)
+
+UNBOLD = CONSOLE["un-bold"]
+UNITALIC = CONSOLE["un-italic"]
 
 
 # Test some features of docstrings
@@ -23,9 +26,9 @@ something"""
     txt2 = "**emph**"
     # Insert bold chars?
     out2 = compile_rst(txt2)
-    assert out2 == f"{BOLDITALIC}emph{PLAIN}"
+    assert out2 == f"{BOLDITALIC}emph{UNBOLD}{UNITALIC}"
     # Test italic
-    assert compile_rst("*it*") == f"{ITALIC}it{PLAIN}"
+    assert compile_rst("*it*") == f"{ITALIC}it{UNITALIC}"
     # Test section
     txt3 = ":Usage:\n"
     out3 = compile_rst(txt3)
@@ -36,6 +39,6 @@ something"""
     # Test UID
     assert compile_rst("``@ddalle``") == "@ddalle"
     # Test general literal
-    assert compile_rst("``fname``") == f"{BOLD}fname{PLAIN}"
+    assert compile_rst("``fname``") == f"{BOLD}fname{UNBOLD}"
     # Test section
     assert compile_rst("Title\n========") == "Title"
