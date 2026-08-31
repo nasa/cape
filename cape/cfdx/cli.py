@@ -48,9 +48,11 @@ IMPLIED_CMDNAMES = {
     "e": "exec",
     "edit": "edit-json",
     "extend": "extend",
+    "fpng": "open-png",
     "FAIL": "fail",
     "fm": "extract-fm",
     "h": "help",
+    "img": "open-img",
     "iter-fm": "extract-iter-fm",
     "ll": "extract-ll",
     "PASS": "approve",
@@ -167,6 +169,7 @@ class CfdxArgReader(ArgReader):
         "dex": (bool, str),
         "defail": bool,
         "dezombie": bool,
+        "dpi": int,
         "e": str,
         "early": bool,
         "edit": str,
@@ -178,12 +181,14 @@ class CfdxArgReader(ArgReader):
         "fjson": str,
         "force": bool,
         "fpdf": str,
+        "fpng": str,
         "fm": (bool, str),
         "glob": str,
         "h": bool,
         "hide-cols": (str, list),
         "hide-counters": (str, list),
         "imax": int,
+        "img": str,
         "incremental": bool,
         "iter-fm": (bool, str),
         "j": bool,
@@ -199,6 +204,7 @@ class CfdxArgReader(ArgReader):
         "nsurf": int,
         "o": str,
         "opt": str,
+        "page": int,
         "passed": bool,
         "pat": str,
         "pats": str,
@@ -221,6 +227,7 @@ class CfdxArgReader(ArgReader):
         "status": str,
         "subfig": str,
         "surfcp": (bool, str),
+        "terminal": bool,
         "triqfm": (bool, str),
         "ts": (bool, str),
         "u": str,
@@ -243,6 +250,7 @@ class CfdxArgReader(ArgReader):
     # Conversion functions
     _optconverters = {
         "batchsize": int,
+        "dpi": int,
         "extend": _true_int,
         "imax": int,
         "maxdepth": int,
@@ -250,6 +258,7 @@ class CfdxArgReader(ArgReader):
         "nmax": int,
         "nproc": int,
         "nsurf": int,
+        "page": int,
     }
 
     # List of options that cannot take a "value"
@@ -279,6 +288,7 @@ class CfdxArgReader(ArgReader):
         "restart",
         "rm",
         "start",
+        "terminal",
         "ui",
         "unarchive",
         "unmark",
@@ -365,6 +375,7 @@ class CfdxArgReader(ArgReader):
         "dex": "Extract DataBook components matching pattern *DEX*",
         "defail": "Clean up FAIL cases, deletes ``FAIL`` and others",
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
+        "dpi": "Resolution, in DPI, for converting PDF to image",
         "e": "Execute the command *EXEC*",
         "early": "Reduce *PhaseIters* to current iter; makes case ``DONE``",
         "edit": "Text of JSON settings to edit and rewrite",
@@ -374,6 +385,7 @@ class CfdxArgReader(ArgReader):
         "fixed": "Interpolate flow data to common grid",
         "fjson": "Apply settings from file *FJSON*",
         "fpdf": "Name of PDF file to open/write/send",
+        "fpng": "Name of PNG image file to open",
         "fm": "Extract force & moment data [comps matching *PAT*] for case(s)",
         "force": "Update report and ignore subfigure cache",
         "glob": "Limit to cases whose name matches the filename pattern *PAT*",
@@ -381,6 +393,7 @@ class CfdxArgReader(ArgReader):
         "hide-cols": "Standard columns to hide in run matrix status table",
         "hide-counters": "Standard keys to omit totals after run mat table",
         "imax": "Do not extend a case beyond iteration *M*",
+        "img": "Name of image file to open",
         "incremental": "Run case for one phase [or stop after *STOP_PHASE*]",
         "iter-fm": "Extract iterative force & moment histories",
         "j": "List PBS/Slurm job ID in ``-c`` output",
@@ -397,6 +410,7 @@ class CfdxArgReader(ArgReader):
         "nsurf": "Index of surface to process",
         "o": "Name of output JSON file (defaults to same as *f*)",
         "opt": "CAPE user configuration variable name",
+        "page": "Page of PDF to display",
         "pat": "Consider file names matching pattern *PAT*",
         "pats": "Additional file name patterns",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
@@ -420,6 +434,7 @@ class CfdxArgReader(ArgReader):
         "rm": "Remove indicated cases",
         "start": "Set up but do not start (or submit) cases",
         "triqfm": "Extract triq F&M data [comps matching *PAT*] for case(s)",
+        "terminal": "Show PNG image in terminal if supported",
         "ts": "Extract time-series data [comps matching *PAT*]",
         "u": "Pretend to be user *UID*",
         "ui": "Run interactive CAPE user interface",
@@ -444,6 +459,7 @@ class CfdxArgReader(ArgReader):
         "cutoff": "SIZE",
         "dbpyfunc": "[PAT]",
         "dex": "[DEX]",
+        "dpi": "DPI",
         "e": "EXEC",
         "edit": "SETTINGS",
         "extend": "[N_EXT]",
@@ -452,10 +468,12 @@ class CfdxArgReader(ArgReader):
         "fjson": "FJSON",
         "fm": "[PAT]",
         "fpdf": "PDFFILE",
+        "fpng": "PNGFILE",
         "glob": "PAT",
         "hide-cols": "COLS",
         "hide-counters": "COLS",
         "imax": "M",
+        "img": "IMGFILE",
         "incremental": "[STOP_PHASE]",
         "iter-fm": "[PAT]",
         "jq": "JQ",
@@ -467,6 +485,7 @@ class CfdxArgReader(ArgReader):
         "nsurf": "SURF",
         "o": "OUT_JSON",
         "opt": "OPT",
+        "page": "N",
         "pat": "PAT",
         "pats": "PATTERNS",
         "prop": "[PAT]",
@@ -1421,6 +1440,87 @@ class CfdxOpenPDFArgs(CfdxArgReader):
     )
 
 
+# Settings for open-img
+class CfdxOpenImgArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape open-img"
+
+    # Description
+    _help_title = "Open an image file in preferred viewer"
+
+    # Additional options
+    _optlist = (
+        "dpi",
+        "img",
+        "page",
+        "terminal",
+    )
+
+    # Required options
+    _optlistreq = (
+        "img",
+    )
+
+    # Arguments
+    _arglist = (
+        "img",
+    )
+
+    # Defaults
+    _rc = {
+        "dpi": 120,
+        "page": 0,
+        "terminal": True,
+    }
+
+    # List of options that should be shown as negative in help
+    _help_opt_negative = (
+        "terminal",
+    )
+
+
+# Settings for open-png
+class CfdxOpenPNGArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape open-png"
+
+    # Description
+    _help_title = "Open a PNG image in preferred viewer"
+
+    # Additional options
+    _optlist = (
+        "fpng",
+        "terminal",
+        "wait",
+    )
+
+    # Required options
+    _optlistreq = (
+        "fpng",
+    )
+
+    # Arguments
+    _arglist = (
+        "fpng",
+    )
+
+    # Defaults
+    _rc = {
+        "terminal": True,
+    }
+
+    # List of options that should be shown as negative in help
+    _help_opt_negative = (
+        "terminal",
+    )
+
+
 # Settings for set-config
 class CfdxPostFileArgs(CfdxArgReader):
     # No attributes
@@ -1780,6 +1880,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "delete",
         "dezombie",
         "dex",
+        "dpi",
         "e",
         "edit",
         "extend",
@@ -1790,11 +1891,13 @@ class CfdxFrontDesk(CfdxArgReader):
         "fm",
         "force",
         "fpdf",
+        "fpng",
         "glob",
         "h",
         "hide-cols",
         "hide-counters",
         "imax",
+        "img",
         "incremental",
         "iter-fm",
         "j",
@@ -1811,6 +1914,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "nsurf",
         "o",
         "opt",
+        "page",
         "pat",
         "pt",
         "pull",
@@ -1830,6 +1934,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "start",
         "status",
         "subfig",
+        "terminal",
         "triqfm",
         "u",
         "unarchive",
@@ -1886,6 +1991,8 @@ class CfdxFrontDesk(CfdxArgReader):
         "inspect-json",
         "list-keys",
         "open-pdf",
+        "open-img",
+        "open-png",
         "post-file",
         "qdel",
         "receive-file",
@@ -1973,6 +2080,8 @@ class CfdxFrontDesk(CfdxArgReader):
         "inspect-json": CfdxInspectJsonArgs,
         "list-keys": CfdxListKeysArgs,
         "open-pdf": CfdxOpenPDFArgs,
+        "open-img": CfdxOpenImgArgs,
+        "open-png": CfdxOpenPNGArgs,
         "post-file": CfdxPostFileArgs,
         "qdel": CfdxQdelArgs,
         "receive-file": CfdxReceiveFileArgs,
@@ -2953,6 +3062,61 @@ def cape_open_pdf(*a, **kw) -> Tuple[int, list]:
     return IERR_OK, None
 
 
+@CfdxOpenImgArgs.rst
+def cape_open_img(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Get required argument
+    fimg = a[0] if len(a) else kw.pop("img")
+    # Get options
+    terminal = kw.get("terminal", True)
+    dpi = kw.get("dpi", 120)
+    page = kw.get("page", 0)
+    # Open the image
+    viewer = sysutils.open_img(fimg, terminal=terminal, dpi=dpi, page=page)
+    # Return code
+    return IERR_OK, viewer
+
+
+@CfdxOpenPNGArgs.rst
+def cape_open_png(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Get required argument
+    fpng = a[0] if len(a) else kw.pop("fpng")
+    # Get options
+    terminal = kw.get("terminal", True)
+    wait = kw.get("wait", False)
+    # Open the PNG
+    viewer = sysutils.open_png(fpng, terminal=terminal, wait=wait)
+    # Return code
+    return IERR_OK, viewer
+
+
 @CfdxPostFileArgs.rst
 def cape_post_file(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
@@ -3542,6 +3706,8 @@ CMD_DICT = {
     "inspect-json": cape_inspect_json,
     "list-keys": cape_list_keys,
     "open-pdf": cape_open_pdf,
+    "open-img": cape_open_img,
+    "open-png": cape_open_png,
     "post-file": cape_post_file,
     "qdel": cape_qdel,
     "receive-file": cape_receive_file,

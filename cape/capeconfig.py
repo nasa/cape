@@ -46,6 +46,17 @@ DEFAULT_PDF_VIEWERS_LINUX = [
     "firefox",
 ]
 
+# Default PNG applications for Linux
+DEFAULT_PNG_VIEWERS_LINUX = [
+    "display",
+    "ristretto",
+    "gwenview",
+    "eog",
+    "loupe",
+    "google-chrome",
+    "firefox",
+]
+
 
 # Class for processing jumphost
 class JumpHostConfig(OptionsDict):
@@ -72,6 +83,7 @@ class CapeConfig(OptionsDict):
         "LocalHost",
         "LocalHostPatterns",
         "PDFReader",
+        "PNGReader",
         "RemoteHost",
         "RemoteHostPatterns",
         "RemoteLoginCommands",
@@ -91,6 +103,7 @@ class CapeConfig(OptionsDict):
         "LocalHost": str,
         "LocalHostPatterns": str,
         "PDFReader": str,
+        "PNGReader": str,
         "RemoteHost": str,
         "RemoteHostPatterns": str,
         "RemoteLoginCommands": str,
@@ -117,6 +130,7 @@ class CapeConfig(OptionsDict):
         "HistoryFile": "CAPE_HISTORY_FILE",
         "LocalHost": "CAPE_LOCAL_HOST",
         "PDFReader": "CAPE_PDF_READER",
+        "PNGReader": "CAPE_PNG_READER",
         "RemoteHost": "CAPE_REMOTE_HOST",
     }
 
@@ -138,6 +152,8 @@ class CapeConfig(OptionsDict):
             "List of regexes to tell CAPE that current host is 'local.'"),
         "PDFReader": (
             "Preferred PDF reader. Override with ``$CAPE_PDF_READER``."),
+        "PNGReader": (
+            "Preferred PNG image viewer. Override with ``$CAPE_PNG_READER``."),
         "RemoteHost": (
             "Remote host for ``cape receive-file`` to get files from. "
             "Override with ``$CAPE_REMOTE_HOST``."),
@@ -228,6 +244,24 @@ class CapeConfig(OptionsDict):
             if shutil.which(viewer) is not None:
                 return viewer
 
+    # Special getter; get *PNGReader* with appropriate default
+    def get_PNGReader(self) -> Optional[str]:
+        # Get user preference
+        viewer = self.get_opt("PNGReader")
+        # Use it if specified
+        if viewer is not None:
+            return viewer
+        # Get system
+        system = platform.system()
+        if system == "Windows":
+            return "start"
+        elif system == "Darwin":
+            return "open"
+        # For Linux, find best available
+        for viewer in DEFAULT_PNG_VIEWERS_LINUX:
+            if shutil.which(viewer) is not None:
+                return viewer
+
     # Check if this is a local host
     def check_local(self) -> bool:
         r"""Check if the current host is "local"
@@ -287,7 +321,7 @@ _properties = (
     "RemoteHostPatterns",
 )
 CapeConfig.add_properties(_properties)
-CapeConfig.add_setters(("PDFReader",))
+CapeConfig.add_setters(("PDFReader", "PNGReader"))
 
 
 # Command-line interface
@@ -459,6 +493,24 @@ def get_pdf_viewer() -> str:
     opts = read_cape_config()
     # Get *PDFReader*
     return opts.get_PDFReader()
+
+
+# Get preferred PNG viewer
+def get_png_viewer() -> str:
+    r"""Get the preferred PNG viewer application based on system
+
+    :Call:
+        >>> viewer = get_png_viewer()
+    :Outputs:
+        *viewer*: :class:`str`
+            Name of application to open PNG
+    :Versions:
+        * 2026-08-31 ``@ddalle``: v1.0
+    """
+    # Read config
+    opts = read_cape_config()
+    # Get *PNGReader*
+    return opts.get_PNGReader()
 
 
 # Check if local
