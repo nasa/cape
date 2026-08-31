@@ -2650,13 +2650,9 @@ def cape_find(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Localized inputs
-    import contextlib
     from ..util import pyrangestr
     # Suppress STDOUT during GetIndices()
-    with open(os.devnull, "w") as devnull:
-        with contextlib.redirect_stdout(devnull):
-            # Read *cntl*
-            cntl, kw = read_cntl(CfdxFindArgs, *a, **kw)
+    cntl, kw = read_cntl_quiet(CfdxFindArgs, *a, **kw)
     # Find cases
     v = cntl.GetIndices(**kw)
     # Display as a string
@@ -2755,14 +2751,10 @@ def cape_inspect_json(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Localized inputs
-    import contextlib
     import json
     from ..optdict import _NPEncoder
     # Suppress STDOUT during GetIndices()
-    with open(os.devnull, "w") as devnull:
-        with contextlib.redirect_stdout(devnull):
-            # Read *cntl*
-            cntl, kw = read_cntl(CfdxInspectJsonArgs, *a, **kw)
+    cntl, kw = read_cntl_quiet(CfdxInspectJsonArgs, *a, **kw)
     # Get path, either from arg or option
     jq = a[0] if len(a) else kw.pop("jq", ".")
     # Get max depth of dicts to show
@@ -3238,6 +3230,17 @@ def cape_agentic() -> Tuple[int, Any]:
     from .. import agent
     # Run code
     return agent.main(CfdxFrontDesk)
+
+
+def read_cntl_quiet(cls: ArgReader, *a, **kw):
+    import contextlib
+    # Suppress STDOUT during GetIndices()
+    with open(os.devnull, "w") as devnull:
+        with contextlib.redirect_stdout(devnull):
+            # Read *cntl*
+            cntl, kw = read_cntl(cls, *a, **kw)
+    # Output
+    return cntl, kw
 
 
 def read_cntl(cls: ArgReader, *a, **kw):

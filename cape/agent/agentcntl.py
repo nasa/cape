@@ -337,8 +337,9 @@ class AgentCntl:
                             "reson": "User interrupted tool call",
                         }
                     print(HLINE)
-                # Display output
-                show_tool_result(tool_result)
+                # Display output if turned on
+                if self.opts.get_opt("ShowToolResult"):
+                    show_tool_result(tool_result)
                 print(HLINE_BOLD)
                 # Append message to history
                 messages.append(

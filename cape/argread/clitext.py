@@ -339,9 +339,9 @@ def compile_rst(doc: str) -> str:
     # Reform doc string
     txt = '\n'.join(lines_out)
     # Take out markdown-style section headers
-    txt = re.sub(r"^# *(.*)\n", replmdsec1, txt)
-    txt = re.sub(r"^## *(.*)\n", replmdsec2, txt)
-    txt = re.sub(r"^### *(.*)\n", replmdsec3, txt)
+    txt = re.sub(r"^# +(.*)$", replmdsec1, txt)
+    txt = re.sub(r"^## +(.*)$", replmdsec2, txt)
+    txt = re.sub(r"^### +(.*)$", replmdsec3, txt)
     # Apply custom "roles"
     txt = re.sub(r":([a-zA-Z][\w_-]*):`([^`\n]+)`", replcolor, txt)
     # Replace field-list headers

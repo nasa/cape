@@ -31,6 +31,7 @@ individualized modules are below.
 
 # Standard library modules
 import copy
+import fnmatch
 import functools
 import getpass
 import glob
@@ -4141,6 +4142,31 @@ class Cntl(CntlBase):
     # Get case index
     def GetCaseIndex(self, frun: str) -> Optional[int]:
         return self.x.GetCaseIndex(frun)
+
+   # --- Definitions ---
+    def get_runmatrix_keys(self, keyname: Optional[str] = None) -> dict:
+        # Get list of keys
+        cols = self.opts.get_RunMatrixKeys()
+        # Apply filter if necessary
+        if keyname is not None:
+            cols = fnmatch.filter(cols, keyname)
+        # Initialize output
+        result = {}
+        # Loop through (remaining) cols
+        for col in cols:
+            # Get definition
+            defn = self.x.defns.get(col)
+            # Check
+            if defn is None:  # pragma: no-cover
+                raise CapeValueError(
+                    f"No definition for run matrix key '{col}'")
+            # Get options
+            result[col] = {
+                "Type": defn.get("Type", col),
+                "DType": defn.get("Value", "float"),
+            }
+        # Output
+        return result
 
   # *** REPORTING ***
    # --- Report generation ---

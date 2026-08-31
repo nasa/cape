@@ -2800,6 +2800,24 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Definitions ---
+    @abstractmethod
+    def get_runmatrix_keys(self, keyname: Optional[str] = None) -> dict:
+        r"""Get main properties of some run matrix keys
+
+        :Call:
+            >>> props = cntl.get_runmatrix_keys(keyname=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Cape control interface
+            *keyname*: {``None``} | :class:`str`
+                Wild-card pattern that keys must match
+        :Outputs:
+            *props*: :class:`dict`
+                *Type* and *DType* for matching run matrix keys
+        """
+        pass
+
   # *** FILE MANAGEMENT ***
    # --- Files ---
     # Absolutize

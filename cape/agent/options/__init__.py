@@ -98,6 +98,7 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
     _optlist = {
         "Model",
         "ModelList",
+        "ShowToolResult",
         "URL",
     }
 
@@ -114,6 +115,7 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
         "_default_": ModelOpts,
         "Model": str,
         "ModelList": str,
+        "ShowToolResult": bool,
         "URL": str,
     }
 
@@ -122,10 +124,16 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
         "ModelList": 1,
     }
 
+    # Defaults
+    _rc = {
+        "ShowToolResult": False,
+    }
+
     # Descriptions for methods
     _rst_descriptions = {
         "Model": "name of LLM to use; overrides model list from server",
         "ModelList": "list of models with tailored settings",
+        "ShowToolResult": "display full result of each tool call",
         "URL": "base URL of LLM server's OpenAI-compatible API",
     }
 
@@ -149,4 +157,4 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
 
 
 # Add global properties
-AgentOpts.add_properties(("Model", "ModelList", "URL"))
+AgentOpts.add_properties(("Model", "ModelList", "ShowToolResult", "URL"))

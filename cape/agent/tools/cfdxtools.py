@@ -121,6 +121,21 @@ CAPE_PARAMS = {
         ),
         "type": ["boolean", "null"]
     },
+    "jq": {
+        "description": (
+            "Path to item or subset of options using jq syntax, e.g. "
+            "'.RunControl.nProc' or '.Config.Components[0]'. Default: "
+            "'.', which displays the entire JSON options."
+        ),
+        "type": ["string", "null"]
+    },
+    "maxdepth": {
+        "description": (
+            "Maximum depth of dicts to show when inspecting JSON "
+            "options; deeper dicts are replaced by {}."
+        ),
+        "type": ["integer", "null"]
+    },
     "batch": {
         "description": (
             "Submit PBS/Slurm job and run this command."
@@ -217,6 +232,15 @@ def cape_c(*a, **kw) -> dict:
     return wrap_cli(cli.cape_c, *a, **kw)
 
 
+def cape_inspect_json(*a, **kw) -> dict:
+    # Function to keep dict outputs intact under wrap_cli()
+    def shim(*a, **kw):
+        ierr, v = cli.cape_inspect_json(*a, **kw)
+        return ierr, {"result": v}
+    # Wrap the shim so the inspected value is always in "result"
+    return wrap_cli(shim, *a, **kw)
+
+
 # Simplified definitions not in OpenAPI format
 TOOL_DICT = {
     "cape_find": {
@@ -245,6 +269,14 @@ TOOL_DICT = {
             "I",
             "add_cols",
         ],
+    },
+    "cape_inspect_json": {
+        "description": (
+            "Show an item or subset of the JSON options, e.g. "
+            "jq='.RunControl.nProc'. Use maxdepth to limit the size "
+            "of the output."
+        ),
+        "parameters": ["f", "jq", "maxdepth"],
     },
     "cape_apply": {
         "description": "Re-apply settings to one or more cases",
@@ -368,6 +400,7 @@ TOOL_SETS = {
     "low": [
         "cape_find",
         "cape_c",
+        "cape_inspect_json",
         "cape_clean",
         "cape_open_pdf",
         "cape_report",

@@ -161,6 +161,14 @@ def _truncate_stdout(stdout: str) -> str:
 
 # Class to capture STDOUT and report it
 class Tee:
+    r"""Class to simultaneously capture and display STDOUT
+
+    :Call:
+        >>> tee = Tee(*streams)
+    :Inputs:
+        *streams*: :class:`tuple`\ [:class:`io.IOBase`]
+            List of streams to capture/display
+    """
     def __init__(self, *streams):
         self.streams = streams
 
@@ -176,6 +184,14 @@ class Tee:
 
 # Register tools from a submodule
 def register_module_tools(params: dict):
+    r"""Register ``TOOL_SCHEMAS`` and ``TOOLS`` to calling module
+
+    :Call:
+        >>> register_module_tools(params)
+    :Inputs:
+        *params*: :class:`dict`
+            Dictionary of parameter definitiosn for use in this tool set
+    """
     # Get parameters from calling module
     module_name = sys._getframe(1).f_globals["__name__"]
     mod = sys.modules[module_name]
