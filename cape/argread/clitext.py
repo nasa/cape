@@ -195,17 +195,10 @@ def compile_rst(doc: str) -> str:
 
     # Replace ReST identifiers
     def replfn(g):
-        # Get the modifier name
-        fn = g.group(1)
         # Get the contents
-        val = g.group(2)
-        # Filter the modifier
-        if fn == "func":
-            # Add parentheses
-            return "%s()" % val
-        else:
-            # No markup
-            return "%s" % val
+        val = g.group(1)
+        # Add parentheses
+        return f"{BOLD}{val}()" + CONSOLE["un-bold"]
 
     # Replace with an arbitrary color
     def replcolor(g):
@@ -342,12 +335,12 @@ def compile_rst(doc: str) -> str:
     txt = re.sub(r"^# +(.*)$", replmdsec1, txt)
     txt = re.sub(r"^## +(.*)$", replmdsec2, txt)
     txt = re.sub(r"^### +(.*)$", replmdsec3, txt)
+    # Mark up function names
+    txt = re.sub(r":func:`([^`\n]+)`", replfn, txt)
     # Apply custom "roles"
     txt = re.sub(r":([a-zA-Z][\w_-]*):`([^`\n]+)`", replcolor, txt)
     # Replace field-list headers
     txt = re.sub(r":(\w[\w/ _.-]*):\s*\n", replsec, txt)
-    # Replace modifiers, such as :mod:`cape.pycart`
-    txt = re.sub(r":(\w[\w/ _.-]*):`([^`\n]+)`", replfn, txt)
     # Simplify user names
     txt = re.sub(r"``(@\w+)``", repluid, txt)
     # Simplify bolds

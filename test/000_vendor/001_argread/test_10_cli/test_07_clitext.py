@@ -5,6 +5,7 @@ from cape.argread.clitext import (
     BOLDITALIC,
     CONSOLE,
     ITALIC,
+    PLAIN,
     compile_rst)
 
 UNBOLD = CONSOLE["un-bold"]
@@ -34,8 +35,8 @@ something"""
     out3 = compile_rst(txt3)
     assert out3 == "USAGE\n\n"
     # Test "roles"
-    assert compile_rst(":func:`f`") == "f()"
-    assert compile_rst(":class:`A`") == "A"
+    assert compile_rst(":func:`f`") == f"{BOLD}f(){UNBOLD}"
+    assert compile_rst(":class:`A`") == f"{BOLD}A{PLAIN}"
     # Test UID
     assert compile_rst("``@ddalle``") == "@ddalle"
     # Test general literal
