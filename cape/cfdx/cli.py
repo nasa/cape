@@ -3185,11 +3185,16 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
     terminal = kw.pop("terminal", True)
     dpi = kw.pop("dpi", 120)
     page = kw.pop("page", 0)
-    # Create subfigure and cache its image
-    v = cntl.get_subfigure(subfig, **kw)
-    # Open cached image file(s) (usually just one)
-    for fimg in v.get("cachefiles", ()):
-        sysutils.open_img(fimg, terminal=terminal, dpi=dpi, page=page)
+    force_update = kw.pop("force_update", False)
+    # Get cases
+    I = cntl.GetIndices(**kw)
+    # Loop through cases
+    for i in I:
+        # Create subfigure and cache its image
+        v = cntl.get_subfigure(subfig, I=[i], force_update=force_update)
+        # Open cached image file(s) (usually just one)
+        for fimg in v.get("cachefiles", ()):
+            sysutils.open_img(fimg, terminal=terminal, dpi=dpi, page=page)
     # Return code
     return IERR_OK, v
 
