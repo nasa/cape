@@ -55,12 +55,18 @@ MAKE_FILES = (
 @testutils.run_sandbox(__file__, COPY_FILES, COPY_DIRS)
 def test_01_getprop():
     # Test recursive size (3 dirs + 4 2-byte files)
-    assert getsize("lineload") == 4096*3 + 8
+    subdirs = (
+        "lineload",
+        os.path.join("lineload", "a"),
+        os.path.join("lineload", "b"),
+    )
+    # Sum of folder sizes depends on filesystem
+    dirsize = sum(os.path.getsize(fdir) for fdir in subdirs)
+    assert getsize("lineload") == dirsize + 8
     # Create files (in correct order)
     _make_files()
     # List of surf files from old-fashioned glob
     surf_files = glob.glob("pyfun_tec_boundary_*.plt")
-    latest_surf = "pyfun_tec_boundary_timestep1000.plt"
     # Check recursive mtime
     t1 = max([
         os.path.getmtime(surf_file)
@@ -68,7 +74,6 @@ def test_01_getprop():
     ])
     assert getmtime(*surf_files) == t1
     # Latest file in lineload/ folder (?!)
-    latest_file = os.path.join("lineload", "a", "new.txt")
     # Test non-existent files
     assert getmtime("not_a_file") == 0.0
     assert getsize("not_a_file") == 0

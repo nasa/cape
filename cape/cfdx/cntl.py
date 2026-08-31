@@ -80,6 +80,7 @@ from ..geom import RotatePoints
 from ..trifile import ReadTriFile
 from ..errors import (
     CapeNotImplementedError,
+    CapeTypeError,
     CapeValueError,
     assert_isinstance)
 
@@ -4199,6 +4200,28 @@ class Cntl(CntlBase):
         rep = self.__class__._report_cls(self, rep)
         # Output
         return rep
+
+   # --- Individual subfigure ---
+    def get_subfigure(self, subfig: str, **kw) -> dict:
+        # Get cases
+        I = self.GetIndices(**kw)
+        # We should get a single case
+        if I.size != 1:
+            raise CapeTypeError(
+                f"get_subfigure() requires a single case index; "
+                f"got {I.size} cases")
+        # Get (single) case index
+        i = I[0]
+        # Use the first report
+        reportname = self.opts.get_ReportList()[0]
+        # Read the report
+        report = self.ReadReport(reportname)
+        # Check for force-update
+        report.force_update = kw.get("force", False)
+        # Update subfigure
+        result = report.get_subfig(subfig, i)
+        # Output
+        return result
 
    # --- Report options ---
     # Get list of components tracked in a report subfigure

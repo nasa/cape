@@ -85,6 +85,7 @@ from .casecntl import CaseRunner
 from .casedata import CaseFM, CaseResid
 from .cmdrun import pvpython
 from .cntlbase import CntlBase
+from .. import capeconfig
 from ..argread.clitext import compile_rst
 from ..filecntl import texfile
 from ..filecntl.tecfile import ExportLayout, Tecscript, convert_vtk
@@ -396,6 +397,66 @@ class Report(object):
         rc["Subfigures"][sfig] = defn
         # Save it
         self.write_case_json(i, rc)
+
+    # Get and cache one subfigure
+    @run_maindir
+    def get_subfig(self, sfig: str, i: int) -> dict:
+        r"""Update one subfigure and copy resulting image to CAPE cache
+
+        :Call:
+            >>> result = r.get_subfig(sfig, i)
+        :Inputs:
+            *r*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *result*: :class:`dict`
+                Information about subfigure and any cached files
+        :Versions:
+            * 2026-08-31 ``@ddalle``: v1.0
+        """
+        # Set case index
+        self.i = i
+        # Get name of case
+        frun = self.get_case_name(i)
+        # Get name of figure folder
+        ffig = self.get_figdir(i)
+        # Create folder as necessary
+        self.mkdir_p(ffig)
+        # Untar as necessary
+        self.untar_case(i)
+        # Update the subfigure
+        self.update_subfig(sfig, i)
+        # Path to figure folder
+        rootdir = self.get_CompileDir()
+        dirname = os.path.join(rootdir, ffig)
+        # Path to CAPE cache folder
+        cachedir = capeconfig.get_cape_cachedir()
+        # Copy subfigure file(s), if any, to cache folder
+        cachefiles = []
+        for fabs in glob.glob(os.path.join(dirname, f"{sfig}.*")):
+            # Skip the LaTeX file
+            if fabs.endswith(".tex"):
+                continue
+            # Copy to cache folder
+            fcache = os.path.join(cachedir, os.path.basename(fabs))
+            shutil.copy(fabs, fcache)
+            # Add to list
+            cachefiles.append(fcache)
+        # Archive case's report folder
+        self.tar_case(i)
+        # Form result for use by Cntl.get_subfigure()
+        result = {
+            "cachefiles": cachefiles,
+            "case": i,
+            "casename": frun,
+            "subfigname": sfig,
+        }
+        # Output
+        return result
 
    # --- Preprocessors ---
     # Process list of cases

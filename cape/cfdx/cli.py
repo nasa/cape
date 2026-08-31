@@ -2833,7 +2833,7 @@ def cape_inspect_json(*a, **kw) -> Tuple[int, Any]:
     # Inspect options
     v = cntl.inspect_json(jq, maxdepth=maxdepth)
     # Show as JSON
-    print(json.dumps(v, cls=_NPEncoder, indent=4, default=str))
+    print(json.dumps(v, cls=_NPEncoder, indent=2, default=str))
     # Return code
     return IERR_OK, v
 

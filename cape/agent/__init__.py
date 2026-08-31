@@ -9,11 +9,11 @@ results. Most of the actual capability is implemented by the
 """
 
 # Local imports
-from .agentcntl import AgentCntl
+from .agentcntl import AgentCntl, AgentResult
 
 
 # Main loop
-def main(cls: type | None = None):
+def main(cls: type | None = None) -> AgentResult:
     # Create controller
     cntl = AgentCntl()
     # Run the interface

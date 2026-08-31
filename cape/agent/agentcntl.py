@@ -18,6 +18,7 @@ import readline
 import shlex
 import shutil
 import sys
+from collections import namedtuple
 from subprocess import Popen
 
 # Third-party imports
@@ -104,6 +105,10 @@ RAW_TOOL_MESSAGE = sprintf_color(
 HLINE = "-" * min(int(0.9*shutil.get_terminal_size().columns), 79)
 HLINE_BOLD = sprintf_color(HLINE, ["purple", "bold"])
 HLINE = sprintf_color(HLINE, ["purple"])
+
+
+# Output class for main()
+AgentResult = namedtuple("AgentResult", ("returncode", "result"))
 
 
 # Control class
@@ -367,7 +372,7 @@ class AgentCntl:
         return result
 
     # Run main loop
-    def main(self, cls: type | None = None):
+    def main(self, cls: type | None = None) -> AgentResult:
         # Initialize a results dictionary
         result = {
             "n_user_msgs": 0,
