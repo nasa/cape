@@ -8,7 +8,9 @@ calls, such as querying or changing the working directory.
 
 # Standard library
 import os
-import sys
+
+# Local imports
+from .toolutils import register_module_tools
 
 
 # List of parameters common to multiple system tools
@@ -83,41 +85,5 @@ TOOL_SCHEMAS = []
 TOOLS = {}
 
 
-# Fill out definitions for one tool
-def _add_schema(name: str):
-    # Get short options
-    opts = TOOL_DICT[name]
-    # Get function name
-    funcname = opts.get("function", name)
-    # Get the function from this module
-    thismod = sys.modules[__name__]
-    func = getattr(thismod, funcname)
-    # Initialize parameter properties
-    tool_arg_props = {
-        opt: SYS_PARAMS[opt] for opt in opts.get("parameters", [])
-    }
-    tool_args = {
-        "type": "object",
-        "properties": tool_arg_props,
-        "required": opts.get("required", []),
-    }
-    # Initialize function schema
-    tool_func = {
-        "name": name,
-        "description": opts["description"],
-        "parameters": tool_args,
-    }
-    # Initialize tool schema
-    tool_schema = {
-        "type": "function",
-        "function": tool_func,
-    }
-    # Append to overall schema
-    TOOL_SCHEMAS.append(tool_schema)
-    # Append to list
-    TOOLS[name] = func
-
-
-# Add the definitions
-for name in TOOL_DICT:
-    _add_schema(name)
+# Register all the tools
+register_module_tools(SYS_PARAMS)

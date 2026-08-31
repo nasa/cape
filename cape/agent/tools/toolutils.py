@@ -172,3 +172,49 @@ class Tee:
     def flush(self):
         for s in self.streams:
             s.flush()
+
+
+# Register tools from a submodule
+def register_module_tools(params: dict):
+    # Get parameters from calling module
+    module_name = sys._getframe(1).f_globals["__name__"]
+    mod = sys.modules[module_name]
+    # Loop through tools defined in that module
+    for name in mod.TOOL_DICT:
+        _add_schema(mod, params, name)
+
+
+def _add_schema(mod, params: dict, name: str):
+    # Get options for that tool
+    opts = mod.TOOL_DICT[name]
+    # Get function name
+    funcname = opts.get("function", name)
+    # Get the function from this module
+    func = getattr(mod, funcname, None)
+    # Define the function
+    if not callable(func):
+        func = mod.genr8_func(funcname)
+    # Initialize parameter properties
+    tool_arg_props = {
+        opt: params[opt] for opt in opts.get("parameters", [])
+    }
+    tool_args = {
+        "type": "object",
+        "properties": tool_arg_props,
+        "required": opts.get("required", []),
+    }
+    # Initialize function schema
+    tool_func = {
+        "name": name,
+        "description": opts["description"],
+        "parameters": tool_args,
+    }
+    # Initialize tool schema
+    tool_schema = {
+        "type": "function",
+        "function": tool_func,
+    }
+    # Append to overall schema
+    mod.TOOL_SCHEMAS.append(tool_schema)
+    # Append to list
+    mod.TOOLS[name] = func

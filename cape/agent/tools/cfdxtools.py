@@ -7,10 +7,10 @@ of the low-level CLI functions defined in :mod:`cape.cfdx.cli`.
 """
 
 # Standard library
-import sys
+from typing import Callable
 
 # Local imports
-from .toolutils import wrap_cli
+from .toolutils import register_module_tools, wrap_cli
 from ...cfdx import cli
 
 
@@ -392,44 +392,14 @@ TOOL_SETS = {
 }
 
 
-# Fill out definitions for one tool
-def _add_schema(name: str):
-    # Get short options
-    opts = TOOL_DICT[name]
-    # Get function nname
-    funcname = opts.get("function", name)
-    # Check for a customized function
-    thismod = sys.modules[__name__]
-    func = getattr(thismod, funcname, None)
-    # Define the function
-    if not callable(func):
-        func = lambda *a, **kw: wrap_cli(getattr(cli, funcname), *a, **kw)
-    # Initialize parameter properties
-    tool_arg_props = {
-        opt: CAPE_PARAMS[opt] for opt in opts.get("parameters", [])
-    }
-    tool_args = {
-        "type": "object",
-        "properties": tool_arg_props,
-        "required": opts.get("required", []),
-    }
-    # Initialize function schema
-    tool_func = {
-        "name": name,
-        "description": opts["description"],
-        "parameters": tool_args,
-    }
-    # Initialize tool schema
-    tool_schema = {
-        "type": "function",
-        "function": tool_func,
-    }
-    # Append to overall schema
-    TOOL_SCHEMAS.append(tool_schema)
-    # Append to list
-    TOOLS[name] = func
+# Function generator
+def genr8_func(funcname: str) -> Callable:
+    # Create a function
+    def fn(*a, **kw):
+        return wrap_cli(getattr(cli, funcname), *a, **kw)
+    # Return it
+    return fn
 
 
-# Add the definitions
-for name in TOOL_DICT:
-    _add_schema(name)
+# Register tools
+register_module_tools(CAPE_PARAMS)
