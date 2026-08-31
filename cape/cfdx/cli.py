@@ -18,6 +18,7 @@ from . import manage
 from .. import capeconfig
 from .. import sysutils
 from ..argread import ArgReader, ArgReadError, BOOL_TYPES, INT_TYPES
+from ..argread.clitext import compile_rst
 from ..errors import CapeError, CapeValueError
 
 
@@ -3190,6 +3191,10 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
     I = cntl.GetIndices(**kw)
     # Loop through cases
     for i in I:
+        # Get case name
+        frun = cntl.x.GetFullFolderNames(i)
+        # Show it
+        print(compile_rst(f"**{frun}**"))
         # Create subfigure and cache its image
         v = cntl.get_subfigure(subfig, I=[i], force_update=force_update)
         # Open cached image file(s) (usually just one)
