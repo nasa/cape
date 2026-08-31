@@ -104,6 +104,20 @@
         }
 
     },
+
+    "Report": {
+        "Reports": [
+            "base"
+        ],
+        "base": {},
+        "Subfigures": {
+            "bullet_CA": {
+                "Type": "PlotCoeff",
+                "Component": "bullet_no_base",
+                "Coefficient": "CA"
+            }
+        }
+    },
     
     // RunMatrix description
     "RunMatrix": {
