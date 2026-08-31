@@ -1521,6 +1521,48 @@ class CfdxOpenPNGArgs(CfdxArgReader):
     )
 
 
+# Settings for open-subfig
+class CfdxOpenSubfigArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape open-subfig"
+
+    # Description
+    _help_title = "Create one report subfigure and open its image"
+
+    # Additional options
+    _optlist = (
+        "dpi",
+        "page",
+        "subfig",
+        "terminal",
+    )
+
+    # Required options
+    _optlistreq = (
+        "subfig",
+    )
+
+    # Arguments
+    _arglist = (
+        "subfig",
+    )
+
+    # Defaults
+    _rc = {
+        "dpi": 120,
+        "page": 0,
+        "terminal": True,
+    }
+
+    # List of options that should be shown as negative in help
+    _help_opt_negative = (
+        "terminal",
+    )
+
+
 # Settings for set-config
 class CfdxPostFileArgs(CfdxArgReader):
     # No attributes
@@ -1993,6 +2035,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "open-pdf",
         "open-img",
         "open-png",
+        "open-subfig",
         "post-file",
         "qdel",
         "receive-file",
@@ -2082,6 +2125,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "open-pdf": CfdxOpenPDFArgs,
         "open-img": CfdxOpenImgArgs,
         "open-png": CfdxOpenPNGArgs,
+        "open-subfig": CfdxOpenSubfigArgs,
         "post-file": CfdxPostFileArgs,
         "qdel": CfdxQdelArgs,
         "receive-file": CfdxReceiveFileArgs,
@@ -3117,6 +3161,39 @@ def cape_open_png(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, viewer
 
 
+@CfdxOpenSubfigArgs.rst
+def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(CfdxOpenSubfigArgs, *a, **kw)
+    # Get subfigure name, either from arg or option
+    subfig = a[0] if len(a) else kw.pop("subfig")
+    # Get options for displaying the image
+    terminal = kw.pop("terminal", True)
+    dpi = kw.pop("dpi", 120)
+    page = kw.pop("page", 0)
+    # Create subfigure and cache its image
+    v = cntl.get_subfigure(subfig, **kw)
+    # Open cached image file(s) (usually just one)
+    for fimg in v.get("cachefiles", ()):
+        sysutils.open_img(fimg, terminal=terminal, dpi=dpi, page=page)
+    # Return code
+    return IERR_OK, v
+
+
 @CfdxPostFileArgs.rst
 def cape_post_file(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
@@ -3708,6 +3785,7 @@ CMD_DICT = {
     "open-pdf": cape_open_pdf,
     "open-img": cape_open_img,
     "open-png": cape_open_png,
+    "open-subfig": cape_open_subfig,
     "post-file": cape_post_file,
     "qdel": cape_qdel,
     "receive-file": cape_receive_file,
