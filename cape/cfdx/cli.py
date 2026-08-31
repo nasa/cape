@@ -219,6 +219,7 @@ class CfdxArgReader(ArgReader):
         "solver": str,
         "start": bool,
         "status": str,
+        "subfig": str,
         "surfcp": (bool, str),
         "triqfm": (bool, str),
         "ts": (bool, str),
@@ -411,6 +412,7 @@ class CfdxArgReader(ArgReader):
         "restart": "When submitting new jobs, only submit new cases",
         "skeleton": "Delete most files from indicaded PASSED cases",
         "status": "Find cases with a specific status",
+        "subfig": "Name of report subfigure to create",
         "solver": "Name of CAPE module to use (or determine automatically)",
         "surf": "Name of surface to collect/process",
         "surfcp": "Extract surface pressure data for case(s)",
@@ -476,6 +478,7 @@ class CfdxArgReader(ArgReader):
         "solver": "SOLVER",
         "surf": "SURF",
         "status": "STATUS",
+        "subfig": "SFIG",
         "triqfm": "[PAT]",
         "ts": "[PAT]",
         "u": "UID",
@@ -1315,6 +1318,33 @@ class CfdxGetKeysArgs(CfdxArgReader):
     )
 
 
+# Settings for get-subfig
+class CfdxGetSubfigArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape get-subfig"
+
+    # Description
+    _help_title = "Create one report subfigure and cache its image"
+
+    # Additional options
+    _optlist = (
+        "subfig",
+    )
+
+    # Required options
+    _optlistreq = (
+        "subfig",
+    )
+
+    # Arguments
+    _arglist = (
+        "subfig",
+    )
+
+
 # Settings for inspect-json
 class CfdxInspectJsonArgs(CfdxArgReader):
     # No attributes
@@ -1799,6 +1829,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "rm",
         "start",
         "status",
+        "subfig",
         "triqfm",
         "u",
         "unarchive",
@@ -1851,6 +1882,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-large",
         "get-config",
         "get-keys",
+        "get-subfig",
         "inspect-json",
         "list-keys",
         "open-pdf",
@@ -1937,6 +1969,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-large": CfdxFindLargeArgs,
         "get-config": CfdxGetConfigArgs,
         "get-keys": CfdxGetKeysArgs,
+        "get-subfig": CfdxGetSubfigArgs,
         "inspect-json": CfdxInspectJsonArgs,
         "list-keys": CfdxListKeysArgs,
         "open-pdf": CfdxOpenPDFArgs,
@@ -2805,6 +2838,32 @@ def cape_get_keys(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, v
 
 
+@CfdxGetSubfigArgs.rst
+def cape_get_subfig(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(CfdxGetSubfigArgs, *a, **kw)
+    # Get subfigure name, either from arg or option
+    subfig = a[0] if len(a) else kw.pop("subfig")
+    # Run command
+    v = cntl.get_subfigure(subfig, **kw)
+    # Return code
+    return IERR_OK, v
+
+
 @CfdxInspectJsonArgs.rst
 def cape_inspect_json(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
@@ -3479,6 +3538,7 @@ CMD_DICT = {
     "find-large": cape_find_large,
     "get-config": cape_get_config,
     "get-keys": cape_get_keys,
+    "get-subfig": cape_get_subfig,
     "inspect-json": cape_inspect_json,
     "list-keys": cape_list_keys,
     "open-pdf": cape_open_pdf,
@@ -3511,7 +3571,17 @@ def main_template(
     # Use sys.argv if necessary
     argv = _get_argv(argv)
     # Identify subcommand
-    cmdname, subparser, ierr = parser.fullparse_check(argv)
+    try:
+        cmdname, subparser, ierr = parser.fullparse_check(argv)
+    except ArgReadError as e:
+        # Print the error type
+        sys.stderr.write(f"{e.__class__.__name__}:\n")
+        # Now the error message
+        for a in e.args:
+            sys.stderr.write(f"    {a}\n")
+        # End message and exit
+        sys.stderr.flush()
+        return IERR_RUNTIME
     # Check for errors
     if ierr:
         return IERR_OPT
@@ -3539,7 +3609,7 @@ def main_template(
             return IERR
         except (CapeError, ArgReadError) as e:
             # Print the error type
-            sys.stderr.write(f"{e.__class__.__name__[4:]}:\n")
+            sys.stderr.write(f"{e.__class__.__name__}:\n")
             # Now the error message
             for a in e.args:
                 sys.stderr.write(f"    {a}\n")
