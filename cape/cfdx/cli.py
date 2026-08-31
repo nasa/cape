@@ -187,9 +187,11 @@ class CfdxArgReader(ArgReader):
         "incremental": bool,
         "iter-fm": (bool, str),
         "j": bool,
+        "jq": str,
         "local": bool,
         "ll": (bool, str),
         "marked": bool,
+        "maxdepth": int,
         "me": bool,
         "n": int,
         "nmax": int,
@@ -242,6 +244,7 @@ class CfdxArgReader(ArgReader):
         "batchsize": int,
         "extend": _true_int,
         "imax": int,
+        "maxdepth": int,
         "n": int,
         "nmax": int,
         "nproc": int,
@@ -380,10 +383,12 @@ class CfdxArgReader(ArgReader):
         "incremental": "Run case for one phase [or stop after *STOP_PHASE*]",
         "iter-fm": "Extract iterative force & moment histories",
         "j": "List PBS/Slurm job ID in ``-c`` output",
+        "jq": "Show item or subset of JSON options at path *JQ*",
         "kill": "Remove jobs from the queue and stop them",
         "local": "Force an action to be done locally, without SSH transfer",
         "ll": "Extract line load data [comps matching *PAT*] for case(s)",
         "marked": "Show only cases marked either PASS or ERROR",
+        "maxdepth": "Max depth of dicts to show in ``inspect-json`` output",
         "me": "Limit to cases owned by current user (equiv. ``--user $USER``)",
         "n": "Submit at most *N* cases",
         "nmax": "Maximum number of snapshots to process",
@@ -451,7 +456,9 @@ class CfdxArgReader(ArgReader):
         "imax": "M",
         "incremental": "[STOP_PHASE]",
         "iter-fm": "[PAT]",
+        "jq": "JQ",
         "ll": "[PAT]",
+        "maxdepth": "N",
         "n": "N",
         "nmax": "NMAX",
         "nproc": "NPROC",
@@ -1289,6 +1296,32 @@ class CfdxGetConfigArgs(CfdxArgReader):
     )
 
 
+# Settings for inspect-json
+class CfdxInspectJsonArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape inspect-json"
+
+    # Description
+    _help_title = "Show item or subset of JSON options"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "jq",
+        "maxdepth",
+        "solver",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "jq",
+    )
+
+
 # Settings for open-pdf
 class CfdxOpenPDFArgs(CfdxArgReader):
     # No attributes
@@ -1697,10 +1730,12 @@ class CfdxFrontDesk(CfdxArgReader):
         "incremental",
         "iter-fm",
         "j",
+        "jq",
         "kill",
         "ll",
         "local",
         "marked",
+        "maxdepth",
         "me",
         "n",
         "nmax",
@@ -1777,6 +1812,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-json",
         "find-large",
         "get-config",
+        "inspect-json",
         "open-pdf",
         "post-file",
         "qdel",
@@ -1860,6 +1896,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-json": CfdxFindJSONArgs,
         "find-large": CfdxFindLargeArgs,
         "get-config": CfdxGetConfigArgs,
+        "inspect-json": CfdxInspectJsonArgs,
         "open-pdf": CfdxOpenPDFArgs,
         "post-file": CfdxPostFileArgs,
         "qdel": CfdxQdelArgs,
@@ -2701,6 +2738,43 @@ def cape_get_config(*a, **kw) -> Tuple[int, list]:
     return IERR_OK, v
 
 
+@CfdxInspectJsonArgs.rst
+def cape_inspect_json(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Localized inputs
+    import contextlib
+    import json
+    from ..optdict import _NPEncoder
+    # Suppress STDOUT during GetIndices()
+    with open(os.devnull, "w") as devnull:
+        with contextlib.redirect_stdout(devnull):
+            # Read *cntl*
+            cntl, kw = read_cntl(CfdxInspectJsonArgs, *a, **kw)
+    # Get path, either from arg or option
+    jq = a[0] if len(a) else kw.pop("jq", ".")
+    # Get max depth of dicts to show
+    maxdepth = kw.pop("maxdepth", None)
+    # Inspect options
+    v = cntl.inspect_json(jq, maxdepth=maxdepth)
+    # Show as JSON
+    print(json.dumps(v, cls=_NPEncoder, indent=4, default=str))
+    # Return code
+    return IERR_OK, v
+
+
 @CfdxOpenPDFArgs.rst
 def cape_open_pdf(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
@@ -3303,6 +3377,7 @@ CMD_DICT = {
     "find-json": cape_find_json,
     "find-large": cape_find_large,
     "get-config": cape_get_config,
+    "inspect-json": cape_inspect_json,
     "open-pdf": cape_open_pdf,
     "post-file": cape_post_file,
     "qdel": cape_qdel,
