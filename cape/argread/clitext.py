@@ -175,7 +175,7 @@ def compile_rst(doc: str) -> str:
     def replmdsec1(g):
         # Top-level section, add many levels
         return (
-            BOLD + 
+            BOLD +
             CONSOLE["bg-black"] + CONSOLE["turquoise"] +
             g.group(1) +
             '\n' + ('=' * len(g.group(1))) + PLAIN)
