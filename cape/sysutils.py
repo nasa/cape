@@ -427,6 +427,8 @@ def _open_png_terminal(fname: str) -> str | None:
         return
     # Read image and show it
     console.print(Image(fname))
+    # Blank line
+    print("")
     # Output
     return "terminal"
 

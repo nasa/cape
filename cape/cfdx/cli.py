@@ -3199,10 +3199,10 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
         frun = cntl.x.GetFullFolderNames(i)
         # Check
         if i not in keeps:
-            print(compile_rst(f"``{no}`` *{frun}*"))
+            print(compile_rst(f"``{i}`` *{frun}* ``{no}``"))
             continue
         # Show it
-        print(compile_rst(f"``{yes}`` **{frun}**"))
+        print(compile_rst(f"``{i}`` ``{frun}`` ``{yes}``"))
         # Create subfigure and cache its image
         v = cntl.get_subfigure(subfig, I=[i], force_update=force_update)
         # Open cached image file(s) (usually just one)
