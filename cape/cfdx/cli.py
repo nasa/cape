@@ -19,7 +19,7 @@ from .. import capeconfig
 from .. import sysutils
 from ..argread import ArgReader, ArgReadError, BOOL_TYPES, INT_TYPES
 from ..argread.clitext import compile_rst
-from ..errors import CapeError, CapeValueError
+from ..errors import CapeError, CapeFileNotFoundError, CapeValueError
 
 
 # Constants
@@ -70,6 +70,9 @@ IMPLIED_CMDNAMES = {
     "unarchive": "unarchive",
     "unmark": "unmark",
 }
+
+# Cached *cntl* instances
+CNTL_CACHE = {}
 
 
 # Convert True -> 1 else txt -> int(txt)
@@ -3205,6 +3208,8 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
             continue
         # Show it
         print(compile_rst(f"``{i}`` ``{frun}`` ``{yes}``"))
+        # Save it
+        caselist.append((i, frun))
         # Create subfigure and cache its image
         v = cntl.get_subfigure(subfig, I=[i], force_update=force_update)
         # Open cached image file(s) (usually just one)
@@ -3708,12 +3713,31 @@ def read_cntl(cls: ArgReader, *a, **kw):
     elif solver is None:
         # Determine solver
         solver = manage.identify_solver(fname)
-    # Name of module
-    modname = f"cape.{solver}.cntl"
-    # Import it
-    cntlmod = importlib.import_module(modname)
-    # Instantiate
-    cntl = cntlmod.Cntl(fname)
+    # Check file
+    if not os.path.isfile(fname):
+        raise CapeFileNotFoundError(f"No CAPE file '{fname}'")
+    # Get absolute path
+    fabs = os.path.realpath(fname)
+    # Check if we could use a cached version
+    use_cache = False
+    # Check for cached settings
+    if fabs in CNTL_CACHE:
+        # Get instance and modtime
+        mtime, cntl = CNTL_CACHE[fabs]
+        # Check modification time
+        if os.path.getmtime(fabs) <= mtime:
+            # Use existing!
+            use_cache = True
+    # Use cache or read fresh
+    if not use_cache:
+        # Name of module
+        modname = f"cape.{solver}.cntl"
+        # Import it
+        cntlmod = importlib.import_module(modname)
+        # Instantiate
+        cntl = cntlmod.Cntl(fname)
+        # Cache this version
+        CNTL_CACHE[fabs] = (os.path.getmtime(fabs), cntl)
     # Instantiate args
     parser = cls(*a, **kw)
     parser.prog = parser._name.replace("cfdx-", f"{solver} ")

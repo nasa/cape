@@ -187,6 +187,12 @@ CAPE_PARAMS = {
         "description": "Name of specific report to generate. Optional",
         "type": ["string", "null"]
     },
+    "subfig": {
+        "description": (
+            "Name of the report subfigure to create and open its image."
+        ),
+        "type": ["string", "null"]
+    },
     "start": {
         "description": (
             "Set this option to 'false' in order to set a case up but not "
@@ -335,6 +341,14 @@ TOOL_DICT = {
         "properteis": ["fpdf"],
         "required": ["fpdf"],
     },
+    "cape_open_subfig": {
+        "description": (
+            "Create one report subfigure for the selected cases and "
+            "open (display) its image"
+        ),
+        "parameters": ["f", "I", "subfig"],
+        "required": ["subfig"],
+    },
     "cape_unarchive": {
         "description": "Expand files from archive",
         "properties": ["f", "I"],
@@ -403,6 +417,7 @@ TOOL_SETS = {
         "cape_inspect_json",
         "cape_clean",
         "cape_open_pdf",
+        "cape_open_subfig",
         "cape_report",
         "cape_start",
     ],
@@ -414,6 +429,7 @@ TOOL_SETS = {
         "cape_clean",
         "cape_fail",
         "cape_open_pdf",
+        "cape_open_subfig",
         "cape_qdel",
         "cape_report",
         "cape_rm",
