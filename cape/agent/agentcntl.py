@@ -52,7 +52,6 @@ EXIT_CMDS = (
 )
 
 # LLM parameters
-MAX_TOOL_CALL_LOOPS = 3
 SYSTEM_PROMPT = r"""
 
 You are a helpful assistant for CAPE (Computational Aerosciences Productivity &
@@ -247,7 +246,7 @@ class AgentCntl:
     def run_agent(self, user_message: str) -> dict:
         r"""Run one pass of model with multi-round tool calling
 
-        Run one user turn with up to *MAX_TOOL_CALL_LOOPS* rounds of tool
+        Run one user turn with up to *MaxToolCallLoops* rounds of tool
         calls. This allows the agent to chain tool calls, e.g., calling
         :func:`cape_find` followed by :func:`cape_c` with the results from
         the first call.
@@ -257,6 +256,8 @@ class AgentCntl:
             "n_tool_calls": 0,
             "n_tool_fails": 0,
         }
+        # Get max tool call loops for this model
+        max_loops = self.opts.get_ModelOpt(self.model, "MaxToolCallLoops")
         # Initialize message history with system prompt
         if self.history is None:
             self.history = [
@@ -298,7 +299,7 @@ class AgentCntl:
         messages.append({"role": "user", "content": user_message})
         print(HLINE_BOLD)
         # Main tool-calling loop (allow multiple rounds of tool calls)
-        for loop_iter in range(MAX_TOOL_CALL_LOOPS):
+        for loop_iter in range(max_loops):
             # Interact with LLM and get a response
             with agentutils.ThinkingSpinner("Thinking ..."):
                 response = self.client.chat.completions.create(
@@ -355,6 +356,7 @@ class AgentCntl:
                             "success": False,
                             "reason": ecls,
                         }
+                        result["n_tool_fails"] += 1
                     except KeyboardInterrupt:
                         print("KeyboardInterrupt")
                         tool_result = {
