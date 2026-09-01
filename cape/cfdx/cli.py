@@ -3655,6 +3655,17 @@ def cape_agentic() -> Tuple[int, Any]:
     return agent.main(CfdxFrontDesk)
 
 
+def read_cntl_cache_quiet(
+        fname: str | None = None,
+        solver: str | None = None):
+    import contextlib
+    # Suppress STDOUT during GetIndices()
+    with open(os.devnull, "w") as devnull:
+        with contextlib.redirect_stdout(devnull):
+            # Read *cntl*
+            return read_cntl_cache(fname, solver)
+
+
 def read_cntl_quiet(cls: ArgReader, *a, **kw):
     import contextlib
     # Suppress STDOUT during GetIndices()
@@ -3679,14 +3690,45 @@ def read_cntl(cls: ArgReader, *a, **kw):
     :Outputs:
         *cntl*: :class:`cape.cfdx.cntl.Cntl`
             CAPE run matrix control instance (solver-specific)
+        *parsed_kw*: :class:`dict`
+            Keyword arguments to pass to subsequent CAPE function
     :Versions:
         * 2024-12-19 ``@ddalle``: v1.0
         * 2025-01-24 ``@ddalle``: v2.0; use module name instead of cls
-
     """
     # Get options
     fname = kw.pop("f", None)
     solver = kw.pop("solver", None)
+    # Read *cntl*
+    cntl = read_cntl_cache(fname, solver)
+    # Instantiate args
+    parser = cls(*a, **kw)
+    parser.prog = parser._name.replace("cfdx-", f"{solver} ")
+    # Record the JSON file if not given
+    if "f" not in kw:
+        parser.param_sequence.append(("f", fname))
+    # Record it
+    cntl.log_parser(parser)
+    # Preprocess
+    cntl.preprocess_kwargs(kw)
+    # Output
+    return cntl, kw
+
+
+def read_cntl_cache(fname: str | None = None, solver: str | None = None):
+    r"""Read a CAPE run matrix control instance
+
+    :Call:
+        >>> cntl, parsed_kw = read_cntl(fname=None, solver=None, **kw)
+    :Inputs:
+        *fname*: {``None``} | :class:`str`
+            Name of JSON file (or use most recent)
+        *solver*: {``None``} | :class:`str`
+            Solver module (or determine based on *fname*)
+    :Outputs:
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            CAPE run matrix control instance (solver-specific)
+    """
     # Get module name if necessary
     if fname is None:
         # Find valid JSON files
@@ -3738,18 +3780,8 @@ def read_cntl(cls: ArgReader, *a, **kw):
         cntl = cntlmod.Cntl(fname)
         # Cache this version
         CNTL_CACHE[fabs] = (os.path.getmtime(fabs), cntl)
-    # Instantiate args
-    parser = cls(*a, **kw)
-    parser.prog = parser._name.replace("cfdx-", f"{solver} ")
-    # Record the JSON file if not given
-    if "f" not in kw:
-        parser.param_sequence.append(("f", fname))
-    # Record it
-    cntl.log_parser(parser)
-    # Preprocess
-    cntl.preprocess_kwargs(kw)
     # Output
-    return cntl, kw
+    return cntl
 
 
 def read_runner(**kw) -> tuple:
