@@ -4106,6 +4106,22 @@ class Cntl(CntlBase):
         # Return final list
         return inds[mask]
 
+    # Nonzero
+    def GetNonzeroIndices(self, **kw) -> np.ndarray:
+        # Get initial indices
+        inds = self.GetIndices(**kw)
+        # Mask of which to keep
+        mask = np.zeros(inds.size, dtype="bool")
+        # Loop through matches to check for iters
+        for j, i in enumerate(inds):
+            # Get status of that case
+            n = self.CheckCase(i)
+            # Check it
+            if n is not None and n > 0:
+                mask[j] = True
+        # Return final list
+        return inds[mask]
+
     # Apply user filter
     def FilterUser(self, i: int, **kw) -> bool:
         # Get any 'user' trajectory keys

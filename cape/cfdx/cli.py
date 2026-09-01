@@ -3188,13 +3188,21 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
     page = kw.pop("page", 0)
     force_update = kw.pop("force_update", False)
     # Get cases
-    I = cntl.GetIndices(**kw)
+    inds = cntl.GetIndices(**kw)
+    keeps = cntl.GetNonzeroIndices(**kw)
+    # Reference chars
+    yes = '✓'
+    no = '×'
     # Loop through cases
-    for i in I:
+    for i in inds:
         # Get case name
         frun = cntl.x.GetFullFolderNames(i)
+        # Check
+        if i not in keeps:
+            print(compile_rst(f"``{no}`` *{frun}*"))
+            continue
         # Show it
-        print(compile_rst(f"**{frun}**"))
+        print(compile_rst(f"``{yes}`` **{frun}**"))
         # Create subfigure and cache its image
         v = cntl.get_subfigure(subfig, I=[i], force_update=force_update)
         # Open cached image file(s) (usually just one)
