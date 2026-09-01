@@ -4294,6 +4294,14 @@ class Cntl(CntlBase):
         # Output
         return subfigs
 
+    # Get list of subfigures
+    def get_subfigs(self, report: str | None = None) -> list:
+        # If *rep* is ``None``, just get *all* subfigures
+        if not isinstance(report, str):
+            return self.opts.get_SubfigList()
+        # Otherwise get report-sepecific list
+        return self.get_report_subfigs(report)
+
     # Get list of figures
     def get_report_figs(self, rep: Optional[str] = None) -> list:
         # Check report name and use default if necessary

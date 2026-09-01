@@ -17,6 +17,7 @@ from typing import Any, Optional, Union, Tuple
 from . import manage
 from .. import capeconfig
 from .. import sysutils
+from .cntlbase import CntlBase
 from ..argread import ArgReader, ArgReadError, BOOL_TYPES, INT_TYPES
 from ..argread.clitext import compile_rst
 from ..errors import CapeError, CapeFileNotFoundError, CapeValueError
@@ -1413,6 +1414,26 @@ class CfdxListKeysArgs(CfdxArgReader):
     )
 
 
+# Settings for list-subfigs
+class CfdxListSubfigsArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape list-subfigs"
+
+    # Description
+    _help_title = "List report subfigures"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "report",
+        "solver",
+    )
+
+
 # Settings for open-pdf
 class CfdxOpenPDFArgs(CfdxArgReader):
     # No attributes
@@ -2036,6 +2057,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "get-subfig",
         "inspect-json",
         "list-keys",
+        "list-subfigs",
         "open-pdf",
         "open-img",
         "open-png",
@@ -2126,6 +2148,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "get-subfig": CfdxGetSubfigArgs,
         "inspect-json": CfdxInspectJsonArgs,
         "list-keys": CfdxListKeysArgs,
+        "list-subfigs": CfdxListSubfigsArgs,
         "open-pdf": CfdxOpenPDFArgs,
         "open-img": CfdxOpenImgArgs,
         "open-png": CfdxOpenPNGArgs,
@@ -3081,6 +3104,35 @@ def cape_list_keys(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, keys
 
 
+@CfdxListSubfigsArgs.rst
+def cape_list_subfigs(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl* w/o status updates
+    cntl, kw = read_cntl_quiet(CfdxListSubfigsArgs, *a, **kw)
+    # Get report name, if option is used
+    rep = kw.pop("report", None)
+    # Get list of subfigures (all if no report given)
+    subfigs = cntl.get_subfigs(rep)
+    # Show them, one subfigure per line
+    for sfig in subfigs:
+        print(sfig)
+    # Return code
+    return IERR_OK, subfigs
+
+
 @CfdxOpenPDFArgs.rst
 def cape_open_pdf(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
@@ -3656,6 +3708,23 @@ def cape_agentic() -> Tuple[int, Any]:
 
 
 def read_cntl_quiet(cls: ArgReader, *a, **kw):
+    r"""Read a CAPE run matrix control instance; suppress STDOUT
+
+    :Call:
+        >>> cntl, parsed_kw = read_cntl_quiet(cls, *a, **kw)
+    :Inputs:
+        *cls*: :class:`type`
+            Subclass of :class:`CfdxArgReader` to parse args with
+        *a*: :class:`tuple`
+            Args passed by main function
+        *kw*: :class:`dict`
+            Keyword args passed by main function
+    :Outputs:
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            CAPE run matrix control instance (solver-specific)
+        *parsed_kw*: :class:`dict`
+            Kwargs with checks and aliases applied
+    """
     import contextlib
     # Suppress STDOUT during GetIndices()
     with open(os.devnull, "w") as devnull:
@@ -3670,7 +3739,47 @@ def read_cntl(cls: ArgReader, *a, **kw):
     r"""Read a CAPE run matrix control instance of appropriate class
 
     :Call:
-        >>> cntl, parsed_kw = read_cntl(fname=None, solver=None, **kw)
+        >>> cntl, parsed_kw = read_cntl_quiet(cls, *a, **kw)
+    :Inputs:
+        *cls*: :class:`type`
+            Subclass of :class:`CfdxArgReader` to parse args with
+        *a*: :class:`tuple`
+            Args passed by main function
+        *kw*: :class:`dict`
+            Keyword args passed by main function
+    :Outputs:
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            CAPE run matrix control instance (solver-specific)
+        *parsed_kw*: :class:`dict`
+            Kwargs with checks and aliases applied
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+        * 2025-01-24 ``@ddalle``: v2.0; use module name instead of cls
+    """
+    # Get options
+    fname = kw.pop("f", None)
+    solver = kw.pop("solver", None)
+    # Read *cntl*
+    cntl = read_cntl_cache(fname, solver)
+    # Instantiate args
+    parser = cls(*a, **kw)
+    parser.prog = parser._name.replace("cfdx-", f"{solver} ")
+    # Record the JSON file if not given
+    if "f" not in kw:
+        parser.param_sequence.append(("f", fname))
+    # Record it
+    cntl.log_parser(parser)
+    # Preprocess
+    cntl.preprocess_kwargs(kw)
+    # Output
+    return cntl, kw
+
+
+def read_cntl_q(fname: str | None, solver: str | None = None) -> CntlBase:
+    r"""Read a CAPE JSON file; suppress STDOUT temporarily
+
+    :Call:
+        >>> cntl = read_cntl_q(fname=None, solver=None)
     :Inputs:
         *fname*: {``None``} | :class:`str`
             Name of JSON file (or use most recent)
@@ -3679,14 +3788,29 @@ def read_cntl(cls: ArgReader, *a, **kw):
     :Outputs:
         *cntl*: :class:`cape.cfdx.cntl.Cntl`
             CAPE run matrix control instance (solver-specific)
-    :Versions:
-        * 2024-12-19 ``@ddalle``: v1.0
-        * 2025-01-24 ``@ddalle``: v2.0; use module name instead of cls
-
     """
-    # Get options
-    fname = kw.pop("f", None)
-    solver = kw.pop("solver", None)
+    import contextlib
+    # Suppress STDOUT during GetIndices()
+    with open(os.devnull, "w") as devnull:
+        with contextlib.redirect_stdout(devnull):
+            # Read *cntl*
+            return read_cntl_cache(fname, solver)
+
+
+def read_cntl_cache(fname: str | None, solver: str | None = None) -> CntlBase:
+    r"""Read a CAPE JSON file
+
+    :Call:
+        >>> cntl = read_cntl_cache(fname=None, solver=None)
+    :Inputs:
+        *fname*: {``None``} | :class:`str`
+            Name of JSON file (or use most recent)
+        *solver*: {``None``} | :class:`str`
+            Solver module (or determine based on *fname*)
+    :Outputs:
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            CAPE run matrix control instance (solver-specific)
+    """
     # Get module name if necessary
     if fname is None:
         # Find valid JSON files
@@ -3738,18 +3862,8 @@ def read_cntl(cls: ArgReader, *a, **kw):
         cntl = cntlmod.Cntl(fname)
         # Cache this version
         CNTL_CACHE[fabs] = (os.path.getmtime(fabs), cntl)
-    # Instantiate args
-    parser = cls(*a, **kw)
-    parser.prog = parser._name.replace("cfdx-", f"{solver} ")
-    # Record the JSON file if not given
-    if "f" not in kw:
-        parser.param_sequence.append(("f", fname))
-    # Record it
-    cntl.log_parser(parser)
-    # Preprocess
-    cntl.preprocess_kwargs(kw)
     # Output
-    return cntl, kw
+    return cntl
 
 
 def read_runner(**kw) -> tuple:
@@ -3826,6 +3940,7 @@ CMD_DICT = {
     "get-subfig": cape_get_subfig,
     "inspect-json": cape_inspect_json,
     "list-keys": cape_list_keys,
+    "list-subfigs": cape_list_subfigs,
     "open-pdf": cape_open_pdf,
     "open-img": cape_open_img,
     "open-png": cape_open_png,

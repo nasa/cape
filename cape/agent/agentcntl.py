@@ -28,7 +28,7 @@ from openai import OpenAI, InternalServerError
 # Local imports
 from . import agentutils
 from .options import AgentOpts
-from .tools import cfdxtools, systools
+from .tools import cfdxtools, cntltools, systools
 from .tools.toolutils import normalize_kwargs
 from .. import capeconfig
 from ..argread.clitext import compile_rst, wrapline
@@ -214,18 +214,29 @@ class AgentCntl:
         # Get descriptive name of how many tools to expose
         toolset = self.opts.get_ModelOpt(self.model, "ToolSet", vdef="full")
         # Get list of CAPE CLI tools for this set; default to all
-        names = cfdxtools.TOOL_SETS.get(toolset)
-        if names is None:
-            names = list(cfdxtools.TOOL_DICT)
+        names_cfdx = cfdxtools.TOOL_SETS.get(toolset)
+        if names_cfdx is None:
+            names_cfdx = list(cfdxtools.TOOL_DICT)
+        # Get list of CNTL tools for this set; default to all
+        names_cntl = cntltools.TOOL_SETS.get(toolset)
+        if names_cntl is None:
+            names_cntl = list(cntltools.TOOL_DICT)
+        # Combine tool names from both modules
+        names = names_cfdx + names_cntl
         # Convert to a set for faster checks
         nameset = set(names)
         #: :class:`dict`\ [:class:`str`]
         #: Map of tool names to functions for current model
-        self.tools = {name: cfdxtools.TOOLS[name] for name in names}
+        self.tools = {name: cfdxtools.TOOLS[name] for name in names_cfdx}
+        self.tools.update({name: cntltools.TOOLS[name] for name in names_cntl})
         #: :class:`list`\ [:class:`dict`]
         #: JSON schemas for tools available to current model
         self.tool_schemas = [
             schema for schema in cfdxtools.TOOL_SCHEMAS
+            if schema["function"]["name"] in nameset
+        ]
+        self.tool_schemas += [
+            schema for schema in cntltools.TOOL_SCHEMAS
             if schema["function"]["name"] in nameset
         ]
         # Always include all system tools
@@ -335,17 +346,26 @@ class AgentCntl:
                     # Tool call: add prompt
                     try:
                         tool_result = tool_fn(**kwargs)
+                    except Exception as e:
+                        # Get error class
+                        ecls = e.__class__.__name__
+                        print("Tool evaluation failed:")
+                        print(f"   {ecls}: {e.args[0]}")
+                        tool_result = {
+                            "success": False,
+                            "reason": ecls,
+                        }
                     except KeyboardInterrupt:
                         print("KeyboardInterrupt")
                         tool_result = {
                             "success": False,
-                            "reson": "User interrupted tool call",
+                            "reason": "User interrupted tool call",
                         }
                     print(HLINE)
                 # Display output if turned on
                 if self.opts.get_opt("ShowToolResult"):
                     show_tool_result(tool_result)
-                print(HLINE_BOLD)
+                    print(HLINE_BOLD)
                 # Append message to history
                 messages.append(
                     {

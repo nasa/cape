@@ -11,10 +11,14 @@ CAPE agent from its submodules:
 
 # Local imports
 from . import cfdxtools
+from . import cntltools
 from . import systools
 
 
 # Combine JSON-schema defns from tool modules
 # OpenAI-compatible
-TOOL_SCHEMAS = cfdxtools.TOOL_SCHEMAS + systools.TOOL_SCHEMAS
-TOOLS = dict(cfdxtools.TOOLS, **systools.TOOLS)
+TOOL_SCHEMAS = (
+    cfdxtools.TOOL_SCHEMAS +
+    cntltools.TOOL_SCHEMAS +
+    systools.TOOL_SCHEMAS)
+TOOLS = dict(cfdxtools.TOOLS, **cntltools.TOOLS, **systools.TOOLS)
