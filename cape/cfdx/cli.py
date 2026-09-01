@@ -3193,6 +3193,8 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
     # Reference chars
     yes = '✓'
     no = '×'
+    # Initialize output
+    caselist = []
     # Loop through cases
     for i in inds:
         # Get case name
@@ -3209,7 +3211,7 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
         for fimg in v.get("cachefiles", ()):
             sysutils.open_img(fimg, terminal=terminal, dpi=dpi, page=page)
     # Return code
-    return IERR_OK, v
+    return IERR_OK, {"caselist": caselist}
 
 
 @CfdxPostFileArgs.rst
