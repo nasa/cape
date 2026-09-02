@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.agent.tools`: Tools exposed to the CAPE agent
-=========================================================
-
 This package collects the tool functions and JSON schemas exposed to the
 CAPE agent from its submodules:
 

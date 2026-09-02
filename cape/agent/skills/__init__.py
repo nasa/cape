@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.agent.skills`: Agent skills for the CAPE agent
-=========================================================
-
 This package collects the *agent skills* available to the CAPE agent.
 A skill is a documented workflow that tells the agent how and when to
 use certain tools and how to chain tool calls together. Skills come

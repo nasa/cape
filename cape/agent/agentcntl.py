@@ -481,6 +481,9 @@ class AgentCntl:
             pass
         # Enable tab completion (optional)
         readline.parse_and_bind("tab: complete")
+        # Search history
+        readline.parse_and_bind(r'"\e[A": history-search-backward')
+        readline.parse_and_bind(r'"\e[B": history-search-forward')
         # Default completions class
         if cls is None:
             from ..cfdx.cli import CfdxFrontDesk
