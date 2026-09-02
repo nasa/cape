@@ -1,4 +1,3 @@
-.. Documentation for the overall cape module.
 
 ********************************************************
 :mod:`cape.filecntl`: Interfaces for text control files

@@ -205,7 +205,7 @@ def open_img(
     :Inputs:
         *fname*: :class:`str`
             Name of file to open
-        *terminal: {``True``} | ``False``
+        *terminal*: {``True``} | ``False``
             Option to try showing image in terminal
         *dpi*: {``120``} | :class:`int`
             Resolution for converting PDFs to PNGs
@@ -390,7 +390,7 @@ def open_png(
     :Inputs:
         *fname*: :class:`str`
             Name of file to open
-        *terminal: {``True``} | ``False``
+        *terminal*: {``True``} | ``False``
             Option to try showing image in terminal
         *wait*: ``True`` | {``False``}
             Option to wait until PNG is closed
