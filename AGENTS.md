@@ -123,6 +123,10 @@ cape/
 5. **Agentic Mode**: New `--agentic` flag calls `main()` in
    `cape/agent/__init__.py`, which runs the agent loop via
    `cape.agent.agentcntl.AgentCntl` with LLM tool calling
+6. **Agent Skills**: Skills (documented tool-usage workflows) live in
+   `cape/agent/skills/`; user skills are discovered from
+   `.agents/skills/<NAME>/SKILL.md` in the launch dir. Skills are gated
+   per-reasoning-level (see `SKILL_SETS`) and loaded via `use_skill`
 
 ## Documentation
 

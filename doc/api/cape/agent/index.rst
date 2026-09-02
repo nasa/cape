@@ -4,7 +4,8 @@
 
 .. toctree::
     :maxdepth: 1
-    
+
     agentutils
     tools/index
+    skills/index
 

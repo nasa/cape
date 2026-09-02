@@ -27,7 +27,10 @@ from openai import OpenAI, InternalServerError
 
 # Local imports
 from . import agentutils
+from . import skills as agentskills
 from .options import AgentOpts
+from .skills import skilltools
+from .skills.skillbase import discover_user_skills
 from .tools import cfdxtools, cntltools, systools
 from .tools.toolutils import normalize_kwargs
 from .. import capeconfig
@@ -122,6 +125,8 @@ class AgentCntl:
         "history",
         "model",
         "opts",
+        "skills",
+        "system_prompt",
         "tool_schemas",
         "tools",
     )
@@ -169,6 +174,8 @@ class AgentCntl:
         self.history = None
         # Filter tools to those appropriate for this model
         self.assemble_tools()
+        # Assemble skills available for this model
+        self.assemble_skills()
 
     # Read options
     def read_opts(self, fname: str):
@@ -242,6 +249,44 @@ class AgentCntl:
         self.tools.update(systools.TOOLS)
         self.tool_schemas += systools.TOOL_SCHEMAS
 
+    # Assemble skills available for this model's *SkillSet*
+    def assemble_skills(self):
+        # Get descriptive name of how many skills to expose
+        skillset = self.opts.get_ModelOpt(self.model, "SkillSet", vdef="full")
+        # Get list of built-in skill names for this set; default to all
+        names = agentskills.SKILL_SETS.get(skillset)
+        if names is None:
+            names = list(agentskills.BUILTIN_SKILLS)
+        #: :class:`dict`\ [:class:`str`]
+        #: Map of skill names to :class:`Skill` definitions
+        self.skills = {
+            name: agentskills.BUILTIN_SKILLS[name] for name in names
+        }
+        # Add user skills from launch dir unless skills are turned off
+        if skillset != "none":
+            # Discover from <RootDir>/.agents/skills/<NAME>/SKILL.md
+            user_skills = discover_user_skills(self.RootDir)
+            # User skills override built-ins of the same name
+            self.skills.update(user_skills)
+            # Report user skills found
+            if user_skills:
+                n = len(user_skills)
+                print(f"Loaded {n} user skill(s) from .agents/skills")
+        # Make skills available to the ``use_skill`` tool
+        agentskills.skillbase.ACTIVE_SKILLS.clear()
+        agentskills.skillbase.ACTIVE_SKILLS.update(self.skills)
+        #: :class:`str`
+        #: System prompt including listing of available skills
+        self.system_prompt = genr8_system_prompt(self.skills)
+        # Always include the skill-management tools
+        self.tools.update(skilltools.TOOLS)
+        self.tool_schemas += skilltools.TOOL_SCHEMAS
+        # Merge tools provided by active skills
+        for name, mod in agentskills.SKILL_TOOL_MODULES.items():
+            if name in self.skills:
+                self.tools.update(mod.TOOLS)
+                self.tool_schemas += mod.TOOL_SCHEMAS
+
     # Run one user prompt with multi-round tool calling
     def run_agent(self, user_message: str) -> dict:
         r"""Run one pass of model with multi-round tool calling
@@ -263,7 +308,7 @@ class AgentCntl:
             self.history = [
                 {
                     "role": "system",
-                    "content": SYSTEM_PROMPT,
+                    "content": self.system_prompt,
                 }
             ]
         # Use message history
@@ -473,6 +518,43 @@ class AgentCntl:
             pass
         # Output
         return 0, result
+
+
+# Build system prompt, appending a listing of available skills
+def genr8_system_prompt(skills: dict) -> str:
+    r"""Build the system prompt, listing available agent skills
+
+    :Call:
+        >>> prompt = genr8_system_prompt(skills)
+    :Inputs:
+        *skills*: :class:`dict`\ [:class:`Skill`]
+            Map of skill names to skill definitions
+    :Outputs:
+        *prompt*: :class:`str`
+            System prompt for the LLM
+    """
+    # Base prompt if no skills
+    if not skills:
+        return SYSTEM_PROMPT
+    # Assemble skill listing
+    lines = [
+        SYSTEM_PROMPT.strip(),
+        "",
+        "## Agent skills",
+        "",
+        "You have access to *agent skills*: documented workflows that"
+        " describe how and when to use certain tools and how to chain"
+        " tool calls together. Before starting a task that matches a"
+        " skill's description, call the `use_skill` tool with the skill"
+        " name to read its full instructions.",
+        "",
+        "Available skills:",
+    ]
+    # Add one line per skill
+    for name in sorted(skills):
+        lines.append(f"* `{name}`: {skills[name].description}")
+    # Combine
+    return "\n".join(lines)
 
 
 # Format the model's response
