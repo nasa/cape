@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.avmfile`: Tools for reading CREATE-AV ``avm`` files
-===================================================================
+:mod:`cape.gruvoc.avmfile`: Tools for reading CREATE-AV ``avm`` files
+=====================================================================
 
 This module provides functions to read and write ``.avm`` files, which
 are the main unstructured grid format for Kestrel.

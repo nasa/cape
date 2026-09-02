@@ -1,5 +1,5 @@
 r"""
-:mod:`gruvoc.trifile`: Tools for reading Cart3D ``tri`` files
+:mod:`cape.gruvoc.uh3dfile`: Tools for reading AFLR3 ``uh3d`` files
 ===================================================================
 
 One key functionality of this module is to determine the file type of

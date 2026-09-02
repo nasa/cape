@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.meshbfile`: Tools for reading INRIA ``meshb`` files
-===================================================================
+:mod:`cape.gruvoc.meshbfile`: Tools for reading INRIA ``meshb`` files
+=====================================================================
 
 One key functionality of this module is to determine the file type of
 ``.meshb`` files or determine that they are not recognizable files of

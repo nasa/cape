@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.flowfile`: Tools FUN3D ``.flow`` files
-===================================================================
+:mod:`cape.gruvoc.flowfile`: Tools FUN3D ``.flow`` files
+========================================================
 
 This function reads FUN3D solution files, which have the extension
 ``.flow``. It reads files with the goal of writing other formats, e.g.

@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.fileutils`: Common file analysis tools
-======================================================
+:mod:`cape.gruvoc.fileutils`: Common file analysis tools
+========================================================
 
 This module provides functions for opening or analyzing files.
 

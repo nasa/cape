@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.agent.options`: Options for CAPE agentic
-========================================================
-
 The :mod:`cape.agent.options` provides tools to control options for the
 CAPE agent and the Large Language Models that it uses.
 

@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.ufuncfile`: Tools for reading AFLR3 ``ufunc`` files
-===================================================================
+:mod:`cape.gruvoc.ufuncfile`: Tools for reading AFLR3 ``ufunc`` files
+=====================================================================
 
 One key functionality of this module is to determine the file type of
 ``.ufunc`` files or determine that they are not recognizable files of

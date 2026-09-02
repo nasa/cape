@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.dataformats`: Common data format identification tools
-===================================================================
+:mod:`cape.gruvoc.dataformats`: Common data format identification tools
+=======================================================================
 
 This module provides tools for recognizing which format data is
 written in, either by the data itself or by determining from a file

@@ -11,6 +11,7 @@
 
     agentcntl
     agentutils
+    options/index
     tools/index
     skills/index
 
