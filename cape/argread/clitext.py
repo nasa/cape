@@ -175,23 +175,25 @@ def compile_rst(doc: str) -> str:
     def replmdsec1(g):
         # Top-level section, add many levels
         return (
-            BOLD + UNDERLINE +
-            CONSOLE["bg-black"] + CONSOLE["yellow"] +
-            g.group(1) + PLAIN + '\n')
+            BOLD +
+            CONSOLE["bg-black"] + CONSOLE["turquoise"] +
+            g.group(1) +
+            '\n' + ('=' * len(g.group(1))) + PLAIN)
 
     # Markdown-style sections
     def replmdsec2(g):
         # Top-level section, add many levels
         return (
             BOLD + UNDERLINE +
-            g.group(1) + PLAIN + '\n')
+            CONSOLE["bg-black"] + CONSOLE["yellow"] +
+            g.group(1) + PLAIN)
 
     # Markdown-style sections
     def replmdsec3(g):
         # Top-level section, add many levels
         return (
             UNDERLINE +
-            g.group(1) + PLAIN + '\n')
+            g.group(1) + PLAIN)
 
     # Replace ReST identifiers
     def replfn(g):
@@ -332,9 +334,12 @@ def compile_rst(doc: str) -> str:
     # Reform doc string
     txt = '\n'.join(lines_out)
     # Take out markdown-style section headers
-    txt = re.sub(r"^# +(.*)$", replmdsec1, txt)
-    txt = re.sub(r"^## +(.*)$", replmdsec2, txt)
-    txt = re.sub(r"^### +(.*)$", replmdsec3, txt)
+    txt = re.sub(r"^# +(.+)", replmdsec1, txt, flags=re.MULTILINE)
+    txt = re.sub(r"^## +(.+)", replmdsec2, txt, flags=re.MULTILINE)
+    txt = re.sub(r"^### +(.+)", replmdsec3, txt, flags=re.MULTILINE)
+    # Bullet lists
+    txt = re.sub(r"^[*-] ", "• ", txt, flags=re.MULTILINE)
+    txt = re.sub(r"^( *)[*-] ", "\\g<1>◦ ", txt, flags=re.MULTILINE)
     # Mark up function names
     txt = re.sub(r":func:`([^`\n]+)`", replfn, txt)
     # Apply custom "roles"

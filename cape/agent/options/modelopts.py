@@ -21,6 +21,19 @@ Here is a sample file:
         }
     }
 
+The *MaxToolCallLoops* option (defaults based on *ToolSet*) controls how many
+rounds of tool calling the agent can perform:
+
+.. code-block:: javascript
+
+    {
+        "ModelList": ["my-model"],
+        "my-model": {
+            "ToolSet": "medium",
+            "MaxToolCallLoops": 8  // Override default of 6 for medium
+        }
+    }
+
 :See Also:
     * :mod:`cape.optdict`
     * :mod:`cape.agent.options`
@@ -59,6 +72,7 @@ class ModelOpts(OptionsDict):
         "ToolSet",
         "SkillSet",
         "Parent",
+        "MaxToolCallLoops",
     )
 
     # Aliases
@@ -73,6 +87,7 @@ class ModelOpts(OptionsDict):
         "ToolSet": str,
         "SkillSet": str,
         "Parent": str,
+        "MaxToolCallLoops": int,
     }
 
     # Allowed values
@@ -122,4 +137,26 @@ class ModelOpts(OptionsDict):
         "ToolSet": "descriptive level of how many tools to expose",
         "SkillSet": "descriptive level of how many skill to expose",
         "Parent": "name of model to inherit settings from",
+        "MaxToolCallLoops": "maximum number of tool call rounds in agent loop",
     }
+
+    # ToolSet-based defaults for MaxToolCallLoops
+    _toolset_loop_map = {
+        "none": 1,
+        "low": 3,
+        "medium": 6,
+        "full": 12,
+    }
+
+    # Get MaxToolCallLoops based on ToolSet if not explicitly set
+    def get_opt(self, opt: str, **kw):
+        r"""Get option, deriving MaxToolCallLoops from ToolSet if needed"""
+        # Get raw value
+        v = super().get_opt(opt, **kw)
+        # Special case
+        if opt == "MaxToolCallLoops" and v is None:
+            # Get ToolSet
+            toolset = self.get_opt("ToolSet")
+            # Map to loop count
+            v = self._toolset_loop_map.get(toolset, 3)
+        return v
