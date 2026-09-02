@@ -1,6 +1,6 @@
 r"""
 :mod:`cape.agent`: Agentic interface to CAPE
-==============================================
+************************************************
 
 The main interface for running the ``cape --agentic`` loop, processing
 user reponses, passing them to an external LLM, and processing the
