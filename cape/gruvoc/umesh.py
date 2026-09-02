@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.umesh`: Unstructured volume mesh class
-====================================================
+:mod:`cape.gruvoc.umesh`: Unstructured volume mesh class
+========================================================
 
 This module provides the :class:`Umesh` class that interacts with
 traditional generic mixed-element volume grids. In particular, the type

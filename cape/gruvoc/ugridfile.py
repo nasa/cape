@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.ugridfile`: Tools for reading AFLR3 ``ugrid`` files
-===================================================================
+:mod:`cape.gruvoc.ugridfile`: Tools for reading AFLR3 ``ugrid`` files
+=====================================================================
 
 One key functionality of this module is to determine the file type of
 ``.ugrid`` files or determine that they are not recognizable files of

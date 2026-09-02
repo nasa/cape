@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.volcomp`: Functions to calculate element volumes
-==============================================================
+:mod:`cape.gruvoc.volcomp`: Functions to calculate element volumes
+==================================================================
 
 This module contains functions to compute the volumes of the four basic
 unstructured volume types.

@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.errors`: Error classes for ``gruvoc`` package
-====================================================================
+:mod:`cape.gruvoc.errors`: Error classes for ``gruvoc`` package
+===============================================================
 
 This module provides a collection of error types relevant to the
 :mod:`gruvoc` package. They are essentially the same as standard error

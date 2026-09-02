@@ -158,3 +158,7 @@ cape/
 ### Adding documentation
 1. Create `doc/api/cape/<module>.rst` with `.. automodule:: cape.<module>`
 2. Add to `doc/api/cape/index.rst` toctree
+3. **Package index pages**: put the `:mod:` title in the package's
+   `index.rst` file (overlined with `*`, see `filecntl/index.rst`), not
+   in the package's `__init__.py` docstring. This prevents Sphinx from
+   showing grandchild modules at the same TOC depth as their parents.

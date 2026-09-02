@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.pltfile`: Tools for Tecplot (R) ``.plt`` files
-===================================================================
+:mod:`cape.gruvoc.pltfile`: Tools for Tecplot (R) ``.plt`` files
+================================================================
 
 This function reads and writes surface/volume grids to and from Tecplot
 files to unstructured mesh objects. These files have a fixed data

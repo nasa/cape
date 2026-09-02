@@ -1,4 +1,8 @@
 
+**************************************************************
+:mod:`cape.gruvoc`: Grid and visualization file interfaces
+**************************************************************
+
 .. automodule:: cape.gruvoc
     :members:
 

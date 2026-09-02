@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.geom`: Geometry manipulation tools for ``gruvoc``
-================================================================
+:mod:`cape.gruvoc.geom`: Geometry manipulation tools for ``gruvoc``
+===================================================================
 
 This module provides a series of functions that perform basic geometry
 operations, such as :func:`rotate_points` to rotate an array of points

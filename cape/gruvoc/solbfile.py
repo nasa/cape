@@ -1,5 +1,5 @@
 r"""
-:mod:`gruvoc.solbfile`: Tools for reading INRIA ``solb`` files
+:mod:`cape.gruvoc.solbfile`: Tools for reading INRIA ``solb`` files
 ===================================================================
 
 One key functionality of this module is to determine the file type of

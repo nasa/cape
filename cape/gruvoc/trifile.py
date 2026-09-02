@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.trifile`: Tools for reading Cart3D ``tri`` files
-===================================================================
+:mod:`cape.gruvoc.trifile`: Tools for reading Cart3D ``tri`` files
+==================================================================
 
 One key functionality of this module is to determine the file type of
 ``.ugrid`` files or determine that they are not recognizable files of

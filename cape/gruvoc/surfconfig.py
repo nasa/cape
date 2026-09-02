@@ -1,6 +1,6 @@
 r"""
-:mod:`gruvoc.surfconfig`: Surface name, ID, and property management
-====================================================================
+:mod:`cape.gruvoc.surfconfig`: Surface name, ID, and property management
+========================================================================
 
 This module provides an interface to surface grid configuration control.
 Perhaps the primary goal is simply to associate a name with each ID
