@@ -47,6 +47,11 @@ Build extensions for local use:
 python3 build.py          # Build extensions for local use
 ```
 
+The build instructions, which would normally be in `setup.py`, are defined in
+`cape/setup_py/__init__.py`. This work-around allows the extension build
+process to work for different Python versions using version- and host-specific
+`.cfg` files in the same folder.
+
 ### Test
 
 Run nightly test suite:
@@ -71,6 +76,9 @@ Each module usually has its own folder, e.g. ``test/001_cape/001_runmatrix``
 for ``cape.cfdx.runmatrix``. Test folders numbered 900 or higher (e.g.
 ``test/901_pycart``) require actually running CFD and can only be run on HPC
 systems.
+
+To execute command-line calls in any tests, use `testutils.call_o`. Standard
+`capsys` calls will usually break on at least one of the testing HPC systems.
 
 ### Lint
 ```bash

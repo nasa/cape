@@ -23,29 +23,30 @@ TEST_DIRS = (
 @testutils.run_sandbox(__file__, TEST_FILES, TEST_DIRS)
 def test_01_positional(capsys):
     # Run command
-    ierr = cape.cfdx.cli.main(["cape", "inspect-json", ".PBS.select"])
+    stdout, _, ierr = testutils.call_o(["cape", "inspect-json", ".PBS.select"])
     # Check output
     assert ierr == 0
-    assert capsys.readouterr().out.rstrip().endswith("10")
+    assert stdout.strip().endswith("10")
 
 
 # jq path as option
 @testutils.run_sandbox(__file__, TEST_FILES, TEST_DIRS)
 def test_02_option(capsys):
     # Run command
-    ierr = cape.cfdx.cli.main(
+    stdout, _, ierr = testutils.call_o(
         ["cape", "inspect-json", "--jq", ".Config.Components[1]"])
     # Check output
     assert ierr == 0
-    assert capsys.readouterr().out.rstrip().endswith('"body"')
+    assert stdout.strip().endswith('"body"')
 
 
 # maxdepth option
 @testutils.run_sandbox(__file__, TEST_FILES, TEST_DIRS)
 def test_03_maxdepth(capsys):
     # Run command
-    ierr = cape.cfdx.cli.main(
+    stdout, _, ierr = testutils.call_o(
         ["cape", "inspect-json", ".RunMatrix", "--maxdepth", "1"])
     # Check output
     assert ierr == 0
-    assert '"Definitions": {}' in capsys.readouterr().out
+    assert '"Definitions": {}' in stdout
+

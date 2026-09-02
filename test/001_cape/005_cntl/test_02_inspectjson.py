@@ -42,7 +42,7 @@ def test_01_basic_paths():
 
 
 # Depth-limited output
-@testutils.run_sandbox(__file__, TEST_FILES, TEST_DIRS)
+@testutils.run_sandbox(__file__, fresh=False)
 def test_02_maxdepth():
     # Instatiate
     cntl = cape.cfdx.cntl.Cntl()
@@ -60,7 +60,7 @@ def test_02_maxdepth():
 
 
 # Bad paths and unsupported syntax
-@testutils.run_sandbox(__file__, TEST_FILES, TEST_DIRS)
+@testutils.run_sandbox(__file__, fresh=False)
 def test_03_errors():
     # Instatiate
     cntl = cape.cfdx.cntl.Cntl()
