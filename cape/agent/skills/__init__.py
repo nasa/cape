@@ -20,6 +20,7 @@ the ``use_skill`` tool (see :mod:`cape.agent.skills.skilltools`).
 from . import cntlrunner
 from . import skillbase
 from . import skilltools
+from . import usertools
 
 # Re-exports
 from .skillbase import Skill, discover_user_skills, read_skillfile
@@ -36,6 +37,7 @@ __all__ = (
     "read_skillfile",
     "skillbase",
     "skilltools",
+    "usertools",
 )
 
 
@@ -43,11 +45,14 @@ __all__ = (
 BUILTIN_SKILLS = {
     **{name: Skill.from_defn(name, defn)
        for name, defn in cntlrunner.SKILL_DICT.items()},
+    **{name: Skill.from_defn(name, defn)
+       for name, defn in usertools.SKILL_DICT.items()},
 }
 
 # Map of built-in skill names to the modules providing their tools
 SKILL_TOOL_MODULES = {
     "cntl-runner": cntlrunner,
+    "user-tools": usertools,
 }
 
 # Skills per capability level
@@ -56,6 +61,7 @@ SKILL_SETS = {
     "low": [],
     "medium": [
         "cntl-runner",
+        "user-tools",
     ],
     "full": list(BUILTIN_SKILLS),
 }

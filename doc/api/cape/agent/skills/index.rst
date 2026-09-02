@@ -12,3 +12,4 @@
     skillbase
     skilltools
     cntlrunner
+    usertools

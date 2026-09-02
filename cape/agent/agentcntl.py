@@ -295,6 +295,11 @@ class AgentCntl:
         # Make skills available to the ``use_skill`` tool
         agentskills.skillbase.ACTIVE_SKILLS.clear()
         agentskills.skillbase.ACTIVE_SKILLS.update(self.skills)
+        # Configure the folder in which the user-tools skill looks
+        agentskills.usertools.ROOT_DIR = self.RootDir
+        agentskills.usertools.TOOL_DIR_NAME = self.opts.get_opt(
+            "ToolDir", vdef="tools")
+        agentskills.usertools.TOOL_REGISTRY.clear()
         #: :class:`str`
         #: System prompt including listing of available skills
         self.system_prompt = genr8_system_prompt(self.skills)
