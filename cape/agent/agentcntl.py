@@ -115,6 +115,26 @@ AgentResult = namedtuple("AgentResult", ("returncode", "result"))
 
 # Control class
 class AgentCntl:
+    r"""Controller class for the CAPE agentic interface
+
+    This class implements the agent loop behind ``cape --agentic``:
+    reading user input, passing messages to an external LLM server,
+    and processing any tool calls in its response. The tools and
+    skills exposed to the LLM are filtered based on the options for
+    the model in use (see :mod:`cape.agent.options`); user skills are
+    discovered from the folder in which the agent is launched (see
+    :mod:`cape.agent.skills`).
+
+    :Call:
+        >>> cntl = AgentCntl(fname=None)
+    :Inputs:
+        *fname*: {``None``} | :class:`str`
+            Name of CAPE-agentic JSON file (defaults to
+            ``"cape-agent.json"``)
+    :Outputs:
+        *cntl*: :class:`AgentCntl`
+            Controller for the CAPE agent loop
+    """
     # Attributes
     __slots__ = (
         "RootDir",
@@ -527,7 +547,7 @@ def genr8_system_prompt(skills: dict) -> str:
     :Call:
         >>> prompt = genr8_system_prompt(skills)
     :Inputs:
-        *skills*: :class:`dict`\ [:class:`Skill`]
+        *skills*: :class:`dict`\ [:class:`.skills.skillbase.Skill`]
             Map of skill names to skill definitions
     :Outputs:
         *prompt*: :class:`str`
