@@ -286,32 +286,32 @@ TOOL_DICT = {
     },
     "cape_apply": {
         "description": "Re-apply settings to one or more cases",
-        "properties": ["f", "I", "qsub"],
+        "parameters": ["f", "I", "qsub"],
         "required": ["I"],
     },
     "cape_approve": {
         "description": "PASS/approve one or more cases",
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_extend": {
         "description": "Extend case(s) by running more iterations",
-        "properties": ["f", "I", "extend", "qsub"],
+        "parameters": ["f", "I", "extend", "qsub"],
         "required": ["I", "extend"],
     },
     "cape_report": {
         "description": "Generate a PDF report for one or more cases",
-        "properties": ["f", "I", "report"],
+        "parameters": ["f", "I", "report"],
         "required": ["I"],
     },
     "cape_fail": {
         "description": "FAIL/mark cases as errors",
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_unmark": {
         "description": "Remove PASS/ERROR markings from cases",
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_defail": {
@@ -319,29 +319,29 @@ TOOL_DICT = {
             "Clean up cases with FAIL status that are probably just "
             "system failures such as a node failing."
         ),
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_dezombie": {
         "description": "Clean up ZOMBIE cases (jobs stalled)",
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_clean": {
         "description": "Remove extra files not necessary for running a case",
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_archive": {
         "description": (
             "Archive cases to long-term storage; then delete files not "
             "needed for post-processing"),
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_open_pdf": {
         "description": "Open a PDF for user to view",
-        "properteis": ["fpdf"],
+        "parameters": ["fpdf"],
         "required": ["fpdf"],
     },
     "cape_open_subfig": {
@@ -354,7 +354,7 @@ TOOL_DICT = {
     },
     "cape_unarchive": {
         "description": "Expand files from archive",
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_skeleton": {
@@ -362,26 +362,26 @@ TOOL_DICT = {
             "Clean up case folder after ALL processing is finished; "
             "leave only key files"
         ),
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_rm": {
         "description": "Delete entire case folders",
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
     "cape_run": {
         "description": "Run CFD solver in the current (case) folder",
-        "properties": []
+        "parameters": []
     },
     "cape_start": {
         "description": "Set up and/or start/submit cases",
-        "properties": ["f", "I", "start"],
+        "parameters": ["f", "I", "start"],
         "required": ["I"],
     },
     "cape_qdel": {
         "description": "Delete PBS/Slurm job of case(s)",
-        "properties": ["f", "I"],
+        "parameters": ["f", "I"],
         "required": ["I"],
     },
 }
