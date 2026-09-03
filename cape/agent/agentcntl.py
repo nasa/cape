@@ -73,7 +73,7 @@ specific meanings:
 * `FAIL`: The case encountered a failure while attempting to run CFD.
 * `ERROR`: The user has marked this case a failure, and the status is final.
 * `DONE` means the case has completed all required iterations and phases
-  and is awaiting disposition by the user or agent.
+   and is awaiting disposition by the user or agent.
 * `PASS`: The case is `DONE` and marked as final by the user.
 * `PASS*`: The case is marked as `PASS` by the user but does not meet the
   requirements for `DONE`.
@@ -143,6 +143,7 @@ class AgentCntl:
         "fdir",
         "fname",
         "history",
+        "loaded_skills",
         "model",
         "opts",
         "skills",
@@ -282,6 +283,9 @@ class AgentCntl:
         self.skills = {
             name: agentskills.BUILTIN_SKILLS[name] for name in names
         }
+        #: :class:`set`\ [:class:`str`]
+        #: Skills whose tool schemas have been loaded this session
+        self.loaded_skills = set()
         # Add user skills from launch dir unless skills are turned off
         if skillset != "none":
             # Discover from <RootDir>/.agents/skills/<NAME>/SKILL.md
@@ -303,14 +307,70 @@ class AgentCntl:
         #: :class:`str`
         #: System prompt including listing of available skills
         self.system_prompt = genr8_system_prompt(self.skills)
-        # Always include the skill-management tools
-        self.tools.update(skilltools.TOOLS)
-        self.tool_schemas += skilltools.TOOL_SCHEMAS
-        # Merge tools provided by active skills
-        for name, mod in agentskills.SKILL_TOOL_MODULES.items():
-            if name in self.skills:
-                self.tools.update(mod.TOOLS)
-                self.tool_schemas += mod.TOOL_SCHEMAS
+        # Include skill management only if skills are available
+        if self.skills:
+            self.tools.update(skilltools.TOOLS)
+            # Use controller wrapper to activate tools after loading skill
+            self.tools["use_skill"] = self.use_skill
+            self.tool_schemas += skilltools.TOOL_SCHEMAS
+
+    # Load a skill's instructions and activate its tool schemas
+    def use_skill(self, name: str) -> dict:
+        r"""Load an available skill and activate the tools it provides"""
+        # Load the skill instructions
+        result = skilltools.use_skill(name)
+        # Stop if *name* is not an available skill
+        if not result["success"]:
+            return result
+        # Activate any tools provided by the skill
+        added, active = self.activate_skill_tools(name)
+        result["tools_added"] = added
+        result["tools_active"] = active
+        # Output
+        return result
+
+    # Add tool functions and schemas for one skill
+    def activate_skill_tools(self, name: str) -> tuple[list, list]:
+        r"""Activate tools belonging to one available skill"""
+        # Get skill definition and its tool module
+        skill = self.skills[name]
+        mod = agentskills.SKILL_TOOL_MODULES.get(name)
+        # Skills without built-in tools need no schema activation
+        if mod is None or not skill.tools:
+            self.loaded_skills.add(name)
+            return [], []
+        # Map schema names to schemas
+        schemas = {
+            schema["function"]["name"]: schema
+            for schema in mod.TOOL_SCHEMAS
+        }
+        # Validate all tools before changing controller state
+        for tool_name in skill.tools:
+            if tool_name not in mod.TOOLS:
+                raise KeyError(
+                    f"Skill '{name}' has no tool function '{tool_name}'")
+            if tool_name not in schemas:
+                raise KeyError(
+                    f"Skill '{name}' has no tool schema '{tool_name}'")
+            old_tool = self.tools.get(tool_name)
+            if old_tool is not None and old_tool is not mod.TOOLS[tool_name]:
+                raise ValueError(
+                    f"Skill tool '{tool_name}' conflicts with an active tool")
+        # Add only tools explicitly declared by the skill
+        added = []
+        if name not in self.loaded_skills:
+            active_schemas = {
+                schema["function"]["name"]
+                for schema in self.tool_schemas
+            }
+            for tool_name in skill.tools:
+                if tool_name not in active_schemas:
+                    self.tools[tool_name] = mod.TOOLS[tool_name]
+                    self.tool_schemas.append(schemas[tool_name])
+                    added.append(tool_name)
+            self.loaded_skills.add(name)
+        # Output both newly added and currently active tools
+        return added, list(skill.tools)
 
     # Run one user prompt with multi-round tool calling
     def run_agent(self, user_message: str) -> dict:
@@ -580,7 +640,7 @@ def genr8_system_prompt(skills: dict) -> str:
         " describe how and when to use certain tools and how to chain"
         " tool calls together. Before starting a task that matches a"
         " skill's description, call the `use_skill` tool with the skill"
-        " name to read its full instructions.",
+        " name to read its full instructions and activate its tools.",
         "",
         "Available skills:",
     ]

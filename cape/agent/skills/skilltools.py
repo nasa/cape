@@ -5,8 +5,8 @@ r"""
 This module provides the ``use_skill`` tool, which the CAPE agent uses
 to read the full instructions of an available agent skill. Skills are
 listed by name and one-line description in the system prompt; the model
-calls ``use_skill`` to load a skill's full Markdown instructions before
-applying it.
+calls ``use_skill`` to load a skill's full Markdown instructions and
+activate its tools before applying it.
 """
 
 # Local imports
@@ -62,8 +62,8 @@ TOOL_DICT = {
     "use_skill": {
         "description": (
             "Load the full instructions for an agent skill by name. "
-            "Skills describe how and when to use certain tools and how "
-            "to chain tool calls. Call this before applying a skill."
+            "This also activates any tools provided by that skill. "
+            "Call this before applying a skill."
         ),
         "parameters": ["name"],
         "required": ["name"],

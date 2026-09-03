@@ -24,8 +24,9 @@ front matter section and a Markdown body:
     Full instructions for the agent go here.
 
 The *name* and *description* fields are used to list available skills in
-the system prompt; the full *content* is only shown to the model when it
-asks for it using the ``use_skill`` tool.
+the system prompt; the full *content* and any skill-specific tool schemas
+are only shown to the model when it asks for them using the ``use_skill``
+tool.
 """
 
 # Standard library

@@ -60,6 +60,10 @@ CAPE_PARAMS = {
         ),
         "type": ["string", "null"]
     },
+    "fpdf": {
+        "description": "Name of PDF file to open for the user.",
+        "type": "string",
+    },
     "user": {
         "description": (
             "Limit to cases owned by this specific user"
