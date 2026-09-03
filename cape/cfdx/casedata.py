@@ -1358,6 +1358,130 @@ class CaseData(DataKit):
         # Output
         return state
 
+    def get_col_state2(self, col: str, **kw) -> dict:
+        r"""Get column state using autocorrelation-based windows
+
+        :Call:
+            >>> state = db.get_col_state2(col)
+        :Inputs:
+            *db*: :class:`CaseData`
+                Iterative history data instance
+            *col*: :class:`str`
+                Name of column to analyze
+        :Outputs:
+            *state*: :class:`dict`
+                State information
+        :Versions:
+            * 2026-09-03 ``@openai``: v1.0
+        """
+        # Initialize state
+        state = {}
+        # Check if present
+        if col not in self:
+            return state
+        # Get three vectors
+        v = self[col]
+        i = self[CASE_COL_ITERS]
+        t = self.get(CASE_COL_TIME, i)
+        # Sometimes *t* is filled in with NaN
+        if np.any(np.isnan(t)) or (np.max(t) <= np.min(t)):
+            t = i
+        # Check for empty time vector
+        t = i if (t.size == 0) else t
+        # Get initial window sizes
+        n = v.size
+        n2 = n // 2
+        n4 = n // 4
+        # Check history size
+        if n < 50:
+            return state
+        # Initialize best autocorrelation peak
+        jmax = None
+        rmax = -np.inf
+        # Find the strongest autocorrelation using the initial windows
+        for nj in [n, n2, n4]:
+            # Get autocorrelation for this window
+            phj, rj = autocorr(v[-nj:])
+            # Find maximum shifted autocorrelation
+            j, r = find_max_autocorr(rj)
+            # Check for a new maximum
+            if (j is not None) and (r > rmax):
+                jmax = int(round(phj[j]))
+                rmax = r
+        # Check for a signal with no shifted autocorrelation peaks
+        if jmax is None:
+            return state
+        # Save autocorrelation-based window sizes
+        state["windows"] = [jmax, 2*jmax, 4*jmax]
+        # Process each window
+        for nj in state["windows"]:
+            # Get vectors
+            vj = v[-nj:]
+            tj = t[-nj:]
+            # Min/max (for scaling)
+            aj = np.min(vj)
+            bj = np.max(vj)
+            # Poly fit
+            m, b = np.polyfit(tj, vj, 1)
+            # Get increments
+            dvj = np.diff(vj)
+            # Filter out zero-change steps
+            dvj = dvj[np.abs(dvj) > 1e-6*(bj-aj)]
+            # Count sign changes
+            nchj = np.count_nonzero(dvj[1:] * dvj[:-1] < 0)
+            # Perform autocorrelation
+            phj, rj = autocorr(vj)
+            # Find peaks
+            jlo, ulo, jhi, uhi = find_autocorr_peaks(rj)
+            # Find first anti-correlation peak
+            if jlo.size == 0:
+                # No anticorrelation peaks
+                dph1 = 0.0
+                r1 = 0.0
+                dph2 = 0.0
+                r2 = 0.0
+            else:
+                # Get first local minimum of autocorrelation plot
+                dph1 = phj[jlo[0]]
+                r1 = ulo[0]
+                # Get absolute minimum correlation
+                dph2 = phj[jlo[np.argmin(ulo)]]
+                r2 = np.min(ulo)
+            # Find first correlation peak
+            if jhi.size == 0:
+                # No shifted correlation peaks
+                dph3 = 0.0
+                r3 = 0.0
+                dph4 = 0.0
+                r4 = 0.0
+            else:
+                # Get first local maximum of autocorrelation plot
+                dph3 = phj[jhi[0]]
+                r3 = uhi[0]
+                # Get absolute maximum autocorrelation
+                dph4 = phj[jhi[np.argmax(uhi)]]
+                r4 = np.max(uhi)
+            # Calculate basic stats
+            state[str(nj)] = {
+                "mean": np.mean(vj),
+                "min": aj,
+                "max": bj,
+                "std": np.std(vj),
+                "linear_fit_a0": b,
+                "linear_fit_a1": m,
+                "sign_change_rate": nchj/nj,
+                "first_anticorrelation_offset": dph1,
+                "first_anticorrelation_peak": r1,
+                "first_autocorrelation_offset": dph3,
+                "first_autocorrelation_peak": r3,
+                "min_autocorrelation_offset": dph2,
+                "min_autocorrelation": r2,
+                "max_autocorrelation_offset": dph4,
+                "max_autocorrelation": r4,
+            }
+        # Output
+        return state
+
    # --- Plot ---
     # Basic plotting function
     def PlotValue(self, c: str, col=None, n=None, **kw):
@@ -4908,6 +5032,40 @@ class CaseTS(CaseFM):
         # Last time should be largest
         tEnd = self[tcol][-1] if nEnd == nMax else None
         return tEnd
+
+
+# Find maximum of autocorrelation signal
+def find_max_autocorr(
+        v: np.ndarray,
+        polyorder: int = 3,
+        window_length: int = 10) -> tuple:
+    r"""Find the maximum shifted autocorrelation peak
+
+    :Call:
+        >>> j, vmax = find_max_autocorr(v, **kw)
+    :Inputs:
+        *v*: :np.ndarray`\ [:class:`float`]
+            Autocorrelation signal
+        *polyorder*: {``3``} | :class:`int`
+            Polynomial order for filtering
+        *window_length*: {``10``} | :class:`int`
+            Filter window width
+    :Outputs:
+        *j*: :class:`int` | ``None``
+            Index of maximum shifted autocorrelation peak
+        *vmax*: :class:`float` | ``None``
+            Lightly filtered value of *v* at *j*
+    :Versions:
+        * 2026-09-03 ``@openai``: v1.0
+    """
+    # Find valid alternating autocorrelation peaks
+    _, _, jhi, vhi = find_autocorr_peaks(v, polyorder, window_length)
+    # Check for a signal with no shifted autocorrelation peaks
+    if jhi.size == 0:
+        return None, None
+    # Find the largest autocorrelation peak
+    k = np.argmax(vhi)
+    return jhi[k], vhi[k]
 
 
 # Find peaks of autocorrelation signal

@@ -127,6 +127,7 @@ cape/
 2. **Option Handling**: Options defined in `_optlist`, types in `_opttypes`,
    aliases in `_optmap`
 3. **Docstrings**: RST format with `:Call:`, `:Inputs:`, `:Outputs:` sections
+   for new functions, don't add the `:Versions:` section
 4. **Slots**: Classes use `__slots__` for memory efficiency
 5. **Agentic Mode**: New `--agentic` flag calls `main()` in
    `cape/agent/__init__.py`, which runs the agent loop via
@@ -141,6 +142,8 @@ cape/
 - API docs: `doc/api/cape/index.rst` and subfolders
 - Build docs: `doc/` folder with Sphinx configuration
 - New modules should add RST files to `doc/api/cape/` and update index
+- If the new module is an `__init__.py` module, put the title in `index.rst`
+  instead of the module's docstring.
 
 ## Common Tasks
 
