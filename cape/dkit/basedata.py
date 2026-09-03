@@ -509,7 +509,7 @@ class BaseData(dict):
         # Start output
         lbl = "<%s.%s(" % (modname, clsname)
         # Get file name (safely)
-        fname = self.__dict__.get("fname")
+        fname = getattr(self, "fname", None)
         # Append file name if appropriate
         if fname:
             lbl += "'%s', " % os.path.basename(fname)
@@ -526,37 +526,7 @@ class BaseData(dict):
         return lbl
 
     # String method
-    def __str__(self):
-        """Generic representation method
-
-        :Versions:
-            * 2019-11-08 ``@ddalle``: Version 1.0
-            * 2019-12-04 ``@ddalle``: Only last part of module name
-            * 2019-12-31 ``@ddalle``: Safe attributes
-        """
-        # Module name
-        modname = self.__class__.__module__
-        clsname = self.__class__.__name__
-        # Strip module name part
-        modname = modname.rsplit(".", 1)[-1]
-        # Start output
-        lbl = "<%s.%s(" % (modname, clsname)
-        # Get file name (safely)
-        fname = self.__dict__.get("fname")
-        # Append file name if appropriate
-        if fname:
-            lbl += "'%s', " % os.path.basename(fname)
-        # Get columns (safely)
-        cols = self.__dict__.get("cols", [])
-        # Display columns
-        if len(cols) <= 5:
-            # Show all columns
-            lbl += "cols=%s)>" % str(cols)
-        else:
-            # Just show number of columns
-            lbl += "ncol=%i)>" % len(cols)
-        # Output
-        return lbl
+    __str__ = __repr__
 
   # === Inputs & Kwargs ===
    # --- Options ---

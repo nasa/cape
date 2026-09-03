@@ -1405,13 +1405,6 @@ class TSVTecDatFile(TSVSimple):
                     for col in basecols:
                         # Prefix zone name
                         self.save_col(f"{self.zone}.{col}", self.burst_col(col))
-        # Reconstruct col list (this is a little broken)
-        if "zones" in self:
-            cols = ["zones"]
-            for zone in self["zones"]:
-                cols.extend([f"{zone}.{col}" for col in basecols])
-            # Update list
-            self.cols = cols
         # Get counter
         self.n = len(self[self.cols[0]])
 

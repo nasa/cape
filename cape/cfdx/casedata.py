@@ -2847,7 +2847,7 @@ class CaseFM(CaseData):
                     continue
                 # Check for other mistakes
                 v = self[col]
-                if not isinstance(v, np.ndarray) or v.size != maskself.size:
+                if not isinstance(v, np.ndarray) or v.size != selfi.size:
                     continue
                 # Apply *self* mask
                 self[col] = self[col][maskself]
