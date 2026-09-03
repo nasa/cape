@@ -294,11 +294,6 @@ TOOL_DICT = {
         "properties": ["f", "I"],
         "required": ["I"],
     },
-    "cape_defail": {
-        "description": "Clean up failure files, or 'defail' cases",
-        "properties": ["f", "I"],
-        "required": ["I"],
-    },
     "cape_extend": {
         "description": "Extend case(s) by running more iterations",
         "properties": ["f", "I", "extend", "qsub"],
@@ -316,6 +311,14 @@ TOOL_DICT = {
     },
     "cape_unmark": {
         "description": "Remove PASS/ERROR markings from cases",
+        "properties": ["f", "I"],
+        "required": ["I"],
+    },
+    "cape_defail": {
+        "description": (
+            "Clean up cases with FAIL status that are probably just "
+            "system failures such as a node failing."
+        ),
         "properties": ["f", "I"],
         "required": ["I"],
     },
@@ -381,26 +384,6 @@ TOOL_DICT = {
         "properties": ["f", "I"],
         "required": ["I"],
     },
-    "cape_check_db": {
-        "description": "Check completion of all databook components",
-        "properties": ["f", "I"],
-        "required": ["I"],
-    },
-    "cape_check_fm": {
-        "description": "Check completion of all force & moment components",
-        "properties": ["f", "I"],
-        "required": ["I"],
-    },
-    "cape_check_ll": {
-        "description": "Check completion of all line load components",
-        "properties": ["f", "I"],
-        "required": ["I"],
-    },
-    "cape_check_triqfm": {
-        "description": "Check completion of TriqFM components",
-        "properties": ["f", "I"],
-        "required": ["I"],
-    },
 }
 
 # JSON-schema tool definitions, OpenAI-compatible
@@ -425,7 +408,6 @@ TOOL_SETS = {
         "cape_find",
         "cape_c",
         "cape_approve",
-        "cape_check_db",
         "cape_clean",
         "cape_fail",
         "cape_open_pdf",
