@@ -323,6 +323,8 @@ class CaseFM(casedata.CaseFM):
         """
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
+        if fname == "pyfun03_fm_LSRB_no_base.dat":
+            breakpoint()
         # Modify iteration & time histories
         self._fix_iter(db)
         # Output
