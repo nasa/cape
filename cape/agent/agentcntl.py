@@ -407,6 +407,8 @@ class AgentCntl:
                 tool_fn = self.tools.get(name)
                 # Increase tool-call count
                 result["n_tool_calls"] += 1
+                # Set flag for user interrupt
+                user_interrupt = False
                 # Call tool if possible
                 if tool_fn is None:
                     # No actual tool call
@@ -429,6 +431,7 @@ class AgentCntl:
                         result["n_tool_fails"] += 1
                     except KeyboardInterrupt:
                         print("KeyboardInterrupt")
+                        user_interrupt = True
                         tool_result = {
                             "success": False,
                             "reason": "User interrupted tool call",
@@ -446,6 +449,9 @@ class AgentCntl:
                         "content": dumps(tool_result),
                     }
                 )
+                # Exit if interrupted
+                if user_interrupt:
+                    break
         else:
             # If we've hit the max loops, force a final plain-text answer
             # Deliberately NOT passing `tools` here to force a text response

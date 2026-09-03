@@ -10,6 +10,7 @@ package, based on
 
 # Local imports
 from . import util
+from .configopts import ConfigOpts
 from .databookopts import DataBookOpts
 from .meshopts import MeshOpts
 from .runctlopts import RunControlOpts
@@ -69,6 +70,7 @@ class Options(options.Options):
 
     # Replaced or renewed sections
     _sec_cls = {
+        "Config": ConfigOpts,
         "DataBook": DataBookOpts,
         "Mesh": MeshOpts,
         "RunControl": RunControlOpts,

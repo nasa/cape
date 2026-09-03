@@ -39,6 +39,7 @@ class are also available here.
 
 # Standard library
 import os
+import re
 
 # Third-party
 import numpy as np
@@ -503,6 +504,8 @@ class Cntl(capecntl.Cntl):
         self.opts.setx_i(i)
         # Set flight conditions
         self.PrepareRunInputsFlightConditions(i)
+        # Set up the component force & moment tracking
+        self.PrepareRunInputsConfig()
         # Get user's selected file name
         basename = "run.inputs"
         # Get name of case folder
@@ -596,6 +599,74 @@ class Cntl(capecntl.Cntl):
             w = uinf*sa*cb
             # Set velocity
             opts.set_refcond("velocity", [u, v, w])
+
+    # Set up the loads components
+    def PrepareRunInputsConfig(self):
+        r"""Write the lines for force/moment output in ``run.inputs``
+
+        This uses the ``"Components"`` option within the ``"Config"``
+        section of the master JSON/YAML file to define load groups for
+        the LAVA-Cartesian ``output.loads`` section.
+
+        By default, any existing ``group_N`` entries from the template
+        ``run.inputs`` file are deleted. This prevents LAVA from
+        reporting loads for stale template groups since it reads
+        ``group_1``, ``group_2``, ... until a number is not found. To
+        *append* the ``"Components"`` to template groups instead, set
+        the ``"KeepTemplateComponents"`` option in ``"Config"`` to
+        ``True``.
+
+        :Call:
+            >>> cntl.PrepareRunInputsConfig()
+        :Inputs:
+            *cntl*: :class:`cape.pylava.cntl.Cntl`
+                CAPE main control instance
+        :Versions:
+            * 2026-09-02 ``@ddalle``: v1.0
+            * 2026-09-02 ``@ddalle``: v1.1; *KeepTemplateComponents*
+        """
+        # Get the components
+        comps = self.opts.get_ConfigComponents()
+        # Exit if no components
+        if comps is None:
+            return
+        # Number
+        ncomp = len(comps)
+        # Quit if nothing to do
+        if ncomp == 0:
+            return
+        # Extract ``run.inputs`` interface
+        opts = self.CartInputs
+        # Exit if no input file was read
+        if opts is None:
+            return
+        # Option to keep template components
+        qkeep = self.opts.get_KeepTemplateComponents()
+        # Get existing ``output.loads`` section, if any
+        loads = opts.get_opt("cartesian", "output.loads", vdef={})
+        # Check for existing ``group_N`` template entries
+        if qkeep:
+            # Count existing consecutive groups (LAVA read count)
+            n0 = 0
+            while f"group_{n0+1}" in loads:
+                n0 += 1
+        else:
+            # Delete any template groups to start over
+            for key in list(loads):
+                if re.fullmatch(r"group_[0-9]+", key):
+                    del loads[key]
+            n0 = 0
+        # Loop through specified components
+        for k, comp in enumerate(comps):
+            # Group index (1-based)
+            n = n0 + k + 1
+            # Get list of surface indices in this component
+            inp = self.GetConfigInput(comp)
+            # Convert to list of ranges, e.g. ["1-219", "241-327"]
+            grps = [] if not inp else inp.split(",")
+            # Set component name and included surfaces
+            opts.set_opt("cartesian", f"output.loads.group_{n}.name", comp)
+            opts.set_opt("cartesian", f"output.loads.group_{n}.include", grps)
 
   # === Case Modification ===
     # Function to apply namelist settings to a case
