@@ -20,6 +20,7 @@ from .. import util
 from .cntlbase import CntlBase
 from ..dkit import capefile
 from ..dkit.rdb import DataKit
+from ..errors import CapeValueError
 from ..optdict import OptionsDict
 from ..trifile import Tri, Triq
 
@@ -438,7 +439,11 @@ class CaseData(DataKit):
             # This will be a new file
             jsrc = len(sourcefiles)
         # Read the file
-        data = self.readfile(fname)
+        try:
+            data = self.readfile(fname)
+        except Exception as e:
+            raise CapeValueError(
+                f"Could not read '{fname}'") from e
         # Merge (add new field or append)
         self.append_casedata(data, jsrc)
         # Update metadata *after* successful read
@@ -2839,6 +2844,10 @@ class CaseFM(CaseData):
             for col, parent in self.get('col_parent', {}).items():
                 # Only apply to iterative histories
                 if parent != CASE_COL_ITERS:
+                    continue
+                # Check for other mistakes
+                v = self[col]
+                if not isinstance(v, np.ndarray) or v.size != maskself.size:
                     continue
                 # Apply *self* mask
                 self[col] = self[col][maskself]
