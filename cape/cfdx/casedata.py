@@ -1358,7 +1358,7 @@ class CaseData(DataKit):
         # Output
         return state
 
-    def get_col_state2(self, col: str, **kw) -> dict:
+    def get_col_state2(self, col: str, nmin: int | None = None, **kw) -> dict:
         r"""Get column state using autocorrelation-based windows
 
         :Call:
@@ -1372,8 +1372,10 @@ class CaseData(DataKit):
             *state*: :class:`dict`
                 State information
         :Versions:
-            * 2026-09-03 ``@openai``: v1.0
+            * 2026-09-03 ``@openai``: v0.1
         """
+        # Defaults
+        nmin = 0 if (nmin is None) else nmin
         # Initialize state
         state = {}
         # Check if present
@@ -1392,9 +1394,36 @@ class CaseData(DataKit):
         n = v.size
         n2 = n // 2
         n4 = n // 4
+        # Apply negative *nmin*
+        nmin = (n + nmin) if (nmin < 0) else nmin
+        # Get overall scale
+        vmax = np.nanmax(v)
+        vmin = np.nanmin(v)
+        vrng = vmax - vmin
+        # Overall stats
+        vavg = np.mean(v)
+        vstd = np.std(v)
+        # Ssave basic parameters
+        state = {
+            "n": n,
+            "full_range": vrng,
+            "full_mean": vavg,
+            "full_std": vstd,
+            "class": "undetermined",
+        }
+        # Get maximum-window size
+        wmax = n - nmin
         # Check history size
-        if n < 50:
+        if wmax < 0:
             return state
+        # Get the max window
+        vmaxw = v[nmin:]
+        # Get stats for maximum-window
+        state.update(
+            maxdomain_n=wmax,
+            maxdomain_range=np.max(vmaxw) - np.min(vmaxw),
+            maxdomain_mean=np.mean(vmaxw),
+            maxdomain_std=np.std(vmaxw))
         # Initialize best autocorrelation peak
         jmax = None
         rmax = -np.inf
@@ -1411,6 +1440,9 @@ class CaseData(DataKit):
         # Check for a signal with no shifted autocorrelation peaks
         if jmax is None:
             return state
+        # Save information on fundamental frequency
+        state["frequency"] = jmax
+        state["autocorr"] = rmax
         # Save autocorrelation-based window sizes
         state["windows"] = [jmax, 2*jmax, 4*jmax]
         # Process each window

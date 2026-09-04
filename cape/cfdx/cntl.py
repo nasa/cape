@@ -61,6 +61,7 @@ from .. import convert
 from .. import fileutils
 from .. import textutils
 from .casecntl import CaseRunner
+from .casedata import CaseData
 from .cntlbase import CntlBase
 from .dex import DataExchanger
 from .logger import CntlLogger
@@ -2656,6 +2657,94 @@ class Cntl(CntlBase):
         return total_running
 
    # --- Status ---
+    # Show the iterative state of one column for one case
+    def show_case_col_state(
+            self, i: int, comp: str, col: str, v: bool = False, **kw) -> dict:
+        r"""Show the iterative state of one column for one case
+
+        :Call:
+            >>> dat = cntl.show_case_col_state(i, comp, col, v=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Case index
+            *comp*: :class:`str`
+                Name of DataBook component
+            *col*: :class:`str`
+                Name of column to analyze
+            *v*: {``False``} | ``True``
+                Option to also show contents of dict entries
+        :Outputs:
+            *dat*: :class:`dict`
+                State information for column *col*
+        """
+        # Get name of case
+        frun = self.x.GetFullFolderNames(i)
+        # Read the case runner
+        runner = self.ReadCaseRunner(i)
+        # Check for empty case
+        if runner is None:
+            # No data to read
+            dat = {}
+        else:
+            # Read the databook component
+            db = runner.read_dex(comp)
+            # Check type
+            assert_isinstance(db, CaseData, f"DataBook comp {comp}")
+            # Get databook options
+            nmin = self.opts.get_DataBookOpt(comp, "NMin")
+            # Get the stats for that component
+            dat = db.get_col_state2(col, nmin=nmin)
+        # Initialize message with case name and comp/col line
+        lines = [
+            f"**{frun}** (``{i}``)",
+            f"  ``{comp}``/*{col}*",
+        ]
+        # Show (non-dict) stats, YAML-style
+        lines.extend(_yaml_lines(dat, indent=4, v=v))
+        # Assemble message
+        txt = "\n".join(lines)
+        # Display
+        print(compile_rst(txt))
+        # Output
+        return dat
+
+    # Show the iterative state of one column for several cases
+    def show_col_state(
+            self, comp: str, col: str, v: bool = False, **kw) -> list:
+        r"""Show the iterative state of one column for selected cases
+
+        :Call:
+            >>> dats = cntl.show_col_state(comp, col, v=False, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *comp*: :class:`str`
+                Name of DataBook component
+            *col*: :class:`str`
+                Name of column to analyze
+            *v*: {``False``} | ``True``
+                Option to also show contents of dict entries
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                Optional list of case indices
+            *cons*: {``None``} | :class:`list`\ [:class:`str`]
+                Optional constraints to select cases
+        :Outputs:
+            *dats*: :class:`dict`\ [:class:`dict`]
+                State information for each case
+        """
+        # Get case indices
+        inds = self.GetIndices(**kw)
+        # Initialize outputs
+        dats = {}
+        # Loop through cases
+        for i in inds:
+            # Show state for that case
+            dats[str(i)] = self.show_case_col_state(i, comp, col, v=v)
+        # Output
+        return dats
+
     def check_case_status(
             self, i: int, active: bool = True, force: bool = False) -> str:
         # Check if case is cached
@@ -6112,3 +6201,74 @@ def _dumps(a: dict) -> str:
         cls=_NPEncoder,
         separators=(',', ":"),
         sort_keys=True)
+
+
+# Generate naive YAML lines for values in a dict
+def _yaml_lines(dat: dict, indent: int = 0, v: bool = False) -> list:
+    r"""Generate naive YAML lines for the values of a dict
+
+    Values that are dicts are skipped unless *v* is ``True``, in
+    which case this function recurses with two extra spaces of
+    indentation.
+
+    :Call:
+        >>> lines = _yaml_lines(dat, indent=0, v=False)
+    :Inputs:
+        *dat*: :class:`dict`
+            Data to show
+        *indent*: {``0``} | :class:`int`
+            Number of leading spaces on each line
+        *v*: {``False``} | ``True``
+            Option to also show contents of dict entries
+    :Outputs:
+        *lines*: :class:`list`\ [:class:`str`]
+            Naive YAML lines
+    """
+    # Initialize lines
+    lines = []
+    # Loop through entries
+    for k, vj in dat.items():
+        # Check for verbose option
+        if not v and isinstance(vj, (dict, list, tuple)):
+            continue
+        # Check for dict
+        if isinstance(vj, dict):
+            # Show name of dict
+            lines.append(" "*indent + f"{k}:")
+            # Recurse with extra indentation
+            lines.extend(_yaml_lines(vj, indent + 2, v))
+        else:
+            # Show value
+            lines.append(
+                " "*indent +
+                f":bright-blue:`{k}`: {_yaml_valstr(vj)}")
+    # Output
+    return lines
+
+
+# Convert a scalar value to a naive YAML string
+def _yaml_valstr(v) -> str:
+    r"""Convert a scalar (or list) value to a string in naive YAML
+
+    :Call:
+        >>> txt = _yaml_valstr(v)
+    :Inputs:
+        *v*: **any**
+            Value to convert
+    :Outputs:
+        *txt*: :class:`str`
+            Naive YAML value
+    """
+    # Check type
+    if isinstance(v, str):
+        # Already a string
+        return f":darkgreen:`{repr(v)}`"
+    elif isinstance(v, (float, np.floating)):
+        # Compact %g notation
+        return "%.4g" % v
+    elif isinstance(v, (list, tuple, np.ndarray)):
+        # Flow-style sequence
+        return "[" + ", ".join(_yaml_valstr(vj) for vj in v) + "]"
+    else:
+        # Default conversion
+        return str(v)

@@ -162,7 +162,9 @@ class CfdxArgReader(ArgReader):
         "check-ll": bool,
         "check-triqfm": bool,
         "clean": bool,
+        "col": str,
         "cols": (str, list),
+        "comp": str,
         "compile": bool,
         "cons": str,
         "constant": bool,
@@ -369,8 +371,10 @@ class CfdxArgReader(ArgReader):
         "check-ll": "Check completion of line load components",
         "check-triqfm": "Check completion of patch load (triqfm) components",
         "clean": "Remove files not necessary for running and not archived",
+        "col": "Name of column to analyze",
         "compile": "Create images for report but don't compile PDF",
         "cols": "Explicit list of status columns",
+        "comp": "Name of DataBook component",
         "counters": "Explicit list of keys to show totals for in ``py{x} -c``",
         "cons": 'Constraints on run matrix keys, e.g. ``"mach>1.0"``',
         "constant": "Assume a fixed (not adaptive) mesh for data collection",
@@ -459,6 +463,8 @@ class CfdxArgReader(ArgReader):
         "add-cols": "COLS",
         "add-counters": "COLS",
         "batchsize": "N",
+        "col": "COL",
+        "comp": "COMPONENT",
         "cons": "CONS",
         "counters": "COLS",
         "cutoff": "SIZE",
@@ -1296,6 +1302,37 @@ class CfdxFindLargeArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for get-col-state
+class CfdxGetColStateArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape get-col-state"
+
+    # Description
+    _help_title = "Show iterative state of one column for case(s)"
+
+    # Additional options
+    _optlist = (
+        "col",
+        "comp",
+        "v",
+    )
+
+    # Required options
+    _optlistreq = (
+        "col",
+        "comp",
+    )
+
+    # Postional args
+    _arglist = (
+        "comp",
+        "col",
+    )
+
+
 # Settings for get-config
 class CfdxGetConfigArgs(CfdxArgReader):
     # No attributes
@@ -1936,8 +1973,10 @@ class CfdxFrontDesk(CfdxArgReader):
         "check-ll",
         "check-triqfm",
         "clean",
-        "compile",
+        "col",
         "cols",
+        "comp",
+        "compile",
         "cons",
         "constant",
         "counters",
@@ -2008,6 +2047,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "unmark",
         "unmarked",
         "user",
+        "v",
         "val",
         "wait",
         "x",
@@ -2052,6 +2092,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-cases",
         "find-json",
         "find-large",
+        "get-col-state",
         "get-config",
         "get-keys",
         "get-subfig",
@@ -2143,6 +2184,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find": CfdxFindArgs,
         "find-json": CfdxFindJSONArgs,
         "find-large": CfdxFindLargeArgs,
+        "get-col-state": CfdxGetColStateArgs,
         "get-config": CfdxGetConfigArgs,
         "get-keys": CfdxGetKeysArgs,
         "get-subfig": CfdxGetSubfigArgs,
@@ -2965,6 +3007,30 @@ def cape_find_large(*a, **kw) -> Tuple[int, list]:
     return IERR_OK, v
 
 
+@CfdxGetColStateArgs.rst
+def cape_col_state(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl_quiet(CfdxGetColStateArgs, *a, **kw)
+    # Run the command
+    v = cntl.show_col_state(**kw)
+    # Output
+    return IERR_OK, v
+
+
 @CfdxGetConfigArgs.rst
 def cape_get_config(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
@@ -3770,9 +3836,9 @@ def read_cntl(cls: ArgReader, *a, **kw):
     # Record it
     cntl.log_parser(parser)
     # Preprocess
-    cntl.preprocess_kwargs(kw)
+    cntl.preprocess_kwargs(parser)
     # Output
-    return cntl, kw
+    return cntl, parser
 
 
 def read_cntl_q(fname: str | None, solver: str | None = None) -> CntlBase:
@@ -3935,6 +4001,7 @@ CMD_DICT = {
     "find-cases": cape_find,
     "find-json": cape_find_json,
     "find-large": cape_find_large,
+    "get-col-state": cape_col_state,
     "get-config": cape_get_config,
     "get-keys": cape_get_keys,
     "get-subfig": cape_get_subfig,
