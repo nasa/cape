@@ -118,7 +118,10 @@
     },
     "DataBook": {
         "Components": [
-            "bullet_no_base"
+            "bullet_no_base",
+            "bullet_total",
+            "body",
+            "cap"
         ],
         "NStats": 50,
         "NMin": 140,
