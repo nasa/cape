@@ -1464,7 +1464,11 @@ class CaseData(DataKit):
             # Perform autocorrelation
             phj, rj = autocorr(vj)
             # Find peaks
-            jlo, ulo, jhi, uhi = find_autocorr_peaks(rj)
+            if rj.size > 10:
+                jlo, ulo, jhi, uhi = find_autocorr_peaks(rj)
+            else:
+                jlo = np.zeros(0)
+                jhi = np.zeros(0)
             # Find first anti-correlation peak
             if jlo.size == 0:
                 # No anticorrelation peaks
@@ -5311,7 +5315,11 @@ def autocorr(
         # Reconstruct offset history
         vj = np.hstack((v1[dj:], v1[:dj]))
         # Calculate autocorrelation
-        r[j] = np.corrcoef(v1, vj)[0, 1]
+        rj = np.corrcoef(v1, vj)[0, 1]
+        # Replace nan -> 1.0
+        rj = 1.0 if np.isnan(rj) else rj
+        # Save it
+        r[j] = rj
     # Output
     return t1[di] - t1[0], r
 

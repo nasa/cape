@@ -2698,7 +2698,7 @@ class Cntl(CntlBase):
             dat = db.get_col_state2(col, nmin=nmin)
         # Initialize message with case name and comp/col line
         lines = [
-            f"**{frun}** (``{i}``)",
+            f"**{frun}** [*i*=:blue:`{i}`]",
             f"  ``{comp}``/*{col}*",
         ]
         # Show (non-dict) stats, YAML-style
