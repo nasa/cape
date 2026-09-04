@@ -1358,7 +1358,11 @@ class CaseData(DataKit):
         # Output
         return state
 
-    def get_col_state2(self, col: str, nmin: int | None = None, **kw) -> dict:
+    def get_col_state2(
+            self,
+            col: str,
+            nmin: int | None = None,
+            nstats: int | None = None, **kw) -> dict:
         r"""Get column state using autocorrelation-based windows
 
         :Call:
@@ -1374,8 +1378,6 @@ class CaseData(DataKit):
         :Versions:
             * 2026-09-03 ``@openai``: v0.1
         """
-        # Defaults
-        nmin = 0 if (nmin is None) else nmin
         # Initialize state
         state = {}
         # Check if present
@@ -1394,6 +1396,9 @@ class CaseData(DataKit):
         n = v.size
         n2 = n // 2
         n4 = n // 4
+        # Defaults
+        nmin = 0 if (nmin is None) else nmin
+        nstats = 0.1*n if (nstats is None) else nstats
         # Apply negative *nmin*
         nmin = (n + nmin) if (nmin < 0) else nmin
         # Get overall scale
@@ -1401,8 +1406,8 @@ class CaseData(DataKit):
         vmin = np.nanmin(v)
         vrng = vmax - vmin
         # Overall stats
-        vavg = np.mean(v)
-        vstd = np.std(v)
+        vavg = np.nanmean(v)
+        vstd = np.nanstd(v)
         # Ssave basic parameters
         state = {
             "n": n,
@@ -1410,20 +1415,32 @@ class CaseData(DataKit):
             "full_mean": vavg,
             "full_std": vstd,
             "class": "undetermined",
+            "recommendation": "continue",
         }
         # Get maximum-window size
-        wmax = n - nmin
+        nsmax = n - nmin
         # Check history size
-        if wmax < 0:
+        if nsmax < 0:
             return state
         # Get the max window
-        vmaxw = v[nmin:]
+        w = v[nmin:]
         # Get stats for maximum-window
+        wmin = np.nanmin(w)
+        wmax = np.nanmax(w)
+        wavg = np.nanmean(w)
+        wstd = np.nanstd(w)
+        wrng = wmax - wmin
         state.update(
-            maxdomain_n=wmax,
-            maxdomain_range=np.max(vmaxw) - np.min(vmaxw),
-            maxdomain_mean=np.mean(vmaxw),
-            maxdomain_std=np.std(vmaxw))
+            maxdomain_n=nsmax,
+            maxdomain_range=wrng,
+            maxdomain_mean=wavg,
+            maxdomain_std=wstd)
+        # Ratio of ranges
+        rw = np.abs(wrng) / max(0.1, np.abs(vrng))
+        # Update the initial assessment
+        if rw <= 1e-4:
+            # Wow, totally flat
+            state["class"] = "flat"
         # Initialize best autocorrelation peak
         jmax = None
         rmax = -np.inf
@@ -1442,11 +1459,65 @@ class CaseData(DataKit):
             return state
         # Save information on fundamental frequency
         state["frequency"] = jmax
-        state["autocorr"] = rmax
+        # Get max number of periods in allowed window
+        pmax = nsmax // jmax
         # Save autocorrelation-based window sizes
-        state["windows"] = [jmax, 2*jmax, 4*jmax]
+        periods = 2 ** np.arange(int(np.log2(pmax)) + 1)
+        periods = np.unique(np.append(periods, pmax))
+        windows = jmax * periods
+        # Ensure we use at least *nstats* iters
+        mask = windows >= nstats
+        periods = periods[mask]
+        windows = windows[mask]
+        # Save the window sizes
+        state["windows"] = windows
+        state["n_period"] = periods
+        # Number of windows
+        nw = windows.size
+        # Loop to select the biggest window
+        if state["class"] == "flat" or nw == 1:
+            # Just pick the biggest window
+            m = windows[-1]
+        else:
+            # Create vectors
+            a0 = np.zeros(nw)
+            a1 = np.zeros(nw)
+            r1 = np.ones(nw)
+            a2 = np.zeros(nw)
+            # If jmax is frequency in cycles / unit time:
+            omega = 2*np.pi / (t[-1] - t[-jmax])
+            # Loop through windows to get best one
+            for j, nj in enumerate(windows):
+                # Get vectors
+                vj = v[-nj:]
+                tj = t[-nj:]
+                # Basis functions
+                A = np.column_stack((
+                    np.ones_like(tj),
+                    np.cos(omega*tj),
+                    np.sin(omega*tj),
+                ))
+                v0, a, b = np.linalg.lstsq(A, vj, rcond=None)[0]
+                # Filter out best sinusoid w/ freq=jmax
+                vfit = v0 + a*np.cos(omega*tj) + b*np.sin(omega*tj)
+                uj = vj - vfit
+                # Poly fit
+                a1[j], a0[j] = np.polyfit(tj, uj, 1)
+                # Correlation
+                if nj == jmax:
+                    # Single period; obviously perfectly correlated
+                    continue
+                # Construct offset
+                v1 = np.hstack((vj[jmax:], vj[:jmax]))
+                r1[j] = np.corrcoef(vj, v1)[0, 1]
+            # Scale *a1* by linear slope accross biggest window
+            vrngj = np.max(uj) - np.min(uj)
+            dtj = tj[-1] - tj[0]
+            # A slope of ``vrng/dxj`` is worst possible case
+            a2 = a1 / (max(0.1*vrng, vrngj) / dtj)
+        # Loop through windows to pick a best one
         # Process each window
-        for nj in state["windows"]:
+        for nj in windows:
             # Get vectors
             vj = v[-nj:]
             tj = t[-nj:]
@@ -5322,6 +5393,69 @@ def autocorr(
         r[j] = rj
     # Output
     return t1[di] - t1[0], r
+
+
+# Pick best window
+def best_window(
+        t: np.ndarray,
+        v: np.ndarray,
+        dj: int,
+        windows: np.ndarray) -> int:
+    # Number of candidate windows
+    nw = windows.size
+    # Create vectors
+    a0 = np.zeros(nw)
+    a1 = np.zeros(nw)
+    r1 = np.ones(nw)
+    a2 = np.zeros(nw)
+    # If jmax is frequency in cycles / unit time:
+    omega = 2*np.pi / (t[-1] - t[-dj])
+    # Loop through windows to get best one
+    for j, nj in enumerate(windows):
+        # Get vectors
+        vj = v[-nj:]
+        tj = t[-nj:]
+        # Basis functions
+        A = np.column_stack((
+            np.ones_like(tj),
+            np.cos(omega*tj),
+            np.sin(omega*tj),
+        ))
+        v0, a, b = np.linalg.lstsq(A, vj, rcond=None)[0]
+        # Filter out best sinusoid w/ freq=jmax
+        vfit = v0 + a*np.cos(omega*tj) + b*np.sin(omega*tj)
+        uj = vj - vfit
+        # Poly fit
+        a1[j], a0[j] = np.polyfit(tj, uj, 1)
+        # Subtract off mean
+        dv = vj[dj:] - vj[:-dj]
+        a2[j] = np.sqrt(np.mean(dv**2)) / np.std(v)
+        # Correlation
+        if nj == dj:
+            # Single period; obviously perfectly correlated
+            continue
+        # Construct offset
+        v1 = np.hstack((vj[dj:], vj[:dj]))
+        r1[j] = np.corrcoef(vj, v1)[0, 1]
+    # Output...
+    return a1, a2, r1
+
+
+def lagcorr_score(v, jmax, zcrit=1.0):
+    x = v[:-jmax]
+    y = v[jmax:]
+
+    n = x.size
+    if n <= 3:
+        return -np.inf
+
+    r = np.corrcoef(x, y)[0, 1]
+
+    # Avoid infinities in arctanh()
+    r = np.clip(r, -1 + 1e-12, 1 - 1e-12)
+
+    z = np.arctanh(r)
+    return np.tanh(z - zcrit / np.sqrt(n - 3))
 
 
 # Set font
