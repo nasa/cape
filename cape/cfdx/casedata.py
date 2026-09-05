@@ -1368,27 +1368,26 @@ class CaseData(DataKit):
         state["n_period"] = periods
         # Number of windows
         nw = windows.size
-        # Loop to select the biggest window
+        # Calculate and save metrics for each candidate window
+        a1s, a2s, r1s = rank_windows(t, v, jmax, windows)
+        for j, wj in enumerate(windows):
+            # Get basic stats
+            vj = v[-wj:]
+            vavgj = np.mean(vj)
+            vstdj = np.std(vj)
+            # Save basic states
+            state[str(wj)] = {
+                "mean": vavgj,
+                "std": vstdj,
+                "linear_fit_a1": a1s[j],
+                "trend_fit_a1": a2s[j],
+                "autocorrelation": r1s[j],
+            }
+        # Select the statistics window
         if state["class"] == "flat" or nw == 1:
             # Just pick the biggest window
             n1 = windows[-1]
         else:
-            # Use drift to pick best window
-            a1s, a2s, r1s = rank_windows(t, v, jmax, windows)
-            # Save results
-            for j, wj in enumerate(windows):
-                # Get basic stats
-                vj = v[-wj:]
-                vavgj = np.mean(vj)
-                vstdj = np.mean(vj)
-                # Save basic states
-                state[str(wj)] = {
-                    "mean": vavgj,
-                    "std": vstdj,
-                    "linear_fit_a1": a1s[j],
-                    "trend_fit_a1": a2s[j],
-                    "autocorrelation": r1s[j],
-                }
             # Scale to favor longer windows
             m2s = a2s * np.sqrt(jmax / windows)
             # Select the best
@@ -1450,7 +1449,7 @@ class CaseData(DataKit):
         state[str(n1)].update(
             min=vminj,
             max=vmaxj,
-            sign_change_rate=nchj/nj,
+            sign_change_rate=nchj/n1,
             first_anticorrelation_offset=dph1,
             first_anticorrelation_peak=r1,
             first_autocorrelation_offset=dph3,
@@ -1459,10 +1458,24 @@ class CaseData(DataKit):
             min_autocorrelation=r2,
             max_autocorrelation_offset=dph4,
             max_autocorrelation=r4)
+        # Promote selected-window statistics to the top level
+        selected_state = state[str(n1)]
+        corr_state = selected_state
+        # A one-period correlation is trivial; prefer two periods if present
+        if n1 == jmax:
+            corr_state = state.get(str(2*jmax), selected_state)
+        state.update(
+            min=selected_state["min"],
+            max=selected_state["max"],
+            trend_fit_a1=selected_state["trend_fit_a1"],
+            linear_fit_a1=selected_state["linear_fit_a1"],
+            autocorrelation=corr_state["autocorrelation"])
+        # Classify convergence behavior
+        _classify_state(state)
         # Put the most important outputs first for display
         key_order = (
             "mean", "std", "n", "n_stats", "n_min", "class",
-            "recommendation")
+            "recommendation", "frequency")
         state1 = {key: state[key] for key in key_order}
         state1.update(
             (key, value) for key, value in state.items()
@@ -5022,6 +5035,74 @@ class CaseTS(CaseFM):
         return tEnd
 
 
+# Classify iterative-history state
+def _classify_state(state: dict):
+    r"""Classify an iterative-history state in place
+
+    :Call:
+        >>> _classify_state(state)
+    :Inputs:
+        *state*: :class:`dict`
+            State created by :meth:`CaseData.get_col_state`
+    :Effects:
+        *state["class"]*: :class:`str`
+            One of ``"flat"``, ``"transient"``, ``"oscillatory"``,
+            ``"irregular"``, or ``"chaotic"``
+    :Versions:
+        * 2026-09-05 ``@openai``: v1.0
+    """
+    # Get selected-window statistics
+    nstats = state.get("n_stats")
+    stats = state.get(str(nstats), {})
+    mean = float(state.get("mean", 0.0))
+    std = float(state.get("std", np.inf))
+    full_range = float(state.get("full_range", 0.0))
+    max_range = float(state.get("maxdomain_range", full_range))
+    # Preserve an earlier flat assessment; otherwise check selected variation
+    scale = max(abs(mean), abs(full_range), np.finfo(float).tiny)
+    if (state.get("class") == "flat"
+            or abs(max_range) <= 1e-6*scale
+            or abs(std) <= 1e-6*scale):
+        state["class"] = "flat"
+        return
+    # Collect one-period correlations in increasing-window order
+    correlations = []
+    for window in state.get("windows", []):
+        window_state = state.get(str(window), {})
+        corr = window_state.get("autocorrelation")
+        if corr is not None and np.isfinite(corr):
+            correlations.append(float(corr))
+    # Use the selected-window peak as a fallback for partial states
+    peak_corr = float(stats.get("max_autocorrelation", 0.0))
+    long_corr = correlations[-1] if correlations else peak_corr
+    best_corr = max(correlations) if correlations else peak_corr
+    corr_drop = best_corr - long_corr
+    # Normalize trend by the variation across the selected window
+    trend = float(stats.get("trend_fit_a1", 0.0))
+    nscale = max(float(nstats or 0), 1.0)
+    drift = abs(trend)*nscale / max(abs(std), np.finfo(float).tiny)
+    sign_rate = float(stats.get("sign_change_rate", 0.0))
+    # Frequent reversals without repeatable structure indicate chaos
+    if long_corr < 0.25 and sign_rate >= 0.45:
+        state["class"] = "chaotic"
+    # Strong drift without persistent correlation indicates a transient
+    elif drift >= 0.5 and long_corr < 0.65:
+        state["class"] = "transient"
+    # Loss of correlation as more periods are included is irregular
+    elif corr_drop >= 0.2 and long_corr < 0.75:
+        state["class"] = "irregular"
+    # Durable autocorrelation is the signature of an oscillatory history
+    elif long_corr >= 0.65 or (peak_corr >= 0.75 and sign_rate < 0.45):
+        state["class"] = "oscillatory"
+    # Catch weaker monotonic drift before the irregular fallback
+    elif drift >= 0.25:
+        state["class"] = "transient"
+    elif long_corr < 0.4 and sign_rate >= 0.35:
+        state["class"] = "chaotic"
+    else:
+        state["class"] = "irregular"
+
+
 # Find maximum of autocorrelation signal
 def find_max_autocorr(
         v: np.ndarray,
@@ -5290,8 +5371,6 @@ def rank_windows(
     r1 = np.ones(nw)
     # If jmax is frequency in cycles / unit time:
     omega = 2*np.pi / (t[-1] - t[-dj])
-    # Scale factor for linear slop
-    m1 = (np.max(v[-dj:]) - np.min(v[-dj:])) / (t[-1] - t[-dj])
     # Loop through windows to get best one
     for j, nj in enumerate(windows):
         # Get vectors
