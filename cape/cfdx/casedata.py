@@ -5188,15 +5188,15 @@ def _recommend_action(state: dict):
     slope = abs(float(state.get("linear_fit_a1", np.inf)))
     frequency = float(state.get("frequency", 0.0))
     correlation = float(state.get("autocorrelation", 0.0))
-    reasons = []
+    reason = None
     if slope*frequency >= 1e-4*full_range:
-        reasons.append("drift per period is at least 0.01% of full range")
-    if correlation < 0.9:
-        reasons.append("autocorrelation is below 0.9")
+        reason = "drift per period is at least 0.01% of full range"
+    elif correlation < 0.9:
+        reason = "autocorrelation is below 0.9"
     # Any failed convergence check vetoes approval
-    if reasons:
+    if reason is not None:
         state["recommendation"] = "extend"
-        state["reason"] = "; ".join(reasons)
+        state["reason"] = reason
     else:
         state["reason"] = (
             "drift per period is below 0.01% of full range and "
