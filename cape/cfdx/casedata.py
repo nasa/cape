@@ -1313,8 +1313,8 @@ class CaseData(DataKit):
         }
         # Get maximum-window size
         nsmax = n - nmin
-        # Check history size
-        if nsmax < 0:
+        # Check that the requested statistics window is after *nmin*
+        if nsmax < nstats:
             return state
         # Get the max window
         w = v[nmin:]
@@ -1472,6 +1472,8 @@ class CaseData(DataKit):
             autocorrelation=corr_state["autocorrelation"])
         # Classify convergence behavior
         _classify_state(state)
+        # Recommend the next action
+        _recommend_action(state)
         # Put the most important outputs first for display
         key_order = (
             "mean", "std", "n", "n_stats", "n_min", "class",
@@ -5103,6 +5105,65 @@ def _classify_state(state: dict):
         state["class"] = "chaotic"
     else:
         state["class"] = "irregular"
+
+
+# Recommend action for iterative-history state
+def _recommend_action(state: dict):
+    r"""Recommend an action for an iterative-history state in place
+
+    :Call:
+        >>> _recommend_action(state)
+    :Inputs:
+        *state*: :class:`dict`
+            State created by :meth:`CaseData.get_col_state`
+    :Effects:
+        *state["recommendation"]*: :class:`str`
+            One of ``"continue"``, ``"approve"``, ``"retry"``, or
+            ``"extend"``
+    :Versions:
+        * 2026-09-05 ``@openai``: v1.0
+    """
+    # Require the entire requested window to be to the right of *n_min*
+    n = state.get("n", 0)
+    nmin = state.get("n_min", 0)
+    nstats = state.get("n_stats", 0)
+    if n < nmin + nstats:
+        state["recommendation"] = "continue"
+        return
+    # Flat histories require no additional sampling
+    if state.get("class") == "flat":
+        state["recommendation"] = "approve"
+        return
+    # Get statistics from the selected window
+    selected = state.get(str(state.get("n_stats")), {})
+    sign_rate = float(selected.get("sign_change_rate", 0.0))
+    # Frequent direction changes suggest retrying rather than extending
+    if sign_rate > 0.1:
+        state["recommendation"] = "retry"
+        return
+    # Approve if three consecutive window means are effectively unchanged
+    full_range = abs(float(state.get("full_range", 0.0)))
+    means = []
+    for window in state.get("windows", []):
+        mean = state.get(str(window), {}).get("mean")
+        if mean is None or not np.isfinite(mean):
+            means = []
+            continue
+        means.append(float(mean))
+        if (len(means) >= 3
+                and max(means[-3:]) - min(means[-3:])
+                <= 1e-3*full_range):
+            state["recommendation"] = "approve"
+            return
+    # Approve a highly repeatable oscillation with negligible linear drift
+    slope = abs(float(state.get("linear_fit_a1", np.inf)))
+    frequency = float(state.get("frequency", 0.0))
+    correlation = float(state.get("autocorrelation", 0.0))
+    if slope*frequency < 1e-4*full_range and correlation >= 0.9:
+        state["recommendation"] = "approve"
+        return
+    # More iterations are needed for all other converging histories
+    state["recommendation"] = "extend"
 
 
 # Find maximum of autocorrelation signal
