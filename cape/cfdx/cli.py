@@ -33,6 +33,7 @@ IERR_RUNTIME = 128
 # Inferred commands from options
 IMPLIED_CMDNAMES = {
     "1to2": "1to2",
+    "agent": "agent",
     "agentic": "agentic",
     "apply": "apply",
     "archive": "archive",
@@ -111,7 +112,6 @@ class CfdxArgReader(ArgReader):
         "add_col": "add-cols",
         "add_cols": "add-cols",
         "aero": "fm",
-        "agent": "agentic",
         "approve": "PASS",
         "check": "c",
         "checkDB": "check-db",
@@ -149,6 +149,7 @@ class CfdxArgReader(ArgReader):
         "adaptive": bool,
         "add-cols": (str, list),
         "add-counters": (str, list),
+        "agent": str,
         "agentic": bool,
         "apply": bool,
         "archive": bool,
@@ -358,6 +359,7 @@ class CfdxArgReader(ArgReader):
         "adaptive": "Save the adapted-mesh version of flow data (more data)",
         "add-cols": "Additional columns to show in run matrix status table",
         "add-counters": "Additional keys to show totals after run mat table",
+        "agent": "Run one CAPE agent prompt and exit",
         "agentic": "Run CAPE in interactive agentic mode",
         "apply": "Apply current JSON settings to existing case(s)",
         "archive": "Archive files from case(s) and delete extra files",
@@ -692,6 +694,23 @@ class CfdxArchiveArgs(_CfdxSubsetArgs):
     # Additional options
     _optlist = (
         "archive",
+    )
+
+
+# Settings for --agent
+class CfdxAgentArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape agent"
+
+    # Description
+    _help_title = "Run one CAPE agent prompt and exit"
+
+    # Options
+    _optlist = (
+        "agent",
     )
 
 
@@ -1961,6 +1980,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "adaptive",
         "add-cols",
         "add-counters",
+        "agent",
         "agentic",
         "apply",
         "archive",
@@ -2059,6 +2079,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "run",
         "start",
         "check",
+        "agent",
         "agentic",
         "1to2",
         "apply",
@@ -2119,7 +2140,6 @@ class CfdxFrontDesk(CfdxArgReader):
 
     # Alternate command names
     _cmdmap = {
-        "agent": "agentic",
         "c": "check",
         "collect-cut": "collect-cutplane",
         "collect-cutp": "collect-cutplane",
@@ -2152,6 +2172,7 @@ class CfdxFrontDesk(CfdxArgReader):
     # Subparsers
     _cmdparsers = {
         "1to2": Cfdx1to2Args,
+        "agent": CfdxAgentArgs,
         "agentic": CfdxAgenticArgs,
         "apply": CfdxApplyArgs,
         "approve": CfdxApproveArgs,
@@ -3752,6 +3773,28 @@ def cape_ui() -> Tuple[int, Any]:
     return ui.main(CfdxFrontDesk)
 
 
+@CfdxAgentArgs.rst
+def cape_agent(agent: str) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Import agent interface
+    from .. import agent as agentmod
+    # Run one agent turn
+    return agentmod.run(agent)
+
+
 def cape_agentic() -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
@@ -3970,6 +4013,7 @@ def read_runner(**kw) -> tuple:
 # Name -> Function
 CMD_DICT = {
     "1to2": cape_1to2,
+    "agent": cape_agent,
     "apply": cape_apply,
     "approve": cape_approve,
     "archive": cape_archive,
