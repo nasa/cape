@@ -1303,6 +1303,7 @@ class CaseData(DataKit):
         # Ssave basic parameters
         state = {
             "n": n,
+            "n_min": nmin,
             "full_range": vrng,
             "full_mean": vavg,
             "full_std": vstd,
@@ -1372,7 +1373,23 @@ class CaseData(DataKit):
             n1 = windows[-1]
         else:
             # Use drift to pick best window
-            n1 = best_window(t, v, jmax, windows)
+            a1s, a2s, r1s = rank_windows(t, v, jmax, windows)
+            # Save results
+            for j, wj in enumerate(windows):
+                # Get basic stats
+                vj = v[-wj:]
+                vavgj = np.mean(vj)
+                vstdj = np.mean(vj)
+                # Save basic states
+                state[str(wj)] = {
+                    "mean": vavgj,
+                    "std": vstdj,
+                    "linear_fit_a1": a1s[j],
+                    "trend_fit_a1": a2s[j],
+                    "autocorrelation": r1s[j],
+                }
+            # Select the best
+            n1 = windows[np.argmin(a2s)]
         # Get vectors
         vj = v[-n1:]
         tj = t[-n1:]
@@ -1383,27 +1400,10 @@ class CaseData(DataKit):
         vmaxj = np.max(vj)
         vavgj = np.mean(vj)
         vstdj = np.std(vj)
-        # Min/max (for scaling)
-        aj = np.min(vj)
-        bj = np.max(vj)
-        # Poly fit
-        m, b = np.polyfit(tj, vj, 1)
-        # Basis functions
-        A = np.column_stack((
-            np.ones_like(tj),
-            np.cos(omega*tj),
-            np.sin(omega*tj),
-        ))
-        v0, c0, s0 = np.linalg.lstsq(A, vj, rcond=None)[0]
-        # Filter out best sinusoid w/ freq=jmax
-        vfit = v0 + c0*np.cos(omega*tj) + s0*np.sin(omega*tj)
-        uj = vj - vfit
-        # Poly fit
-        m2, _ = np.polyfit(tj, uj, 1)
         # Get increments
         dvj = np.diff(vj)
         # Filter out zero-change steps
-        dvj = dvj[np.abs(dvj) > 1e-6*(bj-aj)]
+        dvj = dvj[np.abs(dvj) > 1e-6*(vmaxj-vminj)]
         # Count sign changes
         nchj = np.count_nonzero(dvj[1:] * dvj[:-1] < 0)
         # Perform autocorrelation
@@ -1442,25 +1442,23 @@ class CaseData(DataKit):
             # Get absolute maximum autocorrelation
             dph4 = phj[jhi[np.argmax(uhi)]]
             r4 = np.max(uhi)
-        # Calculate basic stats
-        state[str(n1)] = {
-            "mean": vavgj,
-            "min": vminj,
-            "max": vmaxj,
-            "std": vstdj,
-            "linear_fit_a0": b,
-            "linear_fit_a1": m,
-            "trend_fit_a1": m2,
-            "sign_change_rate": nchj/nj,
-            "first_anticorrelation_offset": dph1,
-            "first_anticorrelation_peak": r1,
-            "first_autocorrelation_offset": dph3,
-            "first_autocorrelation_peak": r3,
-            "min_autocorrelation_offset": dph2,
-            "min_autocorrelation": r2,
-            "max_autocorrelation_offset": dph4,
-            "max_autocorrelation": r4,
-        }
+        # Save key stats
+        state["mean"] = vavgj
+        state["std"] = vstdj
+        state["n_stats"] = n1
+        # Save additional stats
+        state[str(n1)].update(
+            min=vminj,
+            max=vmaxj,
+            sign_change_rate=nchj/nj,
+            first_anticorrelation_offset=dph1,
+            first_anticorrelation_peak=r1,
+            first_autocorrelation_offset=dph3,
+            first_autocorrelation_peak=r3,
+            min_autocorrelation_offset=dph2,
+            min_autocorrelation=r2,
+            max_autocorrelation_offset=dph4,
+            max_autocorrelation=r4)
         # Output
         return state
 
@@ -5260,7 +5258,7 @@ def autocorr(
     for j, dj in enumerate(di):
         # Reconstruct offset history
         vj = np.hstack((v1[dj:], v1[:dj]))
-        # Calculate autocorrelation
+        # Calculate autocorrelatioa
         rj = np.corrcoef(v1, vj)[0, 1]
         # Replace nan -> 1.0
         rj = 1.0 if np.isnan(rj) else rj
@@ -5271,15 +5269,17 @@ def autocorr(
 
 
 # Pick best window
-def best_window(
+def rank_windows(
         t: np.ndarray,
         v: np.ndarray,
         dj: int,
-        windows: np.ndarray) -> int:
+        windows: np.ndarray) -> tuple:
     # Number of candidate windows
     nw = windows.size
     # Create vectors
+    a1 = np.zeros(nw)
     a2 = np.zeros(nw)
+    r1 = np.ones(nw)
     # If jmax is frequency in cycles / unit time:
     omega = 2*np.pi / (t[-1] - t[-dj])
     # Scale factor for linear slop
@@ -5302,8 +5302,27 @@ def best_window(
         # Poly fit
         m, _ = np.polyfit(tj, uj, 1)
         # Scale the slope
+        a1[j] = m
         a2[j] = np.abs(m / m1 / np.sqrt(nj/dj))
-    # Output...
+        # Trivial autocorrelation for first phase
+        if nj == dj:
+            continue
+        # Offset for autocorrelation
+        v1 = np.hstack((vj[dj:], vj[:dj]))
+        # Autocorrelation
+        r1[j] = np.corrcoef(vj, v1)[0, 1]
+    # Output: rankables
+    return a1, a2, r1
+    
+
+def best_window(
+        t: np.ndarray,
+        v: np.ndarray,
+        dj: int,
+        windows: np.ndarray) -> int:
+    # Get ranking paramters
+    _, a2, _ = rank_windows(t, v, dj, windows)
+    # Output: window size
     return windows[np.argmin(a2)]
 
 
