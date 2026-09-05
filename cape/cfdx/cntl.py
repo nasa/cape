@@ -6208,9 +6208,9 @@ def _dumps(a: dict) -> str:
 def _yaml_lines(dat: dict, indent: int = 0, v: bool = False) -> list:
     r"""Generate naive YAML lines for the values of a dict
 
-    Values that are dicts are skipped unless *v* is ``True``, in
-    which case this function recurses with two extra spaces of
-    indentation.
+    Unless *v* is ``True``, only the standard column-state summary keys
+    are shown. In verbose mode, this function shows all entries and recurses
+    into dicts with two extra spaces of indentation.
 
     :Call:
         >>> lines = _yaml_lines(dat, indent=0, v=False)
@@ -6227,11 +6227,19 @@ def _yaml_lines(dat: dict, indent: int = 0, v: bool = False) -> list:
     """
     # Initialize lines
     lines = []
+    # Show only the standard summary in nonverbose mode
+    if not v:
+        keys = (
+            "mean", "std", "n", "n_stats", "n_min", "class",
+            "recommendation", "reason", "frequency")
+        for k in keys:
+            if k in dat:
+                lines.append(
+                    " "*indent +
+                    f":bright-blue:`{k}`: {_yaml_valstr(dat[k])}")
+        return lines
     # Loop through entries
     for k, vj in dat.items():
-        # Check for verbose option
-        if not v and isinstance(vj, (dict, list, tuple)):
-            continue
         # Check for dict
         if isinstance(vj, dict):
             # Show name of dict

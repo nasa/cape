@@ -1315,6 +1315,7 @@ class CaseData(DataKit):
         nsmax = n - nmin
         # Check that the requested statistics window is after *nmin*
         if nsmax < nstats:
+            state["reason"] = "fewer than n_min + n_stats iterations"
             return state
         # Get the max window
         w = v[nmin:]
@@ -1350,6 +1351,7 @@ class CaseData(DataKit):
                 rmax = r
         # Check for a signal with no shifted autocorrelation peaks
         if jmax is None:
+            state["reason"] = "no shifted autocorrelation peak found"
             return state
         # Save information on fundamental frequency
         state["frequency"] = jmax
@@ -1477,7 +1479,7 @@ class CaseData(DataKit):
         # Put the most important outputs first for display
         key_order = (
             "mean", "std", "n", "n_stats", "n_min", "class",
-            "recommendation", "frequency", "min", "max",
+            "recommendation", "reason", "frequency", "min", "max",
             "autocorrelation", "linear_fit_a1", "trend_fit_a1")
         state1 = {key: state[key] for key in key_order}
         state1.update(
@@ -5120,6 +5122,8 @@ def _recommend_action(state: dict):
         *state["recommendation"]*: :class:`str`
             One of ``"continue"``, ``"approve"``, ``"retry"``, or
             ``"extend"``
+        *state["reason"]*: :class:`str`
+            Brief explanation for the recommendation
     :Versions:
         * 2026-09-05 ``@openai``: v1.0
     """
@@ -5129,10 +5133,12 @@ def _recommend_action(state: dict):
     nstats = state.get("n_stats", 0)
     if n < nmin + nstats:
         state["recommendation"] = "continue"
+        state["reason"] = "fewer than n_min + n_stats iterations"
         return
     # Flat histories require no additional sampling
     if state.get("class") == "flat":
         state["recommendation"] = "approve"
+        state["reason"] = "history is flat"
         return
     # Get statistics from the selected window
     selected = state.get(str(state.get("n_stats")), {})
@@ -5140,6 +5146,7 @@ def _recommend_action(state: dict):
     # Frequent direction changes suggest retrying rather than extending
     if sign_rate > 0.1:
         state["recommendation"] = "retry"
+        state["reason"] = "sign-change rate exceeds 0.1"
         return
     # Approve if three consecutive window means are effectively unchanged
     full_range = abs(float(state.get("full_range", 0.0)))
@@ -5154,6 +5161,8 @@ def _recommend_action(state: dict):
                 and max(means[-3:]) - min(means[-3:])
                 <= 1e-3*full_range):
             state["recommendation"] = "approve"
+            state["reason"] = (
+                "three window means agree within 0.1% of full range")
             return
     # Approve a highly repeatable oscillation with negligible linear drift
     slope = abs(float(state.get("linear_fit_a1", np.inf)))
@@ -5161,9 +5170,13 @@ def _recommend_action(state: dict):
     correlation = float(state.get("autocorrelation", 0.0))
     if slope*frequency < 1e-4*full_range and correlation >= 0.9:
         state["recommendation"] = "approve"
+        state["reason"] = (
+            "drift per period is below 0.01% of full range and "
+            "autocorrelation is at least 0.9")
         return
     # More iterations are needed for all other converging histories
     state["recommendation"] = "extend"
+    state["reason"] = "convergence criteria are not yet satisfied"
 
 
 # Find maximum of autocorrelation signal
