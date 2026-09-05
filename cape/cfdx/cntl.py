@@ -2694,8 +2694,9 @@ class Cntl(CntlBase):
             assert_isinstance(db, CaseData, f"DataBook comp {comp}")
             # Get databook options
             nmin = self.opts.get_DataBookOpt(comp, "NMin")
+            nstats = self.opts.get_DataBookOpt(comp, "NStats")
             # Get the stats for that component
-            dat = db.get_col_state2(col, nmin=nmin)
+            dat = db.get_col_state(col, nmin=nmin, nstats=nstats)
         # Initialize message with case name and comp/col line
         lines = [
             f"**{frun}** [*i*=:blue:`{i}`]",
