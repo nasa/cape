@@ -1388,8 +1388,10 @@ class CaseData(DataKit):
                     "trend_fit_a1": a2s[j],
                     "autocorrelation": r1s[j],
                 }
+            # Scale to favor longer windows
+            m2s = a2s * np.sqrt(jmax / windows)
             # Select the best
-            n1 = windows[np.argmin(a2s)]
+            n1 = windows[np.argmin(m2s)]
         # Get vectors
         vj = v[-n1:]
         tj = t[-n1:]
@@ -5300,10 +5302,8 @@ def rank_windows(
         vfit = v0 + a*np.cos(omega*tj) + b*np.sin(omega*tj)
         uj = vj - vfit
         # Poly fit
-        m, _ = np.polyfit(tj, uj, 1)
-        # Scale the slope
-        a1[j] = m
-        a2[j] = np.abs(m / m1 / np.sqrt(nj/dj))
+        a2[j], _ = np.polyfit(tj, uj, 1)
+        a1[j], _ = np.polyfit(tj, vj, 1)
         # Trivial autocorrelation for first phase
         if nj == dj:
             continue
@@ -5322,8 +5322,10 @@ def best_window(
         windows: np.ndarray) -> int:
     # Get ranking paramters
     _, a2, _ = rank_windows(t, v, dj, windows)
+    # Rerank
+    m2 = a2 * np.sqrt(dj/windows)
     # Output: window size
-    return windows[np.argmin(a2)]
+    return windows[np.argmin(m2)]
 
 
 def lagcorr_score(v, jmax, zcrit=1.0):
