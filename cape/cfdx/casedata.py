@@ -1475,7 +1475,8 @@ class CaseData(DataKit):
         # Put the most important outputs first for display
         key_order = (
             "mean", "std", "n", "n_stats", "n_min", "class",
-            "recommendation", "frequency")
+            "recommendation", "frequency", "min", "max",
+            "autocorrelation", "linear_fit_a1", "trend_fit_a1")
         state1 = {key: state[key] for key in key_order}
         state1.update(
             (key, value) for key, value in state.items()
@@ -5060,9 +5061,10 @@ def _classify_state(state: dict):
     max_range = float(state.get("maxdomain_range", full_range))
     # Preserve an earlier flat assessment; otherwise check selected variation
     scale = max(abs(mean), abs(full_range), np.finfo(float).tiny)
-    if (state.get("class") == "flat"
-            or abs(max_range) <= 1e-6*scale
-            or abs(std) <= 1e-6*scale):
+    if (
+            state.get("class") == "flat" or
+            abs(max_range) <= 1e-6*scale or
+            abs(std) <= 1e-6*scale):
         state["class"] = "flat"
         return
     # Collect one-period correlations in increasing-window order
