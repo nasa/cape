@@ -65,6 +65,7 @@ IMPLIED_CMDNAMES = {
     "report": "report",
     "rm": "rm",
     "skeleton": "skeleton",
+    "subfig": "open-subfig",
     "surfcp": "extract-surfcp",
     "triqfm": "extract-triqfm",
     "ts": "extract-timeseries",
