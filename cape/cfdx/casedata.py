@@ -5165,21 +5165,22 @@ def _recommend_action(state: dict):
         return
     # Start from approval, then look for reasons to extend
     state["recommendation"] = "approve"
-    # Check if three consecutive window means are effectively unchanged
+    # Check the selected window and its nearest candidate-window neighbors
     full_range = abs(float(state.get("full_range", 0.0)))
-    means = []
     stationary_mean = False
-    for window in state.get("windows", []):
-        mean = state.get(str(window), {}).get("mean")
-        if mean is None or not np.isfinite(mean):
-            means = []
-            continue
-        means.append(float(mean))
-        if (
-                len(means) >= 3 and
-                max(means[-3:]) - min(means[-3:]) <= 1e-3*full_range):
-            stationary_mean = True
-            break
+    windows = list(state.get("windows", []))
+    if len(windows) >= 3:
+        # Locate the selected statistics window
+        nsel = state.get("n_stats", state.get("frequency"))
+        ksel = min(range(len(windows)), key=lambda k: abs(windows[k] - nsel))
+        # Prefer one neighbor on either side; shift at either boundary
+        k0 = min(max(ksel - 1, 0), len(windows) - 3)
+        check_windows = windows[k0:k0 + 3]
+        means = [state.get(str(window), {}).get("mean")
+                 for window in check_windows]
+        if all(mean is not None and np.isfinite(mean) for mean in means):
+            stationary_mean = (
+                max(means) - min(means) <= 1e-3*full_range)
     # A stationary mean is sufficient for approval
     if stationary_mean:
         state["reason"] = "stationary mean"
