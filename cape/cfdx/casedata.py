@@ -1466,9 +1466,15 @@ class CaseData(DataKit):
         # A one-period correlation is trivial; prefer two periods if present
         if n1 == jmax:
             corr_state = state.get(str(2*jmax), selected_state)
+        # Add drift
+        drift = selected_state["linear_fit_a1"] * jmax
+        target = state["full_range"] * 0.0001
+        # Save stats from selected window
         state.update(
             min=selected_state["min"],
             max=selected_state["max"],
+            trend_drift=drift,
+            trend_target=target,
             trend_fit_a1=selected_state["trend_fit_a1"],
             linear_fit_a1=selected_state["linear_fit_a1"],
             autocorrelation=corr_state["autocorrelation"])
@@ -1480,7 +1486,8 @@ class CaseData(DataKit):
         key_order = (
             "mean", "std", "n", "n_stats", "n_min", "class",
             "recommendation", "reason", "frequency", "min", "max",
-            "autocorrelation", "linear_fit_a1", "trend_fit_a1")
+            "autocorrelation", "trend_drift", "trend_target",
+            "trend_fit_a1", "linear_fit_a1")
         state1 = {key: state[key] for key in key_order}
         state1.update(
             (key, value) for key, value in state.items()
@@ -5133,7 +5140,7 @@ def _recommend_action(state: dict):
     nstats = state.get("n_stats", 0)
     if n < nmin + nstats:
         state["recommendation"] = "continue"
-        state["reason"] = "fewer than n_min + n_stats iterations"
+        state["reason"] = "insufficient iterations"
         return
     # Flat histories require no additional sampling
     if state.get("class") == "flat":
@@ -5146,7 +5153,7 @@ def _recommend_action(state: dict):
     # Frequent direction changes suggest retrying rather than extending
     if sign_rate > 0.1:
         state["recommendation"] = "retry"
-        state["reason"] = "sign-change rate exceeds 0.1"
+        state["reason"] = "high sign-change rate"
         return
     # Approve if three consecutive window means are effectively unchanged
     full_range = abs(float(state.get("full_range", 0.0)))
@@ -5157,12 +5164,11 @@ def _recommend_action(state: dict):
             means = []
             continue
         means.append(float(mean))
-        if (len(means) >= 3
-                and max(means[-3:]) - min(means[-3:])
-                <= 1e-3*full_range):
+        if (
+                len(means) >= 3 and
+                max(means[-3:]) - min(means[-3:]) <= 1e-3*full_range):
             state["recommendation"] = "approve"
-            state["reason"] = (
-                "three window means agree within 0.1% of full range")
+            state["reason"] = "stationary mean"
             return
     # Approve a highly repeatable oscillation with negligible linear drift
     slope = abs(float(state.get("linear_fit_a1", np.inf)))
@@ -5171,12 +5177,11 @@ def _recommend_action(state: dict):
     if slope*frequency < 1e-4*full_range and correlation >= 0.9:
         state["recommendation"] = "approve"
         state["reason"] = (
-            "drift per period is below 0.01% of full range and "
-            "autocorrelation is at least 0.9")
+            "drift per period below 0.01%  full range")
         return
     # More iterations are needed for all other converging histories
     state["recommendation"] = "extend"
-    state["reason"] = "convergence criteria are not yet satisfied"
+    state["reason"] = "convergence criteria"
 
 
 # Find maximum of autocorrelation signal
