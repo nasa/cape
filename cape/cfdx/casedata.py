@@ -1269,6 +1269,7 @@ class CaseData(DataKit):
                 State information
         :Versions:
             * 2026-09-03 ``@openai``: v0.1
+            * 2026-09-04 ``@ddalle``: v1.0
         """
         # Initialize state
         state = {}
@@ -1394,9 +1395,6 @@ class CaseData(DataKit):
             n1 = windows[np.argmin(m2s)]
         # Get vectors
         vj = v[-n1:]
-        tj = t[-n1:]
-        # Process best window
-        omega = 2*np.pi / (tj[-1] - tj[-jmax])
         # Basic quantities
         vminj = np.min(vj)
         vmaxj = np.max(vj)
@@ -1461,8 +1459,16 @@ class CaseData(DataKit):
             min_autocorrelation=r2,
             max_autocorrelation_offset=dph4,
             max_autocorrelation=r4)
+        # Put the most important outputs first for display
+        key_order = (
+            "mean", "std", "n", "n_stats", "n_min", "class",
+            "recommendation")
+        state1 = {key: state[key] for key in key_order}
+        state1.update(
+            (key, value) for key, value in state.items()
+            if key not in state1)
         # Output
-        return state
+        return state1
 
    # --- Plot ---
     # Basic plotting function
@@ -5313,7 +5319,7 @@ def rank_windows(
         r1[j] = np.corrcoef(vj, v1)[0, 1]
     # Output: rankables
     return a1, a2, r1
-    
+
 
 def best_window(
         t: np.ndarray,
