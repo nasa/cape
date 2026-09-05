@@ -6231,7 +6231,7 @@ def _yaml_lines(dat: dict, indent: int = 0, v: bool = False) -> list:
     if not v:
         keys = (
             "mean", "std", "n", "n_stats", "n_min", "class",
-            "recommendation", "reason", "frequency")
+            "recommendation", "reason", "frequency", "trend_drift")
         for k in keys:
             if k in dat:
                 lines.append(
