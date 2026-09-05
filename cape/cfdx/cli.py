@@ -1633,6 +1633,7 @@ class CfdxOpenSubfigArgs(_CfdxSubsetArgs):
     # Additional options
     _optlist = (
         "dpi",
+        "force",
         "page",
         "subfig",
         "terminal",
@@ -3374,7 +3375,7 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
     terminal = kw.pop("terminal", True)
     dpi = kw.pop("dpi", 120)
     page = kw.pop("page", 0)
-    force_update = kw.pop("force_update", False)
+    force_update = kw.pop("force", False)
     # Get cases
     inds = cntl.GetIndices(**kw)
     keeps = cntl.GetNonzeroIndices(**kw)
@@ -3396,7 +3397,7 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
         # Save it
         caselist.append((i, frun))
         # Create subfigure and cache its image
-        v = cntl.get_subfigure(subfig, I=[i], force_update=force_update)
+        v = cntl.get_subfigure(subfig, I=[i], force=force_update)
         # Open cached image file(s) (usually just one)
         for fimg in v.get("cachefiles", ()):
             sysutils.open_img(fimg, terminal=terminal, dpi=dpi, page=page)
