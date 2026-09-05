@@ -1291,7 +1291,7 @@ class CaseData(DataKit):
         n4 = n // 4
         # Defaults
         nmin = 0 if (nmin is None) else nmin
-        nstats = 0.1*n if (nstats is None) else nstats
+        nstats = int(0.1*n) if (nstats is None) else nstats
         # Apply negative *nmin*
         nmin = (n + nmin) if (nmin < 0) else nmin
         # Get overall scale
@@ -1315,7 +1315,8 @@ class CaseData(DataKit):
         nsmax = n - nmin
         # Check that the requested statistics window is after *nmin*
         if nsmax < nstats:
-            state["reason"] = "fewer than n_min + n_stats iterations"
+            state["n_stats"] = nstats
+            state["reason"] = "insufficient iterations"
             return state
         # Get the max window
         w = v[nmin:]
@@ -1351,8 +1352,15 @@ class CaseData(DataKit):
                 rmax = r
         # Check for a signal with no shifted autocorrelation peaks
         if jmax is None:
-            state["reason"] = "no shifted autocorrelation peak found"
-            return state
+            # Check for flat-or-transient histories
+            if n < nmin + 2*nstats:
+                # No period found and short history
+                state["reason"] = "no shifted autocorrelation peak found"
+                state["recommendation"] = "extend"
+                return state
+            else:
+                # No autocorrelation but sufficient history
+                jmax = nstats
         # Save information on fundamental frequency
         state["frequency"] = jmax
         # Get max number of periods in allowed window
@@ -5155,9 +5163,12 @@ def _recommend_action(state: dict):
         state["recommendation"] = "retry"
         state["reason"] = "high sign-change rate"
         return
-    # Approve if three consecutive window means are effectively unchanged
+    # Start from approval, then look for reasons to extend
+    state["recommendation"] = "approve"
+    # Check if three consecutive window means are effectively unchanged
     full_range = abs(float(state.get("full_range", 0.0)))
     means = []
+    stationary_mean = False
     for window in state.get("windows", []):
         mean = state.get(str(window), {}).get("mean")
         if mean is None or not np.isfinite(mean):
@@ -5167,21 +5178,29 @@ def _recommend_action(state: dict):
         if (
                 len(means) >= 3 and
                 max(means[-3:]) - min(means[-3:]) <= 1e-3*full_range):
-            state["recommendation"] = "approve"
-            state["reason"] = "stationary mean"
-            return
-    # Approve a highly repeatable oscillation with negligible linear drift
+            stationary_mean = True
+            break
+    # A stationary mean is sufficient for approval
+    if stationary_mean:
+        state["reason"] = "stationary mean"
+        return
+    # Check drift and repeatability for reasons to extend
     slope = abs(float(state.get("linear_fit_a1", np.inf)))
     frequency = float(state.get("frequency", 0.0))
     correlation = float(state.get("autocorrelation", 0.0))
-    if slope*frequency < 1e-4*full_range and correlation >= 0.9:
-        state["recommendation"] = "approve"
+    reasons = []
+    if slope*frequency >= 1e-4*full_range:
+        reasons.append("drift per period is at least 0.01% of full range")
+    if correlation < 0.9:
+        reasons.append("autocorrelation is below 0.9")
+    # Any failed convergence check vetoes approval
+    if reasons:
+        state["recommendation"] = "extend"
+        state["reason"] = "; ".join(reasons)
+    else:
         state["reason"] = (
-            "drift per period below 0.01%  full range")
-        return
-    # More iterations are needed for all other converging histories
-    state["recommendation"] = "extend"
-    state["reason"] = "convergence criteria"
+            "drift per period is below 0.01% of full range and "
+            "autocorrelation is at least 0.9")
 
 
 # Find maximum of autocorrelation signal
