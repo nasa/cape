@@ -2777,6 +2777,10 @@ class Cntl(CntlBase):
             # Display
             print(compile_rst("\n".join(lines)))
             break
+        else:
+            # Print an approval recommendation
+            rec = _yaml_valstr("approve")
+            print(compile_rst(f"  :bright-blue:`recommendation`: {rec}"))
         # Output
         return dat
 
