@@ -3463,6 +3463,8 @@ class Report(object):
             if v is None or len(v) == 0:
                 print(f"    No iterations found for {comp}/{coeff}")
                 continue
+            # Select the configured statistics-window method
+            window_method = opts.get_DataBookOpt(comp, "WindowMethod")
             # Draw the plot
             h = FM.PlotCoeff(
                 coeff, xcol=xcol, n=nPlotIter,
@@ -3477,6 +3479,7 @@ class Report(object):
                 ShowDelta=sh_d, DeltaFormat=fmt_d,
                 ShowSigma=sh_s, SigmaFormat=fmt_s,
                 ShowError=sh_e, ErrorFormat=fmt_e,
+                WindowMethod=window_method,
                 FigureWidth=figw, FigureHeight=figh)
        # ----------------
        # Post Formatting

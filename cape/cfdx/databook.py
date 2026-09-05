@@ -4368,8 +4368,10 @@ class PropDataBook(DataBookComp):
         compID = self.opts.get_DataBookCompID(comp)
         # Read the iterative history for single component
         prop = self.ReadCase(compID)
-        # Process the statistics using the legacy property-data method
-        s = prop.GetStats(nStats, nMax, nMin=nMin, WindowMethod="welch")
+        # Process the statistics
+        window_method = self.opts.get_DataBookOpt(comp, "WindowMethod")
+        s = prop.GetStats(
+            nStats, nMax, nMin=nMin, WindowMethod=window_method)
         # Get the corresponding residual drop
         # Save the data.
         if j is None:

@@ -1280,11 +1280,13 @@ class CaseData(DataKit):
         """
         # Initialize state
         state = {}
-        # Check if present
-        if col not in self:
+        subcol = kw.pop("subcol", None)
+        # Extract the requested scalar history
+        try:
+            v = self.ExtractValue(col, subcol)
+        except KeyError:
             return state
         # Get three vectors
-        v = self[col]
         i = self[CASE_COL_ITERS]
         t = self.get(CASE_COL_TIME, i)
         # Sometimes *t* is filled in with NaN
@@ -1539,6 +1541,7 @@ class CaseData(DataKit):
         :Versions:
             * 2026-09-05 ``@openai``: v1.0
         """
+        subcol = kw.pop("subcol", None)
         # Apply defaults used by the legacy interface
         nstats = 100 if nstats is None else nstats
         nmax = nstats if nmax is None else nmax
@@ -1546,7 +1549,8 @@ class CaseData(DataKit):
         dn = kw.get("dnStats", nstats)
         # Run the legacy window search
         d = util.SearchSinusoidFitRange(
-            self.get_values(CASE_COL_ITERS), self[col], nstats, nmax,
+            self.get_values(CASE_COL_ITERS),
+            self.ExtractValue(col, subcol), nstats, nmax,
             dn=dn, nMin=nmin)
         # Adapt names to the new column-state interface
         return {
@@ -1589,7 +1593,9 @@ class CaseData(DataKit):
             *u*: :class:`float`
                 Multiple of sampling error standard deviation to plot
             *err*: :class:`float`
-                Fixed sampling error, def uses :func:`util.SearchSinusoidFit`
+                Fixed sampling error; only available by default for ``welch``
+            *WindowMethod*: {``"autocorrelation"``} | ``"welch"``
+                Method used to select the averaging window
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
             *nFirst*: :class:`int`
@@ -1659,6 +1665,7 @@ class CaseData(DataKit):
             * 2015-12-07 ``@ddalle``: v1.4; move to ``CaseData``
             * 2017-10-12 ``@ddalle``: v1.5; add grid and tick options
             * 2024-01-10 ``@ddalle``: v1.6; DataKit updates
+            * 2026-09-05 ``@openai``: v1.7; selectable window method
         """
        # ----------------
        # Initial Options
@@ -1694,18 +1701,27 @@ class CaseData(DataKit):
        # ------------
         # Averaging window size (minimum)
         nAvg  = kw.get("nAvg", kw.get("nStats", 100))
+        # Statistics-window selection method
+        window_method = kw.get("WindowMethod", "autocorrelation")
         # Increment in candidate window size
         dnAvg = kw.get("dnAvg", kw.get("dnStats", nAvg))
         # Maximum window size
-        nMax = kw.get("nMax", kw.get("nMaxStats", nAvg))
+        nmaxdef = nAvg if window_method == "welch" else None
+        nMax = kw.get("nMax", kw.get("nMaxStats", nmaxdef))
         # Minimum allowed iteration
         nMin = kw.get("nMin", nFirst)
-        # Get statistics
-        s = util.SearchSinusoidFitRange(
-            iters, C, nAvg, nMax,
-            dn=dnAvg, nMin=nMin)
+        if window_method == "welch":
+            s = self.get_col_state_welch(
+                c, subcol=col, nmin=nMin, nstats=nAvg, nmax=nMax,
+                dnStats=dnAvg)
+        elif window_method == "autocorrelation":
+            s = self.get_col_state(
+                c, subcol=col, nmin=nMin, nstats=nAvg, nmax=nMax)
+        else:
+            raise CapeValueError(
+                f"Unknown statistics WindowMethod '{window_method}'")
         # New averaging iteration
-        nAvg = s['n']
+        nAvg = s["n_stats"]
        # ---------
        # Last Iter
        # ---------
@@ -1752,14 +1768,14 @@ class CaseData(DataKit):
         # Initialize dictionary of handles.
         h = {}
         # Shortcut for the mean
-        cAvg = s['mu']
+        cAvg = s["mean"]
         # Initialize plot options for standard deviation
         kw_s = DBPlotOpts(
             color='b', lw=0.0,
             facecolor="b", alpha=0.35, zorder=1)
         # Calculate standard deviation if necessary
         if (ksig and nAvg > 2) or kw.get("ShowSigma"):
-            c_std = s['sig']
+            c_std = s["std"]
         # Show iterative n*standard deviation
         if ksig and nAvg > 2:
             # Extract plot options from kwargs
@@ -1782,11 +1798,12 @@ class CaseData(DataKit):
             color='g', lw=0,
             facecolor="g", alpha=0.35, zorder=2)
         # Calculate sampling error if necessary
-        if (uerr and nAvg > 2) or kw.get("ShowError"):
+        has_error = kw.get("err") is not None or "error" in s
+        if has_error and ((uerr and nAvg > 2) or kw.get("ShowError")):
             # Check for sampling error
-            c_err = kw.get('err', s['u'])
+            c_err = kw.get("err", s.get("error"))
         # Show iterative n*standard deviation
-        if uerr and nAvg > 2:
+        if has_error and uerr and nAvg > 2:
             # Extract plot options from kwargs
             for k in util.denone(kw.get("ErrPltOptions", {})):
                 # Ignore linestyle and ls
@@ -1908,7 +1925,9 @@ class CaseData(DataKit):
         # Further processing
         qldel = (dc and qldel)
         qlsig = (nAvg > 2) and ((ksig and qlsig) or kw.get("ShowSigma", False))
-        qlerr = (nAvg > 6) and ((uerr and qlerr) or kw.get("ShowError", False))
+        qlerr = (
+            has_error and nAvg > 6 and
+            ((uerr and qlerr) or kw.get("ShowError", False)))
         # Make a label for the mean value
         if qlmu:
             # printf-style format flag
