@@ -402,6 +402,15 @@ class AgentCntl:
         if REGEX_CAPE_CLI.match(user_message):
             # Turn into command
             cmdlist = shlex.split(user_message.lstrip("$").strip())
+            # Keep later turns aware of direct execution without an LLM call
+            messages.append({
+                "role": "user",
+                "content": (
+                    "I issued this command directly through the CLI; "
+                    "this is a record, not a request to execute it again. "
+                    "No LLM response is needed. Command:\n"
+                    + shlex.join(cmdlist)),
+            })
             # Status update
             print(HLINE)
             print(RAW_CAPE_MESSAGE)
@@ -413,6 +422,15 @@ class AgentCntl:
         elif user_message.startswith("$"):
             # Run into command
             cmdlist = shlex.split(user_message.lstrip("$").strip())
+            # Keep later turns aware of direct execution without an LLM call
+            messages.append({
+                "role": "user",
+                "content": (
+                    "I issued this command directly through the CLI; "
+                    "this is a record, not a request to execute it again. "
+                    "No LLM response is needed. Command:\n"
+                    + shlex.join(cmdlist)),
+            })
             # Status update
             print(HLINE)
             print(RAW_TOOL_MESSAGE)
