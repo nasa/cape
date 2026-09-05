@@ -97,6 +97,8 @@ def test_dbopts1():
     assert opts.get_DataBookNMin("comp2") == 2000
     assert opts.get_DataBookNMin("comp1") == 2000
     assert opts.get_DataBookNMin() == 2000
+    # Statistics-window method
+    assert opts.get_DataBookOpt("comp1", "WindowMethod") == "autocorrelation"
     # Try nonsense
     with pytest.raises(ValueError):
         opts.get_DataBookNMin(3)

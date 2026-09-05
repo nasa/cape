@@ -2993,8 +2993,11 @@ class CaseRunner(CaseRunnerBase):
         # Get relevant options
         na = cntl.opts.get_DataBookOpt(comp, "NStats")
         nb = cntl.opts.get_DataBookOpt(comp, "NMaxStats")
+        nmin = cntl.opts.get_DataBookOpt(comp, "NMin")
+        window_method = cntl.opts.get_DataBookOpt(comp, "WindowMethod")
         # Sample
-        s = fm.GetStats(na, nb)
+        s = fm.GetStats(
+            na, nb, nMin=nmin, WindowMethod=window_method)
         # Eliminate *_n* cols
         for col in list(s.keys()):
             if col.endswith("_n"):

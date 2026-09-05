@@ -3096,8 +3096,14 @@ class Report(object):
                         topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
                     # Apply the transformation
                     FM.TransformFM(topts, self.cntl.x, i)
-                # Get the statistics.
-                S[comp] = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
+                # Get the statistics
+                window_method = opts.get_DataBookOpt(comp, "WindowMethod")
+                S[comp] = FM.GetStats(
+                    nStats=nStats,
+                    nMax=nMax,
+                    nMin=nMin,
+                    nLast=nCur,
+                    WindowMethod=window_method)
         # Go back to original folder.
         os.chdir(fpwd)
         # Get the vertical alignment.

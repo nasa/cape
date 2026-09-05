@@ -1254,7 +1254,8 @@ class CaseData(DataKit):
             self,
             col: str,
             nmin: int | None = None,
-            nstats: int | None = None, **kw) -> dict:
+            nstats: int | None = None,
+            nmax: int | None = None, **kw) -> dict:
         r"""Get column state using autocorrelation-based windows
 
         :Call:
@@ -1264,6 +1265,12 @@ class CaseData(DataKit):
                 Iterative history data instance
             *col*: :class:`str`
                 Name of column to analyze
+            *nmin*: {``None``} | :class:`int`
+                First iteration index allowed in statistics windows
+            *nstats*: {``None``} | :class:`int`
+                Minimum statistics-window size
+            *nmax*: {``None``} | :class:`int`
+                Maximum statistics-window size
         :Outputs:
             *state*: :class:`dict`
                 State information
@@ -1287,8 +1294,6 @@ class CaseData(DataKit):
         t = i if (t.size == 0) else t
         # Get initial window sizes
         n = v.size
-        n2 = n // 2
-        n4 = n // 4
         # Defaults
         nmin = 0 if (nmin is None) else nmin
         nstats = int(0.1*n) if (nstats is None) else nstats
@@ -1313,13 +1318,14 @@ class CaseData(DataKit):
         }
         # Get maximum-window size
         nsmax = n - nmin
+        nsmax = min(nsmax, nmax) if nmax is not None else nsmax
         # Check that the requested statistics window is after *nmin*
         if nsmax < nstats:
             state["n_stats"] = nstats
             state["reason"] = "insufficient iterations"
             return state
         # Get the max window
-        w = v[nmin:]
+        w = v[-nsmax:]
         # Get stats for maximum-window
         wmin = np.nanmin(w)
         wmax = np.nanmax(w)
@@ -1341,7 +1347,7 @@ class CaseData(DataKit):
         jmax = None
         rmax = -np.inf
         # Find the strongest autocorrelation using the initial windows
-        for nj in [n, n2, n4]:
+        for nj in [nsmax, nsmax // 2, nsmax // 4]:
             # Get autocorrelation for this window
             phj, rj = autocorr(v[-nj:])
             # Find maximum shifted autocorrelation
@@ -1502,6 +1508,55 @@ class CaseData(DataKit):
             if key not in state1)
         # Output
         return state1
+
+    def get_col_state_welch(
+            self,
+            col: str,
+            nmin: int | None = None,
+            nstats: int | None = None,
+            nmax: int | None = None, **kw) -> dict:
+        r"""Get column statistics using the legacy Welch-window search
+
+        This adapts :func:`util.SearchSinusoidFitRange` output to the primary
+        fields returned by :meth:`get_col_state`.
+
+        :Call:
+            >>> state = db.get_col_state_welch(col, **kw)
+        :Inputs:
+            *db*: :class:`CaseData`
+                Iterative history data instance
+            *col*: :class:`str`
+                Name of column to analyze
+            *nmin*: {``None``} | :class:`int`
+                First iteration allowed in the statistics window
+            *nstats*: {``None``} | :class:`int`
+                Minimum statistics-window size
+            *nmax*: {``None``} | :class:`int`
+                Maximum statistics-window size
+        :Outputs:
+            *state*: :class:`dict`
+                Statistics using the same primary keys as *get_col_state*
+        :Versions:
+            * 2026-09-05 ``@openai``: v1.0
+        """
+        # Apply defaults used by the legacy interface
+        nstats = 100 if nstats is None else nstats
+        nmax = nstats if nmax is None else nmax
+        nmin = 0 if nmin is None else nmin
+        dn = kw.get("dnStats", nstats)
+        # Run the legacy window search
+        d = util.SearchSinusoidFitRange(
+            self.get_values(CASE_COL_ITERS), self[col], nstats, nmax,
+            dn=dn, nMin=nmin)
+        # Adapt names to the new column-state interface
+        return {
+            "mean": d["mu"],
+            "std": d["sig"],
+            "n_stats": d["n"],
+            "min": d["min"],
+            "max": d["max"],
+            "error": d["u"],
+        }
 
    # --- Plot ---
     # Basic plotting function
@@ -3892,12 +3947,15 @@ class CaseFM(CaseData):
                 First usable iteration number
             *nLast*: {*fm.i[-1]*} | :class:`int`
                 Last iteration to use for statistics
+            *WindowMethod*: {``"autocorrelation"``} | ``"welch"``
+                Method used to select the statistics window
         :Outputs:
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std, err for each
         :Versions:
             * 2017-09-29 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
+            * 2026-09-05 ``@openai``: v1.2; selectable window method
         """
         # Get iterations
         iters = self.get_values("i")
@@ -3908,6 +3966,12 @@ class CaseFM(CaseData):
         s = {}
         # Initialize statistics count
         ns = 0
+        # Select window-search method
+        window_method = kw.pop("WindowMethod", "autocorrelation")
+        nmin = kw.pop("nMin", 0)
+        if window_method not in ("autocorrelation", "welch"):
+            raise CapeValueError(
+                f"Unknown statistics WindowMethod '{window_method}'")
         # Loop through coefficients
         for c in self.coeffs:
             # Get value
@@ -3916,16 +3980,33 @@ class CaseFM(CaseData):
             if not isinstance(v, np.ndarray) or v.size == 0:
                 continue
             # Get individual statistics
-            d = self.GetStatsCoeff(c, nStats=nStats, nMax=nMax, **kw)
+            if window_method == "welch":
+                d = self.get_col_state_welch(
+                    c, nmin=nmin, nstats=nStats, nmax=nMax, **kw)
+            else:
+                d = self.get_col_state(
+                    c, nmin=nmin, nstats=nStats, nmax=nMax, **kw)
+                # A short history may not support autocorrelation analysis
+                if "mean" not in d:
+                    nj = min(v.size - nmin, nStats)
+                    vj = v[-nj:]
+                    d = {
+                        "mean": np.mean(vj),
+                        "std": np.std(vj),
+                        "n_stats": nj,
+                        "min": np.min(vj),
+                        "max": np.max(vj),
+                    }
             # Transfer the information
-            s[c] = d["mu"]
-            s[c+'_n'] = d["n"]
+            s[c] = d["mean"]
+            s[c+'_n'] = d["n_stats"]
             s[c+'_min'] = d["min"]
             s[c+'_max'] = d["max"]
-            s[c+'_std'] = d["sig"]
-            s[c+'_err'] = d["u"]
+            s[c+'_std'] = d["std"]
+            s[c+'_err'] = d.get(
+                "error", util.SigmaMean(v[-d["n_stats"]:]))
             # Update stats count
-            ns = max(ns, d["n"])
+            ns = max(ns, d["n_stats"])
         # Set the stats count
         s["nStats"] = ns
         # Output

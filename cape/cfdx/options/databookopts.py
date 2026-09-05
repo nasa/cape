@@ -142,9 +142,31 @@ class FMDataBookOpts(DBCompOpts):
     # Identifiers
     _name = "definitions for a force & moment databook component"
 
+    # Recognized options
+    _optlist = {
+        "WindowMethod",
+    }
+
+    # Aliases
+    _optmap = {
+        "windowMethod": "WindowMethod",
+        "windowmethod": "WindowMethod",
+    }
+
+    # Types
+    _opttypes = {
+        "WindowMethod": str,
+    }
+
+    # Allowed values
+    _optvals = {
+        "WindowMethod": {"autocorrelation", "welch"},
+    }
+
     # Defaults
     _rc = {
         "Cols": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+        "WindowMethod": "autocorrelation",
         "Transformations": [
             {
                 "Type": "ScaleCoeffs",
@@ -152,6 +174,12 @@ class FMDataBookOpts(DBCompOpts):
                 "CLN": -1.0
             }
         ],
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "WindowMethod": (
+            "method used to select the iterative statistics window"),
     }
 
 

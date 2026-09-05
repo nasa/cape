@@ -4153,8 +4153,10 @@ class FMDataBook(DataBookComp):
             # Apply the transformation.
             FM.TransformFM(topts, self.x, i)
 
-        # Process the statistics.
-        s = FM.GetStats(nStats, nMax)
+        # Process the statistics
+        window_method = self.opts.get_DataBookOpt(comp, "WindowMethod")
+        s = FM.GetStats(
+            nStats, nMax, nMin=nMin, WindowMethod=window_method)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:
             nOrders = H.GetNOrders(s['nStats'])
@@ -4366,8 +4368,8 @@ class PropDataBook(DataBookComp):
         compID = self.opts.get_DataBookCompID(comp)
         # Read the iterative history for single component
         prop = self.ReadCase(compID)
-        # Process the statistics.
-        s = prop.GetStats(nStats, nMax)
+        # Process the statistics using the legacy property-data method
+        s = prop.GetStats(nStats, nMax, nMin=nMin, WindowMethod="welch")
         # Get the corresponding residual drop
         # Save the data.
         if j is None:
@@ -5616,8 +5618,10 @@ class TimeSeriesDataBook(DataBookComp):
                 topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
             # Apply the transformation.
             FM.TransformFM(topts, self.x, i)
-        # Process the statistics.
-        s = FM.GetStats(nStats, nMax)
+        # Process the statistics
+        window_method = self.opts.get_DataBookOpt(comp, "WindowMethod")
+        s = FM.GetStats(
+            nStats, nMax, nMin=nMin, WindowMethod=window_method)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:
             nOrders = H.GetNOrders(s['nStats'])
