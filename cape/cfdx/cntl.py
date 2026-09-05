@@ -2711,6 +2711,75 @@ class Cntl(CntlBase):
         # Output
         return dat
 
+    # Show the iterative state of report columns for one case
+    def show_case_state(self, i: int, v: bool = False, **kw) -> dict:
+        r"""Show iterative state of report columns for one case
+
+        Approved component/column pairs are shown with a check mark. The
+        first pair whose recommendation is not ``"approve"`` is shown in
+        detail, and remaining pairs are not evaluated.
+
+        :Call:
+            >>> dat = cntl.show_case_state(i, v=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Case index
+            *v*: {``False``} | ``True``
+                Option to show the complete state of the first non-approved
+                component/column pair
+        :Outputs:
+            *dat*: :class:`dict`
+                State information for each component/column pair evaluated
+        """
+        # Get name of case and read its runner
+        frun = self.x.GetFullFolderNames(i)
+        runner = self.ReadCaseRunner(i)
+        # Initialize output and display
+        dat = {}
+        print(compile_rst(f"**{frun}** [*i*=:blue:`{i}`]"))
+        if runner is None:
+            return dat
+        # Get report components and cache each component history
+        complist = self.get_report_comps()
+        cache = {}
+        # Loop through components
+        for comp, col in complist:
+            # Reset lines
+            lines = []
+            # Get title
+            title = f"{comp}/{col}"
+            # Get statistics
+            try:
+                # Reuse component histories when used for multiple cols
+                db = cache.get(comp)
+                if db is None:
+                    db = runner.read_dex(comp)
+                    assert_isinstance(db, CaseData, f"DataBook comp {comp}")
+                    cache[comp] = db
+                # Apply the component's configured statistics limits
+                nmin = self.opts.get_DataBookOpt(comp, "NMin")
+                nstats = self.opts.get_DataBookOpt(comp, "NStats")
+                state = db.get_col_state(col, nmin=nmin, nstats=nstats)
+            except Exception:
+                continue
+            dat[title] = state
+            line = f"  ``{comp}``/*{col}*"
+            # Approved entries only need a compact success marker
+            if state.get("recommendation") == "approve":
+                # Display
+                print(compile_rst(line + " **✓**"))
+                continue
+            # Show the first actionable state and stop processing
+            lines.append(line)
+            lines.extend(_yaml_lines(state, indent=4, v=v))
+            # Display
+            print(compile_rst("\n".join(lines)))
+            break
+        # Output
+        return dat
+
     # Show the iterative state of one column for several cases
     def show_col_state(
             self, comp: str, col: str, v: bool = False, **kw) -> list:

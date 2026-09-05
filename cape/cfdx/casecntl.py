@@ -5217,7 +5217,7 @@ class CaseRunner(CaseRunnerBase):
                 # Save it (no effect if already cached)
                 cache[comp] = fm
                 # Now process it
-                state[title] = fm.get_col_state2(coeff)
+                state[title] = fm.get_col_state(coeff)
             except Exception:
                 continue
         # Output

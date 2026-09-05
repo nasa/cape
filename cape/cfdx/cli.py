@@ -1352,6 +1352,23 @@ class CfdxGetColStateArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for show-case-state
+class CfdxShowCaseStateArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape show-case-state"
+
+    # Description
+    _help_title = "Show iterative state of report columns for case(s)"
+
+    # Additional options
+    _optlist = (
+        "v",
+    )
+
+
 # Settings for get-config
 class CfdxGetConfigArgs(CfdxArgReader):
     # No attributes
@@ -2131,6 +2148,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "rm",
         "search-large",
         "set-config",
+        "show-case-state",
         "skeleton",
         "triangulate-cutplane",
         "ui",
@@ -2224,6 +2242,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "run": CfdxRunArgs,
         "search-large": CfdxSearchLargeArgs,
         "set-config": CfdxSetConfigArgs,
+        "show-case-state": CfdxShowCaseStateArgs,
         "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
         "triangulate-cutplane": CfdxTriangulateCutPlaneArgs,
@@ -3050,6 +3069,33 @@ def cape_col_state(*a, **kw) -> Tuple[int, Any]:
     v = cntl.show_col_state(**kw)
     # Output
     return IERR_OK, v
+
+
+@CfdxShowCaseStateArgs.rst
+def cape_show_case_state(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read controller and select cases
+    cntl, kw = read_cntl_quiet(CfdxShowCaseStateArgs, *a, **kw)
+    inds = cntl.GetIndices(**kw)
+    # Show each selected case
+    dat = {}
+    for i in inds:
+        dat[str(i)] = cntl.show_case_state(i, v=kw.get("v", False))
+    # Output
+    return IERR_OK, dat
 
 
 @CfdxGetConfigArgs.rst
@@ -4064,6 +4110,7 @@ CMD_DICT = {
     "run": cape_run,
     "search-large": cape_search_large,
     "set-config": cape_set_config,
+    "show-case-state": cape_show_case_state,
     "skeleton": cape_skeleton,
     "start": cape_start,
     "triangulate-cutplane": cape_triangulate_cutplane,
