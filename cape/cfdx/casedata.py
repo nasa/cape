@@ -1477,115 +1477,98 @@ class CaseData(DataKit):
         # Loop to select the biggest window
         if state["class"] == "flat" or nw == 1:
             # Just pick the biggest window
-            m = windows[-1]
+            n1 = windows[-1]
         else:
-            # Create vectors
-            a0 = np.zeros(nw)
-            a1 = np.zeros(nw)
-            r1 = np.ones(nw)
-            a2 = np.zeros(nw)
-            # If jmax is frequency in cycles / unit time:
-            omega = 2*np.pi / (t[-1] - t[-jmax])
-            # Loop through windows to get best one
-            for j, nj in enumerate(windows):
-                # Get vectors
-                vj = v[-nj:]
-                tj = t[-nj:]
-                # Basis functions
-                A = np.column_stack((
-                    np.ones_like(tj),
-                    np.cos(omega*tj),
-                    np.sin(omega*tj),
-                ))
-                v0, a, b = np.linalg.lstsq(A, vj, rcond=None)[0]
-                # Filter out best sinusoid w/ freq=jmax
-                vfit = v0 + a*np.cos(omega*tj) + b*np.sin(omega*tj)
-                uj = vj - vfit
-                # Poly fit
-                a1[j], a0[j] = np.polyfit(tj, uj, 1)
-                # Correlation
-                if nj == jmax:
-                    # Single period; obviously perfectly correlated
-                    continue
-                # Construct offset
-                v1 = np.hstack((vj[jmax:], vj[:jmax]))
-                r1[j] = np.corrcoef(vj, v1)[0, 1]
-            # Scale *a1* by linear slope accross biggest window
-            vrngj = np.max(uj) - np.min(uj)
-            dtj = tj[-1] - tj[0]
-            # A slope of ``vrng/dxj`` is worst possible case
-            a2 = a1 / (max(0.1*vrng, vrngj) / dtj)
-        # Loop through windows to pick a best one
-        # Process each window
-        for nj in windows:
-            # Get vectors
-            vj = v[-nj:]
-            tj = t[-nj:]
-            # Min/max (for scaling)
-            aj = np.min(vj)
-            bj = np.max(vj)
-            # Poly fit
-            m, b = np.polyfit(tj, vj, 1)
-            # Get increments
-            dvj = np.diff(vj)
-            # Filter out zero-change steps
-            dvj = dvj[np.abs(dvj) > 1e-6*(bj-aj)]
-            # Count sign changes
-            nchj = np.count_nonzero(dvj[1:] * dvj[:-1] < 0)
-            # Perform autocorrelation
-            phj, rj = autocorr(vj)
-            # Find peaks
-            if rj.size > 10:
-                jlo, ulo, jhi, uhi = find_autocorr_peaks(rj)
-            else:
-                jlo = np.zeros(0)
-                jhi = np.zeros(0)
-            # Find first anti-correlation peak
-            if jlo.size == 0:
-                # No anticorrelation peaks
-                dph1 = 0.0
-                r1 = 0.0
-                dph2 = 0.0
-                r2 = 0.0
-            else:
-                # Get first local minimum of autocorrelation plot
-                dph1 = phj[jlo[0]]
-                r1 = ulo[0]
-                # Get absolute minimum correlation
-                dph2 = phj[jlo[np.argmin(ulo)]]
-                r2 = np.min(ulo)
-            # Find first correlation peak
-            if jhi.size == 0:
-                # No shifted correlation peaks
-                dph3 = 0.0
-                r3 = 0.0
-                dph4 = 0.0
-                r4 = 0.0
-            else:
-                # Get first local maximum of autocorrelation plot
-                dph3 = phj[jhi[0]]
-                r3 = uhi[0]
-                # Get absolute maximum autocorrelation
-                dph4 = phj[jhi[np.argmax(uhi)]]
-                r4 = np.max(uhi)
-            # Calculate basic stats
-            state[str(nj)] = {
-                "mean": np.mean(vj),
-                "min": aj,
-                "max": bj,
-                "std": np.std(vj),
-                "linear_fit_a0": b,
-                "linear_fit_a1": m,
-                "sign_change_rate": nchj/nj,
-                "first_anticorrelation_offset": dph1,
-                "first_anticorrelation_peak": r1,
-                "first_autocorrelation_offset": dph3,
-                "first_autocorrelation_peak": r3,
-                "min_autocorrelation_offset": dph2,
-                "min_autocorrelation": r2,
-                "max_autocorrelation_offset": dph4,
-                "max_autocorrelation": r4,
-            }
+            # Use drift to pick best window
+            n1 = best_window(t, v, jmax, windows)
+        # Get vectors
+        vj = v[-n1:]
+        tj = t[-n1:]
+        # Process best window
+        omega = 2*np.pi / (tj[-1] - tj[-jmax])
+        # Basic quantities
+        vminj = np.min(vj)
+        vmaxj = np.max(vj)
+        vavgj = np.mean(vj)
+        vstdj = np.std(vj)
+        # Min/max (for scaling)
+        aj = np.min(vj)
+        bj = np.max(vj)
+        # Poly fit
+        m, b = np.polyfit(tj, vj, 1)
+        # Basis functions
+        A = np.column_stack((
+            np.ones_like(tj),
+            np.cos(omega*tj),
+            np.sin(omega*tj),
+        ))
+        v0, c0, s0 = np.linalg.lstsq(A, vj, rcond=None)[0]
+        # Filter out best sinusoid w/ freq=jmax
+        vfit = v0 + c0*np.cos(omega*tj) + s0*np.sin(omega*tj)
+        uj = vj - vfit
+        # Poly fit
+        m2, _ = np.polyfit(tj, uj, 1)
+        # Get increments
+        dvj = np.diff(vj)
+        # Filter out zero-change steps
+        dvj = dvj[np.abs(dvj) > 1e-6*(bj-aj)]
+        # Count sign changes
+        nchj = np.count_nonzero(dvj[1:] * dvj[:-1] < 0)
+        # Perform autocorrelation
+        phj, rj = autocorr(vj)
+        # Find peaks
+        if rj.size > 10:
+            jlo, ulo, jhi, uhi = find_autocorr_peaks(rj)
+        else:
+            jlo = np.zeros(0)
+            jhi = np.zeros(0)
+        # Find first anti-correlation peak
+        if jlo.size == 0:
+            # No anticorrelation peaks
+            dph1 = 0.0
+            r1 = 0.0
+            dph2 = 0.0
+            r2 = 0.0
+        else:
+            # Get first local minimum of autocorrelation plot
+            dph1 = phj[jlo[0]]
+            r1 = ulo[0]
+            # Get absolute minimum correlation
+            dph2 = phj[jlo[np.argmin(ulo)]]
+            r2 = np.min(ulo)
+        # Find first correlation peak
+        if jhi.size == 0:
+            # No shifted correlation peaks
+            dph3 = 0.0
+            r3 = 0.0
+            dph4 = 0.0
+            r4 = 0.0
+        else:
+            # Get first local maximum of autocorrelation plot
+            dph3 = phj[jhi[0]]
+            r3 = uhi[0]
+            # Get absolute maximum autocorrelation
+            dph4 = phj[jhi[np.argmax(uhi)]]
+            r4 = np.max(uhi)
+        # Calculate basic stats
+        state[str(n1)] = {
+            "mean": vavgj,
+            "min": vminj,
+            "max": vmaxj,
+            "std": vstdj,
+            "linear_fit_a0": b,
+            "linear_fit_a1": m,
+            "trend_fit_a1": m2,
+            "sign_change_rate": nchj/nj,
+            "first_anticorrelation_offset": dph1,
+            "first_anticorrelation_peak": r1,
+            "first_autocorrelation_offset": dph3,
+            "first_autocorrelation_peak": r3,
+            "min_autocorrelation_offset": dph2,
+            "min_autocorrelation": r2,
+            "max_autocorrelation_offset": dph4,
+            "max_autocorrelation": r4,
+        }
         # Output
         return state
 
@@ -5404,12 +5387,11 @@ def best_window(
     # Number of candidate windows
     nw = windows.size
     # Create vectors
-    a0 = np.zeros(nw)
-    a1 = np.zeros(nw)
-    r1 = np.ones(nw)
     a2 = np.zeros(nw)
     # If jmax is frequency in cycles / unit time:
     omega = 2*np.pi / (t[-1] - t[-dj])
+    # Scale factor for linear slop
+    m1 = (np.max(v[-dj:]) - np.min(v[-dj:])) / (t[-1] - t[-dj])
     # Loop through windows to get best one
     for j, nj in enumerate(windows):
         # Get vectors
@@ -5426,19 +5408,11 @@ def best_window(
         vfit = v0 + a*np.cos(omega*tj) + b*np.sin(omega*tj)
         uj = vj - vfit
         # Poly fit
-        a1[j], a0[j] = np.polyfit(tj, uj, 1)
-        # Subtract off mean
-        dv = vj[dj:] - vj[:-dj]
-        a2[j] = np.sqrt(np.mean(dv**2)) / np.std(v)
-        # Correlation
-        if nj == dj:
-            # Single period; obviously perfectly correlated
-            continue
-        # Construct offset
-        v1 = np.hstack((vj[dj:], vj[:dj]))
-        r1[j] = np.corrcoef(vj, v1)[0, 1]
+        m, _ = np.polyfit(tj, uj, 1)
+        # Scale the slope
+        a2[j] = np.abs(m / m1 / np.sqrt(nj/dj))
     # Output...
-    return a1, a2, r1
+    return windows[np.argmin(a2)]
 
 
 def lagcorr_score(v, jmax, zcrit=1.0):
