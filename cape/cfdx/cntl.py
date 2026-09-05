@@ -6231,12 +6231,41 @@ def _yaml_lines(dat: dict, indent: int = 0, v: bool = False) -> list:
     if not v:
         keys = (
             "mean", "std", "n", "n_stats", "n_min", "class",
-            "recommendation", "reason", "frequency", "trend_drift")
+            "recommendation", "reason", "frequency")
         for k in keys:
             if k in dat:
                 lines.append(
                     " "*indent +
                     f":bright-blue:`{k}`: {_yaml_valstr(dat[k])}")
+        # Show evidence relevant to the recommendation
+        recommendation = dat.get("recommendation")
+        reason = dat.get("reason", "")
+        if recommendation == "retry":
+            selected = dat.get(str(dat.get("n_stats")), {})
+            sign_rate = selected.get("sign_change_rate")
+            if sign_rate is not None:
+                lines.append(
+                    " "*indent +
+                    ":bright-blue:`sign-change-rate`: " +
+                    _yaml_valstr(sign_rate))
+        if recommendation == "approve" and reason == "stationary mean":
+            for window in dat.get("windows", []):
+                mean = dat.get(str(window), {}).get("mean")
+                if mean is not None:
+                    lines.append(" "*indent + f"{window}:")
+                    lines.append(
+                        " "*(indent + 2) +
+                        f":bright-blue:`mean`: {_yaml_valstr(mean)}")
+        if reason.startswith("autocorrelation") and "autocorrelation" in dat:
+            lines.append(
+                " "*indent + ":bright-blue:`autocorrelation`: " +
+                _yaml_valstr(dat["autocorrelation"]))
+        if reason.startswith("drift"):
+            for k in ("trend_drift", "target_drift"):
+                if k in dat:
+                    lines.append(
+                        " "*indent +
+                        f":bright-blue:`{k}`: {_yaml_valstr(dat[k])}")
         return lines
     # Loop through entries
     for k, vj in dat.items():

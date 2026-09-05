@@ -1482,7 +1482,7 @@ class CaseData(DataKit):
             min=selected_state["min"],
             max=selected_state["max"],
             trend_drift=drift,
-            trend_target=target,
+            target_drift=target,
             trend_fit_a1=selected_state["trend_fit_a1"],
             linear_fit_a1=selected_state["linear_fit_a1"],
             autocorrelation=corr_state["autocorrelation"])
@@ -1494,7 +1494,7 @@ class CaseData(DataKit):
         key_order = (
             "mean", "std", "n", "n_stats", "n_min", "class",
             "recommendation", "reason", "frequency", "min", "max",
-            "autocorrelation", "trend_drift", "trend_target",
+            "autocorrelation", "trend_drift", "target_drift",
             "trend_fit_a1", "linear_fit_a1")
         state1 = {key: state[key] for key in key_order}
         state1.update(
@@ -5199,9 +5199,8 @@ def _recommend_action(state: dict):
         state["recommendation"] = "extend"
         state["reason"] = reason
     else:
-        state["reason"] = (
-            "drift per period is below 0.01% of full range and "
-            "autocorrelation is at least 0.9")
+        state["recommendation"] = "approve"
+        state["reason"] = "convergence criteria"
 
 
 # Find maximum of autocorrelation signal
