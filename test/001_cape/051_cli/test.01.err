@@ -1,2 +1,2 @@
-ValueError:
+CapeValueError:
     Found no CAPE JSON files in repo
