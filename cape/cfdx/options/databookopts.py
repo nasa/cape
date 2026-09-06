@@ -21,6 +21,7 @@ import re
 from typing import Optional
 
 # Local imports
+from ...errors import CapeValueError
 from ...optdict import (
     OptionsDict,
     ARRAY_TYPES,
@@ -1501,7 +1502,7 @@ class DataBookOpts(OptionsDict):
         """
         # Check validity of component
         if comp not in self.get_DataBookComponents():
-            raise ValueError("No DataBook component named '%s'" % comp)
+            raise CapeValueError("No DataBook component named '%s'" % comp)
 
    # --- Component Config ---
     # Get component options

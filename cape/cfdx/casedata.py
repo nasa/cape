@@ -1453,7 +1453,7 @@ class CaseData(DataKit):
             # Scale to favor longer windows
             m2s = ranks.trend_fit_a1 * np.sqrt(jmax / windows)
             # Select the best
-            n1 = windows[np.argmin(m2s)]
+            n1 = windows[np.argmin(np.abs(m2s))]
         # Get vectors
         vj = v[-n1:]
         # Basic quantities
@@ -5400,7 +5400,7 @@ def _recommend_action(state: dict):
     reason = None
     if slope*frequency >= 1e-4*full_range:
         reason = "drift per period"
-    elif correlation < 0.65:
+    elif correlation < 0.85:
         reason = "autocorrelation is below 0.65"
     # Any failed convergence check vetoes approval
     if reason is not None:
@@ -5721,7 +5721,7 @@ def best_window(
     # Rerank
     m2 = ranks.trend_fit_a1 * np.sqrt(dj/windows)
     # Output: window size
-    return windows[np.argmin(m2)]
+    return windows[np.argmin(np.abs(m2))]
 
 
 def lagcorr_score(v, jmax, zcrit=1.0):
