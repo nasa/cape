@@ -5376,11 +5376,16 @@ def _recommend_action(state: dict):
         # Prefer one neighbor on either side; shift at either boundary
         k0 = min(max(ksel - 1, 0), len(windows) - 3)
         check_windows = windows[k0:k0 + 3]
-        means = [state.get(str(window), {}).get("mean")
-                 for window in check_windows]
+        # Get mean value for each window
+        means = [
+            state.get(str(window), {}).get("mean")
+            for window in check_windows
+        ]
+        # Test for 3 valid values
         if all(mean is not None and np.isfinite(mean) for mean in means):
+            # Test max mean minus min
             stationary_mean = (
-                max(means) - min(means) <= 1e-3*full_range)
+                max(means) - min(means) <= 5e-4*full_range)
     # A stationary mean is sufficient for approval
     if stationary_mean:
         state["reason"] = "stationary mean"
@@ -5391,9 +5396,9 @@ def _recommend_action(state: dict):
     correlation = float(state.get("autocorrelation", 0.0))
     reason = None
     if slope*frequency >= 1e-4*full_range:
-        reason = "drift per period is at least 0.01% of full range"
-    elif correlation < 0.9:
-        reason = "autocorrelation is below 0.9"
+        reason = "drift per period"
+    elif correlation < 0.65:
+        reason = "autocorrelation is below 0.65"
     # Any failed convergence check vetoes approval
     if reason is not None:
         state["recommendation"] = "extend"
