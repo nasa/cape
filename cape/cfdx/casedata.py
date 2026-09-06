@@ -1529,12 +1529,15 @@ class CaseData(DataKit):
         # Add drift
         drift = selected_state["linear_fit_a1"] * jmax
         target = state["full_range"] * 0.0001
+        # Add variation target
+        target_sampling = state["full_range"] * 4e-5
         # Save stats from selected window
         state.update(
             min=selected_state["min"],
             max=selected_state["max"],
             trend_drift=drift,
             target_drift=target,
+            target_mean_range=target_sampling,
             trend_fit_a1=selected_state["trend_fit_a1"],
             linear_fit_a1=selected_state["linear_fit_a1"],
             sinusoid_amplitude=selected_state["sinusoid_amplitude"],
