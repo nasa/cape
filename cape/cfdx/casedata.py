@@ -1456,6 +1456,8 @@ class CaseData(DataKit):
             mask = ranks.autocorrelation > 0
             # Select the best
             n1 = windows[mask][np.argmin(m2s[mask])]
+        # Target autocorrelation based on window size
+        target_autocorrelation = 0.95 * np.sqrt(jmax / n1)
         # Get vectors
         vj = v[-n1:]
         # Basic quantities
@@ -1530,7 +1532,7 @@ class CaseData(DataKit):
             corr_state = state.get(str(2*jmax), selected_state)
         # Add drift
         drift = selected_state["linear_fit_a1"] * jmax
-        target = state["full_range"] * 0.0001
+        target_drift = state["full_range"] * 2e-4
         # Add variation target
         target_sampling = state["full_range"] * 5e-4
         # Save stats from selected window
@@ -1538,12 +1540,13 @@ class CaseData(DataKit):
             min=selected_state["min"],
             max=selected_state["max"],
             trend_drift=drift,
-            target_drift=target,
+            target_drift=target_drift,
             target_mean_range=target_sampling,
             trend_fit_a1=selected_state["trend_fit_a1"],
             linear_fit_a1=selected_state["linear_fit_a1"],
             sinusoid_amplitude=selected_state["sinusoid_amplitude"],
-            autocorrelation=max(r2, corr_state["autocorrelation"]))
+            autocorrelation=max(r4, corr_state["autocorrelation"]),
+            target_autocorrelation=target_autocorrelation)
         # Classify convergence behavior
         _classify_state(state)
         # Recommend the next action
@@ -5396,14 +5399,14 @@ def _recommend_action(state: dict):
         state["reason"] = "stationary mean"
         return
     # Check drift and repeatability for reasons to extend
-    slope = abs(float(state.get("linear_fit_a1", np.inf)))
-    frequency = float(state.get("frequency", 0.0))
+    drift = state.get("trend_drift", np.inf)
+    target_drift = state.get("target_drift", 1e-4*full_range)
     correlation = float(state.get("autocorrelation", 0.0))
     reason = None
-    if slope*frequency >= 1e-4*full_range:
+    if np.abs(drift) >= target_drift:
         reason = "drift per period"
-    elif correlation < 0.85:
-        reason = "autocorrelation is below 0.65"
+    elif correlation < state.get("target_autocorrelation", 0.9):
+        reason = "low autocorrelation"
     # Any failed convergence check vetoes approval
     if reason is not None:
         state["recommendation"] = "extend"

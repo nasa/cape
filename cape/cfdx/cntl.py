@@ -6352,10 +6352,13 @@ def _yaml_lines(dat: dict, indent: int = 0, v: bool = False) -> list:
                     lines.append(
                         " "*(indent + 2) +
                         f":bright-blue:`mean`: {_yaml_valstr(mean)}")
-        if reason.startswith("autocorrelation") and "autocorrelation" in dat:
+        if reason.startswith("low autocorrelation") and "autocorrelation" in dat:
             lines.append(
                 " "*indent + ":bright-blue:`autocorrelation`: " +
                 _yaml_valstr(dat["autocorrelation"]))
+            lines.append(
+                " "*indent + ":bright-blue:`target_autocorrelation`: " +
+                _yaml_valstr(dat.get("target_autocorrelation", 0.9)))
         if reason.startswith("drift"):
             for k in ("trend_drift", "target_drift"):
                 if k in dat:
