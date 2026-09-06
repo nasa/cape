@@ -3147,7 +3147,16 @@ class Cntl(CntlBase):
             newjobs = queue.squeue(u=u)
         else:
             # Use qstat to get job info
-            newjobs = queue.qstat(u=u, server=server)
+            # Query each distinct PBS route used by this run matrix
+            routes = {
+                self._get_pbs_route_key(i): self.get_pbs_command_kwargs(i)
+                for i in range(self.x.nCase)
+            }
+            if not routes:
+                routes[(None, None)] = {}
+            newjobs = {}
+            for cmdkw in routes.values():
+                newjobs.update(queue.qstat(u=u, server=server, **cmdkw))
         # Add to full list
         self.jobs.update(newjobs)
         # Note this status
@@ -3155,6 +3164,25 @@ class Cntl(CntlBase):
             self.jobqueues.append(qid)
         # Output
         return self.jobs
+
+    def _get_pbs_route_key(self, i: int) -> tuple:
+        """Get a hashable PBS route identifier for case *i*."""
+        cmdkw = self.get_pbs_command_kwargs(i)
+        hosts = cmdkw.get("jump_hosts")
+        if isinstance(hosts, list):
+            hosts = tuple(hosts)
+        return hosts, cmdkw.get("prefix")
+
+    def get_pbs_command_kwargs(self, i: int) -> dict:
+        """Get queue command routing options for case *i*."""
+        hosts = self.opts.get_JumpHost(i=i)
+        prefix = self.opts.get_PBS_PBSPrefix(i=i)
+        kw = {}
+        if hosts:
+            kw["jump_hosts"] = hosts
+        if prefix:
+            kw["prefix"] = prefix
+        return kw
 
     def _get_qstat(self) -> queue.QStat:
         # Check current attribute
@@ -4147,7 +4175,8 @@ class Cntl(CntlBase):
             pbs = queue.sbatch(fpbs)
         else:
             # Submit PBS job
-            pbs = queue.pqsub(fpbs)
+            prefix = self.opts.get_BatchPBS_PBSPrefix(i=0)
+            pbs = queue.pqsub(fpbs, prefix=prefix)
         # Output
         return pbs
 

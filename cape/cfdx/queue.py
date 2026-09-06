@@ -14,6 +14,7 @@ PBS job number of the submitted job.
 import getpass
 import os
 import re
+import shlex
 import time
 from io import IOBase
 from subprocess import Popen, PIPE
@@ -33,6 +34,29 @@ JOB_ID_FILES = (
 # Default time until we should call qstat/squeue again [s]
 DEFAULT_SCHEDULER = "pbs"
 DEFAULT_TIMEOUT = 180.0
+
+
+def _pbs_cmd(
+        name: str,
+        args: list,
+        jump_hosts=None,
+        prefix: Optional[str] = None) -> list:
+    r"""Create a local or SSH-routed PBS command"""
+    # Apply an optional directory to qsub/qstat/qdel
+    executable = os.path.join(prefix, name) if prefix else name
+    # Preserve the historical local command
+    if not jump_hosts:
+        return [executable] + args
+    # Normalize a direct host and a host chain
+    hosts = [jump_hosts] if isinstance(jump_hosts, str) else list(jump_hosts)
+    if not hosts:
+        return [executable] + args
+    # The last host executes PBS; earlier entries form the ProxyJump chain
+    cmd = ["ssh"]
+    if len(hosts) > 1:
+        cmd += ["-J", ",".join(hosts[:-1])]
+    remote_cmd = shlex.join([executable] + args)
+    return cmd + [hosts[-1], remote_cmd]
 
 
 class QStat(dict):
@@ -89,7 +113,9 @@ class QStat(dict):
     def check_job(
             self,
             j: Union[str, int],
-            u: Optional[str] = None) -> Optional[dict]:
+            u: Optional[str] = None,
+            jump_hosts=None,
+            prefix: Optional[str] = None) -> Optional[dict]:
         r"""Check status of given job (owned by specific user)
 
         :Call:
@@ -109,7 +135,9 @@ class QStat(dict):
         jobid = self._fulljob(j)
         # Name of queue
         server = self._jobserver(jobid)
-        jobque = f"{uname}@{server}"
+        route = (
+            tuple(jump_hosts) if isinstance(jump_hosts, list) else jump_hosts)
+        jobque = (uname, server, route, prefix)
         # Get last time this user/server was called
         tic = self.calltimes.get(jobque)
         # Check if called
@@ -132,13 +160,18 @@ class QStat(dict):
             self.squeue(uname, dest)
         else:
             # Use PBS
-            self.qstat(uname, dest)
+            self.qstat(uname, dest, jump_hosts=jump_hosts, prefix=prefix)
         # Re-forumlate job name in case default server was filled
         jobid = self._fulljob(j)
         # Check job
         return self.get(jobid)
 
-    def qstat(self, u: str, server: Optional[str] = None):
+    def qstat(
+            self,
+            u: str,
+            server: Optional[str] = None,
+            jump_hosts=None,
+            prefix: Optional[str] = None):
         r"""Call ``qstat`` and add results to collection
 
         :Call:
@@ -154,7 +187,8 @@ class QStat(dict):
             * 2025-05-03 ``@ddalle``: v1.0
         """
         # Call ``qstat``
-        jobs = qstat(u=u, server=server)
+        jobs = qstat(
+            u=u, server=server, jump_hosts=jump_hosts, prefix=prefix)
         # Get completion time
         tic = time.time()
         # Add jobs to collection
@@ -166,7 +200,10 @@ class QStat(dict):
                 self.defaultserver = jobid.rsplit('.', 1)[-1]
                 break
         # Identifier
-        jobqueue = self._jobqueue(u, server)
+        route = (
+            tuple(jump_hosts) if isinstance(jump_hosts, list) else jump_hosts)
+        serverkey = str(self._fullserver(server))
+        jobqueue = (self._fulluser(u), serverkey, route, prefix)
         # Note this status
         self.calltimes[jobqueue] = tic
 
@@ -284,7 +321,7 @@ class QStat(dict):
 
 
 # Function to call `qsub` and get the PBS number
-def qsub(fname: str) -> str:
+def qsub(fname: str, jump_hosts=None, prefix: Optional[str] = None) -> str:
     r"""Submit a PBS script and return the job number
 
     :Call:
@@ -305,9 +342,12 @@ def qsub(fname: str) -> str:
         * 2024-06-18 ``@ddalle``: v3.0; string output
     """
     # Check for missing ``qsub`` function
-    assert_which("qsub")
+    if not jump_hosts and not prefix:
+        assert_which("qsub")
     # Call ``qsub`` with captured output
-    proc = Popen(['qsub', fname], stdout=PIPE)
+    fname = os.path.abspath(fname) if jump_hosts else fname
+    cmd = _pbs_cmd("qsub", [fname], jump_hosts, prefix)
+    proc = Popen(cmd, stdout=PIPE)
     # Get STDOUT
     stdout, _ = proc.communicate()
     # Check return code
@@ -353,7 +393,11 @@ def sbatch(fname: str) -> Optional[str]:
 
 
 # Function to delete jobs from the queue.
-def qdel(jobID: Union[str, int], force: bool = False):
+def qdel(
+        jobID: Union[str, int],
+        force: bool = False,
+        jump_hosts=None,
+        prefix: Optional[str] = None):
     r"""Delete a PBS job by ID
 
     :Call:
@@ -371,12 +415,14 @@ def qdel(jobID: Union[str, int], force: bool = False):
     # Convert to str if int
     jobID = _job(jobID)
     # ``qdel`` command
-    cmdlist = ["qdel", jobID]
+    cmdlist = []
     # Add -W force option?
     if force:
         cmdlist += ["-W", "force"]
+    cmdlist.append(jobID)
     # Call ``qdel``
-    proc = Popen(['qdel', jobID], stdout=PIPE, stderr=PIPE)
+    cmd = _pbs_cmd("qdel", cmdlist, jump_hosts, prefix)
+    proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
     # Wait for command
     proc.communicate()
     # Status update
@@ -411,7 +457,11 @@ def scancel(jobID: Union[str, int]):
 
 
 # Function to call `qsub` and save the job ID
-def pqsub(fname: str, fout: str = JOB_ID_FILE) -> str:
+def pqsub(
+        fname: str,
+        fout: str = JOB_ID_FILE,
+        jump_hosts=None,
+        prefix: Optional[str] = None) -> str:
     r"""Submit a PBS script and save the job number in an *fout* file
 
     :Call:
@@ -429,7 +479,7 @@ def pqsub(fname: str, fout: str = JOB_ID_FILE) -> str:
         * 2021-08-09 ``@ddalle``: v1.1; allow non-int PBS IDs
     """
     # Submit the job
-    jobname = qsub(fname)
+    jobname = qsub(fname, jump_hosts=jump_hosts, prefix=prefix)
     # Keep up to second '.'
     jobID = _job(jobname)
     # Create the file if the submission was successful
@@ -510,7 +560,9 @@ def qstat(
         u: Optional[str] = None,
         j: Optional[Union[str, int]] = None,
         server: Optional[str] = None,
-        timeout: Union[float, str] = 10.0) -> dict:
+        timeout: Union[float, str] = 10.0,
+        jump_hosts=None,
+        prefix: Optional[str] = None) -> dict:
     r"""Call ``qstat`` and process information
 
     :Call:
@@ -534,19 +586,21 @@ def qstat(
     if u is None:
         u = getpass.getuser()
     # Base command
-    cmd = ["qstat"]
+    args = []
     # Use non-default PBS server?
     if server:
         # Should start wtih "@"
         destination = "@" + server.lstrip("@")
-        cmd.append(destination)
+        args.append(destination)
     # Form the command
     if j is not None:
         # Call for a specific job
-        cmd += ['-J', str(j)]
+        args += ['-J', str(j)]
     else:
         # Call for a user
-        cmd += ['-u', u]
+        args += ['-u', u]
+    # Form a local or routed command
+    cmd = _pbs_cmd("qstat", args, jump_hosts, prefix)
     # Initialize jobs
     jobs = {}
     # Call the command with safety

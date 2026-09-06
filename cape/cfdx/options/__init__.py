@@ -27,6 +27,8 @@ value of a given parameter should be is below.
 
 # Standard library
 import os
+import re
+import socket
 
 # Local imports
 from . import util
@@ -133,6 +135,14 @@ A basic template for such files is shown below.
             // Batch job PBS settings different from *PBS*
             "BatchPBS": { },
 
+            // Route PBS commands according to hostname and case conditions
+            "JumpHosts": {
+                "login[1-4]": {
+                    "@map": {"cpu": null, "gpu": "gpu-login"},
+                    "key": "arch"
+                }
+            },
+
             // Surface subset and point settings
             "Config": { },
 
@@ -177,6 +187,7 @@ file that are not part of any section.
         "Config",
         "DataBook",
         "InitFunction",
+        "JumpHosts",
         "LogLevel",
         "Mesh",
         "ModuleNames",
@@ -207,6 +218,7 @@ file that are not part of any section.
         "BatchShellCmds": str,
         "CaseFunction": str,
         "InitFunction": str,
+        "JumpHosts": dict,
         "LogLevel": INT_TYPES + (str,),
         "ModuleNames": dict,
         "Modules": str,
@@ -257,6 +269,7 @@ file that are not part of any section.
         "CaseFunction": "function(s) to execute in case right before starting",
         "BatchShellCmds": "additional shell commands for batch jobs",
         "InitFunction": "function(s) to run immediately after parsing JSON",
+        "JumpHosts": "PBS hosts selected by local hostname and run matrix",
         "LogLevel": "amount of logging for run matrix controller",
         "ModuleNames": "dict of short names for imported modules",
         "Modules": "list of Python modules to import",
@@ -337,6 +350,33 @@ file that are not part of any section.
         for fdir in lpath:
             # Add absolute path, not relative.
             os.sys.path.append(os.path.abspath(fdir))
+
+    def get_JumpHost(self, i=None, hostname=None):
+        r"""Get PBS host route for a run matrix case
+
+        :Call:
+            >>> hosts = opts.get_JumpHost(i=None, hostname=None)
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+            *i*: {``None``} | :class:`int`
+                Run matrix case index
+            *hostname*: {``None``} | :class:`str`
+                Local hostname; defaults to :func:`socket.gethostname`
+        :Outputs:
+            *hosts*: ``None`` | :class:`str` | :class:`list`\ [:class:`str`]
+                Remote PBS host, optionally preceded by SSH jump hosts
+        """
+        # Sample any @map entries using the selected run matrix case
+        hostmap = self.get_opt("JumpHosts", i=i)
+        if not isinstance(hostmap, dict):
+            return
+        # Use the actual local hostname unless supplied for testing
+        hostname = socket.gethostname() if hostname is None else hostname
+        # Hostname keys are regular expressions; first match wins
+        for pattern, hosts in hostmap.items():
+            if re.fullmatch(pattern, hostname):
+                return hosts
 
     # Make a directory
     def mkdir(self, fdir, sys=False):

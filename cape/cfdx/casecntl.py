@@ -462,7 +462,7 @@ class CaseRunner(CaseRunnerBase):
             # Verbose log
             self.log_verbose("submitting PBS job")
             # Submit case
-            job_id = queue.pqsub(fpbs)
+            job_id = queue.pqsub(fpbs, **self._get_pbs_command_kwargs())
             # Log
             self.log_both(f"submitted PBS job {job_id}")
             # Output
@@ -707,7 +707,7 @@ class CaseRunner(CaseRunnerBase):
             # Log message
             self.log_verbose(f"qdel {jobID}")
             # Delete PBS job
-            queue.qdel(jobID)
+            queue.qdel(jobID, **self._get_pbs_command_kwargs())
 
    # --- Case markers ---
     # Mark a cases as running
@@ -6567,7 +6567,8 @@ class CaseRunner(CaseRunnerBase):
         # Get owner of this case
         uname = self.get_user()
         # Get stats for this job
-        stats = jobs.check_job(jobid, u=uname)
+        stats = jobs.check_job(
+            jobid, u=uname, **self._get_pbs_command_kwargs())
         # Map None -> {}
         stats = {} if stats is None else stats
         # Output
@@ -6585,6 +6586,12 @@ class CaseRunner(CaseRunnerBase):
         self.jobs.scheduler = sched
         # Output
         return self.jobs
+
+    def _get_pbs_command_kwargs(self) -> dict:
+        r"""Get PBS routing arguments from the owning run matrix"""
+        if self.cntl is None:
+            return {}
+        return self.cntl.get_pbs_command_kwargs(self.cntl.caseindex)
 
   # *** ARCHIVING ***
    # --- Archive: actions ---
