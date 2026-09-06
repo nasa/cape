@@ -1266,7 +1266,8 @@ class CaseData(DataKit):
             nmin: int | None = None,
             nstats: int | None = None,
             nmax: int | None = None,
-            nlast: int | None = None, **kw) -> dict:
+            nlast: int | None = None,
+            nstartup: int | None = None, **kw) -> dict:
         r"""Get column state using autocorrelation-based windows
 
         :Call:
@@ -1285,6 +1286,8 @@ class CaseData(DataKit):
             *nlast*: {``None``} | :class:`int`
                 Last iteration to include; negative values are relative to
                 the last available iteration
+            *nstartup*: {``None``} | :class:`int`
+                First iteration to include when calculating *full_range*
         :Outputs:
             *state*: :class:`dict`
                 State information
@@ -1307,6 +1310,7 @@ class CaseData(DataKit):
         t = i if (t.size == 0) else t
         # Support callers using the historical camel-case spelling
         nlast = kw.pop("nLast", nlast)
+        nstartup = kw.pop("nStartup", nstartup)
         # Apply an optional cutoff in iteration space
         if nlast is not None and i.size:
             nlast = i[-1] + nlast if nlast < 0 else nlast
@@ -1327,9 +1331,21 @@ class CaseData(DataKit):
         nstats = int(0.1*n) if (nstats is None) else nstats
         # Apply negative *nmin*
         nmin = (n + nmin) if (nmin < 0) else nmin
+        # Exclude startup transients from the overall convergence scale
+        vscale = v if nstartup is None else v[i >= nstartup]
+        # No convergence assessment is possible during the startup interval
+        if vscale.size == 0:
+            return {
+                "n": n,
+                "n_stats": nstats,
+                "n_min": nmin,
+                "class": "undetermined",
+                "recommendation": "continue",
+                "reason": "startup iterations not complete",
+            }
         # Get overall scale
-        vmax = np.nanmax(v)
-        vmin = np.nanmin(v)
+        vmax = np.nanmax(vscale)
+        vmin = np.nanmin(vscale)
         vrng = vmax - vmin
         # Overall stats
         vavg = np.nanmean(v)
@@ -1641,6 +1657,8 @@ class CaseData(DataKit):
                 Method used to select the averaging window
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
+            *nStartup*: {``None``} | :class:`int`
+                First iteration used to calculate the full-history range
             *nFirst*: :class:`int`
                 First iteration to plot
             *FigureWidth*: :class:`float`
@@ -1724,6 +1742,7 @@ class CaseData(DataKit):
             C = self.ExtractValue(c)
         # Process inputs.
         nLast = kw.get('nLast')
+        nStartup = kw.get('nStartup')
         nFirst = kw.get('nFirst', 1)
         nFirst = 1 if (nFirst is None) else nFirst
         nFirst = self[CASE_COL_ITERS][-1] + nFirst if (nFirst < 0) else nFirst
@@ -1760,7 +1779,7 @@ class CaseData(DataKit):
         elif window_method == "autocorrelation":
             s = self.get_col_state(
                 c, subcol=col, nmin=nMin, nstats=nAvg, nmax=nMax,
-                nlast=nLast)
+                nlast=nLast, nstartup=nStartup)
         else:
             raise CapeValueError(
                 f"Unknown statistics WindowMethod '{window_method}'")
@@ -4010,6 +4029,8 @@ class CaseFM(CaseData):
                 First usable iteration number
             *nLast*: {*fm.i[-1]*} | :class:`int`
                 Last iteration to use for statistics
+            *nStartup*: {``None``} | :class:`int`
+                First iteration used to calculate the full-history range
             *WindowMethod*: {``"autocorrelation"``} | ``"welch"``
                 Method used to select the statistics window
         :Outputs:
@@ -4035,6 +4056,9 @@ class CaseFM(CaseData):
         nlast = kw.pop("nlast", None)
         if nlast is None:
             nlast = kw.pop("nLast", None)
+        nstartup = kw.pop("nstartup", None)
+        if nstartup is None:
+            nstartup = kw.pop("nStartup", None)
         # Resolve the statistics cutoff for later fallback calculations
         ilast = nlast
         if ilast is not None and ilast < 0:
@@ -4061,7 +4085,7 @@ class CaseFM(CaseData):
             else:
                 d = self.get_col_state(
                     c, nmin=nmin, nstats=nStats, nmax=nMax,
-                    nlast=nlast, **kw)
+                    nlast=nlast, nstartup=nstartup, **kw)
                 # A short history may not support autocorrelation analysis
                 if "mean" not in d:
                     nj = min(vuse.size - nmin, nStats)

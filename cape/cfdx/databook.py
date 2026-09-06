@@ -4156,8 +4156,9 @@ class FMDataBook(DataBookComp):
         # Process the statistics
         window_method = self.opts.get_DataBookOpt(comp, "WindowMethod")
         nlast = self.opts.get_DataBookOpt(comp, "NLast")
+        nstartup = self.opts.get_DataBookOpt(comp, "NStartup")
         s = FM.GetStats(
-            nStats, nMax, nMin=nMin, nLast=nlast,
+            nStats, nMax, nMin=nMin, nLast=nlast, nStartup=nstartup,
             WindowMethod=window_method)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:
@@ -4373,8 +4374,9 @@ class PropDataBook(DataBookComp):
         # Process the statistics
         window_method = self.opts.get_DataBookOpt(comp, "WindowMethod")
         nlast = self.opts.get_DataBookOpt(comp, "NLast")
+        nstartup = self.opts.get_DataBookOpt(comp, "NStartup")
         s = prop.GetStats(
-            nStats, nMax, nMin=nMin, nLast=nlast,
+            nStats, nMax, nMin=nMin, nLast=nlast, nStartup=nstartup,
             WindowMethod=window_method)
         # Get the corresponding residual drop
         # Save the data.
@@ -5627,8 +5629,9 @@ class TimeSeriesDataBook(DataBookComp):
         # Process the statistics
         window_method = self.opts.get_DataBookOpt(comp, "WindowMethod")
         nlast = self.opts.get_DataBookOpt(comp, "NLast")
+        nstartup = self.opts.get_DataBookOpt(comp, "NStartup")
         s = FM.GetStats(
-            nStats, nMax, nMin=nMin, nLast=nlast,
+            nStats, nMax, nMin=nMin, nLast=nlast, nStartup=nstartup,
             WindowMethod=window_method)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:

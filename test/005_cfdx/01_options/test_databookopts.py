@@ -102,9 +102,11 @@ def test_dbopts1():
     # Last iteration is distinct from the legacy NLastStats option
     opts["comp1"].set_opt("NLast", -100)
     opts["comp1"].set_opt("NLastStats", 5000)
+    opts["comp1"].set_opt("NStartup", 250)
     assert opts.get_DataBookOpt("comp1", "NLast") == -100
     assert opts.get_DataBookNLast("comp1") == -100
     assert opts.get_DataBookOpt("comp1", "NLastStats") == 5000
+    assert opts.get_DataBookNStartup("comp1") == 250
     # Try nonsense
     with pytest.raises(ValueError):
         opts.get_DataBookNMin(3)

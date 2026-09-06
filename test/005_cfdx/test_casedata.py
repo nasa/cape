@@ -105,6 +105,27 @@ def test_get_col_state_nlast_iteration_cutoff():
     assert state["n"] == 220
 
 
+def test_get_col_state_startup_range():
+    nsample = 240
+    period = 20
+    iters = np.arange(nsample)
+    signal = np.sin(2*np.pi*iters/period)
+    signal[:40] += 100.0
+    db = CaseData()
+    db.save_col("i", iters)
+    db.save_coeff("signal", signal)
+
+    state0 = db.get_col_state("signal", nstats=20)
+    state1 = db.get_col_state("signal", nstats=20, nstartup=40)
+    assert state0["full_range"] > 100.0
+    assert np.isclose(state1["full_range"], 2.0)
+    assert state1["full_mean"] == state0["full_mean"]
+
+    state2 = db.get_col_state("signal", nstats=20, nstartup=300)
+    assert state2["recommendation"] == "continue"
+    assert state2["reason"] == "startup iterations not complete"
+
+
 def test_recommend_increasing_oscillatory_amplitude():
     state = {
         "n": 200,

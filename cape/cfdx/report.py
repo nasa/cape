@@ -3098,11 +3098,13 @@ class Report(object):
                     FM.TransformFM(topts, self.cntl.x, i)
                 # Get the statistics
                 window_method = opts.get_DataBookOpt(comp, "WindowMethod")
+                nstartup = opts.get_DataBookOpt(comp, "NStartup")
                 S[comp] = FM.GetStats(
                     nStats=nStats,
                     nMax=nMax,
                     nMin=nMin,
                     nLast=nCur,
+                    nStartup=nstartup,
                     WindowMethod=window_method)
         # Go back to original folder.
         os.chdir(fpwd)
@@ -3465,6 +3467,7 @@ class Report(object):
                 continue
             # Select the configured statistics-window method
             window_method = opts.get_DataBookOpt(comp, "WindowMethod")
+            nstartup = opts.get_DataBookOpt(comp, "NStartup")
             # Draw the plot
             h = FM.PlotCoeff(
                 coeff, xcol=xcol, n=nPlotIter,
@@ -3480,6 +3483,7 @@ class Report(object):
                 ShowSigma=sh_s, SigmaFormat=fmt_s,
                 ShowError=sh_e, ErrorFormat=fmt_e,
                 WindowMethod=window_method,
+                nStartup=nstartup,
                 FigureWidth=figw, FigureHeight=figh)
        # ----------------
        # Post Formatting

@@ -52,6 +52,7 @@ class DBCompOpts(OptionsDict):
         "NMaxStats",
         "NMin",
         "NStats",
+        "NStartup",
         "Targets",
         "Transformations",
         "Type",
@@ -87,6 +88,8 @@ class DBCompOpts(OptionsDict):
         "nMin": "NMin",
         "nStats": "NStats",
         "nStatsMax": "NMaxStats",
+        "nStartup": "NStartup",
+        "nstartup": "NStartup",
         "tagets": "Targets",
     }
 
@@ -102,6 +105,7 @@ class DBCompOpts(OptionsDict):
         "NMaxStats": INT_TYPES,
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
+        "NStartup": INT_TYPES,
         "Targets": dict,
         "Transformations": dict,
         "Type": str,
@@ -130,6 +134,7 @@ class DBCompOpts(OptionsDict):
         "NMaxStats": "max number of iters to include in averaging window",
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
+        "NStartup": "first iteration used to calculate the full range",
         "Targets": "targets for this databook component",
         "Transformations": "list of transformations applied to component",
         "Type": "databook component type",
@@ -1077,6 +1082,7 @@ class DataBookOpts(OptionsDict):
         "NMaxStats",
         "NMin",
         "NStats",
+        "NStartup",
         "Targets",
         "Type",
     }
@@ -1103,6 +1109,8 @@ class DataBookOpts(OptionsDict):
         "nMin": "NMin",
         "nStats": "NStats",
         "nStatsMax": "NMaxStats",
+        "nStartup": "NStartup",
+        "nstartup": "NStartup",
         "tmin": "MinT",
     }
 
@@ -1119,6 +1127,7 @@ class DataBookOpts(OptionsDict):
         "NMaxStats": INT_TYPES,
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
+        "NStartup": INT_TYPES,
         "Type": str,
     }
 
@@ -1164,6 +1173,7 @@ class DataBookOpts(OptionsDict):
         "NMaxStats": "max number of iters to include in averaging window",
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
+        "NStartup": "first iteration used to calculate the full range",
         "Patches": "list of patches for a databook component",
         "Points": "list of individual point sensors",
         "RelProjTol": "projection tolerance relative to size of geometry",
@@ -1763,6 +1773,7 @@ _SETTER_PROPS = (
     "NLast",
     "NMin",
     "NStats",
+    "NStartup",
     "NMaxStats",
 )
 DataBookOpts.add_compgetters(_SETTER_PROPS, prefix="DataBook")
