@@ -1353,13 +1353,13 @@ class CfdxGetColStateArgs(_CfdxSubsetArgs):
     )
 
 
-# Settings for show-case-state
-class CfdxShowCaseStateArgs(_CfdxSubsetArgs):
+# Settings for get-case-state
+class CfdxGetCaseStateArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
     # Name of function
-    _name = "cape show-case-state"
+    _name = "cape get-case-state"
 
     # Description
     _help_title = "Show iterative state of report columns for case(s)"
@@ -2150,7 +2150,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "rm",
         "search-large",
         "set-config",
-        "show-case-state",
+        "get-case-state",
         "skeleton",
         "triangulate-cutplane",
         "ui",
@@ -2244,7 +2244,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "run": CfdxRunArgs,
         "search-large": CfdxSearchLargeArgs,
         "set-config": CfdxSetConfigArgs,
-        "show-case-state": CfdxShowCaseStateArgs,
+        "get-case-state": CfdxGetCaseStateArgs,
         "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
         "triangulate-cutplane": CfdxTriangulateCutPlaneArgs,
@@ -3073,7 +3073,7 @@ def cape_col_state(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, v
 
 
-@CfdxShowCaseStateArgs.rst
+@CfdxGetCaseStateArgs.rst
 def cape_show_case_state(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
@@ -3090,7 +3090,7 @@ def cape_show_case_state(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read controller and select cases
-    cntl, kw = read_cntl_quiet(CfdxShowCaseStateArgs, *a, **kw)
+    cntl, kw = read_cntl_quiet(CfdxGetCaseStateArgs, *a, **kw)
     inds = cntl.GetIndices(**kw)
     # Show each selected case
     dat = {}
@@ -4112,7 +4112,7 @@ CMD_DICT = {
     "run": cape_run,
     "search-large": cape_search_large,
     "set-config": cape_set_config,
-    "show-case-state": cape_show_case_state,
+    "get-case-state": cape_show_case_state,
     "skeleton": cape_skeleton,
     "start": cape_start,
     "triangulate-cutplane": cape_triangulate_cutplane,

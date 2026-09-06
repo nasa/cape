@@ -100,6 +100,16 @@ Pair = namedtuple("Pair", ("a", "b"))
 #: Pair for force and moment vector [histories], *F*, *M*
 FMPair = namedtuple("FMPair", ("F", "M"))
 
+#: Metrics used to rank candidate statistics windows
+WindowRank = namedtuple(
+    "WindowRank",
+    (
+        "linear_fit_a1",
+        "trend_fit_a1",
+        "autocorrelation",
+        "sinusoid_amplitude",
+    ))
+
 
 # Import signal
 def _import_savgol() -> Callable:
@@ -1374,8 +1384,9 @@ class CaseData(DataKit):
         # Get max number of periods in allowed window
         pmax = nsmax // jmax
         # Save autocorrelation-based window sizes
-        periods = 2 ** np.arange(int(np.log2(pmax)) + 1)
-        periods = np.unique(np.append(periods, pmax))
+        periods2 = 2 ** np.arange(int(np.log2(pmax)) + 1)
+        periods = np.unique(np.hstack((periods2, 3*periods2, [pmax])))
+        periods = periods[periods <= pmax]
         windows = jmax * periods
         # Ensure we use at least *nstats* iters
         mask = windows >= nstats
@@ -1387,7 +1398,7 @@ class CaseData(DataKit):
         # Number of windows
         nw = windows.size
         # Calculate and save metrics for each candidate window
-        a1s, a2s, r1s = rank_windows(t, v, jmax, windows)
+        ranks = rank_windows(t, v, jmax, windows)
         for j, wj in enumerate(windows):
             # Get basic stats
             vj = v[-wj:]
@@ -1397,9 +1408,10 @@ class CaseData(DataKit):
             state[str(wj)] = {
                 "mean": vavgj,
                 "std": vstdj,
-                "linear_fit_a1": a1s[j],
-                "trend_fit_a1": a2s[j],
-                "autocorrelation": r1s[j],
+                "linear_fit_a1": ranks.linear_fit_a1[j],
+                "trend_fit_a1": ranks.trend_fit_a1[j],
+                "autocorrelation": ranks.autocorrelation[j],
+                "sinusoid_amplitude": ranks.sinusoid_amplitude[j],
             }
         # Select the statistics window
         if state["class"] == "flat" or nw == 1:
@@ -1407,7 +1419,7 @@ class CaseData(DataKit):
             n1 = windows[-1]
         else:
             # Scale to favor longer windows
-            m2s = a2s * np.sqrt(jmax / windows)
+            m2s = ranks.trend_fit_a1 * np.sqrt(jmax / windows)
             # Select the best
             n1 = windows[np.argmin(m2s)]
         # Get vectors
@@ -1493,6 +1505,7 @@ class CaseData(DataKit):
             target_drift=target,
             trend_fit_a1=selected_state["trend_fit_a1"],
             linear_fit_a1=selected_state["linear_fit_a1"],
+            sinusoid_amplitude=selected_state["sinusoid_amplitude"],
             autocorrelation=corr_state["autocorrelation"])
         # Classify convergence behavior
         _classify_state(state)
@@ -1503,7 +1516,7 @@ class CaseData(DataKit):
             "mean", "std", "n", "n_stats", "n_min", "class",
             "recommendation", "reason", "frequency", "min", "max",
             "autocorrelation", "trend_drift", "target_drift",
-            "trend_fit_a1", "linear_fit_a1")
+            "trend_fit_a1", "linear_fit_a1", "sinusoid_amplitude")
         state1 = {key: state[key] for key in key_order}
         state1.update(
             (key, value) for key, value in state.items()
@@ -5265,10 +5278,24 @@ def _recommend_action(state: dict):
         return
     # Start from approval, then look for reasons to extend
     state["recommendation"] = "approve"
-    # Check the selected window and its nearest candidate-window neighbors
+    # Check selected window and its nearest candidate-window neighbors
     full_range = abs(float(state.get("full_range", 0.0)))
     stationary_mean = False
     windows = list(state.get("windows", []))
+    # Increasing amplitude in the three smallest windows vetoes approval
+    if len(windows) >= 3:
+        amp_windows = sorted(windows)[:3]
+        amplitudes = [
+            state.get(str(window), {}).get("sinusoid_amplitude")
+            for window in amp_windows]
+        if (
+                all(amp is not None and np.isfinite(amp)
+                    for amp in amplitudes) and
+                amplitudes[0] > 1.1*amplitudes[1] and
+                amplitudes[1] > 1.1*amplitudes[2]):
+            state["recommendation"] = "extend"
+            state["reason"] = "increasing oscillatory amplitude"
+            return
     if len(windows) >= 3:
         # Locate the selected statistics window
         nsel = state.get("n_stats", state.get("frequency"))
@@ -5562,15 +5589,16 @@ def rank_windows(
         t: np.ndarray,
         v: np.ndarray,
         dj: int,
-        windows: np.ndarray) -> tuple:
+        windows: np.ndarray) -> WindowRank:
     # Number of candidate windows
     nw = windows.size
     # Create vectors
     a1 = np.zeros(nw)
     a2 = np.zeros(nw)
     r1 = np.ones(nw)
+    ab = np.zeros(nw)
     # If jmax is frequency in cycles / unit time:
-    omega = 2*np.pi / (t[-1] - t[-dj])
+    omega = 2*np.pi / (t[-1] - t[-dj - 1])
     # Loop through windows to get best one
     for j, nj in enumerate(windows):
         # Get vectors
@@ -5583,6 +5611,8 @@ def rank_windows(
             np.sin(omega*tj),
         ))
         v0, a, b = np.linalg.lstsq(A, vj, rcond=None)[0]
+        # Amplitude of sinusoidal content
+        ab[j] = np.hypot(a, b)
         # Filter out best sinusoid w/ freq=jmax
         vfit = v0 + a*np.cos(omega*tj) + b*np.sin(omega*tj)
         uj = vj - vfit
@@ -5597,7 +5627,7 @@ def rank_windows(
         # Autocorrelation
         r1[j] = np.corrcoef(vj, v1)[0, 1]
     # Output: rankables
-    return a1, a2, r1
+    return WindowRank(a1, a2, r1, ab)
 
 
 def best_window(
@@ -5606,9 +5636,9 @@ def best_window(
         dj: int,
         windows: np.ndarray) -> int:
     # Get ranking paramters
-    _, a2, _ = rank_windows(t, v, dj, windows)
+    ranks = rank_windows(t, v, dj, windows)
     # Rerank
-    m2 = a2 * np.sqrt(dj/windows)
+    m2 = ranks.trend_fit_a1 * np.sqrt(dj/windows)
     # Output: window size
     return windows[np.argmin(m2)]
 
