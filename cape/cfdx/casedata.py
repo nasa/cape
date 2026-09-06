@@ -1451,9 +1451,11 @@ class CaseData(DataKit):
             n1 = windows[-1]
         else:
             # Scale to favor longer windows
-            m2s = ranks.trend_fit_a1 * np.sqrt(jmax / windows)
+            m2s = np.abs(ranks.trend_fit_a1 * np.sqrt(jmax / windows))
+            # Limit to positive-autocorrelation windows
+            mask = ranks.autocorrelation > 0
             # Select the best
-            n1 = windows[np.argmin(np.abs(m2s))]
+            n1 = windows[mask][np.argmin(m2s[mask])]
         # Get vectors
         vj = v[-n1:]
         # Basic quantities
@@ -1541,7 +1543,7 @@ class CaseData(DataKit):
             trend_fit_a1=selected_state["trend_fit_a1"],
             linear_fit_a1=selected_state["linear_fit_a1"],
             sinusoid_amplitude=selected_state["sinusoid_amplitude"],
-            autocorrelation=corr_state["autocorrelation"])
+            autocorrelation=max(r2, corr_state["autocorrelation"]))
         # Classify convergence behavior
         _classify_state(state)
         # Recommend the next action
@@ -5718,10 +5720,12 @@ def best_window(
         windows: np.ndarray) -> int:
     # Get ranking paramters
     ranks = rank_windows(t, v, dj, windows)
+    # Remove negative-autocorrelation from consideration
+    mask = ranks.autocorrelation > 0.0
     # Rerank
-    m2 = ranks.trend_fit_a1 * np.sqrt(dj/windows)
+    m2 = np.abs(ranks.trend_fit_a1 * np.sqrt(dj/windows))
     # Output: window size
-    return windows[np.argmin(np.abs(m2))]
+    return windows[mask][np.argmin(m2[mask])]
 
 
 def lagcorr_score(v, jmax, zcrit=1.0):
