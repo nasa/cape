@@ -1530,7 +1530,7 @@ class CaseData(DataKit):
         drift = selected_state["linear_fit_a1"] * jmax
         target = state["full_range"] * 0.0001
         # Add variation target
-        target_sampling = state["full_range"] * 4e-5
+        target_sampling = state["full_range"] * 5e-4
         # Save stats from selected window
         state.update(
             min=selected_state["min"],
@@ -5355,8 +5355,11 @@ def _recommend_action(state: dict):
     full_range = abs(float(state.get("full_range", 0.0)))
     stationary_mean = False
     windows = list(state.get("windows", []))
+    # Locate the selected statistics window
+    nsel = state.get("n_stats", state.get("frequency"))
+    ksel = min(range(len(windows)), key=lambda k: abs(windows[k] - nsel))
     # Increasing amplitude in the three smallest windows vetoes approval
-    if len(windows) >= 3:
+    if len(windows) >= 3 and ksel < 3:
         # Get three smallest windows
         amp_windows = sorted(windows)[:3]
         # Get best-fit sinusoidal amplitude on those three windows
@@ -5373,9 +5376,6 @@ def _recommend_action(state: dict):
                     return
     # A highly stationary mean will warrant an approval recommendation
     if len(windows) >= 3:
-        # Locate the selected statistics window
-        nsel = state.get("n_stats", state.get("frequency"))
-        ksel = min(range(len(windows)), key=lambda k: abs(windows[k] - nsel))
         # Prefer one neighbor on either side; shift at either boundary
         k0 = min(max(ksel - 1, 0), len(windows) - 3)
         check_windows = windows[k0:k0 + 3]
@@ -5388,7 +5388,7 @@ def _recommend_action(state: dict):
         if all(mean is not None and np.isfinite(mean) for mean in means):
             # Test max mean minus min
             stationary_mean = (
-                max(means) - min(means) <= 5e-4*full_range)
+                max(means) - min(means) <= state.get("target_mean_range", 0.0))
     # A stationary mean is sufficient for approval
     if stationary_mean:
         state["reason"] = "stationary mean"

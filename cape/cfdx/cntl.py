@@ -6341,6 +6341,10 @@ def _yaml_lines(dat: dict, indent: int = 0, v: bool = False) -> list:
                     ":bright-blue:`sign-change-rate`: " +
                     _yaml_valstr(sign_rate))
         if recommendation == "approve" and reason == "stationary mean":
+            mean_range = dat.get("target_mean_range")
+            lines.append(
+                " "*indent + ":bright-blue:`target-mean-range`: " +
+                _yaml_valstr(mean_range))
             for window in dat.get("windows", []):
                 mean = dat.get(str(window), {}).get("mean")
                 if mean is not None:
