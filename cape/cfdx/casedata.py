@@ -1372,7 +1372,7 @@ class CaseData(DataKit):
         }
         # Get maximum-window size
         nsmax = n - nmin
-        nsmax = min(nsmax, nmax) if nmax is not None else nsmax
+        nsmax = int(min(nsmax, nmax)) if nmax is not None else nsmax
         # Check that the requested statistics window is after *nmin*
         if nsmax < nstats:
             state["n_stats"] = nstats
@@ -4126,8 +4126,9 @@ class CaseFM(CaseData):
                 # A short history may not support autocorrelation analysis
                 if "mean" not in d:
                     nj = min(vuse.size - nmin, nStats)
-                    if nj <= 0:
-                        continue
+                    # If the whole history is before *nmin*, fall back to
+                    # the trailing iterations that are available
+                    nj = max(nj, min(vuse.size, nStats))
                     vj = vuse[-nj:]
                     d = {
                         "mean": np.mean(vj),
@@ -5617,7 +5618,16 @@ def find_peaks_filtered(
             Lightly filtered values of *v* at local maxima
     :Versions:
         * 2026-06-15 ``@ddalle``: v1.0
+        * 2026-09-06 ``@ddalle``: v1.1; default for short histories
     """
+    # Check that the signal is long enough for the filter window
+    if v.size < max(3, window_length):
+        # No peaks detectable for so few samples
+        return (
+            np.zeros(0, dtype="i4"),
+            np.zeros(0),
+            np.zeros(0, dtype="i4"),
+            np.zeros(0))
     # Get filtering function
     savgol_filter = _import_savgol()
     # Filter signal and derivative
