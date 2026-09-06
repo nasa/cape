@@ -35,7 +35,7 @@ if [[ "$?" != "0" ]]; then
     exit 0
 fi
 
-# Switch to python 3.6
-module swap python3 python3/3.6.8
-python3 drive_pytest.py push
+# # Switch to python 3.6
+# module swap python3 python3/3.6.8
+# python3 drive_pytest.py push
 
