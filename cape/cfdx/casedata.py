@@ -1532,7 +1532,7 @@ class CaseData(DataKit):
             corr_state = state.get(str(2*jmax), selected_state)
         # Add drift
         drift = selected_state["linear_fit_a1"] * jmax
-        target_drift = state["full_range"] * 2e-4
+        target_drift = state["full_range"] * 5e-4
         # Add variation target
         target_sampling = state["full_range"] * 5e-4
         # Save stats from selected window
