@@ -87,6 +87,24 @@ def test_get_col_state_period_sequence():
         assert "sinusoid_amplitude" in state[str(window)]
 
 
+def test_get_col_state_nlast_iteration_cutoff():
+    nsample = 240
+    period = 20
+    iters = 2*np.arange(nsample)
+    signal = np.sin(2*np.pi*np.arange(nsample)/period)
+    db = CaseData()
+    db.save_col("i", iters)
+    db.save_coeff("signal", signal)
+
+    # The cutoff is an iteration value, not a number of samples
+    state = db.get_col_state("signal", nstats=20, nlast=319)
+    assert state["n"] == 160
+
+    # Negative values are offsets from the final iteration value
+    state = db.get_col_state("signal", nstats=20, nlast=-40)
+    assert state["n"] == 220
+
+
 def test_recommend_increasing_oscillatory_amplitude():
     state = {
         "n": 200,

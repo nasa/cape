@@ -2675,6 +2675,8 @@ class Cntl(CntlBase):
                 Name of column to analyze
             *v*: {``False``} | ``True``
                 Option to also show contents of dict entries
+            *nlast*: {``None``} | :class:`int`
+                Last iteration to include in the reported state
         :Outputs:
             *dat*: :class:`dict`
                 State information for column *col*
@@ -2695,8 +2697,12 @@ class Cntl(CntlBase):
             # Get databook options
             nmin = self.opts.get_DataBookOpt(comp, "NMin")
             nstats = self.opts.get_DataBookOpt(comp, "NStats")
+            nlast = kw.get("nlast", kw.get("nLast"))
+            if nlast is None:
+                nlast = self.opts.get_DataBookOpt(comp, "NLast")
             # Get the stats for that component
-            dat = db.get_col_state(col, nmin=nmin, nstats=nstats)
+            dat = db.get_col_state(
+                col, nmin=nmin, nstats=nstats, nlast=nlast)
         # Initialize message with case name and comp/col line
         lines = [
             f"**{frun}** [*i*=:blue:`{i}`]",
@@ -2729,6 +2735,8 @@ class Cntl(CntlBase):
             *v*: {``False``} | ``True``
                 Option to show the complete state of the first non-approved
                 component/column pair
+            *nlast*: {``None``} | :class:`int`
+                Last iteration to include in the reported state
         :Outputs:
             *dat*: :class:`dict`
                 State information for each component/column pair evaluated
@@ -2761,7 +2769,11 @@ class Cntl(CntlBase):
                 # Apply the component's configured statistics limits
                 nmin = self.opts.get_DataBookOpt(comp, "NMin")
                 nstats = self.opts.get_DataBookOpt(comp, "NStats")
-                state = db.get_col_state(col, nmin=nmin, nstats=nstats)
+                nlast = kw.get("nlast", kw.get("nLast"))
+                if nlast is None:
+                    nlast = self.opts.get_DataBookOpt(comp, "NLast")
+                state = db.get_col_state(
+                    col, nmin=nmin, nstats=nstats, nlast=nlast)
             except Exception:
                 continue
             dat[title] = state
@@ -2800,6 +2812,8 @@ class Cntl(CntlBase):
                 Name of column to analyze
             *v*: {``False``} | ``True``
                 Option to also show contents of dict entries
+            *nlast*: {``None``} | :class:`int`
+                Last iteration to include in the reported state
             *I*: {``None``} | :class:`list`\ [:class:`int`]
                 Optional list of case indices
             *cons*: {``None``} | :class:`list`\ [:class:`str`]
@@ -2815,7 +2829,8 @@ class Cntl(CntlBase):
         # Loop through cases
         for i in inds:
             # Show state for that case
-            dats[str(i)] = self.show_case_col_state(i, comp, col, v=v)
+            dats[str(i)] = self.show_case_col_state(
+                i, comp, col, v=v, **kw)
         # Output
         return dats
 

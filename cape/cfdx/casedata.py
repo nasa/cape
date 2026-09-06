@@ -1265,7 +1265,8 @@ class CaseData(DataKit):
             col: str,
             nmin: int | None = None,
             nstats: int | None = None,
-            nmax: int | None = None, **kw) -> dict:
+            nmax: int | None = None,
+            nlast: int | None = None, **kw) -> dict:
         r"""Get column state using autocorrelation-based windows
 
         :Call:
@@ -1281,6 +1282,9 @@ class CaseData(DataKit):
                 Minimum statistics-window size
             *nmax*: {``None``} | :class:`int`
                 Maximum statistics-window size
+            *nlast*: {``None``} | :class:`int`
+                Last iteration to include; negative values are relative to
+                the last available iteration
         :Outputs:
             *state*: :class:`dict`
                 State information
@@ -1299,11 +1303,23 @@ class CaseData(DataKit):
         # Get three vectors
         i = self[CASE_COL_ITERS]
         t = self.get(CASE_COL_TIME, i)
+        # Sometimes the time column is present but empty
+        t = i if (t.size == 0) else t
+        # Support callers using the historical camel-case spelling
+        nlast = kw.pop("nLast", nlast)
+        # Apply an optional cutoff in iteration space
+        if nlast is not None and i.size:
+            nlast = i[-1] + nlast if nlast < 0 else nlast
+            mask = i <= nlast
+            i = i[mask]
+            t = t[mask]
+            v = v[mask]
+        # Check for an empty history
+        if i.size == 0:
+            return state
         # Sometimes *t* is filled in with NaN
         if np.any(np.isnan(t)) or (np.max(t) <= np.min(t)):
             t = i
-        # Check for empty time vector
-        t = i if (t.size == 0) else t
         # Get initial window sizes
         n = v.size
         # Defaults
@@ -1529,7 +1545,8 @@ class CaseData(DataKit):
             col: str,
             nmin: int | None = None,
             nstats: int | None = None,
-            nmax: int | None = None, **kw) -> dict:
+            nmax: int | None = None,
+            nlast: int | None = None, **kw) -> dict:
         r"""Get column statistics using the legacy Welch-window search
 
         This adapts :func:`util.SearchSinusoidFitRange` output to the primary
@@ -1548,6 +1565,9 @@ class CaseData(DataKit):
                 Minimum statistics-window size
             *nmax*: {``None``} | :class:`int`
                 Maximum statistics-window size
+            *nlast*: {``None``} | :class:`int`
+                Last iteration to include; negative values are relative to
+                the last available iteration
         :Outputs:
             *state*: :class:`dict`
                 Statistics using the same primary keys as *get_col_state*
@@ -1555,6 +1575,17 @@ class CaseData(DataKit):
             * 2026-09-05 ``@openai``: v1.0
         """
         subcol = kw.pop("subcol", None)
+        # Extract and optionally truncate the iterative history
+        i = self.get_values(CASE_COL_ITERS)
+        v = self.ExtractValue(col, subcol)
+        nlast = kw.pop("nLast", nlast)
+        if nlast is not None and i.size:
+            nlast = i[-1] + nlast if nlast < 0 else nlast
+            mask = i <= nlast
+            i = i[mask]
+            v = v[mask]
+        if i.size == 0:
+            return {}
         # Apply defaults used by the legacy interface
         nstats = 100 if nstats is None else nstats
         nmax = nstats if nmax is None else nmax
@@ -1562,8 +1593,7 @@ class CaseData(DataKit):
         dn = kw.get("dnStats", nstats)
         # Run the legacy window search
         d = util.SearchSinusoidFitRange(
-            self.get_values(CASE_COL_ITERS),
-            self.ExtractValue(col, subcol), nstats, nmax,
+            i, v, nstats, nmax,
             dn=dn, nMin=nmin)
         # Adapt names to the new column-state interface
         return {
@@ -1726,10 +1756,11 @@ class CaseData(DataKit):
         if window_method == "welch":
             s = self.get_col_state_welch(
                 c, subcol=col, nmin=nMin, nstats=nAvg, nmax=nMax,
-                dnStats=dnAvg)
+                nlast=nLast, dnStats=dnAvg)
         elif window_method == "autocorrelation":
             s = self.get_col_state(
-                c, subcol=col, nmin=nMin, nstats=nAvg, nmax=nMax)
+                c, subcol=col, nmin=nMin, nstats=nAvg, nmax=nMax,
+                nlast=nLast)
         else:
             raise CapeValueError(
                 f"Unknown statistics WindowMethod '{window_method}'")
@@ -4001,6 +4032,13 @@ class CaseFM(CaseData):
         # Select window-search method
         window_method = kw.pop("WindowMethod", "autocorrelation")
         nmin = kw.pop("nMin", 0)
+        nlast = kw.pop("nlast", None)
+        if nlast is None:
+            nlast = kw.pop("nLast", None)
+        # Resolve the statistics cutoff for later fallback calculations
+        ilast = nlast
+        if ilast is not None and ilast < 0:
+            ilast = iters[-1] + ilast
         if window_method not in ("autocorrelation", "welch"):
             raise CapeValueError(
                 f"Unknown statistics WindowMethod '{window_method}'")
@@ -4011,17 +4049,25 @@ class CaseFM(CaseData):
             # Check type
             if not isinstance(v, np.ndarray) or v.size == 0:
                 continue
+            # Values available at the requested reporting iteration
+            vuse = v if ilast is None else v[iters <= ilast]
+            if vuse.size == 0:
+                continue
             # Get individual statistics
             if window_method == "welch":
                 d = self.get_col_state_welch(
-                    c, nmin=nmin, nstats=nStats, nmax=nMax, **kw)
+                    c, nmin=nmin, nstats=nStats, nmax=nMax,
+                    nlast=nlast, **kw)
             else:
                 d = self.get_col_state(
-                    c, nmin=nmin, nstats=nStats, nmax=nMax, **kw)
+                    c, nmin=nmin, nstats=nStats, nmax=nMax,
+                    nlast=nlast, **kw)
                 # A short history may not support autocorrelation analysis
                 if "mean" not in d:
-                    nj = min(v.size - nmin, nStats)
-                    vj = v[-nj:]
+                    nj = min(vuse.size - nmin, nStats)
+                    if nj <= 0:
+                        continue
+                    vj = vuse[-nj:]
                     d = {
                         "mean": np.mean(vj),
                         "std": np.std(vj),
@@ -4036,7 +4082,7 @@ class CaseFM(CaseData):
             s[c+'_max'] = d["max"]
             s[c+'_std'] = d["std"]
             s[c+'_err'] = d.get(
-                "error", util.SigmaMean(v[-d["n_stats"]:]))
+                "error", util.SigmaMean(vuse[-d["n_stats"]:]))
             # Update stats count
             ns = max(ns, d["n_stats"])
         # Set the stats count

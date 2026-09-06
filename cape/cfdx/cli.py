@@ -208,6 +208,7 @@ class CfdxArgReader(ArgReader):
         "maxdepth": int,
         "me": bool,
         "n": int,
+        "nlast": int,
         "nmax": int,
         "nproc": int,
         "nsurf": int,
@@ -264,6 +265,7 @@ class CfdxArgReader(ArgReader):
         "imax": int,
         "maxdepth": int,
         "n": int,
+        "nlast": int,
         "nmax": int,
         "nproc": int,
         "nsurf": int,
@@ -417,6 +419,7 @@ class CfdxArgReader(ArgReader):
         "maxdepth": "Max depth of dicts to show in ``inspect-json`` output",
         "me": "Limit to cases owned by current user (equiv. ``--user $USER``)",
         "n": "Submit at most *N* cases",
+        "nlast": "Last iteration to include in iterative statistics",
         "nmax": "Maximum number of snapshots to process",
         "nproc": "Number of parallel processes to use",
         "nsurf": "Index of surface to process",
@@ -494,6 +497,7 @@ class CfdxArgReader(ArgReader):
         "ll": "[PAT]",
         "maxdepth": "N",
         "n": "N",
+        "nlast": "N",
         "nmax": "NMAX",
         "nproc": "NPROC",
         "nsurf": "SURF",
@@ -1337,8 +1341,14 @@ class CfdxGetColStateArgs(_CfdxSubsetArgs):
     _optlist = (
         "col",
         "comp",
+        "nlast",
         "v",
     )
+
+    # Command-specific aliases
+    _optmap = {
+        "n": "nlast",
+    }
 
     # Required options
     _optlistreq = (
@@ -1361,11 +1371,17 @@ class CfdxGetCaseStateArgs(_CfdxSubsetArgs):
     # Name of function
     _name = "cape get-case-state"
 
+    # Command-specific aliases
+    _optmap = {
+        "n": "nlast",
+    }
+
     # Description
     _help_title = "Show iterative state of report columns for case(s)"
 
     # Additional options
     _optlist = (
+        "nlast",
         "v",
     )
 
@@ -2054,6 +2070,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "maxdepth",
         "me",
         "n",
+        "nlast",
         "nmax",
         "nproc",
         "nsurf",
@@ -3074,7 +3091,7 @@ def cape_col_state(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxGetCaseStateArgs.rst
-def cape_show_case_state(*a, **kw) -> Tuple[int, Any]:
+def cape_case_state(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -3095,7 +3112,8 @@ def cape_show_case_state(*a, **kw) -> Tuple[int, Any]:
     # Show each selected case
     dat = {}
     for i in inds:
-        dat[str(i)] = cntl.show_case_state(i, v=kw.get("v", False))
+        dat[str(i)] = cntl.show_case_state(
+            i, v=kw.get("v", False), nlast=kw.get("nlast"))
     # Output
     return IERR_OK, dat
 
@@ -4093,6 +4111,7 @@ CMD_DICT = {
     "find-cases": cape_find,
     "find-json": cape_find_json,
     "find-large": cape_find_large,
+    "get-case-state": cape_case_state,
     "get-col-state": cape_col_state,
     "get-config": cape_get_config,
     "get-keys": cape_get_keys,
@@ -4112,7 +4131,6 @@ CMD_DICT = {
     "run": cape_run,
     "search-large": cape_search_large,
     "set-config": cape_set_config,
-    "get-case-state": cape_show_case_state,
     "skeleton": cape_skeleton,
     "start": cape_start,
     "triangulate-cutplane": cape_triangulate_cutplane,

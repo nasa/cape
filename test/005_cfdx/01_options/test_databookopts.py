@@ -99,6 +99,12 @@ def test_dbopts1():
     assert opts.get_DataBookNMin() == 2000
     # Statistics-window method
     assert opts.get_DataBookOpt("comp1", "WindowMethod") == "autocorrelation"
+    # Last iteration is distinct from the legacy NLastStats option
+    opts["comp1"].set_opt("NLast", -100)
+    opts["comp1"].set_opt("NLastStats", 5000)
+    assert opts.get_DataBookOpt("comp1", "NLast") == -100
+    assert opts.get_DataBookNLast("comp1") == -100
+    assert opts.get_DataBookOpt("comp1", "NLastStats") == 5000
     # Try nonsense
     with pytest.raises(ValueError):
         opts.get_DataBookNMin(3)

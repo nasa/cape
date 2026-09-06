@@ -4155,8 +4155,10 @@ class FMDataBook(DataBookComp):
 
         # Process the statistics
         window_method = self.opts.get_DataBookOpt(comp, "WindowMethod")
+        nlast = self.opts.get_DataBookOpt(comp, "NLast")
         s = FM.GetStats(
-            nStats, nMax, nMin=nMin, WindowMethod=window_method)
+            nStats, nMax, nMin=nMin, nLast=nlast,
+            WindowMethod=window_method)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:
             nOrders = H.GetNOrders(s['nStats'])
@@ -4370,8 +4372,10 @@ class PropDataBook(DataBookComp):
         prop = self.ReadCase(compID)
         # Process the statistics
         window_method = self.opts.get_DataBookOpt(comp, "WindowMethod")
+        nlast = self.opts.get_DataBookOpt(comp, "NLast")
         s = prop.GetStats(
-            nStats, nMax, nMin=nMin, WindowMethod=window_method)
+            nStats, nMax, nMin=nMin, nLast=nlast,
+            WindowMethod=window_method)
         # Get the corresponding residual drop
         # Save the data.
         if j is None:
@@ -5622,8 +5626,10 @@ class TimeSeriesDataBook(DataBookComp):
             FM.TransformFM(topts, self.x, i)
         # Process the statistics
         window_method = self.opts.get_DataBookOpt(comp, "WindowMethod")
+        nlast = self.opts.get_DataBookOpt(comp, "NLast")
         s = FM.GetStats(
-            nStats, nMax, nMin=nMin, WindowMethod=window_method)
+            nStats, nMax, nMin=nMin, nLast=nlast,
+            WindowMethod=window_method)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:
             nOrders = H.GetNOrders(s['nStats'])
