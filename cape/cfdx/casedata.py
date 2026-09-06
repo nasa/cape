@@ -1356,7 +1356,10 @@ class CaseData(DataKit):
         # Get overall scale
         vmax = np.nanmax(vscale)
         vmin = np.nanmin(vscale)
-        vrng = vmax - vmin
+        vrng_ptp = vmax - vmin
+        vrng_mean = np.abs(np.nanmean(vscale))
+        vrng_std = 6.0 * np.nanstd(vscale)
+        vrng = max(vrng_ptp, vrng_mean, vrng_std)
         # Overall stats
         vavg = np.nanmean(v)
         vstd = np.nanstd(v)
@@ -1365,6 +1368,9 @@ class CaseData(DataKit):
             "n": n,
             "n_min": nmin,
             "full_range": vrng,
+            "full_range_ptp": vrng_ptp,
+            "full_range_mean": vrng_mean,
+            "full_range_std": vrng_std,
             "full_mean": vavg,
             "full_std": vstd,
             "class": "undetermined",
