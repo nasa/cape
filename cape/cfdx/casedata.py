@@ -5354,18 +5354,21 @@ def _recommend_action(state: dict):
     windows = list(state.get("windows", []))
     # Increasing amplitude in the three smallest windows vetoes approval
     if len(windows) >= 3:
+        # Get three smallest windows
         amp_windows = sorted(windows)[:3]
-        amplitudes = [
-            state.get(str(window), {}).get("sinusoid_amplitude")
+        # Get best-fit sinusoidal amplitude on those three windows
+        amps = [
+            state.get(str(window), {}).get("sinusoid_amplitude", 0.0)
             for window in amp_windows]
-        if (
-                all(amp is not None and np.isfinite(amp)
-                    for amp in amplitudes) and
-                amplitudes[0] > 1.1*amplitudes[1] and
-                amplitudes[1] > 1.1*amplitudes[2]):
-            state["recommendation"] = "extend"
-            state["reason"] = "increasing oscillatory amplitude"
-            return
+        # We're going to test for growing amplitude iff three valid amps
+        if all(amp is not None and np.isfinite(amp) for amp in amps):
+            # Test for growing-and-significant amplitude
+            if amps[0] >= 0.01*full_range:
+                if amps[0] > 1.1*max(amps[1], amps[2]):
+                    state["recommendation"] = "extend"
+                    state["reason"] = "increasing oscillatory amplitude"
+                    return
+    # A highly stationary mean will warrant an approval recommendation
     if len(windows) >= 3:
         # Locate the selected statistics window
         nsel = state.get("n_stats", state.get("frequency"))
