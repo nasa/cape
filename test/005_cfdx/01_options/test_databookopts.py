@@ -3,6 +3,7 @@
 import pytest
 
 # Local
+from cape.errors import CapeValueError
 from cape.cfdx.options import databookopts
 
 
@@ -103,12 +104,14 @@ def test_dbopts1():
     opts["comp1"].set_opt("NLast", -100)
     opts["comp1"].set_opt("NLastStats", 5000)
     opts["comp1"].set_opt("NStartup", 250)
+    opts["comp1"].set_opt("NCutoff", 10000)
     assert opts.get_DataBookOpt("comp1", "NLast") == -100
     assert opts.get_DataBookNLast("comp1") == -100
     assert opts.get_DataBookOpt("comp1", "NLastStats") == 5000
     assert opts.get_DataBookNStartup("comp1") == 250
+    assert opts.get_DataBookNCutoff("comp1") == 10000
     # Try nonsense
-    with pytest.raises(ValueError):
+    with pytest.raises(CapeValueError):
         opts.get_DataBookNMin(3)
     # Filter by type
     assert opts.get_DataBookType("comp1") == "FM"

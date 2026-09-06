@@ -2698,13 +2698,14 @@ class Cntl(CntlBase):
             nmin = self.opts.get_DataBookOpt(comp, "NMin")
             nstats = self.opts.get_DataBookOpt(comp, "NStats")
             nstartup = self.opts.get_DataBookOpt(comp, "NStartup")
+            ncutoff = self.opts.get_DataBookOpt(comp, "NCutoff")
             nlast = kw.get("nlast", kw.get("nLast"))
             if nlast is None:
                 nlast = self.opts.get_DataBookOpt(comp, "NLast")
             # Get the stats for that component
             dat = db.get_col_state(
                 col, nmin=nmin, nstats=nstats, nlast=nlast,
-                nstartup=nstartup)
+                nstartup=nstartup, ncutoff=ncutoff)
         # Initialize message with case name and comp/col line
         lines = [
             f"**{frun}** [*i*=:blue:`{i}`]",
@@ -2772,12 +2773,13 @@ class Cntl(CntlBase):
                 nmin = self.opts.get_DataBookOpt(comp, "NMin")
                 nstats = self.opts.get_DataBookOpt(comp, "NStats")
                 nstartup = self.opts.get_DataBookOpt(comp, "NStartup")
+                ncutoff = self.opts.get_DataBookOpt(comp, "NCutoff")
                 nlast = kw.get("nlast", kw.get("nLast"))
                 if nlast is None:
                     nlast = self.opts.get_DataBookOpt(comp, "NLast")
                 state = db.get_col_state(
                     col, nmin=nmin, nstats=nstats, nlast=nlast,
-                    nstartup=nstartup)
+                    nstartup=nstartup, ncutoff=ncutoff)
             except Exception:
                 continue
             dat[title] = state
@@ -6352,7 +6354,9 @@ def _yaml_lines(dat: dict, indent: int = 0, v: bool = False) -> list:
                     lines.append(
                         " "*(indent + 2) +
                         f":bright-blue:`mean`: {_yaml_valstr(mean)}")
-        if reason.startswith("low autocorrelation") and "autocorrelation" in dat:
+        if (
+                reason.startswith("low autocorrelation") and
+                "autocorrelation" in dat):
             lines.append(
                 " "*indent + ":bright-blue:`autocorrelation`: " +
                 _yaml_valstr(dat["autocorrelation"]))

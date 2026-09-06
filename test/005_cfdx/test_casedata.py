@@ -126,6 +126,32 @@ def test_get_col_state_startup_range():
     assert state2["reason"] == "startup iterations not complete"
 
 
+def test_get_col_state_iteration_cutoff(monkeypatch):
+    nsample = 240
+    period = 20
+    iters = 2*np.arange(nsample)
+    signal = np.sin(2*np.pi*np.arange(nsample)/period)
+    db = CaseData()
+    db.save_col("i", iters)
+    db.save_coeff("signal", signal)
+
+    def fail_recommendation(state):
+        raise AssertionError("_recommend_action() should not be called")
+
+    monkeypatch.setattr(
+        "cape.cfdx.casedata._recommend_action", fail_recommendation)
+    # Compare against the actual iteration value, not number of samples
+    state = db.get_col_state("signal", nstats=20, ncutoff=300)
+    assert state["recommendation"] == "approve"
+    assert state["reason"] == "maximum iteration reached"
+
+    # The absolute cutoff also overrides early convergence exits
+    state = db.get_col_state(
+        "signal", nstats=20, nstartup=500, ncutoff=300)
+    assert state["recommendation"] == "approve"
+    assert state["reason"] == "maximum iteration reached"
+
+
 def test_recommend_increasing_oscillatory_amplitude():
     state = {
         "n": 200,
@@ -136,7 +162,7 @@ def test_recommend_increasing_oscillatory_amplitude():
         "frequency": 20,
         "linear_fit_a1": 0.0,
         "autocorrelation": 1.0,
-        "windows": [80, 20, 60, 40],
+        "windows": [20, 40, 60, 80],
         "20": {"mean": 1.0, "sinusoid_amplitude": 1.23},
         "40": {
             "mean": 1.0,

@@ -1267,7 +1267,8 @@ class CaseData(DataKit):
             nstats: int | None = None,
             nmax: int | None = None,
             nlast: int | None = None,
-            nstartup: int | None = None, **kw) -> dict:
+            nstartup: int | None = None,
+            ncutoff: int | None = None, **kw) -> dict:
         r"""Get column state using autocorrelation-based windows
 
         :Call:
@@ -1288,6 +1289,8 @@ class CaseData(DataKit):
                 the last available iteration
             *nstartup*: {``None``} | :class:`int`
                 First iteration to include when calculating *full_range*
+            *ncutoff*: {``None``} | :class:`int`
+                Iteration at which to approve regardless of convergence
         :Outputs:
             *state*: :class:`dict`
                 State information
@@ -1311,6 +1314,7 @@ class CaseData(DataKit):
         # Support callers using the historical camel-case spelling
         nlast = kw.pop("nLast", nlast)
         nstartup = kw.pop("nStartup", nstartup)
+        ncutoff = kw.pop("nCutoff", ncutoff)
         # Apply an optional cutoff in iteration space
         if nlast is not None and i.size:
             nlast = i[-1] + nlast if nlast < 0 else nlast
@@ -1321,6 +1325,8 @@ class CaseData(DataKit):
         # Check for an empty history
         if i.size == 0:
             return state
+        # Check absolute maximum iteration after applying *nlast*
+        cutoff_reached = ncutoff is not None and i[-1] >= ncutoff
         # Sometimes *t* is filled in with NaN
         if np.any(np.isnan(t)) or (np.max(t) <= np.min(t)):
             t = i
@@ -1335,7 +1341,7 @@ class CaseData(DataKit):
         vscale = v if nstartup is None else v[i >= nstartup]
         # No convergence assessment is possible during the startup interval
         if vscale.size == 0:
-            return {
+            state = {
                 "n": n,
                 "n_stats": nstats,
                 "n_min": nmin,
@@ -1343,6 +1349,10 @@ class CaseData(DataKit):
                 "recommendation": "continue",
                 "reason": "startup iterations not complete",
             }
+            if cutoff_reached:
+                state["recommendation"] = "approve"
+                state["reason"] = "maximum iteration reached"
+            return state
         # Get overall scale
         vmax = np.nanmax(vscale)
         vmin = np.nanmin(vscale)
@@ -1367,6 +1377,9 @@ class CaseData(DataKit):
         if nsmax < nstats:
             state["n_stats"] = nstats
             state["reason"] = "insufficient iterations"
+            if cutoff_reached:
+                state["recommendation"] = "approve"
+                state["reason"] = "maximum iteration reached"
             return state
         # Get the max window
         w = v[-nsmax:]
@@ -1407,6 +1420,9 @@ class CaseData(DataKit):
                 # No period found and short history
                 state["reason"] = "no shifted autocorrelation peak found"
                 state["recommendation"] = "extend"
+                if cutoff_reached:
+                    state["recommendation"] = "approve"
+                    state["reason"] = "maximum iteration reached"
                 return state
             else:
                 # No autocorrelation but sufficient history
@@ -1549,8 +1565,13 @@ class CaseData(DataKit):
             target_autocorrelation=target_autocorrelation)
         # Classify convergence behavior
         _classify_state(state)
-        # Recommend the next action
-        _recommend_action(state)
+        # Apply the absolute cutoff outside the convergence recommendation
+        if cutoff_reached:
+            state["recommendation"] = "approve"
+            state["reason"] = "maximum iteration reached"
+        else:
+            # Recommend the next action
+            _recommend_action(state)
         # Put the most important outputs first for display
         key_order = (
             "mean", "std", "n", "n_stats", "n_min", "class",
@@ -1667,6 +1688,8 @@ class CaseData(DataKit):
                 Last iteration to use (defaults to last iteration available)
             *nStartup*: {``None``} | :class:`int`
                 First iteration used to calculate the full-history range
+            *nCutoff*: {``None``} | :class:`int`
+                Iteration at which to approve regardless of convergence
             *nFirst*: :class:`int`
                 First iteration to plot
             *FigureWidth*: :class:`float`
@@ -1751,6 +1774,7 @@ class CaseData(DataKit):
         # Process inputs.
         nLast = kw.get('nLast')
         nStartup = kw.get('nStartup')
+        nCutoff = kw.get('nCutoff')
         nFirst = kw.get('nFirst', 1)
         nFirst = 1 if (nFirst is None) else nFirst
         nFirst = self[CASE_COL_ITERS][-1] + nFirst if (nFirst < 0) else nFirst
@@ -1787,7 +1811,7 @@ class CaseData(DataKit):
         elif window_method == "autocorrelation":
             s = self.get_col_state(
                 c, subcol=col, nmin=nMin, nstats=nAvg, nmax=nMax,
-                nlast=nLast, nstartup=nStartup)
+                nlast=nLast, nstartup=nStartup, ncutoff=nCutoff)
         else:
             raise CapeValueError(
                 f"Unknown statistics WindowMethod '{window_method}'")
@@ -4039,6 +4063,8 @@ class CaseFM(CaseData):
                 Last iteration to use for statistics
             *nStartup*: {``None``} | :class:`int`
                 First iteration used to calculate the full-history range
+            *nCutoff*: {``None``} | :class:`int`
+                Iteration at which to approve regardless of convergence
             *WindowMethod*: {``"autocorrelation"``} | ``"welch"``
                 Method used to select the statistics window
         :Outputs:
@@ -4067,6 +4093,9 @@ class CaseFM(CaseData):
         nstartup = kw.pop("nstartup", None)
         if nstartup is None:
             nstartup = kw.pop("nStartup", None)
+        ncutoff = kw.pop("ncutoff", None)
+        if ncutoff is None:
+            ncutoff = kw.pop("nCutoff", None)
         # Resolve the statistics cutoff for later fallback calculations
         ilast = nlast
         if ilast is not None and ilast < 0:
@@ -4093,7 +4122,7 @@ class CaseFM(CaseData):
             else:
                 d = self.get_col_state(
                     c, nmin=nmin, nstats=nStats, nmax=nMax,
-                    nlast=nlast, nstartup=nstartup, **kw)
+                    nlast=nlast, nstartup=nstartup, ncutoff=ncutoff, **kw)
                 # A short history may not support autocorrelation analysis
                 if "mean" not in d:
                     nj = min(vuse.size - nmin, nStats)
