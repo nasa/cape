@@ -101,7 +101,6 @@ def test_get_col_state_nlast_iteration_cutoff():
     state = db.get_col_state("signal", nstats=20, nlast=319)
     assert state["n"] == 160
     assert np.isclose(state["full_range_ptp"], 2.0)
-    assert np.isclose(state["full_range_mean"], 0.0, atol=1e-12)
     assert np.isclose(state["full_range_std"], 6.0/np.sqrt(2.0))
     assert state["full_range"] == state["full_range_std"]
 
@@ -124,7 +123,6 @@ def test_get_col_state_startup_range():
     state1 = db.get_col_state("signal", nstats=20, nstartup=40)
     assert state0["full_range"] > 100.0
     assert np.isclose(state1["full_range_ptp"], 2.0)
-    assert np.isclose(state1["full_range_mean"], 0.0, atol=1e-12)
     assert np.isclose(state1["full_range_std"], 6.0/np.sqrt(2.0))
     assert state1["full_range"] == state1["full_range_std"]
     assert state1["full_mean"] == state0["full_mean"]
@@ -139,14 +137,13 @@ def test_get_col_state_full_range_candidates():
     period = 20
     iters = np.arange(nsample)
 
-    # A nearly constant nonzero coefficient is scaled by its magnitude
+    # A nearly constant coefficient is scaled by its standard deviation
     signal = 10.0 + 0.01*np.sin(2*np.pi*iters/period)
     db = CaseData()
     db.save_col("i", iters)
     db.save_coeff("signal", signal)
     state = db.get_col_state("signal", nstats=20)
-    assert state["full_range"] == state["full_range_mean"]
-    assert np.isclose(state["full_range_mean"], 10.0)
+    assert state["full_range"] == state["full_range_std"]
 
     # A sufficiently broad history retains its observed peak-to-peak range
     signal = np.sin(2*np.pi*iters/period)
@@ -155,6 +152,42 @@ def test_get_col_state_full_range_candidates():
     state = db.get_col_state("signal", nstats=20)
     assert state["full_range"] == state["full_range_ptp"]
     assert np.isclose(state["full_range_ptp"], 21.0)
+
+
+def test_get_col_state_configurable_targets():
+    nsample = 240
+    period = 20
+    iters = np.arange(nsample)
+    signal = np.sin(2*np.pi*iters/period)
+    db = CaseData()
+    db.save_col("i", iters)
+    db.save_coeff("signal", signal)
+    state = db.get_col_state(
+        "signal",
+        nstats=20,
+        FullRangeStdFactor=4.0,
+        MaxOscillatoryAmplitudeRatio=1.2,
+        MaxSignChangeRate=0.2,
+        MinOscillatoryAmplitudeFraction=0.02,
+        TargetAutocorrelation=0.8,
+        TargetDriftFraction=0.01,
+        TargetDriftFractionMap={"signal": 0.02},
+        TargetMeanRangeFraction=0.03,
+    )
+    assert state["full_range_std_factor"] == 4.0
+    assert np.isclose(state["full_range_std"], 4.0/np.sqrt(2.0))
+    assert state["target_drift_fraction"] == 0.02
+    assert np.isclose(state["target_drift"], 0.02*state["full_range"])
+    assert state["target_mean_range_fraction"] == 0.03
+    assert np.isclose(
+        state["target_mean_range"], 0.03*state["full_range"])
+    assert state["target_autocorrelation_base"] == 0.8
+    assert np.isclose(
+        state["target_autocorrelation"],
+        0.8*np.sqrt(state["frequency"]/state["n_stats"]))
+    assert state["max_sign_change_rate"] == 0.2
+    assert state["min_oscillatory_amplitude_fraction"] == 0.02
+    assert state["max_oscillatory_amplitude_ratio"] == 1.2
 
 
 def test_get_col_state_iteration_cutoff(monkeypatch):
@@ -206,3 +239,18 @@ def test_recommend_increasing_oscillatory_amplitude():
     _recommend_action(state)
     assert state["recommendation"] == "extend"
     assert state["reason"] == "increasing oscillatory amplitude"
+
+    # A configurable amplitude significance floor can permit approval
+    state["min_oscillatory_amplitude_fraction"] = 0.2
+    _recommend_action(state)
+    assert state["recommendation"] == "approve"
+    assert state["reason"] == "stationary mean"
+
+    # A configurable sign-change limit controls the retry gate
+    state["40"]["sign_change_rate"] = 0.15
+    state["max_sign_change_rate"] = 0.2
+    _recommend_action(state)
+    assert state["recommendation"] == "approve"
+    state["max_sign_change_rate"] = 0.1
+    _recommend_action(state)
+    assert state["recommendation"] == "retry"

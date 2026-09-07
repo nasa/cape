@@ -4158,9 +4158,10 @@ class FMDataBook(DataBookComp):
         nlast = self.opts.get_DataBookOpt(comp, "NLast")
         nstartup = self.opts.get_DataBookOpt(comp, "NStartup")
         ncutoff = self.opts.get_DataBookOpt(comp, "NCutoff")
+        stateopts = self.opts.get_DataBookStateOpts(comp)
         s = FM.GetStats(
             nStats, nMax, nMin=nMin, nLast=nlast, nStartup=nstartup,
-            nCutoff=ncutoff, WindowMethod=window_method)
+            nCutoff=ncutoff, WindowMethod=window_method, **stateopts)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:
             nOrders = H.GetNOrders(s['nStats'])
@@ -4377,9 +4378,10 @@ class PropDataBook(DataBookComp):
         nlast = self.opts.get_DataBookOpt(comp, "NLast")
         nstartup = self.opts.get_DataBookOpt(comp, "NStartup")
         ncutoff = self.opts.get_DataBookOpt(comp, "NCutoff")
+        stateopts = self.opts.get_DataBookStateOpts(comp)
         s = prop.GetStats(
             nStats, nMax, nMin=nMin, nLast=nlast, nStartup=nstartup,
-            nCutoff=ncutoff, WindowMethod=window_method)
+            nCutoff=ncutoff, WindowMethod=window_method, **stateopts)
         # Get the corresponding residual drop
         # Save the data.
         if j is None:
@@ -5633,9 +5635,10 @@ class TimeSeriesDataBook(DataBookComp):
         nlast = self.opts.get_DataBookOpt(comp, "NLast")
         nstartup = self.opts.get_DataBookOpt(comp, "NStartup")
         ncutoff = self.opts.get_DataBookOpt(comp, "NCutoff")
+        stateopts = self.opts.get_DataBookStateOpts(comp)
         s = FM.GetStats(
             nStats, nMax, nMin=nMin, nLast=nlast, nStartup=nstartup,
-            nCutoff=ncutoff, WindowMethod=window_method)
+            nCutoff=ncutoff, WindowMethod=window_method, **stateopts)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:
             nOrders = H.GetNOrders(s['nStats'])

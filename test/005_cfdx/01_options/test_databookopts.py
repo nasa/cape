@@ -145,6 +145,30 @@ def test_dbopts1():
     assert len(opts.get_DataBookTransformations("south1")) == 1
 
 
+def test_databook_state_options():
+    opts = databookopts.DataBookOpts({
+        "Components": ["wing"],
+        "TargetDriftFraction": 1e-3,
+        "TargetDriftFractionMap": {
+            "CA": 2e-3,
+        },
+        "wing": {
+            "TargetMeanRangeFraction": 3e-3,
+            "TargetDriftFractionMap": {
+                "CLL": 4e-3,
+            },
+        },
+    })
+    stateopts = opts.get_DataBookStateOpts("wing")
+    assert stateopts["TargetDriftFraction"] == 1e-3
+    assert stateopts["TargetMeanRangeFraction"] == 3e-3
+    assert stateopts["TargetAutocorrelation"] == 0.95
+    assert stateopts["TargetDriftFractionMap"] == {
+        "CA": 2e-3,
+        "CLL": 4e-3,
+    }
+
+
 def test_dbopts2_comptargets():
     # Initialize options
     opts = databookopts.DataBookOpts(OPTS1)

@@ -2997,11 +2997,12 @@ class CaseRunner(CaseRunnerBase):
         nlast = cntl.opts.get_DataBookOpt(comp, "NLast")
         nstartup = cntl.opts.get_DataBookOpt(comp, "NStartup")
         ncutoff = cntl.opts.get_DataBookOpt(comp, "NCutoff")
+        stateopts = cntl.opts.get_DataBookStateOpts(comp)
         window_method = cntl.opts.get_DataBookOpt(comp, "WindowMethod")
         # Sample
         s = fm.GetStats(
             na, nb, nMin=nmin, nLast=nlast, nStartup=nstartup,
-            nCutoff=ncutoff, WindowMethod=window_method)
+            nCutoff=ncutoff, WindowMethod=window_method, **stateopts)
         # Eliminate *_n* cols
         for col in list(s.keys()):
             if col.endswith("_n"):
@@ -5226,8 +5227,9 @@ class CaseRunner(CaseRunnerBase):
                 # Now process it
                 nstartup = cntl.opts.get_DataBookOpt(comp, "NStartup")
                 ncutoff = cntl.opts.get_DataBookOpt(comp, "NCutoff")
+                stateopts = cntl.opts.get_DataBookStateOpts(comp)
                 state[title] = fm.get_col_state(
-                    coeff, nstartup=nstartup, ncutoff=ncutoff)
+                    coeff, nstartup=nstartup, ncutoff=ncutoff, **stateopts)
             except Exception:
                 continue
         # Output

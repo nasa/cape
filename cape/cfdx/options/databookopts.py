@@ -31,6 +31,19 @@ from ...optdict import (
     USE_PARENT)
 
 
+# Options forwarded to iterative-history state analysis
+_STATE_OPTS = (
+    "FullRangeStdFactor",
+    "MaxOscillatoryAmplitudeRatio",
+    "MaxSignChangeRate",
+    "MinOscillatoryAmplitudeFraction",
+    "TargetAutocorrelation",
+    "TargetDriftFraction",
+    "TargetDriftFractionMap",
+    "TargetMeanRangeFraction",
+)
+
+
 # Template class for databook component
 class DBCompOpts(OptionsDict):
     # No attbitues
@@ -47,7 +60,11 @@ class DBCompOpts(OptionsDict):
         "CompID",
         "DNStats",
         "FloatCols",
+        "FullRangeStdFactor",
         "IntCols",
+        "MaxOscillatoryAmplitudeRatio",
+        "MaxSignChangeRate",
+        "MinOscillatoryAmplitudeFraction",
         "NCutoff",
         "NLast",
         "NLastStats",
@@ -55,6 +72,10 @@ class DBCompOpts(OptionsDict):
         "NMin",
         "NStats",
         "NStartup",
+        "TargetAutocorrelation",
+        "TargetDriftFraction",
+        "TargetDriftFractionMap",
+        "TargetMeanRangeFraction",
         "Targets",
         "Transformations",
         "Type",
@@ -81,6 +102,10 @@ class DBCompOpts(OptionsDict):
         "coeffs": "Cols",
         "cols": "Cols",
         "dnStats": "DNStats",
+        "fullRangeStdFactor": "FullRangeStdFactor",
+        "maxOscillatoryAmplitudeRatio": "MaxOscillatoryAmplitudeRatio",
+        "maxSignChangeRate": "MaxSignChangeRate",
+        "minOscillatoryAmplitudeFraction": "MinOscillatoryAmplitudeFraction",
         "nAvg": "NStats",
         "nFirst": "NMin",
         "nCutoff": "NCutoff",
@@ -94,6 +119,10 @@ class DBCompOpts(OptionsDict):
         "nStatsMax": "NMaxStats",
         "nStartup": "NStartup",
         "nstartup": "NStartup",
+        "targetAutocorrelation": "TargetAutocorrelation",
+        "targetDriftFraction": "TargetDriftFraction",
+        "targetDriftFractionMap": "TargetDriftFractionMap",
+        "targetMeanRangeFraction": "TargetMeanRangeFraction",
         "tagets": "Targets",
     }
 
@@ -103,7 +132,11 @@ class DBCompOpts(OptionsDict):
         "Cols": str,
         "DNStats": INT_TYPES,
         "FloatCols": str,
+        "FullRangeStdFactor": FLOAT_TYPES,
         "IntCols": str,
+        "MaxOscillatoryAmplitudeRatio": FLOAT_TYPES,
+        "MaxSignChangeRate": FLOAT_TYPES,
+        "MinOscillatoryAmplitudeFraction": FLOAT_TYPES,
         "NCutoff": INT_TYPES,
         "NLast": INT_TYPES,
         "NLastStats": INT_TYPES,
@@ -111,6 +144,10 @@ class DBCompOpts(OptionsDict):
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
         "NStartup": INT_TYPES,
+        "TargetAutocorrelation": FLOAT_TYPES,
+        "TargetDriftFraction": FLOAT_TYPES,
+        "TargetDriftFractionMap": dict,
+        "TargetMeanRangeFraction": FLOAT_TYPES,
         "Targets": dict,
         "Transformations": dict,
         "Type": str,
@@ -133,7 +170,13 @@ class DBCompOpts(OptionsDict):
         "CompID": "surface componet(s) to use for this databook component",
         "DNStats": "increment for candidate window sizes",
         "FloatCols": "additional databook cols with floating-point values",
+        "FullRangeStdFactor": "standard-deviation factor for full range",
         "IntCols": "additional databook cols with integer values",
+        "MaxOscillatoryAmplitudeRatio": (
+            "maximum short-window oscillatory-amplitude ratio"),
+        "MaxSignChangeRate": "sign-change rate that triggers a retry",
+        "MinOscillatoryAmplitudeFraction": (
+            "minimum significant oscillatory amplitude as a range fraction"),
         "NCutoff": "iteration at which to recommend approval",
         "NLast": "last iteration to include in iterative statistics",
         "NLastStats": "specific iteration at which to extract stats",
@@ -141,6 +184,11 @@ class DBCompOpts(OptionsDict):
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
         "NStartup": "first iteration used to calculate the full range",
+        "TargetAutocorrelation": "base target autocorrelation",
+        "TargetDriftFraction": "target drift as a fraction of full range",
+        "TargetDriftFractionMap": "target drift fractions by column",
+        "TargetMeanRangeFraction": (
+            "target mean variation as a fraction of full range"),
         "Targets": "targets for this databook component",
         "Transformations": "list of transformations applied to component",
         "Type": "databook component type",
@@ -1080,8 +1128,12 @@ class DataBookOpts(OptionsDict):
         "Components",
         "Delimiter",
         "Folder",
+        "FullRangeStdFactor",
         "DNStats",
+        "MaxOscillatoryAmplitudeRatio",
+        "MaxSignChangeRate",
         "MinCTU",
+        "MinOscillatoryAmplitudeFraction",
         "MinT",
         "NCutoff",
         "NLast",
@@ -1090,6 +1142,10 @@ class DataBookOpts(OptionsDict):
         "NMin",
         "NStats",
         "NStartup",
+        "TargetAutocorrelation",
+        "TargetDriftFraction",
+        "TargetDriftFractionMap",
+        "TargetMeanRangeFraction",
         "Targets",
         "Type",
     }
@@ -1107,6 +1163,10 @@ class DataBookOpts(OptionsDict):
         "ctumin": "MinCTU",
         "delim": "Delimiter",
         "dnStats": "DNStats",
+        "fullRangeStdFactor": "FullRangeStdFactor",
+        "maxOscillatoryAmplitudeRatio": "MaxOscillatoryAmplitudeRatio",
+        "maxSignChangeRate": "MaxSignChangeRate",
+        "minOscillatoryAmplitudeFraction": "MinOscillatoryAmplitudeFraction",
         "nAvg": "NStats",
         "nCutoff": "NCutoff",
         "ncutoff": "NCutoff",
@@ -1120,6 +1180,10 @@ class DataBookOpts(OptionsDict):
         "nStatsMax": "NMaxStats",
         "nStartup": "NStartup",
         "nstartup": "NStartup",
+        "targetAutocorrelation": "TargetAutocorrelation",
+        "targetDriftFraction": "TargetDriftFraction",
+        "targetDriftFractionMap": "TargetDriftFractionMap",
+        "targetMeanRangeFraction": "TargetMeanRangeFraction",
         "tmin": "MinT",
     }
 
@@ -1128,8 +1192,12 @@ class DataBookOpts(OptionsDict):
         "Components": str,
         "Delimiter": str,
         "Folder": str,
+        "FullRangeStdFactor": FLOAT_TYPES,
         "DNStats": INT_TYPES,
+        "MaxOscillatoryAmplitudeRatio": FLOAT_TYPES,
+        "MaxSignChangeRate": FLOAT_TYPES,
         "MinCTU": FLOAT_TYPES,
+        "MinOscillatoryAmplitudeFraction": FLOAT_TYPES,
         "MinT": FLOAT_TYPES,
         "NCutoff": INT_TYPES,
         "NLast": INT_TYPES,
@@ -1138,6 +1206,10 @@ class DataBookOpts(OptionsDict):
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
         "NStartup": INT_TYPES,
+        "TargetAutocorrelation": FLOAT_TYPES,
+        "TargetDriftFraction": FLOAT_TYPES,
+        "TargetDriftFractionMap": dict,
+        "TargetMeanRangeFraction": FLOAT_TYPES,
         "Type": str,
     }
 
@@ -1158,8 +1230,16 @@ class DataBookOpts(OptionsDict):
     _rc = {
         "Delimiter": ",",
         "Folder": "data",
+        "FullRangeStdFactor": 6.0,
+        "MaxOscillatoryAmplitudeRatio": 1.1,
+        "MaxSignChangeRate": 0.1,
+        "MinOscillatoryAmplitudeFraction": 0.01,
         "NMin": 0,
         "NStats": 0,
+        "TargetAutocorrelation": 0.95,
+        "TargetDriftFraction": 5e-4,
+        "TargetDriftFractionMap": {},
+        "TargetMeanRangeFraction": 5e-4,
         "Type": "FM",
     }
 
@@ -1173,10 +1253,16 @@ class DataBookOpts(OptionsDict):
         "Delimiter": "delimiter to use in databook files",
         "FloatCols": "additional databook cols with floating-point values",
         "Folder": "folder for root of databook",
+        "FullRangeStdFactor": "standard-deviation factor for full range",
         "Gauge": "option to use gauge pressures in computations",
         "DNStats": "increment for candidate window sizes",
+        "MaxOscillatoryAmplitudeRatio": (
+            "maximum short-window oscillatory-amplitude ratio"),
+        "MaxSignChangeRate": "sign-change rate that triggers a retry",
         "MapTri": "name of a tri file to use for remapping CFD surface comps",
         "Momentum": "whether to use momentum flux in force computations",
+        "MinOscillatoryAmplitudeFraction": (
+            "minimum significant oscillatory amplitude as a range fraction"),
         "NCut": "number of ``'LineLoad'`` cuts for ``triload``",
         "NCutoff": "iteration at which to recommend approval",
         "NLast": "last iteration to include in iterative statistics",
@@ -1185,6 +1271,11 @@ class DataBookOpts(OptionsDict):
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
         "NStartup": "first iteration used to calculate the full range",
+        "TargetAutocorrelation": "base target autocorrelation",
+        "TargetDriftFraction": "target drift as a fraction of full range",
+        "TargetDriftFractionMap": "target drift fractions by column",
+        "TargetMeanRangeFraction": (
+            "target mean variation as a fraction of full range"),
         "Patches": "list of patches for a databook component",
         "Points": "list of individual point sensors",
         "RelProjTol": "projection tolerance relative to size of geometry",
@@ -1466,6 +1557,32 @@ class DataBookOpts(OptionsDict):
             self.assert_DataBookComponent(comp)
         # Use cascading options
         return self._get_opt_comp(opt, comp=comp, **kw)
+
+    def get_DataBookStateOpts(self, comp: str) -> dict:
+        r"""Get iterative-history state options for one component
+
+        :Call:
+            >>> kw = opts.get_DataBookStateOpts(comp)
+        :Inputs:
+            *opts*: :class:`DataBookOpts`
+                DataBook options interface
+            *comp*: :class:`str`
+                Name of DataBook component
+        :Outputs:
+            *kw*: :class:`dict`
+                State-analysis options using canonical option names
+        """
+        # Get scalar values and the normally cascaded map
+        stateopts = {
+            opt: self.get_DataBookOpt(comp, opt)
+            for opt in _STATE_OPTS
+        }
+        # Merge global and component-specific column overrides
+        fmap = dict(self.get_opt("TargetDriftFractionMap") or {})
+        compopts = self.get_DataBookOpts(comp)
+        fmap.update(compopts.get("TargetDriftFractionMap", {}) or {})
+        stateopts["TargetDriftFractionMap"] = fmap
+        return stateopts
 
     # CompID: special default
     def get_DataBookCompID(self, comp: str, **kw):
@@ -1781,12 +1898,20 @@ class DataBookOpts(OptionsDict):
 _SETTER_PROPS = (
     "Delimiter",
     "DNStats",
+    "FullRangeStdFactor",
+    "MaxOscillatoryAmplitudeRatio",
+    "MaxSignChangeRate",
+    "MinOscillatoryAmplitudeFraction",
     "NCutoff",
     "NLast",
     "NMin",
     "NStats",
     "NStartup",
     "NMaxStats",
+    "TargetAutocorrelation",
+    "TargetDriftFraction",
+    "TargetDriftFractionMap",
+    "TargetMeanRangeFraction",
 )
 DataBookOpts.add_compgetters(_SETTER_PROPS, prefix="DataBook")
 DataBookOpts.add_setters(_SETTER_PROPS, prefix="DataBook")

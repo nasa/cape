@@ -3100,6 +3100,7 @@ class Report(object):
                 window_method = opts.get_DataBookOpt(comp, "WindowMethod")
                 nstartup = opts.get_DataBookOpt(comp, "NStartup")
                 ncutoff = opts.get_DataBookOpt(comp, "NCutoff")
+                stateopts = opts.get_DataBookStateOpts(comp)
                 S[comp] = FM.GetStats(
                     nStats=nStats,
                     nMax=nMax,
@@ -3107,7 +3108,8 @@ class Report(object):
                     nLast=nCur,
                     nStartup=nstartup,
                     nCutoff=ncutoff,
-                    WindowMethod=window_method)
+                    WindowMethod=window_method,
+                    **stateopts)
         # Go back to original folder.
         os.chdir(fpwd)
         # Get the vertical alignment.
@@ -3471,6 +3473,7 @@ class Report(object):
             window_method = opts.get_DataBookOpt(comp, "WindowMethod")
             nstartup = opts.get_DataBookOpt(comp, "NStartup")
             ncutoff = opts.get_DataBookOpt(comp, "NCutoff")
+            stateopts = opts.get_DataBookStateOpts(comp)
             # Draw the plot
             h = FM.PlotCoeff(
                 coeff, xcol=xcol, n=nPlotIter,
@@ -3488,7 +3491,8 @@ class Report(object):
                 WindowMethod=window_method,
                 nStartup=nstartup,
                 nCutoff=ncutoff,
-                FigureWidth=figw, FigureHeight=figh)
+                FigureWidth=figw, FigureHeight=figh,
+                **stateopts)
        # ----------------
        # Post Formatting
        # ----------------

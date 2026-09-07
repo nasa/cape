@@ -1291,6 +1291,22 @@ class CaseData(DataKit):
                 First iteration to include when calculating *full_range*
             *ncutoff*: {``None``} | :class:`int`
                 Iteration at which to approve regardless of convergence
+            *FullRangeStdFactor*: {``6.0``} | :class:`float`
+                Standard-deviation multiplier for the effective full range
+            *TargetDriftFraction*: {``5e-4``} | :class:`float`
+                Target drift as a fraction of the effective full range
+            *TargetDriftFractionMap*: {``{}``} | :class:`dict`
+                Per-column overrides for *TargetDriftFraction*
+            *TargetMeanRangeFraction*: {``5e-4``} | :class:`float`
+                Target window-mean variation as a full-range fraction
+            *TargetAutocorrelation*: {``0.95``} | :class:`float`
+                Base target autocorrelation before window-size scaling
+            *MaxSignChangeRate*: {``0.1``} | :class:`float`
+                Sign-change rate above which retry is recommended
+            *MinOscillatoryAmplitudeFraction*: {``0.01``} | :class:`float`
+                Minimum significant amplitude as a full-range fraction
+            *MaxOscillatoryAmplitudeRatio*: {``1.1``} | :class:`float`
+                Maximum short-to-long-window amplitude ratio
         :Outputs:
             *state*: :class:`dict`
                 State information
@@ -1315,6 +1331,21 @@ class CaseData(DataKit):
         nlast = kw.pop("nLast", nlast)
         nstartup = kw.pop("nStartup", nstartup)
         ncutoff = kw.pop("nCutoff", ncutoff)
+        # Get configurable convergence-policy constants
+        full_range_std_factor = kw.pop("FullRangeStdFactor", 6.0)
+        max_amplitude_ratio = kw.pop("MaxOscillatoryAmplitudeRatio", 1.1)
+        max_sign_change_rate = kw.pop("MaxSignChangeRate", 0.1)
+        min_amplitude_fraction = kw.pop(
+            "MinOscillatoryAmplitudeFraction", 0.01)
+        target_autocorrelation_base = kw.pop("TargetAutocorrelation", 0.95)
+        target_drift_fraction = kw.pop("TargetDriftFraction", 5e-4)
+        target_drift_fraction_map = (
+            kw.pop("TargetDriftFractionMap", {}) or {})
+        target_mean_range_fraction = kw.pop(
+            "TargetMeanRangeFraction", 5e-4)
+        # Apply a coefficient-specific drift tolerance if available
+        target_drift_fraction = target_drift_fraction_map.get(
+            col, target_drift_fraction)
         # Apply an optional cutoff in iteration space
         if nlast is not None and i.size:
             nlast = i[-1] + nlast if nlast < 0 else nlast
@@ -1357,7 +1388,7 @@ class CaseData(DataKit):
         vmax = np.nanmax(vscale)
         vmin = np.nanmin(vscale)
         vrng_ptp = vmax - vmin
-        vrng_std = 6.0 * np.nanstd(vscale)
+        vrng_std = full_range_std_factor * np.nanstd(vscale)
         vrng = max(vrng_ptp, vrng_std)
         # Overall stats
         vavg = np.nanmean(v)
@@ -1369,6 +1400,7 @@ class CaseData(DataKit):
             "full_range": vrng,
             "full_range_ptp": vrng_ptp,
             "full_range_std": vrng_std,
+            "full_range_std_factor": full_range_std_factor,
             "full_mean": vavg,
             "full_std": vstd,
             "class": "undetermined",
@@ -1477,7 +1509,8 @@ class CaseData(DataKit):
             # Select the best
             n1 = windows[mask][np.argmin(m2s[mask])]
         # Target autocorrelation based on window size
-        target_autocorrelation = 0.95 * np.sqrt(jmax / n1)
+        target_autocorrelation = (
+            target_autocorrelation_base * np.sqrt(jmax / n1))
         # Get vectors
         vj = v[-n1:]
         # Basic quantities
@@ -1552,21 +1585,27 @@ class CaseData(DataKit):
             corr_state = state.get(str(2*jmax), selected_state)
         # Add drift
         drift = selected_state["linear_fit_a1"] * jmax
-        target_drift = state["full_range"] * 5e-4
+        target_drift = state["full_range"] * target_drift_fraction
         # Add variation target
-        target_sampling = state["full_range"] * 5e-4
+        target_sampling = state["full_range"] * target_mean_range_fraction
         # Save stats from selected window
         state.update(
             min=selected_state["min"],
             max=selected_state["max"],
             trend_drift=drift,
             target_drift=target_drift,
+            target_drift_fraction=target_drift_fraction,
             target_mean_range=target_sampling,
+            target_mean_range_fraction=target_mean_range_fraction,
             trend_fit_a1=selected_state["trend_fit_a1"],
             linear_fit_a1=selected_state["linear_fit_a1"],
             sinusoid_amplitude=selected_state["sinusoid_amplitude"],
             autocorrelation=max(r4, corr_state["autocorrelation"]),
-            target_autocorrelation=target_autocorrelation)
+            target_autocorrelation=target_autocorrelation,
+            target_autocorrelation_base=target_autocorrelation_base,
+            max_sign_change_rate=max_sign_change_rate,
+            min_oscillatory_amplitude_fraction=min_amplitude_fraction,
+            max_oscillatory_amplitude_ratio=max_amplitude_ratio)
         # Classify convergence behavior
         _classify_state(state)
         # Apply the absolute cutoff outside the convergence recommendation
@@ -1779,6 +1818,20 @@ class CaseData(DataKit):
         nLast = kw.get('nLast')
         nStartup = kw.get('nStartup')
         nCutoff = kw.get('nCutoff')
+        stateopts = {
+            opt: kw[opt]
+            for opt in (
+                "FullRangeStdFactor",
+                "MaxOscillatoryAmplitudeRatio",
+                "MaxSignChangeRate",
+                "MinOscillatoryAmplitudeFraction",
+                "TargetAutocorrelation",
+                "TargetDriftFraction",
+                "TargetDriftFractionMap",
+                "TargetMeanRangeFraction",
+            )
+            if opt in kw
+        }
         nFirst = kw.get('nFirst', 1)
         nFirst = 1 if (nFirst is None) else nFirst
         nFirst = self[CASE_COL_ITERS][-1] + nFirst if (nFirst < 0) else nFirst
@@ -1815,7 +1868,8 @@ class CaseData(DataKit):
         elif window_method == "autocorrelation":
             s = self.get_col_state(
                 c, subcol=col, nmin=nMin, nstats=nAvg, nmax=nMax,
-                nlast=nLast, nstartup=nStartup, ncutoff=nCutoff)
+                nlast=nLast, nstartup=nStartup, ncutoff=nCutoff,
+                **stateopts)
         else:
             raise CapeValueError(
                 f"Unknown statistics WindowMethod '{window_method}'")
@@ -5383,8 +5437,9 @@ def _recommend_action(state: dict):
     # Get statistics from the selected window
     selected = state.get(str(state.get("n_stats")), {})
     sign_rate = float(selected.get("sign_change_rate", 0.0))
+    max_sign_rate = state.get("max_sign_change_rate", 0.1)
     # Frequent direction changes suggest retrying rather than extending
-    if sign_rate > 0.1:
+    if sign_rate > max_sign_rate:
         state["recommendation"] = "retry"
         state["reason"] = "high sign-change rate"
         return
@@ -5408,8 +5463,12 @@ def _recommend_action(state: dict):
         # We're going to test for growing amplitude iff three valid amps
         if all(amp is not None and np.isfinite(amp) for amp in amps):
             # Test for growing-and-significant amplitude
-            if amps[0] >= 0.01*full_range:
-                if amps[0] > 1.1*max(amps[1], amps[2]):
+            min_amp_fraction = state.get(
+                "min_oscillatory_amplitude_fraction", 0.01)
+            max_amp_ratio = state.get(
+                "max_oscillatory_amplitude_ratio", 1.1)
+            if amps[0] >= min_amp_fraction*full_range:
+                if amps[0] > max_amp_ratio*max(amps[1], amps[2]):
                     state["recommendation"] = "extend"
                     state["reason"] = "increasing oscillatory amplitude"
                     return
