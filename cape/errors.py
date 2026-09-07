@@ -57,6 +57,12 @@ class CapeRuntimeError(RuntimeError, CapeError):
     pass
 
 
+# Not supported error
+class CapeNotSupportedError(RuntimeError, CapeError):
+    r"""CAPE exception for feature not supported on current system"""
+    pass
+
+
 # Type error
 class CapeTypeError(TypeError, CapeError):
     r"""CAPE exception for objects with the wrong type"""

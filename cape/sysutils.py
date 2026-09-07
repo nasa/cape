@@ -410,6 +410,30 @@ def open_png(
     return _open_png_local(fname, wait=wait)
 
 
+# Check if terminal can display images
+def terminal_image_supported() -> bool:
+    r"""Check if the terminal can display images
+
+    Relies on the ``textual_image`` and ``rich`` packages and checks
+    for sixel or kitty/TGP support.
+
+    :Call:
+        >>> q = terminal_image_supported()
+    :Outputs:
+        *q*: :class:`bool`
+            Whether terminal can display images
+    :Versions:
+        * 2026-09-06 ``@ddalle``: v1.0
+    """
+    try:
+        # Necessary imports
+        from textual_image.renderable import Image, TGPImage, SixelImage
+        # Check which class we got
+        return Image in (TGPImage, SixelImage)
+    except Exception:
+        return False
+
+
 def _open_png_terminal(fname: str) -> str | None:
     try:
         # Necessary imports

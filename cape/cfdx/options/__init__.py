@@ -203,6 +203,7 @@ file that are not part of any section.
         "RunMatrix",
         "ShellCmds",
         "Slurm",
+        "UserTools",
         "NSubmit",
         "umask",
     }
@@ -227,6 +228,7 @@ file that are not part of any section.
         "PythonPath": str,
         "RunMatrix": dict,
         "ShellCmds": str,
+        "UserTools": dict,
         "nSubmit": INT_TYPES,
         "umask": INT_TYPES + (str,),
     }
@@ -276,6 +278,7 @@ file that are not part of any section.
         "NSubmit": "maximum number of jobs to submit at one time",
         "PythonExec": "specific Python executable to use for jobs",
         "PythonPath": "folder(s) to add to Python path for custom modules",
+        "UserTools": "shell cmds w/ ``{I}`` placeholder for ``cape review``",
     }
 
     # Section classes

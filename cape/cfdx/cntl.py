@@ -81,6 +81,7 @@ from ..geom import RotatePoints
 from ..trifile import ReadTriFile
 from ..errors import (
     CapeNotImplementedError,
+    CapeNotSupportedError,
     CapeTypeError,
     CapeValueError,
     assert_isinstance)
@@ -91,6 +92,16 @@ DEFAULT_SLEEPTIME = 0.05
 DEFAULT_MAXWAIT = 20.0
 DEFAULT_WARNMODE = WARNMODE_WARN
 MATRIX_CHUNK_SIZE = 1000
+# Subfigure base types that produce tables, not images
+SUBFIG_TABLE_TYPES = (
+    "CoeffTable",
+    "Conditions",
+    "ConditionsTable",
+    "FMTable",
+    "Summary",
+    "SweepCases",
+    "SweepConditions",
+)
 UGRID_EXTS = (
     "b4",
     "b8",
@@ -4541,6 +4552,196 @@ class Cntl(CntlBase):
                 " | ".join(reps))
         # Output
         return report
+
+   # --- Review ---
+    # Interactively review cases using subfigures from a report
+    @run_rootdir
+    def ReviewCases(self, **kw) -> dict:
+        r"""Interactively review cases using a report's subfigures
+
+        Loops through selected cases and shows each non-table subfigure
+        of the report in the terminal (requires sixel or kitty/TGP
+        support). The user decides each case: *approve* (mark ``PASS``),
+        *extend* (add iterations), *skip*, or select a shell command
+        from *UserTools*. Actions are collected during the loop and
+        executed in batch after the last case is reviewed.
+
+        :Call:
+            >>> reviews = cntl.ReviewCases(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+        :Options:
+            *report*: {first report} | :class:`str`
+                Name of report to review
+            *dpi*: {``120``} | :class:`int`
+                Resolution for PDF-to-PNG conversion
+            *page*: {``0``} | :class:`int`
+                Page of PDF to display
+            *force*: ``True`` | {``False``}
+                Update subfigures instead of using cache
+        :Outputs:
+            *reviews*: :class:`dict`
+                Case index lists for ``"approve"``, ``"extend"``,
+                ``"skip"``, and ``"tools"`` (per tool name)
+        :Raises:
+            * :class:`cape.errors.CapeNotSupportedError`
+                If the terminal cannot display images
+            * :class:`cape.errors.CapeValueError`
+                If a *UserTools* command has no ``{I}`` placeholder
+        """
+        # Localized imports
+        from .. import sysutils
+        from ..util import pyrangestr
+        # Check if terminal can display images
+        if not sysutils.terminal_image_supported():
+            raise CapeNotSupportedError(
+                "'cape review' requires a terminal that can display "
+                "images in the terminal (sixel or kitty/TGP)")
+        # Get report name
+        rep = kw.pop("report", None)
+        rep = self._normalize_report_name(rep)
+        # Get display options
+        dpi = kw.pop("dpi", 120)
+        page = kw.pop("page", 0)
+        force = kw.pop("force", False)
+        # Get list of subfigures, skipping table types
+        subfigs = [
+            sfig for sfig in self.get_report_subfigs(rep)
+            if self.opts.get_SubfigBaseType(sfig)
+            not in SUBFIG_TABLE_TYPES
+        ]
+        # Get user tools
+        tools = self.opts.get("UserTools", {})
+        # Get cases
+        inds = self.GetIndices(**kw)
+        keeps = self.GetNonzeroIndices(**kw)
+        # Read the report
+        report = self.ReadReport(rep)
+        # Check for force-update
+        report.force_update = force
+        # Initialize decision lists
+        reviews = {
+            "approve": [],
+            "extend": [],
+            "skip": [],
+            "tools": {},
+        }
+        # Reference chars
+        yes = '✓'
+        no = '×'
+        # Loop through cases
+        for i in inds:
+            # Get case name
+            frun = self.x.GetFullFolderNames(i)
+            # Skip cases w/ no iterations or already marked
+            if (i not in keeps) or self.x.PASS[i] or self.x.ERROR[i]:
+                print(compile_rst(f"``{i}`` *{frun}* ``{no}``"))
+                continue
+            # Status update
+            print(compile_rst(f"``{i}`` ``{frun}`` ``{yes}``"))
+            # Default action
+            action = "skip"
+            # Loop through subfigures
+            for js, sfig in enumerate(subfigs):
+                # Create subfigure and cache its image
+                v = report.get_subfig(sfig, i)
+                # Open cached image file(s) (usually just one)
+                for fimg in v.get("cachefiles", ()):
+                    sysutils.open_img(fimg, terminal=True, dpi=dpi, page=page)
+                # Prompt for action; anything but "next" ends case
+                action = self._prompt_review(
+                    frun, sfig, js == len(subfigs) - 1, tools)
+                if action != "next":
+                    break
+            # Save decision
+            if action in ("approve", "extend", "skip"):
+                reviews[action].append(i)
+            elif action in tools:
+                reviews["tools"].setdefault(action, []).append(i)
+        # Mark approved cases
+        if reviews["approve"]:
+            self.MarkPASS(I=reviews["approve"])
+        # Extend cases
+        if reviews["extend"]:
+            self.ExtendCases(I=reviews["extend"])
+        # Run user tools
+        for name, cases in reviews["tools"].items():
+            # Get command
+            cmd = tools[name]
+            # Check for placeholder
+            if "{I}" not in cmd:
+                raise CapeValueError(
+                    f"UserTools '{name}' command has no {{I}} "
+                    f"placeholder: '{cmd}'")
+            # Format case indices
+            irng = pyrangestr(cases)
+            # Status update
+            print(f"tool '{name}': {cmd.replace('{I}', irng)}")
+            # Run the command
+            os.system(cmd.replace("{I}", irng))
+        # Output
+        return reviews
+
+    # Ask user how to review a case
+    def _prompt_review(
+            self,
+            frun: str,
+            sfig: str,
+            qlast: bool,
+            tools: dict) -> str:
+        # Prompt options
+        if qlast:
+            txt = "[a]pprove, [e]xtend, [s]kip, [t]ools"
+            vdef = "a"
+        else:
+            txt = "[n]ext, [e]xtend, [s]kip, [t]ools"
+            vdef = "n"
+        # Add tool count
+        if tools:
+            txt += f" ({len(tools)})"
+        # Loop until valid input
+        while True:
+            # Prompt user
+            v = console.prompt_color(txt, vdef=vdef).strip().lower()
+            # Check options
+            if (v in ("n", "next")) and (not qlast):
+                return "next"
+            elif (v in ("a", "approve")) and qlast:
+                return "approve"
+            elif v in ("e", "extend"):
+                return "extend"
+            elif v in ("s", "skip"):
+                return "skip"
+            elif (v in ("t", "tools")) and tools:
+                # Offer list of tools
+                tool = self._prompt_review_tool(tools)
+                # Check for cancel
+                if tool is not None:
+                    return tool
+            # Unrecognized input
+            print(f"  Unrecognized option '{v}'")
+
+    # Ask user to select a tool
+    def _prompt_review_tool(self, tools: dict) -> Optional[str]:
+        # List of tool names
+        names = list(tools)
+        # Option text
+        txt = "  ".join(f"[{j}] {name}" for j, name in enumerate(names))
+        # Loop until valid input
+        while True:
+            # Prompt user; blank input cancels
+            v = console.prompt_color(f"{txt}, [q]uit tool menu")
+            # Check for cancel
+            if v.strip().lower() in ("", "q", "quit"):
+                return None
+            # Try to interpret as an index
+            try:
+                return names[int(v)]
+            except (ValueError, IndexError):
+                pass
+            # Unrecognized input
+            print(f"  Unrecognized tool '{v}'")
 
   # *** DATA EXTRACTION ***
    # --- Data Exchange ---
