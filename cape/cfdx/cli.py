@@ -1763,6 +1763,33 @@ class CfdxReportArgs(_CfdxSubsetArgs):
     }
 
 
+# Settings for review
+class CfdxReviewArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape review"
+
+    # Description
+    _help_title = "Interactively review report subfigures for case(s)"
+
+    # Additional options
+    _optlist = (
+        "dpi",
+        "force",
+        "page",
+        "report",
+        "v",
+    )
+
+    # Defaults
+    _rc = {
+        "dpi": 120,
+        "page": 0,
+    }
+
+
 # Settings for --rm
 class CfdxRemoveCasesArgs(_CfdxCaseLoopArgs):
     # No attributes
@@ -2164,6 +2191,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "qdel",
         "receive-file",
         "report",
+        "review",
         "rm",
         "search-large",
         "set-config",
@@ -2257,6 +2285,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "qdel": CfdxQdelArgs,
         "receive-file": CfdxReceiveFileArgs,
         "report": CfdxReportArgs,
+        "review": CfdxReviewArgs,
         "rm": CfdxRemoveCasesArgs,
         "run": CfdxRunArgs,
         "search-large": CfdxSearchLargeArgs,
@@ -3518,6 +3547,30 @@ def cape_report(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, v
 
 
+@CfdxReviewArgs.rst
+def cape_review(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(CfdxReviewArgs, *a, **kw)
+    # Run command
+    v = cntl.ReviewCases(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 @CfdxRemoveCasesArgs.rst
 def cape_rm(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
@@ -4127,6 +4180,7 @@ CMD_DICT = {
     "qdel": cape_qdel,
     "receive-file": cape_receive_file,
     "report": cape_report,
+    "review": cape_review,
     "rm": cape_rm,
     "run": cape_run,
     "search-large": cape_search_large,

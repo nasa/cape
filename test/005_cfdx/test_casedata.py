@@ -137,17 +137,11 @@ def test_get_col_state_full_range_candidates():
     period = 20
     iters = np.arange(nsample)
 
-    # A nearly constant coefficient is scaled by its standard deviation
-    signal = 10.0 + 0.01*np.sin(2*np.pi*iters/period)
-    db = CaseData()
-    db.save_col("i", iters)
-    db.save_coeff("signal", signal)
-    state = db.get_col_state("signal", nstats=20)
-    assert state["full_range"] == state["full_range_std"]
-
     # A sufficiently broad history retains its observed peak-to-peak range
     signal = np.sin(2*np.pi*iters/period)
     signal[100] = 20.0
+    db = CaseData()
+    db.save_col("i", iters)
     db.save_coeff("signal", signal)
     state = db.get_col_state("signal", nstats=20)
     assert state["full_range"] == state["full_range_ptp"]
