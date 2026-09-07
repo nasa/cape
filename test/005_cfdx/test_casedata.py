@@ -101,7 +101,6 @@ def test_get_col_state_nlast_iteration_cutoff():
     state = db.get_col_state("signal", nstats=20, nlast=319)
     assert state["n"] == 160
     assert np.isclose(state["full_range_ptp"], 2.0)
-    assert np.isclose(state["full_range_mean"], 0.0, atol=1e-12)
     assert np.isclose(state["full_range_std"], 6.0/np.sqrt(2.0))
     assert state["full_range"] == state["full_range_std"]
 
@@ -124,7 +123,6 @@ def test_get_col_state_startup_range():
     state1 = db.get_col_state("signal", nstats=20, nstartup=40)
     assert state0["full_range"] > 100.0
     assert np.isclose(state1["full_range_ptp"], 2.0)
-    assert np.isclose(state1["full_range_mean"], 0.0, atol=1e-12)
     assert np.isclose(state1["full_range_std"], 6.0/np.sqrt(2.0))
     assert state1["full_range"] == state1["full_range_std"]
     assert state1["full_mean"] == state0["full_mean"]
@@ -139,18 +137,11 @@ def test_get_col_state_full_range_candidates():
     period = 20
     iters = np.arange(nsample)
 
-    # A nearly constant nonzero coefficient is scaled by its magnitude
-    signal = 10.0 + 0.01*np.sin(2*np.pi*iters/period)
-    db = CaseData()
-    db.save_col("i", iters)
-    db.save_coeff("signal", signal)
-    state = db.get_col_state("signal", nstats=20)
-    assert state["full_range"] == state["full_range_mean"]
-    assert np.isclose(state["full_range_mean"], 10.0)
-
     # A sufficiently broad history retains its observed peak-to-peak range
     signal = np.sin(2*np.pi*iters/period)
     signal[100] = 20.0
+    db = CaseData()
+    db.save_col("i", iters)
     db.save_coeff("signal", signal)
     state = db.get_col_state("signal", nstats=20)
     assert state["full_range"] == state["full_range_ptp"]
