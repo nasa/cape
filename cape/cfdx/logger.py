@@ -88,7 +88,7 @@ class BaseLogger(object):
 
     # Get file handle
     def open_logfile(self, name: str, fname: str, mode: str = 'a') -> IOBase:
-        r"""Open a log file, or get already open handle
+        r"""Open a log file, or get already open text stream
 
         :Call:
             >>> fp = logger.open_logfile(name, fname, mode='a')
@@ -116,9 +116,30 @@ class BaseLogger(object):
             return fp
         # Otherwise, open it
         fp = self._open_logfile(fname, mode=mode)
-        # Save it and return it
-        self.fp[name] = fp
+        # Only cache text streams; real files are closed after each
+        # write so they don't stay open on shared file systems
+        if isinstance(fp, StringIO):
+            self.fp[name] = fp
         return fp
+
+    # Write one message to a log file
+    def _writelog(
+            self,
+            name: str,
+            fname: str,
+            msg: str,
+            mode: str = 'a'):
+        # Get file handle
+        fp = self.open_logfile(name, fname, mode=mode)
+        # Write the message
+        try:
+            fp.write(msg)
+            fp.flush()
+        finally:
+            # Close real files so folders containing them can be
+            # removed while this process is still running
+            if not isinstance(fp, StringIO):
+                fp.close()
 
     # Open a file
     def _open_logfile(self, fname: str, mode: str = 'a') -> IOBase:
@@ -345,11 +366,8 @@ class CaseLogger(BaseLogger):
         :Versions:
             * 2024-07-31 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_main()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("main", LOGFILE_MAIN, msg)
 
     def rawlog_state(self, msg: str):
         r"""Write a raw message to state case log
@@ -364,11 +382,8 @@ class CaseLogger(BaseLogger):
         :Versions:
             * 2026-06-10 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_state()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("state", LOGFILE_STATE, msg)
 
     def rawlog_status(self, msg: str):
         r"""Write a raw message to status case log
@@ -383,11 +398,8 @@ class CaseLogger(BaseLogger):
         :Versions:
             * 2026-01-15 ``@aburkhea``: v1.0
         """
-        # Get file handle
-        fp = self.open_status()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("status", LOGFILE_STATUS, msg)
 
     def rawlog_verbose(self, msg: str):
         r"""Write a raw message to verbose case log
@@ -402,13 +414,10 @@ class CaseLogger(BaseLogger):
         :Versions:
             * 2024-07-31 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_verbose()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("verbose", LOGFILE_VERBOSE, msg)
 
-   # --- File handles ---
+    # --- File handles ---
     # Get main log file
     def open_main(self) -> IOBase:
         r"""Open and return the main log file handle
@@ -667,13 +676,10 @@ class CntlLogger(BaseLogger):
         # Write it
         self.rawlog_verbose(txt)
 
-   # --- Raw write commands ---
+    # --- Raw write commands ---
     def rawlog_archive(self, msg: str, mode: str = 'a'):
-        # Get file handle
-        fp = self.open_archive(mode=mode)
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("archive", self.genr8_archivefile(), msg, mode=mode)
 
     def rawlog_cmd(self, msg: str):
         r"""Write a raw message to command log
@@ -688,11 +694,8 @@ class CntlLogger(BaseLogger):
         :Versions:
             * 2026-01-05 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_cmd()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("cmd", self.genr8_cmdfile(), msg)
 
     def rawlog_hash(self, msg: str):
         r"""Write a raw message to hash log
@@ -707,11 +710,8 @@ class CntlLogger(BaseLogger):
         :Versions:
             * 2026-06-08 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_hashfile()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("hash", self.genr8_hashfile(), msg, mode='w')
 
     def rawlog_last(self, msg: str, mode: str = 'w'):
         r"""Write a raw message to hash log
@@ -728,11 +728,8 @@ class CntlLogger(BaseLogger):
         :Versions:
             * 2026-06-08 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_last(mode=mode)
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("last", self.genr8_lastfile(), msg, mode=mode)
 
     def rawlog_main(self, msg: str):
         r"""Write a raw message to primary case log
@@ -747,18 +744,12 @@ class CntlLogger(BaseLogger):
         :Versions:
             * 2024-07-31 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_main()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("main", self.genr8_mainfile(), msg)
 
     def rawlog_sate(self, msg: str):
-        # Get file handle
-        fp = self.open_state()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("state", self.genr8_statefile(), msg)
 
     def rawlog_verbose(self, msg: str):
         r"""Write a raw message to verbose case log
@@ -773,11 +764,8 @@ class CntlLogger(BaseLogger):
         :Versions:
             * 2024-07-31 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_verbose()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("verbose", self.genr8_verbosefile(), msg)
 
    # --- File handles ---
     # Get action log file
@@ -965,11 +953,8 @@ class ArchivistLogger(BaseLogger):
         :Versions:
             * 2024-07-31 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_main()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("main", LOGFILE_ARCHIVE, msg)
 
     def rawlog_warning(self, msg: str):
         r"""Write a raw message to archiving warning log
@@ -984,11 +969,8 @@ class ArchivistLogger(BaseLogger):
         :Versions:
             * 2024-07-31 ``@ddalle``: v1.0
         """
-        # Get file handle
-        fp = self.open_warnings()
         # Write message
-        fp.write(msg)
-        fp.flush()
+        self._writelog("verbose", LOGFILE_ARCHIVE_WARNINGS, msg)
 
    # --- File handles ---
     # Get main log file
