@@ -102,6 +102,9 @@ SUBFIG_TABLE_TYPES = (
     "SweepCases",
     "SweepConditions",
 )
+#: :class:`int`
+#: Width, in terminal columns, for images shown by ``cape review``
+REVIEW_IMG_WIDTH = 64
 UGRID_EXTS = (
     "b4",
     "b8",
@@ -4474,34 +4477,32 @@ class Cntl(CntlBase):
         comps = []
         # Loop through subfigures
         for sfig in subfigs:
-            # Only process *PlotCoeff* type
-            if self.opts.get_SubfigBaseType(sfig) != "PlotCoeff":
-                continue
-            # Get *Component* and *Coefficient*
-            comp = self.opts.get_SubfigOpt(sfig, "Component")
-            coeff = self.opts.get_SubfigOpt(sfig, "Coefficient")
-            # Convert to list
-            sfig_comps = comp if isinstance(comp, list) else [comp]
-            sfig_coeffs = coeff if isinstance(coeff, list) else [coeff]
-            # Check for list
-            if len(sfig_comps) == 1:
-                # Unpack singleton
-                comp, = sfig_comps
-                # Loop through components
-                for coeff in sfig_coeffs:
-                    comps.append((comp, coeff))
-            elif len(sfig_coeffs) == 1:
-                # Unpack singleton
-                coeff, = sfig_coeffs
-                # Loop through components
-                for comp in sfig_comps:
-                    comps.append((comp, coeff))
-            else:
-                # Loop through both
-                for comp, coeff in zip(sfig_comps, sfig_coeffs):
-                    comps.append((comp, coeff))
+            # Combine comp/coeff combos from each subfigure
+            comps.extend(self.get_subfig_comps(sfig))
         # Output'
         return comps
+
+    # Get list of comp/coeff combos tracked in one report subfigure
+    def get_subfig_comps(self, sfig: str) -> list:
+        # Only process *PlotCoeff* type
+        if self.opts.get_SubfigBaseType(sfig) != "PlotCoeff":
+            return []
+        # Get *Component* and *Coefficient*
+        comp = self.opts.get_SubfigOpt(sfig, "Component")
+        coeff = self.opts.get_SubfigOpt(sfig, "Coefficient")
+        # Convert to list
+        sfig_comps = comp if isinstance(comp, list) else [comp]
+        sfig_coeffs = coeff if isinstance(coeff, list) else [coeff]
+        # Check for list
+        if len(sfig_comps) == 1:
+            # Unpack singleton and loop through coefficients
+            return [(sfig_comps[0], coeff) for coeff in sfig_coeffs]
+        elif len(sfig_coeffs) == 1:
+            # Unpack singleton and loop through components
+            return [(comp, sfig_coeffs[0]) for comp in sfig_comps]
+        else:
+            # Loop through both
+            return list(zip(sfig_comps, sfig_coeffs))
 
     # Get list of subfigures
     def get_report_subfigs(self, rep: Optional[str] = None) -> list:
@@ -4563,10 +4564,13 @@ class Cntl(CntlBase):
 
         Loops through selected cases and shows each non-table subfigure
         of the report in the terminal (requires sixel or kitty/TGP
-        support). The user decides each case: *approve* (mark ``PASS``),
-        *extend* (add iterations), *skip*, or select a shell command
-        from *UserTools*. Actions are collected during the loop and
-        executed in batch after the last case is reviewed.
+        support). Before prompting, the iterative-state recommendation
+        from :meth:`cape.cfdx.casedata.CaseData.get_col_state` for each
+        component/coefficient pair in the subfigure is shown. The user
+        decides each case: *approve* (mark ``PASS``), *extend* (add one
+        phase copy), *extend2* (add two phase copies), *skip*, or select
+        a shell command from *UserTools*. Actions are collected during
+        the loop and executed in batch after the last case is reviewed.
 
         :Call:
             >>> reviews = cntl.ReviewCases(**kw)
@@ -4582,10 +4586,13 @@ class Cntl(CntlBase):
                 Page of PDF to display
             *force*: ``True`` | {``False``}
                 Update subfigures instead of using cache
+            *v*: ``True`` | {``False``}
+                Show full iterative-state summary w/ each recommendation
         :Outputs:
             *reviews*: :class:`dict`
                 Case index lists for ``"approve"``, ``"extend"``,
-                ``"skip"``, and ``"tools"`` (per tool name)
+                ``"extend2"``, ``"skip"``, and ``"tools"`` (per tool
+                name)
         :Raises:
             * :class:`cape.errors.CapeNotSupportedError`
                 If the terminal cannot display images
@@ -4607,6 +4614,7 @@ class Cntl(CntlBase):
         dpi = kw.pop("dpi", 120)
         page = kw.pop("page", 0)
         force = kw.pop("force", False)
+        verbose = kw.pop("v", False)
         # Get list of subfigures, skipping table types
         subfigs = [
             sfig for sfig in self.get_report_subfigs(rep)
@@ -4626,6 +4634,7 @@ class Cntl(CntlBase):
         reviews = {
             "approve": [],
             "extend": [],
+            "extend2": [],
             "skip": [],
             "tools": {},
         }
@@ -4642,6 +4651,10 @@ class Cntl(CntlBase):
                 continue
             # Status update
             print(compile_rst(f"``{i}`` ``{frun}`` ``{yes}``"))
+            # Read case runner for iterative-state recommendations
+            runner = self.ReadCaseRunner(i)
+            # Cache for component iterative histories of this case
+            cache = {}
             # Default action
             action = "skip"
             # Loop through subfigures
@@ -4650,14 +4663,18 @@ class Cntl(CntlBase):
                 v = report.get_subfig(sfig, i)
                 # Open cached image file(s) (usually just one)
                 for fimg in v.get("cachefiles", ()):
-                    sysutils.open_img(fimg, terminal=True, dpi=dpi, page=page)
+                    sysutils.open_img(
+                        fimg, terminal=True, dpi=dpi, page=page,
+                        width=REVIEW_IMG_WIDTH)
+                # Show iterative-state recommendation for this subfigure
+                self._show_review_state(runner, sfig, cache, v=verbose)
                 # Prompt for action; anything but "next" ends case
                 action = self._prompt_review(
-                    frun, sfig, js == len(subfigs) - 1, tools)
+                    i, frun, sfig, js == len(subfigs) - 1, tools)
                 if action != "next":
                     break
             # Save decision
-            if action in ("approve", "extend", "skip"):
+            if action in ("approve", "extend", "extend2", "skip"):
                 reviews[action].append(i)
             elif action in tools:
                 reviews["tools"].setdefault(action, []).append(i)
@@ -4667,6 +4684,8 @@ class Cntl(CntlBase):
         # Extend cases
         if reviews["extend"]:
             self.ExtendCases(I=reviews["extend"])
+        if reviews["extend2"]:
+            self.ExtendCases(I=reviews["extend2"], extend=2)
         # Run user tools
         for name, cases in reviews["tools"].items():
             # Get command
@@ -4685,27 +4704,105 @@ class Cntl(CntlBase):
         # Output
         return reviews
 
+    # Show iterative-state recommendation of one subfigure for one case
+    def _show_review_state(
+            self,
+            runner: CaseRunner,
+            sfig: str,
+            cache: dict,
+            v: bool = False):
+        # Exit for empty case
+        if runner is None:
+            return
+        # Get list of comp/coeff combos for this subfigure
+        complist = self.get_subfig_comps(sfig)
+        # Exit if subfigure has no iterative-history data
+        if len(complist) == 0:
+            return
+        # Loop through components
+        for comp, col in complist:
+            # Get title
+            line = f"  ``{comp}``/*{col}*"
+            # Get statistics
+            try:
+                # Reuse component histories when used for multiple cols
+                db = cache.get(comp)
+                if db is None:
+                    db = runner.read_dex(comp)
+                    assert_isinstance(db, CaseData, f"DataBook comp {comp}")
+                    cache[comp] = db
+                # Apply the component's configured statistics limits
+                nmin = self.opts.get_DataBookOpt(comp, "NMin")
+                nstats = self.opts.get_DataBookOpt(comp, "NStats")
+                nstartup = self.opts.get_DataBookOpt(comp, "NStartup")
+                ncutoff = self.opts.get_DataBookOpt(comp, "NCutoff")
+                stateopts = self.opts.get_DataBookStateOpts(comp)
+                nlast = self.opts.get_DataBookOpt(comp, "NLast")
+                state = db.get_col_state(
+                    col, nmin=nmin, nstats=nstats, nlast=nlast,
+                    nstartup=nstartup, ncutoff=ncutoff, **stateopts)
+            except Exception:
+                continue
+            # Skip unavailable state
+            if not state:
+                continue
+            # Approved entries only need a compact success marker
+            if state.get("recommendation") == "approve":
+                # Display
+                print(compile_rst(line + " **✓**"))
+                continue
+            # Show the first actionable state and stop processing
+            lines = [line]
+            # Show full state summary in verbose mode
+            if v:
+                lines.extend(_yaml_lines(state, indent=4, v=True))
+            else:
+                # Just show the recommendation and its reason
+                rec = _yaml_valstr(state.get("recommendation"))
+                lines.append(f"    :bright-blue:`recommendation`: {rec}")
+                reason = state.get("reason")
+                if reason:
+                    lines.append(
+                        "    :bright-blue:`reason`: " +
+                        _yaml_valstr(reason))
+            # Display
+            print(compile_rst("\n".join(lines)))
+            break
+        else:
+            # Print an approval recommendation
+            rec = _yaml_valstr("approve")
+            print(compile_rst(f"  :bright-blue:`recommendation`: {rec}"))
+
     # Ask user how to review a case
     def _prompt_review(
             self,
+            i: int,
             frun: str,
             sfig: str,
             qlast: bool,
             tools: dict) -> str:
-        # Prompt options
+        # Initialize list of options
         if qlast:
-            txt = "[a]pprove, [e]xtend, [s]kip, [t]ools"
-            vdef = "a"
+            vopt = ["approve"]
         else:
-            txt = "[n]ext, [e]xtend, [s]kip, [t]ools"
-            vdef = "n"
-        # Add tool count
+            vopt = ["next"]
+        # Default option is the first one
+        vdef = vopt[0]
+        # Remaining options; "extend2" is directly after "extend"
+        vopt.extend(("extend", "extend2", "skip"))
+        # Only show "tools" option if there are any
         if tools:
-            txt += f" ({len(tools)})"
+            # List each tool on its own line below the option
+            disp = "tools\n" + "\n".join(f"        {name}" for name in tools)
+            vopt.append((disp, "tools"))
+        # Final prompt shows case number and case name
+        prompt = f"{i} {frun}>"
         # Loop until valid input
         while True:
             # Prompt user
-            v = console.prompt_color(txt, vdef=vdef).strip().lower()
+            v = console.prompt_menu(
+                f"action for subfigure '{sfig}'", vopt,
+                vdef=vdef, prompt=prompt).strip().lower()
             # Check options
             if (v in ("n", "next")) and (not qlast):
                 return "next"
@@ -4713,6 +4810,8 @@ class Cntl(CntlBase):
                 return "approve"
             elif v in ("e", "extend"):
                 return "extend"
+            elif v in ("e2", "extend2", "x2"):
+                return "extend2"
             elif v in ("s", "skip"):
                 return "skip"
             elif (v in ("t", "tools")) and tools:
@@ -4721,6 +4820,7 @@ class Cntl(CntlBase):
                 # Check for cancel
                 if tool is not None:
                     return tool
+                continue
             # Unrecognized input
             print(f"  Unrecognized option '{v}'")
 
@@ -4728,20 +4828,24 @@ class Cntl(CntlBase):
     def _prompt_review_tool(self, tools: dict) -> Optional[str]:
         # List of tool names
         names = list(tools)
-        # Option text
-        txt = "  ".join(f"[{j}] {name}" for j, name in enumerate(names))
+        # One option per tool, plus a way out
+        vopt = names + ["quit"]
         # Loop until valid input
         while True:
             # Prompt user; blank input cancels
-            v = console.prompt_color(f"{txt}, [q]uit tool menu")
+            v = console.prompt_menu("select tool", vopt, prompt="tool>")
+            v = v.strip().lower()
             # Check for cancel
-            if v.strip().lower() in ("", "q", "quit"):
+            if v in ("", "q", "quit"):
                 return None
             # Try to interpret as an index
             try:
                 return names[int(v)]
             except (ValueError, IndexError):
                 pass
+            # Try to match a tool name
+            if v in tools:
+                return v
             # Unrecognized input
             print(f"  Unrecognized tool '{v}'")
 

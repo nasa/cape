@@ -13,7 +13,7 @@ import shutil
 import sys
 import tarfile
 from subprocess import Popen, run, DEVNULL, PIPE
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 # Local imports
 from . import capeconfig
@@ -197,7 +197,8 @@ def open_img(
         fname: str,
         terminal: bool = True,
         dpi: int = 120,
-        page: int = 0) -> str:
+        page: int = 0,
+        width: Optional[Union[int, str]] = None) -> str:
     r"""Attempt to open any image file, preferring in-terminal viewing
 
     :Call:
@@ -211,6 +212,10 @@ def open_img(
             Resolution for converting PDFs to PNGs
         *page*: {``0``} | :class:`int`
             Zero-based page index of PDF to view in terminal
+        *width*: {``None``} | :class:`int` | :class:`str`
+            Width, in terminal columns (or percent, e.g. ``"50%"``), to
+            use when displaying image in terminal; ``None`` uses the
+            original image size
     :Output:
         *viewer*: :class:`str`
             Name of viewer application (or ``"terminal"`` or ``"pdf"``)
@@ -233,7 +238,7 @@ def open_img(
     # Try to show it in the terminal
     if terminal:
         # Show in terminal
-        viewer = _open_png_terminal(fpng)
+        viewer = _open_png_terminal(fpng, width=width)
     else:
         viewer = None
     # Fall back
@@ -434,7 +439,9 @@ def terminal_image_supported() -> bool:
         return False
 
 
-def _open_png_terminal(fname: str) -> str | None:
+def _open_png_terminal(
+        fname: str,
+        width: Optional[Union[int, str]] = None) -> str | None:
     try:
         # Necessary imports
         from rich.console import Console
@@ -449,8 +456,15 @@ def _open_png_terminal(fname: str) -> str | None:
         console = Console()
     except Exception:
         return
+    # Create image, scaling to *width* columns if requested
+    if width is None:
+        # Show image at its original size
+        img = Image(fname)
+    else:
+        # Scale to width, keeping the aspect ratio
+        img = Image(fname, width=width, height="auto")
     # Read image and show it
-    console.print(Image(fname))
+    console.print(img)
     # Blank line
     print("")
     # Output

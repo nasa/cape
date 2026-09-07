@@ -115,6 +115,105 @@ def test_review_extend(monkeypatch):
 
 
 @testutils.run_sandbox(__file__, TEST_FILES)
+def test_review_extend2(monkeypatch):
+    """Answer 'e2' to extend case by two phase copies."""
+    # Set up cache directory in work folder
+    os.environ["CAPE_CACHE_DIR"] = "cache"
+    os.mkdir("cache")
+    try:
+        # No display, just scripted answers
+        _patch_display(monkeypatch, ["e2"])
+        # Get cntl
+        cntl = Cntl()
+        # Add figure and tool definitions
+        _add_review_opts(cntl)
+        # Get initial phase iters and nominal phase size
+        n0 = cntl.read_case_json(0).get_PhaseIters(0)
+        nj = cntl.get_phase_niter(0, 0)
+        # Run the review
+        reviews = cntl.ReviewCases(I=[0])
+        # Check recorded decision
+        assert reviews["extend"] == []
+        assert reviews["extend2"] == [0]
+        # Check that PhaseIters increased by two phase copies
+        n1 = cntl.read_case_json(0).get_PhaseIters(0)
+        assert n1 >= n0 + 2*nj
+    finally:
+        del os.environ["CAPE_CACHE_DIR"]
+
+
+@testutils.run_sandbox(__file__, TEST_FILES)
+def test_review_atselect(monkeypatch):
+    """Answer '@1' to select first option (approve at last subfig)."""
+    # Set up cache directory in work folder
+    os.environ["CAPE_CACHE_DIR"] = "cache"
+    os.mkdir("cache")
+    try:
+        # No display, just scripted answers
+        _patch_display(monkeypatch, ["@1"])
+        # Get cntl
+        cntl = Cntl()
+        # Add figure and tool definitions
+        _add_review_opts(cntl)
+        # Run the review
+        reviews = cntl.ReviewCases(I=[0])
+        # Check recorded decision
+        assert reviews["approve"] == [0]
+        assert cntl.x.PASS[0]
+    finally:
+        del os.environ["CAPE_CACHE_DIR"]
+
+
+@testutils.run_sandbox(__file__, TEST_FILES)
+def test_review_next_approve(monkeypatch):
+    """Answer 'n' to advance subfigure, then 'a' to approve."""
+    # Set up cache directory in work folder
+    os.environ["CAPE_CACHE_DIR"] = "cache"
+    os.mkdir("cache")
+    try:
+        # Get cntl
+        cntl = Cntl()
+        # Add figure and tool definitions
+        _add_review_opts(cntl)
+        # Script the user input
+        anses = iter(["n", "", "a"])
+        monkeypatch.setattr("builtins.input", lambda *a: next(anses))
+        # Answer "n" when not on last subfigure
+        action = cntl._prompt_review(0, "case/name", "sfig", False, {})
+        assert action == "next"
+        # Blank input accepts default ("next")
+        action = cntl._prompt_review(0, "case/name", "sfig", False, {})
+        assert action == "next"
+        # Answer "a" to approve on last subfigure
+        action = cntl._prompt_review(0, "case/name", "sfig", True, {})
+        assert action == "approve"
+    finally:
+        del os.environ["CAPE_CACHE_DIR"]
+
+
+@testutils.run_sandbox(__file__, TEST_FILES)
+def test_review_tool_cancel(monkeypatch):
+    """Blank input in tool menu cancels back to main prompt."""
+    # Set up cache directory in work folder
+    os.environ["CAPE_CACHE_DIR"] = "cache"
+    os.mkdir("cache")
+    try:
+        # No display, just scripted answers
+        _patch_display(monkeypatch, ["t", "", "s"])
+        # Get cntl
+        cntl = Cntl()
+        # Add figure and tool definitions
+        _add_review_opts(cntl)
+        # Run the review; first 't' opens menu, blank cancels, 's' skips
+        reviews = cntl.ReviewCases(I=[0])
+        # Check recorded decision
+        assert reviews["skip"] == [0]
+        assert reviews["tools"] == {}
+    finally:
+        del os.environ["CAPE_CACHE_DIR"]
+
+
+@testutils.run_sandbox(__file__, TEST_FILES)
 def test_review_usertool(monkeypatch):
     """Answer 't' then select tool; tool runs once with collected {I}."""
     # Set up cache directory in work folder

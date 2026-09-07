@@ -308,6 +308,17 @@ TOOL_DICT = {
         "parameters": ["f", "I", "report"],
         "required": ["I"],
     },
+    "cape_review": {
+        "description": (
+            "Interactively review report subfigures for one or more "
+            "cases; the user is prompted to approve, extend, or skip "
+            "each case while viewing the report images in the terminal."
+            "This is interactive and allows the user to make decisions "
+            "on each case."
+        ),
+        "parameters": ["f", "I", "report"],
+        "required": ["I"],
+    },
     "cape_fail": {
         "description": "FAIL/mark cases as errors",
         "parameters": ["f", "I"],
