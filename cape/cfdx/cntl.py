@@ -5037,7 +5037,7 @@ class Cntl(CntlBase):
         # Construct a title first
         if typ == "shell":
             # Shell command
-            title = f"{pre} :green:`{j+1}/{ngrp}: {fname}`"
+            title = f"{pre} :blue:`$` :green:`{fname}` {suf}"
         elif typ == "cntl":
             # Cntl method
             title = f"{pre} :blue:`Cntl.`:green:`{fname}()` {suf}"
