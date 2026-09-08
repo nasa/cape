@@ -960,6 +960,18 @@ class CfdxDezombieArgs(_CfdxSubsetArgs):
     }
 
 
+# Settings for dispatch
+class CfdxDispatchArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape dispatch"
+
+    # Description
+    _help_title = "Interactively dispatch case(s) by status only"
+
+
 # Settings for --edit
 class CfdxEditArgs(CfdxArgReader):
     # No attributes
@@ -2158,6 +2170,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "collect-surf",
         "defail",
         "dezombie",
+        "dispatch",
         "edit-json",
         "exec",
         "extend",
@@ -2253,6 +2266,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "collect-surf": CfdxCollectSurfArgs,
         "defail": CfdxDefailArgs,
         "dezombie": CfdxDezombieArgs,
+        "dispatch": CfdxDispatchArgs,
         "edit-json": CfdxEditArgs,
         "exec": CfdxExecArgs,
         "extend": CfdxExtendArgs,
@@ -2675,6 +2689,30 @@ def cape_dezombie(*a, **kw) -> Tuple[int, Any]:
     cntl, kw = read_cntl(CfdxDezombieArgs, *a, **kw)
     # Run the command
     v = cntl.Dezombie(**kw)
+    # Return code
+    return IERR_OK, v
+
+
+@CfdxDispatchArgs.rst
+def cape_dispatch(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(CfdxDispatchArgs, *a, **kw)
+    # Run command
+    v = cntl.DispatchCases(**kw)
     # Return code
     return IERR_OK, v
 
@@ -4147,6 +4185,7 @@ CMD_DICT = {
     "clean": cape_clean,
     "defail": cape_defail,
     "dezombie": cape_dezombie,
+    "dispatch": cape_dispatch,
     "edit-json": cape_edit,
     "exec": cape_exec,
     "extend": cape_extend,

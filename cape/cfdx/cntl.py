@@ -4601,7 +4601,6 @@ class Cntl(CntlBase):
         """
         # Localized imports
         from .. import sysutils
-        from ..util import pyrangestr
         # Check if terminal can display images
         if not sysutils.terminal_image_supported():
             raise CapeNotSupportedError(
@@ -4674,10 +4673,24 @@ class Cntl(CntlBase):
                 if action != "next":
                     break
             # Save decision
-            if action in ("approve", "extend", "extend2", "skip"):
-                reviews[action].append(i)
-            elif action in tools:
-                reviews["tools"].setdefault(action, []).append(i)
+            self._record_review_decision(reviews, tools, action, i)
+        # Execute collected decisions
+        self._execute_review_decisions(reviews, tools)
+        # Output
+        return reviews
+
+    # Record one review/dispatch decision
+    def _record_review_decision(
+            self, reviews: dict, tools: dict, action: str, i: int):
+        if action in ("approve", "extend", "extend2", "skip"):
+            reviews[action].append(i)
+        elif action in tools:
+            reviews["tools"].setdefault(action, []).append(i)
+
+    # Execute collected review/dispatch decisions
+    def _execute_review_decisions(self, reviews: dict, tools: dict):
+        # Localized imports
+        from ..util import pyrangestr
         # Mark approved cases
         if reviews["approve"]:
             self.MarkPASS(I=reviews["approve"])
@@ -4701,8 +4714,6 @@ class Cntl(CntlBase):
             print(f"tool '{name}': {cmd.replace('{I}', irng)}")
             # Run the command
             os.system(cmd.replace("{I}", irng))
-        # Output
-        return reviews
 
     # Show iterative-state recommendation of one subfigure for one case
     def _show_review_state(
@@ -4786,10 +4797,22 @@ class Cntl(CntlBase):
             vopt = ["approve"]
         else:
             vopt = ["next"]
+        # Prompt for a decision, using subfigure name as title
+        return self._prompt_decision(
+            i, frun, f"action for subfigure '{sfig}'", vopt, tools)
+
+    # Ask user to make a review/dispatch decision for a case
+    def _prompt_decision(
+            self,
+            i: int,
+            frun: str,
+            title: str,
+            vopt: list,
+            tools: dict) -> str:
         # Default option is the first one
         vdef = vopt[0]
         # Remaining options; "extend2" is directly after "extend"
-        vopt.extend(("extend", "extend2", "skip"))
+        vopt = vopt + ["extend", "extend2", "skip"]
         # Only show "tools" option if there are any
         if tools:
             # List each tool on its own line below the option
@@ -4801,12 +4824,11 @@ class Cntl(CntlBase):
         while True:
             # Prompt user
             v = console.prompt_menu(
-                f"action for subfigure '{sfig}'", vopt,
-                vdef=vdef, prompt=prompt).strip().lower()
+                title, vopt, vdef=vdef, prompt=prompt).strip().lower()
             # Check options
-            if (v in ("n", "next")) and (not qlast):
+            if (v in ("n", "next")) and ("next" in vopt):
                 return "next"
-            elif (v in ("a", "approve")) and qlast:
+            elif (v in ("a", "approve")) and ("approve" in vopt):
                 return "approve"
             elif v in ("e", "extend"):
                 return "extend"
@@ -4848,6 +4870,87 @@ class Cntl(CntlBase):
                 return v
             # Unrecognized input
             print(f"  Unrecognized tool '{v}'")
+
+   # --- Dispatch ---
+    # Interactively review cases showing only their status
+    @run_rootdir
+    def DispatchCases(self, **kw) -> dict:
+        r"""Interactively dispatch cases showing only their status
+
+        This is a pared-down version of :meth:`ReviewCases`: no report
+        figures are shown, so no image-capable terminal is required.
+        Only the case number, case name, and status (``DONE``, ``RUN``,
+        ``INCOMP``, etc.) are shown before prompting for a single
+        decision for each case: *approve* (mark ``PASS``), *extend*
+        (add one phase copy), *extend2* (add two phase copies), *skip*,
+        or select a shell command from *UserTools*. Actions are
+        collected during the loop and executed in batch after the last
+        case is dispatched. This is intended for users making their
+        decisions based on other information, such as a report PDF
+        open in a different window.
+
+        :Call:
+            >>> reviews = cntl.DispatchCases(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+        :Outputs:
+            *reviews*: :class:`dict`
+                Case index lists for ``"approve"``, ``"extend"``,
+                ``"extend2"``, ``"skip"``, and ``"tools"`` (per tool
+                name)
+        :Raises:
+            * :class:`cape.errors.CapeValueError`
+                If a *UserTools* command has no ``{I}`` placeholder
+        """
+        # Get user tools
+        tools = self.opts.get("UserTools", {})
+        # Get cases
+        inds = self.GetIndices(**kw)
+        keeps = self.GetNonzeroIndices(**kw)
+        # Initialize decision lists
+        reviews = {
+            "approve": [],
+            "extend": [],
+            "extend2": [],
+            "skip": [],
+            "tools": {},
+        }
+        # Reference chars
+        yes = '✓'
+        no = '×'
+        # Loop through cases
+        for i in inds:
+            # Get case name
+            frun = self.x.GetFullFolderNames(i)
+            # Skip cases w/ no iterations or already marked
+            if (i not in keeps) or self.x.PASS[i] or self.x.ERROR[i]:
+                print(compile_rst(f"``{i}`` *{frun}* ``{no}``"))
+                continue
+            # Get case status, e.g. DONE, RUN, INCOMP, QUEUE
+            sts = self.check_case_status(i)
+            # Status update
+            print(compile_rst(f"``{i}`` ``{frun}`` ``{yes}`` **{sts}**"))
+            # Prompt for a single decision
+            action = self._prompt_dispatch(i, frun, sts, tools)
+            # Save decision
+            self._record_review_decision(reviews, tools, action, i)
+        # Execute collected decisions
+        self._execute_review_decisions(reviews, tools)
+        # Output
+        return reviews
+
+    # Ask user how to dispatch a case
+    def _prompt_dispatch(
+            self,
+            i: int,
+            frun: str,
+            sts: str,
+            tools: dict) -> str:
+        # Prompt for a decision, using case status as title
+        return self._prompt_decision(
+            i, frun, f"action for case w/ status '{sts}'",
+            ["approve"], tools)
 
   # *** DATA EXTRACTION ***
    # --- Data Exchange ---
