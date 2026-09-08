@@ -4959,12 +4959,12 @@ class Cntl(CntlBase):
 
         Each action name defines a list of actions, which are performed
         sequentially, except that actions with the same ``"index"`` are
-        performed with their STDOUT and STDERR suppressed (although
-        their titles and any error messages are still shown). Shell
-        commands are run in forked child processes so that shell
-        commands in the same group can overlap. Individual actions can
-        be shell commands, methods of the :class:`Cntl` class, or
-        functions from :mod:`cape.cfdx.cli`; see
+        performed simultaneously, each in a forked child process with
+        its STDOUT and STDERR suppressed (although its title and any
+        error messages are still shown). Only the on-disk side effects
+        of simultaneous actions persist in the main process. Individual
+        actions can be shell commands, methods of the :class:`Cntl`
+        class, or functions from :mod:`cape.cfdx.cli`; see
         :mod:`cape.cfdx.options.actionopts`.
 
         :Call:
@@ -5053,10 +5053,32 @@ class Cntl(CntlBase):
             raise CapeValueError(f"Unrecognized action type '{typ}'")
         # Display the title
         print(compile_rst(title))
-        # Suppress action output if part of a simultaneous group
+        # Check if part of a simultaneous group
         if k is not None:
-            with _suppress_output():
-                self._run_action(act, typ, fname, I)
+            # Flush stdio buffers so the forked child doesn't repeat
+            # any pending output
+            sys.stdout.flush()
+            sys.stderr.flush()
+            # Fork a child process to run this action
+            pid = os.fork()
+            # Check if this is the child process
+            if pid == 0:
+                # Run the action with its STDOUT and STDERR suppressed
+                errno = 0
+                try:
+                    with _suppress_output():
+                        self._run_action(act, typ, fname, I)
+                except (KeyboardInterrupt, SystemExit):
+                    errno = 1
+                except BaseException as err:
+                    # Show the suppressed action's error message
+                    errno = 1
+                    _show_action_err(act, err)
+                # Exit w/o repeating any of the parent's cleanup code
+                # (atexit handlers, buffer flushes, etc.)
+                os._exit(errno)
+            # Parent process: save the child's PID to wait for later
+            self._action_pids.append(pid)
         else:
             self._run_action(act, typ, fname, I)
 
@@ -5098,21 +5120,37 @@ class Cntl(CntlBase):
 
     # Perform several actions simultaneously and quietly
     def _perform_simul_actions(self, group: list, I: list, j: int, ngrp: int):
-        # Initialize list of caught exceptions
-        errors = []
-        # Perform the group's actions in turn; shell commands are
-        # started in forked children so they can overlap
-        for k, actj in enumerate(group):
-            try:
+        # Fork one child process per action; :meth:`_perform_action`
+        # displays each title and saves each child PID here
+        self._action_pids = []
+        # List of failed actions
+        errs = []
+        # Start all of the group's actions
+        try:
+            for k, actj in enumerate(group):
                 self._perform_action(actj, I, j, ngrp, k)
-            except Exception as err:
-                # Show the error message; suppression of this action
-                # has ended by the time it's caught here
-                errors.append(err)
-                _show_action_err(actj, err)
-        # Raise the first exception, if any
-        if errors:
-            raise errors[0]
+            # Wait for all children to finish
+            for pid, actj in zip(self._action_pids, group):
+                # Wait for this child, restarting interrupted waits
+                while True:
+                    try:
+                        _, status = os.waitpid(pid, 0)
+                        break
+                    except InterruptedError:
+                        continue
+                # Decode the wait status
+                sts = os.WEXITSTATUS(status) if os.WIFEXITED(status) else 1
+                # Check for failure
+                if sts:
+                    errs.append((actj.get("function", "?"), sts))
+        finally:
+            self._action_pids = []
+        # Summarize the failures, if any
+        if errs:
+            raise CapeRuntimeError(
+                "Failed simultaneous action(s): " + "; ".join(
+                    "'%s' exited with status %i" % (func, sts)
+                    for func, sts in errs))
 
     # Perform a shell-command action
     def _perform_shell_action(self, cmd: str, I: list):
@@ -7114,8 +7152,7 @@ def _run_fork_command(cmd: str) -> int:
 
     The current process waits for the child to finish before returning,
     keeping the child process (and any of its own child processes) out
-    of the current process. On platforms without :func:`os.fork`, the
-    command is run directly with :func:`os.system`.
+    of the current process.
 
     :Call:
         >>> errno = _run_fork_command(cmd)
@@ -7129,9 +7166,6 @@ def _run_fork_command(cmd: str) -> int:
     # Flush pending output so that it isn't duplicated in the child
     sys.stdout.flush()
     sys.stderr.flush()
-    # Fall back to os.system() on platforms without fork()
-    if not hasattr(os, "fork"):
-        return os.system(cmd)
     # Create child process
     pid = os.fork()
     # Check if this is the child process

@@ -67,14 +67,12 @@ The following commands will happen:
         $ cape dex --dex "[A-L]*" -I {CASES}
         $ cape dex --dex "[M-Z]*" -I {CASES}
 
-However, the last two are in the same group because they have the same
-value for ``"index"``. While such a group is running, each action's
-STDOUT and STDERR are suppressed, although its title and any error
-messages are still shown. Shell commands are started in forked child
-processes so that shell commands in the same group can overlap. If a
-group contains actions that are methods or Python functions, those are
-run one at a time, so groupings should be used with a mind toward what
-can actually happen simultaneously.
+However, the last two are run simultaneously because they have the
+same value for ``"index"``. Each action in such a group runs in a
+forked child process with its STDOUT and STDERR suppressed, although
+its title and any error messages are still shown. Since the actions
+run in child processes, only their on-disk side effects persist in the
+main process.
 
 User-defined tools for ``cape review`` and ``cape dispatch`` are also
 defined in this section: the ``"UserTools"`` option is a list of
