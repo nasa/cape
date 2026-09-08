@@ -104,20 +104,53 @@ from ...optdict import OptionsDict
 # returned to callers by reference, making mutable defaults fragile
 DEFAULT_ACTIONS = {
     "approve": (
-        {"type": "cntl", "function": "MarkPASS"},
+        {
+            "type": "cntl",
+            "function": "MarkPASS"
+        },
+        {
+            "type": "cntl",
+            "function": "update_dex",
+        },
     ),
     "defail": (
-        {"type": "cntl", "function": "Defail"},
+        {
+            "type": "cntl",
+            "function": "Defail",
+        },
+        {
+            "type": "cntl",
+            "function": "SubmitJobs",
+        }
     ),
     "dezombie": (
-        {"type": "cntl", "function": "Dezombie"},
+        {
+            "type": "cntl",
+            "function": "Dezombie",
+        },
+        {
+            "type": "cntl",
+            "function": "SubmitJobs",
+        },
     ),
     "extend": (
-        {"type": "cntl", "function": "ExtendCases"},
+        {
+            "type": "cntl",
+            "function": "ExtendCases",
+            "kwargs": {
+                "qsub": True,
+            }
+        },
     ),
     "extend2": (
-        {"type": "cntl", "function": "ExtendCases",
-         "kwargs": {"extend": 2}},
+        {
+            "type": "cntl",
+            "function": "ExtendCases",
+            "kwargs": {
+                "qsub": True,
+                "extend": 2,
+            },
+        },
     ),
 }
 
