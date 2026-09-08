@@ -147,6 +147,7 @@ class CfdxArgReader(ArgReader):
         "I": str,
         "FAIL": bool,
         "PASS": bool,
+        "action": str,
         "adaptive": bool,
         "add-cols": (str, list),
         "add-counters": (str, list),
@@ -359,6 +360,7 @@ class CfdxArgReader(ArgReader):
         "FAIL": "Mark case(s) as ERRORs",
         "I": "Specific case indices, e.g. ``-I 4:8,12``",
         "PASS": "Mark case(s) as PASS",
+        "action": "Name of *Actions* action to perform on case(s)",
         "adaptive": "Save the adapted-mesh version of flow data (more data)",
         "add-cols": "Additional columns to show in run matrix status table",
         "add-counters": "Additional keys to show totals after run mat table",
@@ -1691,6 +1693,33 @@ class CfdxOpenSubfigArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for perform
+class CfdxPerformArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape perform"
+
+    # Description
+    _help_title = "Perform an *Actions* action on case(s)"
+
+    # Additional options
+    _optlist = (
+        "action",
+    )
+
+    # Required options
+    _optlistreq = (
+        "action",
+    )
+
+    # Arguments
+    _arglist = (
+        "action",
+    )
+
+
 # Settings for set-config
 class CfdxPostFileArgs(CfdxArgReader):
     # No attributes
@@ -2200,6 +2229,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "open-img",
         "open-png",
         "open-subfig",
+        "perform",
         "post-file",
         "qdel",
         "receive-file",
@@ -2295,6 +2325,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "open-img": CfdxOpenImgArgs,
         "open-png": CfdxOpenPNGArgs,
         "open-subfig": CfdxOpenSubfigArgs,
+        "perform": CfdxPerformArgs,
         "post-file": CfdxPostFileArgs,
         "qdel": CfdxQdelArgs,
         "receive-file": CfdxReceiveFileArgs,
@@ -3491,6 +3522,33 @@ def cape_open_subfig(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, {"caselist": caselist}
 
 
+@CfdxPerformArgs.rst
+def cape_perform(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(CfdxPerformArgs, *a, **kw)
+    # Get action name, either from arg or option (it's in both)
+    action = a[0] if len(a) else kw.get("action")
+    kw.pop("action", None)
+    # Run command
+    v = cntl.perform_action(action, **kw)
+    # Return code
+    return IERR_OK, v
+
+
 @CfdxPostFileArgs.rst
 def cape_post_file(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
@@ -4215,6 +4273,7 @@ CMD_DICT = {
     "open-img": cape_open_img,
     "open-png": cape_open_png,
     "open-subfig": cape_open_subfig,
+    "perform": cape_perform,
     "post-file": cape_post_file,
     "qdel": cape_qdel,
     "receive-file": cape_receive_file,

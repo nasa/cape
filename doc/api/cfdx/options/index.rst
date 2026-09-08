@@ -12,6 +12,7 @@
 .. toctree::
     :maxdepth: 2
     
+    actionopts
     aflr3opts
     archiveopts
     configopts

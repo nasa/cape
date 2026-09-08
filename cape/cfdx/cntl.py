@@ -30,6 +30,7 @@ individualized modules are below.
 """
 
 # Standard library modules
+import contextlib
 import copy
 import fnmatch
 import functools
@@ -44,6 +45,7 @@ import re
 import shlex
 import shutil
 import sys
+import threading
 import time
 from collections import Counter, defaultdict
 from datetime import datetime
@@ -66,6 +68,7 @@ from .cntlbase import CntlBase
 from .dex import DataExchanger
 from .logger import CntlLogger
 from .options import Options
+from .options.actionopts import ActionOpts, DEFAULT_ACTIONS
 from .options.funcopts import UserFuncOpts
 from .options.runctlopts import RunControlOpts
 from .report import Report
@@ -4621,7 +4624,7 @@ class Cntl(CntlBase):
             not in SUBFIG_TABLE_TYPES
         ]
         # Get user tools
-        tools = self.opts.get("UserTools", {})
+        tools = self.get_user_tools()
         # Get cases
         inds = self.GetIndices(**kw)
         keeps = self.GetNonzeroIndices(**kw)
@@ -4689,31 +4692,16 @@ class Cntl(CntlBase):
 
     # Execute collected review/dispatch decisions
     def _execute_review_decisions(self, reviews: dict, tools: dict):
-        # Localized imports
-        from ..util import pyrangestr
-        # Mark approved cases
+        # Perform standard actions, customizable in "Actions" section
         if reviews["approve"]:
-            self.MarkPASS(I=reviews["approve"])
-        # Extend cases
+            self.perform_action("approve", I=reviews["approve"])
         if reviews["extend"]:
-            self.ExtendCases(I=reviews["extend"])
+            self.perform_action("extend", I=reviews["extend"])
         if reviews["extend2"]:
-            self.ExtendCases(I=reviews["extend2"], extend=2)
+            self.perform_action("extend2", I=reviews["extend2"])
         # Run user tools
         for name, cases in reviews["tools"].items():
-            # Get command
-            cmd = tools[name]
-            # Check for placeholder
-            if "{I}" not in cmd:
-                raise CapeValueError(
-                    f"UserTools '{name}' command has no {{I}} "
-                    f"placeholder: '{cmd}'")
-            # Format case indices
-            irng = pyrangestr(cases)
-            # Status update
-            print(f"tool '{name}': {cmd.replace('{I}', irng)}")
-            # Run the command
-            os.system(cmd.replace("{I}", irng))
+            self.run_user_tool(name, tools[name], cases)
 
     # Show iterative-state recommendation of one subfigure for one case
     def _show_review_state(
@@ -4901,10 +4889,11 @@ class Cntl(CntlBase):
                 name)
         :Raises:
             * :class:`cape.errors.CapeValueError`
-                If a *UserTools* command has no ``{I}`` placeholder
+                If a legacy *UserTools* command has no ``{I}``
+                placeholder
         """
         # Get user tools
-        tools = self.opts.get("UserTools", {})
+        tools = self.get_user_tools()
         # Get cases
         inds = self.GetIndices(**kw)
         keeps = self.GetNonzeroIndices(**kw)
@@ -4951,6 +4940,231 @@ class Cntl(CntlBase):
         return self._prompt_decision(
             i, frun, f"action for case w/ status '{sts}'",
             ["approve"], tools)
+
+   # --- Actions ---
+    # Perform all actions for one action name
+    @run_rootdir
+    def perform_action(self, action: str, **kw) -> np.ndarray:
+        r"""Perform all actions for one action name
+
+        Action definitions are read from the *Actions* section of the
+        JSON options. The built-in names ``"approve"``, ``"defail"``,
+        ``"dezombie"``, ``"extend"``, and ``"extend2"`` have default
+        definitions that reproduce the standard ``cape approve``,
+        ``cape extend``, etc. behaviors, but each of these can be
+        customized (or new actions added) in the *Actions* section.
+
+        Each action name defines a list of actions, which are performed
+        sequentially, except that actions with the same ``"index"`` are
+        performed simultaneously (with STDOUT and STDERR suppressed).
+        Individual actions can be shell commands, methods of the
+        :class:`Cntl` class, or functions from :mod:`cape.cfdx.cli`;
+        see :mod:`cape.cfdx.options.actionopts`.
+
+        :Call:
+            >>> inds = cntl.perform_action(action, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+            *action*: :class:`str`
+                Name of action, e.g. ``"approve"`` or a *UserTools* name
+            *I*: {``None``} | :class:`str` | :class:`list`\ [:class:`int`]
+                Case indices (or other case-selection options)
+        :Outputs:
+            *inds*: :class:`np.ndarray`\ [:class:`int`]
+                Case indices action was performed on
+        :Raises:
+            * :class:`cape.errors.CapeValueError`
+                If *action* has no definition in the *Actions* section
+                or the default actions
+        """
+        # Get case indices
+        inds = self.GetIndices(**kw)
+        # Get action definitions
+        actlist = self.opts.get_Action(action)
+        # Check that the action is defined
+        if actlist is None:
+            # List known action names
+            known = sorted(set(
+                list(DEFAULT_ACTIONS) +
+                [k for k in self.opts.get("Actions", {})
+                 if k != "UserTools"]))
+            raise CapeValueError(
+                f"No action '{action}' defined in 'Actions' section; " +
+                "known actions: " + " | ".join(known))
+        # Group actions by index
+        groups = {}
+        for j, actj in enumerate(actlist):
+            # Use list index if action index is not given
+            groups.setdefault(actj.get("index", j), []).append(actj)
+        # Perform index groups in turn
+        for index in sorted(groups):
+            # Get all actions for this index
+            group = groups[index]
+            # Actions sharing an index run simultaneously
+            if len(group) == 1:
+                self._perform_action(group[0], inds)
+            else:
+                self._perform_simul_actions(group, inds)
+        # Output
+        return inds
+
+    # Perform a single action
+    def _perform_action(self, act: ActionOpts, I: list):
+        # Get action options
+        typ = act.get("type", "shell")
+        fname = act.get("function")
+        # All actions need a function or command
+        if fname is None:
+            raise CapeValueError(
+                f"No 'function' given for action type '{typ}'")
+        # Perform action based on type
+        if typ == "shell":
+            # Shell command
+            self._perform_shell_action(fname, I)
+        elif typ == "cntl":
+            # Method of this Cntl instance
+            meth = getattr(self, fname, None)
+            if not callable(meth):
+                raise CapeValueError(f"Cntl has no method '{fname}'")
+            # Explicit kwargs override case indices
+            kw = {"I": I}
+            kw.update(act.get("kwargs", {}))
+            meth(*act.get("args", []), **kw)
+        elif typ == "cli":
+            # Function from cape.cfdx.cli
+            from . import cli
+            # Localized imports
+            from ..util import pyrangestr
+            func = getattr(cli, fname, None)
+            if not callable(func):
+                raise CapeValueError(
+                    f"cape.cfdx.cli has no function '{fname}'")
+            # Explicit kwargs override case indices; indices must be a
+            # range string b/c cli functions expect parsed CLI args
+            kw = {"I": pyrangestr(I)}
+            kw.update(act.get("kwargs", {}))
+            func(*act.get("args", []), **kw)
+        else:
+            raise CapeValueError(f"Unrecognized action type '{typ}'")
+
+    # Perform several actions simultaneously and quietly
+    def _perform_simul_actions(self, group: list, I: list):
+        # Initialize thread list and caught exceptions
+        threads = []
+        errors = []
+
+        # Thread target that saves exceptions for later
+        def _worker(act):
+            try:
+                self._perform_action(act, I)
+            except Exception as err:
+                errors.append(err)
+        # Suppress STDOUT/STDERR during simultaneous actions
+        with _suppress_output():
+            # Start one thread per action
+            for actj in group:
+                th = threading.Thread(target=_worker, args=(actj,))
+                th.start()
+                threads.append(th)
+            # Wait for all actions to finish
+            for th in threads:
+                th.join()
+        # Raise the first exception, if any
+        if errors:
+            raise errors[0]
+
+    # Perform a shell-command action
+    def _perform_shell_action(self, cmd: str, I: list):
+        # Localized imports
+        from ..util import pyrangestr
+        # Format case indices
+        irng = pyrangestr(I)
+        # Insert case indices or append to command
+        if "{I}" in cmd:
+            cmd = cmd.replace("{I}", irng)
+        else:
+            cmd = f"{cmd} -I {irng}"
+        # Status update
+        print(cmd)
+        # Run the command
+        os.system(cmd)
+
+   # --- User tools ---
+    # Get user tools for review/dispatch
+    def get_user_tools(self) -> dict:
+        r"""Get user tools for ``cape review``/``cape dispatch``
+
+        New-style tools are defined in the *Actions* section by listing
+        their names in its ``"UserTools"`` option; each tool's
+        definition is an action of the same name, and the tool's name
+        is displayed in the interactive interfaces. For backwards
+        compatibility, tools may also be defined in the legacy
+        top-level *UserTools* option, a dict of names and shell
+        commands, each of which must have a ``{I}`` placeholder for the
+        case indices.
+
+        :Call:
+            >>> tools = cntl.get_user_tools()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+        :Outputs:
+            *tools*: :class:`dict`\ [:class:`tuple`]
+                Ordered tool definitions; ``("action", name)`` for
+                tools defined in the *Actions* section or
+                ``("shell", cmd)`` for legacy *UserTools* entries
+        """
+        # Initialize (ordered) dict of tools
+        tools = {}
+        # New-style tools from the "Actions" section
+        for name in self.opts.get_UserToolsNames():
+            tools[name] = ("action", name)
+        # Legacy tools defined at the top level of the JSON options
+        for name, cmd in self.opts.get("UserTools", {}).items():
+            tools.setdefault(name, ("shell", cmd))
+        # Output
+        return tools
+
+    # Run one user tool on a list of cases
+    def run_user_tool(self, name: str, tooldef: tuple, I: list):
+        r"""Run one user tool on a list of cases
+
+        :Call:
+            >>> cntl.run_user_tool(name, tooldef, I)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+            *name*: :class:`str`
+                Name of the user tool
+            *tooldef*: ``("action", name)`` | ``("shell", cmd)``
+                Tool definition from :meth:`get_user_tools`
+            *I*: :class:`list`\ [:class:`int`]
+                List of case indices
+        :Raises:
+            * :class:`cape.errors.CapeValueError`
+                If a legacy *UserTools* command has no ``{I}``
+                placeholder
+        """
+        # Unpack tool definition
+        typ, val = tooldef
+        # Status update
+        print(f"tool '{name}':")
+        # Run new-style actions or legacy shell commands
+        if typ == "action":
+            # Tool is an action defined in the "Actions" section
+            self.perform_action(val, I=I)
+        elif typ == "shell":
+            # Legacy shell command requires "{I}" placeholder
+            if "{I}" not in val:
+                raise CapeValueError(
+                    f"UserTools '{name}' command has no {{I}} "
+                    f"placeholder: '{val}'")
+            # Run the command w/ case indices inserted
+            self._perform_shell_action(val, I)
+        else:
+            raise CapeValueError(
+                f"Unrecognized tool type '{typ}' for tool '{name}'")
 
   # *** DATA EXTRACTION ***
    # --- Data Exchange ---
@@ -6852,3 +7066,38 @@ def _yaml_valstr(v) -> str:
     else:
         # Default conversion
         return str(v)
+
+
+# Context manager to suppress STDOUT/STDERR at file-descriptor level
+@contextlib.contextmanager
+def _suppress_output():
+    r"""Suppress STDOUT and STDERR during a ``with`` block
+
+    Both Python-level writes to :data:`sys.stdout`:data:`sys.stderr`
+    and output from child processes (which inherit file descriptors 1
+    and 2) are redirected to the null device.
+
+    :Call:
+        >>> with _suppress_output():
+        ...     noisy_function()
+    """
+    # Flush Python-level buffers so pending output isn't lost
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # Duplicate current STDOUT/STDERR file descriptors
+    fd1, fd2 = os.dup(1), os.dup(2)
+    nullfd = os.open(os.devnull, os.O_WRONLY)
+    try:
+        # Redirect STDOUT/STDERR to the null device
+        os.dup2(nullfd, 1)
+        os.dup2(nullfd, 2)
+        yield
+    finally:
+        # Restore original file descriptors
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os.dup2(fd1, 1)
+        os.dup2(fd2, 2)
+        os.close(fd1)
+        os.close(fd2)
+        os.close(nullfd)

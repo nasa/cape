@@ -34,6 +34,7 @@ import socket
 from . import util
 from .pbsopts import PBSOpts, BatchPBSOpts, PostPBSOpts
 from .slurmopts import SlurmOpts, BatchSlurmOpts, PostSlurmOpts
+from .actionopts import ActionsOpts
 from .databookopts import DataBookOpts
 from .reportopts import ReportOpts
 from .meshopts import MeshOpts
@@ -143,6 +144,9 @@ A basic template for such files is shown below.
                 }
             },
 
+            // Custom case-disposition actions and user tools
+            "Actions": { },
+
             // Surface subset and point settings
             "Config": { },
 
@@ -180,6 +184,7 @@ file that are not part of any section.
 
     # Accepted options/sections
     _optlist = {
+        "Actions",
         "BatchPBS",
         "BatchShellCmds",
         "BatchSlurm",
@@ -278,11 +283,14 @@ file that are not part of any section.
         "NSubmit": "maximum number of jobs to submit at one time",
         "PythonExec": "specific Python executable to use for jobs",
         "PythonPath": "folder(s) to add to Python path for custom modules",
-        "UserTools": "shell cmds w/ ``{I}`` placeholder for ``cape review``",
+        "UserTools": (
+            "legacy shell cmds for ``cape review``; moved to " +
+            "the *Actions* section"),
     }
 
     # Section classes
     _sec_cls = {
+        "Actions": ActionsOpts,
         "BatchPBS": BatchPBSOpts,
         "BatchSlurm": BatchSlurmOpts,
         "Config": ConfigOpts,
