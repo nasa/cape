@@ -4959,10 +4959,10 @@ class Cntl(CntlBase):
 
         Each action name defines a list of actions, which are performed
         sequentially, except that actions with the same ``"index"`` are
-        performed while STDOUT and STDERR are suppressed. Shell
+        performed with their STDOUT and STDERR suppressed (although
+        their titles and any error messages are still shown). Shell
         commands are run in forked child processes so that shell
-        commands in the same group can overlap; error messages are
-        shown even while output is suppressed. Individual actions can
+        commands in the same group can overlap. Individual actions can
         be shell commands, methods of the :class:`Cntl` class, or
         functions from :mod:`cape.cfdx.cli`; see
         :mod:`cape.cfdx.options.actionopts`.
@@ -5053,6 +5053,15 @@ class Cntl(CntlBase):
             raise CapeValueError(f"Unrecognized action type '{typ}'")
         # Display the title
         print(compile_rst(title))
+        # Suppress action output if part of a simultaneous group
+        if k is not None:
+            with _suppress_output():
+                self._run_action(act, typ, fname, I)
+        else:
+            self._run_action(act, typ, fname, I)
+
+    # Execute a single action after displaying its title
+    def _run_action(self, act: ActionOpts, typ: str, fname: str, I: list):
         # Perform action based on type
         if typ == "shell":
             # Shell command
@@ -5091,27 +5100,16 @@ class Cntl(CntlBase):
     def _perform_simul_actions(self, group: list, I: list, j: int, ngrp: int):
         # Initialize list of caught exceptions
         errors = []
-        # Save a copy of STDERR to display errors despite suppression
-        sys.stderr.flush()
-        try:
-            errfd = os.dup(2)
-        except OSError:
-            errfd = None
-        try:
-            # Suppress STDOUT/STDERR during simultaneous actions
-            with _suppress_output():
-                # Perform the group's actions in turn; shell commands
-                # are started in forked children so they can overlap
-                for k, actj in enumerate(group):
-                    try:
-                        self._perform_action(actj, I, j, ngrp, k)
-                    except Exception as err:
-                        # Show the error on the unsuppressed STDERR
-                        errors.append(err)
-                        _show_suppressed_err(errfd, actj, err)
-        finally:
-            if errfd is not None:
-                os.close(errfd)
+        # Perform the group's actions in turn; shell commands are
+        # started in forked children so they can overlap
+        for k, actj in enumerate(group):
+            try:
+                self._perform_action(actj, I, j, ngrp, k)
+            except Exception as err:
+                # Show the error message; suppression of this action
+                # has ended by the time it's caught here
+                errors.append(err)
+                _show_action_err(actj, err)
         # Raise the first exception, if any
         if errors:
             raise errors[0]
@@ -5125,8 +5123,6 @@ class Cntl(CntlBase):
             cmd = cmd.replace("{I}", irng)
         else:
             cmd = f"{cmd} -I {irng}"
-        # Status update
-        print(cmd)
         # Run the command in a forked child process
         errno = _run_fork_command(cmd)
         # Check the exit status
@@ -7166,42 +7162,41 @@ def _run_fork_command(cmd: str) -> int:
     return os.WEXITSTATUS(status) if os.WIFEXITED(status) else 1
 
 
-# Write an error message while output is suppressed
-def _show_suppressed_err(errfd: int, act: dict, err: BaseException):
-    r"""Display an error message from an action being suppressed
+# Write an error message from a failed action
+def _show_action_err(act: dict, err: BaseException):
+    r"""Display an error message from a failed action
 
-    This requires a duplicate of the un-suppressed STDERR file
-    descriptor, acquired before entering :func:`_suppress_output`.
     Expected error types show only their message; unexpected ones show
-    a full traceback.
+    a full traceback. This writes to STDERR at the file-descriptor
+    level so that the message can't be swallowed by ``sys``-level
+    output redirection.
 
     :Call:
-        >>> _show_suppressed_err(errfd, act, err)
+        >>> _show_action_err(act, err)
     :Inputs:
-        *errfd*: :class:`int` | ``None``
-            Duplicate of the real STDERR file descriptor
         *act*: :class:`dict`
             Action options used when the error occurred
         *err*: :class:`BaseException`
             Exception that was caught
     """
-    # Can't do anything w/o a valid file descriptor
-    if errfd is None:
-        return
+    # Flush Python-level buffers to keep messages in order
+    sys.stdout.flush()
+    sys.stderr.flush()
     # Select brief message or full traceback
     if isinstance(err, (CapeError, ValueError, KeyError, OSError)):
         # Expected error type; show just the message
-        msg = "%s: %s" % (err.__class__.__name__, err)
+        msg = "%s: %s\n" % (err.__class__.__name__, err)
     else:
         # Unexpected error; likely a bug, so show full traceback
         msg = "".join(traceback.format_exception(
             type(err), err, err.__traceback__))
-    # Attempt to write to the un-suppressed STDERR
+    # Attempt to write to STDERR
     try:
-        with os.fdopen(os.dup(errfd), "w") as fp:
-            fp.write("\nError in action '%s':\n" % act.get("function", "?"))
-            for line in msg.rstrip().splitlines():
-                fp.write("    %s\n" % line)
+        os.write(
+            2, ("\nError in action '%s':\n" % act.get("function", "?")
+                ).encode())
+        for line in msg.rstrip().splitlines():
+            os.write(2, ("    %s\n" % line).encode())
     except OSError:
         pass
 
