@@ -45,8 +45,8 @@ import re
 import shlex
 import shutil
 import sys
-import threading
 import time
+import traceback
 from collections import Counter, defaultdict
 from datetime import datetime
 from io import IOBase
@@ -84,8 +84,10 @@ from ..geom import RotatePoints
 from ..trifile import ReadTriFile
 from ..util import pyrangestr
 from ..errors import (
+    CapeError,
     CapeNotImplementedError,
     CapeNotSupportedError,
+    CapeRuntimeError,
     CapeTypeError,
     CapeValueError,
     assert_isinstance)
@@ -4957,10 +4959,13 @@ class Cntl(CntlBase):
 
         Each action name defines a list of actions, which are performed
         sequentially, except that actions with the same ``"index"`` are
-        performed simultaneously (with STDOUT and STDERR suppressed).
-        Individual actions can be shell commands, methods of the
-        :class:`Cntl` class, or functions from :mod:`cape.cfdx.cli`;
-        see :mod:`cape.cfdx.options.actionopts`.
+        performed while STDOUT and STDERR are suppressed. Shell
+        commands are run in forked child processes so that shell
+        commands in the same group can overlap; error messages are
+        shown even while output is suppressed. Individual actions can
+        be shell commands, methods of the :class:`Cntl` class, or
+        functions from :mod:`cape.cfdx.cli`; see
+        :mod:`cape.cfdx.options.actionopts`.
 
         :Call:
             >>> inds = cntl.perform_action(action, **kw)
@@ -5084,27 +5089,29 @@ class Cntl(CntlBase):
 
     # Perform several actions simultaneously and quietly
     def _perform_simul_actions(self, group: list, I: list, j: int, ngrp: int):
-        # Initialize thread list and caught exceptions
-        threads = []
+        # Initialize list of caught exceptions
         errors = []
-
-        # Thread target that saves exceptions for later
-        def _worker(act, k):
-            try:
-                self._perform_action(act, I, j, ngrp, k)
-            except Exception as err:
-                errors.append(err)
-
-        # Suppress STDOUT/STDERR during simultaneous actions
-        with _suppress_output():
-            # Start one thread per action
-            for k, actj in enumerate(group):
-                th = threading.Thread(target=_worker, args=(actj, k))
-                th.start()
-                threads.append(th)
-            # Wait for all actions to finish
-            for th in threads:
-                th.join()
+        # Save a copy of STDERR to display errors despite suppression
+        sys.stderr.flush()
+        try:
+            errfd = os.dup(2)
+        except OSError:
+            errfd = None
+        try:
+            # Suppress STDOUT/STDERR during simultaneous actions
+            with _suppress_output():
+                # Perform the group's actions in turn; shell commands
+                # are started in forked children so they can overlap
+                for k, actj in enumerate(group):
+                    try:
+                        self._perform_action(actj, I, j, ngrp, k)
+                    except Exception as err:
+                        # Show the error on the unsuppressed STDERR
+                        errors.append(err)
+                        _show_suppressed_err(errfd, actj, err)
+        finally:
+            if errfd is not None:
+                os.close(errfd)
         # Raise the first exception, if any
         if errors:
             raise errors[0]
@@ -5120,8 +5127,12 @@ class Cntl(CntlBase):
             cmd = f"{cmd} -I {irng}"
         # Status update
         print(cmd)
-        # Run the command
-        os.system(cmd)
+        # Run the command in a forked child process
+        errno = _run_fork_command(cmd)
+        # Check the exit status
+        if errno:
+            raise CapeRuntimeError(
+                f"Command exited with status {errno}: {cmd}")
 
    # --- User tools ---
     # Get user tools for review/dispatch
@@ -7099,6 +7110,100 @@ def _yaml_valstr(v) -> str:
     else:
         # Default conversion
         return str(v)
+
+
+# Run a shell command in a forked child process and wait for it
+def _run_fork_command(cmd: str) -> int:
+    r"""Run a shell command in a forked child process
+
+    The current process waits for the child to finish before returning,
+    keeping the child process (and any of its own child processes) out
+    of the current process. On platforms without :func:`os.fork`, the
+    command is run directly with :func:`os.system`.
+
+    :Call:
+        >>> errno = _run_fork_command(cmd)
+    :Inputs:
+        *cmd*: :class:`str`
+            Shell command to execute
+    :Outputs:
+        *errno*: :class:`int`
+            Exit status of the command, ``0`` on success
+    """
+    # Flush pending output so that it isn't duplicated in the child
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # Fall back to os.system() on platforms without fork()
+    if not hasattr(os, "fork"):
+        return os.system(cmd)
+    # Create child process
+    pid = os.fork()
+    # Check if this is the child process
+    if pid == 0:
+        # Run the command
+        try:
+            status = os.system(cmd)
+        except BaseException:
+            status = None
+        # Convert os.system() status to a regular exit code
+        if status is None:
+            errno = 1
+        elif os.WIFEXITED(status):
+            errno = os.WEXITSTATUS(status)
+        else:
+            errno = 1
+        # Exit immediately, without repeating any of the parent's
+        # cleanup code (atexit handlers, buffer flushes, etc.)
+        os._exit(errno)
+    # Parent: wait for child to complete, restarting if interrupted
+    while True:
+        try:
+            _, status = os.waitpid(pid, 0)
+            break
+        except InterruptedError:
+            continue
+    # Convert wait status to exit code
+    return os.WEXITSTATUS(status) if os.WIFEXITED(status) else 1
+
+
+# Write an error message while output is suppressed
+def _show_suppressed_err(errfd: int, act: dict, err: BaseException):
+    r"""Display an error message from an action being suppressed
+
+    This requires a duplicate of the un-suppressed STDERR file
+    descriptor, acquired before entering :func:`_suppress_output`.
+    Expected error types show only their message; unexpected ones show
+    a full traceback.
+
+    :Call:
+        >>> _show_suppressed_err(errfd, act, err)
+    :Inputs:
+        *errfd*: :class:`int` | ``None``
+            Duplicate of the real STDERR file descriptor
+        *act*: :class:`dict`
+            Action options used when the error occurred
+        *err*: :class:`BaseException`
+            Exception that was caught
+    """
+    # Can't do anything w/o a valid file descriptor
+    if errfd is None:
+        return
+    # Select brief message or full traceback
+    if isinstance(err, (CapeError, ValueError, KeyError, OSError)):
+        # Expected error type; show just the message
+        msg = "%s: %s" % (err.__class__.__name__, err)
+    else:
+        # Unexpected error; likely a bug, so show full traceback
+        msg = "".join(traceback.format_exception(
+            type(err), err, err.__traceback__))
+    # Attempt to write to the un-suppressed STDERR
+    try:
+        with os.fdopen(os.dup(errfd), "w") as fp:
+            fp.write("\nError in action '%s':\n" % act.get("function", "?"))
+            for line in msg.rstrip().splitlines():
+                fp.write("    %s\n" % line)
+    except OSError:
+        pass
 
 
 # Context manager to suppress STDOUT/STDERR at file-descriptor level

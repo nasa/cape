@@ -9,7 +9,7 @@ import testutils
 
 # CAPE
 from cape.cfdx.options.actionopts import DEFAULT_ACTIONS
-from cape.errors import CapeValueError
+from cape.errors import CapeRuntimeError, CapeValueError
 from cape.pycart.cli import main as pycart_main
 from cape.pycart.cntl import Cntl
 
@@ -193,6 +193,93 @@ def test_perform_simul():
         assert f.read().strip() == "0"
     with open("simul-b.txt") as f:
         assert f.read().strip() == "0"
+
+
+@testutils.run_sandbox(__file__, TEST_FILES)
+def test_perform_simul_fail():
+    """A failed action raises after the whole group completes."""
+    # Get cntl
+    cntl = Cntl()
+    # Define two actions in the same group; the second fails
+    cntl.opts["Actions"] = {
+        "combo-fail": [
+            {"function": "echo ok {I} > ok-simul.txt", "index": 1},
+            {"function": "exit 2 # {I}", "index": 1},
+        ],
+    }
+    # Should raise (in the main process)
+    with pytest.raises(CapeRuntimeError):
+        cntl.perform_action("combo-fail", I=[0])
+    # The successful sibling action still ran
+    assert os.path.isfile("ok-simul.txt")
+
+
+@testutils.run_sandbox(__file__, TEST_FILES)
+def test_perform_shell_fail():
+    """A failing shell command raises even outside a group."""
+    # Get cntl
+    cntl = Cntl()
+    # Solo shell action that fails
+    cntl.opts["Actions"] = {"solo-fail": "exit 3 # {I}"}
+    # Should raise
+    with pytest.raises(CapeRuntimeError):
+        cntl.perform_action("solo-fail", I=[0])
+
+
+@testutils.run_sandbox(__file__, TEST_FILES)
+def test_perform_simul_errmsg():
+    """Errors during suppressed actions are still displayed."""
+    # Get cntl
+    cntl = Cntl()
+    # First action succeeds; second raises a CapeValueError
+    cntl.opts["Actions"] = {
+        "combo-err": [
+            {"function": "echo quiet {I} > quiet-ok.txt", "index": 1},
+            {"type": "cntl", "function": "BogusMethod", "index": 1},
+        ],
+    }
+
+    # Run while capturing actual file descriptors
+    def _do():
+        with pytest.raises(CapeValueError):
+            cntl.perform_action("combo-err", I=[0])
+
+    _, out = _capture_output(_do)
+    # The successful sibling ran, but its output was suppressed
+    assert os.path.isfile("quiet-ok.txt")
+    assert "quiet-ok" not in out
+    # The error was still shown on the original STDERR
+    assert "Error in action 'BogusMethod'" in out
+    assert "CapeValueError" in out
+    assert "Cntl has no method" in out
+
+
+@testutils.run_sandbox(__file__, TEST_FILES)
+def test_perform_simul_mixed():
+    """'cntl' actions in a group still persist their changes."""
+    # Get cntl
+    cntl = Cntl()
+    # Mix one Cntl method with one shell command in the same group
+    cntl.opts["Actions"] = {
+        "combo-mix": [
+            {
+                "type": "cntl",
+                "function": "ExtendCases",
+                "kwargs": {"extend": 1},
+                "index": 1,
+            },
+            {"function": "echo ok {I} > mixed-ok.txt", "index": 1},
+        ],
+    }
+    # Get initial phase iters
+    n0 = cntl.read_case_json(0).get_PhaseIters(0)
+    # Perform mixed group
+    cntl.perform_action("combo-mix", I=[0])
+    # Cntl action ran in the main process and persisted its changes
+    n1 = cntl.read_case_json(0).get_PhaseIters(0)
+    assert n1 > n0
+    # Shell action ran, too
+    assert os.path.isfile("mixed-ok.txt")
 
 
 def test_suppress_output():
