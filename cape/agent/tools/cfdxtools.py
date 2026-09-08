@@ -298,6 +298,13 @@ TOOL_DICT = {
         "parameters": ["f", "I"],
         "required": ["I"],
     },
+    "cape_dispatch": {
+        "description": (
+            "Ask user for appropraite action to take on one or more cases"
+        ),
+        "parameters": ["f", "I"],
+        "required": ["I"],
+    },
     "cape_extend": {
         "description": "Extend case(s) by running more iterations",
         "parameters": ["f", "I", "extend", "qsub"],

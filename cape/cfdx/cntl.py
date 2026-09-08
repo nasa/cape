@@ -45,8 +45,8 @@ import re
 import shlex
 import shutil
 import sys
-import threading
 import time
+import traceback
 from collections import Counter, defaultdict
 from datetime import datetime
 from io import IOBase
@@ -82,9 +82,12 @@ from ..optdict import OptionsDict, WARNMODE_WARN, _NPEncoder
 from ..optdict.optitem import getel
 from ..geom import RotatePoints
 from ..trifile import ReadTriFile
+from ..util import pyrangestr
 from ..errors import (
+    CapeError,
     CapeNotImplementedError,
     CapeNotSupportedError,
+    CapeRuntimeError,
     CapeTypeError,
     CapeValueError,
     assert_isinstance)
@@ -4956,10 +4959,13 @@ class Cntl(CntlBase):
 
         Each action name defines a list of actions, which are performed
         sequentially, except that actions with the same ``"index"`` are
-        performed simultaneously (with STDOUT and STDERR suppressed).
-        Individual actions can be shell commands, methods of the
-        :class:`Cntl` class, or functions from :mod:`cape.cfdx.cli`;
-        see :mod:`cape.cfdx.options.actionopts`.
+        performed simultaneously, each in a forked child process with
+        its STDOUT and STDERR suppressed (although its title and any
+        error messages are still shown). Only the on-disk side effects
+        of simultaneous actions persist in the main process. Individual
+        actions can be shell commands, methods of the :class:`Cntl`
+        class, or functions from :mod:`cape.cfdx.cli`; see
+        :mod:`cape.cfdx.options.actionopts`.
 
         :Call:
             >>> inds = cntl.perform_action(action, **kw)
@@ -4987,8 +4993,10 @@ class Cntl(CntlBase):
             # List known action names
             known = sorted(set(
                 list(DEFAULT_ACTIONS) +
-                [k for k in self.opts.get("Actions", {})
-                 if k != "UserTools"]))
+                [
+                    k for k in self.opts.get("Actions", {})
+                    if k != "UserTools"
+                ]))
             raise CapeValueError(
                 f"No action '{action}' defined in 'Actions' section; " +
                 "known actions: " + " | ".join(known))
@@ -4997,20 +5005,28 @@ class Cntl(CntlBase):
         for j, actj in enumerate(actlist):
             # Use list index if action index is not given
             groups.setdefault(actj.get("index", j), []).append(actj)
+        # Number of groups
+        ngrp = len(groups)
         # Perform index groups in turn
         for index in sorted(groups):
             # Get all actions for this index
             group = groups[index]
             # Actions sharing an index run simultaneously
             if len(group) == 1:
-                self._perform_action(group[0], inds)
+                self._perform_action(group[0], inds, index, ngrp)
             else:
-                self._perform_simul_actions(group, inds)
+                self._perform_simul_actions(group, inds, index, ngrp)
         # Output
         return inds
 
     # Perform a single action
-    def _perform_action(self, act: ActionOpts, I: list):
+    def _perform_action(
+            self,
+            act: ActionOpts,
+            I: list,
+            j: int,
+            ngrp: int,
+            k: int | None = None):
         # Get action options
         typ = act.get("type", "shell")
         fname = act.get("function")
@@ -5018,66 +5034,126 @@ class Cntl(CntlBase):
         if fname is None:
             raise CapeValueError(
                 f"No 'function' given for action type '{typ}'")
+        # Action index
+        actj = f"({j+1}/{ngrp})" if k is None else f"({j+1}.{k+1}/{ngrp})"
+        # Prefix/suffix for all titles
+        pre = f":bold:`--` {actj}"
+        suf = ":bold:`--` "
+        # Construct a title first
+        if typ == "shell":
+            # Shell command
+            title = f"{pre} :blue:`$` :green:`{fname}` {suf}"
+        elif typ == "cntl":
+            # Cntl method
+            title = f"{pre} :blue:`Cntl.`:green:`{fname}()` {suf}"
+        elif typ == "cli":
+            # CLI module method
+            title = f"{pre} :blue:`cli.`:green:`{fname}()` {suf}"
+        else:
+            raise CapeValueError(f"Unrecognized action type '{typ}'")
+        # Display the title
+        print(compile_rst(title))
+        # Check if part of a simultaneous group
+        if k is not None:
+            # Flush stdio buffers so the forked child doesn't repeat
+            # any pending output
+            sys.stdout.flush()
+            sys.stderr.flush()
+            # Fork a child process to run this action
+            pid = os.fork()
+            # Check if this is the child process
+            if pid == 0:
+                # Run the action with its STDOUT and STDERR suppressed
+                errno = 0
+                try:
+                    with _suppress_output():
+                        self._run_action(act, typ, fname, I)
+                except (KeyboardInterrupt, SystemExit):
+                    errno = 1
+                except BaseException as err:
+                    # Show the suppressed action's error message
+                    errno = 1
+                    _show_action_err(act, err)
+                # Exit w/o repeating any of the parent's cleanup code
+                # (atexit handlers, buffer flushes, etc.)
+                os._exit(errno)
+            # Parent process: save the child's PID to wait for later
+            self._action_pids.append(pid)
+        else:
+            self._run_action(act, typ, fname, I)
+
+    # Execute a single action after displaying its title
+    def _run_action(self, act: ActionOpts, typ: str, fname: str, I: list):
         # Perform action based on type
         if typ == "shell":
             # Shell command
             self._perform_shell_action(fname, I)
-        elif typ == "cntl":
+            return
+        # The other two options are Python calls; process args
+        kw = {"I": I}
+        # Explicit kwargs override case indices; indices must be a
+        # range string b/c cli functions expect parsed CLI args
+        if typ == "cli":
+            kw = {"I": pyrangestr(I)}
+        # Add user kwargs
+        kw.update(act.get("kwargs", {}))
+        # Get positional args
+        a = act.get("args", [])
+        # Check which Python call
+        if typ == "cntl":
             # Method of this Cntl instance
             meth = getattr(self, fname, None)
             if not callable(meth):
                 raise CapeValueError(f"Cntl has no method '{fname}'")
-            # Explicit kwargs override case indices
-            kw = {"I": I}
-            kw.update(act.get("kwargs", {}))
-            meth(*act.get("args", []), **kw)
+            # Call method
+            meth(*a, **kw)
         elif typ == "cli":
             # Function from cape.cfdx.cli
             from . import cli
             # Localized imports
-            from ..util import pyrangestr
             func = getattr(cli, fname, None)
             if not callable(func):
                 raise CapeValueError(
                     f"cape.cfdx.cli has no function '{fname}'")
-            # Explicit kwargs override case indices; indices must be a
-            # range string b/c cli functions expect parsed CLI args
-            kw = {"I": pyrangestr(I)}
-            kw.update(act.get("kwargs", {}))
-            func(*act.get("args", []), **kw)
-        else:
-            raise CapeValueError(f"Unrecognized action type '{typ}'")
+            # Call function
+            func(*a, **kw)
 
     # Perform several actions simultaneously and quietly
-    def _perform_simul_actions(self, group: list, I: list):
-        # Initialize thread list and caught exceptions
-        threads = []
-        errors = []
-
-        # Thread target that saves exceptions for later
-        def _worker(act):
-            try:
-                self._perform_action(act, I)
-            except Exception as err:
-                errors.append(err)
-        # Suppress STDOUT/STDERR during simultaneous actions
-        with _suppress_output():
-            # Start one thread per action
-            for actj in group:
-                th = threading.Thread(target=_worker, args=(actj,))
-                th.start()
-                threads.append(th)
-            # Wait for all actions to finish
-            for th in threads:
-                th.join()
-        # Raise the first exception, if any
-        if errors:
-            raise errors[0]
+    def _perform_simul_actions(self, group: list, I: list, j: int, ngrp: int):
+        # Fork one child process per action; :meth:`_perform_action`
+        # displays each title and saves each child PID here
+        self._action_pids = []
+        # List of failed actions
+        errs = []
+        # Start all of the group's actions
+        try:
+            for k, actj in enumerate(group):
+                self._perform_action(actj, I, j, ngrp, k)
+            # Wait for all children to finish
+            for pid, actj in zip(self._action_pids, group):
+                # Wait for this child, restarting interrupted waits
+                while True:
+                    try:
+                        _, status = os.waitpid(pid, 0)
+                        break
+                    except InterruptedError:
+                        continue
+                # Decode the wait status
+                sts = os.WEXITSTATUS(status) if os.WIFEXITED(status) else 1
+                # Check for failure
+                if sts:
+                    errs.append((actj.get("function", "?"), sts))
+        finally:
+            self._action_pids = []
+        # Summarize the failures, if any
+        if errs:
+            raise CapeRuntimeError(
+                "Failed simultaneous action(s): " + "; ".join(
+                    "'%s' exited with status %i" % (func, sts)
+                    for func, sts in errs))
 
     # Perform a shell-command action
     def _perform_shell_action(self, cmd: str, I: list):
-        # Localized imports
-        from ..util import pyrangestr
         # Format case indices
         irng = pyrangestr(I)
         # Insert case indices or append to command
@@ -5085,10 +5161,12 @@ class Cntl(CntlBase):
             cmd = cmd.replace("{I}", irng)
         else:
             cmd = f"{cmd} -I {irng}"
-        # Status update
-        print(cmd)
-        # Run the command
-        os.system(cmd)
+        # Run the command in a forked child process
+        errno = _run_fork_command(cmd)
+        # Check the exit status
+        if errno:
+            raise CapeRuntimeError(
+                f"Command exited with status {errno}: {cmd}")
 
    # --- User tools ---
     # Get user tools for review/dispatch
@@ -7066,6 +7144,95 @@ def _yaml_valstr(v) -> str:
     else:
         # Default conversion
         return str(v)
+
+
+# Run a shell command in a forked child process and wait for it
+def _run_fork_command(cmd: str) -> int:
+    r"""Run a shell command in a forked child process
+
+    The current process waits for the child to finish before returning,
+    keeping the child process (and any of its own child processes) out
+    of the current process.
+
+    :Call:
+        >>> errno = _run_fork_command(cmd)
+    :Inputs:
+        *cmd*: :class:`str`
+            Shell command to execute
+    :Outputs:
+        *errno*: :class:`int`
+            Exit status of the command, ``0`` on success
+    """
+    # Flush pending output so that it isn't duplicated in the child
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # Create child process
+    pid = os.fork()
+    # Check if this is the child process
+    if pid == 0:
+        # Run the command
+        try:
+            status = os.system(cmd)
+        except BaseException:
+            status = None
+        # Convert os.system() status to a regular exit code
+        if status is None:
+            errno = 1
+        elif os.WIFEXITED(status):
+            errno = os.WEXITSTATUS(status)
+        else:
+            errno = 1
+        # Exit immediately, without repeating any of the parent's
+        # cleanup code (atexit handlers, buffer flushes, etc.)
+        os._exit(errno)
+    # Parent: wait for child to complete, restarting if interrupted
+    while True:
+        try:
+            _, status = os.waitpid(pid, 0)
+            break
+        except InterruptedError:
+            continue
+    # Convert wait status to exit code
+    return os.WEXITSTATUS(status) if os.WIFEXITED(status) else 1
+
+
+# Write an error message from a failed action
+def _show_action_err(act: dict, err: BaseException):
+    r"""Display an error message from a failed action
+
+    Expected error types show only their message; unexpected ones show
+    a full traceback. This writes to STDERR at the file-descriptor
+    level so that the message can't be swallowed by ``sys``-level
+    output redirection.
+
+    :Call:
+        >>> _show_action_err(act, err)
+    :Inputs:
+        *act*: :class:`dict`
+            Action options used when the error occurred
+        *err*: :class:`BaseException`
+            Exception that was caught
+    """
+    # Flush Python-level buffers to keep messages in order
+    sys.stdout.flush()
+    sys.stderr.flush()
+    # Select brief message or full traceback
+    if isinstance(err, (CapeError, ValueError, KeyError, OSError)):
+        # Expected error type; show just the message
+        msg = "%s: %s\n" % (err.__class__.__name__, err)
+    else:
+        # Unexpected error; likely a bug, so show full traceback
+        msg = "".join(traceback.format_exception(
+            type(err), err, err.__traceback__))
+    # Attempt to write to STDERR
+    try:
+        os.write(
+            2, ("\nError in action '%s':\n" % act.get("function", "?")
+                ).encode())
+        for line in msg.rstrip().splitlines():
+            os.write(2, ("    %s\n" % line).encode())
+    except OSError:
+        pass
 
 
 # Context manager to suppress STDOUT/STDERR at file-descriptor level

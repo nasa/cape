@@ -408,8 +408,8 @@ class AgentCntl:
                 "content": (
                     "I issued this command directly through the CLI; "
                     "this is a record, not a request to execute it again. "
-                    "No LLM response is needed. Command:\n"
-                    + shlex.join(cmdlist)),
+                    "No LLM response is needed. Command:\n" +
+                    shlex.join(cmdlist)),
             })
             # Status update
             print(HLINE)
@@ -428,8 +428,8 @@ class AgentCntl:
                 "content": (
                     "I issued this command directly through the CLI; "
                     "this is a record, not a request to execute it again. "
-                    "No LLM response is needed. Command:\n"
-                    + shlex.join(cmdlist)),
+                    "No LLM response is needed. Command:\n" +
+                    shlex.join(cmdlist)),
             })
             # Status update
             print(HLINE)
