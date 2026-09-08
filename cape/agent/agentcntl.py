@@ -304,6 +304,11 @@ class AgentCntl:
         agentskills.usertools.TOOL_DIR_NAME = self.opts.get_opt(
             "ToolDir", vdef="tools")
         agentskills.usertools.TOOL_REGISTRY.clear()
+        # Configure the allow-list for the file-editor skill
+        agentskills.fileedit.ROOT_DIR = self.RootDir
+        agentskills.fileedit.ALLOW_PATTERNS.clear()
+        agentskills.fileedit.ALLOW_PATTERNS.extend(
+            self.opts.get_opt("EditAllowList", vdef=[]))
         #: :class:`str`
         #: System prompt including listing of available skills
         self.system_prompt = genr8_system_prompt(self.skills)

@@ -5,7 +5,7 @@ import pytest
 
 # Local imports
 from cape.agent import agentcntl
-from cape.agent.skills import checkdbtools, skillbase
+from cape.agent.skills import checkdbtools, fileedit, skillbase
 
 
 class DummyOpts:
@@ -97,3 +97,18 @@ def test_05_unknown_skill_does_not_activate(monkeypatch):
     assert result["success"] is False
     assert set(cntl.tools) == {"use_skill"}
     assert schema_names(cntl) == ["use_skill"]
+
+
+def test_06_file_editor_activation(monkeypatch):
+    """Loading ``file-editor`` activates its three file tools."""
+    cntl = make_cntl("full", monkeypatch)
+    # Configured with an empty allow-list by default
+    assert fileedit.ALLOW_PATTERNS == []
+    result = cntl.use_skill("file-editor")
+    assert result["success"] is True
+    ftools = ["list_editable_files", "read_file", "edit_file"]
+    assert result["tools_added"] == ftools
+    assert result["tools_active"] == ftools
+    assert cntl.tools["edit_file"] is fileedit.edit_file
+    assert schema_names(cntl) == ["use_skill"] + ftools
+    assert cntl.loaded_skills == {"file-editor"}
