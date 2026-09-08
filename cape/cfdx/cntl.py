@@ -82,6 +82,7 @@ from ..optdict import OptionsDict, WARNMODE_WARN, _NPEncoder
 from ..optdict.optitem import getel
 from ..geom import RotatePoints
 from ..trifile import ReadTriFile
+from ..util import pyrangestr
 from ..errors import (
     CapeNotImplementedError,
     CapeNotSupportedError,
@@ -4987,8 +4988,10 @@ class Cntl(CntlBase):
             # List known action names
             known = sorted(set(
                 list(DEFAULT_ACTIONS) +
-                [k for k in self.opts.get("Actions", {})
-                 if k != "UserTools"]))
+                [
+                    k for k in self.opts.get("Actions", {})
+                    if k != "UserTools"
+                ]))
             raise CapeValueError(
                 f"No action '{action}' defined in 'Actions' section; " +
                 "known actions: " + " | ".join(known))
@@ -4997,20 +5000,28 @@ class Cntl(CntlBase):
         for j, actj in enumerate(actlist):
             # Use list index if action index is not given
             groups.setdefault(actj.get("index", j), []).append(actj)
+        # Number of groups
+        ngrp = len(groups)
         # Perform index groups in turn
         for index in sorted(groups):
             # Get all actions for this index
             group = groups[index]
             # Actions sharing an index run simultaneously
             if len(group) == 1:
-                self._perform_action(group[0], inds)
+                self._perform_action(group[0], inds, index, ngrp)
             else:
-                self._perform_simul_actions(group, inds)
+                self._perform_simul_actions(group, inds, index, ngrp)
         # Output
         return inds
 
     # Perform a single action
-    def _perform_action(self, act: ActionOpts, I: list):
+    def _perform_action(
+            self,
+            act: ActionOpts,
+            I: list,
+            j: int,
+            ngrp: int,
+            k: int | None = None):
         # Get action options
         typ = act.get("type", "shell")
         fname = act.get("function")
@@ -5018,53 +5029,77 @@ class Cntl(CntlBase):
         if fname is None:
             raise CapeValueError(
                 f"No 'function' given for action type '{typ}'")
+        # Action index
+        actj = f"({j+1}/{ngrp})" if k is None else f"({j+1}.{k+1}/{ngrp})"
+        # Prefix/suffix for all titles
+        pre = f":bold:`--` {actj}"
+        suf = ":bold:`--` "
+        # Construct a title first
+        if typ == "shell":
+            # Shell command
+            title = f"{pre} :green:`{j+1}/{ngrp}: {fname}`"
+        elif typ == "cntl":
+            # Cntl method
+            title = f"{pre} :blue:`Cntl.`:green:`{fname}()` {suf}"
+        elif typ == "cli":
+            # CLI module method
+            title = f"{pre} :blue:`cli.`:green:`{fname}()` {suf}"
+        else:
+            raise CapeValueError(f"Unrecognized action type '{typ}'")
+        # Display the title
+        print(compile_rst(title))
         # Perform action based on type
         if typ == "shell":
             # Shell command
             self._perform_shell_action(fname, I)
-        elif typ == "cntl":
+            return
+        # The other two options are Python calls; process args
+        kw = {"I": I}
+        # Explicit kwargs override case indices; indices must be a
+        # range string b/c cli functions expect parsed CLI args
+        if typ == "cli":
+            kw = {"I": pyrangestr(I)}
+        # Add user kwargs
+        kw.update(act.get("kwargs", {}))
+        # Get positional args
+        a = act.get("args", [])
+        # Check which Python call
+        if typ == "cntl":
             # Method of this Cntl instance
             meth = getattr(self, fname, None)
             if not callable(meth):
                 raise CapeValueError(f"Cntl has no method '{fname}'")
-            # Explicit kwargs override case indices
-            kw = {"I": I}
-            kw.update(act.get("kwargs", {}))
-            meth(*act.get("args", []), **kw)
+            # Call method
+            meth(*a, **kw)
         elif typ == "cli":
             # Function from cape.cfdx.cli
             from . import cli
             # Localized imports
-            from ..util import pyrangestr
             func = getattr(cli, fname, None)
             if not callable(func):
                 raise CapeValueError(
                     f"cape.cfdx.cli has no function '{fname}'")
-            # Explicit kwargs override case indices; indices must be a
-            # range string b/c cli functions expect parsed CLI args
-            kw = {"I": pyrangestr(I)}
-            kw.update(act.get("kwargs", {}))
-            func(*act.get("args", []), **kw)
-        else:
-            raise CapeValueError(f"Unrecognized action type '{typ}'")
+            # Call function
+            func(*a, **kw)
 
     # Perform several actions simultaneously and quietly
-    def _perform_simul_actions(self, group: list, I: list):
+    def _perform_simul_actions(self, group: list, I: list, j: int, ngrp: int):
         # Initialize thread list and caught exceptions
         threads = []
         errors = []
 
         # Thread target that saves exceptions for later
-        def _worker(act):
+        def _worker(act, k):
             try:
-                self._perform_action(act, I)
+                self._perform_action(act, I, j, ngrp, k)
             except Exception as err:
                 errors.append(err)
+
         # Suppress STDOUT/STDERR during simultaneous actions
         with _suppress_output():
             # Start one thread per action
-            for actj in group:
-                th = threading.Thread(target=_worker, args=(actj,))
+            for k, actj in enumerate(group):
+                th = threading.Thread(target=_worker, args=(actj, k))
                 th.start()
                 threads.append(th)
             # Wait for all actions to finish
@@ -5076,8 +5111,6 @@ class Cntl(CntlBase):
 
     # Perform a shell-command action
     def _perform_shell_action(self, cmd: str, I: list):
-        # Localized imports
-        from ..util import pyrangestr
         # Format case indices
         irng = pyrangestr(I)
         # Insert case indices or append to command
