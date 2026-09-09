@@ -4904,7 +4904,7 @@ class Cntl(CntlBase):
             # Get case name
             frun = self.x.GetFullFolderNames(i)
             # Skip cases w/ no iterations or already marked
-            if os.path.isdir(frun):
+            if not os.path.isdir(frun):
                 print(compile_rst(f"``{i}`` *{frun}* ``{no}``"))
                 continue
             # Get case status, e.g. DONE, RUN, INCOMP, QUEUE
