@@ -4713,12 +4713,15 @@ class Cntl(CntlBase):
     # Execute collected review/dispatch decisions
     def _execute_review_decisions(self, reviews: dict, tools: dict):
         # Perform standard actions, customizable in "Actions" section
-        if reviews["approve"]:
-            self.perform_action("approve", I=reviews["approve"])
-        if reviews["extend"]:
-            self.perform_action("extend", I=reviews["extend"])
-        if reviews["extend2"]:
-            self.perform_action("extend2", I=reviews["extend2"])
+        for name in ("extend", "extend2", "approve"):
+            # Get cases
+            cases = reviews[name]
+            # Try to perform action
+            try:
+                self.perform_action(name, I=cases)
+            except Exception as e:
+                print(compile_rst(f":red:`{name} action failed`"))
+                print(f"{e.__class__.__name__}\n  {e.args[0]}")
         # Run user tools
         for name, cases in reviews["tools"].items():
             self.run_user_tool(name, tools[name], cases)
