@@ -5054,6 +5054,9 @@ class Cntl(CntlBase):
         if fname is None:
             raise CapeValueError(
                 f"No 'function' given for action type '{typ}'")
+        # Append this Cntl's JSON file to shell commands if requested
+        if typ == "shell" and act.get("AddFileName", False):
+            fname = f"{fname} -f {os.path.join(self.fdir, self.fname)}"
         # Action index
         actj = f"({j+1}/{ngrp})" if k is None else f"({j+1}.{k+1}/{ngrp})"
         # Prefix/suffix for all titles
@@ -5126,6 +5129,10 @@ class Cntl(CntlBase):
         # range string b/c cli functions expect parsed CLI args
         if typ == "cli":
             kw = {"I": pyrangestr(I)}
+            # Add this Cntl's JSON file kwarg if requested; explicit
+            # "f" in the action's *kwargs* takes precedence
+            if act.get("AddFileName", False):
+                kw["f"] = os.path.join(self.fdir, self.fname)
         # Add user kwargs
         kw.update(act.get("kwargs", {}))
         # Get positional args
