@@ -4714,8 +4714,15 @@ class Cntl(CntlBase):
     def _execute_review_decisions(self, reviews: dict):
         # Perform standard actions, customizable in "Actions" section
         for name, cases in reviews.items():
-            # Get cases
-            cases = reviews[name]
+            # Check for cases
+            if cases is None or len(cases) == 0:
+                continue
+            # Header line
+            print(compile_rst(f"-- action: **{name}** --"))
+            print(f"    cases: {pyrangestr(cases)}")
+            # Skip
+            if name == "skip":
+                continue
             # Try to perform action
             try:
                 self.perform_action(name, I=cases)
@@ -4914,7 +4921,6 @@ class Cntl(CntlBase):
             "extend": [],
             "extend2": [],
             "skip": [],
-            "tools": {},
         }
         # Reference chars
         yes = '✓'
@@ -4949,7 +4955,7 @@ class Cntl(CntlBase):
             tools: dict) -> str:
         # Prompt for a decision, using case status as title
         return self._prompt_decision(
-            i, frun, f"action for case w/ status '{sts}'",
+            i, frun, f"action",
             ["approve"], tools)
 
    # --- Actions ---
