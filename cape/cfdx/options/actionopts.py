@@ -186,6 +186,7 @@ class ActionOpts(OptionsDict):
     # Aliases
     _optmap = {
         "command": "function",
+        "fname": "AddFileName",
     }
 
     # Types
