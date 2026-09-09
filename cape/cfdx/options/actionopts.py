@@ -69,10 +69,12 @@ The following commands will happen:
 
 However, the last two are run simultaneously because they have the
 same value for ``"index"``. Each action in such a group runs in a
-forked child process with its STDOUT and STDERR suppressed, although
-its title and any error messages are still shown. Since the actions
-run in child processes, only their on-disk side effects persist in the
-main process.
+forked child process with its STDOUT redirected to a log file named
+``log/cape-perform.{j+1}.{k+1}`` (relative to the root folder) and its
+STDERR shown on the terminal, along with the action's title, any error
+messages, and a live status board while the group is running. Since
+the actions run in child processes, only their on-disk side effects
+persist in the main process.
 
 User-defined tools for ``cape review`` and ``cape dispatch`` are also
 defined in this section: the ``"UserTools"`` option is a list of
