@@ -4812,23 +4812,22 @@ class Cntl(CntlBase):
             vopt = ["approve"]
         else:
             vopt = ["next"]
+        # Include built-in tools
+        vopt.extend(["extend", "extend2", "skip"])
+        # Include user tools
+        vopt.extend(list(tools.keys()))
         # Prompt for a decision, using subfigure name as title
         return self._prompt_decision(
-            i, frun, f"action for subfigure '{sfig}'", vopt, tools)
+            i, f"action for subfigure '{sfig}'", vopt)
 
     # Ask user to make a review/dispatch decision for a case
     def _prompt_decision(
             self,
             i: int,
-            frun: str,
             title: str,
-            vopt: list,
-            tools: dict) -> str:
+            vopt: list) -> str:
         # Default option is the first one
         vdef = vopt[0]
-        # Remaining options; "extend2" is directly after "extend"
-        vopt = vopt + ["extend", "extend2", "skip"]
-        vopt.extend(list(tools.keys()))
         # Final prompt shows case number and case name
         prompt = f"{i}>"
         # Loop until valid input
@@ -4913,7 +4912,7 @@ class Cntl(CntlBase):
             # Status update
             print(compile_rst(f"``{i}`` ``{frun}`` ``{yes}`` **{sts}**"))
             # Prompt for a single decision
-            action = self._prompt_dispatch(i, frun, sts, tools)
+            action = self._prompt_dispatch(i, tools)
             # Save decision
             self._record_review_decision(reviews, action, i)
         # Execute collected decisions
@@ -4925,13 +4924,11 @@ class Cntl(CntlBase):
     def _prompt_dispatch(
             self,
             i: int,
-            frun: str,
-            sts: str,
             tools: dict) -> str:
+        # Available options
+        vopt = ["approve", "extend", "extend2", "skip"] + list(tools.keys())
         # Prompt for a decision, using case status as title
-        return self._prompt_decision(
-            i, frun, "action",
-            ["approve"], tools)
+        return self._prompt_decision(i, "action", vopt)
 
    # --- Actions ---
     # Perform all actions for one action name
