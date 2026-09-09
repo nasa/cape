@@ -4845,7 +4845,7 @@ class Cntl(CntlBase):
                 color="bright-blue",
                 atcolor="green",
                 ocolor="",
-                pcolor="red",
+                pcolor="purple",
                 prompt=prompt).strip().lower()
             # Check options
             if v in vopt:
