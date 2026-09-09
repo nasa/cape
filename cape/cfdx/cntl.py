@@ -7355,10 +7355,12 @@ def _print_action_board(
     # Move cursor to the top of the previous version of the board
     if up:
         sys.stdout.write("\x1b[%iA" % up)
+    # Get maximum title length
+    maxlen = max(len(title) for title in titles)
     # Draw the board, one line per action
     for k, (title, sts) in enumerate(zip(titles, stats)):
         # Clear the previous version of this line first
-        line = _action_status_line(title, sts, j, k)
+        line = _action_status_line(title, sts, j, k, maxlen)
         sys.stdout.write("\x1b[2K" + line + "\n")
     # Make sure it gets displayed right away
     sys.stdout.flush()
@@ -7369,7 +7371,8 @@ def _action_status_line(
         title: str,
         sts: int | None,
         j: int,
-        k: int) -> str:
+        k: int,
+        maxlen: int) -> str:
     r"""Format one line of the simultaneous-action status board
 
     :Call:
@@ -7381,6 +7384,8 @@ def _action_status_line(
             Exit status of the action, ``None`` while running
         *j*, *k*: :class:`int`
             Group and action indices, for the log file name
+        *maxlen*: :class:`int`
+            Maximum length of action title for this group
     :Outputs:
         *line*: :class:`str`
             Formatted status line
@@ -7400,9 +7405,11 @@ def _action_status_line(
         mcolor = "red"
     # Log file name, relative to the root folder
     flog = f"log/cape-perform.{j+1}.{k+1}"
+    # Padding to line up arrows
+    pad = " " * (maxlen - len(title))
     # Assemble the line; compile_rst() applies colors only on a TTY
     return compile_rst(
-        f"  :{mcolor}:`{marker}` {title}  :faint:`{flog}`")
+        f"  :{mcolor}:`{marker}` {title}{pad} → :lightgray:`{flog}`")
 
 
 # Context manager to suppress STDOUT/STDERR at file-descriptor level
