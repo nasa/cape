@@ -4821,36 +4821,27 @@ class Cntl(CntlBase):
         vdef = vopt[0]
         # Remaining options; "extend2" is directly after "extend"
         vopt = vopt + ["extend", "extend2", "skip"]
-        # Only show "tools" option if there are any
-        if tools:
-            # List each tool on its own line below the option
-            disp = "tools\n" + "\n".join(f"        {name}" for name in tools)
-            vopt.append((disp, "tools"))
+        vopt.extend(list(tools.keys()))
         # Final prompt shows case number and case name
-        prompt = f"{i} {frun}>"
+        prompt = f"{i}>"
         # Loop until valid input
         while True:
             # Prompt user
             v = console.prompt_menu(
                 title, vopt, vdef=vdef, prompt=prompt).strip().lower()
             # Check options
-            if (v in ("n", "next")) and ("next" in vopt):
+            if v in vopt:
+                return v
+            if (v in ("n",)) and ("next" in vopt):
                 return "next"
-            elif (v in ("a", "approve")) and ("approve" in vopt):
+            elif (v in ("a", "p", "PASS")) and ("approve" in vopt):
                 return "approve"
-            elif v in ("e", "extend"):
+            elif v in ("e", "x"):
                 return "extend"
-            elif v in ("e2", "extend2", "x2"):
+            elif v in ("e2", "x2"):
                 return "extend2"
-            elif v in ("s", "skip"):
+            elif v in ("s",):
                 return "skip"
-            elif (v in ("t", "tools")) and tools:
-                # Offer list of tools
-                tool = self._prompt_review_tool(tools)
-                # Check for cancel
-                if tool is not None:
-                    return tool
-                continue
             # Unrecognized input
             print(f"  Unrecognized option '{v}'")
 
@@ -4943,9 +4934,9 @@ class Cntl(CntlBase):
             # Prompt for a single decision
             action = self._prompt_dispatch(i, frun, sts, tools)
             # Save decision
-            self._record_review_decision(reviews, tools, action, i)
+            self._record_review_decision(reviews, action, i)
         # Execute collected decisions
-        self._execute_review_decisions(reviews, tools)
+        self._execute_review_decisions(reviews)
         # Output
         return reviews
 
