@@ -3539,7 +3539,13 @@ class Cntl(CntlBase):
             v[col] = vj
         # Run case function
         if callable(casefunc):
+            # In this case we're just going to print the line NOW
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            # Then call the function
             vi = casefunc(i)
+            # No line for collector to print
+            line = ''
             # Add to counter if appropriate
             ni = vi if isinstance(vi, (int, np.integer)) else 0
         else:
@@ -4151,9 +4157,11 @@ class Cntl(CntlBase):
         # Check for prompt option
         elif kw.get('prompt', True):
             # Prompt text
-            txt = "Delete case '%s'? y/n" % frun
+            txt = "Delete case '%s'?" % frun
             # Get option from user
-            prompt = promptutils.prompt_color(txt, "n").strip().lower()
+            prompt = promptutils.prompt_color(
+                txt, "n", ["y", "n"], prompt=":", oneline=True)
+            prompt = prompt.strip().lower()
             # Check option
             if (prompt is None) or (prompt != "y"):
                 # Do not delete

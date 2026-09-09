@@ -207,7 +207,7 @@ def _dumps_vopt_oneline(
     if not isinstance(vopt, (list, tuple)):
         return ''
     # Initial portion of prompt using pre-specified prompt
-    msg = f"{txt}: "
+    msg = f"{txt} "
     # Default default value is first entry in *vopt_list*
     if vdef is None:
         vdef = vopt[0]
