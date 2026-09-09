@@ -104,7 +104,10 @@ def prompt_color(
         completer: Optional[Callable] = None,
         glob: bool = False,
         show: bool = True,
-        oneline: bool = False) -> Any:
+        oneline: bool = False,
+        pcolor: Optional[str] = None,
+        atcolor: Optional[str] = None,
+        ocolor: Optional[str] = None) -> Any:
     r"""Get user input using a colorized prompt
 
     :Call:
@@ -117,7 +120,7 @@ def prompt_color(
         *vopt*: {``None``} | :class:`list`
             List of possible or suggested values (optional)
         *color*: {``"green"``} | :class:`str`
-            Color name
+            Color name for entire prompt
         *completer*: {``None``} | **callable**
             Function to return list of suggestions given current text
         *prompt*: {``">"``} | :class:`str`
@@ -134,13 +137,19 @@ def prompt_color(
     """
     # Default vdef --> vopt
     vopt = vdef if (vopt is None) else vopt
+    # Convert extra color options to color
+    pcol = '' if pcolor is None else CONSOLE.get(pcolor, '')
+    acol = '' if pcolor is None else CONSOLE.get(atcolor, '')
+    ocol = '' if pcolor is None else CONSOLE.get(ocolor, '')
+    # Args passed to option printers
+    args = (txt, vdef, vopt, prompt, pcol, acol, ocol)
     # Three versions of option list; two will be empty
     if oneline:
-        msg1 = _dumps_vopt_oneline(txt, vdef, vopt, prompt)
+        msg1 = _dumps_vopt_oneline(*args)
     else:
-        msg1 = _dumps_vopt_list(txt, vdef, vopt, prompt)
-    msg2 = _dumps_vdef(txt, vdef, vopt, prompt)
-    msg3 = _dumps_plain(txt, vdef, vopt, prompt)
+        msg1 = _dumps_vopt_list(*args)
+    msg2 = _dumps_vdef(*args)
+    msg3 = _dumps_plain(*args)
     # Combine all three
     msg = msg1 + msg2 + msg3
     # Create a completer
@@ -189,8 +198,8 @@ def input_color(prompt: str, color: str = "black") -> str:
             User's input
     """
     # Get color
-    col = CONSOLE.get(color, CONSOLE["black"])
-    reset = CONSOLE["reset"]
+    col = CONSOLE.get(color, '')
+    reset = CONSOLE["reset"] if color else ''
     # Form a prompt with formatting
     prompt_txt = f"{col}{prompt}{reset}"
     # Request a response
@@ -202,7 +211,8 @@ def _dumps_vopt_oneline(
         txt: str,
         vdef: Optional[Any] = None,
         vopt: Optional[list] = None,
-        prompt: str = '>') -> str:
+        prompt: str = '>',
+        *args) -> str:
     # Check if options give are a list
     if not isinstance(vopt, (list, tuple)):
         return ''
@@ -240,12 +250,19 @@ def _dumps_vopt_list(
         txt: str,
         vdef: Optional[Any] = None,
         vopt: Optional[list] = None,
-        prompt: str = '>') -> str:
+        prompt: str = '>',
+        pcol: str = '',
+        acol: str = '',
+        ocol: str = '') -> str:
     # Check if options give are a list
     if not isinstance(vopt, (list, tuple)):
         return ''
+    # Resets
+    rp = CONSOLE["reset"] if pcol else ''
+    ra = CONSOLE["reset"] if acol else ''
+    ro = CONSOLE["reset"] if ocol else ''
     # Initial portion of prompt using pre-specified prompt
-    msg = f"{txt}:\n"
+    msg = f"{pcol}{txt}:{rp}\n"
     # Default default value is first entry in *vopt_list*
     if vdef is None:
         vdef = vopt[0]
@@ -260,10 +277,10 @@ def _dumps_vopt_list(
         # Format message
         if j == jdef:
             # Highlight first option as the true default
-            msgj = f"    @{j+1}: [{opt}]\n"
+            msgj = f"    {acol}@{j+1}{ra}: [{ocol}{opt}{ro}]\n"
         else:
             # Use option number
-            msgj = f"    @{j+1}: {opt}\n"
+            msgj = f"    {acol}@{j+1}{ra}: {ocol}{opt}{ro}\n"
         # Append to overall prompt
         msg += msgj
     # Append user input prompt
@@ -275,7 +292,7 @@ def _dumps_vdef(
         txt: str,
         vdef: Optional[Any] = None,
         vopt: Optional[list] = None,
-        prompt: str = '>') -> str:
+        prompt: str = '>', *args) -> str:
     # Check if options give are a list
     if isinstance(vopt, (list, tuple)):
         return ''
@@ -293,7 +310,7 @@ def _dumps_plain(
         txt: str,
         vdef: Optional[Any] = None,
         vopt: Optional[list] = None,
-        prompt: str = '>') -> str:
+        prompt: str = '>', *args) -> str:
     # Check for any default/option list; use prior function
     if (vdef is not None) or (vopt is not None):
         return ''

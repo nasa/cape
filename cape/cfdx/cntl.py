@@ -4842,7 +4842,11 @@ class Cntl(CntlBase):
             # Prompt user
             v = promptutils.prompt_color(
                 title, vdef=vdef, vopt=vopt,
-                color="bright-blue", prompt=prompt).strip().lower()
+                color="bright-blue",
+                atcolor="green",
+                ocolor="",
+                pcolor="red",
+                prompt=prompt).strip().lower()
             # Check options
             if v in vopt:
                 return v
