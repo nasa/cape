@@ -12,4 +12,5 @@
     skillbase
     skilltools
     cntlrunner
+    fileedit
     usertools

@@ -4420,6 +4420,23 @@ class Cntl(CntlBase):
         # Output
         return result
 
+    # Get list tools like ``cape --agent`` are allowed to edit
+    def get_edit_allowlist(self) -> list:
+        r"""Get list of files, rel. to root dir, the agent may edit
+
+        :Call:
+            >>> flist = cntl.get_edit_allowlist()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Overall CAPE run matrix control instance
+        :Outputs:
+            *flist*: :class:`list`\ [:class:`str`]
+                Names of files, relative to root dir, that agentic
+                tools are allowed to edit
+        """
+        # For now, the control JSON file itself is the only candidate
+        return [os.path.normpath(os.path.join(self.fdir, self.fname))]
+
   # *** REPORTING ***
    # --- Report generation ---
     # Update report
@@ -4960,12 +4977,15 @@ class Cntl(CntlBase):
         Each action name defines a list of actions, which are performed
         sequentially, except that actions with the same ``"index"`` are
         performed simultaneously, each in a forked child process with
-        its STDOUT and STDERR suppressed (although its title and any
-        error messages are still shown). Only the on-disk side effects
-        of simultaneous actions persist in the main process. Individual
-        actions can be shell commands, methods of the :class:`Cntl`
-        class, or functions from :mod:`cape.cfdx.cli`; see
-        :mod:`cape.cfdx.options.actionopts`.
+        its STDOUT redirected to a log file named
+        ``log/cape-perform.{j+1}.{k+1}`` (relative to the root folder)
+        and its STDERR shown on the terminal. Each action's title and
+        any error messages are still shown, and on terminals a live
+        status board keeps track of the group. Only the on-disk side
+        effects of simultaneous actions persist in the main process.
+        Individual actions can be shell commands, methods of the
+        :class:`Cntl` class, or functions from :mod:`cape.cfdx.cli`;
+        see :mod:`cape.cfdx.options.actionopts`.
 
         :Call:
             >>> inds = cntl.perform_action(action, **kw)
@@ -5039,22 +5059,29 @@ class Cntl(CntlBase):
         # Prefix/suffix for all titles
         pre = f":bold:`--` {actj}"
         suf = ":bold:`--` "
-        # Construct a title first
+        # Construct a title and its plain-text version (for the status
+        # board of a simultaneous group)
         if typ == "shell":
             # Shell command
             title = f"{pre} :blue:`$` :green:`{fname}` {suf}"
+            stitle = f"$ {fname}"
         elif typ == "cntl":
             # Cntl method
             title = f"{pre} :blue:`Cntl.`:green:`{fname}()` {suf}"
+            stitle = f"Cntl.{fname}()"
         elif typ == "cli":
             # CLI module method
             title = f"{pre} :blue:`cli.`:green:`{fname}()` {suf}"
+            stitle = f"cli.{fname}()"
         else:
             raise CapeValueError(f"Unrecognized action type '{typ}'")
         # Display the title
         print(compile_rst(title))
         # Check if part of a simultaneous group
         if k is not None:
+            # Log file for this action's STDOUT
+            flog = os.path.join(
+                self.RootDir, "log", f"cape-perform.{j+1}.{k+1}")
             # Flush stdio buffers so the forked child doesn't repeat
             # any pending output
             sys.stdout.flush()
@@ -5063,10 +5090,10 @@ class Cntl(CntlBase):
             pid = os.fork()
             # Check if this is the child process
             if pid == 0:
-                # Run the action with its STDOUT and STDERR suppressed
+                # Run the action w/ STDOUT in a log, STDERR on terminal
                 errno = 0
                 try:
-                    with _suppress_output():
+                    with _suppress_output(flog):
                         self._run_action(act, typ, fname, I)
                 except (KeyboardInterrupt, SystemExit):
                     errno = 1
@@ -5077,8 +5104,10 @@ class Cntl(CntlBase):
                 # Exit w/o repeating any of the parent's cleanup code
                 # (atexit handlers, buffer flushes, etc.)
                 os._exit(errno)
-            # Parent process: save the child's PID to wait for later
+            # Parent process: save the child's PID and title for the
+            # status board in :meth:`_perform_simul_actions`
             self._action_pids.append(pid)
+            self._action_titles.append(stitle)
         else:
             self._run_action(act, typ, fname, I)
 
@@ -5121,30 +5150,60 @@ class Cntl(CntlBase):
     # Perform several actions simultaneously and quietly
     def _perform_simul_actions(self, group: list, I: list, j: int, ngrp: int):
         # Fork one child process per action; :meth:`_perform_action`
-        # displays each title and saves each child PID here
+        # displays each title and saves each child PID and title here
         self._action_pids = []
+        self._action_titles = []
+        # Ensure the log folder exists
+        os.makedirs(os.path.join(self.RootDir, "log"), exist_ok=True)
+        # Wait status for each action (None while running)
+        stats = [None] * len(group)
         # List of failed actions
         errs = []
+        # Check if we can draw an updating status board
+        qtty = sys.stdout.isatty()
         # Start all of the group's actions
         try:
             for k, actj in enumerate(group):
                 self._perform_action(actj, I, j, ngrp, k)
+            # Display the initial status board
+            if qtty:
+                _print_action_board(self._action_titles, stats, j)
             # Wait for all children to finish
-            for pid, actj in zip(self._action_pids, group):
-                # Wait for this child, restarting interrupted waits
-                while True:
-                    try:
-                        _, status = os.waitpid(pid, 0)
-                        break
-                    except InterruptedError:
-                        continue
-                # Decode the wait status
+            nleft = len(group)
+            while nleft:
+                # Wait for any child, restarting interrupted waits
+                try:
+                    pid, status = os.waitpid(-1, 0)
+                except InterruptedError:
+                    continue
+                except ChildProcessError:
+                    # All children already reaped somehow
+                    break
+                # Map the finished child to its position in the group
+                try:
+                    k = self._action_pids.index(pid)
+                except ValueError:
+                    # Not one of our actions; keep waiting
+                    continue
+                # Decode and save the wait status
                 sts = os.WEXITSTATUS(status) if os.WIFEXITED(status) else 1
+                stats[k] = sts
+                nleft -= 1
                 # Check for failure
                 if sts:
-                    errs.append((actj.get("function", "?"), sts))
+                    errs.append((self._action_titles[k], sts))
+                # Update the status display
+                if qtty:
+                    # Redraw the whole board over its previous version
+                    _print_action_board(
+                        self._action_titles, stats, j, up=len(group))
+                else:
+                    # Just print this action's completion
+                    print(_action_status_line(
+                        self._action_titles[k], sts, j, k, False))
         finally:
             self._action_pids = []
+            self._action_titles = []
         # Summarize the failures, if any
         if errs:
             raise CapeRuntimeError(
@@ -7235,29 +7294,129 @@ def _show_action_err(act: dict, err: BaseException):
         pass
 
 
+# Print or redraw the status board for simultaneous actions
+def _print_action_board(
+        titles: list,
+        stats: list,
+        j: int,
+        up: int = 0):
+    r"""Draw the status board for a simultaneous-action group
+
+    With *up* nonzero, the cursor is first moved up that many lines so
+    that the board redraws over its previous version. The cursor ends
+    up just below the board, where it started.
+
+    :Call:
+        >>> _print_action_board(titles, stats, j, up=0)
+    :Inputs:
+        *titles*: :class:`list`\ [:class:`str`]
+            Plain-text titles of the group's actions
+        *stats*: :class:`list`\ [``None`` | :class:`int`]
+            Exit status of each action, ``None`` while running
+        *j*: :class:`int`
+            Index of the simultaneous group, for log file names
+        *up*: {``0``} | :class:`int`
+            Move cursor up this many lines before drawing
+    """
+    # Move cursor to the top of the previous version of the board
+    if up:
+        sys.stdout.write("\x1b[%iA" % up)
+    # Draw the board, one line per action
+    for k, (title, sts) in enumerate(zip(titles, stats)):
+        # Clear the previous version of this line first
+        line = _action_status_line(title, sts, j, k, True)
+        sys.stdout.write("\x1b[2K" + line + "\n")
+    # Make sure it gets displayed right away
+    sys.stdout.flush()
+
+
+# Format one line of the simultaneous-action status board
+def _action_status_line(
+        title: str,
+        sts: int | None,
+        j: int,
+        k: int,
+        color: bool) -> str:
+    r"""Format one line of the simultaneous-action status board
+
+    :Call:
+        >>> line = _action_status_line(title, sts, j, k, color)
+    :Inputs:
+        *title*: :class:`str`
+            Plain-text title of the action
+        *sts*: ``None`` | :class:`int`
+            Exit status of the action, ``None`` while running
+        *j*, *k*: :class:`int`
+            Group and action indices, for the log file name
+        *color*: :class:`bool`
+            Apply console colors if ``True``
+    :Outputs:
+        *line*: :class:`str`
+            Formatted status line
+    """
+    # Marker for the action's status
+    if sts is None:
+        # Still running
+        marker = "R"
+        mcolor = "yellow"
+    elif sts == 0:
+        # Completed successfully
+        marker = "✔"
+        mcolor = "green"
+    else:
+        # Failed
+        marker = "✗"
+        mcolor = "red"
+    # Log file name, relative to the root folder
+    flog = f"log/cape-perform.{j+1}.{k+1}"
+    # Assemble the line, with colors if desired
+    if color:
+        return compile_rst(
+            f"  :{mcolor}:`{marker}` {title}  :faint:`{flog}`")
+    else:
+        return f"  {marker} {title}  {flog}"
+
+
 # Context manager to suppress STDOUT/STDERR at file-descriptor level
 @contextlib.contextmanager
-def _suppress_output():
+def _suppress_output(logfile: str | None = None):
     r"""Suppress STDOUT and STDERR during a ``with`` block
 
     Both Python-level writes to :data:`sys.stdout`:data:`sys.stderr`
     and output from child processes (which inherit file descriptors 1
-    and 2) are redirected to the null device.
+    and 2) are redirected. By default, both are redirected to the null
+    device; if *logfile* is given, only STDOUT is redirected, to that
+    file, and STDERR is left alone.
 
     :Call:
         >>> with _suppress_output():
         ...     noisy_function()
+        >>> with _suppress_output(fname_log):
+        ...     noisy_function()
+    :Inputs:
+        *logfile*: {``None``} | :class:`str`
+            Optional file to redirect STDOUT to, truncating any
+            existing file; STDERR stays connected to the terminal
     """
     # Flush Python-level buffers so pending output isn't lost
     sys.stdout.flush()
     sys.stderr.flush()
     # Duplicate current STDOUT/STDERR file descriptors
     fd1, fd2 = os.dup(1), os.dup(2)
-    nullfd = os.open(os.devnull, os.O_WRONLY)
+    # Open the destination for redirected output
+    if logfile is None:
+        # Redirect everything to the null device
+        fdout = os.open(os.devnull, os.O_WRONLY)
+    else:
+        # Redirect STDOUT to the log file; STDERR is untouched
+        fdout = os.open(
+            logfile, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o666)
     try:
-        # Redirect STDOUT/STDERR to the null device
-        os.dup2(nullfd, 1)
-        os.dup2(nullfd, 2)
+        # Redirect STDOUT
+        os.dup2(fdout, 1)
+        # Redirect STDERR only if there's no log file
+        if logfile is None:
+            os.dup2(fdout, 2)
         yield
     finally:
         # Restore original file descriptors
@@ -7267,4 +7426,4 @@ def _suppress_output():
         os.dup2(fd2, 2)
         os.close(fd1)
         os.close(fd2)
-        os.close(nullfd)
+        os.close(fdout)

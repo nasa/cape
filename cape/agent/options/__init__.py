@@ -30,6 +30,22 @@ settings. CAPE agentic will expose all tools and skills to it.
         }
     }
 
+The *EditAllowList* option lists glob patterns (relative to the folder
+in which the agent is launched) of files the ``file-editor`` skill's
+``edit_file`` tool is allowed to modify. The CAPE control JSON file is
+always allowed (see :func:`cape.cfdx.cntl.Cntl.get_edit_allowlist`);
+
+use *EditAllowList* to add project-specific files:
+
+.. code-block:: javascript
+
+    {
+        "EditAllowList": [
+            "tools/*.py",
+            "notes/*.md"
+        ]
+    }
+
 Users may also define a group of models with common settings:
 
 .. code-block:: javascript
@@ -93,6 +109,7 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
 
     # Accepted options/sections
     _optlist = {
+        "EditAllowList",
         "Model",
         "ModelList",
         "ShowToolResult",
@@ -111,6 +128,7 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
     # Known option types
     _opttypes = {
         "_default_": ModelOpts,
+        "EditAllowList": str,
         "Model": str,
         "ModelList": str,
         "ShowToolResult": bool,
@@ -120,6 +138,7 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
 
     # Option default list depth
     _optlistdepth = {
+        "EditAllowList": 1,
         "ModelList": 1,
     }
 
@@ -131,6 +150,9 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
 
     # Descriptions for methods
     _rst_descriptions = {
+        "EditAllowList": (
+            "glob patterns (rel. to repo root) of files the "
+            "file-editor skill may edit"),
         "Model": "name of LLM to use; overrides model list from server",
         "ModelList": "list of models with tailored settings",
         "ShowToolResult": "display full result of each tool call",
@@ -159,4 +181,5 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
 
 # Add global properties
 AgentOpts.add_properties(
-    ("Model", "ModelList", "ShowToolResult", "ToolDir", "URL"))
+    ("EditAllowList", "Model", "ModelList", "ShowToolResult", "ToolDir",
+     "URL"))
