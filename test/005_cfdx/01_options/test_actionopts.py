@@ -28,6 +28,17 @@ def test_action_types():
     assert ActionOpts(type="bogus").get("type") is None
 
 
+def test_action_addfilename():
+    # Option to add JSON file to "shell" | "cli" actions
+    opts = ActionOpts({"function": "mycmd", "AddFileName": True})
+    assert opts["AddFileName"] is True
+    # Default value
+    assert ActionOpts("mycmd").get_opt("AddFileName") is False
+    # Non-bool value rejected w/ a warning
+    assert ActionOpts(
+        function="mycmd", AddFileName="yes").get("AddFileName") is None
+
+
 def test_actions_actions():
     # Section with a mix of action definition formats
     opts = ActionsOpts({

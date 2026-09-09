@@ -129,6 +129,8 @@ cape/
 3. **Docstrings**: RST format with `:Call:`, `:Inputs:`, `:Outputs:` sections
    for new functions, don't add the `:Versions:` section
 4. **Slots**: Classes use `__slots__` for memory efficiency
+   (`cape.cfdx.cntl.Cntl` and `cape.dkit.rdb.DataKit` are exceptions to this
+   directive.)
 5. **Agentic Mode**: New `--agentic` flag calls `main()` in
    `cape/agent/__init__.py`, which runs the agent loop via
    `cape.agent.agentcntl.AgentCntl` with LLM tool calling

@@ -98,10 +98,18 @@ indices being processed; shell commands without one get
 ``-I {CASES}`` appended automatically. Shell commands from the legacy
 top-level *UserTools* option (a dict of names and commands), however,
 must contain a ``{I}`` placeholder.
+
+Actions of type ``"shell"`` or ``"cli"`` also accept an
+``"AddFileName"`` option. When ``true``, the name of the JSON file the
+current run matrix was read from (relative to the root folder,
+following any links) is passed along: ``-f {JSON}`` is appended to
+``shell`` commands, and an ``f={JSON}`` keyword argument is added to
+``cli`` function calls (unless the action's *kwargs* already set
+``"f"``). This option has no effect for ``"cntl"`` actions.
 """
 
 # Local imports
-from ...optdict import OptionsDict
+from ...optdict import BOOL_TYPES, OptionsDict
 
 
 # Default actions for built-in names; defined here as immutable module
@@ -167,6 +175,7 @@ class ActionOpts(OptionsDict):
 
     # Options
     _optlist = (
+        "AddFileName",
         "args",
         "function",
         "index",
@@ -181,6 +190,7 @@ class ActionOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "AddFileName": BOOL_TYPES,
         "type": str,
         "function": str,
         "index": int,
@@ -195,11 +205,14 @@ class ActionOpts(OptionsDict):
 
     # Defaults
     _rc = {
+        "AddFileName": False,
         "type": "shell",
     }
 
     # Descriptions
     _rst_descriptions = {
+        "AddFileName": (
+            "add current JSON file to ``shell`` | ``cli`` actions"),
         "type": "Action method, ``Cntl`` method, ``cli`` function, or shell",
         "index": "Action index; enables simultaneous actions",
         "function": "Name of function to call",
