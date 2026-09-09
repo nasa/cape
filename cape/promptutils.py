@@ -102,7 +102,9 @@ def prompt_color(
         color: str = "green",
         prompt: str = '>',
         completer: Optional[Callable] = None,
-        glob: bool = False) -> Any:
+        glob: bool = False,
+        show: bool = True,
+        oneline: bool = False) -> Any:
     r"""Get user input using a colorized prompt
 
     :Call:
@@ -120,6 +122,12 @@ def prompt_color(
             Function to return list of suggestions given current text
         *prompt*: {``">"``} | :class:`str`
             Character(s) to use as prompt
+        *glob*: ``True`` | {``False``}
+            Use glob to suggest file-name-based completions
+        *show*: {``True``} | ``False``
+            Print the final selection for confirmation
+        *oneline*: ``True`` | {``False``}
+            Option to display values as compact one-line list ``[y]/n``
     :Outputs:
         *v*: :class:`str` | *vdef* | ``vopt[j]``
             User input or default value
@@ -127,7 +135,10 @@ def prompt_color(
     # Default vdef --> vopt
     vopt = vdef if (vopt is None) else vopt
     # Three versions of option list; two will be empty
-    msg1 = _dumps_vopt_list(txt, vdef, vopt, prompt)
+    if oneline:
+        msg1 = _dumps_vopt_oneline(txt, vdef, vopt, prompt)
+    else:
+        msg1 = _dumps_vopt_list(txt, vdef, vopt, prompt)
     msg2 = _dumps_vdef(txt, vdef, vopt, prompt)
     msg3 = _dumps_plain(txt, vdef, vopt, prompt)
     # Combine all three
@@ -156,7 +167,8 @@ def prompt_color(
         # Return the user's value, even if empty
         v = vraw
     # Inform user what value was used
-    print(f"--> using '{v}'")
+    if show:
+        print(f"--> using '{v}'")
     # Output
     return v
 
@@ -183,6 +195,44 @@ def input_color(prompt: str, color: str = "black") -> str:
     prompt_txt = f"{col}{prompt}{reset}"
     # Request a response
     return input(prompt_txt).strip()
+
+
+# Display simple list of options
+def _dumps_vopt_oneline(
+        txt: str,
+        vdef: Optional[Any] = None,
+        vopt: Optional[list] = None,
+        prompt: str = '>') -> str:
+    # Check if options give are a list
+    if not isinstance(vopt, (list, tuple)):
+        return ''
+    # Initial portion of prompt using pre-specified prompt
+    msg = f"{txt}: "
+    # Default default value is first entry in *vopt_list*
+    if vdef is None:
+        vdef = vopt[0]
+    # Check if given a list of default values
+    if isinstance(vdef, (list, tuple)):
+        # Use the first
+        vdef = vdef[0]
+    # Check if default is in option; if soe get the index
+    jdef = None if vdef not in vopt else vopt.index(vdef)
+    # Loop through options
+    for j, opt in enumerate(vopt):
+        # Add separator
+        if j > 0:
+            msg += '/'
+        # Format message
+        if j == jdef:
+            # Highlight first option as the true default
+            msgj = f"[{opt}]"
+        else:
+            # Use option number
+            msgj = opt
+        # Append to overall prompt
+        msg += msgj
+    # Append user input prompt
+    return msg + prompt + ' '
 
 
 # Display list of options

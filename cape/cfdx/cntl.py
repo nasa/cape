@@ -58,7 +58,6 @@ import numpy as np
 # Local imports
 from . import casecntl
 from . import queue
-from .. import console
 from .. import convert
 from .. import fileutils
 from .. import promptutils
@@ -4154,9 +4153,9 @@ class Cntl(CntlBase):
             # Prompt text
             txt = "Delete case '%s'? y/n" % frun
             # Get option from user
-            prompt = console.prompt_color(txt, "n")
+            prompt = promptutils.prompt_color(txt, "n").strip().lower()
             # Check option
-            if (prompt is None) or (prompt.lower() != "y"):
+            if (prompt is None) or (prompt != "y"):
                 # Do not delete
                 n = 0
             else:
