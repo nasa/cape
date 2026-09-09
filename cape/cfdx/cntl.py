@@ -61,6 +61,7 @@ from . import queue
 from .. import console
 from .. import convert
 from .. import fileutils
+from .. import promptutils
 from .. import textutils
 from .casecntl import CaseRunner
 from .casedata import CaseData
@@ -4691,7 +4692,7 @@ class Cntl(CntlBase):
                 self._show_review_state(runner, sfig, cache, v=verbose)
                 # Prompt for action; anything but "next" ends case
                 action = self._prompt_review(
-                    i, frun, sfig, js == len(subfigs) - 1, tools)
+                    i, sfig, js == len(subfigs) - 1, tools)
                 if action != "next":
                     break
             # Save decision
@@ -4803,7 +4804,6 @@ class Cntl(CntlBase):
     def _prompt_review(
             self,
             i: int,
-            frun: str,
             sfig: str,
             qlast: bool,
             tools: dict) -> str:
@@ -4827,14 +4827,15 @@ class Cntl(CntlBase):
             title: str,
             vopt: list) -> str:
         # Default option is the first one
-        vdef = vopt[0]
+        vdef = "skip"
         # Final prompt shows case number and case name
         prompt = f"{i}>"
         # Loop until valid input
         while True:
             # Prompt user
-            v = console.prompt_menu(
-                title, vopt, vdef=vdef, prompt=prompt).strip().lower()
+            v = promptutils.prompt_color(
+                title, vdef=vdef, vopt=vopt,
+                color="bright-blue", prompt=prompt).strip().lower()
             # Check options
             if v in vopt:
                 return v
