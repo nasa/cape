@@ -4888,7 +4888,6 @@ class Cntl(CntlBase):
         tools = self.get_user_tools()
         # Get cases
         inds = self.GetIndices(**kw)
-        keeps = self.GetNonzeroIndices(**kw)
         # Initialize decision lists
         reviews = {
             "approve": [],
@@ -4904,7 +4903,7 @@ class Cntl(CntlBase):
             # Get case name
             frun = self.x.GetFullFolderNames(i)
             # Skip cases w/ no iterations or already marked
-            if (i not in keeps) or self.x.PASS[i] or self.x.ERROR[i]:
+            if os.path.isdir(frun):
                 print(compile_rst(f"``{i}`` *{frun}* ``{no}``"))
                 continue
             # Get case status, e.g. DONE, RUN, INCOMP, QUEUE
