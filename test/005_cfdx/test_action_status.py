@@ -36,5 +36,6 @@ def test_action_title(capsys, monkeypatch):
 
 def test_action_status_line_notty():
     """Let ``compile_rst()`` suppress colors for redirected output."""
-    line = _action_status_line("Cntl.update_dex()", 0, 1, 2)
-    assert line == "  ✔ Cntl.update_dex()  log/cape-perform.2.3"
+    title = "Cntl.update_dex()"
+    line = _action_status_line(title, 0, 1, 2, len(title) + 3)
+    assert line == "  ✔ Cntl.update_dex()    → log/cape-perform.2.3"
