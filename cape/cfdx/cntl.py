@@ -4658,7 +4658,6 @@ class Cntl(CntlBase):
             "extend": [],
             "extend2": [],
             "skip": [],
-            "tools": {},
         }
         # Reference chars
         yes = '✓'
@@ -4696,24 +4695,25 @@ class Cntl(CntlBase):
                 if action != "next":
                     break
             # Save decision
-            self._record_review_decision(reviews, tools, action, i)
+            self._record_review_decision(reviews, action, i)
         # Execute collected decisions
-        self._execute_review_decisions(reviews, tools)
+        self._execute_review_decisions(reviews)
         # Output
         return reviews
 
     # Record one review/dispatch decision
     def _record_review_decision(
-            self, reviews: dict, tools: dict, action: str, i: int):
-        if action in ("approve", "extend", "extend2", "skip"):
-            reviews[action].append(i)
-        elif action in tools:
-            reviews["tools"].setdefault(action, []).append(i)
+            self, reviews: dict, action: str, i: int):
+        # Initialize empty list if necessary
+        if action not in reviews:
+            reviews[action] = []
+        # Append to list
+        reviews[action].append(i)
 
     # Execute collected review/dispatch decisions
-    def _execute_review_decisions(self, reviews: dict, tools: dict):
+    def _execute_review_decisions(self, reviews: dict):
         # Perform standard actions, customizable in "Actions" section
-        for name in ("extend", "extend2", "approve"):
+        for name, cases in reviews.items():
             # Get cases
             cases = reviews[name]
             # Try to perform action
@@ -4722,9 +4722,6 @@ class Cntl(CntlBase):
             except Exception as e:
                 print(compile_rst(f":red:`{name} action failed`"))
                 print(f"{e.__class__.__name__}\n  {e.args[0]}")
-        # Run user tools
-        for name, cases in reviews["tools"].items():
-            self.run_user_tool(name, tools[name], cases)
 
     # Show iterative-state recommendation of one subfigure for one case
     def _show_review_state(
@@ -5274,46 +5271,6 @@ class Cntl(CntlBase):
             tools.setdefault(name, ("shell", cmd))
         # Output
         return tools
-
-    # Run one user tool on a list of cases
-    def run_user_tool(self, name: str, tooldef: tuple, I: list):
-        r"""Run one user tool on a list of cases
-
-        :Call:
-            >>> cntl.run_user_tool(name, tooldef, I)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                CAPE run matrix control instance
-            *name*: :class:`str`
-                Name of the user tool
-            *tooldef*: ``("action", name)`` | ``("shell", cmd)``
-                Tool definition from :meth:`get_user_tools`
-            *I*: :class:`list`\ [:class:`int`]
-                List of case indices
-        :Raises:
-            * :class:`cape.errors.CapeValueError`
-                If a legacy *UserTools* command has no ``{I}``
-                placeholder
-        """
-        # Unpack tool definition
-        typ, val = tooldef
-        # Status update
-        print(f"tool '{name}':")
-        # Run new-style actions or legacy shell commands
-        if typ == "action":
-            # Tool is an action defined in the "Actions" section
-            self.perform_action(val, I=I)
-        elif typ == "shell":
-            # Legacy shell command requires "{I}" placeholder
-            if "{I}" not in val:
-                raise CapeValueError(
-                    f"UserTools '{name}' command has no {{I}} "
-                    f"placeholder: '{val}'")
-            # Run the command w/ case indices inserted
-            self._perform_shell_action(val, I)
-        else:
-            raise CapeValueError(
-                f"Unrecognized tool type '{typ}' for tool '{name}'")
 
   # *** DATA EXTRACTION ***
    # --- Data Exchange ---
