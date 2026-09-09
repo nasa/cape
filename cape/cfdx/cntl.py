@@ -5067,12 +5067,14 @@ class Cntl(CntlBase):
             stitle = f"$ {fname}"
         elif typ == "cntl":
             # Cntl method
-            title = f"{pre} :blue:`Cntl.`:green:`{fname}()` {suf}"
-            stitle = f"Cntl.{fname}()"
+            stitle = _format_action_call("Cntl", fname, act)
+            call = _format_action_call("", fname, act)
+            title = f"{pre} :blue:`Cntl.`:green:`{call}` {suf}"
         elif typ == "cli":
             # CLI module method
-            title = f"{pre} :blue:`cli.`:green:`{fname}()` {suf}"
-            stitle = f"cli.{fname}()"
+            stitle = _format_action_call("cli", fname, act)
+            call = _format_action_call("", fname, act)
+            title = f"{pre} :blue:`cli.`:green:`{call}` {suf}"
         else:
             raise CapeValueError(f"Unrecognized action type '{typ}'")
         # Display the title
@@ -5200,7 +5202,7 @@ class Cntl(CntlBase):
                 else:
                     # Just print this action's completion
                     print(_action_status_line(
-                        self._action_titles[k], sts, j, k, False))
+                        self._action_titles[k], sts, j, k))
         finally:
             self._action_pids = []
             self._action_titles = []
@@ -7294,6 +7296,38 @@ def _show_action_err(act: dict, err: BaseException):
         pass
 
 
+# Format the displayed call for a Python action
+def _format_action_call(prefix: str, fname: str, act: dict) -> str:
+    r"""Format a ``cntl`` or ``cli`` action's explicit call signature
+
+    :Call:
+        >>> call = _format_action_call(prefix, fname, act)
+    :Inputs:
+        *prefix*: :class:`str`
+            Object or module name, such as ``"Cntl"`` or ``"cli"``
+        *fname*: :class:`str`
+            Function or method name
+        *act*: :class:`dict`
+            Action options containing optional ``args`` and ``kwargs``
+    :Outputs:
+        *call*: :class:`str`
+            Compact Python-style call signature
+    """
+    # Format the explicit positional arguments
+    argtxts = [_dumps(v) for v in act.get("args", [])]
+    # Append the explicit keyword arguments in their configured order
+    argtxts.extend(
+        f"{key}={_dumps(val)}"
+        for key, val in act.get("kwargs", {}).items())
+    # Keep similar calls compact enough for the status board
+    argtxt = ", ".join(argtxts)
+    if len(argtxt) > 20:
+        argtxt = argtxt[:17] + "..."
+    # Assemble the qualified function name and arguments
+    qname = f"{prefix}.{fname}" if prefix else fname
+    return f"{qname}({argtxt})"
+
+
 # Print or redraw the status board for simultaneous actions
 def _print_action_board(
         titles: list,
@@ -7324,7 +7358,7 @@ def _print_action_board(
     # Draw the board, one line per action
     for k, (title, sts) in enumerate(zip(titles, stats)):
         # Clear the previous version of this line first
-        line = _action_status_line(title, sts, j, k, True)
+        line = _action_status_line(title, sts, j, k)
         sys.stdout.write("\x1b[2K" + line + "\n")
     # Make sure it gets displayed right away
     sys.stdout.flush()
@@ -7335,12 +7369,11 @@ def _action_status_line(
         title: str,
         sts: int | None,
         j: int,
-        k: int,
-        color: bool) -> str:
+        k: int) -> str:
     r"""Format one line of the simultaneous-action status board
 
     :Call:
-        >>> line = _action_status_line(title, sts, j, k, color)
+        >>> line = _action_status_line(title, sts, j, k)
     :Inputs:
         *title*: :class:`str`
             Plain-text title of the action
@@ -7348,8 +7381,6 @@ def _action_status_line(
             Exit status of the action, ``None`` while running
         *j*, *k*: :class:`int`
             Group and action indices, for the log file name
-        *color*: :class:`bool`
-            Apply console colors if ``True``
     :Outputs:
         *line*: :class:`str`
             Formatted status line
@@ -7369,12 +7400,9 @@ def _action_status_line(
         mcolor = "red"
     # Log file name, relative to the root folder
     flog = f"log/cape-perform.{j+1}.{k+1}"
-    # Assemble the line, with colors if desired
-    if color:
-        return compile_rst(
-            f"  :{mcolor}:`{marker}` {title}  :faint:`{flog}`")
-    else:
-        return f"  {marker} {title}  {flog}"
+    # Assemble the line; compile_rst() applies colors only on a TTY
+    return compile_rst(
+        f"  :{mcolor}:`{marker}` {title}  :faint:`{flog}`")
 
 
 # Context manager to suppress STDOUT/STDERR at file-descriptor level

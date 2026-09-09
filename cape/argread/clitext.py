@@ -11,6 +11,7 @@ available.
 # Standard library
 import re
 import shutil
+import sys
 from typing import Optional
 
 # Third-party
@@ -359,6 +360,9 @@ def compile_rst(doc: str) -> str:
     txt = re.sub(pat2, replrgbbg, txt)
     # Mark string literals
     txt = re.sub(r"``?([^`\n]*)``?", repllit, txt)
+    # Suppress terminal formatting when output is being redirected
+    if not sys.stdout.isatty():
+        txt = re.sub(r"\x1b\[[0-9;]*m", "", txt)
     # Output
     return txt
 
@@ -448,4 +452,3 @@ def wrapline(msg: str, w: Optional[int] = None) -> str:
             lines.append(current_line)
     # Join with newlines
     return '\n'.join(lines)
-

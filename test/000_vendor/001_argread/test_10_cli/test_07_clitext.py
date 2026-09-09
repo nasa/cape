@@ -13,7 +13,10 @@ UNITALIC = CONSOLE["un-italic"]
 
 
 # Test some features of docstrings
-def test_clitext01():
+def test_clitext01(monkeypatch):
+    # Emulate interactive output so formatting is enabled
+    monkeypatch.setattr(
+        "cape.argread.clitext.sys.stdout.isatty", lambda: True)
     # Mark a code block
     txt1 = """.. code-block:: console
 
@@ -43,3 +46,10 @@ something"""
     assert compile_rst("``fname``") == f"{BOLD}fname{UNBOLD}"
     # Test section
     assert compile_rst("Title\n========") == "Title"
+
+
+def test_clitext_notty(monkeypatch):
+    # Emulate redirected output so terminal escape sequences are suppressed
+    monkeypatch.setattr(
+        "cape.argread.clitext.sys.stdout.isatty", lambda: False)
+    assert compile_rst(":red:`error` **bold**") == "error bold"
