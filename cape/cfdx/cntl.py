@@ -7409,7 +7409,7 @@ def _action_status_line(
     pad = " " * (maxlen - len(title))
     # Assemble the line; compile_rst() applies colors only on a TTY
     return compile_rst(
-        f"  :{mcolor}:`{marker}` {title}{pad} → :lightgray:`{flog}`")
+        f"  :{mcolor}:`{marker}` {title}{pad} → :darkgray:`{flog}`")
 
 
 # Context manager to suppress STDOUT/STDERR at file-descriptor level
