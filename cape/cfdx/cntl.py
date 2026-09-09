@@ -4852,31 +4852,6 @@ class Cntl(CntlBase):
             # Unrecognized input
             print(f"  Unrecognized option '{v}'")
 
-    # Ask user to select a tool
-    def _prompt_review_tool(self, tools: dict) -> Optional[str]:
-        # List of tool names
-        names = list(tools)
-        # One option per tool, plus a way out
-        vopt = names + ["quit"]
-        # Loop until valid input
-        while True:
-            # Prompt user; blank input cancels
-            v = console.prompt_menu("select tool", vopt, prompt="tool>")
-            v = v.strip().lower()
-            # Check for cancel
-            if v in ("", "q", "quit"):
-                return None
-            # Try to interpret as an index
-            try:
-                return names[int(v)]
-            except (ValueError, IndexError):
-                pass
-            # Try to match a tool name
-            if v in tools:
-                return v
-            # Unrecognized input
-            print(f"  Unrecognized tool '{v}'")
-
    # --- Dispatch ---
     # Interactively review cases showing only their status
     @run_rootdir
@@ -4955,7 +4930,7 @@ class Cntl(CntlBase):
             tools: dict) -> str:
         # Prompt for a decision, using case status as title
         return self._prompt_decision(
-            i, frun, f"action",
+            i, frun, "action",
             ["approve"], tools)
 
    # --- Actions ---
