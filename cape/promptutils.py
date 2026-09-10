@@ -262,7 +262,7 @@ def _dumps_vopt_list(
     ra = CONSOLE["reset"] if acol else ''
     ro = CONSOLE["reset"] if ocol else ''
     # Initial portion of prompt using pre-specified prompt
-    msg = f"{pcol}{txt}:{rp}\n"
+    msg = f"{txt}:\n"
     # Default default value is first entry in *vopt_list*
     if vdef is None:
         vdef = vopt[0]
@@ -284,7 +284,7 @@ def _dumps_vopt_list(
         # Append to overall prompt
         msg += msgj
     # Append user input prompt
-    return msg + prompt + ' '
+    return msg + pcol + prompt + rp + ' '
 
 
 # Display list of options
