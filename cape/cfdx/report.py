@@ -2984,40 +2984,7 @@ class Report(object):
                     S[comp] = {}
                     # Go to next component
                     continue
-                # Get transformations
-                tforms = opts.get_DataBookTransformations(comp)
-                tforms = [] if tforms is None else tforms
-                # Loop through the transformations
-                for topts in tforms:
-                    # Get type
-                    ttyp = topts.get("Type")
-                    # Only apply to "ShiftMRP"
-                    if ttyp == "ShiftMRP":
-                        # Use a copy to avoid changing cntl.opts
-                        topts = dict(topts)
-                        # Component to use for current MRP
-                        compID = self.cntl.opts.get_DataBookCompID(comp)
-                        if isinstance(compID, list):
-                            compID = compID[0]
-                        # Reset points for default *FromMRP*
-                        self.cntl.opts.reset_Points()
-                        # Use MRP prior to trans as default *FromMRP*
-                        x0 = self.cntl.opts.get_RefPoint(comp)
-                        # Ensure points are calculated
-                        self.cntl.PreparePoints(i)
-                        # Use post-transformation MRP as default *ToMRP*
-                        x1 = self.cntl.opts.get_RefPoint(comp)
-                        # Get current Lref
-                        Lref = self.cntl.opts.get_RefLength(comp)
-                        # Set those as defaults in transformation
-                        x0 = topts.setdefault("FromMRP", x0)
-                        x1 = topts.setdefault("ToMRP", x1)
-                        topts.setdefault("RefLength", Lref)
-                        # Expand if *x0* is a string
-                        topts["FromMRP"] = self.cntl.opts.expand_Point(x0)
-                        topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
-                    # Apply the transformation
-                    FM.TransformFM(topts, self.cntl.x, i)
+                # ReadCaseFM has already applied the DataBook transformations.
                 # Get the statistics.
                 S[comp] = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
         # Go back to original folder.
@@ -3306,40 +3273,7 @@ class Report(object):
                 raise AttributeError(
                     "Comp '%s' in subfig '%s' has no history found"
                     % (comp, sfig))
-            # Get transformations
-            tforms = opts.get_DataBookTransformations(comp)
-            tforms = [] if tforms is None else tforms
-            # Loop through the transformations
-            for topts in tforms:
-                # Get type
-                ttyp = topts.get("Type")
-                # Only apply to "ShiftMRP"
-                if ttyp == "ShiftMRP":
-                    # Use a copy to avoid changing cntl.opts
-                    topts = dict(topts)
-                    # Component to use for current MRP
-                    compID = self.cntl.opts.get_DataBookCompID(comp)
-                    if isinstance(compID, list):
-                        compID = compID[0]
-                    # Reset points for default *FromMRP*
-                    self.cntl.opts.reset_Points()
-                    # Use MRP prior to transfformations as default *FromMRP*
-                    x0 = self.cntl.opts.get_RefPoint(comp)
-                    # Ensure points are calculated
-                    self.cntl.PreparePoints(i)
-                    # Use post-transformation MRP as default *ToMRP*
-                    x1 = self.cntl.opts.get_RefPoint(comp)
-                    # Get current Lref
-                    Lref = self.cntl.opts.get_RefLength(comp)
-                    # Set those as defaults in transformation
-                    x0 = topts.setdefault("FromMRP", x0)
-                    x1 = topts.setdefault("ToMRP", x1)
-                    topts.setdefault("RefLength", Lref)
-                    # Expand if *x0* is a string
-                    topts["FromMRP"] = self.cntl.opts.expand_Point(x0)
-                    topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
-                # Apply the transformation.
-                FM.TransformFM(topts, self.cntl.x, i)
+            # ReadCaseFM has already applied the DataBook transformations.
             # Column for the x-axis
             xcol = opts.get_SubfigOpt(sfig, "XCol")
             # Get the manual range to show
