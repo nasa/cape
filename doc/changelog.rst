@@ -3,6 +3,22 @@
 Changelog
 ********************
 
+Release 2.2.2
+=============================
+
+CAPE 2.2.2 is a bug-fix release from 2.2.1
+
+Bugs Fixed
+----------------
+
+*   *Residual plots*: There was a bug in ``cape.cfdx.report`` that compared a
+    string to a list, always resulting in ``False`` and never creating a
+    subfigure
+
+*   *Package list*: The wheel was missing several modules because they were
+    not explicitly listed in ``cape.setup_py``.
+
+
 Release 2.2.0
 =============================
 

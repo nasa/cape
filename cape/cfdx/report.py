@@ -1952,7 +1952,7 @@ class Report(object):
         elif btyp == 'PlotL2':
             # Get the global residual plot
             lines = self.SubfigPlotL2(sfig, i, True)
-        elif btyp == ['PlotResid', 'PlotTurbResid', 'PlotSpeciesResid']:
+        elif btyp in ['PlotResid', 'PlotTurbResid', 'PlotSpeciesResid']:
             # Plot generic residual
             lines = self.SubfigPlotResid(sfig, i, True)
         elif btyp == 'Paraview':
