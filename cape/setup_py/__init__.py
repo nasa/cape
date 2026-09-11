@@ -65,7 +65,6 @@ SETUP_SETTINGS = dict(
         "defusedxml",
         "numpy>=1.4.1",
         "matplotlib>=2",
-        "rich>=13",
         "scipy",
         "vendorize",
         "xlrd3",
