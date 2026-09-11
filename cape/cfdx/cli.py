@@ -69,6 +69,7 @@ IMPLIED_CMDNAMES = {
     "surfcp": "extract-surfcp",
     "triqfm": "extract-triqfm",
     "ts": "extract-timeseries",
+    "tui": "tui",
     "ui": "ui",
     "unarchive": "unarchive",
     "unmark": "unmark",
@@ -241,6 +242,7 @@ class CfdxArgReader(ArgReader):
         "terminal": bool,
         "triqfm": (bool, str),
         "ts": (bool, str),
+        "tui": bool,
         "u": str,
         "ui": bool,
         "unarchive": bool,
@@ -301,6 +303,7 @@ class CfdxArgReader(ArgReader):
         "rm",
         "start",
         "terminal",
+        "tui",
         "ui",
         "unarchive",
         "unmark",
@@ -454,6 +457,7 @@ class CfdxArgReader(ArgReader):
         "terminal": "Show PNG image in terminal if supported",
         "ts": "Extract time-series data [comps matching *PAT*]",
         "u": "Pretend to be user *UID*",
+        "tui": "Run rich interactive CAPE terminal user interface",
         "ui": "Run interactive CAPE user interface",
         "unarchive": "Unarchive one or more cases",
         "unmark": "Remove PASS/ERROR marking for case(s)",
@@ -1960,6 +1964,23 @@ class CfdxUIArgs(CfdxArgReader):
     )
 
 
+# Settings for rich interactive TUI
+class CfdxTuiArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape tui"
+
+    # Description
+    _help_title = "Run rich interactive CAPE terminal user interface"
+
+    # Options
+    _optlist = (
+        "tui",
+    )
+
+
 # Settings for -n
 class CfdxStartArgs(_CfdxSubsetArgs):
     # No attributes
@@ -2241,6 +2262,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "get-case-state",
         "skeleton",
         "triangulate-cutplane",
+        "tui",
         "ui",
         "unarchive",
         "unmark",
@@ -2339,6 +2361,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
         "triangulate-cutplane": CfdxTriangulateCutPlaneArgs,
+        "tui": CfdxTuiArgs,
         "ui": CfdxUIArgs,
         "unarchive": CfdxUnarchiveArgs,
         "unmark": CfdxUnmarkArgs,
@@ -4010,6 +4033,28 @@ def cape_agent(agent: str) -> Tuple[int, Any]:
     return agentmod.run(agent)
 
 
+@CfdxTuiArgs.rst
+def cape_tui() -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Import rich terminal user interface
+    from .. import tui
+    # Run code
+    return tui.main(CfdxFrontDesk)
+
+
 def cape_agentic() -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
@@ -4286,6 +4331,7 @@ CMD_DICT = {
     "skeleton": cape_skeleton,
     "start": cape_start,
     "triangulate-cutplane": cape_triangulate_cutplane,
+    "tui": cape_tui,
     "ui": cape_ui,
     "unarchive": cape_unarchive,
     "unmark": cape_unmark,

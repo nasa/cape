@@ -46,6 +46,7 @@ The :mod:`cape` module
     trifile
     tricli
     triqfm
+    tui/index
     units
     util
     writell
