@@ -11,6 +11,7 @@
 
     agentcntl
     agentutils
+    bgtasks
     options/index
     tools/index
     skills/index

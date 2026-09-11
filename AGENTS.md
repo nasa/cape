@@ -15,6 +15,8 @@ run-matrix management tool that:
 - `cape/cli.py` - Auxiliary commands (e.g., `cape-expandjson`)
 - `cape/agent/__init__.py` - Agentic LLM interface (`cape --agentic`)
 - `cape/agent/agentcntl.py` - `AgentCntl` class implementing the agent loop
+- `cape/agent/bgtasks.py` - Background tasks (subprocess-based `&` and
+  `background` tool option) for the agentic interface
 - `cape/ui/__init__.py` - Readline-based interactive UI (`cape --ui`)
 - `cape/tui/__init__.py` - Rich-based interactive TUI (`cape tui`)
 

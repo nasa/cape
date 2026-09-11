@@ -146,6 +146,15 @@ CAPE_PARAMS = {
         ),
         "type": ["boolean", "null"]
     },
+    "background": {
+        "description": (
+            "Run this command as a background task instead of waiting "
+            "for it to finish. Use for long-running jobs so the session "
+            "can continue with other tasks. Results are delivered in a "
+            "follow-up message once the task completes."
+        ),
+        "type": ["boolean", "null"]
+    },
     "e": {
         "description": (
             "Execute the command EXEC."
@@ -312,7 +321,7 @@ TOOL_DICT = {
     },
     "cape_report": {
         "description": "Generate a PDF report for one or more cases",
-        "parameters": ["f", "I", "report"],
+        "parameters": ["f", "I", "report", "background"],
         "required": ["I"],
     },
     "cape_review": {
@@ -411,6 +420,11 @@ TOOL_DICT = {
 # JSON-schema tool definitions, OpenAI-compatible
 TOOL_SCHEMAS = []
 TOOLS = {}
+
+# Tools that support the *background* option
+BACKGROUNDABLE_TOOLS = {
+    "cape_report",
+}
 
 
 # Tool sets per capability
