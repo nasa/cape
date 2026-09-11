@@ -22,7 +22,6 @@ The :mod:`cape` module
     cli
     color
     config
-    console
     convert
     convert1to2
     errors
@@ -34,6 +33,7 @@ The :mod:`cape` module
     optdict/index
     plot3d
     pltfile
+    promptutils
     pvutils
     sequtils
     splitzones
@@ -46,6 +46,7 @@ The :mod:`cape` module
     trifile
     tricli
     triqfm
+    tui/index
     units
     util
     writell

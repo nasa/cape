@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.promptutils``: Simple tools for interactive CLI prompts
+:mod:`cape.promptutils`: Simple tools for interactive CLI prompts
 ===================================================================
 
 This module provides tools for auto-completion, colored formatting, and

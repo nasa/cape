@@ -87,6 +87,7 @@ class CapeConfig(OptionsDict):
         "RemoteHost",
         "RemoteHostPatterns",
         "RemoteLoginCommands",
+        "TUIHistoryFile",
     )
 
     # Aliases
@@ -107,6 +108,7 @@ class CapeConfig(OptionsDict):
         "RemoteHost": str,
         "RemoteHostPatterns": str,
         "RemoteLoginCommands": str,
+        "TUIHistoryFile": str,
     }
 
     # Required lists
@@ -121,6 +123,7 @@ class CapeConfig(OptionsDict):
         "AgentHistoryFile": ".cape_agent_history",
         "CacheDir": os.path.join("~", ".cache", "cape"),
         "HistoryFile": ".cape_history",
+        "TUIHistoryFile": ".cape_tui_history",
     }
 
     # Environment variable
@@ -132,6 +135,7 @@ class CapeConfig(OptionsDict):
         "PDFReader": "CAPE_PDF_READER",
         "PNGReader": "CAPE_PNG_READER",
         "RemoteHost": "CAPE_REMOTE_HOST",
+        "TUIHistoryFile": "CAPE_TUI_HISTORY_FILE",
     }
 
     # Sections
@@ -144,6 +148,7 @@ class CapeConfig(OptionsDict):
         "AgentHistoryFile": "Location for history of CAPE-agentic commands",
         "CacheDir": "Location for CAPE to cache files",
         "HistoryFile": "Location for history of CAPE commands",
+        "TUIHistoryFile": "Location for history of CAPE TUI commands",
         "LocalHost": (
             "Name of 'local' machine; CAPE on remote systems will transfer "
             "files to this location for easier viewing. Override with "

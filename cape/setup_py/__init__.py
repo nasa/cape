@@ -56,6 +56,7 @@ SETUP_SETTINGS = dict(
         "cape.pyover.options",
         "cape.tnakit",
         "cape.tnakit.textutils",
+        "cape.tui",
         "cape.ui"
     ],
     install_requires=[
