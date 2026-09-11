@@ -20,7 +20,11 @@ from .. import sysutils
 from .cntlbase import CntlBase
 from ..argread import ArgReader, ArgReadError, BOOL_TYPES, INT_TYPES
 from ..argread.clitext import compile_rst
-from ..errors import CapeError, CapeFileNotFoundError, CapeValueError
+from ..errors import (
+    CapeError,
+    CapeFileNotFoundError,
+    CapeNotSupportedError,
+    CapeValueError)
 
 
 # Constants
@@ -4050,7 +4054,15 @@ def cape_tui() -> Tuple[int, Any]:
             Output from API function
     """
     # Import rich terminal user interface
-    from .. import tui
+    try:
+        from .. import tui
+    except ModuleNotFoundError as err:
+        # Check if it's the (optional) 'rich' package
+        if err.name is not None and err.name.split(".")[0] == "rich":
+            raise CapeNotSupportedError(
+                "'cape tui' requires the third-party package 'rich'")
+        # Some other missing module; re-raise
+        raise
     # Run code
     return tui.main(CfdxFrontDesk)
 
