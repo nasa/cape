@@ -5060,8 +5060,9 @@ class Cntl(CntlBase):
             title = f"{pre} :blue:`cli.`:green:`{call}` {suf}"
         else:
             raise CapeValueError(f"Unrecognized action type '{typ}'")
-        # Display the title
-        print(compile_rst(title))
+        # Display the title (only non-simul actions)
+        if k is None:
+            print(compile_rst(title))
         # Check if part of a simultaneous group
         if k is not None:
             # Log file for this action's STDOUT
@@ -5150,6 +5151,45 @@ class Cntl(CntlBase):
         errs = []
         # Check if we can draw an updating status board
         qtty = sys.stdout.isatty()
+        # Initialize subtitles
+        titles = []
+        # Loop through actions
+        for actj in group:
+            # Get action options
+            typ = actj.get("type", "shell")
+            fname = actj.get("function")
+            # All actions need a function or command
+            if fname is None:
+                raise CapeValueError(
+                    f"No 'function' given for action type '{typ}'")
+            # Action index
+            actnj = f"({j+1}/{ngrp})"
+            # Construct a title and its plain-text version (for the status
+            # board of a simultaneous group)
+            if typ == "shell":
+                # Shell command
+                title = f":blue:`$` :green:`{fname}`"
+            elif typ == "cntl":
+                # Cntl method
+                call = _format_action_call("", fname, actj)
+                title = f":blue:`Cntl.`:green:`{call}`"
+            elif typ == "cli":
+                # CLI module method
+                call = _format_action_call("", fname, actj)
+                title = f":blue:`cli.`:green:`{call}`"
+            else:
+                raise CapeValueError(f"Unrecognized action type '{typ}'")
+            # Save title
+            titles.append(title)
+        # Get the shortest title
+        title = sorted(titles, key=len)[0]
+        # Prefix/suffix for all titles
+        pre = f":bold:`--` {actnj}"
+        suf = ":bold:`--` "
+        # Append counter
+        title = f"{pre} {title} (+{len(group)-1}) {suf}"
+        # Print the title
+        print(compile_rst(title))
         # Start all of the group's actions
         try:
             for k, actj in enumerate(group):
