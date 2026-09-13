@@ -27,6 +27,7 @@ from openai import OpenAI, InternalServerError
 
 # Local imports
 from . import agentutils
+from . import bgtasks
 from . import skills as agentskills
 from .options import AgentOpts
 from .skills import skilltools
@@ -77,6 +78,10 @@ specific meanings:
 * `PASS`: The case is `DONE` and marked as final by the user.
 * `PASS*`: The case is marked as `PASS` by the user but does not meet the
   requirements for `DONE`.
+
+Slow commands such as report generation can be run as background
+tasks using the tool's `background` option; their full results are
+delivered in a follow-up message once the task completes.
 
 Do not call the same tool again with the same or very similar arguments.
 
@@ -148,6 +153,7 @@ class AgentCntl:
         "opts",
         "skills",
         "system_prompt",
+        "tasks",
         "tool_schemas",
         "tools",
     )
@@ -193,6 +199,9 @@ class AgentCntl:
         #: :class:`list`\ [:class:`dict`] | ``None``
         #: Message history for current conversation
         self.history = None
+        #: :class:`list`\ [:class:`bgtasks.BackgroundTask`]
+        #: Background tasks launched during this session
+        self.tasks = []
         # Filter tools to those appropriate for this model
         self.assemble_tools()
         # Assemble skills available for this model
@@ -407,6 +416,13 @@ class AgentCntl:
         if REGEX_CAPE_CLI.match(user_message):
             # Turn into command
             cmdlist = shlex.split(user_message.lstrip("$").strip())
+            # Check for shell-style background request (trailing "&")
+            cmdlist, bg = _strip_background(cmdlist)
+            # Check for background request
+            if bg:
+                # Launch as background task
+                self.launch_cli_task(messages, cmdlist)
+                return result
             # Keep later turns aware of direct execution without an LLM call
             messages.append({
                 "role": "user",
@@ -427,6 +443,15 @@ class AgentCntl:
         elif user_message.startswith("$"):
             # Run into command
             cmdlist = shlex.split(user_message.lstrip("$").strip())
+            # Check for shell-style background request (trailing "&")
+            cmdlist, bg = _strip_background(cmdlist)
+            if not cmdlist:
+                return result
+            # Check for background request
+            if bg:
+                # Launch as background task
+                self.launch_cli_task(messages, cmdlist)
+                return result
             # Keep later turns aware of direct execution without an LLM call
             messages.append({
                 "role": "user",
@@ -498,6 +523,11 @@ class AgentCntl:
                     tool_result = {
                         "ok": False, "error": f"unknown tool: {name}"}
                     result["n_tool_fails"] += 1
+                elif (name in cfdxtools.BACKGROUNDABLE_TOOLS and
+                        kwargs.pop("background", False)):
+                    # Launch as background task instead of blocking
+                    tool_result = self.launch_tool_task(
+                        name, kwargs, result)
                 else:
                     # Tool call: add prompt
                     try:
@@ -552,6 +582,89 @@ class AgentCntl:
         # Return counters for this pass
         return result
 
+    # Launch a CLI command as a background task
+    def launch_cli_task(self, messages: list, cmdlist: list):
+        r"""Launch a typed command as a background task
+
+        Runs *cmdlist* as a background task and records the launch in
+        the conversation history.
+        """
+        # Keep later turns aware of direct execution without an LLM call
+        messages.append({
+            "role": "user",
+            "content": (
+                "I issued this command through the CLI as a background "
+                "task; this is a record, not a request to execute it "
+                "again. No LLM response is needed. Its results will "
+                "arrive in a follow-up message. Command:\n" +
+                shlex.join(cmdlist)),
+        })
+        # Status update
+        print(HLINE)
+        # Try to launch the task
+        try:
+            task = bgtasks.launch_cli_task(len(self.tasks) + 1, cmdlist)
+        except OSError as e:
+            print(f"Could not launch background task: {e}")
+            print(HLINE)
+            return
+        # Save task and report
+        self.tasks.append(task)
+        print(bgtasks.format_launch_note(task))
+        print(HLINE)
+
+    # Run an allow-listed tool call as a background task
+    def launch_tool_task(self, name: str, kwargs: dict, result: dict) -> dict:
+        r"""Launch a tool call as a background task
+
+        Returns the tool's immediate result; its full result is
+        delivered as a follow-up message when the task completes.
+        """
+        # Try to launch the task
+        try:
+            task = bgtasks.launch_tool_task(len(self.tasks) + 1, name, kwargs)
+        except Exception as e:
+            result["n_tool_fails"] += 1
+            return {
+                "success": False,
+                "error": f"could not launch task: {e.__class__.__name__}: {e}",
+            }
+        # Save task and report
+        self.tasks.append(task)
+        print(bgtasks.format_launch_note(task))
+        print(HLINE)
+        # Immediate tool response; full result delivered on completion
+        return {
+            "success": True,
+            "background": True,
+            "task_id": task.task_id,
+            "logfile": task.logfile,
+            "message": (
+                "This command was launched as a background task; its "
+                "full result will arrive in a follow-up message after "
+                "it completes."),
+        }
+
+    # Check for completed background tasks
+    def reap_tasks(self):
+        r"""Notify user and history of completed background tasks"""
+        # Loop through newly finished tasks
+        for task, tool_result in bgtasks.poll_finished(self.tasks):
+            # Terminal notification
+            print(HLINE)
+            print(bgtasks.format_completion_note(task, tool_result))
+            print(HLINE)
+            # Display tool-style result if turned on
+            if self.opts.get_opt("ShowToolResult") and task.tool_name:
+                show_tool_result(tool_result)
+            # Inform the conversation, if there is one
+            if self.history is not None:
+                self.history.append({
+                    "role": "user",
+                    "content": bgtasks.format_history_record(
+                        task, tool_result),
+                })
+
     # Run main loop
     def main(self, cls: type | None = None) -> AgentResult:
         # Initialize a results dictionary
@@ -596,6 +709,8 @@ class AgentCntl:
         user_prompt = sprintf_color_rl("You: ", ["bold", "italic", "green"])
         # Loop until user requests exit
         while True:
+            # Notify user of completed background tasks
+            self.reap_tasks()
             try:
                 user_message = input(user_prompt).strip()
             except (EOFError, KeyboardInterrupt):
@@ -628,6 +743,17 @@ class AgentCntl:
                     pprint.pprint(details)
                 print(f"{type(e).__name__}: {parts[0]}")
                 break
+        # Warn about background tasks still running; being in their
+        # own sessions, they are not interrupted by this exit
+        running = [
+            task for task in self.tasks
+            if not task.reaped and task.poll() is None
+        ]
+        if running:
+            print(f"Note: {len(running)} background task(s) still running:")
+            for task in running:
+                print(f"  {task.task_id}: {task.describe()}")
+                print(f"    log: {task.logfile}")
         # Save readline history on exit
         try:
             readline.write_history_file(histfile)
@@ -674,6 +800,35 @@ def genr8_system_prompt(skills: dict) -> str:
     return "\n".join(lines)
 
 
+# Remove a trailing "&" background marker from a command
+def _strip_background(cmdlist: list) -> tuple[list, bool]:
+    r"""Remove a trailing ``&`` for backgrounded shell-style commands
+
+    :Call:
+        >>> cmdlist, bg = _strip_background(cmdlist)
+    :Inputs:
+        *cmdlist*: :class:`list`\ [:class:`str`]
+            Command split into tokens
+    :Outputs:
+        *cmdlist*: :class:`list`\ [:class:`str`]
+            Command without any trailing ``&`` token
+        *bg*: :class:`bool`
+            Whether a trailing ``&`` was found
+    """
+    # Check for trailing "&", either its own token or tacked onto the
+    # final token ("... &" or "...&")
+    if cmdlist and cmdlist[-1].endswith("&"):
+        # Remove the "&" character
+        last = cmdlist.pop()[:-1]
+        # Put the token back unless the "&" was its own token
+        if last:
+            cmdlist.append(last)
+        # Background requested
+        return cmdlist, True
+    # No background request
+    return cmdlist, False
+
+
 # Format the model's response
 def show_formatted_response(msg: str | None):
     if msg is None:
@@ -712,6 +867,8 @@ def format_cli_call(name: str, kwargs: dict) -> str:
         parsercls = cli.CfdxFrontDesk._cmdparsers[cmdname]
         # Normalize kwargs
         kw = normalize_kwargs(kwargs)
+        # Remove parameters that are only meaningful to the agent
+        kw.pop("background", None)
         # Parse the kwargs
         parser = parsercls(**kw)
         # Reconstruct the command
