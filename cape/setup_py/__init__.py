@@ -70,6 +70,9 @@ SETUP_SETTINGS = dict(
         "xlrd3",
         "xlsxwriter"
     ],
+    extras_require={
+        "tui": ["textual"],
+    },
     package_data={
         "cape": [
             "templates/paraview/*",

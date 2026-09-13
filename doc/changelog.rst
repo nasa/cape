@@ -5,6 +5,25 @@
 Changelog
 ********************
 
+Development
+=============================
+
+New Features
+-------------------
+
+*   *Clickable option prompts*
+
+    Interactive prompts that offer a list of options (e.g. the review
+    prompts from ``cape approve`` and case-deletion confirmations) are
+    now shown as clickable menus when the optional ``textual`` package
+    is installed and the terminal environment supports it. Clicking an
+    option has the same effect as typing ``@N``; typed input, ``@N``
+    answers, and empty input to accept the default all still work.
+    Auto-detection is controlled by ``$CAPE_PROMPT_CLICK`` (set it to
+    ``always`` or ``never``) and by the *clickable* option of
+    ``cape.promptutils.prompt_color``. Installing ``textual`` also
+    provides ``rich`` and therefore the ``cape tui`` interface.
+
 Release 2.3.0
 =============================
 

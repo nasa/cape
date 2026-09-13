@@ -4,13 +4,27 @@ r"""
 
 This module provides tools for auto-completion, colored formatting, and
 more when prompting users for values interactively.
+
+When the optional third-party ``textual`` package is installed and
+standard input and output are both terminals with a reasonable
+``$TERM``, prompts that present a list of options (via *vopt*) are
+shown as a clickable menu instead: clicking an option (or pressing
+``Enter`` on it) selects it, just like typing ``@N`` on the readline
+prompt. Free text, ``@N`` answers, and empty input to accept the
+default still work through a text box in the menu. This clickable
+backend can be controlled with *clickable*, and the
+``$CAPE_PROMPT_CLICK`` environment variable can be set to ``always``
+or ``never`` to override auto-detection.
 """
 
 # Standard library
 import fnmatch
 import glob
+import importlib.util
+import os
 import re
 import readline
+import sys
 from typing import Any, Callable, Optional
 
 # Local imports
@@ -28,6 +42,16 @@ except Exception:
 
 # Regular expression to recognize "@{n}" entries
 REGEX_AT = re.compile("@([0-9]+)")
+
+# Name of environment variable to control clickable prompts
+ENVVAR_PROMPT_CLICK = "CAPE_PROMPT_CLICK"
+
+# Values of $CAPE_PROMPT_CLICK to force the clickable prompt backend
+CLICKABLE_TRUE = ("1", "on", "true", "yes", "always")
+CLICKABLE_FALSE = ("0", "off", "false", "no", "never")
+
+# Cached result of clickable-prompt auto-detection
+_CLICKABLE_OK: Optional[bool] = None
 
 # Generic completer settings
 readline.set_completer_delims(' \t\n')
@@ -107,7 +131,8 @@ def prompt_color(
         oneline: bool = False,
         pcolor: Optional[str] = None,
         atcolor: Optional[str] = None,
-        ocolor: Optional[str] = None) -> Any:
+        ocolor: Optional[str] = None,
+        clickable: Optional[bool] = None) -> Any:
     r"""Get user input using a colorized prompt
 
     :Call:
@@ -131,6 +156,12 @@ def prompt_color(
             Print the final selection for confirmation
         *oneline*: ``True`` | {``False``}
             Option to display values as compact one-line list ``[y]/n``
+        *clickable*: {``None``} | ``True`` | ``False``
+            If ``True``, use a clickable menu for option lists (only
+            when the ``textual`` package is installed); if ``False``,
+            always use the colored readline prompt; if ``None``,
+            auto-detect a TUI-capable terminal (see also
+            :func:`clickable_prompt_ok`)
     :Outputs:
         *v*: :class:`str` | *vdef* | ``vopt[j]``
             User input or default value
@@ -161,8 +192,19 @@ def prompt_color(
     # Substantiate default
     vdef = vopt if vdef is None else vdef
     vdef = vdef if not isinstance(vdef, list) else vdef[0]
-    # Read input from command line (ignore lead/trail spaces)
-    vraw = input_color(msg, color)
+    # Check for clickable option menu in a TUI-capable terminal
+    if isinstance(vopt, (list, tuple)) and clickable_prompt_ok(clickable):
+        try:
+            # Use clickable menu (returns raw reply, like :func:`input`)
+            vraw = prompt_click(txt, vdef, vopt, prompt, oneline)
+        except KeyboardInterrupt:
+            raise
+        except Exception:
+            # Fall back to colored readline prompt
+            vraw = input_color(msg, color)
+    else:
+        # Read input from command line (ignore lead/trail spaces)
+        vraw = input_color(msg, color)
     # Check if it's an "@"
     if msg1 and REGEX_AT.fullmatch(vraw):
         # Get the number provided by user
@@ -316,3 +358,227 @@ def _dumps_plain(
         return ''
     # Form the prompt without default value
     return f"{txt}:\n{prompt} "
+
+
+# Check if the optional textual package is installed
+def _textual_available() -> bool:
+    try:
+        return importlib.util.find_spec("textual") is not None
+    except Exception:
+        return False
+
+
+# Check if clickable prompts are (or should be) available
+def clickable_prompt_ok(clickable: Optional[bool] = None) -> bool:
+    r"""Check if clickable option menus are currently available
+
+    Clickable prompts require the optional third-party ``textual``
+    package to be installed. Unless forced using *clickable* or the
+    ``$CAPE_PROMPT_CLICK`` environment variable, clickable prompts are
+    only activated if standard input and output are both terminals with
+    a reasonable ``$TERM``.
+
+    :Call:
+        >>> ok = clickable_prompt_ok(clickable=None)
+    :Inputs:
+        *clickable*: {``None``} | ``True`` | ``False``
+            If ``True`` or ``False``, force clickable prompts on or
+            off; if ``None``, consult ``$CAPE_PROMPT_CLICK`` and then
+            auto-detect the terminal
+    :Outputs:
+        *ok*: ``True`` | ``False``
+            Whether clickable option menus should be used
+    """
+    global _CLICKABLE_OK
+    # Check for explicit on/off argument
+    if clickable is not None:
+        return _textual_available() if clickable else False
+    # Check for environment variable override
+    env = os.environ.get(ENVVAR_PROMPT_CLICK, '').strip().lower()
+    if env in CLICKABLE_FALSE:
+        return False
+    if env in CLICKABLE_TRUE:
+        return _textual_available()
+    # Use cached result of auto-detection
+    if _CLICKABLE_OK is None:
+        _CLICKABLE_OK = (
+            _textual_available() and
+            sys.stdin.isatty() and
+            sys.stdout.isatty() and
+            os.environ.get("TERM", "dumb") not in ("", "dumb"))
+    return _CLICKABLE_OK
+
+
+# Run a clickable menu; return a raw reply like :func:`input_color`
+def prompt_click(
+        txt: str,
+        vdef: Optional[Any] = None,
+        vopt: Optional[list] = None,
+        prompt: str = '>',
+        oneline: bool = False) -> str:
+    r"""Run a clickable option prompt and return the user's reply
+
+    The reply has the same format as :func:`input_color`: clicking
+    option *j* of *vopt* answers ``"@{j+1}"``, typing free text answers
+    that text, and pressing ``Escape`` (like empty input) answers
+    ``""``. Such replies can be parsed using the same logic as
+    :func:`prompt_color` (i.e. ``@N`` selects ``vopt[N-1]``).
+
+    :Call:
+        >>> vraw = prompt_click(txt, vdef, vopt, prompt, oneline)
+    :Inputs:
+        *txt*: :class:`str`
+            Text of the question
+        *vdef*: {``None``} | :class:`object`
+            Default value (if any)
+        *vopt*: {``None``} | :class:`list`
+            List of possible or suggested values
+        *prompt*: {``">"``} | :class:`str`
+            Character(s) to use as prompt
+        *oneline*: ``True`` | {``False``}
+            Use compact one-line buttons instead of a list
+    :Outputs:
+        *vraw*: :class:`str`
+            User's raw reply
+    :Raises:
+        *KeyboardInterrupt*: if the user quits the prompt menu
+    """
+    # Create the app
+    app = _new_click_prompt(txt, vdef, vopt, prompt, oneline)
+    # Run it
+    vraw = app.run()
+    # Check for quit (e.g. Ctrl-C); mimic readline Ctrl-C behavior
+    if vraw is None:
+        raise KeyboardInterrupt
+    # Output
+    return vraw
+
+
+# Create the textual App for a clickable prompt
+def _new_click_prompt(
+        txt: str,
+        vdef: Optional[Any],
+        vopt: list,
+        prompt: str = '>',
+        oneline: bool = False):
+    r"""Create a textual :class:`App` for a clickable option menu
+
+    This function performs lazy imports of the optional ``textual``
+    package, so calling it requires ``textual`` to be installed (see
+    :func:`clickable_prompt_ok`).
+
+    :Call:
+        >>> app = _new_click_prompt(txt, vdef, vopt, prompt, oneline)
+    :Inputs:
+        *txt*: :class:`str`
+            Text of the question
+        *vdef*: {``None``} | :class:`object`
+            Default value (if any)
+        *vopt*: :class:`list`
+            List of options to display
+        *prompt*: {``">"``} | :class:`str`
+            Character(s) to use as prompt
+        *oneline*: ``True`` | {``False``}
+            Use compact one-line buttons instead of a list
+    :Outputs:
+        *app*: :class:`textual.app.App`
+            App that exits with the user's raw reply; ``None`` on quit
+    """
+    # Lazy imports of optional third-party textual package
+    from textual.app import App, ComposeResult
+    from textual.binding import Binding
+    from textual.containers import Horizontal, Vertical
+    from textual.widgets import Button, Input, Label, OptionList
+
+    # Index of default value in *vopt*, if any
+    try:
+        jdef = list(vopt).index(vdef)
+    except ValueError:
+        jdef = None
+    # String version of default value for input placeholder
+    vdef_txt = '' if vdef is None else str(vdef)
+    # Compose option strings, highlighting the default
+    opt_txts = [
+        f"[{opt}]" if j == jdef else str(opt)
+        for j, opt in enumerate(vopt)]
+
+    # Define the app class
+    class ClickPrompt(App):
+        # Style settings
+        CSS = (
+            "#prompt-root {\n"
+            "    width: 100%;\n"
+            "    height: auto;\n"
+            "    padding: 1 2;\n"
+            "}\n"
+            "OptionList {\n"
+            "    height: auto;\n"
+            "    max-height: 16;\n"
+            "}\n"
+            "Horizontal {\n"
+            "    height: auto;\n"
+            "}\n"
+            "Button {\n"
+            "    margin-right: 1;\n"
+            "}\n")
+        # Key bindings
+        BINDINGS = [
+            Binding("ctrl+c", "cancel", show=False, priority=True),
+            Binding("escape", "use_default", show=False),
+            Binding("up", "focus_opts", show=False),
+            Binding("down", "focus_opts", show=False),
+        ]
+
+        def compose(self) -> ComposeResult:
+            with Vertical(id="prompt-root"):
+                # Question text
+                yield Label(str(txt))
+                # Render the option list
+                if oneline:
+                    # Compact one-line buttons, e.g. "delete? [y] n"
+                    with Horizontal(id="prompt-opts"):
+                        for j, otxt in enumerate(opt_txts):
+                            yield Button(otxt, id=f"prompt-opt-{j}")
+                else:
+                    # Scrollable list of options
+                    yield OptionList(*opt_txts, id="prompt-opts")
+                # Free-text box, mirroring the readline prompt
+                yield Input(placeholder=vdef_txt, id="prompt-inp")
+
+        def on_mount(self) -> None:
+            # Focus the free-text box by default
+            self.query_one("#prompt-inp", Input).focus()
+            # Highlight the default option
+            if not oneline:
+                opts = self.query_one("#prompt-opts", OptionList)
+                opts.highlighted = 0 if jdef is None else jdef
+
+        def on_option_list_option_selected(
+                self, event: OptionList.OptionSelected) -> None:
+            # Clicking (or Enter-ing) an option answers "@{j+1}"
+            self.exit(f"@{event.option_index + 1}")
+
+        def on_button_pressed(self, event: Button.Pressed) -> None:
+            # Parse button ID of the form "prompt-opt-{j}"
+            btnid = event.button.id or ''
+            if btnid.startswith("prompt-opt-"):
+                self.exit(f"@{int(btnid[11:]) + 1}")
+
+        def on_input_submitted(self, event: Input.Submitted) -> None:
+            # Use the user's typed text
+            self.exit(event.value.strip())
+
+        def action_cancel(self) -> None:
+            # Ctrl-C: abort the prompt (maps to :class:`KeyboardInterrupt`)
+            self.exit(None)
+
+        def action_use_default(self) -> None:
+            # Escape key: accept default value (empty reply)
+            self.exit('')
+
+        def action_focus_opts(self) -> None:
+            # Arrow key from free-text box: move to the option list
+            self.query_one("#prompt-opts").focus()
+
+    # Return an instance
+    return ClickPrompt()

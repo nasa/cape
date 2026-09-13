@@ -4060,7 +4060,9 @@ def cape_tui() -> Tuple[int, Any]:
         # Check if it's the (optional) 'rich' package
         if err.name is not None and err.name.split(".")[0] == "rich":
             raise CapeNotSupportedError(
-                "'cape tui' requires the third-party package 'rich'")
+                "'cape tui' and clickable prompts require the\n"
+                "third-party package 'textual'\n"
+                "(install with ``pip install textual``)")
         # Some other missing module; re-raise
         raise
     # Run code

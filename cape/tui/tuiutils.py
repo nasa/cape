@@ -30,6 +30,7 @@ from rich.text import Text
 
 # CAPE imports
 from cape import __version__
+from cape.promptutils import clickable_prompt_ok
 
 # Local imports
 from ..ui.promptutils import CfdxCompleter, sprintf_color_rl
@@ -221,6 +222,11 @@ def render_banner(histfile: Optional[str] = None) -> None:
     hint.append(" for history · ")
     hint.append(":help", style="bold cyan")
     hint.append(" for TUI commands")
+    # Optional hint about clickable option menus
+    if clickable_prompt_ok():
+        hint.append(" · ")
+        hint.append("click", style="bold cyan")
+        hint.append(" answers option menus")
     # Combine into banner
     body = Table.grid(padding=(0, 0))
     body.add_column()

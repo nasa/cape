@@ -4,25 +4,16 @@
 
 CAPE (Computational Aerosciences Productivity & Execution) is a NASA CFD
 run-matrix management tool that:
-- Executes and post-processes multiple CFD solvers: Cart3D, FUN3D, OVERFLOW,
-  Kestrel, LAVA
-- Creates "datakits" - databases/toolkits for aerosciences data
+- Executes different CFD solvers in `cape/py[a-z0-9]+` based on `cape/cfdx/`
+- Processes modified databases in `cape/dkit/`
 
-## Key Entry Points
+## Architecture
 
-### CLI Commands
-- `cape/cfdx/cli.py` - Main CLI with `CfdxFrontDesk` parser and `CMD_DICT` routing
-- `cape/cli.py` - Auxiliary commands (e.g., `cape-expandjson`)
-- `cape/agent/__init__.py` - Agentic LLM interface (`cape --agentic`)
-- `cape/agent/agentcntl.py` - `AgentCntl` class implementing the agent loop
-- `cape/ui/__init__.py` - Readline-based interactive UI (`cape --ui`)
-- `cape/tui/__init__.py` - Rich-based interactive TUI (`cape tui`)
+Generic CFD run-matrix functionality lives in `cape/cfdx/`; solver-specific
+packages generally extend it. The main run-matrix controller is
+`cape.cfdx.cntl.Cntl`.
 
-### Core Modules
-- `cape/cfdx/cntl.py` - Main `Cntl` class for run matrix control
-- `cape/cfdx/databook.py` - `DataBook` class for CFD data database
-- `cape/cfdx/casecntl.py` - Case control class
-- `cape/argread/` - Argument parsing base classes
+CLI parsing and dispatch are primarily implemented in `cape/cfdx/cli.py`.
 
 ## Build & Test Commands
 
@@ -45,7 +36,7 @@ python3 setup_with_extensions.py bdist_wheel
 Build extensions for local use:
 
 ```bash
-python3 build.py          # Build extensions for local use
+python3 build.py
 ```
 
 The build instructions, which would normally be in `setup.py`, are defined in
@@ -61,15 +52,10 @@ Run nightly test suite:
 bash test/qsub_pytest.sh
 ```
 
-Run pytest with coverage using current Python version:
+Run pytest with coverage using current Python version(s):
 
 ```bash
 python3 drive_pytest.py
-```
-
-Run limited tests for debugging and developing new tests
-```bash
-bash run_capetest.sh        # Run pytest with coverage
 ```
 
 Tests are added in the ``test/`` folder and roughly organized by module name.
@@ -88,39 +74,15 @@ flake8 cape/              # Check with flake8 (see .flake8 for config)
 
 ## Module Structure
 
-```
-cape/
-├── agent/       # LLM agentic interface (new)
-├── argread/     # Argument parsing base
-├── cfdx/        # Generic CFD run matrix (core)
-│   ├── cli.py       # CLI commands (CMD_DICT, CfdxFrontDesk)
-│   ├── cntl.py      # Cntl class
-│   ├── databook.py  # DataBook class
-│   └── options/     # JSON option definitions
-├── dkit/        # Data kit modules
-├── filecntl/    # File control classes
-├── gruvoc/      # Grid/visualization formats
-├── nmlfile/     # Fortran namelist handling
-├── optdict/     # Option dictionary
-├── tui/         # Rich-based interactive TUI
-└── ui/          # Readline-based UI
-```
+The folders `cape/py[a-z0-9]+/` each control a single CFD solver, e.g.
 
-## Solver-Specific Modules
 - `pycart/` - Cart3D solver
 - `pyfun/` - FUN3D solver
-- `pyover/` - OVERFLOW solver
-- `pykes/` - Kestrel solver
-- `pylava/` - LAVA solver
-- `pylch/` - CREATE-AV LCH
 
-## Test Organization
-- `test/000_vendor/` - Vendor/third-party tests
-- `test/001_cape/` - Base cape module tests
-- `test/005_cfdx/` - CFD run matrix tests
-- `test/006_pycart/` - Cart3D-specific tests
-- `test/007_pyfun/` - FUN3D-specific tests
-- `test/008_pyover/` - OVERFLOW-specific tests
+The common CFD solver code is in `cape/cfdx/`.
+
+The `cape/dkit/` module is the base for post-processing and delivering data.
+
 
 ## Key Conventions
 
@@ -133,13 +95,7 @@ cape/
 4. **Slots**: Classes use `__slots__` for memory efficiency
    (`cape.cfdx.cntl.Cntl` and `cape.dkit.rdb.DataKit` are exceptions to this
    directive.)
-5. **Agentic Mode**: New `--agentic` flag calls `main()` in
-   `cape/agent/__init__.py`, which runs the agent loop via
-   `cape.agent.agentcntl.AgentCntl` with LLM tool calling
-6. **Agent Skills**: Skills (documented tool-usage workflows) live in
-   `cape/agent/skills/`; user skills are discovered from
-   `.agents/skills/<NAME>/SKILL.md` in the launch dir. Skills are gated
-   per-reasoning-level (see `SKILL_SETS`) and loaded via `use_skill`
+
 
 ## Documentation
 
@@ -147,25 +103,19 @@ cape/
 - Build docs: `doc/` folder with Sphinx configuration
 - New modules should add RST files to `doc/api/cape/` and update index
 - If the new module is an `__init__.py` module, put the title in `index.rst`
-  instead of the module's docstring.
+  instead of the module's docstring; otherwise Sphinx can show grandchildren at
+  the wrong TOC depth.
 
 ## Common Tasks
 
 ### Adding a CLI command
-1. Add `cape_<name>()` function in `cape/cfdx/cli.py`
-2. Add `"<cmd>": cape_<name>` to `CMD_DICT`
-3. Create `Cfdx<Name>Args` class with options
-4. Add to `CMD_NAMES` if needed
+When adding or modifying CLI commands, follow the patterns in
+`cape/cfdx/cli.py`; command dispatch is controlled by `CMD_DICT`.
 
-### Adding an option
-1. Add to `CfdxArgReader._optlist`
-2. Add type to `_opttypes` if non-boolean
-3. Add to `CfdxFrontDesk._optlist`
+### Adding a CLI option
+1. Add to `CfdxFrontDesk._optlist`
+2. Add to other `CfdxFrontDesk` attributes `._opt*` and `_help*` as appropriate
+3. Add to sub-command parser's `_optlist`, e.g.
 
-### Adding documentation
-1. Create `doc/api/cape/<module>.rst` with `.. automodule:: cape.<module>`
-2. Add to `doc/api/cape/index.rst` toctree
-3. **Package index pages**: put the `:mod:` title in the package's
-   `index.rst` file (overlined with `*`, see `filecntl/index.rst`), not
-   in the package's `__init__.py` docstring. This prevents Sphinx from
-   showing grandchild modules at the same TOC depth as their parents.
+Do not add ordinary subcommand-specific options to `CfdxArgReader._optlist`;
+options there are inherited by every subcommand.
