@@ -418,11 +418,15 @@ def prompt_click(
         oneline: bool = False) -> str:
     r"""Run a clickable option prompt and return the user's reply
 
-    The reply has the same format as :func:`input_color`: clicking
-    option *j* of *vopt* answers ``"@{j+1}"``, typing free text answers
-    that text, and pressing ``Escape`` (like empty input) answers
-    ``""``. Such replies can be parsed using the same logic as
-    :func:`prompt_color` (i.e. ``@N`` selects ``vopt[N-1]``).
+    The menu is rendered inline (when the terminal supports it), so
+    that the question and options remain part of the terminal stream
+    along with the user's answer; on terminals without inline-rendering
+    support, it retries in full-screen mode. The reply has the same
+    format as :func:`input_color`: clicking option *j* of *vopt*
+    answers ``"@{j+1}"``, typing free text answers that text, and
+    pressing ``Escape`` (like empty input) answers ``""``. Such replies
+    can be parsed using the same logic as :func:`prompt_color`
+    (i.e. ``@N`` selects ``vopt[N-1]``).
 
     :Call:
         >>> vraw = prompt_click(txt, vdef, vopt, prompt, oneline)
@@ -445,8 +449,13 @@ def prompt_click(
     """
     # Create the app
     app = _new_click_prompt(txt, vdef, vopt, prompt, oneline)
-    # Run it
-    vraw = app.run()
+    try:
+        # Run app inline, leaving the menu in the terminal stream
+        vraw = app.run(inline=True, inline_no_clear=True)
+    except Exception:
+        # If inline rendering fails, retry in full-screen mode
+        app = _new_click_prompt(txt, vdef, vopt, prompt, oneline)
+        vraw = app.run()
     # Check for quit (e.g. Ctrl-C); mimic readline Ctrl-C behavior
     if vraw is None:
         raise KeyboardInterrupt

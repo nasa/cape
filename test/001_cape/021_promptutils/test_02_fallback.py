@@ -119,11 +119,11 @@ def test_06_clickable_interrupt(monkeypatch):
 def test_07_prompt_click_quit(monkeypatch):
 
     class QuitApp:
-        def run(self):
+        def run(self, **kw):
             return None
 
     class ReplyApp:
-        def run(self):
+        def run(self, **kw):
             return "@1"
 
     # App that quits without answering (e.g. Ctrl-C) raises
@@ -135,8 +135,30 @@ def test_07_prompt_click_quit(monkeypatch):
     assert pu.prompt_click("pick", "skip", ["next"]) == "@1"
 
 
+# prompt_click retries in full-screen mode if inline rendering fails
+def test_08_inline_fallback(monkeypatch):
+    # Record sequence of run modes attempted
+    calls = []
+
+    class InlineFailApp:
+        def run(self, inline=False, inline_no_clear=False):
+            if inline:
+                calls.append("inline")
+                raise RuntimeError("no inline support")
+            calls.append("fullscreen")
+            return "@2"
+
+    monkeypatch.setattr(
+        pu, "_new_click_prompt", lambda *a, **kw: InlineFailApp())
+    # The full-screen retry's reply is used
+    vraw = pu.prompt_click("pick", "skip", ["next", "extend", "skip"])
+    assert vraw == "@2"
+    # Inline was attempted first, then full-screen retry
+    assert calls == ["inline", "fullscreen"]
+
+
 # Plain prompts without an option list never use clickable backend
-def test_08_plain_prompt_no_click(monkeypatch):
+def test_09_plain_prompt_no_click(monkeypatch):
     monkeypatch.setattr(pu, "clickable_prompt_ok", lambda c=None: True)
 
     def click_should_not_run(*a, **kw):
@@ -146,3 +168,19 @@ def test_08_plain_prompt_no_click(monkeypatch):
     _mock_input(monkeypatch, "typed")
     v = pu.prompt_color("Enter a value", clickable=True, show=False)
     assert v == "typed"
+
+
+# The *clickable* default is auto-detection (None), not off
+def test_10_default_is_auto(monkeypatch):
+    # Only report "available" when in auto-detect mode
+    monkeypatch.setattr(
+        pu, "clickable_prompt_ok", lambda c=None: c is None)
+    monkeypatch.setattr(pu, "prompt_click", lambda *a, **kw: "@1")
+    # No *clickable* argument; must take the clickable path
+    v = pu.prompt_color("pick", "n", ["y", "n"], show=False)
+    assert v == "y"
+    # Explicit off still uses the readline path even when auto is on
+    _mock_input(monkeypatch, "@2")
+    v = pu.prompt_color("pick", "y", ["y", "n"], clickable=False,
+                        show=False)
+    assert v == "n"

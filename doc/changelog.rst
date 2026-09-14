@@ -21,8 +21,12 @@ New Features
     answers, and empty input to accept the default all still work.
     Auto-detection is controlled by ``$CAPE_PROMPT_CLICK`` (set it to
     ``always`` or ``never``) and by the *clickable* option of
-    ``cape.promptutils.prompt_color``. Installing ``textual`` also
-    provides ``rich`` and therefore the ``cape tui`` interface.
+    ``cape.promptutils.prompt_color``. Menus are rendered inline (when
+    the terminal supports it) so that questions and options remain part
+    of the terminal stream along with the user's answers; on other
+    terminals, menus fall back to a full-screen display or the
+    traditional readline prompt. Installing ``textual`` also provides
+    ``rich`` and therefore the ``cape tui`` interface.
 
 Release 2.3.0
 =============================
