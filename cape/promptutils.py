@@ -53,6 +53,9 @@ CLICKABLE_FALSE = ("0", "off", "false", "no", "never")
 # Cached result of clickable-prompt auto-detection
 _CLICKABLE_OK: Optional[bool] = None
 
+# Registered host handler for prompts (e.g. the CAPE TUI), if any
+_PROMPT_HANDLER: Optional[Callable] = None
+
 # Generic completer settings
 readline.set_completer_delims(' \t\n')
 readline.parse_and_bind("tab: complete")
@@ -192,8 +195,12 @@ def prompt_color(
     # Substantiate default
     vdef = vopt if vdef is None else vdef
     vdef = vdef if not isinstance(vdef, list) else vdef[0]
-    # Check for clickable option menu in a TUI-capable terminal
-    if isinstance(vopt, (list, tuple)) and clickable_prompt_ok(clickable):
+    # Check for a registered prompt handler (e.g. the CAPE TUI)
+    handler = _PROMPT_HANDLER
+    if handler is not None:
+        # Let the host render the prompt itself
+        vraw = handler(txt, vdef, vopt, prompt, oneline)
+    elif isinstance(vopt, (list, tuple)) and clickable_prompt_ok(clickable):
         try:
             # Use clickable menu (returns raw reply, like :func:`input`)
             vraw = prompt_click(txt, vdef, vopt, prompt, oneline)
@@ -360,6 +367,37 @@ def _dumps_plain(
     return f"{txt}:\n{prompt} "
 
 
+# Register a host handler for interactive prompts
+def register_prompt_handler(handler: Optional[Callable]) -> Optional[Callable]:
+    r"""Register (or clear) a host handler for interactive prompts
+
+    If set, :func:`prompt_color` calls *handler* to obtain the user's
+    raw reply instead of rendering a prompt itself. The handler
+    signature mirrors :func:`prompt_click` and it must return a raw
+    reply with the same format (i.e. ``"@{j+1}"`` for option *j*,
+    typed text, or ``""`` to accept the default); it may raise
+    :class:`KeyboardInterrupt` to abort. This allows a host
+    application, such as the CAPE TUI, to render prompts in its own
+    interface while its commands run in another thread.
+
+    :Call:
+        >>> prev_handler = register_prompt_handler(handler)
+    :Inputs:
+        *handler*: **callable** | {``None``}
+            Prompt handler to register, or ``None`` to clear
+    :Outputs:
+        *prev_handler*: {``None``} | **callable**
+            Previously registered handler (for restoration)
+    """
+    global _PROMPT_HANDLER
+    # Save previous handler
+    prev_handler = _PROMPT_HANDLER
+    # Install new handler
+    _PROMPT_HANDLER = handler
+    # Output
+    return prev_handler
+
+
 # Check if the optional textual package is installed
 def _textual_available() -> bool:
     try:
@@ -463,6 +501,156 @@ def prompt_click(
     return vraw
 
 
+# Create a textual widget for a clickable prompt
+def _new_prompt_widget(
+        txt: str,
+        vdef: Optional[Any],
+        vopt: list,
+        prompt: str = '>',
+        oneline: bool = False,
+        on_answer: Optional[Callable] = None):
+    r"""Create a textual widget rendering a clickable option menu
+
+    This function performs lazy imports of the optional ``textual``
+    package, so calling it requires ``textual`` to be installed (see
+    :func:`clickable_prompt_ok`). The widget can be run alone inside a
+    small :class:`~textual.app.App` (as :func:`prompt_click` does) or
+    mounted into a larger application, such as the CAPE TUI.
+
+    :Call:
+        >>> widget = _new_prompt_widget(txt, vdef, vopt, **kw)
+    :Inputs:
+        *txt*: :class:`str`
+            Text of the question
+        *vdef*: {``None``} | :class:`object`
+            Default value (if any)
+        *vopt*: :class:`list`
+            List of options to display
+        *prompt*: {``">"``} | :class:`str`
+            Character(s) to use as prompt
+        *oneline*: ``True`` | {``False``}
+            Use compact one-line buttons instead of a list
+        *on_answer*: {``None``} | **callable**
+            Called with the user's raw reply (same format as
+            :func:`prompt_click`); ``None`` on cancel (Ctrl-C)
+    :Outputs:
+        *widget*: :class:`textual.widget.Widget`
+            Clickable option-menu widget
+    """
+    # Lazy imports of optional third-party textual package
+    from textual.binding import Binding
+    from textual.containers import Horizontal, Vertical
+    from textual.widgets import Button, Input, Label, OptionList
+
+    # Index of default value in *vopt*, if any
+    try:
+        jdef = list(vopt).index(vdef)
+    except ValueError:
+        jdef = None
+    # String version of default value for input placeholder
+    vdef_txt = '' if vdef is None else str(vdef)
+    # Compose option strings, highlighting the default
+    opt_txts = [
+        f"[{opt}]" if j == jdef else str(opt)
+        for j, opt in enumerate(vopt)]
+
+    # Define the widget class
+    class PromptWidget(Vertical):
+        # Style settings
+        CSS = (
+            "#prompt-root {\n"
+            "    width: 100%;\n"
+            "    height: auto;\n"
+            "    padding: 1 2;\n"
+            "}\n"
+            "OptionList {\n"
+            "    height: auto;\n"
+            "    max-height: 16;\n"
+            "}\n"
+            "Horizontal {\n"
+            "    height: auto;\n"
+            "}\n"
+            "Button {\n"
+            "    margin-right: 1;\n"
+            "}\n")
+        # Key bindings
+        BINDINGS = [
+            Binding("ctrl+c", "cancel", show=False, priority=True),
+            Binding("escape", "use_default", show=False),
+            Binding("up", "focus_opts", show=False),
+            Binding("down", "focus_opts", show=False),
+        ]
+
+        def __init__(self):
+            # Initialize base container
+            super().__init__(id="prompt-root")
+            # Answer callback
+            self.on_answer = on_answer
+
+        def compose(self):
+            # Question text
+            yield Label(str(txt))
+            # Render the option list
+            if oneline:
+                # Compact one-line buttons, e.g. "delete? [y] n"
+                with Horizontal(id="prompt-opts"):
+                    for j, otxt in enumerate(opt_txts):
+                        yield Button(otxt, id=f"prompt-opt-{j}")
+            else:
+                # Scrollable list of options
+                yield OptionList(*opt_txts, id="prompt-opts")
+            # Free-text box, mirroring the readline prompt
+            yield Input(placeholder=vdef_txt, id="prompt-inp")
+
+        def on_mount(self) -> None:
+            # Focus the free-text box by default
+            self.query_one("#prompt-inp", Input).focus()
+            # Highlight the default option
+            if not oneline:
+                opts = self.query_one("#prompt-opts", OptionList)
+                opts.highlighted = 0 if jdef is None else jdef
+
+        # Pass the user's reply to the answer callback
+        def _answer(self, vraw) -> None:
+            if self.on_answer is not None:
+                self.on_answer(vraw)
+
+        def on_option_list_option_selected(
+                self, event: OptionList.OptionSelected) -> None:
+            # Don't let host apps see this event
+            event.stop()
+            # Clicking (or Enter-ing) an option answers "@{j+1}"
+            self._answer(f"@{event.option_index + 1}")
+
+        def on_button_pressed(self, event: Button.Pressed) -> None:
+            # Parse button ID of the form "prompt-opt-{j}"
+            btnid = event.button.id or ''
+            if btnid.startswith("prompt-opt-"):
+                event.stop()
+                self._answer(f"@{int(btnid[11:]) + 1}")
+
+        def on_input_submitted(self, event: Input.Submitted) -> None:
+            # Don't let host apps see this event
+            event.stop()
+            # Use the user's typed text
+            self._answer(event.value.strip())
+
+        def action_cancel(self) -> None:
+            # Ctrl-C: abort the prompt (maps to :class:`KeyboardInterrupt`)
+            self._answer(None)
+
+        def action_use_default(self) -> None:
+            # Escape key: accept default value (empty reply)
+            self._answer('')
+
+        def action_focus_opts(self) -> None:
+            # Arrow key from free-text box: move to the option list
+            self.query_one("#prompt-opts").focus()
+
+    # Return an instance
+    return PromptWidget()
+
+
 # Create the textual App for a clickable prompt
 def _new_click_prompt(
         txt: str,
@@ -493,101 +681,18 @@ def _new_click_prompt(
         *app*: :class:`textual.app.App`
             App that exits with the user's raw reply; ``None`` on quit
     """
-    # Lazy imports of optional third-party textual package
-    from textual.app import App, ComposeResult
-    from textual.binding import Binding
-    from textual.containers import Horizontal, Vertical
-    from textual.widgets import Button, Input, Label, OptionList
+    # Lazy import of optional third-party textual package
+    from textual.app import App
 
-    # Index of default value in *vopt*, if any
-    try:
-        jdef = list(vopt).index(vdef)
-    except ValueError:
-        jdef = None
-    # String version of default value for input placeholder
-    vdef_txt = '' if vdef is None else str(vdef)
-    # Compose option strings, highlighting the default
-    opt_txts = [
-        f"[{opt}]" if j == jdef else str(opt)
-        for j, opt in enumerate(vopt)]
-
-    # Define the app class
+    # Define the app class, hosting one prompt widget
     class ClickPrompt(App):
-        # Style settings
-        CSS = (
-            "#prompt-root {\n"
-            "    width: 100%;\n"
-            "    height: auto;\n"
-            "    padding: 1 2;\n"
-            "}\n"
-            "OptionList {\n"
-            "    height: auto;\n"
-            "    max-height: 16;\n"
-            "}\n"
-            "Horizontal {\n"
-            "    height: auto;\n"
-            "}\n"
-            "Button {\n"
-            "    margin-right: 1;\n"
-            "}\n")
-        # Key bindings
-        BINDINGS = [
-            Binding("ctrl+c", "cancel", show=False, priority=True),
-            Binding("escape", "use_default", show=False),
-            Binding("up", "focus_opts", show=False),
-            Binding("down", "focus_opts", show=False),
-        ]
+        def __init__(self):
+            super().__init__()
+            self._pw = _new_prompt_widget(
+                txt, vdef, vopt, prompt, oneline, on_answer=self.exit)
 
-        def compose(self) -> ComposeResult:
-            with Vertical(id="prompt-root"):
-                # Question text
-                yield Label(str(txt))
-                # Render the option list
-                if oneline:
-                    # Compact one-line buttons, e.g. "delete? [y] n"
-                    with Horizontal(id="prompt-opts"):
-                        for j, otxt in enumerate(opt_txts):
-                            yield Button(otxt, id=f"prompt-opt-{j}")
-                else:
-                    # Scrollable list of options
-                    yield OptionList(*opt_txts, id="prompt-opts")
-                # Free-text box, mirroring the readline prompt
-                yield Input(placeholder=vdef_txt, id="prompt-inp")
-
-        def on_mount(self) -> None:
-            # Focus the free-text box by default
-            self.query_one("#prompt-inp", Input).focus()
-            # Highlight the default option
-            if not oneline:
-                opts = self.query_one("#prompt-opts", OptionList)
-                opts.highlighted = 0 if jdef is None else jdef
-
-        def on_option_list_option_selected(
-                self, event: OptionList.OptionSelected) -> None:
-            # Clicking (or Enter-ing) an option answers "@{j+1}"
-            self.exit(f"@{event.option_index + 1}")
-
-        def on_button_pressed(self, event: Button.Pressed) -> None:
-            # Parse button ID of the form "prompt-opt-{j}"
-            btnid = event.button.id or ''
-            if btnid.startswith("prompt-opt-"):
-                self.exit(f"@{int(btnid[11:]) + 1}")
-
-        def on_input_submitted(self, event: Input.Submitted) -> None:
-            # Use the user's typed text
-            self.exit(event.value.strip())
-
-        def action_cancel(self) -> None:
-            # Ctrl-C: abort the prompt (maps to :class:`KeyboardInterrupt`)
-            self.exit(None)
-
-        def action_use_default(self) -> None:
-            # Escape key: accept default value (empty reply)
-            self.exit('')
-
-        def action_focus_opts(self) -> None:
-            # Arrow key from free-text box: move to the option list
-            self.query_one("#prompt-opts").focus()
+        def compose(self):
+            yield self._pw
 
     # Return an instance
     return ClickPrompt()
