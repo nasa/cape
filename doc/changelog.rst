@@ -28,6 +28,16 @@ New Features
     traditional readline prompt. Installing ``textual`` also provides
     ``rich`` and therefore the ``cape tui`` interface.
 
+*   *Proof-of-concept persistent TUI*
+
+    An experimental OpenCode-style CAPE terminal interface, based on
+    ``textual``, is available for evaluation via
+    ``python3 -m cape.tui.poc``. It runs CAPE and system commands in
+    worker threads with output streamed into a scroll log, and mounts
+    interactive prompts (see above) as clickable widgets in the stream.
+    It is not (yet) part of the CAPE CLI, and lacks the history,
+    tab-completion, and meta-commands of the ``cape tui`` interface.
+
 Release 2.3.0
 =============================
 
