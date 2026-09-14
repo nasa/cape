@@ -19,6 +19,7 @@ OPT_DIRS = {
     "pycart": os.path.join(DOC_DIR, "pycart", "json"),
     "pyfun": os.path.join(DOC_DIR, "pyover", "json"),
     "pyover": os.path.join(DOC_DIR, "pyover", "json"),
+    "pylava": os.path.join(DOC_DIR, "pylava", "json"),
 }
 
 
@@ -48,7 +49,15 @@ DOC_OPTS = {
         "class": "Options",
         "recurse": False,
         "verbose": False,
-    }
+    },
+    "pylava": {
+        "folder": OPT_DIRS["pylava"],
+        "file": "index",
+        "module": "cape.pylava.options",
+        "class": "Options",
+        "recurse": False,
+        "verbose": False,
+    },
 }
 
 

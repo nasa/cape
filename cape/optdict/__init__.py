@@ -4347,12 +4347,15 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
                 Option to have overline and underline for title
             *underline*: {``True``} | ``False``
                 Option to print *opt* as a reST section title
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix to display before *opt* in title
         :Outputs:
             *txt*: :class:`str`
                 Text of *opt* help message
         :Versions:
             * 2023-06-14 ``@aburkhea``: v1.0
             * 2023-06-22 ``@ddalle``: v2.0; only show nontrivial items
+            * 2026-09-13 ``@ddalle``: v2.1; add *prefix*
         """
         # Convert a type to a strint
         def typnam(cls: type) -> str:
@@ -4372,28 +4375,31 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
         c = kw.get("c", '-')
         overline = kw.get("overline", False)
         underline = kw.get("underline", True)
+        prefix = kw.get("prefix")
         # Expand tabs
         tab1 = " " * indent
         tab2 = " " * (indent + tab)
         # Apply aliases if any
         fullopt = self.apply_optmap(opt)
+        # Display name w/ optional prefix, e.g. a ``jq``-style path
+        dispopt = fullopt if prefix is None else f"{prefix}{fullopt}"
         # Form a line with sufficient length
-        hline = c * len(fullopt)
+        hline = c * len(dispopt)
         # Initialize title if not a section
-        title = f"{fullopt}\n\n"
+        title = f"{dispopt}\n\n"
         # Make name string
         if overline:
             # ---------
-            # {fullopt}
+            # {dispopt}
             # ---------
-            title = f"{hline}\n{fullopt}\n{hline}\n\n"
+            title = f"{hline}\n{dispopt}\n{hline}\n\n"
         elif underline:
-            # {fullopt}
+            # {dispopt}
             # ---------
-            title = f"{fullopt}\n{hline}\n\n"
+            title = f"{dispopt}\n{hline}\n\n"
         else:
-            # **{fullopt}**
-            title = f"*{fullopt}*\n\n"
+            # **{dispopt}**
+            title = f"*{dispopt}*\n\n"
         # reST formatting
         rst = not (overline or underline)
         # Markup dlimiters for literals
@@ -4476,6 +4482,294 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
             title + descmsg + aliasmsg + typmsg + rcmsg + valmsg + ldmsg)
         # Form full help message
         return helpmsg
+
+   # --- jq paths ---
+    def getx_jq_item(self, jq: str, **kw):
+        r"""Get item, option, or subsection using a jq-style path
+
+        This uses a simple subset of the path syntax used by the common
+        system utility ``jq -r``; supported syntax is:
+
+            * ``.``: the entire options
+            * ``.KEY``: one key from a dict
+            * ``."KEY"``: dict key containing spaces or other specials
+            * ``.["KEY"]``: dict key using string syntax
+            * ``.[I]`` or ``.KEY[I]``: index into a list
+            * ``.KEY[I1:I2]``: slice of a list
+
+        Sections are navigable even if they have no value in *opts*
+        because their classes are instantiated as needed. Options with
+        scalar values, on the other hand, can only be terminal items
+        unless they have values in *opts*.
+
+        :Call:
+            >>> v = opts.getx_jq_item(jq, **kw)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *jq*: :class:`str`
+                Path to item, using ``jq`` path syntax
+        :Outputs:
+            *v*: **any**
+                Item, option value, or subsection at *jq*
+        """
+        # Split path
+        keys = split_jq_path(jq)
+        # Current item and list of traversed segments
+        v = self
+        parts = []
+        # Loop through segments
+        for key in keys:
+            # Navigate one level
+            v, key = _getx_jq_child(v, key, parts)
+            # Save resolved name
+            parts.append(key)
+        # Output
+        return v
+
+    def getx_jq_info(self, jq: str = ".", **kw) -> str:
+        r"""Create help text for option or section at a jq-style path
+
+        If the path references an option, this returns the description
+        of that option (like :func:`show_opt`). If the path references
+        a section (including ``"."``, the top-level options), it returns
+        a list of the section's options and subsections. Trailing
+        indices and slices are used only to select the value to show.
+
+        :Call:
+            >>> txt = opts.getx_jq_info(jq=".", **kw)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *jq*: {``"."``} | :class:`str`
+                Path to item, using ``jq`` path syntax
+            *maxdepth*: {``None``} | :class:`int`
+                Maximum depth of dicts to include when displaying the
+                current value and number of subsection levels to
+                expand in section listings
+            *showval*: {``None``} | ``True`` | ``False``
+                Option to show current value; default is ``True`` if
+                *opts* was read from a JSON file
+            *indent*: {``0``} | :class:`int` >= 0
+                Number of spaces in lowest-level indent of option help
+            *tab*: {``4``} | :class:`int` > 0
+                Number of additional spaces in each indent
+        :Outputs:
+            *txt*: :class:`str`
+                Help text for the option or section at *jq*
+        """
+        # Parse options
+        maxdepth = kw.pop("maxdepth", None)
+        showval = kw.pop("showval", self._filenames is not None)
+        # Split path
+        keys = split_jq_path(jq)
+        # Copy keys, excluding trailing indices (used only for values)
+        dockeys = list(keys)
+        while len(dockeys) and isinstance(dockeys[-1], (int, slice)):
+            dockeys.pop()
+        # Check for empty path
+        if len(dockeys) == 0:
+            # Only "." allowed without any keys
+            if len(keys):
+                raise OptdictKeyError(f"Invalid jq path: {jq!r}")
+            # Show info for entire options
+            return self._genr8_jq_secinfo(".", maxdepth=maxdepth)
+        # Navigate to parent of final key
+        node = self
+        parts = []
+        for key in dockeys[:-1]:
+            # Navigate one level
+            node, key = _getx_jq_child(node, key, parts)
+            # Save resolved segment
+            parts.append(key)
+        # Form prefix for display of final key
+        secpath = "." + ".".join(parts) + "." if parts else "."
+        # Full path of final item
+        path = secpath + str(dockeys[-1])
+        # Trailing indices, if any
+        indices = keys[len(dockeys):]
+        # Check if parent has documented options
+        if isinstance(node, OptionsDict):
+            # Get child option name after aliases
+            key = node.apply_optmap(dockeys[-1])
+            # Get class
+            cls = type(node)
+            # Get existing value
+            v = node.get(key)
+            # Check if final key refers to a subsection
+            seccls = cls._sec_cls.get(key)
+            if seccls is None:
+                seccls = cls._getx_sec_cls_optmap().get(key)
+            # Distinguish sections from scalar options
+            if isinstance(v, OptionsDict):
+                # Generate help text for section instance
+                txt = v._genr8_jq_secinfo(path, maxdepth=maxdepth)
+            elif (seccls is not None) and (
+                    (v is None) or isinstance(v, dict)):
+                # Instantiate bare section for documentation
+                txt = seccls()._genr8_jq_secinfo(path, maxdepth=maxdepth)
+            elif key in cls._optlist:
+                # Generate help text for single option
+                txt = node.show_opt(key, prefix=secpath, **kw)
+                # Use default value if not set
+                if v is None:
+                    v = cls.getx_cls_key("_rc", key)
+            else:
+                # Unrecognized option
+                raise OptdictKeyError(_genr8_jq_keymsg(node, key, parts))
+        else:
+            # Get value if possible
+            try:
+                v = node[dockeys[-1]]
+            except (KeyError, IndexError, TypeError):
+                raise OptdictKeyError(
+                    _genr8_jq_keymsg(node, dockeys[-1], parts)) from None
+            # Initialize help text
+            hline = "-" * len(path)
+            txt = f"{path}\n{hline}\n\n"
+            # Note that no docs are available
+            txt += "No additional option documentation available\n"
+        # Show current value if appropriate
+        if showval:
+            # Apply any trailing indices
+            for idx in indices:
+                try:
+                    v = v[idx]
+                except (KeyError, IndexError, TypeError):
+                    raise OptdictKeyError(
+                        f"No item {idx!r} in '{path}'") from None
+            # Truncate value if needed
+            v = truncate_jq(v, maxdepth)
+            # Add heading
+            txt += "\nCurrent Value:\n\n"
+            # Show as JSON
+            txt += json.dumps(
+                v, cls=_NPEncoder, indent=2, default=str)
+            txt += "\n"
+        # Output
+        return txt
+
+    def show_jq(self, jq: str = ".", **kw) -> str:
+        r"""Display help text for option or section at a jq-style path
+
+        This prints the output of :func:`getx_jq_info` to STDOUT.
+
+        :Call:
+            >>> txt = opts.show_jq(jq=".", **kw)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *jq*: {``"."``} | :class:`str`
+                Path to item, using ``jq`` path syntax
+            *maxdepth*: {``None``} | :class:`int`
+                Maximum depth of dicts to include when displaying the
+                current value and number of subsection levels to
+                expand in section listings
+            *showval*: {``None``} | ``True`` | ``False``
+                Option to show current value; default is ``True`` if
+                *opts* was read from a JSON file
+        :Outputs:
+            *txt*: :class:`str`
+                Help text for the option or section at *jq*
+        """
+        # Generate text
+        txt = self.getx_jq_info(jq, **kw)
+        # Display it
+        print(txt)
+        # Output
+        return txt
+
+    def _genr8_jq_secinfo(
+            self, path: str, maxdepth=None, _depth=0, _clss=()) -> str:
+        r"""Create help text listing options and subsections of a section
+
+        :Call:
+            >>> txt = opts._genr8_jq_secinfo(path, maxdepth=None)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *path*: :class:`str`
+                Full ``jq``-style path of *opts*'s section
+            *maxdepth*: {``None``} | :class:`int`
+                Number of subsection levels to expand in listing
+        :Outputs:
+            *txt*: :class:`str`
+                Help text listing options and subsections of *opts*
+        """
+        # Get class
+        cls = type(self)
+        # Initialize lines
+        lines = [path, "-" * len(path), ""]
+        # Add name, if any
+        if cls._name:
+            lines.append(cls._name)
+            lines.append("")
+        # Get section names
+        secdict = dict(cls._sec_cls, **cls._getx_sec_cls_optmap())
+        # Get aliases
+        optmap = cls._optmap
+        # Show aliases
+        if len(optmap):
+            # Header
+            lines.append("Aliases:")
+            # Loop through
+            for alias, fullopt in sorted(optmap.items()):
+                lines.append(f"  * {alias} -> {fullopt}")
+            # Trailing blank line
+            lines.append("")
+        # Header
+        lines.append("Options:")
+        # Loop through recognized options
+        for opt in sorted(cls._optlist):
+            # Skip sections
+            if opt in secdict:
+                continue
+            # Get description, types, and list depth
+            desc = cls.getx_cls_key("_rst_descriptions", opt, vdef="")
+            typtxt = _genr8_plain_types(
+                cls.getx_cls_key("_opttypes", opt),
+                cls._optlistdepth.get(opt, 0))
+            # Form the one-line summary
+            line = f"  * {opt}"
+            if desc:
+                line += f": {desc}"
+            if typtxt:
+                line += f" [{typtxt}]"
+            # Save line
+            lines.append(line)
+        # Blank line
+        lines.append("")
+        # Show subsections
+        if len(secdict):
+            # Prefix for child paths (avoid ".." at root)
+            prefix = path if path == "." else path + "."
+            # Header
+            lines.append("Subsections:")
+            # Loop through sections
+            for sec, seccls in sorted(secdict.items()):
+                lines.append(f"  * {prefix}{sec}: {seccls._name}".rstrip(": "))
+            # Blank line
+            lines.append("")
+            # Check for recursive expansion
+            if (maxdepth is None) or (_depth >= maxdepth):
+                return "\n".join(lines)
+            # Loop through sections again for expansion
+            for sec, seccls in sorted(secdict.items()):
+                # Escape clause for cycles
+                if seccls in _clss:
+                    continue
+                # Get existing section if possible
+                subnode = self.get(sec)
+                # Use instance if present; bare instance otherwise
+                if not isinstance(subnode, OptionsDict):
+                    subnode = seccls()
+                # Recurse
+                txt = subnode._genr8_jq_secinfo(
+                    f"{prefix}{sec}", maxdepth, _depth + 1, _clss + (cls,))
+                # Save contents
+                lines.append(txt)
+        # Combine lines
+        return "\n".join(lines)
 
    # --- Documentation ---
     @classmethod
@@ -5392,6 +5686,262 @@ def genr8_article(name: str) -> str:
         return "an "
     else:
         return "a "
+
+
+# Regex for a plain key in a jq-style path
+_REGEX_JQ_KEY = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+
+
+# Split a jq-style path into keys, indices, and slices
+def split_jq_path(jq: str) -> list:
+    r"""Split a ``jq``-style path into dict keys and list indices
+
+    :Call:
+        >>> keys = split_jq_path(jq)
+    :Inputs:
+        *jq*: :class:`str`
+            Path to an item, using ``jq`` path syntax
+    :Outputs:
+        *keys*: :class:`list`\ [:class:`str` | :class:`int` | slice]
+            Keys and indices for each segment of *jq*
+    :Versions:
+        * 2026-08-30: v1.0
+        * 2026-09-13 ``@ddalle``: v1.1; moved from ``cape.cfdx.cntl``
+    """
+    # Must start with '.'
+    if not (isinstance(jq, str) and jq.startswith(".")):
+        raise ValueError(f"Invalid jq path: {jq!r}")
+    # Initialize parts
+    parts = []
+    # Index of next char to parse (skip leading '.')
+    i = 1
+    n = len(jq)
+    # Parse segments
+    while i < n:
+        # Get next char
+        ch = jq[i]
+        if ch == "[":
+            # Read index, slice, or key between brackets
+            part, i = _read_jq_bracket(jq, i)
+            parts.append(part)
+            continue
+        # Otherwise expect '.KEY' (or first key after leading '.')
+        if ch == ".":
+            # Recursive descent ('..') not supported
+            if i == 1:
+                raise ValueError(f"Invalid jq path at index {i}: {jq!r}")
+            # Move past '.'
+            i += 1
+            # Re-read char ('.' must be followed by a key)
+            ch = jq[i] if i < n else ""
+        elif i > 1:
+            # Only the first segment may skip the '.'
+            raise ValueError(f"Invalid jq path at index {i}: {jq!r}")
+        # Read a key (plain or quoted)
+        if ch == '"':
+            # Quoted key: ."Odd Key"
+            key, i = _read_jq_string(jq, i)
+            parts.append(key)
+            continue
+        # Otherwise expect a plain key
+        m = _REGEX_JQ_KEY.match(jq, i)
+        if m is None:
+            raise ValueError(f"Invalid jq path at index {i}: {jq!r}")
+        # Save key and move on
+        parts.append(m.group())
+        i = m.end()
+    # Output
+    return parts
+
+
+# Read an index, slice, or key between [] brackets of a jq-style path
+def _read_jq_bracket(jq: str, i: int) -> tuple:
+    # Move past opening '['
+    j = i + 1
+    # Check for quoted key
+    if (j < len(jq)) and (jq[j] == '"'):
+        # Read the key
+        part, j = _read_jq_string(jq, j)
+        # Skip spaces to closing bracket
+        while (j < len(jq)) and (jq[j] == " "):
+            j += 1
+        # Expect closing bracket
+        if (j >= len(jq)) or (jq[j] != "]"):
+            raise ValueError(f"Missing ']' in jq path: {jq!r}")
+        return part, j + 1
+    # Find closing bracket
+    k = jq.find("]", j)
+    if k < 0:
+        raise ValueError(f"Missing ']' in jq path: {jq!r}")
+    # Get contents between brackets
+    inner = jq[j:k].strip()
+    # Check type of bracket contents
+    try:
+        if ":" in inner:
+            # Slice: split into start/stop
+            txt1, txt2 = inner.split(":")
+            part = slice(
+                None if txt1 == "" else int(txt1),
+                None if txt2 == "" else int(txt2))
+        else:
+            # Simple index
+            part = int(inner)
+    except ValueError:
+        raise ValueError(f"Invalid index in jq path: '[{inner}]'") from None
+    # Move past closing bracket
+    return part, k + 1
+
+
+# Read a quoted string starting at index *i*
+def _read_jq_string(jq: str, i: int) -> tuple:
+    # Read chars until closing quote
+    chars = []
+    j = i + 1
+    n = len(jq)
+    # Parse chars
+    while j < n:
+        # Get next char
+        c = jq[j]
+        if (c == "\\") and (j + 1 < n):
+            # Escaped char
+            chars.append(jq[j+1])
+            j += 2
+        elif c == '"':
+            # Found closing quote
+            return ''.join(chars), j + 1
+        else:
+            # Normal char
+            chars.append(c)
+            j += 1
+    # Never found closing quote
+    raise ValueError(f"Unterminated string in jq path: {jq!r}")
+
+
+# Limit depth of dicts in an inspected item
+def truncate_jq(v, maxdepth: Optional[int] = None, _depth: int = 0):
+    r"""Replace dicts deeper than *maxdepth* levels with ``{}``
+
+    :Call:
+        >>> v1 = truncate_jq(v, maxdepth=None)
+    :Inputs:
+        *v*: **any**
+            Item or subset of options
+        *maxdepth*: {``None``} | :class:`int`
+            Maximum depth of dicts to include in output
+    :Outputs:
+        *v1*: **any**
+            Copy of *v* with deeper dicts replaced by ``{}``
+    :Versions:
+        * 2026-08-30: v1.0
+        * 2026-09-13 ``@ddalle``: v1.1; moved from ``cape.cfdx.cntl``
+    """
+    # No truncation
+    if maxdepth is None:
+        return v
+    # Replace dicts past *maxdepth*
+    if isinstance(v, dict) and (_depth >= maxdepth):
+        return {}
+    # Recurse through dicts
+    if isinstance(v, dict):
+        return {
+            k: truncate_jq(vj, maxdepth, _depth+1) for k, vj in v.items()}
+    # Recurse through lists and tuples
+    if isinstance(v, (list, tuple)):
+        return type(v)(
+            truncate_jq(vj, maxdepth, _depth+1) for vj in v)
+    # Scalar value
+    return v
+
+
+# Navigate one segment of a jq-style path
+def _getx_jq_child(v, key, parts: list) -> tuple:
+    # Special handling for options classes and string keys
+    if isinstance(v, OptionsDict) and isinstance(key, str):
+        # Apply aliases
+        key = v.apply_optmap(key)
+        # Existing value?
+        if key in v:
+            return v[key], key
+        # Get the class
+        cls = type(v)
+        # Check for a known section class w/o instance value
+        seccls = cls._sec_cls.get(key)
+        if seccls is None:
+            seccls = cls._getx_sec_cls_optmap().get(key)
+        # Recurse into bare instance of section class
+        if seccls is not None:
+            return seccls(), key
+        # Unrecognized option or scalar option w/o value
+        raise OptdictKeyError(_genr8_jq_keymsg(v, key, parts))
+    # Normal dict/list navigation
+    try:
+        return v[key], key
+    except (KeyError, IndexError, TypeError):
+        raise OptdictKeyError(_genr8_jq_keymsg(v, key, parts)) from None
+
+
+# Generate an error message for a failed jq-path navigation step
+def _genr8_jq_keymsg(v, key, parts: list) -> str:
+    # Path up to failure
+    path = "." + ".".join(str(part) for part in parts)
+    # Check input class
+    if isinstance(v, OptionsDict):
+        # Get the class
+        cls = type(v)
+        # Check if final key is a recognized option
+        if key in cls._optlist:
+            return f"Option '{path}.{key}' has no sub-items"
+        # List of available keys at this location
+        names = sorted(
+            set(cls._optlist) | {k for k in v if isinstance(k, str)})
+        # Error message
+        msg = f"No option '{path}.{key}'"
+        # Close matches
+        close = difflib.get_close_matches(key, names, n=4, cutoff=0.3)
+        if close:
+            msg += "\n    Close matches: " + " | ".join(close)
+        # List available options
+        msg += "\n    Available options: " + ", ".join(names)
+        return msg
+    # Simpler message for non-options items
+    return f"Invalid jq path '{path}.{key}'"
+
+
+# Plain-text list of allowed types for an option
+def _genr8_plain_types(opttypes, listdepth: int = 0) -> str:
+    # Check for known type
+    if opttypes is None:
+        return ""
+    # Ensure tuple
+    if isinstance(opttypes, type):
+        opttypes = (opttypes,)
+    # Set of types
+    opttypeset = set(opttypes)
+    # Initialize
+    parts = []
+    # Check for special types
+    if opttypeset.intersection(BOOL_TYPES):
+        parts.append("True | False")
+        opttypeset.difference_update(BOOL_TYPES)
+    # Check integers
+    if opttypeset.intersection(INT_TYPES):
+        parts.append("int")
+        opttypeset.difference_update(INT_TYPES)
+    # Check floats
+    if opttypeset.intersection(FLOAT_TYPES):
+        parts.append("float")
+        opttypeset.difference_update(FLOAT_TYPES)
+    # Remaining types
+    parts.extend(sorted(clsj.__name__ for clsj in opttypeset))
+    # Compile
+    txt = " | ".join(parts)
+    # Prepend list notation
+    if listdepth == 1:
+        return f"list of {txt}"
+    elif listdepth > 1:
+        return f"list[{listdepth}] of {txt}"
+    # Output
+    return txt
 
 
 # Customize JSON serializer

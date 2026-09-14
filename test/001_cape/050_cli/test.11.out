@@ -1,0 +1,90 @@
+.RunControl
+-----------
+
+options for case control, phase definitions, CLI, and more
+
+Aliases:
+  * CAPEFile -> JSONFile
+  * ConcurrentPythonFuncs -> WorkerPythonFuncs
+  * ConcurrentShellCmds -> WorkerShellCmds
+  * Continue -> ContinuePhase
+  * GPU -> gpu
+  * NSubProc -> Maxforks
+  * NSubProcess -> MaxForks
+  * PostCmds -> PostShellCmds
+  * PostFuncs -> PostPythonFuncs
+  * PostPyFuncs -> PostPythonFuncs
+  * PreCmds -> PreShellCmds
+  * PreFuncs -> PrePythonFuncs
+  * PrePyFuncs -> PrePythonFuncs
+  * Resubmit -> ResubmitNextPhase
+  * WatcherCmds -> WorkerShellCmds
+  * WatcherFuncs -> WorkerPythonFuncs
+  * WatherTimeout -> WorkerTimeout
+  * WorkerCmds -> WorkerShellCmds
+  * WorkerFuncs -> WorkerPythonFuncs
+  * WorkerMaxWaitTime -> WorkerTimeout
+  * WorkerTimeOut -> WorkerTimeout
+  * nJob -> NJob
+  * sbatch -> slurm
+
+Options:
+  * Adaptive: whether or not to use ``aero.csh`` in phase [True | False]
+  * BatchSize: number of iters to store in single batch [int]
+  * ContinuePhase: whether restarts of same phase can use same job [True | False]
+  * JSONFile: name of JSON file from which settings originated [str]
+  * MPI: whether or not to run MPI in phase [True | False]
+  * MaxForks: maximum forks to use for parallel post-processing [int]
+  * MaxWorkers: maximum threads to use for parallel post-processing [int]
+  * NJob: number of jobs to run concurrently [int]
+  * PhaseIters: check-point iterations for phase *j* [int]
+  * PhaseSequence: list of phase indices to run [int]
+  * PhaseWatcherCmds
+  * PhaseWatcherFuncs
+  * PostPythonFuncs: Python functions to run after each cycle [list of dict | str]
+  * PostShellCmds: list of commands to run after each cycle [list of dict | str]
+  * PreMesh: option to generate mesh before submitting job [True | False]
+  * PrePythonFuncs: Python functions to run before each cycle [list of dict | str]
+  * PreShellCmds: list of commands to run before each cycle [list of dict | str]
+  * RestartSamePhase: whether to restart same phase if needed [True | False]
+  * ResubmitNextPhase: whether new job submits at end of phase [True | False]
+  * ResubmitSamePhase: whether same-phase repeats need new job [True | False]
+  * RootDir: (absolute) base folder from which CAPE settings were read [str]
+  * StartNextPhase: whether to start next phase or stop CAPE [True | False]
+  * Verbose: "RunControl" verbosity flag [True | False]
+  * WarmStart: whether to warm start a case [True | False]
+  * WarmStartFolder: folder from which to get warm-start file [str]
+  * WarmStartPhase: phase from which to warm-start a case [int]
+  * WorkerPythonFuncs: functions to run concurrently during phase [list of dict | str]
+  * WorkerShellCmds: shell commands to run concurrently during phase [list of str]
+  * WorkerSleepTime [int | float]
+  * WorkerTimeout: max time to wait for workers after CFD phase [int | float]
+  * ZombieFiles: file name flobs to check mod time for zombie status [list of str]
+  * ZombieTimeout: minutes to wait before considering a case a zombie [int | float]
+  * gpu: Whether to use GPU-version of code, if separate [True | False]
+  * mpicmd: MPI executable name [str]
+  * nIter: number of iterations to run in phase *j* [int]
+  * nProc: number (or fraction) of cores to use (or omit if negative) [int | float]
+  * qsub: whether or not to submit jobs with PBS [True | False]
+  * quickstart: option to generate mesh before submitting job [True | False]
+  * slurm: whether or not to submit jobs with Slurm [True | False]
+
+Subsections:
+  * .RunControl.Adaptation: Cart3D mesh adaptation overall control
+  * .RunControl.Archive: options for archiving and file clean-up
+  * .RunControl.Environ: environment variable settings
+  * .RunControl.adjointCart: command-line options for ``adjointCart``
+  * .RunControl.aflr3
+  * .RunControl.autoInputs: CLI options for Cart3D ``autoInputs``
+  * .RunControl.comp2tri: CLI options for ``comp2tri``
+  * .RunControl.cubes: CLI options for Cart3D's ``cubes`` mesh generation executable
+  * .RunControl.flowCart: command-line options for ``flowCart`` executable
+  * .RunControl.intersect: CLI options for ``intersect``
+  * .RunControl.mpi: options for MPI executable and command-line options
+  * .RunControl.ulimit: options for ``ulimit`` environment settings
+  * .RunControl.verify
+
+Current Value:
+
+{}
+

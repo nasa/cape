@@ -1,0 +1,16 @@
+.Config.RefArea
+---------------
+
+:Description:
+    reference area [for a component]
+:Allowed Types:
+    * dict
+    * float
+    * numpy.floating
+:Default Value:
+    1.0``
+
+Current Value:
+
+3.14159
+

@@ -25,6 +25,7 @@ from ..errors import (
     CapeFileNotFoundError,
     CapeNotSupportedError,
     CapeValueError)
+from ..optdict.opterror import OptdictKeyError
 
 
 # Constants
@@ -1507,6 +1508,38 @@ class CfdxInspectJsonArgs(CfdxArgReader):
     )
 
 
+# Settings for help-opt
+class CfdxHelpOptArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape help-opt"
+
+    # Description
+    _help_title = "Show help and docs for JSON options"
+
+    # Description of select options for this command
+    _help_opt = {
+        "jq": "Show help for JSON option or section at path *JQ*",
+        "maxdepth": "Max depth of dicts and subsections to expand",
+    }
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "jq",
+        "maxdepth",
+        "solver",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "jq",
+    )
+
+
 # Settings for list-keys
 class CfdxListKeysArgs(CfdxArgReader):
     # No attributes
@@ -2247,6 +2280,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "get-config",
         "get-keys",
         "get-subfig",
+        "help-opt",
         "inspect-json",
         "list-keys",
         "list-subfigs",
@@ -2287,6 +2321,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find": "find-cases",
         "get": "get-config",
         "get-file": "receive-file",
+        "help-option": "help-opt",
         "mark-error": "fail",
         "mark-failure": "fail",
         "mark-pass": "approve",
@@ -2344,6 +2379,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "get-config": CfdxGetConfigArgs,
         "get-keys": CfdxGetKeysArgs,
         "get-subfig": CfdxGetSubfigArgs,
+        "help-opt": CfdxHelpOptArgs,
         "inspect-json": CfdxInspectJsonArgs,
         "list-keys": CfdxListKeysArgs,
         "list-subfigs": CfdxListSubfigsArgs,
@@ -3318,6 +3354,61 @@ def cape_get_subfig(*a, **kw) -> Tuple[int, Any]:
     subfig = a[0] if len(a) else kw.pop("subfig")
     # Run command
     v = cntl.get_subfigure(subfig, **kw)
+    # Return code
+    return IERR_OK, v
+
+
+@CfdxHelpOptArgs.rst
+def cape_help_opt(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Get path, either from arg or option
+    jq = a[0] if len(a) else kw.pop("jq", ".")
+    # Get max depth of dicts and subsections to show
+    maxdepth = kw.pop("maxdepth", None)
+    # File and solver settings
+    fname = kw.pop("f", None)
+    solver = kw.pop("solver", None)
+    # Determine solver from file if necessary
+    if (solver is None) and fname:
+        solver = manage.identify_solver(fname)
+    # Default to generic CAPE options
+    modname = f"cape.{solver or 'cfdx'}.options"
+    # Import options module
+    optmod = importlib.import_module(modname)
+    # Instantiate
+    if fname is None:
+        # Use empty instance (docs only)
+        opts = optmod.Options()
+    else:
+        # Check file
+        if not os.path.isfile(fname):
+            raise CapeFileNotFoundError(f"No CAPE file '{fname}'")
+        # Read file (includes current values in help)
+        opts = optmod.Options(fname)
+    # Generate help text
+    try:
+        v = opts.getx_jq_info(jq, maxdepth=maxdepth)
+    except (OptdictKeyError, ValueError) as e:
+        # Rewrite as CAPE error for nicer message
+        raise CapeValueError(*e.args) from None
+    # Show it
+    print(v)
+    # Hint at how to display current values if not shown
+    if fname is None:
+        print("(use -f JSON to show current values)")
     # Return code
     return IERR_OK, v
 
@@ -4325,6 +4416,7 @@ CMD_DICT = {
     "get-config": cape_get_config,
     "get-keys": cape_get_keys,
     "get-subfig": cape_get_subfig,
+    "help-opt": cape_help_opt,
     "inspect-json": cape_inspect_json,
     "list-keys": cape_list_keys,
     "list-subfigs": cape_list_subfigs,
