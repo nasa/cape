@@ -1,17 +1,10 @@
 r"""
-:mod:`cape.tui.poc`: Proof-of-concept persistent CAPE TUI (experimental)
-=========================================================================
+:mod:`cape.tui.tuiapp`: Textual app for the CAPE terminal UI
+============================================================
 
-This module is a **proof of concept** for an OpenCode-style terminal
-user interface to CAPE, built on the optional ``textual`` package. It
-is experimental and not part of the CAPE CLI. Run it with:
-
-.. code-block:: console
-
-    $ python3 -m cape.tui.poc
-
-It demonstrates, in one persistent app with a scroll log and a pinned
-input box:
+This module contains the OpenCode-style terminal user interface to
+CAPE, built on the optional ``textual`` package. It provides, in one
+persistent app with a scroll log and a pinned, bordered editor:
 
 * **In-process CAPE commands**
     Commands starting with ``cape``, ``pycart``, ``pyfun``, etc. run
@@ -19,44 +12,42 @@ input box:
     with their output streamed into the scroll log.
 
 * **External commands**
-    Any other command runs as a subprocess; its combined output is
-    streamed into the scroll log.
+    Any other command runs as a subprocess in its own process group;
+    its combined output is streamed into the scroll log.
 
 * **Tab completion**
-    Pressing TAB in the input box completes the current word using the
-    same :class:`cape.tui.tuiutils.TuiCompleter` logic as
-    :mod:`cape.ui`: CAPE executables, ``$PATH`` commands, sub-command
-    names, options, option values, and file names. One match completes
+    Pressing TAB in the editor completes the current word using the
+    same :class:`cape.ui.promptutils.CfdxCompleter` logic as
+    :mod:`cape.ui`, plus TUI meta-commands. One match completes
     outright; many complete the longest common prefix first and are
     listed on a second TAB.
 
-* **Ctrl-C interrupts**
-    Pressing Ctrl-C while a command is running interrupts it. External
-    commands run in their own process group and receive ``SIGINT``;
-    in-process CAPE commands get a :class:`KeyboardInterrupt` injected
-    into their worker thread (this interrupts Python-level blocking
-    such as ``cape -c`` status loops, but not C-level waits, e.g. an
-    in-flight solver subprocess keeps running). With nothing running,
-    Ctrl-C clears the input line.
+* **Ctrl-C / ESC interrupts**
+    Pressing Ctrl-C (or ESC) while a command is running interrupts
+    it. External commands receive ``SIGINT`` in their process group;
+    in-process CAPE commands get a :class:`KeyboardInterrupt`
+    injected into their worker thread. With nothing running, Ctrl-C
+    clears the editor.
 
 * **Prompt bridge**
-    Interactive prompts raised by commands (the synchronous calls to
-    :func:`cape.promptutils.prompt_color` in :mod:`cape.cfdx.cntl`)
-    mount as clickable widgets in the stream. Try ``:prompt-demo`` to
-    answer one. Answering with Ctrl-C aborts the command.
+    Interactive prompts raised by commands (via
+    :func:`cape.promptutils.prompt_color`) mount as clickable widgets
+    in the stream. Answering with Ctrl-C aborts the command.
+
+* **TUI meta-commands**
+    Commands starting with ``:`` are handled by the TUI itself:
+    ``:help`` [<cmd>], ``:history`` [<n>], ``:!N``, ``:status``,
+    ``:cd`` <dir> (plain ``cd`` also works), ``:pwd``, ``:clear``,
+    and ``:exit`` / ``:quit``.
 
 * **OpenCode-style chrome**
-    Rounded, state-aware editor border (context on the left, last exit
-    status on the right), a status bar with a live spinner and elapsed
-    time while a command runs, backgrounded command "bubbles" in the
-    scroll log, and the ``tokyo-night`` theme. ESC is a second
-    interrupt key alongside Ctrl-C.
+    Rounded, state-aware editor border (context on the left, last
+    exit status on the right), a status bar with a live spinner and
+    elapsed time while a command runs, backgrounded command bubbles
+    in the scroll log, and the ``tokyo-night`` theme.
 
-* ``:exit`` / ``:quit`` (or plain ``exit``) leave the app.
-
-Not included (deferred to the full implementation): history files,
-the ``:meta`` commands of :mod:`cape.tui`, and suspension for
-interactive full-screen subprocesses.
+History (loaded from and saved to the CAPE TUI history file) is
+recalled with the up/down arrow keys.
 """
 
 from __future__ import annotations
@@ -85,33 +76,39 @@ from textual.containers import Vertical
 from textual.widgets import Input, RichLog, Static
 
 # CAPE imports
-from ..promptutils import _new_prompt_widget, register_prompt_handler
+from ..promptutils import _new_prompt_widget
 from ..ui.promptutils import CAPE_EXECS, CfdxCompleter
 
 # Local imports
-from .tuiutils import TuiCompleter, get_dirname
+from .tuiutils import (
+    CAPE_HISTORY_LENGTH,
+    META_CMDS,
+    META_HELP_TOPICS,
+    TN_BLUE,
+    TN_DIM,
+    TN_GREEN,
+    TN_ORANGE,
+    TN_RED,
+    TN_SURFACE,
+    banner_panel,
+    cmd_help_panel,
+    cmd_table,
+    get_dirname,
+    get_tui_histfile,
+    history_table,
+    meta_help_table,
+    session_stats_panel,
+)
 
 
-# Match commands to run with CAPE's in-process CLI (as in cape.tui)
+# Match commands to run with CAPE's in-process CLI
 REGEX_CAPE_CLI = re.compile(rf"\$?\s*({'|'.join(CAPE_EXECS)})( |$)")
 
 # Exit commands
-EXIT_CMDS = (":exit", ":quit", "exit", "quit")
+EXIT_CMDS = (":exit", ":quit", "exit", "quit", "exit()", "quit()")
 
-# PoC meta-commands for completion
-POC_META_CMDS = (":exit", ":prompt-demo", ":quit")
-
-# Placeholder for the idle input box
+# Placeholder for the idle editor
 INPUT_PLACEHOLDER = "cape command (TAB completes · Ctrl-C interrupts)"
-
-# tokyo-night colors for log content (CSS vars only style widgets)
-TN_BLUE = "#7AA2F7"
-TN_DIM = "#565F89"
-TN_GREEN = "#9ECE6A"
-TN_ORANGE = "#FF9E64"
-TN_PURPLE = "#BB9AF7"
-TN_RED = "#F7768E"
-TN_SURFACE = "#24283B"
 
 # Busy spinner animation in the status bar
 SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
@@ -150,36 +147,36 @@ def _raise_in_thread(thread: threading.Thread, exc) -> None:
         ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_ulong(tid), None)
 
 
-# Tab-completer reading the command line from the PoC input box
-class PocCompleter(TuiCompleter):
-    r"""CAPE tab-completer that reads the line from the PoC input
+# Tab-completer reading the command line from the editor
+class CapeTuiCompleter(CfdxCompleter):
+    r"""CAPE tab-completer that reads the line from the TUI editor
 
     This overrides :func:`CfdxCompleter.get_line_buffer` to source the
     command line from the app's ``Input`` widget (text before the
-    cursor) instead of :mod:`readline`. Suggestions for ``:``
-    meta-commands are limited to the ones this app implements.
+    cursor) instead of :mod:`readline`, and adds suggestions for the
+    TUI ``:`` meta-commands.
 
     :Attributes:
-        *app*: :class:`CapePocApp`
-            App whose input box is being completed
+        *app*: :class:`CapeTuiApp`
+            App whose editor is being completed
     """
 
     __slots__ = ("app",)
 
-    def __init__(self, cls, app: "CapePocApp"):
+    def __init__(self, cls, app: "CapeTuiApp"):
         # Initialize hierarchy
         CfdxCompleter.__init__(self, cls)
         # Save the app
         self.app = app
 
     def get_line_buffer(self) -> str:
-        r"""Get the input box text before the cursor
+        r"""Get the editor text before the cursor
 
         :Call:
             >>> line = comp.get_line_buffer()
         :Inputs:
-            *comp*: :class:`PocCompleter`
-                PoC autocompleter
+            *comp*: :class:`CapeTuiCompleter`
+                TUI autocompleter
         :Outputs:
             *line*: :class:`str`
                 Command input text, truncated at the cursor
@@ -191,13 +188,13 @@ class PocCompleter(TuiCompleter):
         return value[:pos]
 
     def genr8_suggestions(self, text: str) -> list[str]:
-        r"""Generate suggestions, including PoC meta-commands
+        r"""Generate suggestions, including TUI meta-commands
 
         :Call:
             >>> suggestions = comp.genr8_suggestions(text)
         :Inputs:
-            *comp*: :class:`PocCompleter`
-                PoC autocompleter
+            *comp*: :class:`CapeTuiCompleter`
+                TUI autocompleter
             *text*: :class:`str`
                 Current text of current word
         :Outputs:
@@ -208,14 +205,14 @@ class PocCompleter(TuiCompleter):
         line = self.get_line_buffer()
         # Check for meta-command completion on first word
         if text.startswith(":") and line.lstrip().startswith(text):
-            # Complete PoC meta-command names
+            # Complete TUI meta-command names
             self.role = "metacmd"
-            return fnmatch.filter(POC_META_CMDS, f"{text}*")
+            return fnmatch.filter(META_CMDS, f"{text}*")
         # Defer to CAPE front-desk completions
         return CfdxCompleter.genr8_suggestions(self, text)
 
 
-# File-like object that posts written lines to the PoC scroll log
+# File-like object that posts written lines to the scroll log
 class LogWriter(io.TextIOBase):
     r"""Redirect writes (e.g. :data:`sys.stdout`) into a RichLog
 
@@ -224,13 +221,13 @@ class LogWriter(io.TextIOBase):
     codes are converted to Rich :class:`Text` styling.
 
     :Attributes:
-        *app*: :class:`CapePocApp`
+        *app*: :class:`CapeTuiApp`
             App whose log receives written lines
         *_buf*: :class:`str`
             Buffer holding an incomplete line
     """
 
-    def __init__(self, app: "CapePocApp"):
+    def __init__(self, app: "CapeTuiApp"):
         # Initialize hierarchy
         super().__init__()
         # Save attributes
@@ -256,36 +253,47 @@ class LogWriter(io.TextIOBase):
             self.app._post_to_log(Text.from_ansi(buf))
 
 
-# Main proof-of-concept app
-class CapePocApp(App):
-    r"""Experimental OpenCode-style CAPE TUI app
+# Main CAPE TUI app
+class CapeTuiApp(App):
+    r"""OpenCode-style CAPE terminal user interface
 
-    A scroll log plus a pinned input box. Commands run in worker
-    threads: CAPE CLI commands in-process with redirected
+    A scroll log plus a pinned, bordered editor. Commands run in
+    worker threads: CAPE CLI commands in-process with redirected
     :data:`sys.stdout`/:data:`sys.stderr`, other commands as
-    subprocesses. Interactive prompts (via
-    :func:`cape.promptutils.prompt_color`) mount clickable widgets
-    below the log while the worker thread waits for an answer.
+    subprocesses in their own process group. Interactive prompts mount
+    clickable widgets above the editor while the worker waits.
 
     :Attributes:
         *_log*: :class:`textual.widgets.RichLog`
             Scroll log of commands and output
         *_input*: :class:`textual.widgets.Input`
-            Command input box (the OpenCode-style editor frame)
+            Command editor
         *_status*: :class:`textual.widgets.Static`
             One-line status bar below the editor
         *_prompt_widget*: ``None`` | :class:`textual.widget.Widget`
             Currently mounted interactive prompt, if any
-        *_completer*: ``None`` | :class:`PocCompleter`
-            Tab-completer for the command input box
+        *_completer*: ``None`` | :class:`CapeTuiCompleter`
+            Tab-completer for the editor
         *_proc*: ``None`` | :class:`subprocess.Popen`
             Currently running external command, if any
         *_worker*: ``None`` | :class:`threading.Thread`
             Currently running command's worker thread, if any
         *_running_cmd*: ``None`` | :class:`str`
             Text of the command currently running, if any
-        *_t0*: :class:`float`
+        *_histfile*: ``None`` | :class:`str`
+            Name of the command history file
+        *_history*: :class:`list`\ [:class:`str`]
+            Session command history (oldest first)
+        *_hist_ix*: ``None`` | :class:`int`
+            Index being browsed during history recall, if any
+        *_hist_draft*: :class:`str`
+            Editor text saved when history browsing started
+        *_stats*: :class:`dict`
+            Session statistics (``commands``, ``failures``, etc.)
+        *_t0_cmd*: :class:`float`
             Start time of the running command
+        *_t0_session*: :class:`float`
+            Start time of the session
         *_spin_ix*: :class:`int`
             Current frame of the busy spinner
         *_spin_timer*: ``None`` | :class:`textual.timer.Timer`
@@ -300,6 +308,10 @@ class CapePocApp(App):
         Binding("escape", "interrupt", "Interrupt", show=False,
                 priority=True),
         Binding("tab", "tab_complete", "Complete", show=False,
+                priority=True),
+        Binding("up", "history_prev", "Previous command", show=False,
+                priority=True),
+        Binding("down", "history_next", "Next command", show=False,
                 priority=True),
     ]
 
@@ -331,6 +343,13 @@ class CapePocApp(App):
         "    color: $text-muted;\n"
         "}\n")
 
+    def __init__(self, cls: type, *a, **kw):
+        r"""Create the app with *cls* as the CAPE front-desk parser"""
+        # Initialize hierarchy
+        super().__init__(*a, **kw)
+        # Save the front-desk class (for completions and :help)
+        self._frontdesk_cls = cls
+
     def compose(self) -> ComposeResult:
         with Vertical(id="body"):
             yield RichLog(id="log", auto_scroll=True)
@@ -340,7 +359,7 @@ class CapePocApp(App):
     def on_mount(self) -> None:
         # Theme and window title
         self.theme = "tokyo-night"
-        self.title = "CAPE TUI (proof of concept)"
+        self.title = "CAPE TUI"
         # Save widget references
         self._log = self.query_one("#log", RichLog)
         self._input = self.query_one("#prompt-input", Input)
@@ -350,47 +369,109 @@ class CapePocApp(App):
         self._proc = None
         self._worker = None
         self._running_cmd = None
-        self._t0 = 0.0
+        # Session clock and statistics
+        self._t0_cmd = 0.0
+        self._t0_session = time.perf_counter()
+        self._stats = {
+            "commands": 0,
+            "failures": 0,
+            "tui_commands": 0,
+            "duration": 0.0,
+        }
         self._spin_ix = 0
         self._spin_timer = None
-        # Create tab-completer hooked to the command input
-        from ..cfdx.cli import CfdxFrontDesk
-        self._completer = PocCompleter(CfdxFrontDesk, self)
+        # History file and browsing state
+        self._histfile = get_tui_histfile()
+        self._hist_ix = None
+        self._hist_draft = ""
+        self._load_history()
+        # Create tab-completer hooked to the editor
+        self._completer = CapeTuiCompleter(self._frontdesk_cls, self)
         # Editor frame: context on the left, hints in the status bar
         self._input.border_title = self._context_title()
         self._update_status()
         # Banner
-        self._log.write(Text(
-            "CAPE TUI proof of concept  ·  try 'cape help', "
-            "'echo hello', ':prompt-demo', ':exit'",
-            style=f"bold {TN_BLUE}"))
-        # Focus the command input
+        self._log.write(banner_panel(self._histfile))
+        # Focus the editor
         self._input.focus()
+
+    # Finalize session statistics
+    def finalize_stats(self) -> dict:
+        r"""Compute the session duration and return the stats dict"""
+        self._stats["duration"] = time.perf_counter() - self._t0_session
+        return self._stats
+
+    # Load the command history file
+    def _load_history(self) -> None:
+        # Default to empty history
+        self._history = []
+        # Read the history file if it exists
+        try:
+            with open(self._histfile, encoding="utf-8") as fp:
+                lines = fp.read().splitlines()
+        except OSError:
+            return
+        # Keep the most recent non-empty entries
+        lines = [line for line in lines if line.strip()]
+        self._history = lines[-CAPE_HISTORY_LENGTH:]
+
+    # Record one submitted line in memory and in the history file
+    def _record_history(self, cmd: str) -> None:
+        # Append to the session history
+        self._history.append(cmd)
+        if len(self._history) > CAPE_HISTORY_LENGTH:
+            self._history = self._history[-CAPE_HISTORY_LENGTH:]
+        # Append to the history file (crash-safe)
+        try:
+            folder = os.path.dirname(self._histfile)
+            if folder:
+                os.makedirs(folder, exist_ok=True)
+            with open(self._histfile, "a", encoding="utf-8") as fp:
+                fp.write(cmd + "\n")
+        except OSError:
+            pass
+
+    # Rewrite the (trimmed) history file; called on exit
+    def save_history(self) -> None:
+        r"""Write the (trimmed) session history back to the file"""
+        try:
+            folder = os.path.dirname(self._histfile)
+            if folder:
+                os.makedirs(folder, exist_ok=True)
+            with open(self._histfile, "w", encoding="utf-8") as fp:
+                for cmd in self._history:
+                    fp.write(cmd + "\n")
+        except OSError:
+            pass
 
     # Post one line to the scroll log from another thread
     def _post_to_log(self, txt) -> None:
         self.call_from_thread(self._log.write, txt)
 
-    # Re-enable the input box after a command finishes
+    # Show a result in the editor frame (subtitle and class)
+    def _show_result(self, ierr: int) -> None:
+        # Editor frame: subtitle = last result
+        self._input.set_class(ierr == 0, "ok")
+        self._input.set_class(ierr != 0, "fail")
+        icon = "✓" if ierr == 0 else "✗"
+        self._input.border_subtitle = f" {icon} exit {ierr} "
+        self._input.border_title = self._context_title()
+        self._update_status()
+
+    # Re-enable the editor after a command finishes
     def _set_idle(self, ierr: int = 0) -> None:
         # Stop the busy spinner
         if self._spin_timer is not None:
             self._spin_timer.stop()
             self._spin_timer = None
         self._running_cmd = None
-        # Editor frame: back to idle, subtitle = last result
         self._input.remove_class("busy")
-        self._input.set_class(ierr == 0, "ok")
-        self._input.set_class(ierr != 0, "fail")
-        icon = "✓" if ierr == 0 else "✗"
-        self._input.border_subtitle = f" {icon} exit {ierr} "
-        self._input.border_title = self._context_title()
-        # Re-enable the input
+        # Show the result in the editor frame
+        self._show_result(ierr)
+        # Re-enable the editor
         self._input.disabled = False
         self._input.placeholder = INPUT_PLACEHOLDER
         self._input.focus()
-        # Status bar back to idle hints
-        self._update_status()
 
     # Title for the editor border: host and short folder
     def _context_title(self) -> str:
@@ -409,7 +490,7 @@ class CapePocApp(App):
         else:
             # Busy: spinning frame, command text, wall time
             frame = SPINNER_FRAMES[self._spin_ix % len(SPINNER_FRAMES)]
-            dt = time.perf_counter() - self._t0
+            dt = time.perf_counter() - self._t0_cmd
             left = Text.assemble(
                 (f" {frame} ", f"bold {TN_ORANGE}"),
                 (f"running '{self._running_cmd}' · {dt:.1f}s", ""))
@@ -455,24 +536,27 @@ class CapePocApp(App):
             self,
             action: str,
             parameters: Tuple[object, ...]) -> Optional[bool]:
-        # While a prompt is mounted, it owns TAB and Ctrl-C
-        if action in ("tab_complete", "interrupt"):
+        # While a prompt is mounted, it owns TAB, Ctrl-C, and arrows
+        if action in (
+                "tab_complete", "interrupt", "history_prev",
+                "history_next"):
             if self._prompt_widget is not None:
                 return False
-            # TAB only completes in the active command input
-            if action == "tab_complete":
+            # TAB and history recall only work in the active editor
+            if action != "interrupt":
                 return self._input.has_focus and not self._input.disabled
         # All other actions enabled
         return True
 
-    # Complete the current word of the command input
+    # Complete the current word of the editor
     def action_tab_complete(self) -> None:
         r"""Complete the word left of the cursor (TAB action)
 
-        Completions come from :class:`PocCompleter`. A unique match is
-        inserted directly; multiple matches extend to the longest
-        common prefix, and if the word is already fully extended the
-        candidates are listed in the log (like a second readline TAB).
+        Completions come from :class:`CapeTuiCompleter`. A unique
+        match is inserted directly; multiple matches extend to the
+        longest common prefix, and if the word is already fully
+        extended the candidates are listed in the log (like a second
+        readline TAB).
         """
         # Get the word left of the cursor and its start index
         value = self._input.value
@@ -504,11 +588,15 @@ class CapePocApp(App):
                 else:
                     match += " "
             self._replace_word(start, pos, match)
+            # Reset history browsing; the editor content changed
+            self._hist_ix = None
             return
         # Several matches: extend to the longest common prefix
         prefix = os.path.commonprefix(matches)
         if len(prefix) > len(text):
             self._replace_word(start, pos, prefix)
+            # Reset history browsing; the editor content changed
+            self._hist_ix = None
         else:
             # Nothing new to insert: list candidates like a 2nd TAB
             self._log.write(Text("  ".join(matches), style="cyan"))
@@ -519,14 +607,51 @@ class CapePocApp(App):
         self._input.value = value[:start] + match + value[pos:]
         self._input.cursor_position = start + len(match)
 
-    # Interrupt the running command (Ctrl-C action)
+    # Recall the previous history entry (up-arrow action)
+    def action_history_prev(self) -> None:
+        # No history to browse
+        if not self._history:
+            self.bell()
+            return
+        # Start browsing, or step to an older entry
+        if self._hist_ix is None:
+            # Save the current editor text as the draft
+            self._hist_draft = self._input.value
+            self._hist_ix = len(self._history) - 1
+        elif self._hist_ix > 0:
+            self._hist_ix -= 1
+        else:
+            # Already at the oldest entry
+            self.bell()
+            return
+        # Show the entry
+        self._input.value = self._history[self._hist_ix]
+        self._input.cursor_position = len(self._input.value)
+
+    # Recall the next history entry (down-arrow action)
+    def action_history_next(self) -> None:
+        # Not browsing
+        if self._hist_ix is None:
+            self.bell()
+            return
+        # Step to a newer entry, or back to the draft
+        if self._hist_ix < len(self._history) - 1:
+            self._hist_ix += 1
+            self._input.value = self._history[self._hist_ix]
+        else:
+            self._hist_ix = None
+            self._input.value = self._hist_draft
+        # Move cursor to the end
+        self._input.cursor_position = len(self._input.value)
+
+    # Interrupt the running command (Ctrl-C / ESC action)
     def action_interrupt(self) -> None:
-        r"""Interrupt the running command, or clear the input line
+        r"""Interrupt the running command, or clear the editor
 
         External commands run in their own process group and are sent
         ``SIGINT``; in-process CAPE commands get a
         :class:`KeyboardInterrupt` injected into the worker thread.
-        With nothing running, the input line is cleared.
+        With nothing running, the editor is cleared.
         """
         # Interrupt a running external command
         proc = self._proc
@@ -546,30 +671,51 @@ class CapePocApp(App):
             self._log.write(Text("^C", style=f"bold {TN_RED}"))
             _raise_in_thread(worker, KeyboardInterrupt)
             return
-        # Idle: clear the input line
+        # Idle: clear the editor
         self._input.value = ""
 
-    # Run one submitted command
+    # Run one submitted line
     def on_input_submitted(self, event: Input.Submitted) -> None:
-        # Get command text and clear the input
+        # Get command text and clear the editor
         cmd = event.value.strip()
         self._input.value = ""
         # Check for empty command
         if not cmd:
             return
+        # Record history and reset browsing
+        self._record_history(cmd)
+        self._hist_ix = None
         # Echo the command in the log as a bubble
         self._log.write(self._bubble_text(cmd))
         # Check for exit commands
         if cmd in EXIT_CMDS:
             self.exit()
             return
+        # TUI meta-commands (except worker-based ":prompt-demo")
+        if cmd.startswith(":") and cmd != ":prompt-demo":
+            self._run_meta(cmd)
+            return
+        # Folder-change commands
+        if cmd == "cd" or cmd.startswith("cd "):
+            self._stats["commands"] += 1
+            ierr = self._run_cd_text(cmd)
+            self._stats["failures"] += int(ierr != 0)
+            self._show_result(ierr)
+            return
+        # Run in a worker (in-process CAPE CLI or subprocess)
+        self._start_command(cmd)
+
+    # Start a command's busy chrome and worker thread
+    def _start_command(self, cmd: str) -> None:
+        # Count it
+        self._stats["commands"] += 1
         # Busy indicators: warning border, spinner in the status bar
         self._input.disabled = True
         self._input.placeholder = "running..."
         self._input.remove_class("ok", "fail")
         self._input.add_class("busy")
         self._running_cmd = cmd
-        self._t0 = time.perf_counter()
+        self._t0_cmd = time.perf_counter()
         self._spin_ix = 0
         self._spin_timer = self.set_interval(
             SPINNER_INTERVAL, self._tick_spinner)
@@ -593,20 +739,22 @@ class CapePocApp(App):
             else:
                 ierr = self._run_subprocess(cmd)
         except KeyboardInterrupt:
-            self._post_to_log(Text("KeyboardInterrupt", style="bold red"))
+            self._post_to_log(Text("KeyboardInterrupt",
+                                   style=f"bold {TN_RED}"))
             ierr = 130
         except Exception:
             # Unexpected error: show the traceback in the log
             for line in traceback.format_exc().rstrip().split("\n"):
-                self._post_to_log(Text(line, style="red"))
+                self._post_to_log(Text(line, style=TN_RED))
             ierr = 128
         # Wall time
         dt = time.perf_counter() - t0
         # Command is no longer running
         self._worker = None
+        self._stats["failures"] += int(ierr != 0)
         # Status line
         self._post_to_log(self._status_rule_text(ierr, dt))
-        # Re-enable the input
+        # Re-enable the editor
         self.call_from_thread(self._set_idle, ierr)
 
     # Run an in-process CAPE CLI command with redirected output
@@ -646,12 +794,12 @@ class CapePocApp(App):
         except FileNotFoundError:
             self._post_to_log(Text(
                 f"Command not found: '{cmd.split()[0]}'",
-                style="bold red"))
+                style=f"bold {TN_RED}"))
             return 127
         except PermissionError:
             self._post_to_log(Text(
                 f"Permission denied: '{cmd.split()[0]}'",
-                style="bold red"))
+                style=f"bold {TN_RED}"))
             return 13
         # Remember the running command (for Ctrl-C)
         self._proc = proc
@@ -680,7 +828,7 @@ class CapePocApp(App):
             sys.stdout = writer
             v = promptutils.prompt_color(
                 "Pick an action (click one)", "skip",
-                ["next", "extend", "skip"], prompt="poc>")
+                ["next", "extend", "skip"], prompt="tui>")
             # Show what was resolved
             print(f"demo answer: {v}")
         finally:
@@ -706,7 +854,7 @@ class CapePocApp(App):
             result["v"] = vraw
             ev.set()
 
-        # Mount the prompt widget above the input box
+        # Mount the prompt widget above the editor
         def mount() -> None:
             widget = _new_prompt_widget(
                 txt, vdef, vopt, prompt, oneline, on_answer=on_answer)
@@ -733,27 +881,154 @@ class CapePocApp(App):
         # Output
         return vraw
 
+    # Handle a TUI meta-command starting with ":"
+    def _run_meta(self, cmd: str) -> None:
+        # Count it
+        self._stats["tui_commands"] += 1
+        # Split meta-command
+        try:
+            parts = shlex.split(cmd)
+        except ValueError as err:
+            self._log.write(Text(str(err), style=f"bold {TN_RED}"))
+            self._show_result(16)
+            return
+        # Name of meta-command and first argument
+        metacmd = parts[0]
+        arg = parts[1] if len(parts) > 1 else None
+        # Rerun a command from history (runs like a normal command)
+        if metacmd.startswith(":!"):
+            self._meta_rerun(metacmd[2:])
+            return
+        # All other meta-commands produce immediate output
+        ierr = self._meta_simple(metacmd, arg)
+        self._show_result(ierr)
 
-# Main entry point
-def main() -> None:
-    r"""Run the proof-of-concept CAPE TUI app
+    # Handle the immediate (non-rerun) meta-commands
+    def _meta_simple(self, metacmd: str, arg: Optional[str]) -> int:
+        if metacmd in (":exit", ":quit"):
+            self.exit()
+            return 0
+        elif metacmd == ":clear":
+            self._log.clear()
+            return 0
+        elif metacmd == ":pwd":
+            self._log.write(Text(os.getcwd(), style="cyan"))
+            return 0
+        elif metacmd == ":cd":
+            # Change to folder *arg*, or home folder
+            return self._run_cd_text(f"cd {arg}" if arg else "cd ~")
+        elif metacmd == ":help":
+            return self._meta_help(arg)
+        elif metacmd == ":history":
+            # Optional count of history entries
+            try:
+                n = int(arg) if arg else 25
+            except ValueError:
+                self._log.write(Text(
+                    f"Bad history count: '{arg}'", style=f"bold {TN_RED}"))
+                return 1
+            self._log.write(history_table(self._history, n))
+            self._log.write(Text(
+                "Use :!N to rerun command No. N", style="cyan"))
+            return 0
+        elif metacmd == ":status":
+            stats = dict(self._stats)
+            stats["duration"] = time.perf_counter() - self._t0_session
+            self._log.write(session_stats_panel(stats, self._histfile))
+            return 0
+        # Unknown meta-command
+        metacmds = " ".join(META_CMDS)
+        self._log.write(Text(
+            f"Unrecognized TUI command: '{metacmd}'",
+            style=f"bold {TN_RED}"))
+        self._log.write(Text(f"Try one of: {metacmds}"))
+        return 16
 
-    Registers the app's prompt bridge with
-    :func:`cape.promptutils.register_prompt_handler` and restores the
-    previous handler on exit.
-    """
-    # Create the app
-    app = CapePocApp()
-    # Register its prompt handler, saving any previous one
-    prev_handler = register_prompt_handler(app._handle_prompt)
-    # Run the app
-    try:
-        app.run()
-    finally:
-        # Restore the previous prompt handler
-        register_prompt_handler(prev_handler)
+    # Render help for CAPE commands or TUI meta-commands
+    def _meta_help(self, arg: Optional[str]) -> int:
+        # Help about the TUI itself
+        if arg in META_HELP_TOPICS:
+            self._log.write(meta_help_table())
+            return 0
+        # Full command table
+        cls = self._frontdesk_cls
+        if arg is None:
+            self._log.write(cmd_table(cls))
+            self._log.write(Text(
+                "Use :help <cmd> or cape <cmd> -h for details",
+                style="cyan"))
+            return 0
+        # Check alternate names
+        cmdname = cls._cmdmap.get(arg, arg)
+        # Get subparser
+        subcls = cls._cmdparsers.get(cmdname)
+        # Check for unknown command
+        if subcls is None:
+            self._log.write(Text(
+                f"Unknown CAPE command: '{arg}'", style=f"bold {TN_RED}"))
+            return 16
+        # Render details for one command
+        self._log.write(cmd_help_panel(cmdname, subcls, cls))
+        return 0
+
+    # Rerun command No. N from the history
+    def _meta_rerun(self, txt: str) -> None:
+        # Parse the index
+        try:
+            j = int(txt)
+        except ValueError:
+            self._log.write(Text(
+                f"Bad history entry number: '{txt}'",
+                style=f"bold {TN_RED}"))
+            self._show_result(16)
+            return
+        # Check range (the ":!N" line itself is already recorded)
+        nhist = len(self._history)
+        if j < 1 or j > nhist:
+            self._log.write(Text(
+                f"History entry out of range 1:{nhist}: {j}",
+                style=f"bold {TN_RED}"))
+            self._show_result(16)
+            return
+        # Get the command
+        cmd = self._history[j - 1]
+        # Check for meta-command
+        if cmd.startswith(":"):
+            self._log.write(Text(
+                f"Cannot rerun TUI command: {cmd}", style=f"bold {TN_RED}"))
+            self._show_result(16)
+            return
+        # Echo the rerun command as a bubble
+        self._log.write(Text(
+            f"Rerunning history entry {j}:", style="cyan"))
+        self._log.write(self._bubble_text(cmd))
+        # Run it like a freshly submitted command
+        self._start_command(cmd)
+
+    # Handle folder-change commands like ``cd powerless/``
+    def _run_cd_text(self, user_message: str) -> int:
+        # Split off the folder name
+        parts = user_message.split(' ', 1)
+        # Get folder
+        target = os.path.expanduser(parts[1]) if len(parts) > 1 else "~"
+        # Change folder
+        try:
+            os.chdir(target)
+            ierr = 0
+        except FileNotFoundError:
+            self._log.write(Text(
+                f"Folder not found: '{target}'", style=f"bold {TN_RED}"))
+            ierr = 2
+        except PermissionError:
+            self._log.write(Text(
+                f"Permission denied: '{target}'", style=f"bold {TN_RED}"))
+            ierr = 13
+        # Output
+        return ierr
 
 
-# Run the app when executed as ``python3 -m cape.tui.poc``
+# Run the app when executed as ``python3 -m cape.tui.tuiapp``
 if __name__ == "__main__":
+    # Local imports
+    from . import main
     main()

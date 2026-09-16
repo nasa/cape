@@ -4144,20 +4144,20 @@ def cape_tui() -> Tuple[int, Any]:
         *v*: **any**
             Output from API function
     """
-    # Import rich terminal user interface
+    # Import Textual-based terminal user interface and run it
     try:
         from .. import tui
+        return tui.main(CfdxFrontDesk)
     except ModuleNotFoundError as err:
-        # Check if it's the (optional) 'rich' package
-        if err.name is not None and err.name.split(".")[0] == "rich":
+        # Check if it's the (optional) 'textual' or 'rich' package
+        if err.name is not None and \
+                err.name.split(".")[0] in ("textual", "rich"):
             raise CapeNotSupportedError(
                 "'cape tui' and clickable prompts require the\n"
                 "third-party package 'textual'\n"
                 "(install with ``pip install textual``)")
         # Some other missing module; re-raise
         raise
-    # Run code
-    return tui.main(CfdxFrontDesk)
 
 
 def cape_agentic() -> Tuple[int, Any]:
