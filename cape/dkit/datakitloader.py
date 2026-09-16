@@ -1194,18 +1194,18 @@ class DataKitLoader(OptionsDict):
         return moddir
 
    # --- Raw data files ---
-    def get_rawdatafilename(self, fname, dvc=False):
+    def get_rawdatafilename(self, fname, lfc=False):
         r"""Get a file name relative to the datakit folder
 
         :Call:
-            >>> fabs = ast.get_rawdatafilename(fname, dvc=False)
+            >>> fabs = ast.get_rawdatafilename(fname, lfc=False)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: ``None`` | :class:`str`
                 Name of file relative to *DB_DIRS_BY_TYPE* for *ext*
-            *dvc*: ``True`` | {``False``}
-                Option to pull DVC file where *fabs* doesn't exist
+            *lfc*: ``True`` | {``False``}
+                Option to pull LFC file where *fabs* doesn't exist
         :Outputs:
             *fabs*: :class:`str`
                 Absolute path to raw data file
@@ -1214,6 +1214,7 @@ class DataKitLoader(OptionsDict):
             * *RAWDATA_DIR*
         :Versions:
             * 2021-07-07 ``@ddalle``: v1.0
+            * 2026-09-15 ``@ddalle``: v1.1; *dvc* -> *lfc*
         """
         # Get top-level and relative raw-data folder
         moddir = self.get_opt("MODULE_DIR")
@@ -1222,17 +1223,17 @@ class DataKitLoader(OptionsDict):
         fdir = os.path.join(moddir, rawdir)
         # Return absolute
         fabs = os.path.join(fdir, fname)
-        # Option: whether or not to check for DVC files
-        if not dvc:
+        # Option: whether or not to check for LFC files
+        if not lfc:
             # Just output in the general case
             return fabs
         # Check if file exists
         if self._check_modfile(fabs):
             # Nominal situation; file exists
             pass
-        elif self._check_dvcfile(fabs):
-            # Pull the DVC file?
-            self.dvc_pull(fabs)
+        elif self._check_lfcfile(fabs):
+            # Pull the LFC file
+            self.lfc_pull(fabs)
         # Return name of original file regardless
         return fabs
 
@@ -1377,8 +1378,6 @@ class DataKitLoader(OptionsDict):
                 Interface to git repository
             *fname*: :class:`str`
                 Name of file, either original file or metadata stub
-            *ext*: {``None``} | ``".dvc"`` | ``".lfc"``
-                Large file metadata stub file extension
         :Outputs:
             *flfc*: :class:`str`
                 Name of large file metadata stub file
@@ -1387,7 +1386,7 @@ class DataKitLoader(OptionsDict):
         """
         # Get working extension
         ext = ".lfc"
-        # Get DVC file if needed
+        # Add LFC extension if needed
         if not fname.endswith(ext):
             fname += ext
         # Output
@@ -1396,7 +1395,7 @@ class DataKitLoader(OptionsDict):
     def genr8_lfc_ofilename(self, fname: str) -> str:
         r"""Produce name of original large file
 
-        This strips the ``.lfc`` or ``.dvc`` extension if necessary.
+        This strips the ``.lfc`` extension if necessary.
 
         :Call:
             >>> forig = repo.genr8_lfc_ofilename(fname)
@@ -1413,18 +1412,18 @@ class DataKitLoader(OptionsDict):
         """
         # Get working extension
         ext = ".lfc"
-        # Get DVC file if needed
+        # Strip LFC extension if needed
         if fname.endswith(ext):
             fname = fname[:-len(ext)]
         # Output
         return fname
 
-   # --- DVC files ---
-    def dvc_add(self, frel, **kw):
-        r"""Add (cache) a file using DVC
+   # --- LFC file actions ---
+    def lfc_add(self, frel, **kw):
+        r"""Add (cache) a file using LFC
 
         :Call:
-            >>> ierr = ast.dvc_add(frel, **kw)
+            >>> ierr = ast.lfc_add(frel, **kw)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -1438,26 +1437,22 @@ class DataKitLoader(OptionsDict):
                 * 512: not a git repo
 
         :Versions:
-            * 2021-09-15 ``@ddalle``: v1.0
+            * 2021-09-15 ``@ddalle``: v1.0 (``dvc_add``)
+            * 2026-09-15 ``@ddalle``: v2.0; LFC fork
         """
         # Get absolute path
         fabs = self.get_abspath(frel)
-        # Check for DVC flag
-        if fabs.endswith(".dvc"):
-            # Already a DVC file
-            fdvc = fabs
-        else:
-            # Append .dvc
-            fdvc = fabs + ".dvc"
+        # Get name of LFC metadata stub
+        flfc = self.genr8_lfc_filename(fabs)
         # Get the folder name
-        fdir = os.path.dirname(fdvc)
+        fdir = os.path.dirname(flfc)
         # Get the gitdir
         gitdir = gitutils.get_gitdir(fdir)
         # Check for a valid git repo
         if gitdir is None:
             return 512
-        # Strip the *gitdir* prefix and .dvc extension
-        fcmd = fdvc[len(gitdir):-4].lstrip(os.sep)
+        # Strip the *gitdir* prefix and .lfc extension
+        fcmd = flfc[len(gitdir):-4].lstrip(os.sep)
         # Shortened file name for pretty STDOUT
         if len(fcmd) > 40:
             fcmdp = "..." + fcmd[-37:]
@@ -1473,11 +1468,11 @@ class DataKitLoader(OptionsDict):
         # Return error code
         return ierr
 
-    def dvc_pull(self, frel, **kw):
-        r"""Pull a DVC file
+    def lfc_pull(self, frel, **kw):
+        r"""Pull a large file tracked by LFC
 
         :Call:
-            >>> ierr = ast.dvc_pull(frel, **kw)
+            >>> ierr = ast.lfc_pull(frel, **kw)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -1488,34 +1483,30 @@ class DataKitLoader(OptionsDict):
                 Return code
 
                 * 0: success
-                * 256: no DVC file
+                * 256: no LFC stub file
                 * 512: not a git repo
 
         :Versions:
-            * 2021-07-19 ``@ddalle``: v1.0
+            * 2021-07-19 ``@ddalle``: v1.0 (``dvc_pull``)
             * 2023-02-21 ``@ddalle``: v2.0; DVC -> LFC
+            * 2026-09-15 ``@ddalle``: v3.0; full LFC fork
         """
         # Get absolute path
         fabs = self.get_abspath(frel)
-        # Check for DVC flag
-        if fabs.endswith(".dvc"):
-            # Already a DVC file
-            fdvc = fabs
-        else:
-            # Append .dvc
-            fdvc = fabs + ".dvc"
-            # Check DVC flag
-            if not os.path.isfile(fdvc):
-                return 256
+        # Get name of LFC metadata stub
+        flfc = self.genr8_lfc_filename(fabs)
+        # Check for stub
+        if not os.path.isfile(flfc):
+            return 256
         # Get the folder name
-        fdir = os.path.dirname(fdvc)
+        fdir = os.path.dirname(flfc)
         # Get the gitdir
         gitdir = gitutils.get_gitdir(fdir)
         # Check for a valid git repo
         if gitdir is None:
             return 512
         # Strip the *gitdir*
-        fcmd = fdvc[len(gitdir):].lstrip(os.sep)
+        fcmd = flfc[len(gitdir):].lstrip(os.sep)
         # Shortened file name for pretty STDOUT
         if len(fcmd) > 45:
             fcmdp = "..." + fcmd[-40:-4]
@@ -1524,16 +1515,6 @@ class DataKitLoader(OptionsDict):
         # Initialize command
         cmd = ["lfc", "pull", fcmd]
         cmdp = ["lfc", "pull", fcmdp]
-        # Other DVC settings
-        jobs = kw.get("jobs", kw.get("j", 1))
-        remote = kw.get("remote", kw.get("r"))
-        # Add other settings
-        if jobs:
-            cmd.extend(["-j", str(jobs)])
-            cmdp.extend(["-j", str(jobs)])
-        if remote:
-            cmd.extend(["-r", str(remote)])
-            cmdp.extend(["-r", str(remote)])
         # Status update
         print("  > " + " ".join(cmdp))
         # (Try to) execute the pull
@@ -1541,11 +1522,11 @@ class DataKitLoader(OptionsDict):
         # Return error code
         return ierr
 
-    def dvc_push(self, frel, **kw):
-        r"""Push a DVC file
+    def lfc_push(self, frel, **kw):
+        r"""Push a large file tracked by LFC
 
         :Call:
-            >>> ierr = ast.dvc_push(frel, **kw)
+            >>> ierr = ast.lfc_push(frel, **kw)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -1556,33 +1537,29 @@ class DataKitLoader(OptionsDict):
                 Return code
 
                 * 0: success
-                * 256: no DVC file
+                * 256: no LFC stub file
                 * 512: not a git repo
 
         :Versions:
-            * 2021-09-15 ``@ddalle``: v1.0
+            * 2021-09-15 ``@ddalle``: v1.0 (``dvc_push``)
+            * 2026-09-15 ``@ddalle``: v2.0; LFC fork
         """
         # Get absolute path
         fabs = self.get_abspath(frel)
-        # Check for DVC flag
-        if fabs.endswith(".dvc"):
-            # Already a DVC file
-            fdvc = fabs
-        else:
-            # Append .dvc
-            fdvc = fabs + ".dvc"
-            # Check DVC flag
-            if not os.path.isfile(fdvc):
-                return 256
+        # Get name of LFC metadata stub
+        flfc = self.genr8_lfc_filename(fabs)
+        # Check for stub
+        if not os.path.isfile(flfc):
+            return 256
         # Get the folder name
-        fdir = os.path.dirname(fdvc)
+        fdir = os.path.dirname(flfc)
         # Get the gitdir
         gitdir = gitutils.get_gitdir(fdir)
         # Check for a valid git repo
         if gitdir is None:
             return 512
         # Strip the *gitdir*
-        fcmd = fdvc[len(gitdir):].lstrip(os.sep)
+        fcmd = flfc[len(gitdir):].lstrip(os.sep)
         # Shortened file name for pretty STDOUT
         if len(fcmd) > 45:
             fcmdp = "..." + fcmd[-40:-4]
@@ -1591,28 +1568,21 @@ class DataKitLoader(OptionsDict):
         # Initialize command
         cmd = ["lfc", "push", fcmd]
         cmdp = ["lfc", "push", fcmdp]
-        # Other DVC settings
-        jobs = kw.get("jobs", kw.get("j", 1))
-        remote = kw.get("remote", kw.get("r"))
-        # Add other settings
-        if jobs:
-            cmd.extend(["-j", str(jobs)])
-            cmdp.extend(["-j", str(jobs)])
-        if remote:
-            cmd.extend(["-r", str(remote)])
-            cmdp.extend(["-r", str(remote)])
         # Status update
         print("  > " + " ".join(cmdp))
-        # (Try to) execute the pull
+        # (Try to) execute the push
         ierr = shellutils.call_q(cmd, cwd=gitdir)
         # Return error code
         return ierr
 
-    def dvc_status(self, frel, **kw):
-        r"""Check status a DVC file
+    def lfc_status(self, frel, **kw):
+        r"""Check status of a large file tracked by LFC
+
+        This compares the size and hash of the working file to the
+        metadata recorded in its LFC stub file.
 
         :Call:
-            >>> ierr = ast.dvc_status(frel, **kw)
+            >>> ierr = ast.lfc_status(frel, **kw)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -1622,121 +1592,71 @@ class DataKitLoader(OptionsDict):
             *ierr*: :class:`int`
                 Return code
 
-                * 0: success
+                * 0: up-to-date
                 * 1: out-of-date
-                * 256: no DVC file
+                * 256: no LFC stub file
                 * 512: not a git repo
 
         :Versions:
-            * 2021-09-23 ``@ddalle``: v1.0
+            * 2021-09-23 ``@ddalle``: v1.0 (``dvc_status``)
+            * 2026-09-15 ``@ddalle``: v2.0; LFC fork
         """
         # Get absolute path
         fabs = self.get_abspath(frel)
-        # Check for DVC flag
-        if fabs.endswith(".dvc"):
-            # Already a DVC file
-            fdvc = fabs
-        else:
-            # Append .dvc
-            fdvc = fabs + ".dvc"
-            # Check DVC flag
-            if not os.path.isfile(fdvc):
-                return 256
+        # Get names of LFC stub and original file
+        flfc = self.genr8_lfc_filename(fabs)
+        fdat = self.genr8_lfc_ofilename(fabs)
+        # Check for stub
+        if not os.path.isfile(flfc):
+            return 256
         # Get the folder name
-        fdir = os.path.dirname(fdvc)
+        fdir = os.path.dirname(flfc)
         # Get the gitdir
         gitdir = gitutils.get_gitdir(fdir)
         # Check for a valid git repo
         if gitdir is None:
             return 512
-        # Strip the *gitdir*
-        fcmd = fdvc[len(gitdir):].lstrip(os.sep)
-        # Initialize command
-        cmd = ["dvc", "status", fcmd]
-        # (Try to) execute the pull
-        stdout, _, ierr = shellutils.call_oe(cmd, cwd=gitdir)
-        # Check for error
-        if ierr:
-            return ierr
-        # Check if "up to date"
-        if len(stdout.strip().split("\n")) > 1:
-            # Out-of-date
+        # Out-of-date if original file is missing
+        if not os.path.isfile(fdat):
             return 1
-        else:
-            # Up-to-date
+        # Attempt to import LFC interface
+        try:
+            from lfc.lfcrepo import LFCRepo
+        except IMPORT_ERROR:
+            # Cannot check further; assume up-to-date
             return 0
+        # Create interface to repo
+        repo = LFCRepo(gitdir)
+        # Read metadata stub
+        lfcinfo = repo.read_lfc_file(flfc)
+        # Get expected hash and size
+        fhash0 = lfcinfo.get("sha256", lfcinfo.get("md5"))
+        fsize0 = lfcinfo.get("size", 0)
+        # Compare size of working file
+        if os.path.getsize(fdat) != fsize0:
+            return 1
+        # Generate hash of working file and compare
+        return 0 if repo.genr8_hash(fdat) == fhash0 else 1
 
-    def _dvc_write(self, fname: str, dvc: bool):
+    def _lfc_write(self, fname: str, lfc: bool):
         # Check option
-        if not dvc:
+        if not lfc:
             return
         # Get true file names
-        fdvc = self.genr8_dvc_filename(fname)
-        fdat = self.genr8_dvc_ofilename(fname)
-        # Process DVC
-        if os.path.isfile(fdvc):
+        flfc = self.genr8_lfc_filename(fname)
+        fdat = self.genr8_lfc_ofilename(fname)
+        # Process LFC
+        if os.path.isfile(flfc):
             # Add the file
-            ierr = self.dvc_add(fdat)
+            ierr = self.lfc_add(fdat)
             if ierr:
                 print(
-                    f"Failed to dvc-add file '{os.path.basename(fdat)}'")
+                    f"Failed to lfc-add file '{os.path.basename(fdat)}'")
             # Push the file
-            ierr = self.dvc_push(fdat)
+            ierr = self.lfc_push(fdat)
             if ierr:
                 print(
-                    f"Failed to dvc-push file '{os.path.basename(fdat)}'")
-
-    def genr8_dvc_filename(self, fname: str) -> str:
-        r"""Produce name of large file stub
-
-        :Call:
-            >>> flfc = repo.genr8_dvc_filename(fname)
-        :Inputs:
-            *repo*: :class:`GitRepo`
-                Interface to git repository
-            *fname*: :class:`str`
-                Name of file, either original file or metadata stub
-            *ext*: {``None``} | ``".dvc"`` | ``".lfc"``
-                Large file metadata stub file extension
-        :Outputs:
-            *flfc*: :class:`str`
-                Name of large file metadata stub file
-        :Versions:
-            * 2022-12-21 ``@ddalle``: v1.0
-        """
-        # Get working extension
-        ext = ".dvc"
-        # Get DVC file if needed
-        if not fname.endswith(ext):
-            fname += ext
-        # Output
-        return fname
-
-    def genr8_dvc_ofilename(self, fname: str) -> str:
-        r"""Produce name of original large file
-
-        This strips the ``.dvc`` extension if necessary.
-
-        :Call:
-            >>> forig = repo.genr8_lfc_ofilename(fname)
-        :Inputs:
-            *repo*: :class:`GitRepo`
-                Interface to git repository
-            *fname*: :class:`str`
-                Name of file, either original file or metadata stub
-        :Outputs:
-            *forig*: :class:`str`
-                Name of original large file w/o LFC extension
-        :Versions:
-            * 2022-12-21 ``@ddalle``: v1.0
-        """
-        # Get working extension
-        ext = ".dvc"
-        # Get DVC file if needed
-        if fname.endswith(ext):
-            fname = fname[:-len(ext)]
-        # Output
-        return fname
+                    f"Failed to lfc-push file '{os.path.basename(fdat)}'")
 
    # --- Raw data update ---
     # Main updater
@@ -2021,10 +1941,9 @@ class DataKitLoader(OptionsDict):
         n_fail = 0
         # Copy each file
         for src in ls_files:
-            # Strip LFC extensions
-            for ext in (".lfc", ".dvc"):
-                if src.endswith(ext):
-                    src = src[:-len(ext)]
+            # Strip LFC extension
+            if src.endswith(".lfc"):
+                src = src[:-4]
             # Destination folder
             if dst_folder == ".":
                 # Just use the "basename"
@@ -2975,15 +2894,15 @@ class DataKitLoader(OptionsDict):
             self,
             fname: str,
             f: bool = False,
-            dvc: bool = True):
-        r"""Check if a file exists OR a ``.dvc`` version
+            lfc: bool = True):
+        r"""Check if a file exists OR a ``.lfc`` version
 
         * If *f* is ``True``, this returns ``False`` always
         * If *fabs* exists, this returns ``True``
-        * If *fabs* plus ``.dvc`` exists, it also returns ``True``
+        * If *fabs* plus ``.lfc`` exists, it also returns ``True``
 
         :Call:
-            >>> q = ast.check_file(fname, f=False, dvc=True)
+            >>> q = ast.check_file(fname, f=False, lfc=True)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -2991,13 +2910,13 @@ class DataKitLoader(OptionsDict):
                 Name of file [optionally relative to *MODULE_DIR*]
             *f*: ``True`` | {``False``}
                 Force-overwrite option; always returns ``False``
-            *dvc*: {``True``} | ``False``
-                Option to check for ``.dvc`` extension
+            *lfc*: {``True``} | ``False``
+                Option to check for ``.lfc`` extension
         :Keys:
             * *MODULE_DIR*
         :Outputs:
             *q*: ``True`` | ``False``
-                Whether or not *fname* or DVC file exists
+                Whether or not *fname* or LFC stub exists
         :Versions:
             * 2021-07-19 ``@ddalle``: v1.0
         """
@@ -3010,17 +2929,17 @@ class DataKitLoader(OptionsDict):
         # Check if it exists
         if self._check_modfile(fabs):
             return True
-        # Process option: whether or not to check for DVC file
-        if not dvc:
+        # Process option: whether or not to check for LFC stub
+        if not lfc:
             return False
         # Check if it exists
-        if self._check_dvcfile(fabs):
+        if self._check_lfcfile(fabs):
             return True
         # No versions of file exist
         return False
 
     def check_modfile(self, fname: str) -> bool:
-        r"""Check if a file exists OR a ``.dvc`` version
+        r"""Check if a file exists
 
         :Call:
             >>> q = ast.check_modfile(fname)
@@ -3033,7 +2952,7 @@ class DataKitLoader(OptionsDict):
             * *MODULE_DIR*
         :Outputs:
             *q*: ``True`` | ``False``
-                Whether or not *fname* or DVC file exists
+                Whether or not *fname* exists
         :Versions:
             * 2021-07-19 ``@ddalle``: v1.0
         """
@@ -3042,11 +2961,11 @@ class DataKitLoader(OptionsDict):
         # Check if it exists
         return self._check_modfile(fabs)
 
-    def check_dvcfile(self, fname: str, f: bool = False) -> bool:
-        r"""Check if a file exists with appended``.dvc`` extension
+    def check_lfcfile(self, fname: str, f: bool = False) -> bool:
+        r"""Check if a file exists with appended ``.lfc`` extension
 
         :Call:
-            >>> q = ast.check_dvcfile(fname)
+            >>> q = ast.check_lfcfile(fname)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -3056,14 +2975,15 @@ class DataKitLoader(OptionsDict):
             * *MODULE_DIR*
         :Outputs:
             *q*: ``True`` | ``False``
-                Whether or not *fname* or DVC file exists
+                Whether or not *fname* LFC stub exists
         :Versions:
-            * 2021-07-19 ``@ddalle``: v1.0
+            * 2021-07-19 ``@ddalle``: v1.0 (``check_dvcfile``)
+            * 2026-09-15 ``@ddalle``: v2.0; LFC fork
         """
         # Get absolute path
         fabs  = self.get_abspath(fname)
         # Check if it exists
-        return self._check_dvcile(fabs)
+        return self._check_lfcfile(fabs)
 
     def _check_modfile(self, fabs: str) -> bool:
         # Check if it exists
@@ -3077,16 +2997,16 @@ class DataKitLoader(OptionsDict):
             # File does not exist
             return False
 
-    def _check_dvcfile(self, fabs: str) -> bool:
-        # Add the DVC suffix
-        fdvc = fabs + ".dvc"
+    def _check_lfcfile(self, fabs: str) -> bool:
+        # Add the LFC suffix
+        flfc = fabs + ".lfc"
         # Check if it exists
-        if os.path.isfile(fdvc):
+        if os.path.isfile(flfc):
             # File exists
             return True
-        elif os.path.isdir(fdvc):
+        elif os.path.isdir(flfc):
             # Problem!
-            raise SystemError("Requested file '%s' is a folder!" % fdvc)
+            raise SystemError("Requested file '%s' is a folder!" % flfc)
         else:
             # File does not exist
             return False
@@ -3270,8 +3190,8 @@ class DataKitLoader(OptionsDict):
             *cols*: {``None``} | :class:`list`
                 If *dkl* has more than one file, *cols* must be a list
                 of lists specifying which columns to write to each file
-            *dvc*: ``True`` | {``False``}
-                Option to add and push data file using ``dvc``
+            *lfc*: ``True`` | {``False``}
+                Option to add and push data file using ``lfc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -3329,8 +3249,8 @@ class DataKitLoader(OptionsDict):
             *cols*: {``None``} | :class:`list`
                 If *dkl* has more than one file, *cols* must be a list
                 of lists specifying which columns to write to each file
-            *dvc*: ``True`` | {``False``}
-                Option to add and push data file using ``dvc``
+            *lfc*: ``True`` | {``False``}
+                Option to add and push data file using ``lfc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -3388,8 +3308,8 @@ class DataKitLoader(OptionsDict):
             *cols*: {``None``} | :class:`list`
                 If *dkl* has more than one file, *cols* must be a list
                 of lists specifying which columns to write to each file
-            *dvc*: ``True`` | {``False``}
-                Option to add and push data file using ``dvc``
+            *lfc*: ``True`` | {``False``}
+                Option to add and push data file using ``lfc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -3447,8 +3367,8 @@ class DataKitLoader(OptionsDict):
             *cols*: {``None``} | :class:`list`
                 If *dkl* has more than one file, *cols* must be a list
                 of lists specifying which columns to write to each file
-            *dvc*: ``True`` | {``False``}
-                Option to add and push data file using ``dvc``
+            *lfc*: ``True`` | {``False``}
+                Option to add and push data file using ``lfc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -3498,8 +3418,8 @@ class DataKitLoader(OptionsDict):
                 Overwrite *fmat* if it exists
             *db*: {``None``} | :class:`DataKit`
                 Existing source datakit to write
-            *dvc*: ``True`` | {``False``}
-                Option to add and push data file using ``dvc``
+            *lfc*: ``True`` | {``False``}
+                Option to add and push data file using ``lfc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -3509,17 +3429,12 @@ class DataKitLoader(OptionsDict):
             * 2021-09-15 ``@ddalle``: v1.1; check for DVC stub
             * 2021-09-15 ``@ddalle``: v1.2; add *dvc* option
         """
-        # DVC option
-        dvc = kw.get("dvc", False)
-        # Get DVC file name
-        if fcsv.endswith(".dvc"):
-            # Already a DVC stub
-            fdvc = fcsv
-        else:
-            # Append ".dvc" extension
-            fdvc = fcsv + ".dvc"
+        # LFC option
+        lfc = kw.get("lfc", False)
+        # Get LFC stub name
+        flfc = self.genr8_lfc_filename(fcsv)
         # Check if it exists
-        if f or not (os.path.isfile(fcsv) or os.path.isfile(fdvc)):
+        if f or not (os.path.isfile(fcsv) or os.path.isfile(flfc)):
             # Read datakit from source
             if db is None:
                 db = readfunc()
@@ -3527,20 +3442,20 @@ class DataKitLoader(OptionsDict):
             self.prep_dirs(fcsv)
             # Write it
             db.write_csv(fcsv, **kw)
-            # Process DVC
-            if dvc or os.path.isfile(fdvc):
+            # Process LFC
+            if lfc or os.path.isfile(flfc):
                 # Add the file
-                ierr = self.dvc_add(fcsv)
+                ierr = self.lfc_add(fcsv)
                 if ierr:
                     print(
-                        "Failed to dvc-add file '%s'"
+                        "Failed to lfc-add file '%s'"
                         % os.path.basename(fcsv))
                     return db
                 # Push the file
-                ierr = self.dvc_push(fcsv)
+                ierr = self.lfc_push(fcsv)
                 if ierr:
                     print(
-                        "Failed to dvc-push file '%s'"
+                        "Failed to lfc-push file '%s'"
                         % os.path.basename(fcsv))
         # Return *db* in case it was read during process
         return db
@@ -3565,8 +3480,8 @@ class DataKitLoader(OptionsDict):
                 Overwrite *fmat* if it exists
             *db*: {``None``} | :class:`DataKit`
                 Existing source datakit to write
-            *dvc*: ``True`` | {``False``}
-                Option to add and push data file using ``dvc``
+            *lfc*: ``True`` | {``False``}
+                Option to add and push data file using ``lfc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -3576,12 +3491,12 @@ class DataKitLoader(OptionsDict):
             * 2021-09-15 ``@ddalle``: v1.1; check for DVC stub
             * 2021-09-15 ``@ddalle``: v1.2; add *dvc* option
         """
-        # DVC option
-        dvc = kw.get("dvc", False)
-        # Get DVC file name
-        fdvc = self.genr8_dvc_filename(fmat)
+        # LFC option
+        lfc = kw.get("lfc", False)
+        # Get LFC stub name
+        flfc = self.genr8_lfc_filename(fmat)
         # Check status
-        if not f and (os.path.isfile(fmat) or os.path.isfile(fdvc)):
+        if not f and (os.path.isfile(fmat) or os.path.isfile(flfc)):
             return db
         # Read datakit from source
         if db is None:
@@ -3590,8 +3505,8 @@ class DataKitLoader(OptionsDict):
         self.prep_dirs(fmat)
         # Write it
         db.write_mat(fmat, **kw)
-        # Process DVC
-        self._dvc_write(fmat, dvc)
+        # Process LFC
+        self._lfc_write(fmat, lfc)
         # Return *db* in case it was read during process
         return db
 
@@ -3615,8 +3530,8 @@ class DataKitLoader(OptionsDict):
                 Overwrite *fmat* if it exists
             *db*: {``None``} | :class:`DataKit`
                 Existing source datakit to write
-            *dvc*: ``True`` | {``False``}
-                Option to add and push data file using ``dvc``
+            *lfc*: ``True`` | {``False``}
+                Option to add and push data file using ``lfc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -3626,12 +3541,12 @@ class DataKitLoader(OptionsDict):
             * 2021-09-15 ``@ddalle``: v1.1; check for DVC stub
             * 2021-09-15 ``@ddalle``: v1.2; add *dvc* option
         """
-        # DVC option
-        dvc = kw.get("dvc", False)
-        # Get DVC file name
-        fdvc = self.genr8_dvc_filename(fcdb)
+        # LFC option
+        lfc = kw.get("lfc", False)
+        # Get LFC stub name
+        flfc = self.genr8_lfc_filename(fcdb)
         # Check status
-        if not f and (os.path.isfile(fcdb) or os.path.isfile(fdvc)):
+        if not f and (os.path.isfile(fcdb) or os.path.isfile(flfc)):
             return db
         # Read datakit from source
         if db is None:
@@ -3640,8 +3555,8 @@ class DataKitLoader(OptionsDict):
         self.prep_dirs(fcdb)
         # Write it
         db.write_cdb(fcdb, **kw)
-        # Process DVC
-        self._dvc_write(fcdb, dvc)
+        # Process LFC
+        self._lfc_write(fcdb, lfc)
         # Return *db* in case it was read during process
         return db
 
@@ -3665,8 +3580,8 @@ class DataKitLoader(OptionsDict):
                 Overwrite *fmat* if it exists
             *db*: {``None``} | :class:`DataKit`
                 Existing source datakit to write
-            *dvc*: ``True`` | {``False``}
-                Option to add and push data file using ``dvc``
+            *lfc*: ``True`` | {``False``}
+                Option to add and push data file using ``lfc``
         :Outputs:
             *db*: ``None`` | :class:`DataKit`
                 If source datakit is read during execution, return it
@@ -3674,17 +3589,12 @@ class DataKitLoader(OptionsDict):
         :Versions:
             * 2022-12-14 ``@ddalle``: v1.0
         """
-        # DVC option
-        dvc = kw.pop("dvc", False)
-        # Get DVC file name
-        if fxls.endswith(".dvc"):
-            # Already a DVC stub
-            fdvc = fxls
-        else:
-            # Append ".dvc" extension
-            fdvc = fxls + ".dvc"
+        # LFC option
+        lfc = kw.pop("lfc", False)
+        # Get LFC stub name
+        flfc = self.genr8_lfc_filename(fxls)
         # Check if it exists
-        if f or not (os.path.isfile(fxls) or os.path.isfile(fdvc)):
+        if f or not (os.path.isfile(fxls) or os.path.isfile(flfc)):
             # Read datakit from source
             if db is None:
                 db = readfunc()
@@ -3692,20 +3602,20 @@ class DataKitLoader(OptionsDict):
             self.prep_dirs(fxls)
             # Write it
             db.write_xls(fxls, **kw)
-            # Process DVC
-            if dvc or os.path.isfile(fdvc):
+            # Process LFC
+            if lfc or os.path.isfile(flfc):
                 # Add the file
-                ierr = self.dvc_add(fxls)
+                ierr = self.lfc_add(fxls)
                 if ierr:
                     print(
-                        "Failed to dvc-add file '%s'"
+                        "Failed to lfc-add file '%s'"
                         % os.path.basename(fxls))
                     return db
                 # Push the file
-                ierr = self.dvc_push(fxls)
+                ierr = self.lfc_push(fxls)
                 if ierr:
                     print(
-                        "Failed to dvc-push file '%s'"
+                        "Failed to lfc-push file '%s'"
                         % os.path.basename(fxls))
         # Return *db* in case it was read during process
         return db
@@ -3901,8 +3811,8 @@ class DataKitLoader(OptionsDict):
                 Optional specifier to predetermine file type
             *cls*: {``None``} | :class:`type`
                 Class to read *fname* other than *dkl["DATAKIT_CLS"]*
-            *dvc*: {``True``} | ``False``
-                Option to pull DVC file where *fabs* doesn't exist
+            *lfc*: {``True``} | ``False``
+                Option to pull LFC file where *fabs* doesn't exist
             *kw*: :class:`dict`
                 Additional keyword arguments passed to *cls*
         :Outputs:
@@ -3911,26 +3821,27 @@ class DataKitLoader(OptionsDict):
         :Versions:
             * 2021-06-28 ``@ddalle``: v1.0
             * 2021-09-23 ``@ddalle``: v1.1; check ``dvc status``
+            * 2026-09-15 ``@ddalle``: v2.0; DVC -> LFC
         """
         # Default class
         if cls is None:
             cls = self.get_opt("DATAKIT_CLS")
-        # Option: whether or not to check for DVC files
-        dvc = kw.get("dvc", True)
-        # Check for DVC file
-        if dvc and self._check_dvcfile(fabs):
-            # Name of DVC file
-            fdvc = fabs + ".dvc"
+        # Option: whether or not to check for LFC files
+        lfc = kw.get("lfc", True)
+        # Check for LFC stub
+        if lfc and self._check_lfcfile(fabs):
+            # Name of LFC stub
+            flfc = fabs + ".lfc"
             # Check status
             if not os.path.isfile(fabs):
                 # No main file; just pull
-                self.dvc_pull(fabs, **kw)
-            elif os.path.getmtime(fabs) > os.path.getmtime(fdvc):
+                self.lfc_pull(fabs, **kw)
+            elif os.path.getmtime(fabs) > os.path.getmtime(flfc):
                 # No reason to check status
                 pass
-            elif self.dvc_status(fabs):
+            elif self.lfc_status(fabs):
                 # Pull it
-                self.dvc_pull(fabs, **kw)
+                self.lfc_pull(fabs, **kw)
         # Check if file exists
         if not self._check_modfile(fabs):
             # No such file
