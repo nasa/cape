@@ -194,6 +194,24 @@ class CfdxCompleter:
         # Output
         return matches
 
+    def get_line_buffer(self) -> str:
+        r"""Get the full command line being edited
+
+        The default implementation reads :func:`readline.get_line_buffer`;
+        subclasses may override to source the line from another input
+        widget (for example a Textual ``Input``).
+
+        :Call:
+            >>> line = comp.get_line_buffer()
+        :Inputs:
+            *comp*: :class:`CfdxCompleter`
+                CAPE front desk autocompleter
+        :Outputs:
+            *line*: :class:`str`
+                Current full text of command line
+        """
+        return readline.get_line_buffer()
+
     def genr8_suggestions(self, text: str) -> list[str]:
         r"""Generate list of suggestions based on current prompt
 
@@ -211,7 +229,7 @@ class CfdxCompleter:
         # Reset role
         self.role = None
         # Get position
-        line = readline.get_line_buffer()
+        line = self.get_line_buffer()
         # Split line back into argv
         argv = shlex.split(line.lstrip('$').lstrip())
         # Get index of current word
