@@ -18,9 +18,8 @@ persistent app with a scroll log and a pinned command composer:
 * **Tab completion**
     Pressing TAB in the editor completes the current word using the
     same :class:`cape.ui.promptutils.CfdxCompleter` logic as
-    :mod:`cape.ui`, plus TUI meta-commands. One match completes
-    outright; many complete the longest common prefix first and are
-    listed on a second TAB.
+    :mod:`cape.ui`, plus TUI meta-commands. Multiple matches appear
+    in a selectable box immediately above the editor.
 
 * **Ctrl-C / ESC interrupts**
     Pressing Ctrl-C (or ESC) while a command is running interrupts
@@ -119,6 +118,8 @@ SPINNER_INTERVAL = 0.1
 # Status bar hints
 HINTS_IDLE = "ctrl+p commands"
 HINTS_BUSY = "ctrl+c interrupt"
+COMPOSER_HINT = "TAB complete · ↑↓ history · Ctrl-C interrupt"
+SUGGESTION_HINT = "↑↓ select · Enter/Tab insert · Esc close"
 
 
 class CommandPalette(ModalScreen[str]):
@@ -407,18 +408,27 @@ class CapeTuiApp(App):
     # Key bindings: priority so they win over defaults, gated by
     # check_action() so prompts and other widgets keep their own keys
     BINDINGS = [
-        Binding("ctrl+c", "interrupt", "Interrupt", show=False,
-                priority=True),
-        Binding("escape", "interrupt", "Interrupt", show=False,
-                priority=True),
-        Binding("tab", "tab_complete", "Complete", show=False,
-                priority=True),
-        Binding("up", "history_prev", "Previous command", show=False,
-                priority=True),
-        Binding("down", "history_next", "Next command", show=False,
-                priority=True),
-        Binding("ctrl+p", "command_palette", "Commands", show=False,
-                priority=True),
+        Binding(
+            "ctrl+c", "interrupt", "Interrupt",
+            show=False, priority=True),
+        Binding(
+            "escape", "interrupt", "Interrupt",
+            show=False, priority=True),
+        Binding(
+            "tab", "tab_complete", "Complete",
+            show=False, priority=True),
+        Binding(
+            "up", "history_prev", "Previous command",
+            show=False, priority=True),
+        Binding(
+            "down", "history_next", "Next command",
+            show=False, priority=True),
+        Binding(
+            "enter", "accept_suggestion", "Use suggestion",
+            show=False, priority=True),
+        Binding(
+            "ctrl+p", "command_palette", "Commands",
+            show=False, priority=True),
     ]
 
     # Style settings
@@ -435,6 +445,21 @@ class CapeTuiApp(App):
         padding: 1 2 0 2;
         scrollbar-color: #343434;
         scrollbar-color-hover: #565f89;
+    }
+    #suggestions {
+        display: none;
+        width: 64;
+        max-width: 90%;
+        height: auto;
+        max-height: 9;
+        margin: 0 2;
+        padding: 0 1;
+        background: #202020;
+        border-left: solid #7aa2f7;
+        color: #d6d6d6;
+    }
+    #suggestions > .option-list--option-highlighted {
+        background: #343a48;
     }
     #composer {
         height: 4;
@@ -476,10 +501,10 @@ class CapeTuiApp(App):
     def compose(self) -> ComposeResult:
         with Vertical(id="body"):
             yield CommandLog(id="log", auto_scroll=True)
+            yield OptionList(id="suggestions")
             with Vertical(id="composer"):
                 yield Input(placeholder=INPUT_PLACEHOLDER, id="prompt-input")
-                yield Static("TAB complete · ↑↓ history · Ctrl-C interrupt",
-                             id="composer-hint")
+                yield Static(COMPOSER_HINT, id="composer-hint")
             yield Static(id="status-bar")
 
     def on_mount(self) -> None:
@@ -487,8 +512,12 @@ class CapeTuiApp(App):
         self.title = "CAPE TUI"
         # Save widget references
         self._log = self.query_one("#log", CommandLog)
+        self._suggestions = self.query_one("#suggestions", OptionList)
+        self._suggestion_matches = []
+        self._suggestion_span = (0, 0)
         self._input = self.query_one("#prompt-input", Input)
         self._composer = self.query_one("#composer", Vertical)
+        self._composer_hint = self.query_one("#composer-hint", Static)
         self._status = self.query_one("#status-bar", Static)
         # No mounted prompt or running command so far
         self._prompt_widget = None
@@ -679,6 +708,8 @@ class CapeTuiApp(App):
         # Let a modal screen handle its own keys (notably Escape/Ctrl-P).
         if isinstance(self.screen, CommandPalette):
             return False
+        if action == "accept_suggestion":
+            return self._suggestions.display and self._prompt_widget is None
         if action == "command_palette" and self._running_cmd is not None:
             return False
         # While a prompt is mounted, it owns TAB, Ctrl-C, and arrows
@@ -709,53 +740,106 @@ class CapeTuiApp(App):
         r"""Complete the word left of the cursor (TAB action)
 
         Completions come from :class:`CapeTuiCompleter`. A unique
-        match is inserted directly; multiple matches extend to the
-        longest common prefix, and if the word is already fully
-        extended the candidates are listed in the log (like a second
-        readline TAB).
+        match is inserted directly; multiple matches open a picker
+        directly above the command editor.
         """
+        if self._suggestions.display:
+            self.action_accept_suggestion()
+            return
+        self._show_suggestions()
+
+    def _completion_span(self) -> tuple[int, int]:
+        """Return the current word's start and the cursor position."""
         # Get the word left of the cursor and its start index
         value = self._input.value
         pos = self._input.cursor_position
         start = pos
         while start > 0 and value[start - 1] not in " \t\n":
             start -= 1
+        return start, pos
+
+    def _completion_matches(self) -> tuple[int, int, list[str]]:
+        start, pos = self._completion_span()
+        value = self._input.value
         text = value[start:pos]
         # Generate suggestions; tolerate partial/quoted input
         try:
             matches = self._completer.get_suggestions(text)
         except Exception:
             matches = []
+        return start, pos, list(dict.fromkeys(matches))
+
+    def _show_suggestions(self) -> None:
+        start, pos, matches = self._completion_matches()
         # No completions
         if not matches:
+            self._hide_suggestions()
             self.bell()
             return
-        # Deduplicate (e.g. a CAPE exec that's also on $PATH)
-        matches = list(dict.fromkeys(matches))
         # Unique match: insert it (with trailing ' ' or os.sep)
         if len(matches) == 1:
-            match = matches[0]
-            # Unique matches from get_suggestions() already have the
-            # suffix; add it for matches left unique by deduplication
-            if not match.endswith((" ", os.sep)):
-                role = self._completer.role
-                if (role == "filename") and os.path.isdir(match):
-                    match += os.sep
-                else:
-                    match += " "
-            self._replace_word(start, pos, match)
-            # Reset history browsing; the editor content changed
-            self._hist_ix = None
+            self._accept_match(matches[0], start, pos)
             return
-        # Several matches: extend to the longest common prefix
-        prefix = os.path.commonprefix(matches)
-        if len(prefix) > len(text):
-            self._replace_word(start, pos, prefix)
-            # Reset history browsing; the editor content changed
-            self._hist_ix = None
-        else:
-            # Nothing new to insert: list candidates like a 2nd TAB
-            self._log.write(Text("  ".join(matches), style="cyan"))
+        self._suggestion_matches = matches
+        self._suggestion_span = (start, pos)
+        self._suggestions.set_options(
+            Option(match.rstrip(), id=str(j))
+            for j, match in enumerate(matches))
+        self._suggestions.highlighted = 0
+        self._suggestions.display = True
+        self._composer_hint.update(SUGGESTION_HINT)
+
+    def _hide_suggestions(self) -> None:
+        self._suggestions.display = False
+        self._suggestion_matches = []
+        self._composer_hint.update(COMPOSER_HINT)
+
+    def _accept_match(self, match: str, start: int, pos: int) -> None:
+        # Unique matches from get_suggestions() already have a suffix.
+        if not match.endswith((" ", os.sep)):
+            role = self._completer.role
+            if role == "filename" and os.path.isdir(match):
+                match += os.sep
+            else:
+                match += " "
+        self._hide_suggestions()
+        self._replace_word(start, pos, match)
+        self._hist_ix = None
+        self._input.focus()
+
+    def action_accept_suggestion(self) -> None:
+        if not self._suggestions.display:
+            return
+        if self._completion_span() != self._suggestion_span:
+            self._hide_suggestions()
+            return
+        index = self._suggestions.highlighted
+        if index is None:
+            index = 0
+        match = self._suggestion_matches[index]
+        start, pos = self._suggestion_span
+        self._accept_match(match, start, pos)
+
+    def on_option_list_option_selected(
+            self, event: OptionList.OptionSelected) -> None:
+        if event.option_list is self._suggestions:
+            event.stop()
+            self._suggestions.highlighted = event.option_index
+            self.action_accept_suggestion()
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        if event.input is self._input and self._suggestions.display:
+            # Refresh the candidates as the user edits the word.
+            start, pos, matches = self._completion_matches()
+            if not matches:
+                self._hide_suggestions()
+                return
+            self._suggestion_matches = matches
+            self._suggestion_span = (start, pos)
+            self._suggestions.set_options(
+                Option(match.rstrip(), id=str(j))
+                for j, match in enumerate(matches))
+            self._suggestions.highlighted = 0
 
     # Insert a completion, replacing the current word
     def _replace_word(self, start: int, pos: int, match: str) -> None:
@@ -765,6 +849,12 @@ class CapeTuiApp(App):
 
     # Recall the previous history entry (up-arrow action)
     def action_history_prev(self) -> None:
+        if self._suggestions.display:
+            n = self._suggestions.option_count
+            if n:
+                index = self._suggestions.highlighted or 0
+                self._suggestions.highlighted = (index - 1) % n
+            return
         # No history to browse
         if not self._history:
             self.bell()
@@ -786,6 +876,12 @@ class CapeTuiApp(App):
 
     # Recall the next history entry (down-arrow action)
     def action_history_next(self) -> None:
+        if self._suggestions.display:
+            n = self._suggestions.option_count
+            if n:
+                index = self._suggestions.highlighted or 0
+                self._suggestions.highlighted = (index + 1) % n
+            return
         # Not browsing
         if self._hist_ix is None:
             self.bell()
@@ -809,6 +905,10 @@ class CapeTuiApp(App):
         :class:`KeyboardInterrupt` injected into the worker thread.
         With nothing running, the editor is cleared.
         """
+        if self._suggestions.display:
+            self._hide_suggestions()
+            self._input.focus()
+            return
         # Interrupt a running external command
         proc = self._proc
         if (proc is not None) and (proc.poll() is None):
@@ -832,6 +932,9 @@ class CapeTuiApp(App):
 
     # Run one submitted line
     def on_input_submitted(self, event: Input.Submitted) -> None:
+        if self._suggestions.display:
+            self.action_accept_suggestion()
+            return
         self._submit_command(event.value.strip())
 
     def _submit_command(self, cmd: str) -> None:

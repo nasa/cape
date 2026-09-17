@@ -39,27 +39,29 @@ EXIT_CMDS = (
 # TUI meta-commands
 META_CMDS = (
     ":cd",
-    ":clear",
-    ":exit",
-    ":help",
-    ":history",
-    ":prompt-demo",
     ":pwd",
-    ":quit",
+    ":help",
+    ":clear",
+    ":history",
     ":status",
+    ":exit",
+    "TAB",
+    "↑↓",
+    "Ctrl-C",
 )
 
 # Descriptions of meta-commands
 META_CMD_DESCS = {
     ":cd": "Change folder, e.g. ``:cd powerless/``",
+    ":pwd": "Show current folder",
     ":clear": "Clear the scroll log",
     ":exit": "Exit the CAPE TUI",
     ":help": "Show CAPE command list or details of one command",
     ":history": "Show table of recently-run commands",
-    ":prompt-demo": "Test the clickable prompt bridge",
-    ":pwd": "Print the current working folder",
-    ":quit": "Exit the CAPE TUI",
     ":status": "Show summary of current TUI session",
+    "TAB": "complete",
+    "↑↓": "search history",
+    "Ctrl-C": "interrupt",
 }
 
 # Help-me topics for :help

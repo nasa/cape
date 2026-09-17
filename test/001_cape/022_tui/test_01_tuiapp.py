@@ -345,3 +345,60 @@ def test_12_fold_command_output(tmp_path, monkeypatch):
             assert "late output" not in log_text(app)
             assert "second output" in log_text(app)
     run_async(drive())
+
+
+# Multiple matches appear beside the editor, not in prior command output
+def test_13_completion_box_keyboard(tmp_path, monkeypatch):
+    async def drive():
+        app = make_app(tmp_path, monkeypatch)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app._input.value = "echo previous_marker"
+            await pilot.press("enter")
+            await wait_for(pilot, lambda: not app._input.disabled)
+            previous_output = list(app._log._groups[0]["output"])
+            app._input.value = ":"
+            app._input.cursor_position = 1
+            await pilot.press("tab")
+            await pilot.pause()
+            assert app._suggestions.display
+            assert app._suggestions.option_count > 1
+            assert "Enter/Tab insert" in str(app._composer_hint.content)
+            assert app._log._groups[0]["output"] == previous_output
+            assert "previous_marker" in log_text(app)
+            await pilot.press("down", "enter")
+            await pilot.pause()
+            assert app._input.value == ":clear "
+            assert not app._suggestions.display
+            assert "TAB complete" in str(app._composer_hint.content)
+            assert app._log._groups[0]["output"] == previous_output
+    run_async(drive())
+
+
+# Editing filters the list; clicking an option inserts it without executing
+def test_14_completion_box_click(tmp_path, monkeypatch):
+    async def drive():
+        app = make_app(tmp_path, monkeypatch)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app._input.value = ":"
+            app._input.cursor_position = 1
+            await pilot.press("tab")
+            await pilot.pause()
+            app._input.value = ":h"
+            app._input.cursor_position = 2
+            await pilot.pause()
+            assert app._suggestions.display
+            assert app._suggestions.option_count == 2
+            await pilot.press("escape")
+            await pilot.pause()
+            assert not app._suggestions.display
+            assert app._input.value == ":h"
+            await pilot.press("tab")
+            await pilot.pause()
+            await pilot.click("#suggestions", offset=(3, 1))
+            await pilot.pause()
+            assert app._input.value.startswith(":help")
+            assert not app._suggestions.display
+            assert app._stats["tui_commands"] == 0
+    run_async(drive())
