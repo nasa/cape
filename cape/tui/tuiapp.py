@@ -118,7 +118,7 @@ SPINNER_INTERVAL = 0.1
 # Status bar hints
 HINTS_IDLE = "ctrl+p commands"
 HINTS_BUSY = "ctrl+c interrupt"
-COMPOSER_HINT = "TAB complete · ↑↓ history · Ctrl-C interrupt"
+COMPOSER_HINT = "TAB complete · ↑↓ history · Ctrl-C interrupt · Ctrl-D exit"
 SUGGESTION_HINT = "↑↓ select · Enter/Tab insert · Esc close"
 
 
@@ -157,7 +157,8 @@ class CommandPalette(ModalScreen[str]):
 
     def on_option_list_option_selected(
             self, event: OptionList.OptionSelected) -> None:
-        self.dismiss(event.option.id)
+        cmd = event.option.id
+        self.dismiss(cmd if cmd is not None and cmd.startswith(":") else None)
 
     def action_dismiss_palette(self) -> None:
         self.dismiss(None)
@@ -387,6 +388,12 @@ class CapeTuiApp(App):
             Text of the command currently running, if any
         *_histfile*: ``None`` | :class:`str`
             Name of the command history file
+        *_json_files*: :class:`tuple`\ [:class:`str`]
+            Successfully loaded JSON files, least to most recently used
+        *_last_json_file*: ``None`` | :class:`str`
+            Most recently used JSON file
+        *_last_json_display_file*: ``None`` | :class:`str`
+            Most recent JSON file relative to its controller's root
         *_history*: :class:`list`\ [:class:`str`]
             Session command history (oldest first)
         *_hist_ix*: ``None`` | :class:`int`
@@ -408,6 +415,9 @@ class CapeTuiApp(App):
     # Key bindings: priority so they win over defaults, gated by
     # check_action() so prompts and other widgets keep their own keys
     BINDINGS = [
+        Binding(
+            "ctrl+d", "quit", "Quit",
+            show=False, priority=True),
         Binding(
             "ctrl+c", "interrupt", "Interrupt",
             show=False, priority=True),
@@ -533,6 +543,9 @@ class CapeTuiApp(App):
             "failures": 0,
             "tui_commands": 0,
             "duration": 0.0,
+            "json_files": (),
+            "last_json_file": None,
+            "last_json_display_file": None,
         }
         self._spin_ix = 0
         self._spin_timer = None
@@ -541,6 +554,9 @@ class CapeTuiApp(App):
         self._hist_ix = None
         self._hist_draft = ""
         self._load_history()
+        # CAPE commands run in threads and share the CLI controller cache.
+        from ..cfdx import cli
+        self._sync_json_cache(tuple(cli.CNTL_CACHE))
         # Create tab-completer hooked to the editor
         self._completer = CapeTuiCompleter(self._frontdesk_cls, self)
         # Track result data; visible context and hints are below the composer
@@ -602,6 +618,58 @@ class CapeTuiApp(App):
     # Post one line to the scroll log from another thread
     def _post_to_log(self, txt) -> None:
         self.call_from_thread(self._log.write, txt)
+
+    def _sync_json_cache(self, paths: tuple[str, ...]) -> None:
+        r"""Record the CLI cache's JSON files in recency order
+
+        :Call:
+            >>> app._sync_json_cache(paths)
+        :Inputs:
+            *paths*: :class:`tuple`\ [:class:`str`]
+                Absolute JSON paths, least to most recently used
+        :Outputs:
+            ``None``
+        """
+        self._json_files = paths
+        self._last_json_file = paths[-1] if paths else None
+        self._last_json_display_file = None
+        if self._last_json_file is not None:
+            # Keep the canonical path for tracking, but show the path
+            # relative to the controller's run-matrix root.
+            from ..cfdx import cli
+            entry = cli.CNTL_CACHE.get(self._last_json_file)
+            root = getattr(entry[1], "RootDir", None) if entry else None
+            if root:
+                try:
+                    self._last_json_display_file = os.path.relpath(
+                        self._last_json_file, root)
+                except ValueError:
+                    pass
+            if self._last_json_display_file is None:
+                self._last_json_display_file = self._last_json_file
+        self._stats["json_files"] = paths
+        self._stats["last_json_file"] = self._last_json_file
+        self._stats["last_json_display_file"] = \
+            self._last_json_display_file
+        self._update_composer_hint()
+
+    def _update_composer_hint(self) -> None:
+        r"""Show completion keys or the most recently used CAPE JSON
+
+        :Call:
+            >>> app._update_composer_hint()
+        :Outputs:
+            ``None``
+        """
+        if self._suggestions.display:
+            hint = SUGGESTION_HINT
+        elif self._last_json_display_file:
+            hint = Text.assemble(
+                ("CAPE file: ", "#858585"),
+                (self._last_json_display_file, TN_BLUE))
+        else:
+            hint = COMPOSER_HINT
+        self._composer_hint.update(hint)
 
     # Show a result in the editor frame (subtitle and class)
     def _show_result(self, ierr: int) -> None:
@@ -787,12 +855,12 @@ class CapeTuiApp(App):
             for j, match in enumerate(matches))
         self._suggestions.highlighted = 0
         self._suggestions.display = True
-        self._composer_hint.update(SUGGESTION_HINT)
+        self._update_composer_hint()
 
     def _hide_suggestions(self) -> None:
         self._suggestions.display = False
         self._suggestion_matches = []
-        self._composer_hint.update(COMPOSER_HINT)
+        self._update_composer_hint()
 
     def _accept_match(self, match: str, start: int, pos: int) -> None:
         # Unique matches from get_suggestions() already have a suffix.
@@ -1037,6 +1105,10 @@ class CapeTuiApp(App):
             sys.stdout = stdout_old
             sys.stderr = stderr_old
             writer.flush()
+            # Worker threads share this module cache with the TUI, but UI
+            # state must be updated on Textual's app thread.
+            self.call_from_thread(
+                self._sync_json_cache, tuple(cli.CNTL_CACHE))
         # Output
         return int(ierr or 0)
 

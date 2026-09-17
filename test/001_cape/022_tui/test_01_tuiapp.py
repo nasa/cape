@@ -1,6 +1,8 @@
 # Standard library
 import asyncio
+from collections import OrderedDict
 import os
+from types import SimpleNamespace
 
 # Third-party
 import pytest
@@ -12,6 +14,7 @@ textual = pytest.importorskip("textual")
 from cape.cfdx.cli import CfdxFrontDesk  # noqa: E402
 from cape.tui.tuiapp import (  # noqa: E402
     CapeTuiApp, CommandPalette, HINTS_IDLE)
+from cape.tui.tuiutils import session_stats_panel  # noqa: E402
 
 
 # Run an async coroutine without needing a pytest async plugin
@@ -303,11 +306,21 @@ def test_11_command_palette(tmp_path, monkeypatch):
             assert app._input.value == "draft"
             await pilot.press("ctrl+p")
             await pilot.pause()
-            app.screen.query_one("#command-list").highlighted = 3
+            app.screen.query_one("#command-list").highlighted = 2
             await pilot.press("enter")
             await pilot.pause()
             assert not isinstance(app.screen, CommandPalette)
             assert app._history[-1] == ":help"
+            app._input.value = "keep this draft"
+            history_before = list(app._history)
+            await pilot.press("ctrl+p")
+            await pilot.pause()
+            app.screen.query_one("#command-list").highlighted = 7
+            await pilot.press("enter")
+            await pilot.pause()
+            assert not isinstance(app.screen, CommandPalette)
+            assert app._input.value == "keep this draft"
+            assert app._history == history_before
     run_async(drive())
 
 
@@ -368,7 +381,7 @@ def test_13_completion_box_keyboard(tmp_path, monkeypatch):
             assert "previous_marker" in log_text(app)
             await pilot.press("down", "enter")
             await pilot.pause()
-            assert app._input.value == ":clear "
+            assert app._input.value == ":pwd "
             assert not app._suggestions.display
             assert "TAB complete" in str(app._composer_hint.content)
             assert app._log._groups[0]["output"] == previous_output
@@ -401,4 +414,85 @@ def test_14_completion_box_click(tmp_path, monkeypatch):
             assert app._input.value.startswith(":help")
             assert not app._suggestions.display
             assert app._stats["tui_commands"] == 0
+    run_async(drive())
+
+
+# Ctrl-D is an additional quit shortcut alongside Textual's Ctrl-Q
+def test_15_ctrl_d_quits(tmp_path, monkeypatch):
+    async def drive():
+        app = make_app(tmp_path, monkeypatch)
+        async with app.run_test() as pilot:
+            assert app.is_running
+            await pilot.press("ctrl+d")
+            await pilot.pause()
+            assert not app.is_running
+    run_async(drive())
+
+
+# In-process CLI reads update the TUI's loaded files and recency on cache hits
+def test_16_json_cache_tracking(tmp_path, monkeypatch):
+    from cape.cfdx import cli
+
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    fname_a = run_dir / "a.json"
+    fname_b = run_dir / "b.json"
+    fname_a.write_text("{}")
+    fname_b.write_text("{}")
+    monkeypatch.setattr(cli, "CNTL_CACHE", OrderedDict())
+    monkeypatch.setattr(
+        cli, "importlib", SimpleNamespace(import_module=lambda name:
+                                          SimpleNamespace(Cntl=lambda f:
+                                                          SimpleNamespace(
+                                                              RootDir=str(
+                                                                  tmp_path)))))
+
+    def fake_main(argv=None):
+        cli.read_cntl_cache(argv[-1], solver="cfdx")
+        return 0
+
+    monkeypatch.setattr(cli, "main", fake_main)
+
+    async def drive():
+        app = make_app(tmp_path, monkeypatch)
+        async with app.run_test() as pilot:
+            assert app._json_files == ()
+            for fname, expected in (
+                    (fname_a, (fname_a,)),
+                    (fname_b, (fname_a, fname_b)),
+                    (fname_a, (fname_b, fname_a))):
+                app._input.value = f"cape -f {fname}"
+                await pilot.press("enter")
+                await wait_for(pilot, lambda: not app._input.disabled)
+                assert app._json_files == tuple(map(str, expected))
+                assert app._last_json_file == str(fname)
+                assert app._last_json_display_file == os.path.join(
+                    "run", fname.name)
+                assert str(app._composer_hint.content) == \
+                    f"CAPE file: run/{fname.name}"
+            # Completion instructions temporarily take precedence, then
+            # the file context returns when the suggestions are closed.
+            app._input.value = ":"
+            app._input.cursor_position = 1
+            await pilot.press("tab")
+            await pilot.pause()
+            assert "Enter/Tab insert" in str(app._composer_hint.content)
+            await pilot.press("escape")
+            await pilot.pause()
+            assert str(app._composer_hint.content) == "CAPE file: run/a.json"
+            app._input.value = ""
+            # A missing file does not alter the successful-use order.
+            app._input.value = f"cape -f {tmp_path / 'missing.json'}"
+            await pilot.press("enter")
+            await wait_for(pilot, lambda: not app._input.disabled)
+            assert app._json_files == (str(fname_b), str(fname_a))
+            assert app._last_json_file == str(fname_a)
+            stats = app.finalize_stats()
+            assert stats["last_json_file"] == str(fname_a)
+            assert stats["last_json_display_file"] == "run/a.json"
+            assert stats["json_files"] == (str(fname_b), str(fname_a))
+            panel = session_stats_panel(stats, title="CAPE TUI summary")
+            labels = list(panel.renderable.columns[0].cells)
+            values = list(panel.renderable.columns[1].cells)
+            assert values[labels.index("JSON file:")] == "run/a.json (+1)"
     run_async(drive())

@@ -372,7 +372,8 @@ def session_stats_panel(
         >>> panel = session_stats_panel(stats, histfile, title="Bye")
     :Inputs:
         *stats*: :class:`dict`
-            Session statistics (``commands``, ``failures``, etc.)
+            Session statistics (``commands``, ``failures``, etc.);
+            ``json_files`` and ``last_json_file`` add JSON context
         *histfile*: {``None``} | :class:`str`
             Name of command history file
         *title*: {``"CAPE TUI session"``} | :class:`str`
@@ -394,6 +395,13 @@ def session_stats_panel(
     table.add_row("Failures:", str(stats.get("failures", 0)))
     table.add_row("TUI cmds:", str(stats.get("tui_commands", 0)))
     table.add_row("Duration:", sprintf_duration(stats.get("duration", 0.0)))
+    # Show the active JSON file and how many other files were loaded.
+    last_json = stats.get("last_json_display_file") or \
+        stats.get("last_json_file")
+    if last_json:
+        other_files = max(0, len(stats.get("json_files", ())) - 1)
+        suffix = f" (+{other_files})" if other_files else ""
+        table.add_row("JSON file:", f"{last_json}{suffix}")
     # Optional history
     if histfile:
         table.add_row("History:", histfile)

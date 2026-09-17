@@ -60,6 +60,12 @@ def main(cls: Optional[type] = None) -> Tuple[int, dict]:
             * ``failures``: :class:`int` number of failed commands
             * ``tui_commands``: :class:`int` number of TUI meta-cmds
             * ``duration``: :class:`float` session wall time (sec)
+            * ``json_files``: :class:`tuple` of loaded JSON paths,
+              least to most recently used
+            * ``last_json_file``: :class:`str` | ``None`` most recent
+              absolute JSON path
+            * ``last_json_display_file``: :class:`str` | ``None`` path
+              displayed relative to the controller's root
     """
     # Delayed imports of textual-dependent modules
     from .tuiapp import CapeTuiApp

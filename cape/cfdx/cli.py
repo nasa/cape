@@ -8,6 +8,7 @@ executable called ``cape``.
 """
 
 # Standard library modules
+from collections import OrderedDict
 import importlib
 import os
 import sys
@@ -80,8 +81,8 @@ IMPLIED_CMDNAMES = {
     "unmark": "unmark",
 }
 
-# Cached *cntl* instances
-CNTL_CACHE = {}
+# Cached *cntl* instances, oldest to most recently used
+CNTL_CACHE = OrderedDict()
 
 
 # Convert True -> 1 else txt -> int(txt)
@@ -4336,6 +4337,9 @@ def read_cntl_cache(fname: str | None, solver: str | None = None) -> CntlBase:
         cntl = cntlmod.Cntl(fname)
         # Cache this version
         CNTL_CACHE[fabs] = (os.path.getmtime(fabs), cntl)
+    # A cache hit is still a use of this JSON file. Keep the last key
+    # as the most recently used file for in-process clients such as the TUI.
+    CNTL_CACHE.move_to_end(fabs)
     # Output
     return cntl
 
