@@ -4,7 +4,7 @@ r"""
 
 This module contains the OpenCode-style terminal user interface to
 CAPE, built on the optional ``textual`` package. It provides, in one
-persistent app with a scroll log and a pinned, bordered editor:
+persistent app with a scroll log and a pinned command composer:
 
 * **In-process CAPE commands**
     Commands starting with ``cape``, ``pycart``, ``pyfun``, etc. run
@@ -41,10 +41,9 @@ persistent app with a scroll log and a pinned, bordered editor:
     and ``:exit`` / ``:quit``.
 
 * **OpenCode-style chrome**
-    Rounded, state-aware editor border (context on the left, last
-    exit status on the right), a status bar with a live spinner and
-    elapsed time while a command runs, backgrounded command bubbles
-    in the scroll log, and the ``tokyo-night`` theme.
+    Dark command composer, context and command discovery below the
+    prompt, a live spinner while a command runs, and backgrounded
+    command bubbles in the scroll log. Ctrl-P opens the command picker.
 
 History (loaded from and saved to the CAPE TUI history file) is
 recalled with the up/down arrow keys.
@@ -73,7 +72,9 @@ from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
-from textual.widgets import Input, RichLog, Static
+from textual.screen import ModalScreen
+from textual.widgets import Input, OptionList, RichLog, Static
+from textual.widgets.option_list import Option
 
 # CAPE imports
 from ..promptutils import _new_prompt_widget
@@ -83,6 +84,7 @@ from ..ui.promptutils import CAPE_EXECS, CfdxCompleter
 from .tuiutils import (
     CAPE_HISTORY_LENGTH,
     META_CMDS,
+    META_CMD_DESCS,
     META_HELP_TOPICS,
     TN_BLUE,
     TN_DIM,
@@ -90,7 +92,6 @@ from .tuiutils import (
     TN_ORANGE,
     TN_RED,
     TN_SURFACE,
-    banner_panel,
     cmd_help_panel,
     cmd_table,
     get_dirname,
@@ -108,15 +109,56 @@ REGEX_CAPE_CLI = re.compile(rf"\$?\s*({'|'.join(CAPE_EXECS)})( |$)")
 EXIT_CMDS = (":exit", ":quit", "exit", "quit", "exit()", "quit()")
 
 # Placeholder for the idle editor
-INPUT_PLACEHOLDER = "cape command (TAB completes · Ctrl-C interrupts)"
+INPUT_PLACEHOLDER = "cape command"
 
 # Busy spinner animation in the status bar
 SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 SPINNER_INTERVAL = 0.1
 
 # Status bar hints
-HINTS_IDLE = "TAB complete · ^C interrupt · :exit"
-HINTS_BUSY = "^C interrupt"
+HINTS_IDLE = "ctrl+p commands"
+HINTS_BUSY = "ctrl+c interrupt"
+
+
+class CommandPalette(ModalScreen[str]):
+    r"""Small picker for the TUI's built-in commands."""
+
+    BINDINGS = [
+        Binding("escape", "dismiss_palette", "Close", show=False),
+        Binding("ctrl+p", "dismiss_palette", "Close", show=False),
+    ]
+
+    CSS = """
+    CommandPalette {
+        align: center middle;
+        background: #000000 65%;
+    }
+    #command-list {
+        width: 60;
+        max-width: 90%;
+        height: auto;
+        max-height: 70%;
+        background: #202020;
+        border-left: solid #7aa2f7;
+        padding: 1 2;
+    }
+    #command-list > .option-list--option-highlighted {
+        background: #343a48;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield OptionList(
+            *(Option(f"{cmd:<15} {META_CMD_DESCS[cmd]}", id=cmd)
+              for cmd in META_CMDS),
+            id="command-list")
+
+    def on_option_list_option_selected(
+            self, event: OptionList.OptionSelected) -> None:
+        self.dismiss(event.option.id)
+
+    def action_dismiss_palette(self) -> None:
+        self.dismiss(None)
 
 
 # Inject an exception into a running thread
@@ -257,7 +299,7 @@ class LogWriter(io.TextIOBase):
 class CapeTuiApp(App):
     r"""OpenCode-style CAPE terminal user interface
 
-    A scroll log plus a pinned, bordered editor. Commands run in
+    A scroll log plus a pinned command composer. Commands run in
     worker threads: CAPE CLI commands in-process with redirected
     :data:`sys.stdout`/:data:`sys.stderr`, other commands as
     subprocesses in their own process group. Interactive prompts mount
@@ -269,7 +311,7 @@ class CapeTuiApp(App):
         *_input*: :class:`textual.widgets.Input`
             Command editor
         *_status*: :class:`textual.widgets.Static`
-            One-line status bar below the editor
+            One-line status bar below the composer
         *_prompt_widget*: ``None`` | :class:`textual.widget.Widget`
             Currently mounted interactive prompt, if any
         *_completer*: ``None`` | :class:`CapeTuiCompleter`
@@ -313,35 +355,54 @@ class CapeTuiApp(App):
                 priority=True),
         Binding("down", "history_next", "Next command", show=False,
                 priority=True),
+        Binding("ctrl+p", "command_palette", "Commands", show=False,
+                priority=True),
     ]
 
     # Style settings
-    CSS = (
-        "#body {\n"
-        "    height: 100%;\n"
-        "}\n"
-        "RichLog {\n"
-        "    height: 1fr;\n"
-        "    padding: 0 1;\n"
-        "}\n"
-        "Input {\n"
-        "    border: round $primary;\n"
-        "}\n"
-        "Input.busy {\n"
-        "    border: round $warning;\n"
-        "}\n"
-        "Input.ok {\n"
-        "    border-subtitle-color: $success;\n"
-        "}\n"
-        "Input.fail {\n"
-        "    border-subtitle-color: $error;\n"
-        "}\n"
-        "#status-bar {\n"
-        "    height: 1;\n"
-        "    padding: 0 1;\n"
-        "    background: $surface;\n"
-        "    color: $text-muted;\n"
-        "}\n")
+    CSS = """
+    App, #body, RichLog {
+        background: #0d0d0d;
+        color: #d6d6d6;
+    }
+    #body {
+        height: 100%;
+    }
+    RichLog {
+        height: 1fr;
+        padding: 1 2;
+        scrollbar-color: #343434;
+        scrollbar-color-hover: #565f89;
+    }
+    #composer {
+        height: 3;
+        margin: 0 2;
+        padding: 0 1;
+        background: #202020;
+        border-left: solid #7aa2f7;
+    }
+    #composer.busy {
+        border-left: solid #ff9e64;
+    }
+    #prompt-input {
+        height: 1;
+        border: none;
+        background: transparent;
+        color: #eeeeee;
+        padding: 0;
+    }
+    #composer-hint {
+        height: 1;
+        color: #858585;
+    }
+    #status-bar {
+        height: 2;
+        margin: 0 2;
+        padding: 0 0 1 0;
+        background: #0d0d0d;
+        color: #888888;
+    }
+    """
 
     def __init__(self, cls: type, *a, **kw):
         r"""Create the app with *cls* as the CAPE front-desk parser"""
@@ -353,22 +414,26 @@ class CapeTuiApp(App):
     def compose(self) -> ComposeResult:
         with Vertical(id="body"):
             yield RichLog(id="log", auto_scroll=True)
-            yield Input(placeholder=INPUT_PLACEHOLDER, id="prompt-input")
+            with Vertical(id="composer"):
+                yield Input(placeholder=INPUT_PLACEHOLDER, id="prompt-input")
+                yield Static("TAB complete · ↑↓ history · Ctrl-C interrupt",
+                             id="composer-hint")
             yield Static(id="status-bar")
 
     def on_mount(self) -> None:
         # Theme and window title
-        self.theme = "tokyo-night"
         self.title = "CAPE TUI"
         # Save widget references
         self._log = self.query_one("#log", RichLog)
         self._input = self.query_one("#prompt-input", Input)
+        self._composer = self.query_one("#composer", Vertical)
         self._status = self.query_one("#status-bar", Static)
         # No mounted prompt or running command so far
         self._prompt_widget = None
         self._proc = None
         self._worker = None
         self._running_cmd = None
+        self._last_exit = None
         # Session clock and statistics
         self._t0_cmd = 0.0
         self._t0_session = time.perf_counter()
@@ -387,11 +452,10 @@ class CapeTuiApp(App):
         self._load_history()
         # Create tab-completer hooked to the editor
         self._completer = CapeTuiCompleter(self._frontdesk_cls, self)
-        # Editor frame: context on the left, hints in the status bar
+        # Track result data; visible context and hints are below the composer
         self._input.border_title = self._context_title()
         self._update_status()
-        # Banner
-        self._log.write(banner_panel(self._histfile))
+        self.call_after_refresh(self._update_status)
         # Focus the editor
         self._input.focus()
 
@@ -450,7 +514,8 @@ class CapeTuiApp(App):
 
     # Show a result in the editor frame (subtitle and class)
     def _show_result(self, ierr: int) -> None:
-        # Editor frame: subtitle = last result
+        # Keep the last result available on the input widget
+        self._last_exit = ierr
         self._input.set_class(ierr == 0, "ok")
         self._input.set_class(ierr != 0, "fail")
         icon = "✓" if ierr == 0 else "✗"
@@ -466,6 +531,7 @@ class CapeTuiApp(App):
             self._spin_timer = None
         self._running_cmd = None
         self._input.remove_class("busy")
+        self._composer.remove_class("busy")
         # Show the result in the editor frame
         self._show_result(ierr)
         # Re-enable the editor
@@ -473,7 +539,7 @@ class CapeTuiApp(App):
         self._input.placeholder = INPUT_PLACEHOLDER
         self._input.focus()
 
-    # Title for the editor border: host and short folder
+    # Short host and folder context for the input widget
     def _context_title(self) -> str:
         hostname = socket.gethostname().split('.')[0]
         return f" CAPE {hostname}:{get_dirname()} "
@@ -484,19 +550,31 @@ class CapeTuiApp(App):
         width = max(10, self._status.size.width)
         # Check state
         if self._running_cmd is None:
-            # Idle: short folder on the left, key hints on the right
-            left = Text(f" {get_dirname()}")
-            right = Text(HINTS_IDLE)
+            # Full path below the composer, with command discovery on right
+            left = Text(os.getcwd(), style="#858585")
+            right = Text(HINTS_IDLE, style="#d6d6d6")
+            if self._last_exit is not None:
+                color = TN_GREEN if self._last_exit == 0 else TN_RED
+                icon = "✓" if self._last_exit == 0 else "✗"
+                right = Text.assemble(
+                    (f"{icon} exit {self._last_exit}  ", color), right)
         else:
             # Busy: spinning frame, command text, wall time
             frame = SPINNER_FRAMES[self._spin_ix % len(SPINNER_FRAMES)]
             dt = time.perf_counter() - self._t0_cmd
             left = Text.assemble(
-                (f" {frame} ", f"bold {TN_ORANGE}"),
+                (f"{frame} ", f"bold {TN_ORANGE}"),
                 (f"running '{self._running_cmd}' · {dt:.1f}s", ""))
             right = Text(HINTS_BUSY, style=TN_ORANGE)
+        # Preserve the command hint on narrow terminals; keep the useful
+        # tail of the path or running command when space is tight.
+        available = max(1, width - len(right) - 1)
+        if len(left) > available:
+            tail = left.plain[-(available - 1):] if available > 1 else ""
+            left = Text("…" + tail,
+                        style=TN_ORANGE if self._running_cmd else "#858585")
         # Pad the gap between left and right
-        pad = max(1, width - len(left) - len(right) - 1)
+        pad = max(1, width - len(left) - len(right))
         self._status.update(Text.assemble(left, " " * pad, right))
 
     # Advance the busy spinner one frame
@@ -536,17 +614,33 @@ class CapeTuiApp(App):
             self,
             action: str,
             parameters: Tuple[object, ...]) -> Optional[bool]:
+        # Let a modal screen handle its own keys (notably Escape/Ctrl-P).
+        if isinstance(self.screen, CommandPalette):
+            return False
+        if action == "command_palette" and self._running_cmd is not None:
+            return False
         # While a prompt is mounted, it owns TAB, Ctrl-C, and arrows
         if action in (
                 "tab_complete", "interrupt", "history_prev",
-                "history_next"):
+                "history_next", "command_palette"):
             if self._prompt_widget is not None:
                 return False
             # TAB and history recall only work in the active editor
-            if action != "interrupt":
+            if action not in ("interrupt", "command_palette"):
                 return self._input.has_focus and not self._input.disabled
         # All other actions enabled
         return True
+
+    def action_command_palette(self) -> None:
+        r"""Open a picker for built-in TUI commands (Ctrl-P)."""
+        self.push_screen(CommandPalette(), self._palette_selected)
+
+    def _palette_selected(self, cmd: Optional[str]) -> None:
+        # Selecting a command executes it just like typing it in the editor.
+        if cmd is not None:
+            self._submit_command(cmd)
+        if not self._input.disabled:
+            self._input.focus()
 
     # Complete the current word of the editor
     def action_tab_complete(self) -> None:
@@ -676,8 +770,10 @@ class CapeTuiApp(App):
 
     # Run one submitted line
     def on_input_submitted(self, event: Input.Submitted) -> None:
+        self._submit_command(event.value.strip())
+
+    def _submit_command(self, cmd: str) -> None:
         # Get command text and clear the editor
-        cmd = event.value.strip()
         self._input.value = ""
         # Check for empty command
         if not cmd:
@@ -709,11 +805,12 @@ class CapeTuiApp(App):
     def _start_command(self, cmd: str) -> None:
         # Count it
         self._stats["commands"] += 1
-        # Busy indicators: warning border, spinner in the status bar
+        # Busy indicators: accent bar and spinner in the status bar
         self._input.disabled = True
         self._input.placeholder = "running..."
         self._input.remove_class("ok", "fail")
         self._input.add_class("busy")
+        self._composer.add_class("busy")
         self._running_cmd = cmd
         self._t0_cmd = time.perf_counter()
         self._spin_ix = 0

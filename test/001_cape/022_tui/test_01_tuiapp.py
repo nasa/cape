@@ -10,7 +10,8 @@ textual = pytest.importorskip("textual")
 
 # Local imports
 from cape.cfdx.cli import CfdxFrontDesk  # noqa: E402
-from cape.tui.tuiapp import CapeTuiApp, HINTS_IDLE  # noqa: E402
+from cape.tui.tuiapp import (  # noqa: E402
+    CapeTuiApp, CommandPalette, HINTS_IDLE)
 
 
 # Run an async coroutine without needing a pytest async plugin
@@ -279,4 +280,32 @@ def test_10_meta_unknown(tmp_path, monkeypatch):
             assert "Unrecognized TUI command" in log_text(app)
             assert "exit 16" in str(app._input.border_subtitle)
             assert app._input.has_class("fail")
+    run_async(drive())
+
+
+# Ctrl-P lists commands, Escape cancels, Enter runs the selected command
+def test_11_command_palette(tmp_path, monkeypatch):
+    async def drive():
+        app = make_app(tmp_path, monkeypatch)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            assert "TAB complete" in str(
+                app.query_one("#composer-hint").content)
+            assert os.getcwd() in status_text(app)
+            app._input.value = "draft"
+            await pilot.press("ctrl+p")
+            await pilot.pause()
+            assert isinstance(app.screen, CommandPalette)
+            assert app.screen.query_one("#command-list").option_count > 0
+            await pilot.press("escape")
+            await pilot.pause()
+            assert not isinstance(app.screen, CommandPalette)
+            assert app._input.value == "draft"
+            await pilot.press("ctrl+p")
+            await pilot.pause()
+            app.screen.query_one("#command-list").highlighted = 3
+            await pilot.press("enter")
+            await pilot.pause()
+            assert not isinstance(app.screen, CommandPalette)
+            assert app._history[-1] == ":help"
     run_async(drive())

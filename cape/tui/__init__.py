@@ -8,7 +8,8 @@ the optional ``textual`` package and launched with:
 
 It provides the same core features as :mod:`cape.ui` -- CAPE-aware
 tab-completion and a dedicated history file -- inside a persistent app
-with a scroll log, a bordered editor, and a status bar:
+with a scroll log, a pinned dark composer, and context below the prompt.
+Ctrl-P opens a picker for the built-in TUI commands:
 
 * **In-process CAPE commands**
     Commands starting with ``cape``, ``pycart``, ``pyfun``, etc. run
