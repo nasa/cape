@@ -309,3 +309,39 @@ def test_11_command_palette(tmp_path, monkeypatch):
             assert not isinstance(app.screen, CommandPalette)
             assert app._history[-1] == ":help"
     run_async(drive())
+
+
+# Clicking the blue chevron folds and restores only that command's output
+def test_12_fold_command_output(tmp_path, monkeypatch):
+    async def drive():
+        app = make_app(tmp_path, monkeypatch)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            assert app._composer.styles.padding.top == 1
+            assert app._log.styles.padding.bottom == 0
+            app._input.value = "echo fold_marker"
+            await pilot.press("enter")
+            await wait_for(pilot, lambda: not app._input.disabled)
+            assert "fold_marker" in log_text(app)
+            assert "exit 0" in log_text(app)
+            await pilot.click("#log", offset=(2, 1))
+            await pilot.pause()
+            assert app._log._groups[0]["collapsed"]
+            assert "exit 0" not in log_text(app)
+            assert "▸ echo fold_marker" in log_text(app)
+            app._log.write("late output")
+            assert "late output" not in log_text(app)
+            await pilot.click("#log", offset=(2, 1))
+            await pilot.pause()
+            assert not app._log._groups[0]["collapsed"]
+            assert "exit 0" in log_text(app)
+            assert "late output" in log_text(app)
+            app._log.write_command(
+                "second", app._bubble_text("second"),
+                app._bubble_text("second", folded=True))
+            app._log.write("second output")
+            await pilot.click("#log", offset=(2, 1))
+            await pilot.pause()
+            assert "late output" not in log_text(app)
+            assert "second output" in log_text(app)
+    run_async(drive())

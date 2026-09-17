@@ -43,7 +43,8 @@ persistent app with a scroll log and a pinned command composer:
 * **OpenCode-style chrome**
     Dark command composer, context and command discovery below the
     prompt, a live spinner while a command runs, and backgrounded
-    command bubbles in the scroll log. Ctrl-P opens the command picker.
+    command bubbles in the scroll log. Ctrl-P opens the command picker;
+    clicking a blue command chevron folds or expands its output.
 
 History (loaded from and saved to the CAPE TUI history file) is
 recalled with the up/down arrow keys.
@@ -295,6 +296,67 @@ class LogWriter(io.TextIOBase):
             self.app._post_to_log(Text.from_ansi(buf))
 
 
+class CommandLog(RichLog):
+    r"""Scroll log whose command markers fold their associated output."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._groups = []
+        self._header_lines = {}
+        self._replaying = False
+
+    def write_command(self, cmd: str, header: Text, folded: Text) -> None:
+        group = {"cmd": cmd, "header": header, "folded": folded,
+                 "output": [], "collapsed": False}
+        self._groups.append(group)
+        self._write_header(len(self._groups) - 1)
+
+    def _write_header(self, index: int) -> None:
+        group = self._groups[index]
+        start = len(self.lines)
+        super().write(group["folded"] if group["collapsed"]
+                      else group["header"])
+        for line in range(start, len(self.lines)):
+            self._header_lines[line] = index
+
+    def write(self, content, *args, **kwargs):
+        if self._groups and not self._replaying:
+            group = self._groups[-1]
+            group["output"].append((content, args, kwargs))
+            if group["collapsed"]:
+                return self
+        return super().write(content, *args, **kwargs)
+
+    def clear(self):
+        if not self._replaying:
+            self._groups.clear()
+        self._header_lines.clear()
+        return super().clear()
+
+    def on_click(self, event) -> None:
+        # Only the blue chevron is an affordance, not the whole log row.
+        if event.x != self.styles.padding.left:
+            return
+        line = int(self.scroll_y) + event.y - self.styles.padding.top
+        index = self._header_lines.get(line)
+        if index is None:
+            return
+        self._groups[index]["collapsed"] ^= True
+        old_y = self.scroll_y
+        self._replaying = True
+        try:
+            super().clear()
+            self._header_lines.clear()
+            for j, group in enumerate(self._groups):
+                self._write_header(j)
+                if not group["collapsed"]:
+                    for content, args, kwargs in group["output"]:
+                        super().write(content, *args, **kwargs)
+        finally:
+            self._replaying = False
+        self.scroll_to(y=old_y, animate=False, immediate=True)
+
+
 # Main CAPE TUI app
 class CapeTuiApp(App):
     r"""OpenCode-style CAPE terminal user interface
@@ -370,14 +432,14 @@ class CapeTuiApp(App):
     }
     RichLog {
         height: 1fr;
-        padding: 1 2;
+        padding: 1 2 0 2;
         scrollbar-color: #343434;
         scrollbar-color-hover: #565f89;
     }
     #composer {
-        height: 3;
+        height: 4;
         margin: 0 2;
-        padding: 0 1;
+        padding: 1 1 0 1;
         background: #202020;
         border-left: solid #7aa2f7;
     }
@@ -413,7 +475,7 @@ class CapeTuiApp(App):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="body"):
-            yield RichLog(id="log", auto_scroll=True)
+            yield CommandLog(id="log", auto_scroll=True)
             with Vertical(id="composer"):
                 yield Input(placeholder=INPUT_PLACEHOLDER, id="prompt-input")
                 yield Static("TAB complete · ↑↓ history · Ctrl-C interrupt",
@@ -424,7 +486,7 @@ class CapeTuiApp(App):
         # Theme and window title
         self.title = "CAPE TUI"
         # Save widget references
-        self._log = self.query_one("#log", RichLog)
+        self._log = self.query_one("#log", CommandLog)
         self._input = self.query_one("#prompt-input", Input)
         self._composer = self.query_one("#composer", Vertical)
         self._status = self.query_one("#status-bar", Static)
@@ -589,9 +651,9 @@ class CapeTuiApp(App):
             self._update_status()
 
     # Command echo rendered as an OpenCode-style message bubble
-    def _bubble_text(self, cmd: str) -> Text:
+    def _bubble_text(self, cmd: str, folded: bool = False) -> Text:
         # Pad to the log's text width (2 padding + 1 scrollbar)
-        head = "❯ "
+        head = "▸ " if folded else "❯ "
         width = max(10, self._log.size.width - 3)
         pad = max(1, width - len(head) - len(cmd))
         return Text.assemble(
@@ -782,7 +844,8 @@ class CapeTuiApp(App):
         self._record_history(cmd)
         self._hist_ix = None
         # Echo the command in the log as a bubble
-        self._log.write(self._bubble_text(cmd))
+        self._log.write_command(
+            cmd, self._bubble_text(cmd), self._bubble_text(cmd, folded=True))
         # Check for exit commands
         if cmd in EXIT_CMDS:
             self.exit()
@@ -957,7 +1020,7 @@ class CapeTuiApp(App):
                 txt, vdef, vopt, prompt, oneline, on_answer=on_answer)
             self._prompt_widget = widget
             body = self.query_one("#body", Vertical)
-            body.mount(widget, before=self._input)
+            body.mount(widget, before=self._composer)
 
         # Mount from the worker thread and wait for the answer
         self.call_from_thread(mount)
