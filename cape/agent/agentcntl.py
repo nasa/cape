@@ -83,6 +83,10 @@ Slow commands such as report generation can be run as background
 tasks using the tool's `background` option; their full results are
 delivered in a follow-up message once the task completes.
 
+Some tools such as `view_subfig` return images for you to look at;
+those images arrive in the message immediately after the tool result,
+so wait for that message before describing or analyzing the image.
+
 Do not call the same tool again with the same or very similar arguments.
 
 In most cases, do not create a table of results for each case; the user will
@@ -550,6 +554,10 @@ class AgentCntl:
                             "reason": "User interrupted tool call",
                         }
                     print(HLINE)
+                # Pull out any images for multimodal delivery
+                images = None
+                if isinstance(tool_result, dict):
+                    images = tool_result.pop("images", None)
                 # Display output if turned on
                 if self.opts.get_opt("ShowToolResult"):
                     show_tool_result(tool_result)
@@ -562,6 +570,9 @@ class AgentCntl:
                         "content": dumps(tool_result),
                     }
                 )
+                # Attach images so the model can look at them
+                if images:
+                    messages.append(genr8_image_message(images))
                 # Exit if interrupted
                 if user_interrupt:
                     break
@@ -827,6 +838,60 @@ def _strip_background(cmdlist: list) -> tuple[list, bool]:
         return cmdlist, True
     # No background request
     return cmdlist, False
+
+
+# Package tool images as a multimodal user message
+def genr8_image_message(images: list) -> dict:
+    r"""Build a user message carrying image content for the model
+
+    :Call:
+        >>> msg = genr8_image_message(images)
+    :Inputs:
+        *images*: :class:`list`
+            Image entries from a tool result; each item is either a
+            :class:`dict` with *url* (and optional *case*/*file*) or a
+            bare data-URL :class:`str`
+    :Outputs:
+        *msg*: :class:`dict`
+            Multimodal user message for the chat API
+    """
+    # Introductory text so the model knows what it's seeing
+    content = [
+        {
+            "type": "text",
+            "text": (
+                "The previous tool call returned the CAPE report "
+                "subfigure image(s) below for you to look at."
+            ),
+        }
+    ]
+    # Loop through images
+    for img in images:
+        # Parse the entry
+        if isinstance(img, dict):
+            url = img.get("url")
+            case = img.get("case")
+            fimg = img.get("file")
+        else:
+            url = img
+            case = None
+            fimg = None
+        # Skip malformed entries
+        if not url:
+            continue
+        # Label the image when possible
+        if case is not None or fimg is not None:
+            content.append({
+                "type": "text",
+                "text": f"Case {case}: {fimg}",
+            })
+        # Attach the image
+        content.append({
+            "type": "image_url",
+            "image_url": {"url": url},
+        })
+    # Output
+    return {"role": "user", "content": content}
 
 
 # Format the model's response
