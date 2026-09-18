@@ -496,3 +496,27 @@ def test_16_json_cache_tracking(tmp_path, monkeypatch):
             values = list(panel.renderable.columns[1].cells)
             assert values[labels.index("JSON file:")] == "run/a.json (+1)"
     run_async(drive())
+
+
+# Dragging over log text selects it and copies it to the clipboard
+def test_17_drag_select_copies(tmp_path, monkeypatch):
+    async def drive():
+        app = make_app(tmp_path, monkeypatch)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app._log.write("copyable one")
+            app._log.write("copyable two")
+            await pilot.pause()
+            # Log padding (top=1, left=2) shifts content coordinates
+            await pilot.mouse_down("#log", offset=(2, 1))
+            await pilot.mouse_up("#log", offset=(14, 2))
+            await pilot.pause()
+            text = app.screen.get_selected_text()
+            assert text == "copyable one\ncopyable two"
+            assert app._clipboard == text
+            # The selection highlight survives until the next click
+            assert app._log.text_selection is not None
+            await pilot.click("#body", offset=(5, 20))
+            await pilot.pause()
+            assert app._log.text_selection is None
+    run_async(drive())

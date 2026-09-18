@@ -45,6 +45,11 @@ persistent app with a scroll log and a pinned command composer:
     command bubbles in the scroll log. Ctrl-P opens the command picker;
     clicking a blue command chevron folds or expands its output.
 
+* **Text selection**
+    Dragging the mouse over log or editor text highlights it, and
+    releasing copies the selection to the system clipboard (OSC 52),
+    like OpenCode.
+
 History (loaded from and saved to the CAPE TUI history file) is
 recalled with the up/down arrow keys.
 """
@@ -299,13 +304,56 @@ class LogWriter(io.TextIOBase):
 
 
 class CommandLog(RichLog):
-    r"""Scroll log whose command markers fold their associated output."""
+    r"""Scroll log whose command markers fold their associated output.
+
+    Text selection is implemented here because :class:`RichLog` renders
+    its lines to cached strips: by itself it neither highlights the
+    selection nor can it extract the selected text for copying.
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._groups = []
         self._header_lines = {}
         self._replaying = False
+
+    def render_line(self, y: int):
+        strip = super().render_line(y)
+        scroll_x, scroll_y = self.scroll_offset
+        line = scroll_y + y
+        # Tag segments with content offsets so the screen can resolve
+        # the pointer position to text coordinates during a drag.
+        strip = strip.apply_offsets(scroll_x, line)
+        selection = self.text_selection
+        if selection is not None:
+            strip = self._apply_selection_style(strip, line, scroll_x)
+        return strip
+
+    def _apply_selection_style(self, strip, line: int, scroll_x: int):
+        selection = self.text_selection
+        span = selection.get_span(line)
+        if span is None:
+            return strip
+        start, end = span
+        start = max(0, start - scroll_x)
+        if end < 0:
+            end = strip.cell_length
+        else:
+            end = min(strip.cell_length, end - scroll_x)
+        if end <= start or start >= strip.cell_length:
+            return strip
+        sel_style = self.screen.get_component_rich_style("screen--selection")
+        parts = strip.divide([start, end, strip.cell_length])
+        out = parts[0] + parts[1].apply_style(sel_style)
+        if len(parts) > 2:
+            out = out + parts[2]
+        return out
+
+    def get_selection(self, selection):
+        # Match each rendered line against its source text; the strips
+        # are space-padded, so trailing padding is not copied.
+        lines = [strip.text.rstrip() for strip in self.lines]
+        return selection.extract("\n".join(lines)), "\n"
 
     def write_command(self, cmd: str, header: Text, folded: Text) -> None:
         group = {"cmd": cmd, "header": header, "folded": folded,
@@ -746,6 +794,12 @@ class CapeTuiApp(App):
         # Resize may fire before on_mount
         if hasattr(self, "_status"):
             self._update_status()
+
+    # OpenCode-style copy: a mouse-drag selection goes to the clipboard
+    def on_text_selected(self, event) -> None:
+        text = self.screen.get_selected_text()
+        if text:
+            self.copy_to_clipboard(text)
 
     # Command echo rendered as an OpenCode-style message bubble
     def _bubble_text(self, cmd: str, folded: bool = False) -> Text:
@@ -1284,6 +1338,10 @@ class CapeTuiApp(App):
         # Help about the TUI itself
         if arg in META_HELP_TOPICS:
             self._log.write(meta_help_table())
+            self._log.write(Text(
+                "Drag the mouse over log text to select; "
+                "the selection is copied to the clipboard",
+                style="cyan"))
             return 0
         # Full command table
         cls = self._frontdesk_cls
