@@ -26,7 +26,7 @@ from ..errors import (
     CapeFileNotFoundError,
     CapeNotSupportedError,
     CapeValueError)
-from ..optdict.opterror import OptdictKeyError
+from ..optdict.opterror import OptdictError, OptdictKeyError
 
 
 # Constants
@@ -4312,6 +4312,8 @@ def read_cntl_cache(fname: str | None, solver: str | None = None) -> CntlBase:
     elif solver is None:
         # Determine solver
         solver = manage.identify_solver(fname)
+    # Default to 'cfdx' to help with error handling (bad JSON file)
+    solver = 'cfdx' if solver is None else solver
     # Check file
     if not os.path.isfile(fname):
         raise CapeFileNotFoundError(f"No CAPE file '{fname}'")
@@ -4496,7 +4498,7 @@ def main_template(
         try:
             IERR, _ = func(*a, **kw)
             return IERR
-        except (CapeError, ArgReadError) as e:
+        except (CapeError, ArgReadError, OptdictError) as e:
             # Print the error type
             sys.stderr.write(f"{e.__class__.__name__}:\n")
             # Now the error message

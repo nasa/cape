@@ -1,0 +1,157 @@
+{
+    "RunControl": {
+        "PhaseSequence": [
+            0
+        ],
+        "PhaseIters": [
+            200
+        ],
+        "qsub": false,
+        "nProc": 256,
+        "MPI": false,
+        "flowCart": {
+            "first_order": false,
+            "it_fc": 200,
+            "mpi_fc": false,
+            "cfl": 1.1,
+            "cflmin": 0.8,
+            "mg_fc": 3,
+            "limiter": 2,
+            "tm": false,
+        "autoInputs": {
+            "r": 8,
+            "run": true
+        },
+        "cubes": {
+            "maxR": 8,
+            "pre": "preSpec.c3d.cntl",
+            "a": 10,
+            "b": 2,
+            "reorder": true,
+            "run": true
+        },
+        "Archive": {
+            "clean": {
+                "PreDeleteFiles": [],
+                "PreDeleteDirs": [],
+                "ArchiveFiles": [],
+                "ArchiveTarGroups": {},
+                "ArchiveTarDirs": [],
+                "PostTarGroups": {},
+                "PostTarDirs": [],
+                "PostDeleteFiles": [],
+                "PostDeleteDirs": [],
+                "PostTailFiles": []
+            },
+            "archive": {
+                "PreDeleteFiles": [],
+                "PreDeleteDirs": [],
+                "ArchiveFiles": [],
+                "ArchiveTarGroups": {},
+                "ArchiveTarDirs": [],
+                "PostTarGroups": {},
+                "PostTarDirs": [],
+                "PostDeleteFiles": [],
+                "PostDeleteDirs": [],
+                "PostTailFiles": []
+            },
+            "skeleton": {
+                "PreDeleteFiles": [],
+                "PreDeleteDirs": [],
+                "ArchiveFiles": [],
+                "ArchiveTarGroups": {},
+                "ArchiveTarDirs": [],
+                "PostTarGroups": {},
+                "PostTarDirs": [],
+                "PostDeleteFiles": [],
+                "PostDeleteDirs": [],
+                "PostTailFiles": []
+            }
+        },
+        "Environ": {},
+        "aflr3": {
+            "run": false
+        },
+        "comp2tri": {
+            "run": false
+        },
+        "intersect": {
+            "run": false
+        },
+        "mpi": {
+            "run": false
+        },
+        "ulimit": {},
+        "verify": {
+            "run": false
+        },
+        "Adaptation": {},
+        "adjointCart": {
+            "run": false
+        },
+        "RootDir": "/nobackup/ddalle/cape/src/cape-devel/test/901_pycart/001_bullet",
+        "JSONFile": "pyCart.json"
+    },
+    "Mesh": {
+        "TriFile": "bullet.tri"
+    },
+    "Config": {
+        "ConfigFile": "Config.xml",
+        "Force": [
+            "cap",
+            "body",
+            "bullet_no_base",
+            "bullet_total"
+        ],
+        "RefArea": 3.14159,
+        "RefLength": 1.0,
+        "RefPoint": {
+            "bullet_no_base": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        }
+    },
+    "DataBook": {
+        "Components": [
+            "bullet_no_base",
+            "bullet_total",
+            "body",
+            "cap"
+        ],
+        "NStats": 50,
+        "NMin": 140,
+        "Folder": "data",
+        "Targets": {}
+    },
+    "RunMatrix": {
+        "File": "matrix.csv",
+        "Keys": [
+            "Mach",
+            "alpha",
+            "beta",
+            "config"
+        ],
+        "GroupMesh": true,
+        "Values": {
+            "config": "poweroff"
+        },
+        "Definitions": {}
+    },
+    "BatchPBS": {},
+    "BatchSlurm": {},
+    "PBS": {},
+    "PostPBS": {},
+    "PostSlurm": {},
+    "Report": {
+        "Figures": {},
+        "Subfigures": {},
+        "Sweeps": {}
+    },
+    "Slurm": {},
+    "Functional": {},
+    "ShellCmds": [],
+    "InputCntl": "input.cntl",
+    "AeroCsh": "aero.csh"
+}
