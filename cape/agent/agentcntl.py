@@ -7,6 +7,14 @@ object-oriented interface to the CAPE agentic capability and interface.
 Most of the actual agent loop, including passing user responses on to
 an external LLM and processing the results, is implemented by methods of
 :class:`AgentCntl`.
+
+The module-level list :data:`EDIT_FILE_ALLOW_LIST` is a registry of
+POSIX-style file names, relative to the folder in which the agent is
+launched, that skills may append to at run time (e.g. the ``fix-json``
+skill registers the file the user asked to repair). The
+:mod:`cape.agent.skills.fileedit` module merges these names into its
+edit allow-list in addition to its own static patterns and the files
+provided by :func:`cape.cfdx.cntl.Cntl.get_edit_allowlist`.
 """
 
 # Standard library
@@ -45,6 +53,10 @@ from ..util import pyrangestr
 # Model selection
 BASE_URL = "http://localhost:8000/v1"
 MODEL = "Qwen/Qwen3.5-122B-A10B-FP8"
+
+# Additional files (POSIX-style names, rel. to repo root) that skills
+# may register for editing; merged into the file-editor allow-list
+EDIT_FILE_ALLOW_LIST: list = []
 
 # Constants
 CAPE_HISTORY_LENGTH = 1000
@@ -322,6 +334,8 @@ class AgentCntl:
         agentskills.fileedit.ALLOW_PATTERNS.clear()
         agentskills.fileedit.ALLOW_PATTERNS.extend(
             self.opts.get_opt("EditAllowList", vdef=[]))
+        # Reset files registered for editing by other skills
+        EDIT_FILE_ALLOW_LIST.clear()
         #: :class:`str`
         #: System prompt including listing of available skills
         self.system_prompt = genr8_system_prompt(self.skills)

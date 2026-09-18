@@ -20,6 +20,7 @@ the ``use_skill`` tool (see :mod:`cape.agent.skills.skilltools`).
 from . import checkdbtools
 from . import cntlrunner
 from . import fileedit
+from . import fixjson
 from . import skillbase
 from . import skilltools
 from . import usertools
@@ -38,6 +39,7 @@ __all__ = (
     "cntlrunner",
     "discover_user_skills",
     "fileedit",
+    "fixjson",
     "read_skillfile",
     "skillbase",
     "skilltools",
@@ -54,6 +56,8 @@ BUILTIN_SKILLS = {
     **{name: Skill.from_defn(name, defn)
        for name, defn in fileedit.SKILL_DICT.items()},
     **{name: Skill.from_defn(name, defn)
+       for name, defn in fixjson.SKILL_DICT.items()},
+    **{name: Skill.from_defn(name, defn)
        for name, defn in usertools.SKILL_DICT.items()},
 }
 
@@ -62,6 +66,7 @@ SKILL_TOOL_MODULES = {
     "check-db": checkdbtools,
     "cntl-runner": cntlrunner,
     "file-editor": fileedit,
+    "fix-json": fixjson,
     "user-tools": usertools,
 }
 

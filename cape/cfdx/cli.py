@@ -4108,7 +4108,7 @@ def cape_ui() -> Tuple[int, Any]:
 
 
 @CfdxAgentArgs.rst
-def cape_agent(agent: str) -> Tuple[int, Any]:
+def cape_agent(agent: str, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -4161,7 +4161,7 @@ def cape_tui() -> Tuple[int, Any]:
         raise
 
 
-def cape_agentic() -> Tuple[int, Any]:
+def cape_agentic(**kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s

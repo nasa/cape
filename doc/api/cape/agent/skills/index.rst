@@ -13,4 +13,5 @@
     skilltools
     cntlrunner
     fileedit
+    fixjson
     usertools

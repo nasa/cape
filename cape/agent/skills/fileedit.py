@@ -14,13 +14,17 @@ The skill provides three tools:
 * :func:`edit_file`: apply an exact-match search-and-replace edit to an
   allow-listed file, returning a unified diff of the change
 
-The set of editable files (the *allow-list*) comes from two sources:
+The set of editable files (the *allow-list*) comes from three sources:
 
 * the top-level *EditAllowList* option of the ``cape-agent.json``
   file: a list of glob patterns relative to the repo root (see
   :mod:`cape.agent.options`)
 * :func:`cape.cfdx.cntl.Cntl.get_edit_allowlist`, which allows the
   agent to edit the CAPE control JSON file itself
+* :data:`cape.agent.agentcntl.EDIT_FILE_ALLOW_LIST`, a registry of
+  file names that other skills (e.g. ``fix-json``) append to at run
+  time; this is the only route for files that cannot be read into a
+  *Cntl* instance, such as a JSON file with a syntax error
 
 Note that :func:`fnmatch.fnmatch` is used for matching, so ``"*"``
 matches folder separators as well; a pattern such as ``"tools/*.py"``
@@ -99,7 +103,7 @@ def _get_cntl_allowlist() -> list:
         cntl = cli.read_cntl_cache(None, None)
         flist = cntl.get_edit_allowlist()
     except Exception:
-        # No CAPE JSON file available; static patterns only
+        # No readable CAPE JSON file available; other sources only
         return []
     # Normalize to POSIX-style names relative to the root folder
     return [
@@ -109,21 +113,33 @@ def _get_cntl_allowlist() -> list:
     ]
 
 
-# Merge the static patterns with the ``Cntl``-provided file names
+# Get the file names registered by other skills during this session
+def _get_skill_allowlist() -> list:
+    # Local imports (avoid circular import at module load time)
+    from .. import agentcntl
+    # Normalize to POSIX-style names relative to the root folder
+    return [
+        os.path.normpath(f).replace(os.sep, "/")
+        for f in agentcntl.EDIT_FILE_ALLOW_LIST
+        if isinstance(f, str)
+    ]
+
+
+# Merge static patterns, ``Cntl`` file names, and skill registrations
 def _genr8_allowlist() -> list:
     # Start with the static patterns
     patterns = list(ALLOW_PATTERNS)
-    # Append file names from the CAPE control instance
-    for f in _get_cntl_allowlist():
+    # Append file names from the CAPE control instance and other skills
+    for f in _get_cntl_allowlist() + _get_skill_allowlist():
         if f not in patterns:
             patterns.append(f)
     # Output
     return patterns
 
 
-# Resolve *fname* and check it against the allow-list
-def _check_editable(fname) -> tuple | dict:
-    r"""Resolve a file name and check that the agent may edit it
+# Resolve *fname* against the root folder and check containment
+def _resolve_fname(fname) -> tuple | dict:
+    r"""Resolve a file name and check that it is inside the root folder
 
     Returns a tuple ``(fabs, relname)`` with the resolved absolute path
     and the POSIX-style name relative to the root folder, or an error
@@ -156,6 +172,23 @@ def _check_editable(fname) -> tuple | dict:
         }
     # POSIX-style name relative to root folder
     relname = os.path.relpath(freal, rootdir).replace(os.sep, "/")
+    # Output
+    return freal, relname
+
+
+# Resolve *fname* and check it against the allow-list
+def _check_editable(fname) -> tuple | dict:
+    r"""Resolve a file name and check that the agent may edit it
+
+    Returns a tuple ``(fabs, relname)`` with the resolved absolute path
+    and the POSIX-style name relative to the root folder, or an error
+    :class:`dict` with ``"success": False``.
+    """
+    # Resolve and check containment in the root folder
+    check = _resolve_fname(fname)
+    if isinstance(check, dict):
+        return check
+    freal, relname = check
     # Check the allow-list
     patterns = _genr8_allowlist()
     if not any(fnmatch.fnmatchcase(relname, pat) for pat in patterns):
@@ -168,27 +201,72 @@ def _check_editable(fname) -> tuple | dict:
     return freal, relname
 
 
+# Register an in-root-folder file as editable for this session
+def register_editable_file(fname: str) -> dict:
+    r"""Add a file to the session edit allow-list, for use by skills
+
+    This is how other skills, e.g. ``fix-json``, grant the agent edit
+    access to a specific file that is not covered by the static
+    *EditAllowList* patterns or by the ``Cntl``-provided allow-list
+    (for example a JSON file that cannot be read due to a syntax
+    error). The file must be inside the repo root folder.
+
+    :Call:
+        >>> result = register_editable_file(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to register, absolute or relative to the
+            current folder
+    :Outputs:
+        *result*: :class:`dict`
+            Keys include *success*, *path* (resolved absolute path),
+            *file* (name relative to the root folder), and *added*
+            (``False`` if already registered)
+    """
+    # Local imports (avoid circular import at module load time)
+    from .. import agentcntl
+    # Resolve and check containment in the root folder
+    check = _resolve_fname(fname)
+    if isinstance(check, dict):
+        return check
+    freal, relname = check
+    # Append to the registry if not already present
+    added = relname not in agentcntl.EDIT_FILE_ALLOW_LIST
+    if added:
+        agentcntl.EDIT_FILE_ALLOW_LIST.append(relname)
+    # Output
+    return {
+        "success": True,
+        "path": freal,
+        "file": relname,
+        "added": added,
+    }
+
+
 # List the allow-list patterns and matching files
 def list_editable_files() -> dict:
     r"""List the edit allow-list and the existing files that match it
 
-    The allow-list consists of the *EditAllowList* glob patterns from
-    the ``cape-agent.json`` file plus the files returned by
+    The allow-list combines the *EditAllowList* glob patterns from the
+    ``cape-agent.json`` file, the files returned by
     :func:`cape.cfdx.cntl.Cntl.get_edit_allowlist` for the current CAPE
-    control instance (if any).
+    control instance (if any), and files registered by other skills via
+    :data:`cape.agent.agentcntl.EDIT_FILE_ALLOW_LIST`.
 
     :Call:
         >>> result = list_editable_files()
     :Outputs:
         *result*: :class:`dict`
-            Keys include *success*, *patterns*, *cntl_files*, and
-            *files* (existing files matching the patterns)
+            Keys include *success*, *patterns*, *cntl_files*,
+            *skill_files*, and *files* (existing files matching the
+            patterns)
     """
     # Absolute path of repo root
     rootdir = _get_rootdir()
-    # Get both parts of the allow-list
+    # Get all three parts of the allow-list
     patterns = _genr8_allowlist()
     cntl_files = _get_cntl_allowlist()
+    skill_files = _get_skill_allowlist()
     # Find existing files matching each pattern
     flist = set()
     for pat in patterns:
@@ -203,6 +281,7 @@ def list_editable_files() -> dict:
         "rootdir": rootdir,
         "patterns": patterns,
         "cntl_files": cntl_files,
+        "skill_files": skill_files,
         "files": sorted(flist),
     }
 
@@ -393,7 +472,7 @@ that match the skill's *allow-list*; all other files are rejected.
 
 ## Allow-list
 
-The allow-list combines two sources:
+The allow-list combines three sources:
 
 1. The `EditAllowList` option in `cape-agent.json`: glob patterns
    relative to the repo root. Matching uses `fnmatch`, so `*` matches
@@ -401,6 +480,10 @@ The allow-list combines two sources:
    well as `tools/a.py`.
 2. The CAPE control JSON file for this repo, provided automatically by
    the run matrix `Cntl` instance.
+3. Files registered for this session by other skills, e.g. `fix-json`
+   registers the file the user asked to repair. These can be files
+   that cannot be read into a `Cntl` instance, such as a JSON file
+   with a syntax error.
 
 Call `list_editable_files` to see the active patterns and the existing
 files they match. Symlinks are resolved, and files outside the repo

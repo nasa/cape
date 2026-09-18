@@ -34,6 +34,8 @@ The *EditAllowList* option lists glob patterns (relative to the folder
 in which the agent is launched) of files the ``file-editor`` skill's
 ``edit_file`` tool is allowed to modify. The CAPE control JSON file is
 always allowed (see :func:`cape.cfdx.cntl.Cntl.get_edit_allowlist`);
+other skills, e.g. ``fix-json``, may also register individual files
+via :data:`cape.agent.agentcntl.EDIT_FILE_ALLOW_LIST`;
 
 use *EditAllowList* to add project-specific files:
 

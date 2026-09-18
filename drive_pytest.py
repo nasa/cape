@@ -70,9 +70,11 @@ def main():
     # Test if test necessary
     if sha1.strip() == sha1_last.strip():
         return
-    # Form test command (for pytest)
+    # Form test command (for pytest); test/800_agent is exempted since
+    # those tests depend on an LLM server and are non-deterministic
     cmdlist = [
         "python3", "-m", "pytest",
+        "--ignore-glob", "test/800_agent",
         "--ignore-glob", "test/903_pyover",
         "--ignore-glob", "test/[a-z]*",
         "--junitxml=%s" % JUNIT_FILE
