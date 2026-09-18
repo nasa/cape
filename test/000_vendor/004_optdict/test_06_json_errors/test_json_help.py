@@ -43,6 +43,25 @@ def test_error02():
 
 
 @testutils.run_testdir(__file__)
+def test_error07():
+    # Reliable path
+    fjson = "error07.json"
+    try:
+        # Read broken file
+        OptionsDict(fjson)
+    except OptdictJSONError as e:
+        # Get error message
+        lines = e.args[0].split("\n")
+        # Test lines
+        assert lines[1] == "Error occurred at end of file (last line 5)"
+        assert lines[2].strip() == "Expecting ',' delimiter"
+        assert lines[-1] == "--> 5     }"
+    else:
+        # File should not have been read
+        assert False
+
+
+@testutils.run_testdir(__file__)
 def test_error06():
     # Reliable path
     fjson = "error06.json"

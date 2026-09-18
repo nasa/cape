@@ -1469,6 +1469,7 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
             * 2021-12-06 ``@ddalle``: v1.0
             * 2021-12-14 ``@ddalle``: v2.0; helpful JSON errors
             * 2024-12-20 ``@ddalle``: v2.1; leave JSON file attrs
+            * 2026-09-18 ``@ddalle``: v2.2; handle end-of-file errors
         """
         # Clear out data attributes
         self._init_json_attributes()
@@ -1499,6 +1500,14 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
             d = None
             # Get line number
             n = int(match.group(1)) - 1
+            # Check for no lines read (shouldn't happen w/ line number)
+            if len(self._lines) == 0:  # pragma: no cover
+                raise
+            # Check if parser reached end of file (unclosed '{' or '[')
+            qeof = n >= len(self._lines)
+            if qeof:
+                # Highlight last line of file
+                n = len(self._lines) - 1
             # Start and end line number for details
             n0 = max(n-2, 0)
             n1 = min(n+3, len(self._lines))
@@ -1534,7 +1543,11 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
                 fmt2 = "\n    %%%ii %%s" % logmaxl
             # Start message
             msg = "Error reading JSON file '%s'\n" % self._filenames[0]
-            msg += "Error occurred on line %i" % m
+            if qeof:
+                # Parser reached EOF while expecting more input
+                msg += "Error occurred at end of file (last line %i)" % m
+            else:
+                msg += "Error occurred on line %i" % m
             # File name
             if filename != self._filenames[0]:
                 msg += (" of '%s'" % filename)
@@ -1543,6 +1556,9 @@ class OptionsDict(dict, metaclass=MetaOptionsDict):
             # Add original report if readable
             if match:
                 msg += "\n  %s\n" % match.group(1)
+            # Add hint for likely cause of end-of-file error
+            if qeof:
+                msg += "  Possibly missing a closing '}' or ']' in file\n"
             # Subheader
             msg += "\nLines surrounding problem area:"
             # Column headers if needed
