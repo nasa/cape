@@ -1507,7 +1507,10 @@ class CaseData(DataKit):
             # Limit to positive-autocorrelation windows
             mask = ranks.autocorrelation > 0
             # Select the best
-            n1 = windows[mask][np.argmin(m2s[mask])]
+            if np.any(mask):
+                n1 = windows[mask][np.argmin(m2s[mask])]
+            else:
+                n1 = windows[np.argmax(ranks.autocorrelation)]
         # Target autocorrelation based on window size
         target_autocorrelation = (
             target_autocorrelation_base * np.sqrt(jmax / n1))
