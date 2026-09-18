@@ -350,9 +350,14 @@ class CfdxCompleter:
             *cmds*: :class:`list`\ [:class:`str`]
                 List of command names matching *text* pattern
         """
-        # Fitler existing options
+        # Filter existing options
         self.role = "cmdname"
-        return fnmatch.filter(self.cls._cmdlist, f"{text}*")
+        # Get canonical function names first
+        cmdnames = list(self.cls._cmdlist)
+        # Add in aliases
+        cmdnames.extend(self.cls._cmdmap.keys())
+        # Filter full list
+        return fnmatch.filter(cmdnames, f"{text}*")
 
     def genr8_optlist(self, text: str) -> list[str]:
         r"""Suggest list of option name completions
