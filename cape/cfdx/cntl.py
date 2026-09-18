@@ -4846,7 +4846,8 @@ class Cntl(CntlBase):
                 atcolor="green",
                 ocolor="",
                 pcolor="purple",
-                prompt=prompt).strip().lower()
+                prompt=prompt,
+                clickable=False).strip().lower()
             # Check options
             if v in vopt:
                 return v
