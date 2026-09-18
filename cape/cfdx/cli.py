@@ -4250,7 +4250,8 @@ def read_cntl(cls: ArgReader, *a, **kw):
     return cntl, parser
 
 
-def read_cntl_q(fname: str | None = None, solver: str | None = None) -> CntlBase:
+def read_cntl_q(
+        fname: str | None = None, solver: str | None = None) -> CntlBase:
     r"""Read a CAPE JSON file; suppress STDOUT temporarily
 
     :Call:

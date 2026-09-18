@@ -65,6 +65,7 @@ class DBCompOpts(OptionsDict):
         "MaxOscillatoryAmplitudeRatio",
         "MaxSignChangeRate",
         "MinOscillatoryAmplitudeFraction",
+        "MinRangeMap",
         "NCutoff",
         "NLast",
         "NLastStats",
@@ -106,6 +107,7 @@ class DBCompOpts(OptionsDict):
         "maxOscillatoryAmplitudeRatio": "MaxOscillatoryAmplitudeRatio",
         "maxSignChangeRate": "MaxSignChangeRate",
         "minOscillatoryAmplitudeFraction": "MinOscillatoryAmplitudeFraction",
+        "minRangeMap": "MinRangeMap",
         "nAvg": "NStats",
         "nFirst": "NMin",
         "nCutoff": "NCutoff",
@@ -137,6 +139,7 @@ class DBCompOpts(OptionsDict):
         "MaxOscillatoryAmplitudeRatio": FLOAT_TYPES,
         "MaxSignChangeRate": FLOAT_TYPES,
         "MinOscillatoryAmplitudeFraction": FLOAT_TYPES,
+        "MinRangeMap": dict,
         "NCutoff": INT_TYPES,
         "NLast": INT_TYPES,
         "NLastStats": INT_TYPES,
@@ -177,6 +180,9 @@ class DBCompOpts(OptionsDict):
         "MaxSignChangeRate": "sign-change rate that triggers a retry",
         "MinOscillatoryAmplitudeFraction": (
             "minimum significant oscillatory amplitude as a range fraction"),
+        "MinRangeMap": (
+            "minimum 'full range' per coeffcient; avoids setting overly "
+            "tight tolerance targets e.g. when sideslip is 0"),
         "NCutoff": "iteration at which to recommend approval",
         "NLast": "last iteration to include in iterative statistics",
         "NLastStats": "specific iteration at which to extract stats",
@@ -1582,6 +1588,11 @@ class DataBookOpts(OptionsDict):
         compopts = self.get_DataBookOpts(comp)
         fmap.update(compopts.get("TargetDriftFractionMap", {}) or {})
         stateopts["TargetDriftFractionMap"] = fmap
+        # Merge global and component-specific column overrides
+        fmap = dict(self.get_opt("MinRangeMap") or {})
+        compopts = self.get_DataBookOpts(comp)
+        fmap.update(compopts.get("MinRangeMap", {}) or {})
+        stateopts["MinRangeMap"] = fmap
         return stateopts
 
     # CompID: special default

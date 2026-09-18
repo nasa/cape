@@ -1339,10 +1339,13 @@ class CaseData(DataKit):
             "MinOscillatoryAmplitudeFraction", 0.01)
         target_autocorrelation_base = kw.pop("TargetAutocorrelation", 0.95)
         target_drift_fraction = kw.pop("TargetDriftFraction", 5e-4)
-        target_drift_fraction_map = (
-            kw.pop("TargetDriftFractionMap", {}) or {})
+        target_drift_fraction_map = kw.pop(
+            "TargetDriftFractionMap", {"CA": 1.5e-4, "CLL": 1e-3})
         target_mean_range_fraction = kw.pop(
             "TargetMeanRangeFraction", 5e-4)
+        # Look for minimum "full range"
+        vrng_map = kw.pop("MinRangeMap", {})
+        vrng_min = vrng_map.get(col, 0.0)
         # Apply a coefficient-specific drift tolerance if available
         target_drift_fraction = target_drift_fraction_map.get(
             col, target_drift_fraction)
@@ -1390,6 +1393,7 @@ class CaseData(DataKit):
         vrng_ptp = vmax - vmin
         vrng_std = full_range_std_factor * np.nanstd(vscale)
         vrng = max(vrng_ptp, vrng_std)
+        vrng = max(vrng, vrng_min)
         # Overall stats
         vavg = np.nanmean(v)
         vstd = np.nanstd(v)
@@ -5421,8 +5425,6 @@ def _recommend_action(state: dict):
             ``"extend"``
         *state["reason"]*: :class:`str`
             Brief explanation for the recommendation
-    :Versions:
-        * 2026-09-05 ``@openai``: v1.0
     """
     # Require the entire requested window to be to the right of *n_min*
     n = state.get("n", 0)
@@ -5502,7 +5504,8 @@ def _recommend_action(state: dict):
     if np.abs(drift) >= target_drift:
         reason = "drift per period"
     elif correlation < state.get("target_autocorrelation", 0.9):
-        reason = "low autocorrelation"
+        if state.get("class") != "transient":
+            reason = "low autocorrelation"
     # Any failed convergence check vetoes approval
     if reason is not None:
         state["recommendation"] = "extend"
