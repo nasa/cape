@@ -135,7 +135,8 @@ def prompt_color(
         pcolor: Optional[str] = None,
         atcolor: Optional[str] = None,
         ocolor: Optional[str] = None,
-        clickable: Optional[bool] = None) -> Any:
+        clickable: Optional[bool] = None,
+        erase: bool = True) -> Any:
     r"""Get user input using a colorized prompt
 
     :Call:
@@ -165,6 +166,12 @@ def prompt_color(
             always use the colored readline prompt; if ``None``,
             auto-detect a TUI-capable terminal (see also
             :func:`clickable_prompt_ok`)
+        *erase*: {``True``} | ``False``
+            If ``True``, erase the option list and prompt line (the
+            ``n+1`` lines below the question for ``n`` options) from
+            the screen after the user answers, leaving only the
+            question and the final selection; only applies to
+            multi-line option lists on a terminal
     :Outputs:
         *v*: :class:`str` | *vdef* | ``vopt[j]``
             User input or default value
@@ -197,9 +204,14 @@ def prompt_color(
     vdef = vdef if not isinstance(vdef, list) else vdef[0]
     # Check for a registered prompt handler (e.g. the CAPE TUI)
     handler = _PROMPT_HANDLER
+    # Number of lines (options + prompt line) to erase after answering
+    nerase = 0
+    if erase and msg1 and not oneline:
+        nerase = len(vopt) + 1
     if handler is not None:
         # Let the host render the prompt itself
         vraw = handler(txt, vdef, vopt, prompt, oneline)
+        nerase = 0
     elif isinstance(vopt, (list, tuple)) and clickable_prompt_ok(clickable):
         try:
             # Use clickable menu (returns raw reply, like :func:`input`)
@@ -209,6 +221,9 @@ def prompt_color(
         except Exception:
             # Fall back to colored readline prompt
             vraw = input_color(msg, color)
+        else:
+            # Clickable menu leaves its own rendering in the stream
+            nerase = 0
     else:
         # Read input from command line (ignore lead/trail spaces)
         vraw = input_color(msg, color)
@@ -224,6 +239,9 @@ def prompt_color(
     else:
         # Return the user's value, even if empty
         v = vraw
+    # Erase the option list and prompt line from the screen
+    if nerase:
+        _erase_prompt_lines(nerase)
     # Inform user what value was used
     if show:
         print(f"--> using '{v}'")
@@ -253,6 +271,29 @@ def input_color(prompt: str, color: str = "black") -> str:
     prompt_txt = f"{col}{prompt}{reset}"
     # Request a response
     return input(prompt_txt).strip()
+
+
+# Delete the most recent lines of terminal output
+def _erase_prompt_lines(nlines: int) -> None:
+    r"""Delete the most recent lines of terminal output
+
+    Moves the cursor up *nlines* lines and clears from there to the end
+    of the screen, effectively erasing lines that were just printed
+    (e.g. an option-list prompt) once the user has answered. Does
+    nothing if standard output is not a terminal.
+
+    :Call:
+        >>> _erase_prompt_lines(nlines)
+    :Inputs:
+        *nlines*: :class:`int`
+            Number of preceding lines to erase
+    """
+    if (nlines <= 0) or not getattr(sys.stdout, "isatty", lambda: False)():
+        return
+    # Move cursor up to first line to erase; clear to end of screen
+    sys.stdout.write(f"\x1b[{nlines}F\x1b[J")
+    sys.stdout.flush()
+    return
 
 
 # Display simple list of options
