@@ -73,11 +73,13 @@ import traceback
 from typing import Optional, Tuple
 
 # Third-party
+from rich.segment import Segment
 from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
 from textual.screen import ModalScreen
+from textual.strip import Strip
 from textual.widgets import Input, OptionList, RichLog, Static
 from textual.widgets.option_list import Option
 
@@ -344,7 +346,13 @@ class CommandLog(RichLog):
             return strip
         sel_style = self.screen.get_component_rich_style("screen--selection")
         parts = strip.divide([start, end, strip.cell_length])
-        out = parts[0] + parts[1].apply_style(sel_style)
+        # Strip.apply_style() treats its argument as a base style, so the
+        # log's existing foreground/background win. Apply selection as a
+        # post-style instead so its colors visibly override log styling.
+        selected = Strip(
+            Segment.apply_style(parts[1], post_style=sel_style),
+            parts[1].cell_length)
+        out = parts[0] + selected
         if len(parts) > 2:
             out = out + parts[2]
         return out
@@ -491,6 +499,10 @@ class CapeTuiApp(App):
 
     # Style settings
     CSS = """
+    Screen > .screen--selection {
+        background: #264f78;
+        color: #ffffff;
+    }
     App, #body, RichLog {
         background: #0d0d0d;
         color: #d6d6d6;

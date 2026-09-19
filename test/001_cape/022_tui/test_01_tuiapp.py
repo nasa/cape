@@ -516,6 +516,14 @@ def test_17_drag_select_copies(tmp_path, monkeypatch):
             assert app._clipboard == text
             # The selection highlight survives until the next click
             assert app._log.text_selection is not None
+            selection_style = app.screen.get_component_rich_style(
+                "screen--selection")
+            assert selection_style.bgcolor.triplet == (38, 79, 120)
+            assert selection_style.color.triplet == (255, 255, 255)
+            selected_strip = app._log.render_line(0)
+            selected_segment = selected_strip._segments[0]
+            assert selected_segment.style.bgcolor.triplet == (38, 79, 120)
+            assert selected_segment.style.color.triplet == (255, 255, 255)
             await pilot.click("#body", offset=(5, 20))
             await pilot.pause()
             assert app._log.text_selection is None
