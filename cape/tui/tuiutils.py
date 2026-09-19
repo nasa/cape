@@ -48,6 +48,8 @@ META_CMDS = (
     "TAB",
     "↑↓",
     "Ctrl-C",
+    "Ctrl-D",
+    "Select",
 )
 
 # Descriptions of meta-commands
@@ -56,12 +58,14 @@ META_CMD_DESCS = {
     ":pwd": "Show current folder",
     ":clear": "Clear the scroll log",
     ":exit": "Exit the CAPE TUI",
-    ":help": "Show CAPE command list or details of one command",
+    ":help": "Show CAPE (sub)command help",
     ":history": "Show table of recently-run commands",
     ":status": "Show summary of current TUI session",
     "TAB": "complete",
     "↑↓": "search history",
     "Ctrl-C": "interrupt",
+    "Ctrl-D": "Exit the CAPE TUI",
+    "Select": "selected text -> clibpoard",
 }
 
 # Help-me topics for :help
