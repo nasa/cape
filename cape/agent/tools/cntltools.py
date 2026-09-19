@@ -248,14 +248,17 @@ TOOL_SETS = {
     "low": [
         "get_subfigs",
         "get_reports",
-        "view_subfig",
     ],
     "medium": [
         "get_subfigs",
         "get_reports",
         "view_subfig",
     ],
-    "full": list(TOOL_DICT.keys())
+    "full": [
+        "get_subfigs",
+        "get_reports",
+        "view_subfig",
+    ],
 }
 
 
