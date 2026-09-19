@@ -410,7 +410,8 @@ class AgentCntl:
             self,
             user_message: str,
             spinner: bool = True,
-            capture_subprocess: bool = False) -> dict:
+            capture_subprocess: bool = False,
+            section_handler=None) -> dict:
         r"""Run one pass of model with multi-round tool calling
 
         Run one user turn with up to *MaxToolCallLoops* rounds of tool
@@ -425,6 +426,9 @@ class AgentCntl:
                 Show the readline thinking spinner; Textual supplies its own
             *capture_subprocess*: {``False``} | ``True``
                 Pipe direct system-command output through :data:`sys.stdout`
+            *section_handler*: {``None``} | callable
+                Optional presentation hook called at the start and end of
+                reasoning and tool sections
         :Outputs:
             *result*: :class:`dict`
                 Counts of tool calls and failures for this turn
@@ -535,7 +539,14 @@ class AgentCntl:
             # Select the highest-ranked response
             msg = response.choices[0].message
             # Show server-provided reasoning after the response completes
-            if self.opts.get_opt("ShowReasoning"):
+            show_reasoning_opt = self.opts.get_opt("ShowReasoning")
+            if section_handler is not None and get_reasoning_text(msg):
+                section_handler(
+                    "start", "reasoning", "[reasoning]",
+                    bool(show_reasoning_opt))
+                show_reasoning(msg, framed=False)
+                section_handler("end", "reasoning", "", True)
+            elif show_reasoning_opt:
                 show_reasoning(msg)
             # Append model's response to history
             messages.append(msg.model_dump(exclude_none=True))
@@ -556,9 +567,14 @@ class AgentCntl:
                 tool_call_txt = format_tool_call(name, kwargs)
                 tool_call_cli = format_cli_call(name, kwargs)
                 # Print result
-                print(HLINE)
-                print(f"{TOOL_CALL_PROMPT}{tool_call_txt}")
-                print(HLINE)
+                if section_handler is not None:
+                    section_handler(
+                        "start", "tool", f"[tool call] {tool_call_txt}",
+                        bool(self.opts.get_opt("ShowToolResult")))
+                else:
+                    print(HLINE)
+                    print(f"{TOOL_CALL_PROMPT}{tool_call_txt}")
+                    print(HLINE)
                 if tool_call_cli:
                     print(f"{CLI_CALL_PROMPT} {tool_call_cli}")
                 # Get the actual tool
@@ -599,15 +615,20 @@ class AgentCntl:
                             "success": False,
                             "reason": "User interrupted tool call",
                         }
-                    print(HLINE)
+                    if section_handler is None:
+                        print(HLINE)
                 # Pull out any images for multimodal delivery
                 images = None
                 if isinstance(tool_result, dict):
                     images = tool_result.pop("images", None)
                 # Display output if turned on
-                if self.opts.get_opt("ShowToolResult"):
+                if section_handler is not None or \
+                        self.opts.get_opt("ShowToolResult"):
                     show_tool_result(tool_result)
-                    print(HLINE_BOLD)
+                    if section_handler is None:
+                        print(HLINE_BOLD)
+                if section_handler is not None:
+                    section_handler("end", "tool", "", True)
                 # Append message to history
                 messages.append(
                     {
@@ -635,7 +656,14 @@ class AgentCntl:
             # Select answer
             final_msg = followup.choices[0].message
             # Show server-provided reasoning after the response completes
-            if self.opts.get_opt("ShowReasoning"):
+            show_reasoning_opt = self.opts.get_opt("ShowReasoning")
+            if section_handler is not None and get_reasoning_text(final_msg):
+                section_handler(
+                    "start", "reasoning", "[reasoning]",
+                    bool(show_reasoning_opt))
+                show_reasoning(final_msg, framed=False)
+                section_handler("end", "reasoning", "", True)
+            elif show_reasoning_opt:
                 show_reasoning(final_msg)
             # Save it to history
             messages.append(final_msg.model_dump(exclude_none=True))
@@ -708,17 +736,28 @@ class AgentCntl:
         }
 
     # Check for completed background tasks
-    def reap_tasks(self):
+    def reap_tasks(self, section_handler=None):
         r"""Notify user and history of completed background tasks"""
         # Loop through newly finished tasks
         for task, tool_result in bgtasks.poll_finished(self.tasks):
+            if section_handler is not None and task.tool_name:
+                section_handler(
+                    "start", "tool",
+                    f"[tool result] background task {task.task_id}",
+                    bool(self.opts.get_opt("ShowToolResult")))
             # Terminal notification
-            print(HLINE)
+            if section_handler is None:
+                print(HLINE)
             print(bgtasks.format_completion_note(task, tool_result))
-            print(HLINE)
+            if section_handler is None:
+                print(HLINE)
             # Display tool-style result if turned on
-            if self.opts.get_opt("ShowToolResult") and task.tool_name:
+            if task.tool_name and (
+                    section_handler is not None or
+                    self.opts.get_opt("ShowToolResult")):
                 show_tool_result(tool_result)
+            if section_handler is not None and task.tool_name:
+                section_handler("end", "tool", "", True)
             # Inform the conversation, if there is one
             if self.history is not None:
                 self.history.append({
@@ -1004,7 +1043,27 @@ def show_tool_result(tool_result: dict):
 
 
 # Display reasoning exposed by an OpenAI-compatible model server
-def show_reasoning(message) -> bool:
+def get_reasoning_text(message) -> str:
+    r"""Get normalized reasoning text from a completion message
+
+    :Inputs:
+        *message*: :class:`object`
+            Chat-completion response message
+    :Outputs:
+        *text*: :class:`str`
+            Reasoning text, or an empty string when none was exposed
+    """
+    reasoning = getattr(message, "reasoning", None)
+    if not reasoning:
+        reasoning = getattr(message, "reasoning_content", None)
+    if not reasoning:
+        return ""
+    if isinstance(reasoning, str):
+        return reasoning.strip()
+    return dumps(reasoning, sort_keys=False, indent=2).strip()
+
+
+def show_reasoning(message, framed: bool = True) -> bool:
     r"""Display post-response reasoning content when available
 
     This uses the nonstandard ``reasoning`` field exposed by current vLLM
@@ -1018,26 +1077,23 @@ def show_reasoning(message) -> bool:
     :Inputs:
         *message*: :class:`object`
             Chat-completion response message
+        *framed*: {``True``} | ``False``
+            Print the classic prompt and horizontal rules
     :Outputs:
         *shown*: :class:`bool`
             Whether nonempty reasoning content was displayed
     """
-    reasoning = getattr(message, "reasoning", None)
-    if not reasoning:
-        reasoning = getattr(message, "reasoning_content", None)
-    if not reasoning:
-        return False
-    # Preserve ordinary text as-is; serialize structured extensions.
-    if isinstance(reasoning, str):
-        text = reasoning.strip()
-    else:
-        text = dumps(reasoning, sort_keys=False, indent=2)
+    text = get_reasoning_text(message)
     if not text:
         return False
-    print(HLINE)
-    print(REASONING_PROMPT)
-    print(text)
-    print(HLINE)
+    if framed:
+        print(HLINE)
+        print(REASONING_PROMPT)
+    # Use the same paragraph-aware wrapping as the final response. Structured
+    # reasoning extensions are still valid plain text after serialization.
+    print(compile_rst(wrapline(text)))
+    if framed:
+        print(HLINE)
     return True
 
 

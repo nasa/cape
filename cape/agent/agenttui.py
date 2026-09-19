@@ -29,7 +29,7 @@ from . import agentutils
 from .agentcntl import AgentCntl
 from ..tui import run_app
 from ..tui.tuiapp import CapeTuiApp, CapeTuiCompleter, LogWriter
-from ..tui.tuiutils import TN_BLUE, TN_GREEN
+from ..tui.tuiutils import TN_BLUE, TN_DIM, TN_GREEN, TN_PURPLE
 from ..ui.promptutils import CAPE_EXECS
 
 
@@ -87,6 +87,40 @@ class AgentTuiApp(CapeTuiApp):
     def _make_completer(self):
         return AgentTuiCompleter(self._frontdesk_cls, self)
 
+    def _write_command_header(self, cmd: str) -> None:
+        # Agent turns contain their own reasoning/tool folds. Keep the user's
+        # prompt at the transcript's top level instead of folding the entire
+        # turn as one ordinary CAPE command.
+        self._log.end_group()
+        self._log.write(self._bubble_text(cmd))
+
+    def _section_text(self, title: str, folded: bool = False) -> Text:
+        r"""Build a rule-like header for an agent output section."""
+        head = "▸ " if folded else "❯ "
+        width = max(10, self._log.size.width - 3)
+        tail = max(2, width - len(head) - len(title) - 1)
+        return Text.assemble(
+            (head, f"bold {TN_BLUE}"),
+            (title, f"italic {TN_PURPLE}"),
+            (" " + "─" * tail, TN_DIM))
+
+    def _handle_section(
+            self,
+            action: str,
+            kind: str,
+            title: str,
+            expanded: bool) -> None:
+        r"""Open or close a fold group from the agent worker thread."""
+        if action == "start":
+            self.call_from_thread(
+                self._log.start_section,
+                kind,
+                self._section_text(title),
+                self._section_text(title, folded=True),
+                not expanded)
+        else:
+            self.call_from_thread(self._log.end_group)
+
     def _execute_command(self, cmd: str) -> int:
         # AgentCntl writes its progress, tools, reasoning, and answer to
         # stdout; route that existing presentation into the shared RichLog.
@@ -97,12 +131,13 @@ class AgentTuiApp(CapeTuiApp):
             sys.stderr = writer
             # Match the readline loop by reporting completed background work
             # before processing the next user turn.
-            self._agent.reap_tasks()
+            self._agent.reap_tasks(section_handler=self._handle_section)
             self._stats["n_user_msgs"] += 1
             result = self._agent.run_agent(
                 cmd,
                 spinner=False,
-                capture_subprocess=True)
+                capture_subprocess=True,
+                section_handler=self._handle_section)
             self._stats["n_tool_calls"] += result.get("n_tool_calls", 0)
             self._stats["n_tool_fails"] += result.get("n_tool_fails", 0)
             return 0

@@ -316,6 +316,8 @@ class CommandLog(RichLog):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._groups = []
+        self._entries = []
+        self._active_group = None
         self._header_lines = {}
         self._replaying = False
 
@@ -367,7 +369,32 @@ class CommandLog(RichLog):
         group = {"cmd": cmd, "header": header, "folded": folded,
                  "output": [], "collapsed": False}
         self._groups.append(group)
+        self._entries.append(group)
+        self._active_group = group
         self._write_header(len(self._groups) - 1)
+
+    def start_section(
+            self,
+            name: str,
+            header: Text,
+            folded: Text,
+            collapsed: bool = False) -> None:
+        r"""Start a separately foldable output section."""
+        group = {
+            "cmd": name,
+            "header": header,
+            "folded": folded,
+            "output": [],
+            "collapsed": collapsed,
+        }
+        self._groups.append(group)
+        self._entries.append(group)
+        self._active_group = group
+        self._write_header(len(self._groups) - 1)
+
+    def end_group(self) -> None:
+        r"""Route subsequent writes to the top-level transcript."""
+        self._active_group = None
 
     def _write_header(self, index: int) -> None:
         group = self._groups[index]
@@ -378,16 +405,20 @@ class CommandLog(RichLog):
             self._header_lines[line] = index
 
     def write(self, content, *args, **kwargs):
-        if self._groups and not self._replaying:
-            group = self._groups[-1]
+        if self._active_group is not None and not self._replaying:
+            group = self._active_group
             group["output"].append((content, args, kwargs))
             if group["collapsed"]:
                 return self
+        elif not self._replaying:
+            self._entries.append((content, args, kwargs))
         return super().write(content, *args, **kwargs)
 
     def clear(self):
         if not self._replaying:
             self._groups.clear()
+            self._entries.clear()
+            self._active_group = None
         self._header_lines.clear()
         return super().clear()
 
@@ -405,11 +436,16 @@ class CommandLog(RichLog):
         try:
             super().clear()
             self._header_lines.clear()
-            for j, group in enumerate(self._groups):
-                self._write_header(j)
-                if not group["collapsed"]:
-                    for content, args, kwargs in group["output"]:
-                        super().write(content, *args, **kwargs)
+            for entry in self._entries:
+                if isinstance(entry, dict):
+                    j = self._groups.index(entry)
+                    self._write_header(j)
+                    if not entry["collapsed"]:
+                        for content, args, kwargs in entry["output"]:
+                            super().write(content, *args, **kwargs)
+                else:
+                    content, args, kwargs = entry
+                    super().write(content, *args, **kwargs)
         finally:
             self._replaying = False
         self.scroll_to(y=old_y, animate=False, immediate=True)
@@ -841,6 +877,11 @@ class CapeTuiApp(App):
             (head, f"bold {TN_BLUE} on {TN_SURFACE}"),
             (cmd + " " * pad, f"on {TN_SURFACE}"))
 
+    def _write_command_header(self, cmd: str) -> None:
+        r"""Write the submitted command and open its output group."""
+        self._log.write_command(
+            cmd, self._bubble_text(cmd), self._bubble_text(cmd, folded=True))
+
     # Exit-status line rendered as a thin, dim rule
     def _status_rule_text(self, ierr: int, dt: float) -> Text:
         ok = ierr == 0
@@ -1099,8 +1140,7 @@ class CapeTuiApp(App):
         self._record_history(cmd)
         self._hist_ix = None
         # Echo the command in the log as a bubble
-        self._log.write_command(
-            cmd, self._bubble_text(cmd), self._bubble_text(cmd, folded=True))
+        self._write_command_header(cmd)
         # Check for exit commands
         if cmd in EXIT_CMDS:
             self.exit()

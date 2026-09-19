@@ -41,11 +41,20 @@ class FakeAgent:
         self.tasks = []
         self.reaps = 0
 
-    def reap_tasks(self):
+    def reap_tasks(self, **kw):
         self.reaps += 1
 
     def run_agent(self, message, **kw):
         self.calls.append((message, kw))
+        section_handler = kw["section_handler"]
+        section_handler(
+            "start", "reasoning", "[reasoning]", False)
+        print("A folded test thought")
+        section_handler("end", "reasoning", "", True)
+        section_handler(
+            "start", "tool", "[tool call] fake_tool()", True)
+        print("A visible test tool result")
+        section_handler("end", "tool", "", True)
         print("Agent response from the test backend")
         return {"n_tool_calls": 2, "n_tool_fails": 1}
 
@@ -64,11 +73,18 @@ def test_01_agent_prompt_uses_shared_tui(tmp_path):
             app._input.value = "Who owns Mach 1.2?"
             await pilot.press("enter")
             assert await wait_for(pilot, lambda: not app._input.disabled)
-            assert cntl.calls == [(
-                "Who owns Mach 1.2?",
-                {"spinner": False, "capture_subprocess": True})]
+            assert len(cntl.calls) == 1
+            message, kwargs = cntl.calls[0]
+            assert message == "Who owns Mach 1.2?"
+            assert kwargs["spinner"] is False
+            assert kwargs["capture_subprocess"] is True
+            assert callable(kwargs["section_handler"])
             assert cntl.reaps == 1
             assert "Agent response from the test backend" in log_text(app)
+            assert "A folded test thought" not in log_text(app)
+            assert "A visible test tool result" in log_text(app)
+            assert [group["collapsed"] for group in app._log._groups] == [
+                True, False]
             assert app._stats["n_user_msgs"] == 1
             assert app._stats["n_tool_calls"] == 2
             assert app._stats["n_tool_fails"] == 1
