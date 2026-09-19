@@ -40,3 +40,23 @@ def test_agentic_starts_interactive_ui():
     assert ierr == 0
     main.assert_called_once_with(cli.CfdxFrontDesk)
     run.assert_not_called()
+
+
+def test_agentic_can_force_off_tui():
+    """Test ``--no-agent-tui`` selects the readline agent interface."""
+    with patch("cape.agent.main", return_value=(0, {})) as main:
+        ierr = cli.main(["cape", "agentic", "--no-agent-tui"])
+    assert ierr == 0
+    main.assert_called_once_with(cli.CfdxFrontDesk, tui=False)
+
+
+def test_agent_main_force_off_uses_readline():
+    """Test the package entry point bypasses TUI detection when disabled."""
+    with (
+            patch("cape.agent._agent_tui_ok") as tui_ok,
+            patch("cape.agent.AgentCntl") as agentcntl):
+        agentcntl.return_value.main.return_value = (0, {})
+        result = agent.main(cli.CfdxFrontDesk, tui=False)
+    assert result == (0, {})
+    tui_ok.assert_not_called()
+    agentcntl.return_value.main.assert_called_once_with(cli.CfdxFrontDesk)

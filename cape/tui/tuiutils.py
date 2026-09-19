@@ -398,6 +398,12 @@ def session_stats_panel(
     table.add_row("Commands:", str(stats.get("commands", 0)))
     table.add_row("Failures:", str(stats.get("failures", 0)))
     table.add_row("TUI cmds:", str(stats.get("tui_commands", 0)))
+    if "n_tool_calls" in stats:
+        table.add_row("Tool calls:", str(stats.get("n_tool_calls", 0)))
+        table.add_row("Tool failures:", str(stats.get("n_tool_fails", 0)))
+    if stats.get("background_tasks"):
+        table.add_row(
+            "Background tasks:", str(stats["background_tasks"]))
     table.add_row("Duration:", sprintf_duration(stats.get("duration", 0.0)))
     # Show the active JSON file and how many other files were loaded.
     last_json = stats.get("last_json_display_file") or \

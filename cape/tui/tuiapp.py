@@ -561,25 +561,39 @@ class CapeTuiApp(App):
     }
     """
 
-    def __init__(self, cls: type, *a, **kw):
+    # Presentation hooks for related CAPE Textual interfaces
+    APP_TITLE = "CAPE TUI"
+    INPUT_PLACEHOLDER = INPUT_PLACEHOLDER
+    CONTEXT_LABEL = "CAPE"
+
+    def __init__(
+            self,
+            cls: type,
+            *a,
+            histfile: Optional[str] = None,
+            **kw):
         r"""Create the app with *cls* as the CAPE front-desk parser"""
         # Initialize hierarchy
         super().__init__(*a, **kw)
         # Save the front-desk class (for completions and :help)
         self._frontdesk_cls = cls
+        # Optional history-file override for related interfaces
+        self._histfile_override = histfile
 
     def compose(self) -> ComposeResult:
         with Vertical(id="body"):
             yield CommandLog(id="log", auto_scroll=True)
             yield OptionList(id="suggestions")
             with Vertical(id="composer"):
-                yield Input(placeholder=INPUT_PLACEHOLDER, id="prompt-input")
+                yield Input(
+                    placeholder=self.INPUT_PLACEHOLDER,
+                    id="prompt-input")
                 yield Static(COMPOSER_HINT, id="composer-hint")
             yield Static(id="status-bar")
 
     def on_mount(self) -> None:
         # Theme and window title
-        self.title = "CAPE TUI"
+        self.title = self.APP_TITLE
         # Save widget references
         self._log = self.query_one("#log", CommandLog)
         self._suggestions = self.query_one("#suggestions", OptionList)
@@ -610,7 +624,7 @@ class CapeTuiApp(App):
         self._spin_ix = 0
         self._spin_timer = None
         # History file and browsing state
-        self._histfile = get_tui_histfile()
+        self._histfile = self._histfile_override or get_tui_histfile()
         self._hist_ix = None
         self._hist_draft = ""
         self._load_history()
@@ -618,13 +632,17 @@ class CapeTuiApp(App):
         from ..cfdx import cli
         self._sync_json_cache(tuple(cli.CNTL_CACHE))
         # Create tab-completer hooked to the editor
-        self._completer = CapeTuiCompleter(self._frontdesk_cls, self)
+        self._completer = self._make_completer()
         # Track result data; visible context and hints are below the composer
         self._input.border_title = self._context_title()
         self._update_status()
         self.call_after_refresh(self._update_status)
         # Focus the editor
         self._input.focus()
+
+    # Create the editor completer; subclasses may narrow its behavior
+    def _make_completer(self):
+        return CapeTuiCompleter(self._frontdesk_cls, self)
 
     # Finalize session statistics
     def finalize_stats(self) -> dict:
@@ -755,13 +773,13 @@ class CapeTuiApp(App):
         self._show_result(ierr)
         # Re-enable the editor
         self._input.disabled = False
-        self._input.placeholder = INPUT_PLACEHOLDER
+        self._input.placeholder = self.INPUT_PLACEHOLDER
         self._input.focus()
 
     # Short host and folder context for the input widget
     def _context_title(self) -> str:
         hostname = socket.gethostname().split('.')[0]
-        return f" CAPE {hostname}:{get_dirname()} "
+        return f" {self.CONTEXT_LABEL} {hostname}:{get_dirname()} "
 
     # Render the status bar for the current state
     def _update_status(self) -> None:
@@ -1129,12 +1147,7 @@ class CapeTuiApp(App):
         t0 = time.perf_counter()
         # Run the command; never crash the thread
         try:
-            if cmd == ":prompt-demo":
-                ierr = self._run_prompt_demo()
-            elif REGEX_CAPE_CLI.match(cmd):
-                ierr = self._run_cape_cli(cmd)
-            else:
-                ierr = self._run_subprocess(cmd)
+            ierr = self._execute_command(cmd)
         except KeyboardInterrupt:
             self._post_to_log(Text("KeyboardInterrupt",
                                    style=f"bold {TN_RED}"))
@@ -1153,6 +1166,14 @@ class CapeTuiApp(App):
         self._post_to_log(self._status_rule_text(ierr, dt))
         # Re-enable the editor
         self.call_from_thread(self._set_idle, ierr)
+
+    # Execute one command; subclasses can provide another backend
+    def _execute_command(self, cmd: str) -> int:
+        if cmd == ":prompt-demo":
+            return self._run_prompt_demo()
+        elif REGEX_CAPE_CLI.match(cmd):
+            return self._run_cape_cli(cmd)
+        return self._run_subprocess(cmd)
 
     # Run an in-process CAPE CLI command with redirected output
     def _run_cape_cli(self, cmd: str) -> int:

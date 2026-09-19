@@ -18,6 +18,7 @@ provided by :func:`cape.cfdx.cntl.Cntl.get_edit_allowlist`.
 """
 
 # Standard library
+import contextlib
 import json
 import os
 import pprint
@@ -27,7 +28,7 @@ import shlex
 import shutil
 import sys
 from collections import namedtuple
-from subprocess import Popen
+from subprocess import PIPE, STDOUT, Popen
 
 # Third-party imports
 import numpy as np
@@ -42,7 +43,6 @@ from .skills import skilltools
 from .skills.skillbase import discover_user_skills
 from .tools import cfdxtools, cntltools, systools
 from .tools.toolutils import normalize_kwargs
-from .. import capeconfig
 from ..argread.clitext import compile_rst, wrapline
 from ..cfdx import cli
 from ..errors import assert_isinstance
@@ -406,13 +406,28 @@ class AgentCntl:
         return added, list(skill.tools)
 
     # Run one user prompt with multi-round tool calling
-    def run_agent(self, user_message: str) -> dict:
+    def run_agent(
+            self,
+            user_message: str,
+            spinner: bool = True,
+            capture_subprocess: bool = False) -> dict:
         r"""Run one pass of model with multi-round tool calling
 
         Run one user turn with up to *MaxToolCallLoops* rounds of tool
         calls. This allows the agent to chain tool calls, e.g., calling
         :func:`cape_find` followed by :func:`cape_c` with the results from
         the first call.
+
+        :Inputs:
+            *user_message*: :class:`str`
+                User prompt or direct command
+            *spinner*: {``True``} | ``False``
+                Show the readline thinking spinner; Textual supplies its own
+            *capture_subprocess*: {``False``} | ``True``
+                Pipe direct system-command output through :data:`sys.stdout`
+        :Outputs:
+            *result*: :class:`dict`
+                Counts of tool calls and failures for this turn
         """
         # Start some counters
         result = {
@@ -486,8 +501,19 @@ class AgentCntl:
             print(f"{CLI_CALL_PROMPT} {shlex.join(cmdlist)}")
             # Run it
             try:
-                proc = Popen(cmdlist)
-                proc.communicate()
+                if capture_subprocess:
+                    proc = Popen(
+                        cmdlist,
+                        stdout=PIPE,
+                        stderr=STDOUT,
+                        text=True,
+                        errors="replace")
+                    for line in proc.stdout or ():
+                        print(line, end="")
+                    proc.wait()
+                else:
+                    proc = Popen(cmdlist)
+                    proc.communicate()
             except Exception:
                 print("System command failed")
             print(HLINE)
@@ -498,7 +524,9 @@ class AgentCntl:
         # Main tool-calling loop (allow multiple rounds of tool calls)
         for loop_iter in range(max_loops):
             # Interact with LLM and get a response
-            with agentutils.ThinkingSpinner("Thinking ..."):
+            thinking = agentutils.ThinkingSpinner("Thinking ...") \
+                if spinner else contextlib.nullcontext()
+            with thinking:
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=messages,
@@ -597,7 +625,9 @@ class AgentCntl:
         else:
             # If we've hit the max loops, force a final plain-text answer
             # Deliberately NOT passing `tools` here to force a text response
-            with agentutils.ThinkingSpinner("Processing results ..."):
+            thinking = agentutils.ThinkingSpinner("Processing results ...") \
+                if spinner else contextlib.nullcontext()
+            with thinking:
                 followup = self.client.chat.completions.create(
                     model=self.model,
                     messages=messages,
@@ -707,11 +737,7 @@ class AgentCntl:
             "n_fails": 0,
         }
         # Get history file
-        histfile = capeconfig.get_cape_opt("AgentHistoryFile")
-        # If relative path, join with CacheDir
-        if not os.path.isabs(histfile):
-            cachedir = capeconfig.get_cape_opt("CacheDir")
-            histfile = os.path.join(cachedir, histfile)
+        histfile = agentutils.get_agent_histfile()
         # Read CAPE history from previous sessions
         try:
             readline.read_history_file(histfile)

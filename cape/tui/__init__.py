@@ -69,15 +69,21 @@ def main(cls: Optional[type] = None) -> Tuple[int, dict]:
     """
     # Delayed imports of textual-dependent modules
     from .tuiapp import CapeTuiApp
-    from .tuiutils import session_stats_panel
-    # Third-party (guaranteed by textual)
-    from rich.console import Console
     # Default completions class
     if cls is None:
         from ..cfdx.cli import CfdxFrontDesk
         cls = CfdxFrontDesk
     # Create the app
     app = CapeTuiApp(cls)
+    # Run it using the shared Textual lifecycle
+    return run_app(app, title="CAPE TUI summary")
+
+
+def run_app(app, title: str = "CAPE TUI summary") -> Tuple[int, dict]:
+    r"""Run a CAPE Textual app with shared prompt/history lifecycle"""
+    # Delayed imports keep textual and rich optional
+    from .tuiutils import session_stats_panel
+    from rich.console import Console
     # Register its prompt handler, saving any previous one
     prev_handler = register_prompt_handler(app._handle_prompt)
     # Run the app
@@ -92,6 +98,6 @@ def main(cls: Optional[type] = None) -> Tuple[int, dict]:
     stats = app.finalize_stats()
     # Render exit summary on the restored terminal
     Console().print(
-        session_stats_panel(stats, app._histfile, title="CAPE TUI summary"))
+        session_stats_panel(stats, app._histfile, title=title))
     # Return code
     return 0, stats

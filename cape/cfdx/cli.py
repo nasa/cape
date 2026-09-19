@@ -159,6 +159,7 @@ class CfdxArgReader(ArgReader):
         "add-cols": (str, list),
         "add-counters": (str, list),
         "agent": str,
+        "agent-tui": bool,
         "agentic": bool,
         "apply": bool,
         "archive": bool,
@@ -374,6 +375,8 @@ class CfdxArgReader(ArgReader):
         "add-cols": "Additional columns to show in run matrix status table",
         "add-counters": "Additional keys to show totals after run mat table",
         "agent": "Run one CAPE agent prompt and exit",
+        "agent-tui": (
+            "Disable the Textual interface for interactive CAPE agent"),
         "agentic": "Run CAPE in interactive agentic mode",
         "apply": "Apply current JSON settings to existing case(s)",
         "archive": "Archive files from case(s) and delete extra files",
@@ -744,7 +747,13 @@ class CfdxAgenticArgs(CfdxArgReader):
 
     # Options
     _optlist = (
+        "agent-tui",
         "agentic",
+    )
+
+    # Display the force-off spelling in generated help
+    _help_opt_negative = (
+        "agent-tui",
     )
 
 
@@ -2143,6 +2152,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "add-cols",
         "add-counters",
         "agent",
+        "agent-tui",
         "agentic",
         "apply",
         "archive",
@@ -4178,8 +4188,12 @@ def cape_agentic(**kw) -> Tuple[int, Any]:
     """
     # Import agent interface
     from .. import agent
-    # Run code
-    return agent.main(CfdxFrontDesk)
+    # Preserve the historical call shape unless TUI use was explicitly
+    # disabled; auto-detection remains inside the agent package.
+    agent_tui = kw.pop("agent-tui", kw.pop("agent_tui", None))
+    if agent_tui is None:
+        return agent.main(CfdxFrontDesk)
+    return agent.main(CfdxFrontDesk, tui=agent_tui)
 
 
 def read_cntl_quiet(cls: ArgReader, *a, **kw):

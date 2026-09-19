@@ -447,6 +447,15 @@ def _textual_available() -> bool:
         return False
 
 
+def textual_terminal_ok() -> bool:
+    r"""Check for Textual and an interactive, non-dumb terminal."""
+    return (
+        _textual_available() and
+        sys.stdin.isatty() and
+        sys.stdout.isatty() and
+        os.environ.get("TERM", "dumb") not in ("", "dumb"))
+
+
 # Check if clickable prompts are (or should be) available
 def clickable_prompt_ok(clickable: Optional[bool] = None) -> bool:
     r"""Check if clickable option menus are currently available
@@ -480,11 +489,7 @@ def clickable_prompt_ok(clickable: Optional[bool] = None) -> bool:
         return _textual_available()
     # Use cached result of auto-detection
     if _CLICKABLE_OK is None:
-        _CLICKABLE_OK = (
-            _textual_available() and
-            sys.stdin.isatty() and
-            sys.stdout.isatty() and
-            os.environ.get("TERM", "dumb") not in ("", "dumb"))
+        _CLICKABLE_OK = textual_terminal_ok()
     return _CLICKABLE_OK
 
 
