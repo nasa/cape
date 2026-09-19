@@ -981,10 +981,11 @@ def show_tool_result(tool_result: dict):
 def show_reasoning(message) -> bool:
     r"""Display post-response reasoning content when available
 
-    This uses the nonstandard ``reasoning_content`` field exposed by
-    some OpenAI-compatible model servers. The OpenAI Python client keeps
-    unknown response fields as model extras, so :func:`getattr` works even
-    when the installed SDK does not declare this field.
+    This uses the nonstandard ``reasoning`` field exposed by current vLLM
+    servers, with ``reasoning_content`` as a fallback for older compatible
+    servers. The OpenAI Python client keeps unknown response fields as model
+    extras, so :func:`getattr` works even when the installed SDK does not
+    declare either field.
 
     :Call:
         >>> shown = show_reasoning(message)
@@ -995,7 +996,9 @@ def show_reasoning(message) -> bool:
         *shown*: :class:`bool`
             Whether nonempty reasoning content was displayed
     """
-    reasoning = getattr(message, "reasoning_content", None)
+    reasoning = getattr(message, "reasoning", None)
+    if not reasoning:
+        reasoning = getattr(message, "reasoning_content", None)
     if not reasoning:
         return False
     # Preserve ordinary text as-is; serialize structured extensions.

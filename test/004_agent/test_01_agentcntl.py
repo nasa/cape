@@ -5,12 +5,12 @@ from openai.types.chat import ChatCompletionMessage
 from cape.agent.agentcntl import show_reasoning
 
 
-# A server-provided reasoning extension is shown after completion
+# Current vLLM reasoning extension is shown after completion
 def test_01_show_reasoning(capsys):
     msg = ChatCompletionMessage.model_validate({
         "role": "assistant",
         "content": "final answer",
-        "reasoning_content": "  inspected the run matrix  ",
+        "reasoning": "  inspected the run matrix  ",
     })
     assert show_reasoning(msg) is True
     output = capsys.readouterr().out
@@ -19,8 +19,20 @@ def test_01_show_reasoning(capsys):
     assert "final answer" not in output
 
 
+# Older reasoning-content extension remains supported
+def test_02_show_legacy_reasoning(capsys):
+    msg = ChatCompletionMessage.model_validate({
+        "role": "assistant",
+        "content": "final answer",
+        "reasoning_content": "  inspected the legacy response  ",
+    })
+    assert show_reasoning(msg) is True
+    output = capsys.readouterr().out
+    assert "inspected the legacy response" in output
+
+
 # Servers that omit reasoning produce no extra output
-def test_02_no_reasoning(capsys):
+def test_03_no_reasoning(capsys):
     msg = ChatCompletionMessage(role="assistant", content="final answer")
     assert show_reasoning(msg) is False
     assert capsys.readouterr().out == ""
