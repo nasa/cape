@@ -114,6 +114,7 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
         "EditAllowList",
         "Model",
         "ModelList",
+        "ShowReasoning",
         "ShowToolResult",
         "ToolDir",
         "URL",
@@ -133,6 +134,7 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
         "EditAllowList": str,
         "Model": str,
         "ModelList": str,
+        "ShowReasoning": bool,
         "ShowToolResult": bool,
         "ToolDir": str,
         "URL": str,
@@ -146,6 +148,7 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
 
     # Defaults
     _rc = {
+        "ShowReasoning": True,
         "ShowToolResult": False,
         "ToolDir": "tools",
     }
@@ -157,6 +160,9 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
             "file-editor skill may edit"),
         "Model": "name of LLM to use; overrides model list from server",
         "ModelList": "list of models with tailored settings",
+        "ShowReasoning": (
+            "display post-response reasoning content when exposed by "
+            "the model server"),
         "ShowToolResult": "display full result of each tool call",
         "ToolDir": "folder (rel. to cwd) of scripts for user-tools skill",
         "URL": "base URL of LLM server's OpenAI-compatible API",
@@ -183,5 +189,5 @@ should match what the OpenAPI access point reports in its ``v1/models`` page.
 
 # Add global properties
 AgentOpts.add_properties(
-    ("EditAllowList", "Model", "ModelList", "ShowToolResult", "ToolDir",
-     "URL"))
+    ("EditAllowList", "Model", "ModelList", "ShowReasoning",
+     "ShowToolResult", "ToolDir", "URL"))

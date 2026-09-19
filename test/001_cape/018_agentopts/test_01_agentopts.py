@@ -309,3 +309,14 @@ def test_15_json_with_comments():
     assert "ModelList" in opts
     assert len(opts["ModelList"]) == 2
     assert opts["model1"].get_opt("ToolSet") == "low"
+
+
+# Test optional diagnostic-output defaults
+def test_16_output_options():
+    """Test reasoning is visible by default and tool results are not"""
+    opts = agentopts.AgentOpts()
+    assert opts.get_opt("ShowReasoning") is True
+    assert opts.get_opt("ShowToolResult") is False
+    opts = agentopts.AgentOpts(ShowReasoning=False, ShowToolResult=True)
+    assert opts.get_opt("ShowReasoning") is False
+    assert opts.get_opt("ShowToolResult") is True

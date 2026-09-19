@@ -120,6 +120,7 @@ CAPE_PROMPT = sprintf_color("CAPE Input/Ouput", ["italic", "green"])
 TOOL_CALL_PROMPT = sprintf_color("[tool call] ", ["italic", "purple"])
 CLI_CALL_PROMPT = sprintf_color("[CLI]\n$", ["italic", "purple"])
 TOOL_RESPONSE_PROMPT = sprintf_color("[tool response] ", ["italic", "purple"])
+REASONING_PROMPT = sprintf_color("[reasoning]", ["italic", "purple"])
 RAW_CAPE_MESSAGE = sprintf_color(
     "Detected raw CAPE command:", ["italic", "purple"])
 RAW_TOOL_MESSAGE = sprintf_color(
@@ -505,6 +506,9 @@ class AgentCntl:
                 )
             # Select the highest-ranked response
             msg = response.choices[0].message
+            # Show server-provided reasoning after the response completes
+            if self.opts.get_opt("ShowReasoning"):
+                show_reasoning(msg)
             # Append model's response to history
             messages.append(msg.model_dump(exclude_none=True))
             # Check for special case with no tool calls
@@ -600,6 +604,9 @@ class AgentCntl:
                 )
             # Select answer
             final_msg = followup.choices[0].message
+            # Show server-provided reasoning after the response completes
+            if self.opts.get_opt("ShowReasoning"):
+                show_reasoning(final_msg)
             # Save it to history
             messages.append(final_msg.model_dump(exclude_none=True))
         # Show the response
@@ -968,6 +975,41 @@ def show_tool_result(tool_result: dict):
     print(TOOL_RESPONSE_PROMPT)
     # Convert to YAML format
     print(dumps(tool_stdout, sort_keys=False, indent=2))
+
+
+# Display reasoning exposed by an OpenAI-compatible model server
+def show_reasoning(message) -> bool:
+    r"""Display post-response reasoning content when available
+
+    This uses the nonstandard ``reasoning_content`` field exposed by
+    some OpenAI-compatible model servers. The OpenAI Python client keeps
+    unknown response fields as model extras, so :func:`getattr` works even
+    when the installed SDK does not declare this field.
+
+    :Call:
+        >>> shown = show_reasoning(message)
+    :Inputs:
+        *message*: :class:`object`
+            Chat-completion response message
+    :Outputs:
+        *shown*: :class:`bool`
+            Whether nonempty reasoning content was displayed
+    """
+    reasoning = getattr(message, "reasoning_content", None)
+    if not reasoning:
+        return False
+    # Preserve ordinary text as-is; serialize structured extensions.
+    if isinstance(reasoning, str):
+        text = reasoning.strip()
+    else:
+        text = dumps(reasoning, sort_keys=False, indent=2)
+    if not text:
+        return False
+    print(HLINE)
+    print(REASONING_PROMPT)
+    print(text)
+    print(HLINE)
+    return True
 
 
 # Normlaize output
