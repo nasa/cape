@@ -96,7 +96,7 @@ class AgentTuiApp(CapeTuiApp):
     def _section_text(self, title: str, folded: bool = False) -> Text:
         r"""Build a rule-like header for an agent output section."""
         # Variable prompt char for section start line
-        head = "▸ " if folded else "❯ "
+        head = "▸ " if folded else "▾ "
         # Overall width of window
         width = max(10, self._log.size.width - 3)
         # Rule starts after code on the fold headline
