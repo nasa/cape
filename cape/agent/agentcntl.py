@@ -126,7 +126,7 @@ RAW_CAPE_MESSAGE = sprintf_color(
 RAW_TOOL_MESSAGE = sprintf_color(
     "Detected raw system command:", ["italic", "purple"])
 # Other text
-HLINE = "-" * min(int(0.9*shutil.get_terminal_size().columns), 79)
+HLINE = "─" * min(int(0.9*shutil.get_terminal_size().columns), 79)
 HLINE_BOLD = sprintf_color(HLINE, ["purple", "bold"])
 HLINE = sprintf_color(HLINE, ["purple"])
 
@@ -524,7 +524,6 @@ class AgentCntl:
             return result
         # Append the user input
         messages.append({"role": "user", "content": user_message})
-        print(HLINE_BOLD)
         # Main tool-calling loop (allow multiple rounds of tool calls)
         for loop_iter in range(max_loops):
             # Interact with LLM and get a response
@@ -572,11 +571,10 @@ class AgentCntl:
                         "start", "tool", f"[tool call] {tool_call_txt}",
                         bool(self.opts.get_opt("ShowToolResult")))
                 else:
-                    print(HLINE)
-                    print(f"{TOOL_CALL_PROMPT}{tool_call_txt}")
-                    print(HLINE)
+                    start_section("tool_call", tool_call_txt)
+                # Display CLI equivalent if appropriate
                 if tool_call_cli:
-                    print(f"{CLI_CALL_PROMPT} {tool_call_cli}")
+                    start_section("cli", tool_call_cli)
                 # Get the actual tool
                 tool_fn = self.tools.get(name)
                 # Increase tool-call count
@@ -1027,7 +1025,7 @@ def format_cli_call(name: str, kwargs: dict) -> str:
         cmdlist[0] = cmdname
         cmdlist.insert(0, "cape")
         # Output
-        return shlex.join(cmdlist)
+        return "$" + shlex.join(cmdlist)
     except Exception:
         return ''
 
@@ -1040,6 +1038,29 @@ def show_tool_result(tool_result: dict):
     print(TOOL_RESPONSE_PROMPT)
     # Convert to YAML format
     print(dumps(tool_stdout, sort_keys=False, indent=2))
+
+
+# Non-TUI section start
+def start_section(title: str, txt: str | None = None):
+    r"""Produce the header at the start of a section, non-TUI
+
+    :Call:
+        >>> start_section(title), txt)
+    :Inputs:
+        *title*: :class:`str`
+            Section title, diplayed purple as ``f"[{title}]"``
+        *txt*: {``None``} | :class:`str`
+            Optional text after section title
+    """
+    # Start the section
+    print(HLINE)
+    # Create title
+    msg = sprintf_color(f"[{title}]", ["purple", "italic"])
+    # Add the optional text
+    if txt:
+        msg += f" {txt}"
+    # Display the line
+    print(msg)
 
 
 # Display reasoning exposed by an OpenAI-compatible model server
