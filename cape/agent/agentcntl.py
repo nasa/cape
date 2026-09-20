@@ -70,11 +70,10 @@ EXIT_CMDS = (
 # LLM parameters
 SYSTEM_PROMPT = r"""
 
-You are a helpful assistant for CAPE (Computational Aerosciences Productivity &
-Execution), a NASA CFD run-matrix management tool. You have access to several
-CAPE tools such as `cape_c`, which checks the status of one or more cases in
-the run matrix. Each case will report one of the following status, which have
-specific meanings:
+You are a helpful assistant for CAPE, a NASA CFD run-matrix management tool.
+You have access to several CAPE tools such as `cape_c`, which checks the
+status of one or more cases in the run matrix. Each case will report one of the
+following status, which have specific meanings:
 
 * `---` means the case has not been started or set up yet.
 * `INCOMP` means the case is set up but has not completed the minimum
@@ -82,13 +81,13 @@ specific meanings:
 * `QUEUE` is an `INCOMP` case that has a PBS/Slurm job currently in the queue.
 * `RUNNING` means the case is currently running (in progress).
 * `ZOMBIE` means the case appears to be running but has not had any recent
-  updates; the job likely failed for some reason.
+  updates.
 * `FAIL`: The case encountered a failure while attempting to run CFD.
 * `ERROR`: The user has marked this case a failure, and the status is final.
 * `DONE` means the case has completed all required iterations and phases
    and is awaiting disposition by the user or agent.
 * `PASS`: The case is `DONE` and marked as final by the user.
-* `PASS*`: The case is marked as `PASS` by the user but does not meet the
+* `PASS*`: The case is marked `PASS` by the user but does not meet the
   requirements for `DONE`.
 
 Slow commands such as report generation can be run as background
@@ -106,7 +105,8 @@ have already seen that from STDOUT during the tool call.
 
 For most run-matrix related tool calls, including `cape_c`, it's often best to
 call `cape_find` first, which finds the appropriate subset of cases and returns
-the appropiate `I` parameter to use.
+the appropriate `I` parameter to use. Indexing for this `I` is ALWAYS 0-based
+Python-like, so the first case is `0` and `600:602` means `600,601`.
 """
 
 # Special case: use CAPE directly
@@ -128,6 +128,7 @@ RAW_TOOL_MESSAGE = sprintf_color(
 # Other text
 HLINE = "─" * min(int(0.9*shutil.get_terminal_size().columns), 79)
 HLINE_BOLD = sprintf_color(HLINE, ["purple", "bold"])
+HLINE_ORANGE = sprintf_color(HLINE, ["orange"])
 HLINE = sprintf_color(HLINE, ["purple"])
 
 
@@ -1025,7 +1026,7 @@ def format_cli_call(name: str, kwargs: dict) -> str:
         cmdlist[0] = cmdname
         cmdlist.insert(0, "cape")
         # Output
-        return "$" + shlex.join(cmdlist)
+        return "$ " + shlex.join(cmdlist)
     except Exception:
         return ''
 
@@ -1040,12 +1041,12 @@ def show_tool_result(tool_result: dict):
     print(dumps(tool_stdout, sort_keys=False, indent=2))
 
 
-# Non-TUI section start
-def start_section(title: str, txt: str | None = None):
-    r"""Produce the header at the start of a section, non-TUI
+# Non-TUI final response start
+def start_response(title: str = "Agent", txt: str | None = None):
+    r"""Produce the header at the start of agent's actual response
 
     :Call:
-        >>> start_section(title), txt)
+        >>> start_response(title, txt)
     :Inputs:
         *title*: :class:`str`
             Section title, diplayed purple as ``f"[{title}]"``
@@ -1056,6 +1057,29 @@ def start_section(title: str, txt: str | None = None):
     print(HLINE)
     # Create title
     msg = sprintf_color(f"[{title}]", ["purple", "italic"])
+    # Add the optional text
+    if txt:
+        msg += f" {txt}"
+    # Display the line
+    print(msg)
+
+
+# Non-TUI section start
+def start_section(title: str, txt: str | None = None):
+    r"""Produce the header at the start of a section, non-TUI
+
+    :Call:
+        >>> start_section(title, txt)
+    :Inputs:
+        *title*: :class:`str`
+            Section title, diplayed purple as ``f"[{title}]"``
+        *txt*: {``None``} | :class:`str`
+            Optional text after section title
+    """
+    # Start the section
+    print(HLINE_ORANGE)
+    # Create title
+    msg = sprintf_color(title, ["orange", "italic"])
     # Add the optional text
     if txt:
         msg += f" {txt}"
