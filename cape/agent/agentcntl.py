@@ -26,7 +26,6 @@ import re
 import readline
 import shlex
 import shutil
-import sys
 from collections import namedtuple
 from subprocess import PIPE, STDOUT, Popen
 
@@ -672,14 +671,14 @@ class AgentCntl:
             section_handler(
                 "start", "response", "Agent:", True)
             # Display the response
-            show_formatted_response(final_msg)
+            show_formatted_response(final_msg.content)
             # End the section
             section_handler("end", "reasoning", "", True)
         elif show_reasoning_opt:
             # Start the "section"
             start_response()
             # Show the response
-            show_reasoning(final_msg)
+            show_formatted_response(final_msg.content)
         # Return counters for this pass
         return result
 
