@@ -357,6 +357,18 @@ def test_12_fold_command_output(tmp_path, monkeypatch):
             await pilot.pause()
             assert "late output" not in log_text(app)
             assert "second output" in log_text(app)
+            # Replaying a long transcript must not activate RichLog's
+            # automatic scroll-to-end behavior.
+            for j in range(40):
+                app._log.write(f"extra output {j}")
+            await pilot.pause()
+            app._log.scroll_to(y=0, animate=False, immediate=True)
+            await pilot.pause()
+            assert int(app._log.scroll_y) == 0
+            await pilot.click("#log", offset=(2, 1))
+            await pilot.pause()
+            assert int(app._log.scroll_y) == 0
+            assert "late output" in log_text(app)
     run_async(drive())
 
 

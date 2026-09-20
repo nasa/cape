@@ -432,8 +432,12 @@ class CommandLog(RichLog):
             return
         self._groups[index]["collapsed"] ^= True
         old_y = self.scroll_y
+        auto_scroll = self.auto_scroll
         self._replaying = True
         try:
+            # RichLog.write() otherwise schedules scroll_end() for every
+            # replayed entry, overriding the viewport restoration below.
+            self.auto_scroll = False
             super().clear()
             self._header_lines.clear()
             for entry in self._entries:
@@ -447,6 +451,7 @@ class CommandLog(RichLog):
                     content, args, kwargs = entry
                     super().write(content, *args, **kwargs)
         finally:
+            self.auto_scroll = auto_scroll
             self._replaying = False
         self.scroll_to(y=old_y, animate=False, immediate=True)
 
