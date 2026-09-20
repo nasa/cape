@@ -88,17 +88,19 @@ class AgentTuiApp(CapeTuiApp):
         return AgentTuiCompleter(self._frontdesk_cls, self)
 
     def _write_command_header(self, cmd: str) -> None:
-        # Agent turns contain their own reasoning/tool folds. Keep the user's
-        # prompt at the transcript's top level instead of folding the entire
-        # turn as one ordinary CAPE command.
+        # Agent turns contain their own reasoning/tool folds.
+        # Keep user's prompt at the transcript's top level
         self._log.end_group()
         self._log.write(self._bubble_text(cmd))
 
     def _section_text(self, title: str, folded: bool = False) -> Text:
         r"""Build a rule-like header for an agent output section."""
+        # Variable prompt char for section start line
         head = "▸ " if folded else "❯ "
+        # Build HLINE rule
         width = max(10, self._log.size.width - 3)
         tail = max(2, width - len(head) - len(title) - 1)
+        # Create text box with the text, including tailing hline
         return Text.assemble(
             (head, f"bold {TN_BLUE}"),
             (title, f"italic {TN_PURPLE}"),
@@ -123,14 +125,14 @@ class AgentTuiApp(CapeTuiApp):
 
     def _execute_command(self, cmd: str) -> int:
         # AgentCntl writes its progress, tools, reasoning, and answer to
-        # stdout; route that existing presentation into the shared RichLog.
+        # stdout; route that to the shared RichLog.
         writer = LogWriter(self)
         stdout_old, stderr_old = sys.stdout, sys.stderr
         try:
             sys.stdout = writer
             sys.stderr = writer
-            # Match the readline loop by reporting completed background work
-            # before processing the next user turn.
+            # Match the readline loop by reporting completed background
+            # work before processing the next user turn.
             self._agent.reap_tasks(section_handler=self._handle_section)
             self._stats["n_user_msgs"] += 1
             result = self._agent.run_agent(
