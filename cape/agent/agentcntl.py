@@ -666,8 +666,20 @@ class AgentCntl:
                 show_reasoning(final_msg)
             # Save it to history
             messages.append(final_msg.model_dump(exclude_none=True))
-        # Show the response
-        show_formatted_response(final_msg.content)
+        # Start the response section
+        if section_handler is not None:
+            # Start a section
+            section_handler(
+                "start", "response", "Agent:", True)
+            # Display the response
+            show_formatted_response(final_msg)
+            # End the section
+            section_handler("end", "reasoning", "", True)
+        elif show_reasoning_opt:
+            # Start the "section"
+            start_response()
+            # Show the response
+            show_reasoning(final_msg)
         # Return counters for this pass
         return result
 
@@ -983,9 +995,7 @@ def genr8_image_message(images: list) -> dict:
 def show_formatted_response(msg: str | None):
     if msg is None:
         return
-    sys.stdout.write(f"\n{AGENT_PROMPT}")
     print(compile_rst(wrapline(msg)))
-    print(HLINE_BOLD)
     print("")
 
 
