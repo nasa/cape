@@ -127,7 +127,7 @@ RAW_TOOL_MESSAGE = sprintf_color(
 # Other text
 HLINE = "─" * min(int(0.9*shutil.get_terminal_size().columns), 79)
 HLINE_BOLD = sprintf_color(HLINE, ["purple", "bold"])
-HLINE_ORANGE = sprintf_color(HLINE, ["yellow"])
+HLINE_ORANGE = sprintf_color(HLINE, ["darkred"])
 HLINE = sprintf_color(HLINE, ["purple"])
 
 
@@ -1051,7 +1051,7 @@ def show_tool_result(tool_result: dict):
 
 
 # Non-TUI final response start
-def start_response(title: str = "Agent", txt: str | None = None):
+def start_response(title: str = "Agent: ", txt: str | None = None):
     r"""Produce the header at the start of agent's actual response
 
     :Call:
