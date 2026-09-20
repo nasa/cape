@@ -1084,6 +1084,7 @@ def get_reasoning_text(message) -> str:
     return dumps(reasoning, sort_keys=False, indent=2).strip()
 
 
+# Display reasonint content in non-TUI interface
 def show_reasoning(message, framed: bool = True) -> bool:
     r"""Display post-response reasoning content when available
 
@@ -1108,13 +1109,10 @@ def show_reasoning(message, framed: bool = True) -> bool:
     if not text:
         return False
     if framed:
-        print(HLINE)
-        print(REASONING_PROMPT)
+        start_section("reasoning")
     # Use the same paragraph-aware wrapping as the final response. Structured
     # reasoning extensions are still valid plain text after serialization.
     print(compile_rst(wrapline(text)))
-    if framed:
-        print(HLINE)
     return True
 
 
