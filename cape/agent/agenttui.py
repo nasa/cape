@@ -189,14 +189,17 @@ def main(cls: Optional[type] = None):
     if cls is None:
         from ..cfdx.cli import CfdxFrontDesk
         cls = CfdxFrontDesk
-    # Preserve controller startup notices and replay them in the app log.
+    # Preserve controller startup notices and replay them in the app log
     startup = io.StringIO()
+    # Initialize agent instance
     with contextlib.redirect_stdout(startup), \
             contextlib.redirect_stderr(startup):
         cntl = AgentCntl()
+    # Initialize TUI app
     app = AgentTuiApp(
         cls,
         cntl,
         startup_output=startup.getvalue(),
         histfile=agentutils.get_agent_histfile())
+    # Execute TUI app
     return run_app(app, title="CAPE agent summary")

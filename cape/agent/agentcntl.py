@@ -128,6 +128,7 @@ RAW_TOOL_MESSAGE = sprintf_color(
 HLINE = "─" * min(int(0.9*shutil.get_terminal_size().columns), 79)
 HLINE_BOLD = sprintf_color(HLINE, ["purple", "bold"])
 HLINE_ORANGE = sprintf_color(HLINE, ["orange"])
+HLINE_GREEN = sprintf_color(HLINE, ["green"])
 HLINE = sprintf_color(HLINE, ["purple"])
 
 
@@ -679,6 +680,8 @@ class AgentCntl:
             start_response()
             # Show the response
             show_formatted_response(final_msg.content.lstrip())
+            # Extra divider
+            print(HLINE_GREEN)
         # Return counters for this pass
         return result
 
