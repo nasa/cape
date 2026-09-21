@@ -55,7 +55,11 @@ class FakeAgent:
             "start", "tool", "[tool call] fake_tool()", True)
         print("A visible test tool result")
         section_handler("end", "tool", "", True)
+        section_handler(
+            "start", "response", "Agent:", True,
+            color="bold italic #FF9E64")
         print("Agent response from the test backend")
+        section_handler("end", "response", "", True)
         return {"n_tool_calls": 2, "n_tool_fails": 1}
 
 
@@ -84,7 +88,10 @@ def test_01_agent_prompt_uses_shared_tui(tmp_path):
             assert "A folded test thought" not in log_text(app)
             assert "A visible test tool result" in log_text(app)
             assert [group["collapsed"] for group in app._log._groups] == [
-                True, False]
+                True, False, False]
+            response_header = app._log._groups[-1]["header"]
+            assert "Agent:" in response_header.plain
+            assert "#FF9E64" in str(response_header.spans)
             assert app._stats["n_user_msgs"] == 1
             assert app._stats["n_tool_calls"] == 2
             assert app._stats["n_tool_fails"] == 1

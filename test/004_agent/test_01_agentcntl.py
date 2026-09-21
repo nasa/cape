@@ -97,15 +97,21 @@ def test_05_tui_sections_ignore_visibility_options(capsys):
     cntl.tools = {"fake_tool": lambda: {"value": 42}}
     events = []
 
+    def record_section(*args, **kwargs):
+        events.append((args, kwargs))
+
     cntl.run_agent(
         "test request", spinner=False,
-        section_handler=lambda *args: events.append(args))
+        section_handler=record_section)
 
     output = capsys.readouterr().out
     assert "reasoning remains available" in output
     assert '"value": 42' in output
-    starts = [event for event in events if event[0] == "start"]
+    starts = [event for event in events if event[0][0] == "start"]
     assert starts == [
-        ("start", "reasoning", "[reasoning]", False),
-        ("start", "tool", "[tool call] fake_tool()", False),
+        (("start", "reasoning", "[reasoning]", False), {}),
+        (("start", "tool", "[tool call] fake_tool()", False), {}),
+        (("start", "response", "Agent:", True), {
+            "color": "bold italic #FF9E64",
+        }),
     ]
