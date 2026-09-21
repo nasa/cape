@@ -118,14 +118,15 @@ class AgentTuiApp(CapeTuiApp):
             action: str,
             kind: str,
             title: str,
-            expanded: bool) -> None:
+            expanded: bool,
+            color: str | None = None) -> None:
         r"""Open or close a fold group from the agent worker thread."""
         if action == "start":
             self.call_from_thread(
                 self._log.start_section,
                 kind,
-                self._section_text(title),
-                self._section_text(title, folded=True),
+                self._section_text(title, color=color),
+                self._section_text(title, folded=True, color=color),
                 not expanded)
         else:
             self.call_from_thread(self._log.end_group)
