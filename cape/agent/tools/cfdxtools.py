@@ -60,10 +60,6 @@ CAPE_PARAMS = {
         ),
         "type": ["string", "null"]
     },
-    "fpdf": {
-        "description": "Name of PDF file to open for the user.",
-        "type": "string",
-    },
     "user": {
         "description": (
             "Limit to cases owned by this specific user"
@@ -101,30 +97,6 @@ CAPE_PARAMS = {
         ),
         "type": ["string", "null"]
     },
-    "h": {
-        "description": (
-            "Display help message and exit. The help message describes all "
-            "commands a user has access to and can call through CAPE. "
-            "Synonym: help."
-        ),
-        "type": ["boolean", "null"]
-    },
-    "n": {
-        "description": (
-            "Submit at most n cases. The user specifies the number of cases "
-            "to run. This should run all avaiable cases available up to the "
-            "number specified. Cases cannot be in status PASS or DONE."
-            "Synonym: N."
-        ),
-        "type": ["integer", "null"]
-    },
-    "j": {
-        "description": (
-            "List the PBS/Slurm job ID. This is used when the user checks "
-            "the status of one or more cases."
-        ),
-        "type": ["boolean", "null"]
-    },
     "jq": {
         "description": (
             "Path to item or subset of options using jq syntax, e.g. "
@@ -140,12 +112,6 @@ CAPE_PARAMS = {
         ),
         "type": ["integer", "null"]
     },
-    "batch": {
-        "description": (
-            "Submit PBS/Slurm job and run this command."
-        ),
-        "type": ["boolean", "null"]
-    },
     "background": {
         "description": (
             "Run this command as a background task instead of waiting "
@@ -155,39 +121,9 @@ CAPE_PARAMS = {
         ),
         "type": ["boolean", "null"]
     },
-    "e": {
-        "description": (
-            "Execute the command EXEC."
-            "Synonym: exec."
-        ),
-        "type": ["string", "null"]
-    },
     "extend": {
-        "description": (
-            "Number of times to extend case. Default: 1"
-        ),
+        "description": "Number of times to extend case",
         "type": ["integer"]
-    },
-    "no-restart": {
-        "description": (
-            "Only submit new cases when submitting jobs."
-        ),
-        "type": ["boolean", "null"]
-    },
-    "no-start": {
-        "description": (
-            "Only set up cases. Do not start or submit cases to run."
-        ),
-        "type": ["boolean", "null"]
-    },
-    "q": {
-        "description": (
-            "Submit to a specific PBS/Slurm queue. The target queue is "
-            "specified by the user. This command overrides the queue value "
-            "in the input JSON file."
-            "Synonyms: queue."
-        ),
-        "type": ["string", "null"]
     },
     "qsub": {
         "description": (
@@ -200,12 +136,6 @@ CAPE_PARAMS = {
         "description": "Name of specific report to generate. Optional",
         "type": ["string", "null"]
     },
-    "subfig": {
-        "description": (
-            "Name of the report subfigure to create and open its image."
-        ),
-        "type": ["string", "null"]
-    },
     "start": {
         "description": (
             "Set this option to 'false' in order to set a case up but not "
@@ -213,37 +143,7 @@ CAPE_PARAMS = {
         ),
         "type": ["boolean", "null"]
     },
-    "u": {
-        "description": (
-            "Pretend to be the user UID. The original user is able to act "
-            "as the user of the UID they specify."
-        ),
-        "type": ["string", "null"]
-    },
-    "x": {
-        "description": (
-            "Execute a Python script after reading the JSON file. The script "
-            "is specified by the user and can only run after the JSON."
-        ),
-        "type": ["string", "null"]
-    },
 }
-
-
-def cape_report(*a, **kw) -> dict:
-    # Get notional result
-    result = wrap_cli(cli.cape_report, *a, **kw)
-    # Add follow-up if appropriate
-    fpdf = result.get("reportfile")
-    if fpdf:
-        result["follow-up"] = "open_pdf"
-    # Output
-    return result
-
-
-def cape_open_pdf(*a, **kw) -> dict:
-    fpdf = kw.get("fpdf")
-    return wrap_cli(cli.cape_open_pdf, fpdf, wait=True)
 
 
 def cape_c(*a, **kw) -> dict:
@@ -307,13 +207,6 @@ TOOL_DICT = {
         "parameters": ["f", "I"],
         "required": ["I"],
     },
-    "cape_dispatch": {
-        "description": (
-            "Ask user for appropraite action to take on one or more cases"
-        ),
-        "parameters": ["f", "I"],
-        "required": ["I"],
-    },
     "cape_extend": {
         "description": "Extend case(s) by running more iterations",
         "parameters": ["f", "I", "extend", "qsub"],
@@ -322,17 +215,6 @@ TOOL_DICT = {
     "cape_report": {
         "description": "Generate a PDF report for one or more cases",
         "parameters": ["f", "I", "report", "background"],
-        "required": ["I"],
-    },
-    "cape_review": {
-        "description": (
-            "Interactively review report subfigures for one or more "
-            "cases; the user is prompted to approve, extend, or skip "
-            "each case while viewing the report images in the terminal."
-            "This is interactive and allows the user to make decisions "
-            "on each case."
-        ),
-        "parameters": ["f", "I", "report"],
         "required": ["I"],
     },
     "cape_fail": {
@@ -370,29 +252,8 @@ TOOL_DICT = {
         "parameters": ["f", "I"],
         "required": ["I"],
     },
-    "cape_open_pdf": {
-        "description": "Open a PDF for user to view",
-        "parameters": ["fpdf"],
-        "required": ["fpdf"],
-    },
-    "cape_open_subfig": {
-        "description": (
-            "Create one report subfigure for the selected cases and "
-            "open (display) its image"
-        ),
-        "parameters": ["f", "I", "subfig"],
-        "required": ["subfig"],
-    },
     "cape_unarchive": {
         "description": "Expand files from archive",
-        "parameters": ["f", "I"],
-        "required": ["I"],
-    },
-    "cape_skeleton": {
-        "description": (
-            "Clean up case folder after ALL processing is finished; "
-            "leave only key files"
-        ),
         "parameters": ["f", "I"],
         "required": ["I"],
     },
@@ -451,9 +312,10 @@ TOOL_SETS = {
         "cape_start",
         "cape_unmark",
     ],
+    # NOTE: no "cape_c" here; the "check-cases" skill provides the
+    # richer "cape_check" tool to models that support skills
     "full": [
         "cape_find",
-        "cape_c",
         "cape_approve",
         "cape_apply",
         "cape_archive",

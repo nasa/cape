@@ -17,6 +17,7 @@ the ``use_skill`` tool (see :mod:`cape.agent.skills.skilltools`).
 """
 
 # Local imports
+from . import checkcases
 from . import checkdbtools
 from . import cntlrunner
 from . import fileedit
@@ -35,6 +36,7 @@ __all__ = (
     "SKILL_SETS",
     "SKILL_TOOL_MODULES",
     "Skill",
+    "checkcases",
     "checkdbtools",
     "cntlrunner",
     "discover_user_skills",
@@ -50,6 +52,8 @@ __all__ = (
 # Built-in skills, merged from skill modules
 BUILTIN_SKILLS = {
     **{name: Skill.from_defn(name, defn)
+       for name, defn in checkcases.SKILL_DICT.items()},
+    **{name: Skill.from_defn(name, defn)
        for name, defn in checkdbtools.SKILL_DICT.items()},
     **{name: Skill.from_defn(name, defn)
        for name, defn in cntlrunner.SKILL_DICT.items()},
@@ -63,6 +67,7 @@ BUILTIN_SKILLS = {
 
 # Map of built-in skill names to the modules providing their tools
 SKILL_TOOL_MODULES = {
+    "check-cases": checkcases,
     "check-db": checkdbtools,
     "cntl-runner": cntlrunner,
     "file-editor": fileedit,

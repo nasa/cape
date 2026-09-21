@@ -70,9 +70,9 @@ EXIT_CMDS = (
 SYSTEM_PROMPT = r"""
 
 You are a helpful assistant for CAPE, a NASA CFD run-matrix management tool.
-You have access to several CAPE tools such as `cape_c`, which checks the
-status of one or more cases in the run matrix. Each case will report one of the
-following status, which have specific meanings:
+You have access to several CAPE tools for checking and managing the cases of a
+run matrix. Each case has one of the following statuses, which have specific
+meanings:
 
 * `---` means the case has not been started or set up yet.
 * `INCOMP` means the case is set up but has not completed the minimum
@@ -89,24 +89,32 @@ following status, which have specific meanings:
 * `PASS*`: The case is marked `PASS` by the user but does not meet the
   requirements for `DONE`.
 
-Slow commands such as report generation can be run as background
-tasks using the tool's `background` option; their full results are
-delivered in a follow-up message once the task completes.
-
-Some tools such as `view_subfig` return images for you to look at;
-those images arrive in the message immediately after the tool result,
-so wait for that message before describing or analyzing the image.
-
 Do not call the same tool again with the same or very similar arguments.
 
 In most cases, do not create a table of results for each case; the user will
 have already seen that from STDOUT during the tool call.
 
-For most run-matrix related tool calls, including `cape_c`, it's often best to
-call `cape_find` first, which finds the appropriate subset of cases and returns
-the appropriate `I` parameter to use. Indexing for this `I` is ALWAYS 0-based
-Python-like, so the first case is `0` and `600:602` means `600,601`.
+Indexing for case lists (the `I` parameter) is ALWAYS 0-based Python-like, so
+the first case is `0` and `600:602` means `600,601`.
 """
+
+# Additional system-prompt guidance, gated on tools actually exposed
+TOOL_PROMPT_LINES = {
+    "cape_find": r"""
+For most run-matrix related tool calls, it's often best to call `cape_find`
+first, which finds the appropriate subset of cases and returns the appropriate
+`I` parameter to use.""",
+    "view_subfig": r"""
+Some tools such as `view_subfig` return images for you to look at; those
+images arrive in the message immediately after the tool result, so wait for
+that message before describing or analyzing the image.""",
+}
+
+# Guidance shown if any tool supporting the *background* option is active
+BACKGROUND_PROMPT_LINE = r"""
+Slow commands such as report generation can be run as background tasks using
+the tool's `background` option; their full results are delivered in a
+follow-up message once the task completes."""
 
 # Special case: use CAPE directly
 _solvrs = "(fun|cart|over|kes|lava|lch|us)"
@@ -271,10 +279,19 @@ class AgentCntl:
         names_cfdx = cfdxtools.TOOL_SETS.get(toolset)
         if names_cfdx is None:
             names_cfdx = list(cfdxtools.TOOL_DICT)
+        else:
+            names_cfdx = list(names_cfdx)
         # Get list of CNTL tools for this set; default to all
         names_cntl = cntltools.TOOL_SETS.get(toolset)
         if names_cntl is None:
             names_cntl = list(cntltools.TOOL_DICT)
+        else:
+            names_cntl = list(names_cntl)
+        # Exclude image-returning tools if model cannot process images
+        vision = self.opts.get_ModelOpt(self.model, "Vision", vdef=True)
+        if not vision:
+            if "view_subfig" in names_cntl:
+                names_cntl.remove("view_subfig")
         # Combine tool names from both modules
         names = names_cfdx + names_cntl
         # Convert to a set for faster checks
@@ -340,7 +357,8 @@ class AgentCntl:
         EDIT_FILE_ALLOW_LIST.clear()
         #: :class:`str`
         #: System prompt including listing of available skills
-        self.system_prompt = genr8_system_prompt(self.skills)
+        self.system_prompt = genr8_system_prompt(
+            self.skills, tools=getattr(self, "tools", None))
         # Include skill management only if skills are available
         if self.skills:
             self.tools.update(skilltools.TOOLS)
@@ -875,40 +893,60 @@ class AgentCntl:
 
 
 # Build system prompt, appending a listing of available skills
-def genr8_system_prompt(skills: dict) -> str:
+def genr8_system_prompt(skills: dict, tools: dict | None = None) -> str:
     r"""Build the system prompt, listing available agent skills
 
+    Tool-specific guidance (e.g. for ``cape_find`` or ``view_subfig``)
+    is included only when the corresponding tool is exposed to the
+    model, and available skills are listed at the end.
+
     :Call:
-        >>> prompt = genr8_system_prompt(skills)
+        >>> prompt = genr8_system_prompt(skills, tools=None)
     :Inputs:
         *skills*: :class:`dict`\ [:class:`.skills.skillbase.Skill`]
             Map of skill names to skill definitions
+        *tools*: {``None``} | :class:`dict`
+            Map of tool names exposed to the model
     :Outputs:
         *prompt*: :class:`str`
             System prompt for the LLM
     """
-    # Base prompt if no skills
-    if not skills:
+    # Map of tool names actually exposed
+    toolset = {} if tools is None else tools
+    # Start with shared doctrine
+    parts = [SYSTEM_PROMPT.strip()]
+    # Append guidance for tools that are actually exposed
+    for name, line in TOOL_PROMPT_LINES.items():
+        if name in toolset:
+            parts.append(line.strip())
+    # Background-task guidance if any backgroundable tool is active
+    if any(name in toolset for name in cfdxtools.BACKGROUNDABLE_TOOLS):
+        parts.append(BACKGROUND_PROMPT_LINE.strip())
+    # Base prompt if no skills and no tool-specific lines
+    if not skills and len(parts) == 1:
         return SYSTEM_PROMPT
-    # Assemble skill listing
-    lines = [
-        SYSTEM_PROMPT.strip(),
-        "",
-        "## Agent skills",
-        "",
-        "You have access to *agent skills*: documented workflows that"
-        " describe how and when to use certain tools and how to chain"
-        " tool calls together. Before starting a task that matches a"
-        " skill's description, call the `use_skill` tool with the skill"
-        " name to read its full instructions and activate its tools.",
-        "",
-        "Available skills:",
-    ]
-    # Add one line per skill
-    for name in sorted(skills):
-        lines.append(f"* `{name}`: {skills[name].description}")
+    # Add skills section if any skills are available
+    if skills:
+        skill_lines = [
+            "## Agent skills",
+            "",
+            (
+                "You have access to *agent skills*: documented "
+                "workflows that describe how and when to use certain "
+                "tools and how to chain tool calls together. Before "
+                "starting a task that matches a skill's description, "
+                "call the `use_skill` tool with the skill name to read "
+                "its full instructions and activate its tools."
+            ),
+            "",
+            "Available skills:",
+        ]
+        # Add one line per skill
+        for name in sorted(skills):
+            skill_lines.append(f"* `{name}`: {skills[name].description}")
+        parts.append("\n".join(skill_lines))
     # Combine
-    return "\n".join(lines)
+    return "\n\n".join(parts)
 
 
 # Remove a trailing "&" background marker from a command
@@ -1032,6 +1070,10 @@ def format_cli_call(name: str, kwargs: dict) -> str:
         kw = normalize_kwargs(kwargs)
         # Remove parameters that are only meaningful to the agent
         kw.pop("background", None)
+        # Convert list values to comma-separated strings for display
+        for k, v in kw.items():
+            if isinstance(v, list):
+                kw[k] = ",".join(str(vj) for vj in v)
         # Parse the kwargs
         parser = parsercls(**kw)
         # Reconstruct the command

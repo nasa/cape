@@ -320,3 +320,21 @@ def test_16_output_options():
     opts = agentopts.AgentOpts(ShowReasoning=False, ShowToolResult=True)
     assert opts.get_opt("ShowReasoning") is False
     assert opts.get_opt("ShowToolResult") is True
+
+
+# Test Vision option for image-capable models
+def test_17_modelopts_vision():
+    """Test Vision option defaults to True and can be disabled"""
+    # Default
+    model_opts = agentopts.ModelOpts()
+    assert model_opts.get_opt("Vision") is True
+    # Explicitly disabled (text-only model)
+    model_opts = agentopts.ModelOpts(Vision=False)
+    assert model_opts["Vision"] is False
+    assert model_opts.get_opt("Vision") is False
+    # Retrieved through get_ModelOpt for an undefined model
+    opts = agentopts.AgentOpts(ModelList=["m1"])
+    assert opts.get_ModelOpt("m1", "Vision") is True
+    # And for a defined model
+    opts = agentopts.AgentOpts(ModelList=["m1"], m1={"Vision": False})
+    assert opts.get_ModelOpt("m1", "Vision") is False

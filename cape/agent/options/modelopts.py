@@ -22,7 +22,9 @@ Here is a sample file:
     }
 
 The *MaxToolCallLoops* option (defaults based on *ToolSet*) controls how many
-rounds of tool calling the agent can perform:
+rounds of tool calling the agent can perform. The *Vision* option (default
+``true``) controls whether tools that return images, such as
+:func:`cape.agent.tools.cntltools.view_subfig`, are exposed to the model:
 
 .. code-block:: javascript
 
@@ -30,7 +32,8 @@ rounds of tool calling the agent can perform:
         "ModelList": ["my-model"],
         "my-model": {
             "ToolSet": "medium",
-            "MaxToolCallLoops": 8  // Override default of 6 for medium
+            "MaxToolCallLoops": 8,  // Override default of 6 for medium
+            "Vision": false  // Text-only model; no image tools
         }
     }
 
@@ -73,6 +76,7 @@ class ModelOpts(OptionsDict):
         "SkillSet",
         "Parent",
         "MaxToolCallLoops",
+        "Vision",
     )
 
     # Aliases
@@ -88,6 +92,7 @@ class ModelOpts(OptionsDict):
         "SkillSet": str,
         "Parent": str,
         "MaxToolCallLoops": int,
+        "Vision": bool,
     }
 
     # Allowed values
@@ -130,6 +135,7 @@ class ModelOpts(OptionsDict):
     _rc = {
         "ToolSet": "full",
         "SkillSet": "full",
+        "Vision": True,
     }
 
     # Descriptions
@@ -138,6 +144,7 @@ class ModelOpts(OptionsDict):
         "SkillSet": "descriptive level of how many skill to expose",
         "Parent": "name of model to inherit settings from",
         "MaxToolCallLoops": "maximum number of tool call rounds in agent loop",
+        "Vision": "whether model can process images from tools",
     }
 
     # ToolSet-based defaults for MaxToolCallLoops

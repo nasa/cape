@@ -5,7 +5,13 @@ from openai.types.chat import (
 )
 
 # Local imports
-from cape.agent.agentcntl import AgentCntl, show_reasoning
+from cape.agent.agentcntl import (
+    AgentCntl,
+    SYSTEM_PROMPT,
+    genr8_system_prompt,
+    show_reasoning,
+)
+from cape.agent.skills.skillbase import Skill
 
 
 # Current vLLM reasoning extension is shown after completion
@@ -115,3 +121,83 @@ def test_05_tui_sections_ignore_visibility_options(capsys):
             "color": "bold italic #FF9E64",
         }),
     ]
+
+
+# Base prompt returned verbatim when nothing is exposed
+def test_06_system_prompt_base():
+    prompt = genr8_system_prompt({}, {})
+    assert prompt == SYSTEM_PROMPT
+    assert "PASS*" in prompt
+    assert "0-based" in prompt
+    # No tool named in shared doctrine unless actually exposed
+    assert "cape_c`" not in prompt
+
+
+# Tool-specific guidance follows the exposed tools
+def test_07_system_prompt_tool_lines():
+    skills = {"demo": Skill("demo", "Demo skill.", "Instructions")}
+    # No tool lines when the matching tools are absent
+    prompt = genr8_system_prompt(skills, {})
+    assert "cape_find" not in prompt
+    assert "view_subfig" not in prompt
+    assert "background task" not in prompt
+    assert "Available skills:" in prompt
+    assert "`demo`" in prompt
+    # Tools exposed -> corresponding lines appear
+    tools = {
+        "cape_find": lambda: None,
+        "cape_report": lambda: None,
+        "view_subfig": lambda: None,
+    }
+    prompt = genr8_system_prompt(skills, tools)
+    assert "best to call `cape_find`" in prompt
+    assert "view_subfig` return images" in prompt
+    assert "background task" in prompt
+
+
+# Dummy options for assemble_tools tests
+class ToolOpts:
+    def __init__(self, toolset="full", vision=True):
+        self.toolset = toolset
+        self.vision = vision
+
+    def get_ModelOpt(self, model, name, vdef=None):
+        if name == "ToolSet":
+            return self.toolset
+        if name == "Vision":
+            return self.vision
+        return vdef
+
+
+def make_tool_cntl(toolset="full", vision=True):
+    cntl = AgentCntl.__new__(AgentCntl)
+    cntl.model = "test-model"
+    cntl.opts = ToolOpts(toolset=toolset, vision=vision)
+    cntl.assemble_tools()
+    return cntl
+
+
+def schema_names(cntl):
+    return {schema["function"]["name"] for schema in cntl.tool_schemas}
+
+
+# Vision-capable models get the image tool; text-only models do not
+def test_08_assemble_tools_vision():
+    cntl = make_tool_cntl()
+    assert "view_subfig" in cntl.tools
+    assert "view_subfig" in schema_names(cntl)
+    cntl = make_tool_cntl(vision=False)
+    assert "view_subfig" not in cntl.tools
+    assert "view_subfig" not in schema_names(cntl)
+    # Non-image tools unaffected
+    assert "get_subfigs" in cntl.tools
+    assert "getcwd" in cntl.tools
+
+
+# The full tool set no longer includes the simple cape_c tool
+def test_09_assemble_tools_full():
+    cntl = make_tool_cntl()
+    assert "cape_c" not in cntl.tools
+    # But low-tier models keep it
+    cntl = make_tool_cntl(toolset="low")
+    assert "cape_c" in cntl.tools

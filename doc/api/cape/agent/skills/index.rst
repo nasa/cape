@@ -11,6 +11,7 @@
 
     skillbase
     skilltools
+    checkcases
     cntlrunner
     fileedit
     fixjson

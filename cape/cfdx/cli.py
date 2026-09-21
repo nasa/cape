@@ -135,6 +135,8 @@ class CfdxArgReader(ArgReader):
         "file": "f",
         "help": "h",
         "hide": "hide-cols",
+        "hide_cols": "hide-cols",
+        "hide_counters": "hide-counters",
         "iterfm": "iter-fm",
         "json": "f",
         "kill": "qdel",
