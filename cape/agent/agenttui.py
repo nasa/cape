@@ -93,7 +93,11 @@ class AgentTuiApp(CapeTuiApp):
         self._log.end_group()
         self._log.write(self._bubble_text(cmd))
 
-    def _section_text(self, title: str, folded: bool = False) -> Text:
+    def _section_text(
+            self,
+            title: str,
+            folded: bool = False,
+            color: str | None = None) -> Text:
         r"""Build a rule-like header for an agent output section."""
         # Variable prompt char for section start line
         head = "▶ " if folded else "▼ "
@@ -101,10 +105,12 @@ class AgentTuiApp(CapeTuiApp):
         width = max(10, self._log.size.width - 3)
         # Rule starts after code on the fold headline
         tail = max(2, width - len(head) - len(title) - 1)
+        # Get default color
+        color = f"italic {TN_PURPLE}" if color is None else color
         # Assemble ">" + {text} + hline
         return Text.assemble(
             (head, f"bold {TN_BLUE}"),
-            (title, f"italic {TN_PURPLE}"),
+            (title, color),
             (" " + "─" * tail, TN_DIM))
 
     def _handle_section(

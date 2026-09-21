@@ -670,7 +670,8 @@ class AgentCntl:
         if section_handler is not None:
             # Start a section
             section_handler(
-                "start", "response", "Agent:", True)
+                "start", "response", "Agent:", True,
+                color="bold italic #FF9E64")
             # Display the response
             show_formatted_response(final_msg.content.lstrip())
             # End the section
