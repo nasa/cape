@@ -52,14 +52,6 @@ CAPE_PARAMS = {
         ),
         "type": ["string", "null"]
     },
-    "filter": {
-        "description": (
-            "Limit command to cases containing a string of text specified "
-            "by the user. "
-            "Example: Only show cases containing 'm3': filter='m3'"
-        ),
-        "type": ["string", "null"]
-    },
     "user": {
         "description": (
             "Limit to cases owned by this specific user"
@@ -168,7 +160,6 @@ TOOL_DICT = {
             "I",
             "cons",
             "f",
-            "filter",
             "marked",
             "me",
             "re",

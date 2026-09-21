@@ -55,9 +55,9 @@ SKILL_PARAMS = {
     "I": {
         "description": (
             "Case indices using Python slice syntax: '8', '5:11', or "
-            "'14,17:20'. Prefer the cons, re, filter, user, status, "
-            "marked, or unmarked filters when the user describes cases "
-            "by property instead of index."
+            "'14,17:20'. Prefer the cons, re, user, status, marked, "
+            "or unmarked filters when the user describes cases by "
+            "property instead of index."
         ),
         "type": ["string", "null"],
     },
@@ -101,20 +101,19 @@ SKILL_PARAMS = {
     },
     "cons": {
         "description": (
-            "Constraint on run matrix keys, e.g. 'mach>1.0'. Protect "
-            "string values with quotes. Cheap."
+            "Constraint on run matrix keys, e.g. 'mach>1.0'. Get "
+            "explicit run matrix keys unless user is explicit. Extra"
+            "keys 'Mach', 'alpha', and 'beta' are likely available "
+            "even if not in the .RunMatrix.Keys list.  Protect string "
+            "values with quotes. Cheap."
         ),
         "type": ["string", "null"],
     },
     "re": {
         "description": (
-            "Only cases whose full folder name matches this regular "
-            "expression. Cheap."
+            "Only cases whose full folder name contains a match for "
+            "this regular expression. Cheap."
         ),
-        "type": ["string", "null"],
-    },
-    "filter": {
-        "description": "Only cases containing this text. Cheap.",
         "type": ["string", "null"],
     },
     "user": {
@@ -227,7 +226,7 @@ computed per case: `status`, `progress`, `iter`, `queue`, `job`,
 
 Filter cases cheaply by property instead of hand-building `I` when
 the user describes cases by property: `cons` (run matrix
-constraints), `re` (regex on folder names), `filter` (substring),
+constraints), `re` (folder name contains a match for this regex),
 `user` / `me` (owner), `marked` / `unmarked` (PASS/ERROR markings).
 The `I` selector and these filters can be combined.
 
@@ -272,7 +271,6 @@ TOOL_DICT = {
             "status",
             "cons",
             "re",
-            "filter",
             "user",
             "me",
             "marked",
