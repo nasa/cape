@@ -127,7 +127,7 @@ RAW_TOOL_MESSAGE = sprintf_color(
 # Other text
 HLINE = "─" * min(int(0.9*shutil.get_terminal_size().columns), 79)
 HLINE_BOLD = sprintf_color(HLINE, ["purple", "bold"])
-HLINE_ORANGE = sprintf_color(HLINE, ["darkred"])
+HLINE_ORANGE = sprintf_color(HLINE, ["orange"])
 HLINE = sprintf_color(HLINE, ["purple"])
 
 
@@ -1065,7 +1065,7 @@ def start_response(title: str = "Agent: ", txt: str | None = None):
     # Start the section
     print(HLINE_ORANGE)
     # Create title
-    msg = sprintf_color(title, ["yellow", "italic"])
+    msg = sprintf_color(title, ["orange", "italic"])
     # Add the optional text
     if txt:
         msg += f" {txt}"

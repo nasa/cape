@@ -40,6 +40,7 @@ CONSOLE = {
     'darkgray':  '\x1b[30;01m',
     'red':       '\x1b[31;01m',
     'darkred':   '\x1b[31m',
+    'orange':    '\x1b[38;2;255;158;100m',
     'green':     '\x1b[32;01m',
     'darkgreen': '\x1b[32m',
     'yellow':    '\x1b[33;01m',
