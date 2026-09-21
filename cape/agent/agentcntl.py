@@ -671,14 +671,14 @@ class AgentCntl:
             section_handler(
                 "start", "response", "Agent:", True)
             # Display the response
-            show_formatted_response(final_msg.content)
+            show_formatted_response(final_msg.content.lstrip())
             # End the section
-            section_handler("end", "reasoning", "", True)
-        elif show_reasoning_opt:
+            section_handler("end", "response", "", True)
+        else:
             # Start the "section"
             start_response()
             # Show the response
-            show_formatted_response(final_msg.content)
+            show_formatted_response(final_msg.content.lstrip())
         # Return counters for this pass
         return result
 
@@ -1065,7 +1065,7 @@ def start_response(title: str = "Agent: ", txt: str | None = None):
     # Start the section
     print(HLINE_ORANGE)
     # Create title
-    msg = sprintf_color(title, ["orange", "italic"])
+    msg = sprintf_color(title, ["orange", "bold", "italic"])
     # Add the optional text
     if txt:
         msg += f" {txt}"
