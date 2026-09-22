@@ -40,6 +40,10 @@ CAPE_PARAMS = {
         ),
         "type": ["string", "null"],
     },
+    "i": {
+        "description": "Index of a specific case",
+        "type": ["integer"],
+    },
     "report": {
         "description": "Name of specific report to generate. Optional",
         "type": ["string", "null"]
@@ -60,6 +64,37 @@ CAPE_PARAMS = {
 }
 
 
+def enter_case(i: int, f: str | None = None) -> dict:
+    # Read *cntl*
+    cntl = cli.read_cntl_q(f)
+    # Get name of folder
+    try:
+        frun = cntl.x.GetFullFolderNames(i)
+    except Exception:
+        return {
+            "ok": False,
+            "reason": f"Case {i} not found",
+        }
+    # Absolute path
+    fabs = os.path.join(cntl.RootDir, frun)
+    # Check for the folder
+    if not os.path.isdir(fabs):
+        return {
+            "ok": False,
+            "reason": f"No folder for case {i} ({frun})",
+        }
+    # Enter the folder
+    os.chdir(fabs)
+    # Result
+    return {
+        "ok": True,
+        "cwd": fabs,
+        "case_name": frun,
+        "case_number": i,
+        "json_file": os.path.normpath(os.path.join(cntl.fdir, cntl.fname)),
+    }
+
+
 def get_subfigs(f: str | None = None, report: str | None = None) -> dict:
     # Read *cntl*
     cntl = cli.read_cntl_q(f)
@@ -70,6 +105,15 @@ def get_subfigs(f: str | None = None, report: str | None = None) -> dict:
     }
 
 
+def get_keys(f: str | None = None) -> dict:
+    # Read *cntl*
+    cntl = cli.read_cntl_q(f)
+    # List the keys
+    return {
+        "keys": cntl.opts.get_RunMatrixKeys(),
+    }
+
+
 def get_reports(f: str | None = None) -> dict:
     # Read *cntl*
     cntl = cli.read_cntl_q(f)
@@ -77,6 +121,31 @@ def get_reports(f: str | None = None) -> dict:
     return {
         "reports": cntl.opts.get_ReportList(),
     }
+
+
+def return_to_root() -> dict:
+    # Initialize result
+    result = {"old": os.getcwd(), "ok": True}
+    # Check for cache
+    if len(cli.CNTL_CACHE) == 0:
+        # Check if any JSON files were found
+        json_files = cli.manage.find_json_solver()
+        if len(json_files) == 0:
+            # Nothing found
+            result["ok"] = False
+            result["reason"] = "No CAPE files found or in this session"
+    else:
+        # Use the first one
+        for json_file, cntl in cli.CNTL_CACHE.items():
+            break
+        # Go to root folder forcibly
+        os.chdir(cntl.RootDir)
+        # Save the file used
+        result["json_file"] = json_file
+    # Save new path
+    result["cwd"] = os.getcwd()
+    # Output
+    return result
 
 
 # Read an image file and format it as a base64 data URL
@@ -209,6 +278,15 @@ def view_subfig(
 
 # Simplified definitions not in OpenAPI format
 TOOL_DICT = {
+    "enter_case": {
+        "description": "Enter the working directory of a specific case.",
+        "parameters": ["i", "f"],
+        "required": ["i"],
+    },
+    "get_keys": {
+        "description": "List the variables or keys in the run matrix.",
+        "parameters": ["f"],
+    },
     "get_subfigs": {
         "description": (
             "List the subfigures, either of all reports if 'report' is not "
@@ -222,6 +300,10 @@ TOOL_DICT = {
     "get_reports": {
         "description": "Get list of reports available",
         "parameters": ["f"],
+    },
+    "return_to_root": {
+        "description": "Return to top-level folder of project",
+        "parameters": [],
     },
     "view_subfig": {
         "description": (
@@ -246,17 +328,25 @@ TOOLS = {}
 TOOL_SETS = {
     "none": [],
     "low": [
+        "get_keys",
         "get_subfigs",
         "get_reports",
+        "return_to_root",
     ],
     "medium": [
+        "enter_case",
+        "get_keys",
         "get_subfigs",
         "get_reports",
+        "return_to_root",
         "view_subfig",
     ],
     "full": [
+        "enter_case",
+        "get_keys",
         "get_subfigs",
         "get_reports",
+        "return_to_root",
         "view_subfig",
     ],
 }

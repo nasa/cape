@@ -169,7 +169,7 @@ TOOL_DICT = {
     },
     "cape_c": {
         "description": (
-            "Check the status of one or more cases. A status of '---' "
+            "Check the status of one or more cases.  A status of '---' "
             "means the case has not been started or set up yet. You "
             "can use *add_cols* to show the values of more run matrix "
             "values."
