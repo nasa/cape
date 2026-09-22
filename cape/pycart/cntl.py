@@ -116,6 +116,11 @@ class Cntl(capecntl.Cntl):
         os.path.join("adapt??", "FLOW", "*.out"),
         os.path.join("adapt??", "FLOW", "*.dat"),
     ]
+    # Options that point to editable files
+    _file_opts = [
+        ".AeroCsh",
+        ".InputCntl",
+    ]
 
   # === Command-Line Interface ===
     # Baseline function

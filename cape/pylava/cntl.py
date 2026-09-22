@@ -107,6 +107,11 @@ class Cntl(capecntl.Cntl):
     _zombie_files = (
         "*.out",
         "*.log")
+    # Options that point to editable files
+    _file_opts = [
+        ".CartInputFile",
+        ".RunYAMLFile",
+    ]
 
   # === __DUNDER__ ===
     # Initialization method

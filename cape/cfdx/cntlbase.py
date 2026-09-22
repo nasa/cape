@@ -194,6 +194,24 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Skills ---
+    # Get list tools like ``cape --agent`` are allowed to edit
+    @abstractmethod
+    def get_edit_allowlist(self) -> list:
+        r"""Get list of files, rel. to root dir, the agent may edit
+
+        :Call:
+            >>> flist = cntl.get_edit_allowlist()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Overall CAPE run matrix control instance
+        :Outputs:
+            *flist*: :class:`list`\ [:class:`str`]
+                Names of files, relative to root dir, that agentic
+                tools are allowed to edit
+        """
+        pass
+
    # --- Top-level options ---
     # Get the project rootname
     @abstractmethod

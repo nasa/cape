@@ -107,6 +107,10 @@ class Cntl(ccntl.Cntl):
     _zombie_files = (
         "*.out",
         "log/*.log")
+    # Options that point to editable files
+    _file_opts = [
+        ".JobXML",
+    ]
   # >
 
   # ==================

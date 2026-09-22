@@ -34,6 +34,11 @@ class Cntl(cntl.Cntl):
     # Other settings
     _fjson_default = "pyLCH.json"
     _warnmode_default = cntl.DEFAULT_WARNMODE
+    # Options that point to editable files
+    _file_opts = [
+        ".Mesh.MapBCFile",
+        ".VarsFile",
+    ]
 
    # === Config ===
     def init_post(self):

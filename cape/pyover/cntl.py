@@ -110,6 +110,10 @@ class Cntl(capecntl.Cntl):
     # Other settings
     _fjson_default = "pyOver.json"
     _warnmode_default = capecntl.DEFAULT_WARNMODE
+    # Options that point to editable files
+    _file_opts = [
+        ".OverNamelist",
+    ]
   # >
 
   # === Init config ===

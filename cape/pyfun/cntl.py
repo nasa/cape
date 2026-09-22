@@ -127,6 +127,12 @@ class Cntl(cntl.Cntl):
     # Other settings
     _fjson_default = "pyFun.json"
     _warnmode_default = cntl.DEFAULT_WARNMODE
+    _file_opts = [
+        ".Fun3DNamelist",
+        ".RubberDataFile",
+        ".TDataFile",
+        ".Mesh.MapBCFile",
+    ]
     _zombie_files = [
         "*.out",
         "*.flow",

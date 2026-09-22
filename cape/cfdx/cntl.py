@@ -456,6 +456,9 @@ class Cntl(CntlBase):
     #: :class:`list`\ [:class:`str`]
     _fail_file_pats = []
 
+    #: List of file-like settings
+    _file_opts = []
+
   # *** DUNDER ***
     # Initialization method
     def __init__(self, fname: Optional[str] = None):
@@ -635,9 +638,53 @@ class Cntl(CntlBase):
         v = self.opts
         # Navigate path
         for key in keys:
-            v = v[key]
+            v = v.get(key)
         # Truncate and output
         return truncate_jq(v, maxdepth)
+
+   # --- Skills ---
+    # Get list tools like ``cape --agent`` are allowed to edit
+    def get_edit_allowlist(self) -> list:
+        # Get notional list
+        allowlist = self._get_edit_allowlist()
+        # Normalize
+        return [os.path.normpath(fname) for fname in allowlist]
+
+    # Get unnormalized file list
+    @run_rootdir
+    def _get_edit_allowlist(self) -> list[str]:
+        # Start with main JSON file
+        allowlist = [os.path.join(self.fdir, self.fname)]
+        # Extend with any included files
+        allowlist.extend(self.opts._filenames[1:])
+        # List of universal files
+        filelist = [
+            ".Config.ConfigFile",
+            ".RunMatrix.File",
+        ]
+        # Add in files specific to this module
+        filelist.extend(self._file_opts)
+        # Additional options
+        candidates = [self.inspect_json(fopt) for fopt in filelist]
+        # Add any Python modules that are loaded and in repo
+        for modname in self.opts.get_opt("Modules", vdef=[]):
+            # Check if present
+            mod = sys.modules.get(modname)
+            if mod is None:
+                continue
+            # Get file name relative to root
+            modfile = os.path.relpath(mod.__file__, self.RootDir)
+            # Append it if w/i repo
+            if not modfile.startswith(".."):
+                candidates.append(modfile)
+        # Include them if they exist
+        for candidate in candidates:
+            if not isinstance(candidate, str):
+                continue
+            if os.path.isfile(candidate):
+                allowlist.append(candidate)
+        # Output
+        return allowlist
 
    # --- Top-level options ---
     # Get the project rootname
@@ -4427,23 +4474,6 @@ class Cntl(CntlBase):
             }
         # Output
         return result
-
-    # Get list tools like ``cape --agent`` are allowed to edit
-    def get_edit_allowlist(self) -> list:
-        r"""Get list of files, rel. to root dir, the agent may edit
-
-        :Call:
-            >>> flist = cntl.get_edit_allowlist()
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Overall CAPE run matrix control instance
-        :Outputs:
-            *flist*: :class:`list`\ [:class:`str`]
-                Names of files, relative to root dir, that agentic
-                tools are allowed to edit
-        """
-        # For now, the control JSON file itself is the only candidate
-        return [os.path.normpath(os.path.join(self.fdir, self.fname))]
 
   # *** REPORTING ***
    # --- Report generation ---
