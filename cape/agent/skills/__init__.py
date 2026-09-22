@@ -21,6 +21,7 @@ from . import checkcases
 from . import checkdbtools
 from . import cntlrunner
 from . import fileedit
+from . import fileread
 from . import fixjson
 from . import skillbase
 from . import skilltools
@@ -41,6 +42,7 @@ __all__ = (
     "cntlrunner",
     "discover_user_skills",
     "fileedit",
+    "fileread",
     "fixjson",
     "read_skillfile",
     "skillbase",
@@ -60,6 +62,8 @@ BUILTIN_SKILLS = {
     **{name: Skill.from_defn(name, defn)
        for name, defn in fileedit.SKILL_DICT.items()},
     **{name: Skill.from_defn(name, defn)
+       for name, defn in fileread.SKILL_DICT.items()},
+    **{name: Skill.from_defn(name, defn)
        for name, defn in fixjson.SKILL_DICT.items()},
     **{name: Skill.from_defn(name, defn)
        for name, defn in usertools.SKILL_DICT.items()},
@@ -71,6 +75,7 @@ SKILL_TOOL_MODULES = {
     "check-db": checkdbtools,
     "cntl-runner": cntlrunner,
     "file-editor": fileedit,
+    "file-reader": fileread,
     "fix-json": fixjson,
     "user-tools": usertools,
 }
@@ -82,6 +87,7 @@ SKILL_SETS = {
     "medium": [
         "check-db",
         "cntl-runner",
+        "file-reader",
         "user-tools",
     ],
     "full": list(BUILTIN_SKILLS),

@@ -5,7 +5,7 @@ import pytest
 
 # Local imports
 from cape.agent import agentcntl
-from cape.agent.skills import checkdbtools, fileedit, skillbase
+from cape.agent.skills import checkdbtools, fileedit, fileread, skillbase
 
 
 class DummyOpts:
@@ -112,3 +112,25 @@ def test_06_file_editor_activation(monkeypatch):
     assert cntl.tools["edit_file"] is fileedit.edit_file
     assert schema_names(cntl) == ["use_skill"] + ftools
     assert cntl.loaded_skills == {"file-editor"}
+
+
+def test_07_file_reader_activation(monkeypatch):
+    """Loading ``file-reader`` activates only the shared read tool."""
+    cntl = make_cntl("medium", monkeypatch)
+    assert "file-reader" in cntl.skills
+    result = cntl.use_skill("file-reader")
+    assert result["success"] is True
+    assert result["tools_added"] == ["read_file"]
+    assert cntl.tools["read_file"] is fileread.read_file
+    assert schema_names(cntl) == ["use_skill", "read_file"]
+
+
+def test_08_file_skills_share_read_tool(monkeypatch):
+    """Loading both file skills reuses ``read_file`` without conflict."""
+    cntl = make_cntl("full", monkeypatch)
+    cntl.use_skill("file-reader")
+    result = cntl.use_skill("file-editor")
+    assert result["success"] is True
+    assert result["tools_added"] == ["list_editable_files", "edit_file"]
+    assert cntl.tools["read_file"] is fileedit.TOOLS["read_file"]
+    assert schema_names(cntl).count("read_file") == 1

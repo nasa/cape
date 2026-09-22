@@ -14,5 +14,6 @@
     checkcases
     cntlrunner
     fileedit
+    fileread
     fixjson
     usertools

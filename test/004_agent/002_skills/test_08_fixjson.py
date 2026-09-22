@@ -7,23 +7,24 @@ import pytest
 
 # Local imports
 from cape.agent import agentcntl, skills
-from cape.agent.skills import fileedit, fixjson, skillbase, skilltools
+from cape.agent.skills import fileedit, fileread, fixjson, skillbase
+from cape.agent.skills import skilltools
 
 
 # Save and restore module state around each test
 @pytest.fixture(autouse=True)
 def skill_state():
     # Save current state
-    rootdir = fileedit.ROOT_DIR
+    rootdir = fileread.ROOT_DIR
     patterns = list(fileedit.ALLOW_PATTERNS)
     registered = list(agentcntl.EDIT_FILE_ALLOW_LIST)
     # Reset for test
-    fileedit.ROOT_DIR = None
+    fileread.ROOT_DIR = None
     fileedit.ALLOW_PATTERNS.clear()
     agentcntl.EDIT_FILE_ALLOW_LIST.clear()
     yield
     # Restore
-    fileedit.ROOT_DIR = rootdir
+    fileread.ROOT_DIR = rootdir
     fileedit.ALLOW_PATTERNS.clear()
     fileedit.ALLOW_PATTERNS.extend(patterns)
     agentcntl.EDIT_FILE_ALLOW_LIST.clear()
@@ -58,8 +59,8 @@ def repo(tmp_path, monkeypatch):
         '{\n    "a": 2,\n}\n')
     # A non-JSON file
     (tmp_path / "notes.txt").write_text("not json\n")
-    # Point the file-editor skill at this repo; run relative to it
-    monkeypatch.setattr(fileedit, "ROOT_DIR", str(tmp_path))
+    # Point the file skills at this repo; run relative to it
+    monkeypatch.setattr(fileread, "ROOT_DIR", str(tmp_path))
     monkeypatch.chdir(tmp_path)
     yield tmp_path
 
@@ -160,17 +161,18 @@ def test_07_trailing_comma(repo):
 
 # Test that registration enables file-editor access
 def test_08_registration_enables_editing(repo):
-    # No static patterns; file is initially off-limits
+    # No static patterns; file is initially off-limits to editing
     fileedit.ALLOW_PATTERNS.clear()
-    result = fileedit.read_file("comma.json")
+    result = fileedit.edit_file("comma.json", '"a": 2\n', '"a": 2,\n')
     assert result["success"] is False
     assert "not in the edit allow-list" in result["error"]
+    # But it can always be read
+    result = fileedit.read_file("comma.json")
+    assert result["success"] is True
     # Validating registers the file
     result = fixjson.validate_json("comma.json")
     assert result["valid"] is False
     # Now the file-editor tools accept it
-    result = fileedit.read_file("comma.json")
-    assert result["success"] is True
     # Fix the missing comma
     result = fileedit.edit_file("comma.json", '"a": 2\n', '"a": 2,\n')
     assert result["success"] is True

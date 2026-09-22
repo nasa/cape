@@ -8,7 +8,7 @@ import testutils
 
 # Local imports
 from cape.agent import skills
-from cape.agent.skills import fileedit, skillbase, skilltools
+from cape.agent.skills import fileedit, fileread, skillbase, skilltools
 from cape.cfdx import cli
 
 
@@ -16,14 +16,14 @@ from cape.cfdx import cli
 @pytest.fixture(autouse=True)
 def fileedit_state():
     # Save current state
-    rootdir = fileedit.ROOT_DIR
+    rootdir = fileread.ROOT_DIR
     patterns = list(fileedit.ALLOW_PATTERNS)
     # Reset for test: use cwd, empty allow-list
-    fileedit.ROOT_DIR = None
+    fileread.ROOT_DIR = None
     fileedit.ALLOW_PATTERNS.clear()
     yield
     # Restore
-    fileedit.ROOT_DIR = rootdir
+    fileread.ROOT_DIR = rootdir
     fileedit.ALLOW_PATTERNS.clear()
     fileedit.ALLOW_PATTERNS.extend(patterns)
 
@@ -50,8 +50,8 @@ def repo(tmp_path, monkeypatch):
     fdir = tmp_path / "tools"
     fdir.mkdir()
     (fdir / "script.py").write_text("print('hi')\n")
-    # Point the skill at this repo and run relative to it
-    monkeypatch.setattr(fileedit, "ROOT_DIR", str(tmp_path))
+    # Point the skills at this repo and run relative to it
+    monkeypatch.setattr(fileread, "ROOT_DIR", str(tmp_path))
     monkeypatch.chdir(tmp_path)
     # Set the static allow-list (no CAPE JSON file here)
     fileedit.ALLOW_PATTERNS.clear()
@@ -125,17 +125,17 @@ def test_05_read_file(repo):
     assert result["content"] == "1: alpha\n2: beta\n3: gamma"
 
 
-# Test read and edit rejection for files outside the allow-list
+# Test edit rejection (but not read rejection) outside the allow-list
 def test_06_not_allowed(repo):
-    # File exists but does not match the patterns
-    result = fileedit.read_file("secret.md")
-    assert result["success"] is False
-    assert "not in the edit allow-list" in result["error"]
-    assert result["allowed_patterns"] == ["*.txt", "tools/*.py"]
-    # Same for edit_file
+    # File exists but does not match the patterns: editing rejected
     result = fileedit.edit_file("secret.md", "not", "yes")
     assert result["success"] is False
     assert "not in the edit allow-list" in result["error"]
+    assert result["allowed_patterns"] == ["*.txt", "tools/*.py"]
+    # Reading the same file is fine: allow-list only governs edits
+    result = fileedit.read_file("secret.md")
+    assert result["success"] is True
+    assert result["content"] == "1: not editable"
     # Path escaping the root folder
     result = fileedit.edit_file(
         os.path.join("..", "..", "etc", "hostname"), "x", "y")
@@ -213,18 +213,23 @@ def test_09_cntl_allowlist():
     fileedit.ALLOW_PATTERNS.clear()
     # Read the CAPE control instance directly
     cntl = cli.read_cntl_cache("cape.json", solver="cfdx")
-    # Check the Cntl-level allow-list
-    assert cntl.get_edit_allowlist() == ["cape.json"]
-    # The skill's listing should pick it up, too
+    # Check the Cntl-level allow-list: JSON file plus run-matrix CSV
+    assert cntl.get_edit_allowlist() == ["cape.json", "matrix.csv"]
+    # The skill's listing should pick them up, too
     result = fileedit.list_editable_files()
     assert result["success"] is True
-    assert result["cntl_files"] == ["cape.json"]
+    assert result["cntl_files"] == ["cape.json", "matrix.csv"]
     assert "cape.json" in result["files"]
+    assert "matrix.csv" in result["files"]
     # The CAPE JSON file is editable with no static patterns
     result = fileedit.edit_file("cape.json", '"nProc": 4', '"nProc": 8')
     assert result["success"] is True
     assert '"nProc": 8' in open("cape.json").read()
-    # But other files in the sandbox are still off-limits
+    # So is the run-matrix file
     result = fileedit.edit_file("matrix.csv", "Mach", "mach")
+    assert result["success"] is True
+    assert "mach" in open("matrix.csv").read()
+    # But other files in the sandbox are still off-limits
+    result = fileedit.edit_file("notes.md", "x", "y")
     assert result["success"] is False
     assert "not in the edit allow-list" in result["error"]

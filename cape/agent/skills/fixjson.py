@@ -59,8 +59,8 @@ SKILL_PARAMS = {
         "description": (
             "Name of the JSON file to check, absolute or relative to "
             "the current folder. The file is also registered with the "
-            "file-editor skill's allow-list so read_file and edit_file "
-            "will accept it."
+            "file-editor skill's allow-list so edit_file will accept "
+            "it."
         ),
         "type": "string",
     },
@@ -104,8 +104,8 @@ def validate_json(fname: str) -> dict:
     ``.json``. As a side effect, the file is registered with the
     ``file-editor`` skill's allow-list (via
     :data:`cape.agent.agentcntl.EDIT_FILE_ALLOW_LIST`) so that it can
-    be repaired using that skill's ``read_file`` and ``edit_file``
-    tools even though it cannot be read into a ``Cntl`` instance.
+    be repaired using that skill's ``edit_file`` tool even though it
+    cannot be read into a ``Cntl`` instance.
 
     CAPE-style ``//`` comments are stripped from each line (outside of
     quoted strings) before parsing, mirroring the way CAPE reads JSON
@@ -214,14 +214,14 @@ this skill registers the file for editing as part of validating it.
 1. Call `validate_json(fname)` with the file the user named. This does
    two things:
    * registers the file with the file-editor skill's allow-list for
-     this session, so `read_file` and `edit_file` will accept it;
+     this session, so `edit_file` will accept it (`read_file` accepts
+     any repo file under 2 MB regardless);
    * parses the file and reports `valid: true`, or the first syntax
      error with its line, column, a short `hint`, and numbered
      `context` lines with the error line marked by `-->`.
 2. If you need to edit the file, first call
-   `use_skill('file-editor')` to activate the `read_file` and
-   `edit_file` tools, then `read_file` the file to see the problem
-   area in context.
+   `use_skill('file-editor')` to activate the `edit_file` tool, then
+   `read_file` the file to see the problem area in context.
 3. Repair the error with `edit_file`, making the smallest possible
    change. Fix syntax only: do not reformat, reorder, or rename
    anything, do not change any values, and preserve any `//` comments.
@@ -248,9 +248,8 @@ JSON rules: keys and strings use double quotes only, no trailing
 commas, and every `{`/`[` needs a closing `}`/`]`. CAPE tolerates
 `//` comments in its JSON files, so leave those alone.
 
-If `edit_file` or `read_file` rejects the file with "not in the edit
-allow-list", call `validate_json` on that file again to re-register
-it.
+If `edit_file` rejects the file with "not in the edit allow-list",
+call `validate_json` on that file again to re-register it.
 """
 
 # Simplified skill definition

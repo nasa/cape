@@ -3,16 +3,23 @@ r"""
 =============================================================================
 
 This module defines the built-in agent skill ``"file-editor"``, which
-teaches the CAPE agent how to read and edit a restricted set of files
-in the repo in which the agent is launched.
+teaches the CAPE agent how to edit a restricted set of files in the
+repo in which the agent is launched.
 
 The skill provides three tools:
 
 * :func:`list_editable_files`: list the active allow-list patterns and
   the existing files that match them
-* :func:`read_file`: read an allow-listed file with line numbers
+* :func:`read_file`: read a file with line numbers (any repo file
+  smaller than about 2 MB; provided by
+  :mod:`cape.agent.skills.fileread`)
 * :func:`edit_file`: apply an exact-match search-and-replace edit to an
   allow-listed file, returning a unified diff of the change
+
+The *allow-list* restricts which files may be *edited*; it does not
+apply to reading, which is limited only by the repo root folder and the
+file-size limit of the ``file-reader`` skill (see
+:mod:`cape.agent.skills.fileread`).
 
 The set of editable files (the *allow-list*) comes from three sources:
 
@@ -41,23 +48,21 @@ import glob
 import os
 
 # Local imports
+from . import fileread
 from ..tools import toolutils
 from ...cfdx import cli
 
 
-# Folder in which agent was launched; defaults to cwd
-ROOT_DIR: str | None = None
-
-# Glob patterns, relative to *ROOT_DIR*, of files the agent may edit
+# Glob patterns, relative to the root folder, of files the agent may edit
 ALLOW_PATTERNS: list = []
-
-# Truncation limits for read_file output
-MAX_READ_LINES = 2000
-HEAD_LINES = 1500
-TAIL_LINES = 500
 
 # Truncation limit for the diff returned by edit_file
 MAX_DIFF_CHARS = 12000
+
+# Shared path helpers and read tool (allow-list applies only to edits)
+_get_rootdir = fileread.get_rootdir
+_resolve_fname = fileread.resolve_fname
+read_file = fileread.read_file
 
 
 # Parameter definitions for the tool schema
@@ -65,9 +70,10 @@ SKILL_PARAMS = {
     "fname": {
         "description": (
             "Name of file to read or edit, either absolute or relative "
-            "to the current folder. The file must match the "
-            "file-editor skill's allow-list; call list_editable_files "
-            "to see which files are allowed."
+            "to the current folder. Any text file in the repo smaller "
+            "than 2 MB may be read; to edit a file it must match the "
+            "file-editor skill's allow-list, so call "
+            "list_editable_files to see which files are editable."
         ),
         "type": "string",
     },
@@ -87,13 +93,6 @@ SKILL_PARAMS = {
         "type": "string",
     },
 }
-
-
-# Get absolute path of repo root folder
-def _get_rootdir() -> str:
-    # Substitute cwd if *ROOT_DIR* not set
-    rootdir = os.getcwd() if ROOT_DIR is None else ROOT_DIR
-    return os.path.realpath(rootdir)
 
 
 # Get the file names provided by the current ``Cntl`` instance
@@ -135,45 +134,6 @@ def _genr8_allowlist() -> list:
             patterns.append(f)
     # Output
     return patterns
-
-
-# Resolve *fname* against the root folder and check containment
-def _resolve_fname(fname) -> tuple | dict:
-    r"""Resolve a file name and check that it is inside the root folder
-
-    Returns a tuple ``(fabs, relname)`` with the resolved absolute path
-    and the POSIX-style name relative to the root folder, or an error
-    :class:`dict` with ``"success": False``.
-    """
-    # Check type
-    if not isinstance(fname, str) or not fname:
-        return {
-            "success": False,
-            "error": "'fname' must be a nonempty string",
-        }
-    # Absolute path of repo root
-    rootdir = _get_rootdir()
-    # Absolutize; relative names use the current folder (see ``chdir``)
-    if os.path.isabs(fname):
-        fabs = fname
-    else:
-        fabs = os.path.join(os.getcwd(), fname)
-    # Resolve any links and ``.`` or ``..`` components
-    freal = os.path.realpath(fabs)
-    # Check that the resolved path is inside the root folder
-    try:
-        inside = os.path.commonpath([freal, rootdir]) == rootdir
-    except ValueError:
-        inside = False
-    if not inside:
-        return {
-            "success": False,
-            "error": f"File '{fname}' is outside the repo root folder",
-        }
-    # POSIX-style name relative to root folder
-    relname = os.path.relpath(freal, rootdir).replace(os.sep, "/")
-    # Output
-    return freal, relname
 
 
 # Resolve *fname* and check it against the allow-list
@@ -286,77 +246,6 @@ def list_editable_files() -> dict:
     }
 
 
-# Read an allow-listed file with line numbers
-def read_file(fname: str) -> dict:
-    r"""Read an allow-listed file, prefixing each line with its number
-
-    Large files are truncated to the first *HEAD_LINES* and last
-    *TAIL_LINES* lines.
-
-    :Call:
-        >>> result = read_file(fname)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to read; must match the edit allow-list
-    :Outputs:
-        *result*: :class:`dict`
-            Keys include *success*, *file*, *n_lines*, *content*, and
-            *truncated*
-    """
-    # Check whether the file may be accessed
-    check = _check_editable(fname)
-    if isinstance(check, dict):
-        return check
-    freal, relname = check
-    # Check for file
-    if not os.path.isfile(freal):
-        return {
-            "success": False,
-            "error": f"No such file: '{relname}'",
-        }
-    # Read the file
-    try:
-        with open(freal) as fp:
-            text = fp.read()
-    except UnicodeDecodeError:
-        return {
-            "success": False,
-            "error": f"File '{relname}' is not a valid text file",
-        }
-    except OSError as e:
-        return {
-            "success": False,
-            "error": f"Could not read '{relname}': {e}",
-        }
-    # Split into lines
-    lines = text.splitlines()
-    n_lines = len(lines)
-    # Truncate large files, keeping line numbering intact
-    truncated = n_lines > MAX_READ_LINES
-    if truncated:
-        # Line numbers for the head and tail parts
-        head = lines[:HEAD_LINES]
-        tail = lines[-TAIL_LINES:]
-        j0 = n_lines - TAIL_LINES
-        # Assemble numbered content with a marker for the omitted part
-        parts = [f"{j + 1}: {line}" for j, line in enumerate(head)]
-        parts.append(
-            f"... [{n_lines - HEAD_LINES - TAIL_LINES} lines omitted] ...")
-        parts += [f"{j0 + k + 1}: {line}" for k, line in enumerate(tail)]
-        content = "\n".join(parts)
-    else:
-        content = "\n".join(
-            f"{j + 1}: {line}" for j, line in enumerate(lines))
-    # Output
-    return {
-        "success": True,
-        "file": relname,
-        "n_lines": n_lines,
-        "truncated": truncated,
-        "content": content,
-    }
-
-
 # Apply an exact-match search-and-replace edit to an allow-listed file
 def edit_file(fname: str, old: str, new: str) -> dict:
     r"""Replace one occurrence of *old* with *new* in an allow-listed file
@@ -463,14 +352,17 @@ def edit_file(fname: str, old: str, new: str) -> dict:
 
 # Full Markdown instructions provided to the agent via ``use_skill``
 SKILL_CONTENT = r"""
-# file-editor: reading and editing allow-listed files
+# file-editor: editing allow-listed files
 
 Use this skill when the user asks you to modify a file in this repo,
 for example updating a CAPE JSON option, fixing a script in the
-`tools/` folder, or editing notes. You may only read and edit files
-that match the skill's *allow-list*; all other files are rejected.
+`tools/` folder, or editing notes. You may only *edit* files that match
+the skill's *allow-list*; all other edit attempts are rejected.
 
-## Allow-list
+Reading is not restricted by the allow-list: `read_file` accepts any
+text file in the repo smaller than about 2 MB.
+
+## Edit allow-list
 
 The allow-list combines three sources:
 
@@ -491,7 +383,7 @@ root folder are always rejected, even if they match a pattern.
 
 ## Workflow
 
-1. Call `list_editable_files` to confirm the file you need is allowed.
+1. Call `list_editable_files` to confirm the file you need is editable.
    If it is not, tell the user which pattern to add to `EditAllowList`
    rather than attempting the edit.
 2. Call `read_file` on the file. Always read a file before editing it,
@@ -521,19 +413,21 @@ request, and do not reformat the rest of the file.
 
 * You cannot create new files or delete files; there is no whole-file
   write tool in this skill.
-* Never read or edit a file outside the allow-list. If the user asks
-  for changes to such a file, ask them to add a pattern to
-  `EditAllowList` in `cape-agent.json`.
+* `read_file` accepts any text file in the repo smaller than about
+  2 MB, but nothing outside the repo and no binary files.
+* Never edit a file outside the allow-list. If the user asks for
+  changes to such a file, ask them to add a pattern to `EditAllowList`
+  in `cape-agent.json`.
 """
 
 # Simplified skill definition
 SKILL_DICT = {
     "file-editor": {
         "description": (
-            "Read and edit files in this repo that match an "
-            "allow-list, using exact-match search and replace. Use "
-            "when the user asks for changes to allow-listed files "
-            "such as the CAPE JSON file."
+            "Edit files in this repo that match an allow-list, using "
+            "exact-match search and replace; also provides read_file "
+            "for any repo file under 2 MB. Use when the user asks for "
+            "changes to allow-listed files such as the CAPE JSON file."
         ),
         "content": SKILL_CONTENT,
         "tools": ["list_editable_files", "read_file", "edit_file"],
@@ -553,9 +447,10 @@ TOOL_DICT = {
     },
     "read_file": {
         "description": (
-            "Read an allow-listed file with line numbers; large files "
-            "are truncated to the first and last lines. Call "
-            "use_skill('file-editor') for full instructions first."
+            "Read a repo file with line numbers; any text file under "
+            "2 MB is readable, and large files are truncated to the "
+            "first and last lines. Call use_skill('file-editor') for "
+            "full instructions first."
         ),
         "parameters": ["fname"],
         "required": ["fname"],
