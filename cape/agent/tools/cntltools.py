@@ -284,7 +284,7 @@ TOOL_DICT = {
         "required": ["i"],
     },
     "get_keys": {
-        "description": "List the variables or keys in the run matrix.",
+        "description": "List the run matrix keys (aka variables).",
         "parameters": ["f"],
     },
     "get_subfigs": {
