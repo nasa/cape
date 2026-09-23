@@ -125,3 +125,24 @@ def test_03_agent_main_selects_tui(monkeypatch):
     result = agent.main(CfdxFrontDesk)
     assert result == (0, {})
     assert called == [CfdxFrontDesk]
+
+
+def test_04_shift_enter_inserts_newline_and_enter_submits(tmp_path):
+    async def drive():
+        cntl = FakeAgent()
+        app = AgentTuiApp(
+            CfdxFrontDesk,
+            cntl,
+            histfile=str(tmp_path / "agent_history"))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app._input.value = "first line"
+            app._input.cursor_position = len(app._input.value)
+            await pilot.press("shift+enter")
+            await pilot.pause()
+            assert app._input.value == "first line\n"
+            app._input.insert("second line")
+            await pilot.press("enter")
+            assert await wait_for(pilot, lambda: not app._input.disabled)
+            assert cntl.calls[0][0] == "first line\nsecond line"
+    run_async(drive())

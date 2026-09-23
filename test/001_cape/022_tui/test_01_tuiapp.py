@@ -429,6 +429,43 @@ def test_14_completion_box_click(tmp_path, monkeypatch):
     run_async(drive())
 
 
+# Composer soft-wraps, grows to three rows, and then shrinks again
+def test_18_composer_wrap_height(tmp_path, monkeypatch):
+    async def drive():
+        app = make_app(tmp_path, monkeypatch)
+        async with app.run_test(size=(60, 24)) as pilot:
+            await pilot.pause()
+            assert app._input.size.height == 1
+            app._input.value = "word " * 40
+            app._input.cursor_position = len(app._input.value)
+            await pilot.pause()
+            await pilot.pause()
+            assert app._input.wrapped_document.height > 3
+            assert app._input.size.height == 3
+            app._input.value = "short"
+            await pilot.pause()
+            await pilot.pause()
+            assert app._input.size.height == 1
+    run_async(drive())
+
+
+# Multiline history records remain one physical line and round-trip intact
+def test_19_multiline_history(tmp_path, monkeypatch):
+    async def drive():
+        app = make_app(tmp_path, monkeypatch)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            cmd = "first prompt line\nsecond prompt line"
+            app._record_history(cmd)
+            app.save_history()
+            with open(app._test_histfile, encoding="utf-8") as fp:
+                records = fp.read().splitlines()
+            assert len(records) == 1
+            app._load_history()
+            assert app._history == [cmd]
+    run_async(drive())
+
+
 # Ctrl-D is an additional quit shortcut alongside Textual's Ctrl-Q
 def test_15_ctrl_d_quits(tmp_path, monkeypatch):
     async def drive():

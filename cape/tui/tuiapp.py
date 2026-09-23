@@ -60,6 +60,7 @@ from __future__ import annotations
 import ctypes
 import fnmatch
 import io
+import json
 import os
 import re
 import shlex
@@ -80,7 +81,7 @@ from textual.binding import Binding
 from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.strip import Strip
-from textual.widgets import Input, OptionList, RichLog, Static
+from textual.widgets import OptionList, RichLog, Static, TextArea
 from textual.widgets.option_list import Option
 
 # CAPE imports
@@ -125,8 +126,13 @@ SPINNER_INTERVAL = 0.1
 # Status bar hints
 HINTS_IDLE = "ctrl+p commands"
 HINTS_BUSY = "ctrl+c interrupt"
-COMPOSER_HINT = "TAB complete · ↑↓ history · Ctrl-C interrupt · Ctrl-D exit"
+COMPOSER_HINT = (
+    "TAB complete · Shift+Enter newline · ↑↓ history · "
+    "Ctrl-C interrupt · Ctrl-D exit")
 SUGGESTION_HINT = "↑↓ select · Enter/Tab insert · Esc close"
+
+# Prefix for multiline entries in the otherwise line-oriented history file
+HISTORY_JSON_PREFIX = "CAPE_TUI_JSON:"
 
 
 class CommandPalette(ModalScreen[str]):
@@ -199,12 +205,102 @@ def _raise_in_thread(thread: threading.Thread, exc) -> None:
         ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_ulong(tid), None)
 
 
+# Soft-wrapping command editor with Input-compatible convenience properties
+class ComposerTextArea(TextArea):
+    r"""One-to-three-line soft-wrapping editor for the TUI composer."""
+
+    MAX_HEIGHT = 3
+
+    def __init__(self, **kwargs):
+        super().__init__(
+            soft_wrap=True,
+            compact=True,
+            show_line_numbers=False,
+            highlight_cursor_line=False,
+            **kwargs)
+
+    @property
+    def value(self) -> str:
+        r"""Alias matching the former :class:`Input` interface."""
+        return self.text
+
+    @value.setter
+    def value(self, value: str) -> None:
+        self.text = value
+
+    @property
+    def cursor_position(self) -> int:
+        r"""Return the cursor as an offset into :attr:`value`."""
+        row, column = self.cursor_location
+        return sum(
+            len(self.document[j]) + 1 for j in range(row)) + column
+
+    @cursor_position.setter
+    def cursor_position(self, offset: int) -> None:
+        value = self.value
+        offset = min(max(0, offset), len(value))
+        for row, line in enumerate(value.split("\n")):
+            if offset <= len(line):
+                self.move_cursor((row, offset))
+                return
+            offset -= len(line) + 1
+
+    def insert_newline(self) -> None:
+        r"""Replace the current selection with an explicit newline."""
+        start, end = self.selection
+        self.replace("\n", start, end, maintain_selection_offset=False)
+
+    def can_cursor_up(self) -> bool:
+        r"""Return whether the cursor has a visual row above it."""
+        return self.wrapped_document.location_to_offset(
+            self.cursor_location).y > 0
+
+    def can_cursor_down(self) -> bool:
+        r"""Return whether the cursor has a visual row below it."""
+        offset = self.wrapped_document.location_to_offset(
+            self.cursor_location)
+        return offset.y < self.wrapped_document.height - 1
+
+    def _resize_to_content(self) -> None:
+        height = min(self.MAX_HEIGHT, max(1, self.wrapped_document.height))
+        if self.size.height != height:
+            self.styles.height = height
+
+    def on_mount(self) -> None:
+        super().on_mount()
+        self.call_after_refresh(self._resize_to_content)
+
+    def on_resize(self, event) -> None:
+        self.call_after_refresh(self._resize_to_content)
+
+    def on_text_area_changed(self, event: TextArea.Changed) -> None:
+        self.call_after_refresh(self._resize_to_content)
+
+
+def _encode_history_entry(cmd: str) -> str:
+    r"""Encode multiline or prefix-like history entries onto one line."""
+    if "\n" in cmd or "\r" in cmd or cmd.startswith(HISTORY_JSON_PREFIX):
+        return HISTORY_JSON_PREFIX + json.dumps(cmd)
+    return cmd
+
+
+def _decode_history_entry(line: str) -> str:
+    r"""Decode one history record while accepting the legacy format."""
+    if not line.startswith(HISTORY_JSON_PREFIX):
+        return line
+    try:
+        cmd = json.loads(line[len(HISTORY_JSON_PREFIX):])
+    except (json.JSONDecodeError, TypeError):
+        return line
+    return cmd if isinstance(cmd, str) else line
+
+
 # Tab-completer reading the command line from the editor
 class CapeTuiCompleter(CfdxCompleter):
     r"""CAPE tab-completer that reads the line from the TUI editor
 
     This overrides :func:`CfdxCompleter.get_line_buffer` to source the
-    command line from the app's ``Input`` widget (text before the
+    command line from the app's :class:`ComposerTextArea` (text before the
     cursor) instead of :mod:`readline`, and adds suggestions for the
     TUI ``:`` meta-commands.
 
@@ -469,7 +565,7 @@ class CapeTuiApp(App):
     :Attributes:
         *_log*: :class:`textual.widgets.RichLog`
             Scroll log of commands and output
-        *_input*: :class:`textual.widgets.Input`
+        *_input*: :class:`ComposerTextArea`
             Command editor
         *_status*: :class:`textual.widgets.Static`
             One-line status bar below the composer
@@ -531,7 +627,10 @@ class CapeTuiApp(App):
             "down", "history_next", "Next command",
             show=False, priority=True),
         Binding(
-            "enter", "accept_suggestion", "Use suggestion",
+            "enter", "submit_input", "Submit",
+            show=False, priority=True),
+        Binding(
+            "shift+enter", "insert_newline", "New line",
             show=False, priority=True),
         Binding(
             "ctrl+p", "command_palette", "Commands",
@@ -573,7 +672,9 @@ class CapeTuiApp(App):
         background: #343a48;
     }
     #composer {
-        height: 4;
+        height: auto;
+        min-height: 4;
+        max-height: 6;
         margin: 0 2;
         padding: 1 1 0 1;
         background: #202020;
@@ -584,10 +685,14 @@ class CapeTuiApp(App):
     }
     #prompt-input {
         height: 1;
+        min-height: 1;
+        max-height: 3;
         border: none;
         background: transparent;
         color: #eeeeee;
         padding: 0;
+        scrollbar-size-vertical: 0;
+        scrollbar-size-horizontal: 0;
     }
     #composer-hint {
         height: 1;
@@ -626,7 +731,7 @@ class CapeTuiApp(App):
             yield CommandLog(id="log", auto_scroll=True)
             yield OptionList(id="suggestions")
             with Vertical(id="composer"):
-                yield Input(
+                yield ComposerTextArea(
                     placeholder=self.INPUT_PLACEHOLDER,
                     id="prompt-input")
                 yield Static(COMPOSER_HINT, id="composer-hint")
@@ -640,7 +745,7 @@ class CapeTuiApp(App):
         self._suggestions = self.query_one("#suggestions", OptionList)
         self._suggestion_matches = []
         self._suggestion_span = (0, 0)
-        self._input = self.query_one("#prompt-input", Input)
+        self._input = self.query_one("#prompt-input", ComposerTextArea)
         self._composer = self.query_one("#composer", Vertical)
         self._composer_hint = self.query_one("#composer-hint", Static)
         self._status = self.query_one("#status-bar", Static)
@@ -698,7 +803,9 @@ class CapeTuiApp(App):
         # Read the history file if it exists
         try:
             with open(self._histfile, encoding="utf-8") as fp:
-                lines = fp.read().splitlines()
+                lines = [
+                    _decode_history_entry(line)
+                    for line in fp.read().splitlines()]
         except OSError:
             return
         # Keep the most recent non-empty entries
@@ -717,7 +824,7 @@ class CapeTuiApp(App):
             if folder:
                 os.makedirs(folder, exist_ok=True)
             with open(self._histfile, "a", encoding="utf-8") as fp:
-                fp.write(cmd + "\n")
+                fp.write(_encode_history_entry(cmd) + "\n")
         except OSError:
             pass
 
@@ -730,7 +837,7 @@ class CapeTuiApp(App):
                 os.makedirs(folder, exist_ok=True)
             with open(self._histfile, "w", encoding="utf-8") as fp:
                 for cmd in self._history:
-                    fp.write(cmd + "\n")
+                    fp.write(_encode_history_entry(cmd) + "\n")
         except OSError:
             pass
 
@@ -906,14 +1013,13 @@ class CapeTuiApp(App):
         # Let a modal screen handle its own keys (notably Escape/Ctrl-P).
         if isinstance(self.screen, CommandPalette):
             return False
-        if action == "accept_suggestion":
-            return self._suggestions.display and self._prompt_widget is None
         if action == "command_palette" and self._running_cmd is not None:
             return False
         # While a prompt is mounted, it owns TAB, Ctrl-C, and arrows
         if action in (
                 "tab_complete", "interrupt", "history_prev",
-                "history_next", "command_palette"):
+                "history_next", "command_palette", "submit_input",
+                "insert_newline"):
             if self._prompt_widget is not None:
                 return False
             # TAB and history recall only work in the active editor
@@ -1018,6 +1124,18 @@ class CapeTuiApp(App):
         start, pos = self._suggestion_span
         self._accept_match(match, start, pos)
 
+    def action_submit_input(self) -> None:
+        r"""Accept a completion or submit the current editor contents."""
+        if self._suggestions.display:
+            self.action_accept_suggestion()
+            return
+        self._submit_command(self._input.value.strip())
+
+    def action_insert_newline(self) -> None:
+        r"""Insert a literal newline without submitting the editor."""
+        self._hide_suggestions()
+        self._input.insert_newline()
+
     def on_option_list_option_selected(
             self, event: OptionList.OptionSelected) -> None:
         if event.option_list is self._suggestions:
@@ -1025,8 +1143,8 @@ class CapeTuiApp(App):
             self._suggestions.highlighted = event.option_index
             self.action_accept_suggestion()
 
-    def on_input_changed(self, event: Input.Changed) -> None:
-        if event.input is self._input and self._suggestions.display:
+    def on_text_area_changed(self, event: TextArea.Changed) -> None:
+        if event.text_area is self._input and self._suggestions.display:
             # Refresh the candidates as the user edits the word.
             start, pos, matches = self._completion_matches()
             if not matches:
@@ -1052,6 +1170,11 @@ class CapeTuiApp(App):
             if n:
                 index = self._suggestions.highlighted or 0
                 self._suggestions.highlighted = (index - 1) % n
+            return
+        # Within a wrapped or explicit multiline prompt, arrows navigate the
+        # editor. History starts only from its first visual row.
+        if self._hist_ix is None and self._input.can_cursor_up():
+            self._input.action_cursor_up()
             return
         # No history to browse
         if not self._history:
@@ -1079,6 +1202,10 @@ class CapeTuiApp(App):
             if n:
                 index = self._suggestions.highlighted or 0
                 self._suggestions.highlighted = (index + 1) % n
+            return
+        # Keep ordinary cursor navigation until the final visual row.
+        if self._hist_ix is None and self._input.can_cursor_down():
+            self._input.action_cursor_down()
             return
         # Not browsing
         if self._hist_ix is None:
@@ -1127,13 +1254,6 @@ class CapeTuiApp(App):
             return
         # Idle: clear the editor
         self._input.value = ""
-
-    # Run one submitted line
-    def on_input_submitted(self, event: Input.Submitted) -> None:
-        if self._suggestions.display:
-            self.action_accept_suggestion()
-            return
-        self._submit_command(event.value.strip())
 
     def _submit_command(self, cmd: str) -> None:
         # Get command text and clear the editor
