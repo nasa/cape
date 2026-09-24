@@ -638,7 +638,12 @@ class Cntl(CntlBase):
         v = self.opts
         # Navigate path
         for key in keys:
-            v = v.get(key)
+            if isinstance(v, dict):
+                v = v.get(key)
+            elif v is None:
+                break
+            else:
+                v = v[key]
         # Truncate and output
         return truncate_jq(v, maxdepth)
 

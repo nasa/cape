@@ -64,9 +64,10 @@ def test_02_maxdepth():
 def test_03_errors():
     # Instatiate
     cntl = cape.cfdx.cntl.Cntl()
-    # Missing key
-    with pytest.raises(KeyError):
-        cntl.inspect_json(".NotAKey")
+    # Missing key returns None
+    assert cntl.inspect_json(".NotAKey") is None
+    # Path through missing key also returns None
+    assert cntl.inspect_json(".NotAKey.sub") is None
     # Missing list index
     with pytest.raises(IndexError):
         cntl.inspect_json(".Config.Components[12]")
