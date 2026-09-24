@@ -1,0 +1,24 @@
+dkit quickstart: Create a template DataKit package
+
+USAGE
+
+    $ dkit quickstart [PKG [WHERE]] [OPTIONS]
+
+ARGUMENTS
+
+    PKG: Name of Python package relative to WHERE
+    WHERE: Create package in folder WHERE
+
+OPTIONS
+
+    -h, --help
+        Print this help message and exit
+
+    --target, -t TARGET
+        Use TARGET as a prefix to the package name PKG
+
+    --title TITLE
+        Use TITLE as one-line description for the package
+
+    --where WHERE
+        Create package in folder WHERE

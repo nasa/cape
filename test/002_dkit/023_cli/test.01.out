@@ -1,0 +1,27 @@
+dkit: Command-line interface to datakit tools
+
+Perform actions on a DataKit package or package collection
+from the command-line interface.
+
+USAGE
+
+    $ dkit CMD [ARGS] [OPTIONS]
+
+SUB-COMMANDS
+
+    help
+        Display help message and exit
+
+    quickstart
+        Create a template DataKit package
+
+    vendorize
+        Install local copies of packages
+
+    writedb
+        Process raw data into datakit files
+
+OPTIONS
+
+    -h, --help
+        Print this help message and exit

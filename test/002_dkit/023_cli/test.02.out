@@ -1,0 +1,32 @@
+dkit writedb: Process raw data into datakit files
+
+USAGE
+
+    $ dkit writedb [MODNAMES] [OPTIONS]
+
+ARGUMENTS
+
+    MODNAMES: Name(s) of modules to process, e.g. db0001
+
+OPTIONS
+
+    -h, --help
+        Print this help message and exit
+
+    --force, -f
+        Overwrite any existing database files (only for MODNAMES)
+
+    --force-all, -F, --force_all
+        Overwrite all database files including added dependencies
+
+    --prefix PREFIX
+        Specify prefix which may be left off of MODNAMES
+
+    --no-reqs, --dependencies, --requirements
+        Don't read requirements; just process MODNAMES {True}
+
+    --no-write
+        Don't actually write databases (just print dependencies) {True}
+
+    --write_func, --func, --write-func FUNC
+        Function name in modules to process datakit files

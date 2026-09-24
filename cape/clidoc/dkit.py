@@ -7,5 +7,8 @@ Auto-generated help message for the dkit command-line interface.
 
 from ..dkit import cli
 
-__doc__ = cli.HELP_DKIT
 
+# Instantiate parser
+parser = cli.DkitFrontDesk()
+# Generate help
+__doc__ = parser.genr8_help()

@@ -1,0 +1,32 @@
+dkit vendorize: Install local copies of packages
+
+USAGE
+
+    $ dkit vendorize [PKG] [OPTIONS]
+
+ARGUMENTS
+
+    PKG: Vendorize each package matching this regular expression
+
+OPTIONS
+
+    -h, --help
+        Print this help message and exit
+
+    --check
+        List packages to vendorize but don't install them
+
+    --cwd, --where WHERE
+        Location from which to search for packages
+
+    --no-install
+        List packages to vendorize but don't install them
+
+    --json, -f FJSON
+        Search for vendorize files called FJSON
+
+    --target, -t REGEX
+        Only vendorize in parent packages matching REGEX
+
+    --toml FTOML
+        Search for vendorize files called FTOML
