@@ -19,6 +19,7 @@ directly from the system command line.
         dkit-quickstart
         dkit-vendorize
         dkit-writedb
+        gruvoc
         run_flowCart
         run_fun3d
         run_overflow

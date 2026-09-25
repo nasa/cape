@@ -1,0 +1,26 @@
+gruvoc small-vols: Report cells with smallest volumes
+
+USAGE
+
+    $ gruvoc small-vols [I] [OPTIONS]
+
+ARGUMENTS
+
+    I: Name of input volume mesh file
+
+OPTIONS
+
+    --help
+        Print this help message and exit
+
+    -i IFILE
+        Name of input volume mesh file
+
+    --mapbc, --mapbcfile MAPBCFILE
+        Use .mapbc file to name surface components
+
+    --nrows, -n N
+        Number of small-volume cells to include in report {25}
+
+    --smallvol VOLUME
+        Volume cutoff below which to report individual cells

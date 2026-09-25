@@ -1,0 +1,20 @@
+gruvoc print: Print summary of a surface or volume mesh
+
+USAGE
+
+    $ gruvoc print [I] [OPTIONS]
+
+ARGUMENTS
+
+    I: Name of input mesh file
+
+OPTIONS
+
+    --help
+        Print this help message and exit
+
+    --human, -h
+        Print human-readable mesh summary
+
+    -i IFILE
+        Name of input mesh file

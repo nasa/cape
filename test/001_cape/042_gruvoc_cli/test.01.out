@@ -1,0 +1,33 @@
+gruvoc: Unstructured volume mesh interface from CAPE team
+
+Convert, move, or analyze unstructured meshes with tets,
+pyramids, prisms, and/or hexs.
+
+USAGE
+
+    $ gruvoc CMD [ARGS] [OPTIONS]
+
+SUB-COMMANDS
+
+    help
+        Display help message and exit
+
+    convert
+        Convert mesh from one format to another
+
+    print
+        Print summary of a surface or volume mesh
+
+    report
+        Print summary of a surface or volume mesh
+
+    report-small-vols
+        Report cells with smallest volumes
+
+    small-vols
+        Report cells with smallest volumes
+
+OPTIONS
+
+    --help
+        Print this help message and exit

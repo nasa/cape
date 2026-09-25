@@ -1,0 +1,42 @@
+gruvoc convert: Convert mesh from one format to another
+
+USAGE
+
+    $ gruvoc convert [I [O]] [OPTIONS]
+
+ARGUMENTS
+
+    I: Name of input file
+    O: Name of output file
+
+OPTIONS
+
+    --help
+        Print this help message and exit
+
+    --add-cp
+        Add pressure coefficient to surface state
+
+    --add-mach
+        Add Mach number to surface state
+
+    --flow FLOWFILE
+        Name of FUN3D .flow file from which to read state
+
+    -i IFILE
+        Name of input file
+
+    --mapbc, --mapbcfile MAPBCFILE
+        Use .mapbc file to name surface components
+
+    --novol
+        Delete volume cells before writing output mesh
+
+    -o OFILE
+        Name of output file
+
+    --tavg TAVGFILE
+        Name of FUN3D .tavg file from which to read state
+
+    --verbose, -v
+        Write more verbose status messages
