@@ -2135,10 +2135,10 @@ class CfdxFrontDesk(CfdxArgReader):
     __slots__ = ()
 
     # Name of executable
-    _name = "cape-cfdx"
+    _name = "cape"
 
     # Description of executable
-    _help_title = "Control generic-solver run matrix"
+    _help_title = "Control run matrix or case for any solver"
 
     # Special classes
     _cntl_mod = "cape.cfdx.cntl"

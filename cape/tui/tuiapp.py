@@ -163,6 +163,25 @@ class CommandPalette(ModalScreen[str]):
     """
 
     def compose(self) -> ComposeResult:
+        r"""Called by Textual to create child widgets
+
+        This method is called when a widget is mounted or by setting
+        `recompose=True` when calling
+        ``textual.widget.Widget.refresh()``.
+
+        Note that you don't typically need to explicitly call this
+        method.
+
+        **Example**:
+
+            .. code-block:: python
+
+                def compose(self) -> ComposeResult:
+                    yield Header()
+                    yield Label("Press the button below:")
+                    yield Button()
+                    yield Footer()
+        """
         yield OptionList(
             *(Option(f"{cmd:<15} {META_CMD_DESCS[cmd]}", id=cmd)
               for cmd in META_CMDS),
@@ -456,6 +475,18 @@ class CommandLog(RichLog):
         return out
 
     def get_selection(self, selection):
+        r"""Get the text under the selection
+
+        :Call:
+            >>> text, ending = app.get_selection(selection)
+        :Inputs:
+            *selection*: selection information
+        :Outputs:
+            *text*: :class:`str`
+                Text extracted from selection
+            *ending*: ``"\n"``
+                Ending
+        """
         # Match each rendered line against its source text; the strips
         # are space-padded, so trailing padding is not copied.
         lines = [strip.text.rstrip() for strip in self.lines]
@@ -501,6 +532,27 @@ class CommandLog(RichLog):
             self._header_lines[line] = index
 
     def write(self, content, *args, **kwargs):
+        r"""Writre a string or Rich renderable to the bottom of the log
+
+        :Call:
+            >>> content = app.write(content, *args, **kwargs)
+        :Inputs:
+            *content*: :class:`str` | **renderable**
+                Rich renderable (or a string) to write
+            *width*: {``None``} | :class:`int`
+                Minimum width; ``None`` -> ``RichLog.min-width``
+            *expand*: ``True`` | ``False``
+                Permit expanding of content to the width of content
+                region; ignored if *width* specified
+            *shrink*: ``True`` | ``False``
+                Permit shrinking of content to the width of content
+                region; ignored if *width* specified
+            *scroll_end*: ``None`` | ``True`` | ``False``
+                Enable automatic croll to end
+        :Outputs:
+            *content*: :class:`RichLog`
+                The `RichLog` intsance
+        """
         if self._active_group is not None and not self._replaying:
             group = self._active_group
             group["output"].append((content, args, kwargs))

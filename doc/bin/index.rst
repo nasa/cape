@@ -8,7 +8,9 @@ The following lists the CAPE executables, which are the main interface to CAPE
 directly from the system command line.
     
     .. toctree::
+        :maxdepth: 2
     
+        cape
         pycart
         pyfun
         pykes
@@ -20,7 +22,6 @@ directly from the system command line.
         run_flowCart
         run_fun3d
         run_overflow
-        cape
         cape-writell
         cape-step2crv
         cape-steptri2crv
