@@ -1,0 +1,122 @@
+$*********************************************************************$
+$---------------- Parallel processing control data -------------------$
+PROCESSORS           1.0  (no. of processors to invoke)
+MESSAGE MODE         1.0  (message passing strategy: 0=std, 1=buf)
+$---------------- Geometric model type -------------------------------$
+THREED                    (twod, axisym, threed)
+$---------------- Grid file data -------------------------------------$
+UNS GRID             1.0  (1=aflr3 format)
+  ./my_example.b8.ugrid
+GRID SCALING FACTOR  0.0254  (scale factor to convert grid to meters)
+$---------------- Restart file data ----------------------------------$
+RESTART IN
+  Restart_files/restart
+RESTART OUT      10000.0
+  Restart_files/restart
+WARNING MESSAGES     0.0  (0=off, 1=wf, 2=temp, 3=sub/sup, 4=real, 5=all)
+$---------------- Output control data --------------------------------$
+TECPLOT OUTPUT       1.0  (0=off, 1=.plt, 2=.szplt)
+32 BIT BINARY             (write plot files as 32 or 64 bit binary)
+PLOT FUNCTION       10.0  (no. of plot function names)
+  DENSITY
+  VELOCITY
+  MACH NO.
+  PRESSURE
+  TEMPERATURE
+  VISCOSITY
+  EDDY VISCOSITY RATIO
+  TKE
+  TOTAL PRESSURE
+  DT REDUCTION FACTOR
+$---------------- Equation set data ----------------------------------$
+GLOBAL VISCOUS            (solve N-S equations using global algorithm)
+MAX. STATIC TEMP   450.0  (maximum allowable static temperature)
+$---------------- Gas and thermodynamic data -------------------------$
+GAS/THERMO MODEL     0.0  (0=CP, 1=TEQ, 2=TNE)
+VISCOSITY MODEL      1.0  (0=Power, 1=Sutherland, 2=Suth/lin, 4=McBride)
+CONDUCTIVITY MODEL   0.0  (0=Prandtl no., 1=Wassilej law)
+$---------------- Reference condition data ---------------------------$
+ANGLE REF. FRAME     1.0  (0=ALPHA in xy plane, 1=ALPHA in xz plane)
+ALPHA               +1.5  (angle of attack measured C.C.W in degrees)
+BETA                 0.0  (angle of yaw measured C.C.W in degrees)
+MOMENT REF. X        0.0  (x coordinate of datum for moment integration)
+MOMENT REF. Y        0.0  (y coordinate of datum for moment integration)
+MOMENT REF. Z        0.0  (z coordinate of datum for moment integration)
+NONDIM               1.0  (1=static conditions, 2=total conditions)
+GAMMA                1.4
+MACH NO.             4.0
+GAS CONSTANT         287.04667
+STATIC TEMPERATURE   64.722222
+STATIC PRESSURE      1600.96
+UNIT REYNOLDS NO.   -1.0
+SUTHERLANDS LAW MU0  1.7160e-05
+SUTHERLANDS LAW T0   2.7311e+02
+SUTHERLANDS LAW S0   1.1056e+02
+PRANDTL NO.          0.72
+$-------------- Unstructured grid gradient options -------------------$
+UNS CELL AVG GRADIENT METHOD   3.0  (0=GG, 1=LSFN1, 2=LSFN2, 3=LSNN)
+UNS CELL AVG GRADIENT WEIGHTS  2.0  (-1->wt=-1.0, 1->wt=0.0, 2->wt=0.0,-1.0)
+UNS CELL FACE GRADIENT METHOD  1.0  (0=EN, 1=FT, 2=HR)
+$-------------- Unstructured grid robustness enhancement options -----$
+UNS DDT INVISCID JACOBIAN      1.0  (0.0 or 1.0)
+UNS TLNS VISCOUS JACOBIAN      1.0  (diag. dom. factor between 1.0 and 5.0)
+ENABLE TIME STEP REDUCTION LOGIC
+$---------------- Turbulence model data ------------------------------$
+$ LAMINAR  SPALART  WILCOX-1998  WILCOX-2006  MENTER-BSL  MENTER-SST  $
+TURBULENCE MODEL
+  MENTER-SST-2003
+VORTICITY-BASED PRODUCTION
+TURB. INTENSITY      0.001
+TURB. VISC. RATIO    0.010
+TURB. PRANDTL NO.    0.90
+$---------------- Boundary and cut control ---------------------------$
+UNST BLOCKS          1.0  (no. of unstructured blocks)
+BCGROUPS             9.0  (no. of boundary condition groups)
+BCOBJECTS            2.0  (no. of boundary condition objects)
+BLOCK CONFIG.        1.0  (no. of block configuration lines)
+BLK  VISC (N, T, or F)  TURB  REAC  REGION
+ 0     F                  Y            1
+$----------------- Solution Methodology for Region 1 -----------------$
+SOLVER/STATUS
+     E/A
+KAPPA  LIMITER  LIM COEFF  FLUX SCHEME  ENT FIX (U)  ENT FIX (U+a)
+  3       2        0.0        LDFSS         0.0          0.0
+FMG-LVLS  NITSF  1ST-ORDER LEVELS  REL RES  ABS RES  DQ COEF
+   1      20000        1000         -99.0    -99.0     0.1
+TURB CONV  DT RATIO  NON EQUIL  POINT IMP  COMP MODEL  CG WALL BC
+   2ND        1.0       20.0        Y          N           WMF
+SCHEME  T-STEP  IT-STATS  MIN-CFL  VAR-CFL  CFL-VALS  VIS-DT  IMP-BC  REG-RES
+  SGS    LOCAL     10       1.0       Y         7        Y       Y       Y
+  SGS  JAC-UPDATE  START  NUM-SLV
+            0        1       5
+  1   500  1000  1001  1500 10000 15000
+ 0.1  1.0  50.0   0.5  50.0  50.0  25.0
+!******************* End of general control data *********************!
+BC GROUPS:  NAME          TYPE          OPTION         BL_delta
+            aft-exit      EXTRAP        PHYSICAL
+
+            aft-slip      SWALL         PHYSICAL
+
+            div-exit      EXTRAP        PHYSICAL
+
+            fbody         AWALL         PHYSICAL_IBL    0.005
+
+            inflow        FIX_IN        PHYSICAL
+           Density  Uvel    Vvel    Wvel  Temperature   Tint      Murat
+           0.10000  500.2  0.0      25.0    85.0    1.095e-5  2.0197e-2
+
+            oml           AWALL         PHYSICAL_IBL    0.005
+
+            side          AWALL         PHYSICAL_IBL    0.005
+
+            symmetry      SYMM          PHYSICAL
+
+            farfield      FIX_IN        PHYSICAL
+           Density  Uvel    Vvel    Wvel  Temperature   Tint      Murat
+           0.10000  500.2  0.0      25.0    85.0    1.095e-5  2.0197e-2
+
+BC OBJECTS: NAME          NO_OF_MEMBERS
+            prop_walls          2
+            fbody  side
+            inl_walls           2
+            fbody  side
