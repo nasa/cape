@@ -314,15 +314,14 @@ defined.  In general the required files are the following.
 
 .. toctree::
     :maxdepth: 2
-    :numbered:
 
     install
     moreinfo/index
+    bin/index
     common/index
     pycart/index
     pyfun/index
     pyover/index
-    bin/index
 
 .. toctree::
     :maxdepth: 2
