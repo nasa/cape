@@ -1801,8 +1801,12 @@ class SubfigCollectionOpts(OptionsDict):
         # Get the type, which may be a parent subfigure
         parent = sfigopts.get("Type")
         # Check if that type is also defined
-        if parent not in self:
-            # No cascade; probably found the "BaseType"
+        # Stop cascading at a registered base type ("PlotCoeff", "Summary",
+        # "Conditions", ...); otherwise a subfigure whose key equals its base
+        # type name (e.g. "Conditions" with "Type": "Conditions") would
+        # recurse into itself indefinitely.
+        if (parent not in self) or (parent in self._sec_cls_optmap):
+            # No cascade; found the "BaseType"
             return sfigopts
         # Get the options from that subfigure; recurse
         parentopts = self.get_SubfigCascade(parent)
