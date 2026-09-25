@@ -1246,6 +1246,16 @@ class VulcanInpFile(OptionsDict):
         dict.__delitem__(self, key)
         self._dirty.discard(key)
 
+    def __str__(self):
+        clsname = self.__class__.__name__
+        fname = getattr(self, "fname", None)
+        if fname is None:
+            return f"<{clsname}>"
+        return f"<{clsname}('{fname}')>"
+
+    def __repr__(self):
+        return self.__str__()
+
    # --- Blocks ---
     @property
     def bcgroups(self) -> BCGroups:

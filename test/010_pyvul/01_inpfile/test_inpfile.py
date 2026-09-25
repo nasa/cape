@@ -9,6 +9,14 @@ from cape.pyvul.inpfile import VulcanInpFile
 TEST_FILE = os.path.join(os.path.dirname(__file__), "vulcan.inp")
 
 
+# Test string representations
+def test_repr():
+    assert repr(VulcanInpFile()) == "<VulcanInpFile>"
+    inp = VulcanInpFile(TEST_FILE)
+    assert repr(inp) == "<VulcanInpFile('vulcan.inp')>"
+    assert str(inp) == repr(inp)
+
+
 # Test reading of basic options
 def test_read_basic():
     inp = VulcanInpFile(TEST_FILE)
