@@ -3364,7 +3364,9 @@ def cape_get_subfig(*a, **kw) -> Tuple[int, Any]:
     # Read *cntl*
     cntl, kw = read_cntl(CfdxGetSubfigArgs, *a, **kw)
     # Get subfigure name, either from arg or option
-    subfig = a[0] if len(a) else kw.pop("subfig")
+    subfig = a[0] if len(a) else kw.get("subfig")
+    # Remove from keywords to avoid conflicting with positional arg
+    kw.pop("subfig", None)
     # Run command
     v = cntl.get_subfigure(subfig, **kw)
     # Return code
@@ -4098,7 +4100,7 @@ def cape_unmark(*a, **kw) -> Tuple[int, Any]:
 
 
 @CfdxUIArgs.rst
-def cape_ui() -> Tuple[int, Any]:
+def cape_ui(**kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s
@@ -4142,7 +4144,7 @@ def cape_agent(agent: str, **kw) -> Tuple[int, Any]:
 
 
 @CfdxTuiArgs.rst
-def cape_tui() -> Tuple[int, Any]:
+def cape_tui(**kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
     %(description)s

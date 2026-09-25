@@ -28,6 +28,8 @@ def make_app(tmp_path, monkeypatch):
     histfile = os.path.join(str(tmp_path), "cape_tui_history")
     monkeypatch.setattr(
         "cape.tui.tuiapp.get_tui_histfile", lambda: histfile)
+    # Isolate the shared CLI JSON-file cache from other tests
+    monkeypatch.setattr("cape.cfdx.cli.CNTL_CACHE", OrderedDict())
     # Create the app
     app = CapeTuiApp(CfdxFrontDesk)
     app._test_histfile = histfile
