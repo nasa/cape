@@ -3387,7 +3387,11 @@ class Report(object):
             fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
             fmt_e = opts.get_SubfigOpt(sfig, "ErrorFormat", k)
             # Check for size
-            v = FM.get_values(coeff)
+            try:
+                # Use ExtractValue() to include derived coeffs like "CT"
+                v = FM.ExtractValue(coeff)
+            except KeyError:
+                v = None
             if v is None or len(v) == 0:
                 print(f"    No iterations found for {comp}/{coeff}")
                 continue
