@@ -647,7 +647,15 @@ class Cntl(capecntl.Cntl):
         for comp in comps + fcomps:
             icntl.SetSingleReferenceArea(self.opts.get_RefArea(comp), comp)
             icntl.SetSingleReferenceLength(self.opts.get_RefLength(comp), comp)
-        for comp in comps:
+        # Moment reference points are requested by defining a *RefPoint*.
+        # If *RefPoint* is a dictionary, its keys are the components for which
+        # moments should be reported; otherwise fall back to all tracked comps.
+        refpt = (self.opts.get("Config") or {}).get("RefPoint", None)
+        if isinstance(refpt, dict):
+            mcomps = [comp for comp in refpt if comp != "_default_"]
+        else:
+            mcomps = comps + fcomps
+        for comp in mcomps:
             icntl.SetSingleMomentPoint(self.opts.get_RefPoint(comp), comp)
         # Get the casecntl.
         frun = self.x.GetFullFolderNames(i)
