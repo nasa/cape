@@ -12,6 +12,7 @@ some additional options specific to FUN3D for pyfun.
 """
 
 # Local imports
+from .configopts import ConfigOpts
 from .runctlopts import RunControlOpts
 from .vulcaninpopts import VulcanInpOpts
 from ...cfdx import options
@@ -70,6 +71,7 @@ class Options(options.Options):
 
     # New or replaced sections
     _sec_cls = {
+        "Config": ConfigOpts,
         "Fun3D": VulcanInpOpts,
         "RunControl": RunControlOpts,
     }

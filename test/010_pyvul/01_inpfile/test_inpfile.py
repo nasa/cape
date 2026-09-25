@@ -107,6 +107,36 @@ def test_bcgroups_write(tmp_path):
                for ll in lines)
 
 
+# Test get/set of the ``FIX_IN`` constant-state data line
+def test_fixin_state(tmp_path):
+    inp = VulcanInpFile(TEST_FILE)
+    bcg = inp.bcgroups
+    assert bcg.find_fixin() == ['inflow', 'farfield']
+    state = bcg['inflow'].get_state()
+    assert state['density'] == 0.1
+    assert state['uvel'] == 500.2
+    assert state['wvel'] == 25.0
+    assert state['temperature'] == 85.0
+    bcg['inflow'].set_state(dict(density=0.2, uvel=600.0, vvel=1.0,
+                                 wvel=2.0, temperature=75.0))
+    fname = str(tmp_path / "vulcan_fixin.inp")
+    inp.write(fname)
+    inp2 = VulcanInpFile(fname)
+    state2 = inp2.bcgroups['inflow'].get_state()
+    assert state2['density'] == 0.2
+    assert state2['uvel'] == 600.0
+    assert state2['vvel'] == 1.0
+    assert state2['wvel'] == 2.0
+    assert state2['temperature'] == 75.0
+    # Turbulence columns untouched
+    lines = open(fname, 'r').read().splitlines()
+    assert any('1.095e-5  2.0197e-2' in ll for ll in lines)
+    # Other FIX_IN group untouched
+    assert inp2.bcgroups['farfield'].get_state()['uvel'] == 500.2
+    # Groups without a state line report none
+    assert bcg['fbody'].get_state() == {}
+
+
 # Test BC objects interface
 def test_bcobjects():
     inp = VulcanInpFile(TEST_FILE)

@@ -38,6 +38,7 @@ class are also available here.
 import os
 import re
 import shutil
+from math import cos, radians, sin, sqrt
 
 # Third-party modules
 import numpy as np
@@ -414,12 +415,6 @@ class Cntl(cntl.Cntl):
                 Instance of control class
             *i*: :class:`int`
                 Case index
-        :Versions:
-            * 2015-10-19 ``@ddalle``: v1.0
-            * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
-            * 2024-11-01 ``@ddalle``: v1.2; exfiltrate AFLR3 prep
-            * 2024-11-04 ``@ddalle``: v1.3; exfiltrate *WarmStart* prep
-            * 2025-03-26 ``@ddalle``: v1.4; (copy|link)_files()
         """
        # ---------
        # Case info
@@ -715,7 +710,7 @@ class Cntl(cntl.Cntl):
                 mapbc.SetBC(compid, bc)
 
     # Prepare freestream conditions
-    def PrepareVulcanInpFlightConditions(self, i):
+    def PrepareVulcanInpFlightConditions(self, i: int):
         r"""Set VULCAN input file flight conditions
 
         :Call:
@@ -725,8 +720,134 @@ class Cntl(cntl.Cntl):
                 Instance of CAPE control class
             *i*: :class:`int`
                 Run index
+        :Versions:
+            * 2026-09-25 ``@ddalle``: v1.0
         """
-        pass
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Check for input file
+        inp = getattr(self, "inp", None)
+        if inp is None:
+            return
+        # Get properties
+        M = self.x.GetMach(i)
+        a = self.x.GetAlpha(i)
+        b = self.x.GetBeta(i)
+        p = self.x.GetPressure(i, units="Pa")
+        T = self.x.GetTemperature(i, units="K")
+        # Mach number
+        if M is not None:
+            inp.set_mach(M)
+        # Angle of attack
+        if a is not None:
+            inp.set_alpha(a)
+        # Angle of sideslip
+        if b is not None:
+            inp.set_beta(b)
+        # Static pressure
+        if p is not None:
+            inp.set_pressure(p)
+        # Static temperature
+        if T is not None:
+            inp.set_temperature(T)
+        # Apply the freestream state to the farfield BC groups
+        self.PrepareVulcanInpFarfield(i)
+
+    # Apply freestream state to farfield boundary conditions
+    def PrepareVulcanInpFarfield(self, i: int):
+        r"""Set the constant-state data of farfield ``FIX_IN`` groups
+
+        The groups to update come from the ``"FarfieldComponents"``
+        option of the ``"Config"`` section; if that list is empty,
+        every ``FIX_IN`` group is used. The velocity components follow
+        the VULCAN body axes (``x`` forward, ``y`` right wing, ``z``
+        down) with
+        ::
+
+            u = V cos(alpha) cos(beta)
+            v = V sin(beta)
+            w = V sin(alpha)
+
+        :Call:
+            >>> cntl.PrepareVulcanInpFarfield(i)
+        :Inputs:
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of CAPE control class
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2026-09-25 ``@ddalle``: v1.0
+        """
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Check for input file & BC groups
+        inp = getattr(self, "inp", None)
+        if inp is None:
+            return
+        bcg = inp.bcgroups
+        if len(bcg) == 0:
+            return
+        # Get the list of farfield components
+        comps = self.opts.get_FarfieldComponents()
+        comps = [] if comps is None else list(comps)
+        # Fall back to all ``FIX_IN`` groups
+        if len(comps) == 0:
+            comps = bcg.find_fixin()
+        # Quit if there is nothing to update
+        if len(comps) == 0:
+            return
+        # Get freestream properties
+        M = self.x.GetMach(i)
+        a = self.x.GetAlpha(i)
+        b = self.x.GetBeta(i)
+        p = self.x.GetPressure(i, units="Pa")
+        T = self.x.GetTemperature(i, units="K")
+        rho = self.x.GetDensity(i, units="kg/m^3")
+        V = self.x.GetVelocity(i, units="m/s")
+        # Gas properties from the input file
+        Rg = inp.get("GAS CONSTANT")
+        if Rg is None:
+            Rg = 287.052
+        gam = inp.get("GAMMA")
+        if gam is None:
+            gam = 1.4
+        # Derive the density if necessary
+        if rho is None and (p is not None) and (T is not None):
+            rho = p / (Rg * T)
+        # Derive the velocity if necessary
+        if V is None and (M is not None) and (T is not None):
+            V = M * sqrt(gam * Rg * T)
+        # Velocity components along VULCAN body axes
+        uu = vv = ww = None
+        if V is not None:
+            aa = 0.0 if a is None else a
+            bb = 0.0 if b is None else b
+            uu = V * cos(radians(aa)) * cos(radians(bb))
+            vv = V * sin(radians(bb))
+            ww = V * sin(radians(aa))
+        # Freestream state values
+        state = {
+            "density": rho,
+            "uvel": uu,
+            "vvel": vv,
+            "wvel": ww,
+            "temperature": T,
+        }
+        # Loop through the requested components
+        for comp in comps:
+            # Check for the group
+            if comp not in bcg:
+                raise ValueError(
+                    "Farfield component '%s' not in 'BC GROUPS' of '%s'"
+                    % (comp, inp.fname))
+            # Skip groups without a constant-state line
+            if not bcg[comp].get_state():
+                print(
+                    "  Warning: BC group '%s' has no constant-state"
+                    " data line; skipping" % comp)
+                continue
+            # Apply the freestream state
+            bcg[comp].set_state(state)
 
     # Call function to apply namelist settings for case *i*
     def VulcanInpFunction(self, i: int):

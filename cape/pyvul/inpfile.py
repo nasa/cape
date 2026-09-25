@@ -411,6 +411,25 @@ BC_TYPES = [
     "P-PERIODIC",
 ]
 
+# Names of the constant-state data line of inflow BC groups (e.g.
+# ``FIX_IN``), mapped from header text to canonical names. Other
+# columns (species mass fractions, turbulence quantities) are left
+# alone.
+FIXIN_STATE_MAP = {
+    "density": "density",
+    "dens": "density",
+    "uvel": "uvel",
+    "vvel": "vvel",
+    "wvel": "wvel",
+    "temperature": "temperature",
+    "temp": "temperature",
+    "t": "temperature",
+}
+
+# Standard column names for groups with a data line but no header
+FIXIN_DEFAULT_COLUMNS = ["Dens", "Uvel", "Vvel", "Wvel", "Temp", "Tint",
+                         "Vrat"]
+
 # Standard column names for region control rows, keyed by first header
 # word where possible. See Section 8.21 of NASA/TM-20220008781.
 COLS_KAPPA = [
@@ -930,6 +949,10 @@ class BCGroupOptions(OptionsDict):
         "name",
         "_rawlines",
         "_dirty",
+        "_state_hdr",
+        "_state_vals",
+        "_state_idx",
+        "_statehdr_dirty",
     )
 
     _optlist = {"TYPE", "OPTIONS", "BL_delta"}
@@ -945,6 +968,10 @@ class BCGroupOptions(OptionsDict):
         self.name = name
         self._rawlines = []
         self._dirty = False
+        self._state_hdr = None
+        self._state_vals = None
+        self._state_idx = None
+        self._statehdr_dirty = False
         dict.__setitem__(self, "TYPE", None)
         dict.__setitem__(self, "OPTIONS", [])
         dict.__setitem__(self, "BL_delta", None)
@@ -955,14 +982,118 @@ class BCGroupOptions(OptionsDict):
         dict.__setitem__(self, key, val)
         self._dirty = True
 
+    # --- Constant-state data line (e.g. ``FIX_IN``) ---
+    def _read_state(self):
+        r"""Find and parse the constant-state header/data lines
+
+        The header is the first auxiliary line with multiple
+        non-numeric tokens, immediately followed by a data line with
+        a matching number of tokens. Falls back to
+        :data:`FIXIN_DEFAULT_COLUMNS` when a data line has no header.
+
+        :Call:
+            >>> grp._read_state()
+        """
+        if self._state_vals is not None:
+            return
+        nline = len(self._rawlines)
+        for ii in range(1, nline):
+            toks = self._rawlines[ii].split()
+            if not toks:
+                continue
+            if len(toks) < 2 or any(is_number(tt) for tt in toks):
+                # Possible data line with no header
+                if len(toks) == len(FIXIN_DEFAULT_COLUMNS):
+                    self._state_hdr = list(FIXIN_DEFAULT_COLUMNS)
+                    self._state_vals = toks
+                    self._state_idx = ii
+                return
+            # Header candidate
+            if ii + 1 >= nline:
+                return
+            vtks = self._rawlines[ii+1].split()
+            if len(vtks) == len(toks) and any(is_number(tt)
+                                              for tt in vtks):
+                self._state_hdr = toks
+                self._state_vals = vtks
+                self._state_idx = ii + 1
+            return
+
+    def get_state(self) -> dict:
+        r"""Get constant-state values with canonical column names
+
+        :Call:
+            >>> state = grp.get_state()
+        :Outputs:
+            *state*: :class:`dict`
+                Mapping of canonical column name -> parsed value;
+                empty if this group has no state line
+        """
+        self._read_state()
+        if self._state_vals is None:
+            return {}
+        state = {}
+        for hdr, tok in zip(self._state_hdr, self._state_vals):
+            key = FIXIN_STATE_MAP.get(hdr.lower())
+            if key is not None:
+                state[key] = to_number(tok)
+        return state
+
+    def set_state(self, values: dict):
+        r"""Set constant-state values by canonical column name
+
+        Columns not named in *values* (including species mass
+        fractions and turbulence quantities) are left untouched.
+
+        :Call:
+            >>> grp.set_state(values)
+        :Inputs:
+            *grp*: :class:`BCGroupOptions`
+                One BC group entry
+            *values*: :class:`dict`
+                Mapping of canonical name -> value; ``None`` values
+                are skipped. Valid names: ``'density'``, ``'uvel'``,
+                ``'vvel'``, ``'wvel'``, ``'temperature'``
+        :Raises:
+            :class:`ValueError` if no state line is present or a
+            column name is unknown
+        """
+        self._read_state()
+        if self._state_vals is None:
+            raise ValueError(
+                "BC group '%s' has no constant-state data line" % self.name)
+        # Canonical name -> header index
+        idxs = {}
+        for hi, hdr in enumerate(self._state_hdr):
+            key = FIXIN_STATE_MAP.get(hdr.lower())
+            if key is not None:
+                idxs[key] = hi
+        for key, val in values.items():
+            if val is None:
+                continue
+            if key not in idxs:
+                raise ValueError(
+                    "Unknown state column '%s' for BC group '%s'"
+                    % (key, self.name))
+            self._state_vals[idxs[key]] = fmt_number(val)
+        self._statehdr_dirty = True
+
     def to_lines(self) -> List[str]:
         r"""Convert group back to file lines
 
         :Call:
             >>> lines = grp.to_lines()
         """
-        if not self._dirty and self._rawlines:
-            return list(self._rawlines)
+        out = list(self._rawlines)
+        # Replace the state data line if it was modified
+        if self._statehdr_dirty and self._state_idx is not None:
+            rawd = self._rawlines[self._state_idx]
+            sindent = rawd[:len(rawd) - len(rawd.lstrip())]
+            out[self._state_idx] = sindent + '  '.join(self._state_vals)
+        # If only the state changed, keep everything else verbatim
+        if not self._dirty:
+            return out
+        # Rebuild the group line
         if self._rawlines:
             raw0 = self._rawlines[0]
             indent = raw0[:len(raw0) - len(raw0.lstrip())]
@@ -973,11 +1104,7 @@ class BCGroupOptions(OptionsDict):
         bl = self.get("BL_delta")
         if bl is not None:
             parts.append(fmt_number(bl))
-        out = [indent + '  '.join(parts)]
-        # Auxiliary lines (if any) are preserved verbatim
-        if self._rawlines:
-            out.extend(self._rawlines[1:])
-        return out
+        return [indent + '  '.join(parts)] + out[1:]
 
 
 class BCGroups(OptionsDict):
@@ -1073,6 +1200,22 @@ class BCGroups(OptionsDict):
         return [
             nn for nn, gg in self.items() if opt in (gg.get("OPTIONS") or [])
         ]
+
+    def find_fixin(self) -> List[str]:
+        r"""Get names of all groups with TYPE ``FIX IN``/``FIX_IN``
+
+        :Call:
+            >>> names = bcg.find_fixin()
+        :Outputs:
+            *names*: :class:`list`\ [:class:`str`]
+                Names of the constant-state inflow groups
+        """
+        out = []
+        for nn, gg in self.items():
+            typ = (gg.get("TYPE") or '').replace('_', ' ').strip()
+            if typ == 'FIX IN':
+                out.append(nn)
+        return out
 
     def set_bl_delta(self, name: str, bl: float):
         r"""Set the ``BL_delta`` column of one group
