@@ -18,146 +18,165 @@ process.
 
     LICENSE
 
-**What's new in version 2.3.0**
+**What's new in version 3.0.0**
 
 
-*   *More flexible command-line interface*
+New Features
+-------------------
 
-    CAPE calls, while still preserving backward compatibility, can now be
-    simplified. Instead of calling ``pyfun``, ``pycart``, ``pyover``, etc. most
-    calls can now be done by just using ``cape``. CAPE will automatically
-    determine which solver module to use by quickly looking at the contents of
-    the JSON file. In combination with the implicit or explicit sub-command,
-    this means that most CAPE calls have four different ways to be invoked:
+*   *AI integration*
+
+    The new command
 
     .. code-block:: console
 
-        $ cape c
-        $ cape -c
-        $ pyfun check
-        $ pyfun -c
+        $ cape agentic
     
-    If the `cape` executable determines the wrong solver (e.g. it thinks your
-    JSON file is a Cart3D JSON file when it's actually for LAVA), you can use
-    the explicit call (``pylava`` in the previous example).
+    now starts a persistent user interface that allows users to interact with
+    CAPE using a human-language chatbot. **Users supply their own Open
+    AI-compatible endpoint.** This could be a commercial website e.g. from
+    Open AI or Anthropic, an internal service to your agency/institute/company,
+    or a locally run model. The CAPE agentic harness is designed to be
+    functional with any level of model from a simple 1B model to a frontier
+    model. Declare the *ToolSet* in the new ``cape-agentic.json`` file to be
+    ``"low"`` for smaller models to avoid exposing it to complex tool calls.
 
-*   **pylava**: CAPE has added support for a fifth solver, NASA's new LAVA
-    package. For this release only the LAVA Cartesian solver is fully
-    supported.
+    The CAPE-Agentic UI will be an interactive, clickable interface if your
+    terminal emulator app supports it; there's a fall-back to a standard
+    persistent command-line interface tool otherwise.
 
-*   *Additional CAPE sub-commands and options*
+*   *Persistent TUI*
 
-    - Use ``cape open-pdf report/report-$REPORT.pdf --pull`` to automatically
-      transfer a report file from an HPC node and open it locally
-    - Use ``cape find`` to just return the indices of cases that match a set of
-      constraints.
-    - The ``cape edit-json`` command is an option to edit the contents of the
-      main JSON file through a command-line interface
-    - Case subsets can now be constrained by status, e.g
-
-        .. code-block:: console
-
-            $ cape c --status DONE
-
-      However, using this constraint interferes with the speed-up from
-      parallelization (see below).
-    - For shared run matrices, you can use the new option ``--me`` instead of
-      the much longer ``--cons "user=='$USER'"``. The ``--me`` option will do
-      nothing unless you have a run matrix key named ``"user"`` or another
-      *user*-type key defined.
-
-*   *Much faster run matrix checking*
-
-    Checking on a large run matrix, especially with ``pyfun``, can be
-    time-consuming. This is mostly because determining how many iterations have
-    been run can be surprisingly complicated for some of the CFD solvers.
-    ``cape -c`` is now automatically parallelized, so that it can analyze
-    several cases in parallel, controlled by the new ``--nproc`` option.
-
-*   *Smarter error handling*
-
-    Many errors caused by incorrect input (and also ``KeyboardInterrupt`` or
-    ``Ctrl-C``) will now produce a small error message rather than a full
-    Python traceback. Progress will continue to be made on this front in future
-    versions of CAPE.
-
-*   *Logging*: most command-line CAPE calls are now recorded in a log file.
-
-    Whenever you run a CAPE command that involves a :mod:`cape.cfdx.cntl.Cntl`
-    instance, it will now log that command the folder
-
-    ``log/{BASENAME_OF_JSON_FILE}/``
-
-    where ``$BASENAME_OF_JSON_FILE`` is the name of the JSON/YAML control file
-    with the ``.json`` stripped. This can include sub-folders. In this folder
-    for logging a single CAPE file, you will see
-
-    - ``cmd.log``
-    - ``hash.log``
-    - ``last.json``
-
-    For example if you run ``pyfun -c`` and ``pyFun.json`` is linked to
-    ``run/dac3-asc01.json``, you'll get a folder (or append to it if it already
-    exists) called ``log/cmd/run/dac3-asc01/`` with those three files in it.
-    The ``cmd.log`` file will contain a line such as
-
-    ``CMD,2026-01-07 14:55:33,pyfun check -f run/dac3-asc01.json``
-
-    The commands are "canonical-ized" so that the actual name of the JSON file
-    is always included, and it will use the new two-word format for the logged
-    commands. The line preceding this ``CMD`` line will be a SHA-256 hash of
-    the current expanded (and comment-stripped) JSON file for tracing.
-
-    You can turn this off by setting
-
-    .. code-block:: javascript
-
-        "LogLevel": 0
-
-    in the JSON file or by the environment variable ``$CAPE_LOG_LEVEL``.
+    The new command
 
     .. code-block:: console
 
-        export CAPE_LOG_LEVEL=0
-
-*   *Advanced case naming*
+        $ cape tui
     
-    New settings in the ``"RunMatrix"`` section named ``"Replace"`` and
-    ``"RegexSubs"``. These allow you to replace one string with another
-    (*Replace*) or apply general regular expression replacements using
-    ``re.sub()``. For example, if you don't want decimal points in your case
-    names, you could use:
+    will open a persistent user interface if your terminal emulator supports
+    it. This is separate from the LLM-enabled capability of ``cape agentic``.
+    The Terminal User Interface (TUI) is interesting because it provides smart
+    tab completion and uses cached :mod:`cape.cfdx.cntl.Cntl` instances so you
+    can save on overhead of rereading your JSON file for each new CAPE command.
+
+    There is also
+
+    .. code-block:: console
+
+        $ cape ui
+    
+    that uses a :mod:`readline`-based user interface with many of those same
+    benefits without the clickable interface, log folding, etc.
+
+*   *Interactive "dispatch" command*
+
+    The new command
+
+    .. code-block:: console
+
+        $ cape dispatch [CASES]
+    
+    starts an interactive session where users can decide on what to do with
+    each case in a (potentially large) list. The typical use case for this
+    command is to have a report (generated by ``cape report``) open in one
+    window while issuing a matching ``cape dispatch`` command in a terminal.
+    E.g. you might run
+
+    .. code-block:: console
+
+        $ cape report -I 50:100
+    
+    and then open the PDF that it generates. While scrolling through that PDF
+    to decide on each case, also run
+
+    .. code-block:: console
+
+        $ cape dispatch -I 50:100
+    
+    This will ask the user what to do with each case 50 to 100. By default
+    ``cape-dispatch`` offers the options of ``approve``, ``extend``,
+    ``extend2``, and ``skip``, which are relatively self-explanatory. Users can
+    also add their own custom actions. This is convenient because it builds up
+    the lists in a single window and immediately takes the appropriate
+    follow-up actions.
+
+*   *Cusotmized CLI actions*
+
+    The new command ``cape perform``, which also ties in with ``cape dispatch``
+    allows users to create compound and, optionally, parallel actions. There
+    are three built-in actions, matching the three ``approve``, ``extend``, and
+    ``extend2`` actions built into ``cape-dispatch``.
+    
+    For example the default 
+    
+    .. code-block:: console
+        
+        $ cape perform approve [CASES]
+        $ cape perform extend [CASES]
+        $ cape perform extend2 [CASES]
+    
+    .. code-block:: console
+        
+        $ cape approve [CASES]
+        $ cape extend [CASES]
+        $ cape extend [CASES] --extend 2
+    
+    but you can customize what any "action" does in the new *Actions* section
+    of the main CAPE JSON file. An example from the initial Artemis V ascent
+    CFD runs
 
     .. code-block:: javascript
 
-        "RunMatrix": {
-            "Replace": {
-                ".": "p"
-            }
+        "Actions": {
+            "approve": [
+                {
+                    "type": "cntl",
+                    "function": "MarkPASS"
+                },
+                {
+                    "type": "cntl",
+                    "function": "update_dex",
+                    "kwargs": {
+                        "dex": "CMA*"
+                    }
+                },
+                {
+                    "type": "cntl",
+                    "function": "update_dex",
+                    "index": 2,
+                    "kwargs": {
+                        "dex": "CS_[A-G]*"
+                    }
+                },
+                {
+                    "type": "cntl",
+                    "function": "update_dex",
+                    "index": 2,
+                    "kwargs": {
+                        "dex": "CS_[H-O]*"
+                    }
+                },
+                {
+                    "type": "cntl",
+                    "function": "update_dex",
+                    "index": 2,
+                    "kwargs": {
+                        "dex": "CS_[P-Z]*"
+                    }
+                }
+            ]
         }
     
-    to get conversions like ``m2.50a2.0`` → ``m2p50a2p0`` or use
-
-    .. code-block:: javascript
-
-        "RunMatrix": {
-            "Replace": {
-                ".": ""
-            }
-        }
-    
-    to get conversions like ``m2.50a2.0`` → ``m250a20``. One more example:
-
-    .. code-block:: javascript
-
-        "RunMatrix": {
-            "Replace": {
-                ".0": "",
-                ".": ""
-            }
-        }
-    
-    to get ``m2.50a2.0`` → ``m250a2``.
+    This truncated example first approves the case (``MarkPASS()``) and then
+    extracts a single databook component (``"CMA*"`` only matches a single
+    component from the ``"DataBook"`` section in this case) and then runs three
+    data-extraction processes in parallel. The parallel specification is
+    controlled by the ``"index": 2`` lines. The reason for running ``"CMA*"``
+    first is to avoid conflicts on converting the raw FUN3D file to the
+    ``.triq`` format that many of the other components use. The point is you
+    can combine and parallelize actions as you see fit using ``cape-perform``.
+    To add non-default actions, just add their names to ``"Actions"`` >
+    ``"UsetTools"`` and then define their actions.
   
 **See the full** :ref:`Changelog <changelog>` for more details on recent
 features.
