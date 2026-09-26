@@ -137,6 +137,22 @@ def test_fixin_state(tmp_path):
     assert bcg['fbody'].get_state() == {}
 
 
+# Test that new ``FIX_IN`` groups get a placeholder state line
+def test_add_fixin_group(tmp_path):
+    inp = VulcanInpFile(TEST_FILE)
+    inp.bcgroups.add_group('newfar', 'FIX_IN', options=['PHYSICAL'])
+    fname = str(tmp_path / "vulcan_new.inp")
+    inp.write(fname)
+    inp2 = VulcanInpFile(fname)
+    state = inp2.bcgroups['newfar'].get_state()
+    assert state['density'] == 0.0
+    assert state['uvel'] == 0.0
+    assert state['temperature'] == 0.0
+    # Placeholder values are fillable
+    inp2.bcgroups['newfar'].set_state(dict(uvel=400.0))
+    assert inp2.bcgroups['newfar'].get_state()['uvel'] == 400.0
+
+
 # Test BC objects interface
 def test_bcobjects():
     inp = VulcanInpFile(TEST_FILE)

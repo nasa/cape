@@ -1,27 +1,27 @@
 r"""
-:mod:`cape.pyfun.options.runctlopts`: FUN3D run control options
-=================================================================
+:mod:`cape.pyvul.options.runctlopts`: VULCAN run control options
+==================================================================
 
-Options interface for aspects of running a case of FUN3D.  The settings
-are read from the ``"RunControl"`` of a JSON file, and the contents of
-this section are written to ``case.json`` within each run folder.
+Options interface for aspects of running a case of VULCAN-CFD.  The
+settings are read from the ``"RunControl"`` of a JSON file, and the
+contents of this section are written to ``case.json`` within each run
+folder.
 
-The FUN3D-specific options include adaptation settings and command-line
-arguments for both ``nodet`` and ``dual``.
+The VULCAN-specific options include the ``"ProjectRootname"`` CAPE
+setting (there is no such setting in the VULCAN input file) and the
+command-line arguments for the main ``vulcan`` executable.
 
 :See Also:
     * :mod:`cape.cfdx.options.runctlopts`
-    * :mod:`cape.cfdx.options.archiveopts`
-    * :mod:`cape.pyfun.options.archiveopts`
 """
 
 # Local imports
 from ...cfdx.options import runctlopts
 from ...cfdx.options.execopts import ExecOpts
-from ...optdict import INT_TYPES
+from ...optdict import BOOL_TYPES, INT_TYPES
 
 
-# Class for `nodet` inputs
+# Class for `vulcan` inputs
 class VulcanOpts(ExecOpts):
     r"""Class for ``vulcan`` executable settings
 
@@ -43,24 +43,43 @@ class VulcanOpts(ExecOpts):
     # Accepted options
     _optlist = (
         "nproc",
+        "hostfile",
         "inpfile",
+        "outfile",
+        "pre",
+        "solve",
+        "post",
+        "recompose",
     )
 
     # Types
     _opttypes = {
         "nproc": INT_TYPES,
+        "hostfile": str,
         "inpfile": str,
+        "outfile": str,
+        "pre": BOOL_TYPES,
+        "solve": BOOL_TYPES,
+        "post": BOOL_TYPES,
+        "recompose": BOOL_TYPES,
     }
 
     # Defaults
     _rc = {
-        "inpfile": "pyvul.inp",
+        "inpfile": "vulcan.inp",
+        "solve": True,
     }
 
     # Descriptions
     _rst_descriptions = {
         "nproc": "number of CPU 'procs' to use in run",
+        "hostfile": "MPI hostfile name (falls back to $PBS_NODEFILE)",
         "inpfile": "name of VULCAN input file",
+        "outfile": "name of VULCAN screen output file",
+        "pre": "execute preprocessor steps (``-p``)",
+        "solve": "execute flow solver (``-s``)",
+        "post": "execute postprocessor (``-g``)",
+        "recompose": "recompose structured grid data (``-r``)",
     }
 
 
@@ -87,20 +106,27 @@ class RunControlOpts(runctlopts.RunControlOpts):
 
     # Names of allowed settings
     _optlist = (
+        "ProjectRootname",
         "vulcan",
     )
 
     # Option types
-    _opttypes = {}
+    _opttypes = {
+        "ProjectRootname": str,
+    }
 
     # Option values
     _optvals = {}
 
     # Default values
-    _rc = {}
+    _rc = {
+        "ProjectRootname": "vulcan",
+    }
 
     # Descriptions
-    _rst_descriptions = {}
+    _rst_descriptions = {
+        "ProjectRootname": "root name for project output files",
+    }
 
     # Additional sections
     _sec_cls = {
@@ -109,6 +135,6 @@ class RunControlOpts(runctlopts.RunControlOpts):
 
 
 # Create properties
-# RunControlOpts.add_properties(())
+RunControlOpts.add_properties(("ProjectRootname",))
 # Upgrade subsections
 RunControlOpts.promote_sections()

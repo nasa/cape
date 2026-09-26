@@ -53,6 +53,42 @@ from ..cfdx import cntl
 REGEX_SLICE = re.compile(r"(?P<a>[0-9]+)([-:](?P<b>[0-9]+))?")
 REGEX_IS_SLICE = re.compile(r"[0-9]+([,:-][0-9]+)*")
 
+# FUN3D ``mapbc`` wall boundary condition numbers
+# (from ``cape.pyfun.cntl``)
+BCS_WALL = (3000, 4000, 4100, 4110)
+
+# Map FUN3D ``mapbc`` BC numbers to VULCAN-CFD BC group types
+# (the middle column is ignored by VULCAN itself, but it follows FUN3D
+# conventions in CAPE run matrices)
+BC_NUM_TYPE_MAP = {
+    1000: 'FIX_IN',  # Freestream
+    2000: 'FIX_IN',  # Farfield
+    5000: 'SY',      # Symmetry plane
+}
+BC_NUM_TYPE_MAP.update(
+    {bc: ('VIS' if bc // 1000 == 3 else 'INV') for bc in BCS_WALL}
+)
+
+
+def MapbcBcToVulcanType(bc):
+    r"""Convert a FUN3D ``mapbc`` BC number to a VULCAN BC TYPE
+
+    :Call:
+        >>> btype = MapbcBcToVulcanType(bc)
+    :Inputs:
+        *bc*: :class:`int`
+            BC number from the middle column of a ``.mapbc`` file
+    :Outputs:
+        *btype*: :class:`str` | ``None``
+            VULCAN BC group TYPE, or ``None`` if no mapping exists
+    """
+    # Exact match
+    bc = int(bc)
+    if bc in BC_NUM_TYPE_MAP:
+        return BC_NUM_TYPE_MAP[bc]
+    # Fall back to the BC family (1000s digit)
+    return BC_NUM_TYPE_MAP.get((bc // 1000) * 1000)
+
 
 # Class to read input files
 class Cntl(cntl.Cntl):
@@ -189,48 +225,30 @@ class Cntl(cntl.Cntl):
     def GetProjectRootName(self, j: int = 0) -> str:
         r"""Get the project root name
 
-        The JSON file overrides the value from the namelist file if
-        appropriate
+        Unlike FUN3D, VULCAN-CFD has no project rootname setting in
+        the input file, so this is a CAPE-only option given by the
+        ``"ProjectRootname"`` setting of the ``"RunControl"`` section,
+        which defaults to ``"vulcan"``.
 
         :Call:
-            >>> name = cntl.GetProjectName(j=0)
+            >>> name = cntl.GetProjectRootName(j=0)
         :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of global pyFun settings object
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of global pyVul settings object
             *j*: :class:`int`
                 Phase number
         :Outputs:
             *name*: :class:`str`
                 Project root name
         :Versions:
-            * 2015-10-18 ``@ddalle``: v1.0
-            * 2023-06-15 ``@ddalle``: v1.1; cleaner logic
+            * 2026-09-25 ``@ddalle``: v1.0; RunControl-based
         """
-        # Read the namelist.
-        self.ReadNamelist(j, False)
-        # Get the namelist value
-        nname = self.Namelist0.get_opt('project', 'project_rootname')
-        # Get the options value
-        oname = self.opts.get_project_rootname(j)
-        # Check for options value
-        if oname is not None:
-            # Explicit JSON setting overrides
-            name = oname
-        elif nname is None:
-            # Global default
-            name = "pyfun"
-        else:
-            # Specified in fun3d.nml bot not pyFun.json
-            name = nname
-        # Check for adaptation number
-        k = self.opts.get_AdaptationNumber(j)
-        # Assemble project name
-        if k is None:
-            # No adaptation numbers
-            return name
-        else:
-            # Append the adaptation number
-            return '%s%02i' % (name, k)
+        # Get the options value; default "vulcan"
+        name = self.opts.get_ProjectRootname(j)
+        # Output
+        if name is None:
+            return "vulcan"
+        return name
 
     # Get the grid format
     def GetGridFormat(self, j=0):
@@ -548,137 +566,52 @@ class Cntl(cntl.Cntl):
         # Write the PBS script.
         self.WritePBS(i)
 
-   # --- Namelist ---
-    # Function to prepare "input.cntl" files
+   # --- Input File ---
+    # Function to prepare "vulcan.inp" files
     @cntl.run_rootdir
     def PrepareVulcanInp(self, i: int):
         r"""Prepare and write ``vulcan.inp`` for case *i*
 
         :Call:
-            >>> cntl.PrepareNamelist(i)
+            >>> cntl.PrepareVulcanInp(i)
         :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of FUN3D control class
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of VULCAN-CFD control class
             *i*: :class:`int`
                 Run index
+        :Versions:
+            * 2026-09-25 ``@ddalle``: v1.0
         """
         # Ensure case index is set
         self.opts.setx_i(i)
-        # Read namelist file
+        # Reread the template input file
         self.ReadVulcanInpFile()
-        pass
-        # Set the flight conditions
-        self.PrepareVulcanInpFlightConditions(i)
+        # Reread the mapbc file fresh
+        self.ReadMapBC()
         # Get the case folder name
         frun = self.x.GetFullFolderNames(i)
-        # Set up the component force & moment tracking
-        self.PrepareVulcanInpConfig()
-        # Set up boundary list
-        self.PrepareNamelistBoundaryList()
-
-        # Set the surface BCs
-        for k in self.x.GetKeysByType('SurfBC'):
-            # Check option for auto flow initialization
-            if self.x.defns[k].get("AutoFlowInit", True):
-                # Ensure the presence of the triangulation
-                self.ReadTri()
-            # Apply the appropriate methods
-            self.SetSurfBC(k, i)
-        # Set the surface BCs that use thrust as input
-        for k in self.x.GetKeysByType('SurfCT'):
-            # Check option for auto flow initialization
-            if self.x.defns[k].get("AutoFlowInit", True):
-                # Ensure the presence of the triangulation
-                self.ReadTri()
-            # Apply the appropriate methods
-            self.SetSurfBC(k, i, CT=True)
         # File name
-        if self.opts.get_Dual():
-            # Write in the 'Flow/' folder
-            fout = os.path.join(
-                frun, 'Flow',
-                '%s.mapbc' % self.GetProjectRootName(0))
-        else:
-            # Main folder
-            fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
-
+        fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
         # Customize mapbc file
         self.PrepareMapBC()
-        # Prepare internal boundary conditions
-        self.PrepareNamelistBoundaryConditions()
+        # Reset "BC GROUPS" based on the actual mapbc contents
+        self.PrepareVulcanBoundaryConditions()
+        # Set up the component force & moment tracking
+        self.PrepareVulcanInpConfig()
+        # Set the flight conditions (incl. the ``FIX_IN`` state)
+        self.PrepareVulcanInpFlightConditions(i)
         # Write the BC file
         self.MapBC.Write(fout)
-
         # Make folder if necessary
         self.make_case_folder(i)
-        # Apply any namelist functions
-        self.NamelistFunction(i)
+        # Apply any input file functions
+        self.VulcanInpFunction(i)
         # Loop through input sequence
-        for k, j in enumerate(self.opts.get_PhaseSequence()):
-            # Set the "restart_read" property appropriately
-            # This setting is overridden by *nopts* if appropriate
-            if k == 0:
-                # First run sequence; not restart
-                self.Namelist.set_opt(
-                    'code_run_control', 'restart_read', 'off')
-            else:
-                # Later sequence; restart
-                self.Namelist.set_opt('code_run_control', 'restart_read', 'on')
-            # Get the reduced namelist for sequence *j*
-            nopts = self.opts.select_namelist(j)
-            dopts = self.opts.select_dual_namelist(j)
-            # Apply them to this namelist
-            self.Namelist.apply_dict(nopts)
-            # Set number of iterations
-            self.Namelist.SetnIter(self.opts.get_nIter(j))
-            # Ensure correct *project_rootname*
-            self.Namelist.SetRootname(self.GetProjectRootName(j))
-            # Check for adaptive phase
-            if self.opts.get_Adaptive() and self.opts.get_AdaptPhase(j):
-                # Set the project rootname of the next phase
-                self.Namelist.SetAdaptRootname(self.GetProjectRootName(j+1))
-                # Check for adaptive grid
-                if self.opts.get_AdaptationNumber(j) > 0:
-                    # Always AFLR3/stream
-                    self.Namelist.set_opt('raw_grid', 'grid_format', 'aflr3')
-                    self.Namelist.set_opt('raw_grid', 'data_format', 'stream')
-            # Name of output file.
-            if self.opts.get_Dual():
-                # Write in the "Flow/" folder
-                fout = os.path.join(frun, 'Flow', 'fun3d.%02i.nml' % j)
-            else:
-                # Write in the case folder
-                fout = os.path.join(frun, 'fun3d.%02i.nml' % j)
-            # Write the input file.
-            self.Namelist.write(fout)
-            # Check for dual phase
-            if self.opts.get_Dual() and self.opts.get_DualPhase(j):
-                # Apply dual options
-                self.Namelist.apply_dict(dopts)
-                # Write in the "Adjoint/" folder as well
-                fout = os.path.join(frun, 'Flow', 'fun3d.dual.%02i.nml' % j)
-                # Set restart flag appropriately
-                if self.opts.get_AdaptationNumber(j) == 0:
-                    # No restart read (of adjoint file)
-                    self.Namelist.set_opt(
-                        'code_run_control', 'restart_read', 'off')
-                else:
-                    # Restart read of adjoint
-                    self.Namelist.set_opt(
-                        'code_run_control', 'restart_read', 'on')
-                    # Always AFLR3/stream
-                    self.Namelist.set_opt('raw_grid', 'grid_format', 'aflr3')
-                    self.Namelist.set_opt('raw_grid', 'data_format', 'stream')
-                # Set the iteration count
-                self.Namelist.SetnIter(self.opts.get_nIterAdjoint(j))
-                # Set the adapt phase
-                self.Namelist.set_opt(
-                    'adapt_mechanics', 'adapt_project',
-                    self.GetProjectRootName(j+1))
-                # Write the adjoint namelist
-                self.Namelist.write(fout)
-            # Prepare moving body inputs for phase
-            self.PrepareMovingBodyInputsPhase(i, j)
+        for j in self.opts.get_PhaseSequence():
+            # Name of output file
+            fout = os.path.join(frun, 'vulcan.%02i.inp' % j)
+            # Write the input file
+            self.inp.write(fout)
 
     # Apply customizations to ``.mapbc`` file
     def PrepareMapBC(self):
@@ -708,6 +641,117 @@ class Cntl(cntl.Cntl):
             for compid in compids:
                 # Set it
                 mapbc.SetBC(compid, bc)
+
+    # Set up ``BC OBJECTS`` for the force & moment components
+    def PrepareVulcanInpConfig(self):
+        r"""Add ``BC OBJECTS`` entries for the requested components
+
+        This is the VULCAN-CFD analogue of
+        :func:`cape.pyfun.cntl.Cntl.PrepareNamelistConfig`: each
+        component listed in the ``"Components"`` option of the
+        ``"Config"`` section gets a ``BC OBJECTS`` entry whose members
+        are the names of the ``.mapbc`` faces in that component's
+        branch of the configuration tree. VULCAN defines families by
+        name rather than by number, so no renumbering is required.
+
+        :Call:
+            >>> cntl.PrepareVulcanInpConfig()
+        :Inputs:
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of VULCAN-CFD control class
+        :Versions:
+            * 2026-09-25 ``@ddalle``: v1.0
+        """
+        # Get the components
+        comps = self.opts.get_ConfigComponents()
+        # Exit if no components
+        if comps is None:
+            return
+        comps = list(np.array(comps).flatten())
+        if len(comps) == 0:
+            return
+        # Check for input file
+        inp = getattr(self, "inp", None)
+        if inp is None:
+            return
+        # Read the configuration tree if necessary
+        self.ReadConfig()
+        # Object interface
+        bco = inp.bcobjects
+        # Loop through components
+        for comp in comps:
+            # Get the family member names
+            members = self.GetConfigFamilyNames(comp)
+            # Warn & skip if the component is not in the mesh
+            if len(members) == 0:
+                print(
+                    "     Component '%s' has no matches in mapbc file"
+                    % comp)
+                continue
+            # Set the members of this BC object
+            bco.set_members(comp, members)
+
+    # Reset the BC groups table from the mapbc file
+    def PrepareVulcanBoundaryConditions(self):
+        r"""Reset ``BC GROUPS`` based on the current ``.mapbc`` contents
+
+        The BC table of the template file may be stale (e.g. from a
+        different project that reused the same ``vulcan.inp``), so the
+        block is rebuilt from scratch: one group per unique ``.mapbc``
+        surface name, in file order. A template group with a matching
+        name keeps its TYPE, OPTION, ``BL_delta``, and constant-state
+        line; stale template groups are dropped and new names get
+        their TYPE from :func:`MapbcBcToVulcanType` with a
+        ``PHYSICAL`` option.
+
+        :Call:
+            >>> cntl.PrepareVulcanBoundaryConditions()
+        :Inputs:
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of VULCAN-CFD control class
+        :Versions:
+            * 2026-09-25 ``@ddalle``: v1.0
+        """
+        # Check for input file
+        inp = getattr(self, "inp", None)
+        if inp is None:
+            return
+        # Check for mapbc interface
+        mapbc = getattr(self, "MapBC", None)
+        if mapbc is None:
+            print(
+                "  Warning: no mapbc file found; keeping template"
+                " 'BC GROUPS' as-is")
+            return
+        bcg = inp.bcgroups
+        # Save the template groups by name
+        template = {kk: vv for kk, vv in bcg.items()}
+        # Get unique names in file order
+        names = []
+        for nn in mapbc.Names:
+            if nn not in names:
+                names.append(nn)
+        # Start over from an empty block
+        dict.clear(bcg)
+        # Rebuild one group per name
+        for nn in names:
+            # Check for stale name
+            if len(nn) > 12:
+                print(
+                    "  Warning: BC group name '%s' exceeds VULCAN's"
+                    " 12-character limit" % nn)
+            # Template group with this name wins
+            if nn in template:
+                dict.__setitem__(bcg, nn, template[nn])
+                continue
+            # Otherwise derive the TYPE from the BC number
+            kk = mapbc.Names.index(nn)
+            typ = MapbcBcToVulcanType(mapbc.BCs[kk])
+            if typ is None:
+                raise ValueError(
+                    "Cannot map mapbc BC number %i for surface '%s' to"
+                    " a VULCAN BC type" % (mapbc.BCs[kk], nn))
+            bcg.add_group(nn, typ, options=['PHYSICAL'])
 
     # Prepare freestream conditions
     def PrepareVulcanInpFlightConditions(self, i: int):
@@ -1026,6 +1070,42 @@ class Cntl(cntl.Cntl):
         # Sort the surface IDs to prepare RangeString
         surf.sort()
         return surf
+
+    # Get mapbc names of the faces in a config component
+    def GetConfigFamilyNames(self, comp: str) -> list:
+        r"""List ``.mapbc`` names of the faces in a named component
+
+        This is the name-based analogue of :func:`GetConfigBody`:
+        VULCAN-CFD identifies families by name rather than number.
+
+        :Call:
+            >>> names = cntl.GetConfigFamilyNames(comp)
+        :Inputs:
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                CAPE main control instance
+            *comp*: :class:`str`
+                Name of component to process
+        :Outputs:
+            *names*: :class:`list`\ [:class:`str`]
+                Face names of *comp* and its children that appear in
+                the ``.mapbc`` file; just ``[comp]`` when there is no
+                configuration tree
+        :Versions:
+            * 2026-09-25 ``@ddalle``: v1.0
+        """
+        # Check for configuration tree
+        config = getattr(self, "config", None)
+        if config is None:
+            # Fall back to the name itself
+            return [comp]
+        # Get names of all child components, including *comp*
+        family = config.GetFamily(comp)
+        # Filter to the faces in the mapbc file, if present
+        mapbc = getattr(self, "MapBC", None)
+        if mapbc is not None:
+            family = [ff for ff in family if ff in mapbc.Names]
+        # Output
+        return family
 
   # === Case Modification ===
     # Get case-specific number of iterations for a phase run

@@ -32,6 +32,7 @@ import numpy as np
 
 # Local imports
 from .. import fileutils
+from . import cmdgen
 from .inpfile import VulcanInpFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl

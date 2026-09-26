@@ -1088,17 +1088,14 @@ class BCGroupOptions(OptionsDict):
         # Replace the state data line if it was modified
         if self._statehdr_dirty and self._state_idx is not None:
             rawd = self._rawlines[self._state_idx]
-            sindent = rawd[:len(rawd) - len(rawd.lstrip())]
+            sindent = rawd[:len(rawd) - len(rawd.lstrip())] if rawd else ' '*11
             out[self._state_idx] = sindent + '  '.join(self._state_vals)
         # If only the state changed, keep everything else verbatim
         if not self._dirty:
             return out
         # Rebuild the group line
-        if self._rawlines:
-            raw0 = self._rawlines[0]
-            indent = raw0[:len(raw0) - len(raw0.lstrip())]
-        else:
-            indent = ' '*13
+        raw0 = self._rawlines[0] if self._rawlines else ''
+        indent = raw0[:len(raw0) - len(raw0.lstrip())] if raw0 else ' '*13
         parts = [self.name, self.get("TYPE") or '']
         parts.extend(self.get("OPTIONS") or [])
         bl = self.get("BL_delta")
@@ -1180,6 +1177,14 @@ class BCGroups(OptionsDict):
         """
         grp = BCGroupOptions(name, TYPE=typ, OPTIONS=list(options or []),
                              BL_delta=bl)
+        # Seed a placeholder state line for new ``FIX IN`` groups
+        if typ.replace('_', ' ').strip() == 'FIX IN':
+            grp._rawlines = ['', '']
+            grp._state_hdr = list(FIXIN_DEFAULT_COLUMNS)
+            grp._state_vals = ['0.0'] * len(FIXIN_DEFAULT_COLUMNS)
+            grp._state_idx = 1
+            grp._statehdr_dirty = True
+            grp._dirty = True
         dict.__setitem__(self, name, grp)
         return grp
 
