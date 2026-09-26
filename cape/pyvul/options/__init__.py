@@ -39,7 +39,7 @@ class Options(options.Options):
 
     # Additional options
     _optlist = {
-        "VulcanInputFile",
+        "VulcanInpFile",
         "Vulcan",
         "MapBC",
     }
@@ -48,24 +48,24 @@ class Options(options.Options):
     _optmap = {
         "BCs": "MapBC",
         "mapbc": "MapBC",
-        "VulcanInpFile": "VulcanInputFile",
+        "VulcanInputFile": "VulcanInpFile",
     }
 
     # Known option types
     _opttypes = {
-        "VulcanInputFile": str,
+        "VulcanInpFile": str,
     }
 
     # Option default list depth
 
     # Defaults
     _rc = {
-        "VulcanInputFile": "vulcan.inp",
+        "VulcanInpFile": "vulcan.inp",
     }
 
     # Descriptions for methods
     _rst_descriptions = {
-        "VulcanInputFile": "template VULCAN-CFD input file, usually ``.inp``",
+        "VulcanInpFile": "template VULCAN-CFD input file, usually ``.inp``",
     }
 
     # New or replaced sections
