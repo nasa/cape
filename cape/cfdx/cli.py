@@ -356,6 +356,7 @@ class CfdxArgReader(ArgReader):
             "pylava",
             "pylch",
             "pyover",
+            "pyvul",
         ),
         "status": (
             "---",

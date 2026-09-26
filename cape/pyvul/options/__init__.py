@@ -48,8 +48,7 @@ class Options(options.Options):
     _optmap = {
         "BCs": "MapBC",
         "mapbc": "MapBC",
-        "InpFile": "VulcanInputFile",
-        "InputFile": "VulcanInputFile",
+        "VulcanInpFile": "VulcanInputFile",
     }
 
     # Known option types
