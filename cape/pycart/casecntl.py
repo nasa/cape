@@ -141,7 +141,7 @@ class CaseRunner(casecntl.CaseRunner):
         if rc.get_Adaptive(j):
             # Run 'aero.csh'
             return self.run_phase_adaptive(j)
-        elif rc.get_it_avg(j):
+        elif rc.get_it_avg(j) and not self.dry_run:
             # Run a few iterations at a time
             return self.run_phase_with_restarts(j)
         else:
@@ -221,6 +221,9 @@ class CaseRunner(casecntl.CaseRunner):
         cmdi = cmdgen.autoInputs(opts=rc, j=j)
         # Run autoInputs
         ierr = self.callf(cmdi, f="autoInputs.out")
+        # Exit in dry-run mode ('input.c3d' not actually created)
+        if self.dry_run:
+            return ierr
         # Fix the name of the triangulation in the 'input.c3d' file
         # Read the intersect file.
         lines = open('input.c3d').readlines()
@@ -248,11 +251,13 @@ class CaseRunner(casecntl.CaseRunner):
             * 2016-03-04 ``@ddalle``: v1.0 (``RunAdaptive``)
             * 2023-07-09 ``@ddalle``: v1.1; rename; instance method
         """
-        # Delete the existing aero.csh file
-        if os.path.islink('aero.csh'):
-            os.remove('aero.csh')
-        # Create a link to this run.
-        os.symlink('aero.%02i.csh' % j, 'aero.csh')
+        # Link the correct 'aero.csh' file (not in dry-run mode)
+        if not self.dry_run:
+            # Delete the existing aero.csh file
+            if os.path.islink('aero.csh'):
+                os.remove('aero.csh')
+            # Create a link to this run.
+            os.symlink('aero.%02i.csh' % j, 'aero.csh')
         # Read settings
         rc = self.read_case_json()
         # Call the aero.csh command
@@ -267,6 +272,9 @@ class CaseRunner(casecntl.CaseRunner):
             cmdi = ['./aero.csh']
         # Run the command.
         ierr = self.callf(cmdi, f='flowCart.out', e="flowCart.err")
+        # Exit in dry-run mode (no output files to post-process)
+        if self.dry_run:
+            return ierr
         # Get adaptive folder
         adaptdir = GetAdaptFolder()
         if adaptdir is not None:
@@ -401,6 +409,9 @@ class CaseRunner(casecntl.CaseRunner):
         cmdi = cmdgen.flowCart(opts=rc, j=j, n=n)
         # Run the command.
         ierr = self.callf(cmdi, f='flowCart.out', e="flowCart.err")
+        # Exit in dry-run mode (no output files to post-process)
+        if self.dry_run:
+            return ierr
         # Check for point sensors
         if os.path.isfile('pointsensors.dat'):
             # Collect point sensor data

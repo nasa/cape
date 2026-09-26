@@ -186,21 +186,30 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Get the project name
         fproj = self.get_prefix()
-        # Delete OVERFLOW namelist if present
-        if os.path.isfile("over.namelist") or os.path.islink("over.namelist"):
-            os.remove("over.namelist")
-        # Create the correct namelist
-        shutil.copy("%s.%02i.inp" % (fproj, j), "over.namelist")
+        # Update OVERFLOW namelist (not in dry-run mode)
+        if not self.dry_run:
+            # Check for existing namelist
+            qnml = os.path.isfile("over.namelist")
+            qnml = qnml or os.path.islink("over.namelist")
+            # Delete OVERFLOW namelist if present
+            if qnml:
+                os.remove("over.namelist")
+            # Create the correct namelist
+            shutil.copy("%s.%02i.inp" % (fproj, j), "over.namelist")
         # Read case settings
         rc = self.read_case_json()
         # Get iteration pre-run
         n0 = self.get_iter()
         # Get the ``overrunmpi`` command
         cmdi = cmdgen.overrun(rc, j=j)
-        # OVERFLOW creates its own "RUNNING" file
-        self.mark_stopped()
+        # OVERFLOW creates its own "RUNNING" file (not in dry-run mode)
+        if not self.dry_run:
+            self.mark_stopped()
         # Call the command
         self.callf(cmdi, f="overrun.out", e="overrun.err")
+        # Exit in dry-run mode (no progress to check)
+        if self.dry_run:
+            return
         # Recreate RUNNING file
         self.mark_running()
         # Check new iteration

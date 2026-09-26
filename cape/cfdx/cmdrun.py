@@ -24,6 +24,11 @@ from typing import Optional, Union
 from . import cmdgen
 
 
+#: :class:`bool`
+#: Global switch to print commands instead of executing them
+DRY_RUN = False
+
+
 # Imitate sp.check_output() for older versions
 def check_output(cmdi: list):
     r"""Capture output from a system command
@@ -69,6 +74,9 @@ def find_executable(cmdname: Union[str, list, tuple], title: str) -> str:
     """
     # Ensure list
     cmdnames = cmdname if isinstance(cmdname, (list, tuple)) else [cmdname]
+    # In dry-run mode, no need to check for the executable
+    if DRY_RUN:
+        return cmdnames[0]
     # Loop through them
     for cmdname in cmdnames:
         # Check if available
@@ -117,6 +125,8 @@ def calli(
     """
     # Process the shell option
     shell = bool(shell)
+    # Force verbose output in dry-run mode
+    v = v or DRY_RUN
     # String version of command
     if isinstance(cmdi, str):
         # Already str
@@ -135,6 +145,18 @@ def calli(
         # Print the abbreviated path
         print("     (PWD = '%s')" % cwd)
         sys.stdout.flush()
+    # Check for dry-run mode
+    if DRY_RUN:
+        # Print any redirect info
+        for lbl, fv in (("STDIN", i), ("STDOUT", f), ("STDERR", e)):
+            # Get file name
+            fname = fv if isinstance(fv, str) else _filename(fv)
+            # Print it if present
+            if fname:
+                print(f"     ({lbl} = '{os.path.basename(fname)}')")
+        # Flush and pretend the command ran
+        sys.stdout.flush()
+        return 0
     # Open all the files
     fpo = _openfile(f, 'w')
     fpi = _openfile(i, 'rb')
@@ -356,6 +378,9 @@ def _assertfile(fname):
     :Versions:
         * 2014-06-30 ``@ddalle``: v1.0
     """
+    # No input requirements in dry-run mode
+    if DRY_RUN:
+        return
     # Check for the file.
     if not os.path.isfile(fname):
         raise IOError("No input file '%s' found." % fname)
