@@ -68,22 +68,10 @@ SKILL_PARAMS = {
 
 # Whitelist of Cntl methods this skill may call, with summaries
 METHOD_WHITELIST = {
-    "CountQueuedCases": (
-        "Count cases with a job currently in the PBS/Slurm queue. "
-        "Optional filters: I, cons, re, filter, u."),
-    "GetCurrentIter": (
-        "Current iteration number for case index i. "
-        "Args: i (int). Optional: force (bool)."),
     "GetIndices": (
         "Indices of cases matching subset constraints, returned as a "
-        "list. Kwargs: cons, re, filter, glob, I, status, etc."),
-    "GetLastIter": (
-        "Final iteration number required for case index i. "
-        "Args: i (int)."),
-    "check_case_status": (
-        "Status ('---', 'INCOMP', 'QUEUE', 'RUNNING', 'ZOMBIE', "
-        "'FAIL', 'ERROR', 'DONE', 'PASS', 'PASS*') of case index i. "
-        "Args: i (int). Optional: force (bool)."),
+        "list. Kwargs: cons, re, filter, glob, I, etc. Status filtering is "
+        "not allowed here; use the check-cases skill."),
     "get_report_comps": (
         "List of (component, coefficient) pairs tracked in report "
         "rep (optional)."),
@@ -98,8 +86,8 @@ METHOD_WHITELIST = {
         "List of all subfigures, or subfigures of one report if "
         "report is given."),
     "getval": (
-        "Value of run matrix key opt for case index i, or a special "
-        "value like 'progress' or 'iter'. Args: opt (str), i (int)."),
+        "Value of run matrix key opt for case index i. Args: opt (str), "
+        "i (int). Use the check-cases skill for status or progress."),
     "inspect_json": (
         "Show the JSON options at jq path jq (default '.'), "
         "optionally truncated to maxdepth levels."),
@@ -189,6 +177,18 @@ def run_cntl_methods(
             kwargs = toolutils.normalize_kwargs(call.get("kwargs") or {})
             # Run it, flagging failures without aborting the other calls
             try:
+                # Keep getval scoped to actual run matrix keys. Cntl.getval()
+                # also accepts status/progress pseudo-columns, which belong
+                # to the dedicated check-cases workflow instead.
+                if method == "getval":
+                    opt = args[0] if args else kwargs.get("opt")
+                    if opt not in cntl.x.cols:
+                        raise ValueError(
+                            f"{opt!r} is not a run matrix key; use a "
+                            "dedicated CAPE tool for computed columns")
+                if method == "GetIndices" and "status" in kwargs:
+                    raise ValueError(
+                        "status filtering belongs to the check-cases skill")
                 v = func(*args, **kwargs)
             except Exception as e:
                 # NOTE: a fail-fast abort (for future mutating skills)
@@ -230,9 +230,10 @@ def _jsonify(v):
 SKILL_CONTENT = r"""
 # cntl-runner: running Cntl methods
 
-Use this skill when a task requires the CAPE Python API of the run
-matrix control instance (`Cntl`) that the fixed CLI tools do not
-expose. The skill's `run_cntl_methods` tool reads a CAPE JSON file into
+This is an expert-level escape hatch for uncommon CAPE Python API queries.
+Use it only when a task requires a read-only method of the run matrix control
+instance (`Cntl`) that a dedicated tool or skill does not expose. The skill's
+`run_cntl_methods` tool reads a CAPE JSON file into
 a `Cntl` instance (using `cape.cfdx.cli.read_cntl_cache`, so repeated
 reads of the same file are cached) and runs one or more methods from a
 whitelist of read-only methods. All whitelisted methods are read-only;
@@ -240,10 +241,16 @@ do not attempt to call a method that is not in the whitelist.
 
 ## When to use
 
-* The user asks a question about the run matrix, JSON options, report
-  setup, or case status that the fixed tools cannot answer.
+* The user asks a specialized question about the run matrix, JSON options,
+  or report setup that the dedicated tools cannot answer.
 * You need a specific value, e.g. one run matrix key for one case, or
   one item from the JSON options.
+
+Do not use this skill for case status or progress; use the `check-cases`
+skill (or the fixed status tool available to less-capable models). Prefer
+`describe_run_matrix_keys` for descriptions of run matrix keys,
+`cape_find` for selecting cases, and other dedicated tools whenever they
+cover the request.
 
 ## How to call
 
@@ -253,8 +260,7 @@ do not attempt to call a method that is not in the whitelist.
   "solver": null,
   "calls": [
     {"method": "get_runmatrix_keys"},
-    {"method": "getval", "args": ["mach", 0]},
-    {"method": "check_case_status", "args": [0]}
+    {"method": "getval", "args": ["mach", 0]}
   ]
 }
 ```
@@ -272,41 +278,39 @@ results.
 
 ## Whitelisted methods
 
-* `GetIndices(cons=None, re=None, filter=None, I=None, status=None,
-  ...)`: find case indices matching run matrix constraints. Prefer the
+* `GetIndices(cons=None, re=None, filter=None, I=None, ...)`: find case
+  indices matching run matrix constraints. Status filtering is rejected;
+  use the `check-cases` skill for it. Prefer the
   fixed `cape_find` tool when it suffices; use this to chain the
   indices into further `Cntl` calls in one round.
-* `get_runmatrix_keys(keyname=None)`: describe the run matrix keys.
-* `getval(opt, i)`: one run matrix value (or special key like
-  `"progress"`, `"iter"`) for case `i`.
-* `check_case_status(i, force=False)`: status of one case.
-* `GetCurrentIter(i)`: current iteration of case `i`.
-* `GetLastIter(i)`: final required iteration of case `i`.
-* `CountQueuedCases(I=None, cons=None, re=None, ...)`: count cases
-  with a job currently in the queue.
+* `get_runmatrix_keys(keyname=None)`: get basic type information for keys
+  when it must be batched with other expert API calls. Prefer the dedicated
+  `describe_run_matrix_keys` tool for ordinary key-description questions.
+* `getval(opt, i)`: one run matrix key value for case `i`. Do not use its
+  special status/progress values; use the `check-cases` skill instead.
 * `get_subfigs(report=None)`, `get_report_comps(rep=None)`,
   `get_report_subfigs(rep=None)`, `get_report_figs(rep=None)`: report
   layout queries.
 * `inspect_json(jq=".", maxdepth=None)`: read a subset of the JSON
   options, e.g. `jq=".RunControl"` shows the *RunControl* section.
 
-## Chaining example
+## Multi-round example
 
-To report the status of all cases with `mach>1.2`:
+To list the `config` values for cases with `mach>1.2`:
 
 1. Call with
    `calls=[{"method": "GetIndices", "kwargs": {"cons": "mach>1.2"}}]`.
 2. Read the returned index list, then call again with a `calls` list
-   containing one `check_case_status` entry per index.
+   containing one `getval` entry for `config` per index.
 """
 
 # Simplified skill definition (mirrors TOOL_DICT pattern for tools)
 SKILL_DICT = {
     "cntl-runner": {
         "description": (
-            "Read a CAPE JSON file into a Cntl instance and run "
-            "whitelisted read-only Python API methods on it. Use for "
-            "questions the fixed CLI tools cannot answer."
+            "Expert-level escape hatch for running whitelisted read-only "
+            "Cntl API methods. Use only for uncommon queries that dedicated "
+            "CAPE tools and skills cannot answer."
         ),
         "content": SKILL_CONTENT,
         "tools": ["run_cntl_methods"],
@@ -317,9 +321,10 @@ SKILL_DICT = {
 TOOL_DICT = {
     "run_cntl_methods": {
         "description": (
-            "Read a CAPE JSON file into a Cntl instance and run an "
-            "ordered list of whitelisted read-only methods on it. Only "
-            "use methods from the cntl-runner skill's whitelist; call "
+            "Expert-level escape hatch that runs an ordered list of "
+            "whitelisted read-only Cntl methods. Use only when no dedicated "
+            "tool covers the request. Only use methods from this skill's "
+            "whitelist; call "
             "use_skill('cntl-runner') for full instructions first."
         ),
         "parameters": ["f", "solver", "calls"],

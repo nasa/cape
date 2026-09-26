@@ -293,6 +293,7 @@ TOOL_SETS = {
     "medium": [
         "cape_find",
         "cape_c",
+        "cape_inspect_json",
         "cape_approve",
         "cape_clean",
         "cape_fail",
@@ -307,6 +308,7 @@ TOOL_SETS = {
     # richer "cape_check" tool to models that support skills
     "full": [
         "cape_find",
+        "cape_inspect_json",
         "cape_approve",
         "cape_apply",
         "cape_archive",

@@ -198,6 +198,13 @@ repo, for example to inspect a CAPE JSON file, a script in the `tools/`
 folder, or a set of notes. Reading is unrestricted within the repo, but
 this skill cannot modify files.
 
+Use this skill for the literal source text of a file. Do not use it to
+answer questions about the effective CAPE configuration or run matrix when
+a semantic CAPE tool is available: literal files can omit defaults, included
+settings, and normalized definitions. In particular, prefer
+`describe_run_matrix_keys` for run matrix key questions and
+`cape_inspect_json` for expanded JSON options.
+
 ## What you can read
 
 * Any text file inside the repo root folder, up to about 2 MB.
@@ -228,8 +235,10 @@ SKILL_DICT = {
     "file-reader": {
         "description": (
             "Read any text file in this repo smaller than 2 MB, "
-            "with line numbers. Use when the user asks you to look "
-            "at, explain, or summarize a file. Does not allow edits."
+            "with line numbers. Use for literal file contents, exact lines, "
+            "or summarizing a named file; do not use for effective CAPE "
+            "configuration when a semantic CAPE tool exists. Does not "
+            "allow edits."
         ),
         "content": SKILL_CONTENT,
         "tools": ["read_file"],

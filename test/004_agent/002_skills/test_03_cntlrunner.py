@@ -17,8 +17,8 @@ def test_01_builtin_skills():
     assert skill.tools == ["run_cntl_methods"]
     assert skill.description
     assert skill.content
-    # Skill appears in "medium" and "full" skill sets
-    assert "cntl-runner" in skills.SKILL_SETS["medium"]
+    # Expert skill appears only in the "full" skill set
+    assert "cntl-runner" not in skills.SKILL_SETS["medium"]
     assert "cntl-runner" in skills.SKILL_SETS["full"]
     assert "cntl-runner" not in skills.SKILL_SETS["none"]
     assert "cntl-runner" not in skills.SKILL_SETS["low"]
@@ -59,6 +59,13 @@ def test_04_whitelist_reject():
     assert "rm_cases" in result["error"]
     # Allowed methods listed for the model
     assert "GetIndices" in result["allowed_methods"]
+    status_methods = {
+        "CountQueuedCases",
+        "GetCurrentIter",
+        "GetLastIter",
+        "check_case_status",
+    }
+    assert status_methods.isdisjoint(result["allowed_methods"])
     assert len(result["allowed_methods"]) == len(cntlrunner.METHOD_WHITELIST)
 
 
@@ -129,3 +136,28 @@ def test_07_continue_on_error():
     r2 = result["results"][2]
     assert r2["success"] is True
     assert r2["result"] == 0.5
+
+
+# Test that getval cannot bypass the removal of status methods
+@testutils.run_sandbox(__file__, copyfiles=["cape.json", "matrix.csv"])
+def test_08_getval_rejects_computed_columns():
+    result = cntlrunner.run_cntl_methods(
+        f="cape.json",
+        solver="cfdx",
+        calls=[{"method": "getval", "args": ["status", 0]}])
+    assert result["success"] is False
+    assert "not a run matrix key" in result["results"][0]["error"]
+
+
+# Test that GetIndices cannot become an indirect status query
+@testutils.run_sandbox(__file__, copyfiles=["cape.json", "matrix.csv"])
+def test_09_indices_rejects_status():
+    result = cntlrunner.run_cntl_methods(
+        f="cape.json",
+        solver="cfdx",
+        calls=[{
+            "method": "GetIndices",
+            "kwargs": {"status": "DONE"},
+        }])
+    assert result["success"] is False
+    assert "check-cases" in result["results"][0]["error"]

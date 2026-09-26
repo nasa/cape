@@ -86,7 +86,6 @@ SKILL_SETS = {
     "low": [],
     "medium": [
         "check-db",
-        "cntl-runner",
         "file-reader",
         "user-tools",
     ],

@@ -27,6 +27,9 @@ def test_02_cape_c_removed_from_full():
     assert "cape_c" in cfdxtools.TOOL_SETS["medium"]
     assert "cape_c" in cfdxtools.TOOL_SETS["low"]
     assert "cape_check" not in cfdxtools.TOOL_DICT
+    # Full models still get the dedicated effective-options query tool
+    assert "cape_inspect_json" in cfdxtools.TOOL_SETS["full"]
+    assert "cape_inspect_json" in cfdxtools.TOOL_SETS["medium"]
 
 
 def test_03_pruned_tools():

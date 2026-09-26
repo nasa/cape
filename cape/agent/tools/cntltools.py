@@ -9,12 +9,17 @@ of the low-level CLI functions defined in :mod:`cape.cfdx.cli`.
 # Standard library
 import base64
 import contextlib
+import fnmatch
+import json
+import math
 import mimetypes
+import numbers
 import os
 from typing import Callable
 
 # Local imports
 from .toolutils import register_module_tools
+from ..agentutils import _NPEncoder
 from ... import sysutils
 from ...cfdx import cli
 
@@ -58,6 +63,29 @@ CAPE_PARAMS = {
         "description": (
             "Regenerate the subfigure image even if a cached version "
             "exists."
+        ),
+        "type": ["boolean", "null"],
+    },
+    "key": {
+        "description": (
+            "Optional shell-style pattern selecting run matrix key names, "
+            "for example 'a*'. By default all keys are described."
+        ),
+        "type": ["string", "null"],
+    },
+    "detail": {
+        "description": (
+            "Level of effective key-definition detail to return: 'summary' "
+            "for the most useful properties or 'full' for every normalized "
+            "definition property. Default: 'summary'."
+        ),
+        "type": ["string", "null"],
+        "enum": ["summary", "full", None],
+    },
+    "include_values": {
+        "description": (
+            "Include a compact summary of the values present in each run "
+            "matrix column. Default: true."
         ),
         "type": ["boolean", "null"],
     },
@@ -105,13 +133,123 @@ def get_subfigs(f: str | None = None, report: str | None = None) -> dict:
     }
 
 
-def get_keys(f: str | None = None) -> dict:
-    # Read *cntl*
+def describe_run_matrix_keys(
+        f: str | None = None,
+        key: str | None = None,
+        detail: str | None = "summary",
+        include_values: bool | None = True) -> dict:
+    r"""Describe effective definitions and values of run matrix keys
+
+    :Call:
+        >>> result = describe_run_matrix_keys(f=None)
+    :Inputs:
+        *f*: {``None``} | :class:`str`
+            Name of CAPE JSON file (or find the most appropriate file)
+        *key*: {``None``} | :class:`str`
+            Optional shell-style pattern matching key names
+        *detail*: {``"summary"``} | ``"full"``
+            Return selected or all effective definition properties
+        *include_values*: {``True``} | ``False``
+            Include compact summaries of the matrix-column values
+    :Outputs:
+        *result*: :class:`dict`
+            Project metadata and an ordered list of key descriptions
+    """
+    # Validate options before doing the comparatively expensive JSON read
+    detail = detail or "summary"
+    if detail not in ("summary", "full"):
+        return {
+            "success": False,
+            "error": "'detail' must be either 'summary' or 'full'",
+        }
+    # Read the effective, normalized control instance
     cntl = cli.read_cntl_q(f)
-    # List the keys
+    cols = cntl.opts.get_RunMatrixKeys()
+    if key:
+        cols = fnmatch.filter(cols, key)
+    # Describe keys in run-matrix order
+    keys = []
+    for col in cols:
+        defn = cntl.x.defns[col]
+        item = {
+            "name": col,
+            "type": defn.get("Type", col),
+            "value_type": defn.get("Value", "float"),
+            "group": defn.get("Group", False),
+            "label": defn.get("Label", True),
+            "abbreviation": defn.get("Abbreviation", col),
+            "format": defn.get("Format", "%s"),
+        }
+        if detail == "full":
+            item["definition"] = _jsonify(defn)
+        if include_values is not False:
+            item["values"] = _summarize_values(cntl.x[col])
+        keys.append(item)
+    # Identify the files that contributed the semantic result
+    json_file = os.path.normpath(os.path.join(cntl.fdir, cntl.fname))
+    matrix_file = cntl.x.fname
     return {
-        "keys": cntl.opts.get_RunMatrixKeys(),
+        "success": True,
+        "json_file": json_file,
+        "matrix_file": matrix_file,
+        "case_count": int(cntl.x.nCase),
+        "key_count": len(keys),
+        "keys": keys,
     }
+
+
+def get_keys(f: str | None = None) -> dict:
+    r"""Compatibility wrapper for :func:`describe_run_matrix_keys`"""
+    return describe_run_matrix_keys(f=f)
+
+
+def _jsonify(v):
+    r"""Convert a CAPE or NumPy value to JSON-compatible objects"""
+    return json.loads(json.dumps(v, cls=_NPEncoder, default=str))
+
+
+def _summarize_values(values, max_examples: int = 8) -> dict:
+    r"""Create a bounded, JSON-compatible summary of one matrix column"""
+    count = 0
+    examples = []
+    seen = set()
+    vmin = None
+    vmax = None
+    for v in values:
+        val = _jsonify(v)
+        count += 1
+        # Use canonical JSON as a hashable identity for scalar and structured
+        # values alike. Keep only a bounded list of examples in memory.
+        token = json.dumps(val, sort_keys=True)
+        if token not in seen:
+            seen.add(token)
+            if len(examples) < max_examples:
+                examples.append(val)
+        # Booleans are numbers in Python, but numeric ranges are not useful
+        # for a boolean-valued column.
+        if _is_finite_real(val):
+            vmin = val if vmin is None else min(vmin, val)
+            vmax = val if vmax is None else max(vmax, val)
+    result = {
+        "count": count,
+        "unique_count": len(seen),
+    }
+    if len(seen) <= max_examples:
+        result["unique"] = examples
+    else:
+        result["examples"] = examples
+        result["examples_truncated"] = True
+    if vmin is not None:
+        result["min"] = vmin
+        result["max"] = vmax
+    return result
+
+
+def _is_finite_real(v) -> bool:
+    r"""Return whether *v* is a finite, non-boolean real number"""
+    return (isinstance(v, numbers.Real) and
+            not isinstance(v, bool) and
+            math.isfinite(v))
 
 
 def get_reports(f: str | None = None) -> dict:
@@ -283,9 +421,15 @@ TOOL_DICT = {
         "parameters": ["i", "f"],
         "required": ["i"],
     },
-    "get_keys": {
-        "description": "List the run matrix keys (aka variables).",
-        "parameters": ["f"],
+    "describe_run_matrix_keys": {
+        "description": (
+            "Describe the effective, normalized run matrix keys, including "
+            "their CAPE type, value type, grouping and naming behavior, and "
+            "a compact summary of column values. Use this for questions "
+            "such as 'describe my run matrix keys'; use detail='full' for "
+            "complete normalized definitions."
+        ),
+        "parameters": ["f", "key", "detail", "include_values"],
     },
     "get_subfigs": {
         "description": (
@@ -328,14 +472,14 @@ TOOLS = {}
 TOOL_SETS = {
     "none": [],
     "low": [
-        "get_keys",
+        "describe_run_matrix_keys",
         "get_subfigs",
         "get_reports",
         "return_to_root",
     ],
     "medium": [
         "enter_case",
-        "get_keys",
+        "describe_run_matrix_keys",
         "get_subfigs",
         "get_reports",
         "return_to_root",
@@ -343,7 +487,7 @@ TOOL_SETS = {
     ],
     "full": [
         "enter_case",
-        "get_keys",
+        "describe_run_matrix_keys",
         "get_subfigs",
         "get_reports",
         "return_to_root",
