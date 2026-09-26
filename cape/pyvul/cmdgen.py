@@ -30,7 +30,7 @@ import os
 
 # Local imports
 from .options import Options, runctlopts
-from ..cfdx.cmdgen import isolate_subsection
+from ..cfdx.cmdgen import get_nproc, isolate_subsection
 from ..optdict.optitem import getel
 
 # Single-character VULCAN execution flags, in command-line order
@@ -81,7 +81,6 @@ def vulcan(opts=None, j=0, **kw):
     if hasattr(opts, "get_MPI"):
         # Full "RunControl" interface
         q_mpi = opts.get_MPI(j)
-        nproc_def = opts.get_nProc(j)
         vopts = opts["vulcan"]
     else:
         if isinstance(opts, dict) and ("vulcan" not in opts) and (
@@ -91,7 +90,6 @@ def vulcan(opts=None, j=0, **kw):
         # Raw "RunControl" dictionary
         opts = runctlopts.RunControlOpts(opts)
         q_mpi = opts.get_MPI(j)
-        nproc_def = opts.get_nProc(j)
         vopts = opts["vulcan"]
     vopts = vopts.__class__(vopts)
     # Apply other options
@@ -100,8 +98,11 @@ def vulcan(opts=None, j=0, **kw):
     cmdi = ["vulcan"]
     # Parallel environments require the two positional arguments
     if q_mpi:
-        # Number of processors; fall back to "RunControl"
-        nproc = vopts.get_opt("nproc", j=j, vdef=nproc_def)
+        # Number of processors
+        nproc = vopts.get_opt("nproc", j=j)
+        # Fall back to "RunControl" settings and environment
+        if nproc is None:
+            nproc = get_nproc(opts, j=j)
         cmdi.append(str(int(nproc)))
         # Host file name; fall back to the PBS nodefile if present
         fhost = vopts.get_opt("hostfile", j=j)

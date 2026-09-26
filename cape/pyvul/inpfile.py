@@ -142,12 +142,15 @@ OPTSPEC = {
     "APPROX ROE INVISCID JACOBIAN": KIND_NUM,
     "DDT ROE INVISCID JACOBIAN": KIND_NUM,
     "DDT INVISCID JACOBIAN": KIND_NUM,
+    "UNS DDT INVISCID JACOBIAN": KIND_NUM,
     "ENABLE TIME STEP REDUCTION LOGIC": KIND_NUM,
     "RESET TIME STEP REDUCTION LOGIC": KIND_NUM,
     "UNS ADAPTIVE CFL METHOD": KIND_NUM,
     "CELL SKEW CFL LIMITER": KIND_NUM,
     "UNS VOLUME CENTER METHOD": KIND_NUM,
     "UNS CELL AVG GRADIENT METHOD": KIND_NUM,
+    "UNS CELL AVG GRADIENT WEIGHTS": KIND_NUM,
+    "UNS CELL FACE GRADIENT METHOD": KIND_NUM,
     "UNS NODE CENTERED GRADIENTS": KIND_NUM,
     "UNS LEAST-SQUARES WEIGHTS": KIND_NUM,
     "UNS LSQ COEF METHOD": KIND_NUM,
@@ -413,8 +416,7 @@ BC_TYPES = [
 
 # Names of the constant-state data line of inflow BC groups (e.g.
 # ``FIX_IN``), mapped from header text to canonical names. Other
-# columns (species mass fractions, turbulence quantities) are left
-# alone.
+# columns (species mass fractions) are left alone.
 FIXIN_STATE_MAP = {
     "density": "density",
     "dens": "density",
@@ -423,7 +425,10 @@ FIXIN_STATE_MAP = {
     "wvel": "wvel",
     "temperature": "temperature",
     "temp": "temperature",
-    "t": "temperature",
+    "tint": "tint",
+    "vrat": "vrat",
+    "murat": "vrat",
+    "mu_rat": "vrat",
 }
 
 # Standard column names for groups with a data line but no header
@@ -1053,7 +1058,8 @@ class BCGroupOptions(OptionsDict):
             *values*: :class:`dict`
                 Mapping of canonical name -> value; ``None`` values
                 are skipped. Valid names: ``'density'``, ``'uvel'``,
-                ``'vvel'``, ``'wvel'``, ``'temperature'``
+                ``'vvel'``, ``'wvel'``, ``'temperature'``,
+                ``'tint'``, ``'vrat'``
         :Raises:
             :class:`ValueError` if no state line is present or a
             column name is unknown
@@ -1086,17 +1092,18 @@ class BCGroupOptions(OptionsDict):
         """
         out = list(self._rawlines)
         # Replace the state data line if it was modified
-        if self._statehdr_dirty and self._state_idx is not None:
+        if self._statehdr_dirty and self._state_idx is not None and \
+                self._state_idx < len(out):
             rawd = self._rawlines[self._state_idx]
             sindent = rawd[:len(rawd) - len(rawd.lstrip())] if rawd else ' '*11
             out[self._state_idx] = sindent + '  '.join(self._state_vals)
-        # If only the state changed, keep everything else verbatim
-        if not self._dirty:
+        # If unchanged and originally present, keep everything verbatim
+        if not self._dirty and out:
             return out
         # Rebuild the group line
         raw0 = self._rawlines[0] if self._rawlines else ''
         indent = raw0[:len(raw0) - len(raw0.lstrip())] if raw0 else ' '*13
-        parts = [self.name, self.get("TYPE") or '']
+        parts = [self.name.ljust(12), self.get("TYPE") or '']
         parts.extend(self.get("OPTIONS") or [])
         bl = self.get("BL_delta")
         if bl is not None:
@@ -1177,14 +1184,16 @@ class BCGroups(OptionsDict):
         """
         grp = BCGroupOptions(name, TYPE=typ, OPTIONS=list(options or []),
                              BL_delta=bl)
+        # A freshly added group has no raw lines, so force a rebuild
+        grp._dirty = True
         # Seed a placeholder state line for new ``FIX IN`` groups
         if typ.replace('_', ' ').strip() == 'FIX IN':
-            grp._rawlines = ['', '']
+            shdr = ' '*11 + '  '.join(FIXIN_DEFAULT_COLUMNS)
+            grp._rawlines = ['', shdr, '']
             grp._state_hdr = list(FIXIN_DEFAULT_COLUMNS)
             grp._state_vals = ['0.0'] * len(FIXIN_DEFAULT_COLUMNS)
-            grp._state_idx = 1
+            grp._state_idx = 2
             grp._statehdr_dirty = True
-            grp._dirty = True
         dict.__setitem__(self, name, grp)
         return grp
 

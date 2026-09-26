@@ -39,6 +39,7 @@ import os
 import re
 import shutil
 from math import cos, radians, sin, sqrt
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -55,19 +56,35 @@ REGEX_IS_SLICE = re.compile(r"[0-9]+([,:-][0-9]+)*")
 
 # FUN3D ``mapbc`` wall boundary condition numbers
 # (from ``cape.pyfun.cntl``)
-BCS_WALL = (3000, 4000, 4100, 4110)
+BCS_WALL = (4000, 4100, 4110)
+BCS_INVISCID_WALL = (3000,)
+BCS_SYMMETRY = (5000, 5051, 5052)
+BCS_FARFIELD = (5050,)
 
 # Map FUN3D ``mapbc`` BC numbers to VULCAN-CFD BC group types
 # (the middle column is ignored by VULCAN itself, but it follows FUN3D
 # conventions in CAPE run matrices)
 BC_NUM_TYPE_MAP = {
     1000: 'FIX_IN',  # Freestream
-    2000: 'FIX_IN',  # Farfield
-    5000: 'SY',      # Symmetry plane
+    2000: 'EXTRAP',  # Outflow
+    3000: 'IWALL',   # Inviscid (slip) wall
+    4000: 'AWALL',   # No-slip (adiabatic) wall
+    4100: 'AWALL',   # No-slip (adiabatic) wall
+    4110: 'AWALL',   # No-slip (adiabatic) wall
+    5000: 'SYMM',    # Symmetry plane
+    5050: 'CHAR REF',  # Farfield (external state = reference state)
+    5051: 'SYMM',    # Symmetry plane (weak)
+    5052: 'SYMM',    # Symmetry plane (strong)
 }
-BC_NUM_TYPE_MAP.update(
-    {bc: ('VIS' if bc // 1000 == 3 else 'INV') for bc in BCS_WALL}
-)
+
+# Fallback map for BC families not listed above (by 1000s digit)
+BC_FAMILY_TYPE_MAP = {
+    1: 'FIX_IN',   # 1xxx inflows
+    2: 'EXTRAP',   # 2xxx outflows
+    3: 'IWALL',    # 3xxx slip walls
+    4: 'AWALL',    # 4xxx no-slip walls
+    5: 'SYMM',     # 5xxx symmetry/farfield
+}
 
 
 def MapbcBcToVulcanType(bc):
@@ -87,7 +104,25 @@ def MapbcBcToVulcanType(bc):
     if bc in BC_NUM_TYPE_MAP:
         return BC_NUM_TYPE_MAP[bc]
     # Fall back to the BC family (1000s digit)
-    return BC_NUM_TYPE_MAP.get((bc // 1000) * 1000)
+    return BC_FAMILY_TYPE_MAP.get(bc // 1000)
+
+
+# Truncate a ``.mapbc`` surface name to VULCAN's group-name limit
+def VulcanBCGroupName(name: str) -> str:
+    r"""Truncate a surface name to VULCAN's 12-character group limit
+
+    :Call:
+        >>> vname = VulcanBCGroupName(name)
+    :Inputs:
+        *name*: :class:`str`
+            Surface name from the ``.mapbc`` file
+    :Outputs:
+        *vname*: :class:`str`
+            VULCAN BC group name (12 characters max)
+    :Versions:
+        * 2026-09-26 ``@ddalle``: v1.0
+    """
+    return name[:12]
 
 
 # Class to read input files
@@ -203,7 +238,8 @@ class Cntl(cntl.Cntl):
             * 2015-10-19 ``@ddalle``: v1.0
         """
         # Get the namelist value.
-        nval = self.Namelist.get_opt(sec, key)
+        nml = getattr(self, "Namelist", None)
+        nval = None if nml is None else nml.get_opt(sec, key)
         # Check for options value.
         if nval is None:
             # No namelist file value
@@ -596,6 +632,8 @@ class Cntl(cntl.Cntl):
         self.PrepareMapBC()
         # Reset "BC GROUPS" based on the actual mapbc contents
         self.PrepareVulcanBoundaryConditions()
+        # Point to the actual case grid file
+        self.PrepareVulcanInpGrid()
         # Set up the component force & moment tracking
         self.PrepareVulcanInpConfig()
         # Set the flight conditions (incl. the ``FIX_IN`` state)
@@ -606,12 +644,97 @@ class Cntl(cntl.Cntl):
         self.make_case_folder(i)
         # Apply any input file functions
         self.VulcanInpFunction(i)
+        # Phase-end iteration checkpoints
+        phb = self.GetPhaseBreaks()
         # Loop through input sequence
-        for j in self.opts.get_PhaseSequence():
+        for k, j in enumerate(self.opts.get_PhaseSequence()):
+            # Phase-specific settings: iteration count & restart read
+            self.PrepareVulcanInpPhase(
+                j=j, nitsf=(phb[k] if k < len(phb) else None),
+                restart=(k > 0))
             # Name of output file
             fout = os.path.join(frun, 'vulcan.%02i.inp' % j)
             # Write the input file
             self.inp.write(fout)
+
+    # Set the grid file name in the input file
+    def PrepareVulcanInpGrid(self):
+        r"""Point the ``UNS GRID``/``STR GRID`` line to the case grid
+
+        VULCAN reads the grid file name from the line following the
+        ``UNS GRID`` keyword; CAPE copies (or links) the user-specified
+        mesh into the run folder with the project root name, so the
+        template's grid file name is replaced by that file name.
+
+        :Call:
+            >>> cntl.PrepareVulcanInpGrid()
+        :Inputs:
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of VULCAN-CFD control class
+        :Versions:
+            * 2026-09-26 ``@ddalle``: v1.0
+        """
+        # Check for input file
+        inp = getattr(self, "inp", None)
+        if inp is None:
+            return
+        # Only relevant for files with a grid keyword
+        if ("UNS GRID" not in inp) and ("STR GRID" not in inp):
+            return
+        # Get the case mesh file names
+        fmsh = self.GetProcessedMeshFileNames()
+        if not fmsh:
+            return
+        # Set the grid file name (relative to the case folder)
+        inp.set_gridfile('./' + fmsh[0])
+
+    # Set phase-specific region spec entries
+    def PrepareVulcanInpPhase(
+            self,
+            j: int = 0,
+            nitsf: Optional[int] = None,
+            restart: bool = False):
+        r"""Set phase-specific iteration and restart controls
+
+        For each elliptic region, the ``NITSF`` iteration count is set
+        to the cumulative checkpoint iteration for the end of phase
+        *j*, and the ``REG-RES`` column of the linear-solver row is
+        used to control whether restart files are read (``N`` for the
+        first phase, ``Y`` for later phases).
+
+        :Call:
+            >>> cntl.PrepareVulcanInpPhase(j=0, nitsf=None, restart=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of VULCAN-CFD control class
+            *j*: ``None`` | :class:`int`
+                Phase number
+            *nitsf*: ``None`` | :class:`int`
+                Iteration count for the end of phase *j*
+            *restart*: {``False``} | ``True``
+                Whether this phase reads restart files
+        :Versions:
+            * 2026-09-26 ``@ddalle``: v1.0
+        """
+        # Check for input file
+        inp = getattr(self, "inp", None)
+        if inp is None:
+            return
+        regs = inp.regions
+        # Loop through the regions
+        for reg in regs.values():
+            # Iteration count on the FMG row
+            fmg = None
+            for key in reg:
+                if key.startswith('FMG'):
+                    fmg = reg[key]
+                    break
+            if (fmg is not None) and (nitsf is not None):
+                fmg['NITSF'] = nitsf
+            # Restart toggle on the solver-scheme row
+            scheme = reg.get('SCHEME')
+            if (scheme is not None) and ('REG-RES' in scheme.columns):
+                scheme['REG-RES'] = 'Y' if restart else 'N'
 
     # Apply customizations to ``.mapbc`` file
     def PrepareMapBC(self):
@@ -661,6 +784,7 @@ class Cntl(cntl.Cntl):
                 Instance of VULCAN-CFD control class
         :Versions:
             * 2026-09-25 ``@ddalle``: v1.0
+            * 2026-09-26 ``@ddalle``: v1.1; drop stale objects, count
         """
         # Get the components
         comps = self.opts.get_ConfigComponents()
@@ -678,6 +802,8 @@ class Cntl(cntl.Cntl):
         self.ReadConfig()
         # Object interface
         bco = inp.bcobjects
+        # Map of mapbc surface name -> VULCAN group name (if built)
+        bcmap = getattr(self, "_vulcan_bc_map", {})
         # Loop through components
         for comp in comps:
             # Get the family member names
@@ -688,8 +814,26 @@ class Cntl(cntl.Cntl):
                     "     Component '%s' has no matches in mapbc file"
                     % comp)
                 continue
+            # Map member names to the VULCAN group names
+            members = [bcmap.get(mm, VulcanBCGroupName(mm)) for mm in members]
             # Set the members of this BC object
             bco.set_members(comp, members)
+        # Drop objects whose members are not all current BC groups
+        bcg = inp.bcgroups
+        dropped = []
+        for name in list(bco.keys()):
+            members = bco[name]
+            if any(mm not in bcg for mm in members):
+                dropped.append((name, [mm for mm in members if mm not in bcg]))
+                dict.__delitem__(bco, name)
+                bco._rawlines.pop(name, None)
+                bco._dirty.discard(name)
+        for name, missing in dropped:
+            print(
+                "     Dropping BC object '%s': member(s) %s not in"
+                " 'BC GROUPS'" % (name, ', '.join(missing)))
+        # Update the object count
+        inp["BCOBJECTS"] = float(len(bco))
 
     # Reset the BC groups table from the mapbc file
     def PrepareVulcanBoundaryConditions(self):
@@ -704,6 +848,12 @@ class Cntl(cntl.Cntl):
         their TYPE from :func:`MapbcBcToVulcanType` with a
         ``PHYSICAL`` option.
 
+        Names longer than VULCAN's 12-character limit are truncated
+        (with a de-duplication suffix if needed); the mapping from
+        ``.mapbc`` surface names to VULCAN group names is saved as
+        *cntl._vulcan_bc_map* for use by
+        :func:`PrepareVulcanInpConfig`.
+
         :Call:
             >>> cntl.PrepareVulcanBoundaryConditions()
         :Inputs:
@@ -711,6 +861,7 @@ class Cntl(cntl.Cntl):
                 Instance of VULCAN-CFD control class
         :Versions:
             * 2026-09-25 ``@ddalle``: v1.0
+            * 2026-09-26 ``@ddalle``: v1.1; truncate names, set count
         """
         # Check for input file
         inp = getattr(self, "inp", None)
@@ -733,16 +884,40 @@ class Cntl(cntl.Cntl):
                 names.append(nn)
         # Start over from an empty block
         dict.clear(bcg)
+        # Map of mapbc surface name -> VULCAN group name
+        bcmap = {}
+        used = set()
         # Rebuild one group per name
         for nn in names:
-            # Check for stale name
-            if len(nn) > 12:
+            # VULCAN group names are limited to 12 characters
+            gg = VulcanBCGroupName(nn)
+            if gg != nn:
                 print(
                     "  Warning: BC group name '%s' exceeds VULCAN's"
-                    " 12-character limit" % nn)
+                    " 12-character limit; truncated to '%s'" % (nn, gg))
+            # De-duplicate truncated names
+            if gg in used:
+                base = gg
+                ii = 1
+                while True:
+                    suf = "-%i" % ii
+                    gg = base[:12-len(suf)] + suf
+                    if gg not in used:
+                        print(
+                            "  Warning: duplicate BC group name after"
+                            " truncation; renamed to '%s'" % gg)
+                        break
+                    ii += 1
+            used.add(gg)
+            bcmap[nn] = gg
             # Template group with this name wins
             if nn in template:
-                dict.__setitem__(bcg, nn, template[nn])
+                grp = template[nn]
+                # Renaming a truncated group requires a rebuild
+                if gg != nn:
+                    grp.name = gg
+                    grp._dirty = True
+                dict.__setitem__(bcg, gg, grp)
                 continue
             # Otherwise derive the TYPE from the BC number
             kk = mapbc.Names.index(nn)
@@ -751,7 +926,11 @@ class Cntl(cntl.Cntl):
                 raise ValueError(
                     "Cannot map mapbc BC number %i for surface '%s' to"
                     " a VULCAN BC type" % (mapbc.BCs[kk], nn))
-            bcg.add_group(nn, typ, options=['PHYSICAL'])
+            bcg.add_group(gg, typ, options=['PHYSICAL'])
+        # Save the name map for the BC OBJECTS setup
+        self._vulcan_bc_map = bcmap
+        # Update the group count
+        inp["BCGROUPS"] = float(len(bcg))
 
     # Prepare freestream conditions
     def PrepareVulcanInpFlightConditions(self, i: int):
@@ -869,6 +1048,9 @@ class Cntl(cntl.Cntl):
             uu = V * cos(radians(aa)) * cos(radians(bb))
             vv = V * sin(radians(bb))
             ww = V * sin(radians(aa))
+        # Turbulence reference values from the input file
+        tint = inp.get("TURB. INTENSITY")
+        vrat = inp.get("TURB. VISC. RATIO")
         # Freestream state values
         state = {
             "density": rho,
@@ -876,6 +1058,8 @@ class Cntl(cntl.Cntl):
             "vvel": vv,
             "wvel": ww,
             "temperature": T,
+            "tint": tint,
+            "vrat": vrat,
         }
         # Loop through the requested components
         for comp in comps:

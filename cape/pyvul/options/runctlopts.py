@@ -67,6 +67,7 @@ class VulcanOpts(ExecOpts):
     # Defaults
     _rc = {
         "inpfile": "vulcan.inp",
+        "pre": True,
         "solve": True,
     }
 
