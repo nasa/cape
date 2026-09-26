@@ -1,34 +1,39 @@
 r"""
-:mod:`cape.pyfun.casecntl`: FUN3D case control module
-======================================================
+:mod:`cape.pyvul.casecntl`: VULCAN-CFD case control module
+============================================================
 
-This module contains the important function :func:`casecntl.run_fun3d`,
-which actually runs ``nodet`` or ``nodet_mpi``, along with the utilities
-that support it.
+This module contains the important function :func:`run_vulcan`, which
+actually runs the ``vulcan`` executable, along with the utilities that
+support it.
 
-It also contains FUN3D-specific versions of some of the generic methods
-from :mod:`cape.case`.  For instance the function :func:`GetCurrentIter`
-determines how many FUN3D iterations have been run in the current
-folder, which is obviously a solver-specific task.  It also contains the
-function :func:`LinkPLT`, which creates links to fixed Tecplot file
-names from the most recent output created by FUN3D.
+It also contains VULCAN-specific versions of some of the generic
+methods from :mod:`cape.cfdx.casecntl`. For instance,
+:func:`get_iter_active` determines how many iterations appear in the
+current screen output file, which is a solver-specific task.
 
-All of the functions from :mod:`cape.case` are imported here.  Thus they
-are available unless specifically overwritten by specific
-:mod:`cape.pyfun` versions.
+:Call:
 
+    .. code-block:: console
+
+        $ run_vulcan.py [OPTIONS]
+        $ python -m cape.pyvul run [OPTIONS]
+
+:Options:
+
+    -h, --help
+        Display this help message and quit
+
+:Versions:
+    * 2014-10-02 ``@ddalle``: v1.0 (pycart)
+    * 2015-10-19 ``@ddalle``: v1.0
+    * 2021-10-01 ``@ddalle``: v2.0; part of :mod:`case`
 """
 
 # Standard library modules
 import glob
 import os
 import re
-import shutil
-import time
-from typing import Any, Optional, Tuple, Union
-
-# Third-party modules
-import numpy as np
+from typing import Optional
 
 # Local imports
 from .. import fileutils
@@ -36,23 +41,15 @@ from . import cmdgen
 from .inpfile import VulcanInpFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
-from ..errors import CapeFileError
-from ..gruvoc import umesh
 
 
-# Regular expression to find a line with an iteration
-_regex_dict = {
-    b"time": b"(?P<time>[1-9][0-9]*)",
-    b"iter": b"(?P<iter>[1-9][0-9]*)",
-}
-# Combine them; different format for steady and time-accurate modes
-REGEX_F3DOUT = re.compile(
-    rb"\s*(%(time)s\s+)?%(iter)s\s{2,}[-0-9]" % _regex_dict)
+# Regular expression to find a line in the VULCAN iteration history
+REGEX_VULOUT = re.compile(rb"^\s*(?P<iter>[1-9][0-9]*)\s{2,}[-0-9.]")
 
 # Help message for CLI
-HELP_RUN_FUN3D = r"""
-``run_fun3d.py``: Run FUN3D for one phase
-================================================
+HELP_RUN_VULCAN = r"""
+``run_vulcan.py``: Run VULCAN-CFD for one phase
+=====================================================
 
 This script determines the appropriate phase to run for an individual
 case (e.g. if a restart is appropriate, etc.), sets that case up, and
@@ -62,8 +59,8 @@ runs it.
 
     .. code-block:: console
 
-        $ run_fun3d.py [OPTIONS]
-        $ python -m cape.pyfun run [OPTIONS]
+        $ run_vulcan.py [OPTIONS]
+        $ python -m cape.pyvul run [OPTIONS]
 
 :Options:
 
@@ -80,7 +77,7 @@ runs it.
 NSTART_MAX = 80
 
 
-# Function to complete final setup and call the appropriate FUN3D commands
+# Function to complete final setup and call the appropriate commands
 def run_vulcan():
     r"""Setup and run the appropriate VUCLAN-CFD command
 
@@ -103,7 +100,7 @@ class CaseRunner(casecntl.CaseRunner):
     )
 
     # Help message
-    _help_msg = HELP_RUN_FUN3D
+    _help_msg = HELP_RUN_VULCAN
 
     # Names
     _modname = "pyvul"
@@ -152,18 +149,18 @@ class CaseRunner(casecntl.CaseRunner):
             * 2024-08-23 ``@ddalle``: v3.1; toward simple run_phase()
         """
         # Run mesh prep if indicated: intersect, verify, aflr3
-        self.run_intersect_fun3d(j)
-        self.run_verify_fun3d(j)
-        self.run_aflr3_fun3d(j)
+        self.run_intersect(j)
+        self.run_verify(j)
+        self.run_aflr3(j)
         # Run main solver
         self.run_vulcan(j)
 
     @casecntl.run_rootdir
     def run_vulcan(self, j: int):
-        r"""Run ``nodet``, the main FUN3D executable
+        r"""Run ``vulcan``, the main VULCAN-CFD executable
 
         :Call:
-            >>> runner.run_nodet(j)
+            >>> runner.run_vulcan(j)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -171,7 +168,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2024-08-23 ``@ddalle``: v1.0
-            * 2024-04-07 ``@ddalle``: v1.1; fork `run_nodet_primal()`
+            * 2026-09-26 ``@ddalle``: v2.0; native VULCAN case loop
         """
         # Working folder
         fdir = self.get_working_folder()
@@ -179,10 +176,8 @@ class CaseRunner(casecntl.CaseRunner):
         os.chdir(fdir)
         # Read settings
         rc = self.read_case_json()
-        # Read namelist
-        nml = self.read_namelist(j)
-        # Get the project name
-        fproj = self.get_project_rootname(j)
+        # Check recently run phase
+        jprev = self.get_phase_recent()
         # Get the last iteration number
         n = self.get_iter()
         n0 = 0 if n is None else n
@@ -190,133 +185,26 @@ class CaseRunner(casecntl.CaseRunner):
         nj = rc.get_PhaseIters(j)
         # Number of iterations to run this phase
         ni = rc.get_nIter(j)
-        # Check for mesh-only phase
-        if nj is None or ni is None or ni <= 0 or nj < 0:
-            # Nothing to print or link in dry-run mode
-            if self.dry_run:
-                return
-            # Name of next phase
-            fproj_adapt = self.get_project_rootname(j+1)
-            # AFLR3 output format
-            fmt = nml.GetGridFormat()
-            # Check for renamed file
-            if fproj_adapt != fproj:
-                # Copy mesh
-                self.link_file(f"{fproj}.{fmt}", f"{fproj_adapt}.{fmt}")
-            # Make sure *n* is not ``None``
-            if n is None:
-                n = 0
-            # Exit appropriately
-            if rc.get_Dual():
-                os.chdir('..')
-            # Create an output file to make phase number programs work
-            self.finalize_stdoutfile(j)
+        # Check for mesh-only phase or completed phase
+        if (nj is None) or (ni is None) or (ni <= 0) or (nj < 0) or (
+                (jprev == j) and (n0 >= nj)):
+            # Create "run.{j}.{n}" to make phase number programs work
+            if not self.dry_run:
+                self.finalize_stdoutfile(j)
             return
-        # Prepare for restart if that's appropriate (mutates namelist)
-        if not self.dry_run:
-            self.set_restart_read()
-            # Prepare for adapt
-            self.prep_adapt(j)
-        # Run primal solver
-        self.run_nodet_primal(j)
+        # Get the ``vulcan`` command
+        cmdi = cmdgen.vulcan(rc, j=j)
+        # STDOUT/STDERR file names
+        stdout = self.get_stdout_filename()
+        stderr = self.get_stderr_filename()
+        # Call the command (only prints in dry-run mode)
+        self.callf(cmdi, f=stdout, e=stderr)
         # Exit in dry-run mode (no output files to post-process)
         if self.dry_run:
             return
         # Get new iteration number
         n1 = self.get_iter()
         n1 = 0 if (n1 is None) else n1
-        # Go back up a folder if we're in the "Flow" folder
-        os.chdir(self.root_dir)
-        # Check current iteration/phase count
-        jmax = self.get_last_phase()
-        nmax = self.get_last_iter()
-        if (j >= jmax) and (n0 >= nmax):
-            return
-        # Check for adaptive solves
-        if n1 < nj:
-            return
-        # Check for adjoint solver
-        if rc.get_Dual() and rc.get_DualPhase(j):
-            # Copy the correct namelist
-            os.chdir(fdir)
-            # Copy the correct one into place
-            self.link_file(f'fun3d.dual.{j:02d}.nml' 'fun3d.nml', f=True)
-            # Enter the 'Adjoint/' folder
-            os.chdir('..')
-            os.chdir('Adjoint')
-            # Create the command to calculate the adjoint
-            cmdi = cmdgen.dual(rc, i=j, rad=False, adapt=False)
-            # Run the adjoint analysis
-            self.callf(cmdi, f='dual.out')
-            # Create the command to adapt
-            cmdi = cmdgen.dual(rc, i=j, adapt=True)
-            # Estimate error and adapt
-            self.callf(cmdi, f='dual.out')
-            # Rename output file after completing that command
-            os.rename('dual.out', 'dual.%02i.out' % j)
-            # Return
-            os.chdir('..')
-        elif rc.get_Adaptive() and rc.get_AdaptPhase(j):
-            # Check if this is a weird mixed case with Dual and Adaptive
-            os.chdir(fdir)
-            # Check the adapataion method
-            self.run_nodet_adapt(j)
-            # Run refine translate
-            self.run_refine_translate(j)
-            # Run refine loop
-            self.run_refine_loop(j)
-            # Run post adapt procedures
-            self.run_post_adapt(j)
-
-    # Run ``nodet``
-    def run_nodet_primal(self, j: int):
-        r"""Run ``nodet`` (the primal solver)
-
-        :Call:
-            >>> runner.run_nodet_primal(j)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: :class:`int`
-                Phase number
-        :Versions:
-            * 2025-04-07 ``@ddalle``: v1.0
-        """
-        # Check recently run phase
-        jprev = self.get_phase_recent()
-        # Get the last iteration number
-        n = self.get_iter()
-        n0 = 0 if n is None else n
-        # Read case settings
-        rc = self.read_case_json()
-        # Number of requested iters for the end of this phase
-        nj = rc.get_PhaseIters(j)
-        # Number of iterations to run ``nodet`` for this phase
-        nrun = rc.get_nIter(j)
-        # Check if run is necessary
-        if (not nrun) or (jprev == j and n0 >= nj):
-            # Created "run.{j}.{n}
-            self.finalize_stdoutfile(j)
-            # Exit
-            return
-        # Get the `nodet` or `nodet_mpi` command
-        cmdi = cmdgen.nodet(rc, j=j)
-        # STDOUT/STDERR file names
-        stdout = self.get_stdout_filename()
-        stderr = self.get_stderr_filename()
-        # Call the command
-        self.callf(cmdi, f=stdout, e=stderr)
-        # Exit in dry-run mode (no progress to check)
-        if self.dry_run:
-            return
-        # Get new iteration number
-        n1 = self.get_iter()
-        n1 = 0 if (n1 is None) else n1
-        # Check for NaNs found
-        if len(glob.glob("nan_locations*.dat")):
-            # Mark failure
-            self.mark_failure("Found NaN location files")
-            raise SystemError("Found NaN location files")
         # Check for lack of progress
         if n1 <= n0:
             # Mark failure
@@ -324,13 +212,13 @@ class CaseRunner(casecntl.CaseRunner):
             # Raise an exception for run()
             raise SystemError(
                 f"Cycle of phase {j} did not advance iteration count.")
-        # Rename "fun3d.out"
+        # Rename the STDOUT file to "run.{j}.{n}"
         self.finalize_stdoutfile(j)
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
     def prepare_files(self, j: int):
-        r"""Prepare file names appropriate to run phase *i* of FUN3D
+        r"""Prepare file names appropriate to run phase *j* of VULCAN
 
         :Call:
             >>> runner.prepare_files(j)
@@ -342,18 +230,17 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2016-04-14 ``@ddalle``: v1.0
             * 2023-07-06 ``@ddalle``: v1.1; instance method
+            * 2026-09-26 ``@ddalle``: v1.2; link ``vulcan.inp``
         """
-        # Read settings
-        rc = self.read_case_json()
-        # Delete any input file (primary namelist)
+        # Delete any existing input file link
         if os.path.isfile('vulcan.inp') or os.path.islink('vulcan.inp'):
             os.remove('vulcan.inp')
-        # Create the correct namelist
-        os.symlink('vulcan.%02i.nml' % j, 'vulcan.nml')
+        # Link the correct phase input file
+        os.symlink('vulcan.%02i.inp' % j, 'vulcan.inp')
 
     # Process the STDOUT file
     def finalize_stdoutfile(self, j: int):
-        r"""Move the ``fun3d.out`` file to ``run.{j}.{n}``
+        r"""Move the ``vulcan.out`` file to ``run.{j}.{n}``
 
         :Call:
             >>> runner.finalize_stdoutfile(j)
@@ -366,9 +253,8 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-04-07 ``@ddalle``: v1.0
         """
         # Get the last iteration number
-        nc = self.get_iter_completed()
-        na = self.get_iter_restart_active()
-        n = nc + na
+        n = self.get_iter()
+        n = 0 if n is None else n
         # Get working folder
         fdir = self.get_working_folder_()
         # STDOUT file
@@ -416,7 +302,11 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Case options ---
     # Get project root name
     def get_project_rootname(self, j: Optional[int] = None) -> str:
-        r"""Read namelist and return project namelist
+        r"""Get the project root name from ``case.json``
+
+        VULCAN has no rootname setting in the input file, so this
+        comes from the CAPE ``"ProjectRootname"`` run-control option,
+        which defaults to ``"vulcan"``.
 
         :Call:
             >>> rname = runner.get_project_rootname(j=None)
@@ -431,17 +321,21 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2015-10-19 ``@ddalle``: v1.0
             * 2023-07-05 ``@ddalle``: v1.1; instance method
+            * 2026-09-26 ``@ddalle``: v2.0; RunControl-based
         """
-        # Read a namelist
-        nml = self.read_namelist(j)
-        # Read the project root name
-        return nml.GetRootname()
+        # Read settings
+        rc = self.read_case_json()
+        # Check for usable settings
+        if rc is None:
+            return "vulcan"
+        # Get the name
+        name = rc.get_ProjectRootname(j)
+        # Output
+        return "vulcan" if name is None else name
 
-    # Get project root name but "pyfun", not "pyfun02"
+    # Get project root name without any suffix
     def get_project_baserootname(self) -> str:
-        r"""Read namelist and return base project name w/o adapt counter
-
-        This would be ``"pyfun"`` instead of ``"pyfun03"``, for example.
+        r"""Return the project rootname without any adaptation suffix
 
         :Call:
             >>> rname = runner.get_project_baserootname()
@@ -453,59 +347,48 @@ class CaseRunner(casecntl.CaseRunner):
                 Project rootname
         :Versions:
             * 2024-03-22 ``@ddalle``: v1.0
+            * 2026-09-26 ``@ddalle``: v1.1; no adaptation numbers
         """
-        # Read the options
-        rc = self.read_case_json()
-        # Get the project root name
-        proj = self.get_namelist_opt('project', 'project_rootname')
-        # Strip suffix
-        if rc.get_Dual() or rc.get_Adaptive():
-            # Strip adaptive section
-            proj = proj[:-2]
-        # Output
-        return proj
+        # No adaptation-number suffixes in pyvul
+        return self.get_project_rootname()
 
-    # Get generic option from namelist
-    def get_namelist_opt(
-            self, sec: str, opt: str,
+    # Get generic option from input file
+    def get_inp_opt(
+            self, opt: str,
             j: Optional[int] = None,
-            i=None, vdef=None) -> Any:
-        r"""Get option from current ``fun3d.nml``
+            vdef=None) -> any:
+        r"""Get option from current ``vulcan.inp``
 
         :Call:
-            >>> v = runner.get_namelist_opt(sec, opt)
+            >>> v = runner.get_inp_opt(opt)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *sec*: :class:`str`
-                Name of namelist section
             *opt*: :class:`str`
                 Option name
             *j*: {``None``} | :class:`int`
                 Phase number
-            *i*: {``None``} | :class:`int` | :class:`slice` | ``tuple``
-                Index or indices of *val* to return ``nml[sec][opt]``
             *vdef*: {``None``} | :class:`object`
-                Default value if *opt* not present in ``nml[sec]``
+                Default value if *opt* not present in input file
         :Outputs:
             *v*: :class:`object`
-                Option value from ``fun3d.nml``
+                Option value from ``vulcan.inp``
         :Versions:
-            * 2025-09-25 ``@ddalle``: v1.0
+            * 2026-09-26 ``@ddalle``: v1.0
         """
-        # Need the namelist to figure out planes, etc.
-        nml = self.read_namelist(j=j)
+        # Need the input file for this
+        inp = self.read_inp(j=j)
         # Get the option
-        return nml.get_opt(sec, opt, j=i, vdef=vdef)
+        return inp.get_opt(opt, vdef=vdef)
 
    # --- Special readers ---
-    # Read namelist
+    # Read input file
     @casecntl.run_rootdir
     def read_inp(self, j: Optional[int] = None) -> VulcanInpFile:
-        r"""Read case namelist file
+        r"""Read case input file
 
         :Call:
-            >>> inp = read_inp.read_namelist(j=None)
+            >>> inp = runner.read_inp(j=None)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -521,7 +404,7 @@ class CaseRunner(casecntl.CaseRunner):
         if j is None and rc is not None:
             # Default to most recent phase number
             j = self.get_phase_next()
-        # Get phase of namelist previously read
+        # Get phase of input file previously read
         inpj = self.inp_j
         # Check if already read
         if isinstance(self.inp, VulcanInpFile) and inpj == j and j is not None:
@@ -529,20 +412,20 @@ class CaseRunner(casecntl.CaseRunner):
             return self.inp
         # Check for folder with no working ``case.json``
         if rc is None:
-            # Check for simplest namelist file
+            # Check for simplest input file
             if os.path.isfile('vulcan.inp'):
-                # Read the currently linked namelist.
+                # Read the currently linked input file.
                 inp = VulcanInpFile('vulcan.inp')
             else:
-                # Look for namelist files
-                fglob = glob.glob('vulcan.??.nml')
+                # Look for input files
+                fglob = glob.glob('vulcan.??.inp')
                 # Sort it
                 fglob.sort()
                 # Read one of them.
                 inp = VulcanInpFile(fglob[-1])
             return inp
-        # Get the specified namelist
-        inp = VulcanInpFile('vulcan.%02i.nml' % j)
+        # Get the specified input file
+        inp = VulcanInpFile('vulcan.%02i.inp' % j)
         # Cache it
         self.inp = inp
         self.inp_j = j
@@ -581,7 +464,7 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Get mesh format
     def get_grid_format(self, j: Optional[int] = None) -> str:
-        r"""Get the grid format option in use for this case
+        r"""Get the grid format in use for this case
 
         :Call:
             >>> grid_format = runner.get_grid_format(j=None)
@@ -592,33 +475,25 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase index (or current)
         :Outputs:
             *grid_format*: :class:`str`
-                Grid format, ``"fast"``, ``"vgrid"``, ``"aflr3"``
+                Grid format, ``"aflr3"`` for unstructured, else
+                ``"vgrid"``
         :Versions:
-            * 2025-04-04 ``@ddalle``: v1.0
+            * 2026-09-26 ``@ddalle``: v1.0; VULCAN-based
         """
-        # Read namelist
-        nml = self.read_namelist(j=j)
-        # Get option
-        grid_format = nml.get_opt("raw_grid", "grid_format", vdef="vgrid")
-        # Lower-case
-        return grid_format.lower()
+        # Read input file
+        inp = self.read_inp(j=j)
+        # Unstructured grids use AFLR3-format files
+        if inp.get_opt("UNS GRID") is not None:
+            return "aflr3"
+        # Otherwise structured
+        return "vgrid"
 
     # Get mesh file extension
     def get_grid_extension(self, j: Optional[int] = None) -> str:
-        r"""Get the file extension for the selected grid format
+        r"""Get the file extension for the grid format in use
 
-        File extensions taken from the FUN3D manual:
-
-        ===============  ==================  ===============
-        Format           Grid files          BC File
-        ===============  ==================  ===============
-        ``"aflr3"``      ``.ugrid``          ``.mapbc``
-        ``"fast"``       ``.fgrid``          ``.mapbc``
-        ``"fieldview"``  ``.fvgrid_fmt``     ``.mapbc``
-        ``"fieldview"``  ``.fvgrid_unf``     ``.mapbc``
-        ``"vgrid"``      ``.cogsg, .bc``     ``.mapbc``
-        ``"felisa"``     ``.gri, .fro``      ``.bco``
-        ===============  ==================  ===============
+        VULCAN reads AFLR3-format (``.ugrid``/``.b8.ugrid``) files for
+        unstructured grids and GridPro ``.vgrid`` files otherwise.
 
         :Call:
             >>> ext = runner.get_grid_extension(j=None)
@@ -629,41 +504,26 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase index (or current)
         :Outputs:
             *ext*: :class:`str`
-                Grid file extension, ``"ugrid"``, ``"fgrid"``, etc.
+                Grid file extension, ``"b8.ugrid"`` or ``"vgrid"``
         :Versions:
-            * 2025-04-04 ``@ddalle``: v1.0
+            * 2026-09-26 ``@ddalle``: v1.0; VULCAN-based
         """
         # Get option for grid format
         grid_format = self.get_grid_format(j)
         # Filter extension
         if grid_format == "aflr3":
             return "ugrid"
-        elif grid_format == "fast":
-            return "fgrid"
-        elif grid_format == "vgrid":
-            return "cogsg"
-        else:
-            return grid_format
+        return "vgrid"
 
     # Get mesh file extension
     def get_bc_extension(self, j: Optional[int] = None) -> str:
         r"""Get the file extension for the boundary condition files
 
-        File extensions taken from the FUN3D manual:
-
-        ===============  ==================  ===============
-        Format           Grid files          BC File
-        ===============  ==================  ===============
-        ``"aflr3"``      ``.ugrid``          ``.mapbc``
-        ``"fast"``       ``.fgrid``          ``.mapbc``
-        ``"fieldview"``  ``.fvgrid_fmt``     ``.mapbc``
-        ``"fieldview"``  ``.fvgrid_unf``     ``.mapbc``
-        ``"vgrid"``      ``.cogsg, .bc``     ``.mapbc``
-        ``"felisa"``     ``.gri, .fro``      ``.bco``
-        ===============  ==================  ===============
+        CAPE uses ``.mapbc`` files to track boundary condition names
+        for VULCAN grids.
 
         :Call:
-            >>> ext = runner.get_grid_extension(j=None)
+            >>> ext = runner.get_bc_extension(j=None)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -671,20 +531,76 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase index (or current)
         :Outputs:
             *ext*: :class:`str`
-                Grid file extension, ``"mapbc"``, ``".bco"``
+                Boundary condition file extension, ``"mapbc"``
         :Versions:
-            * 2025-04-04 ``@ddalle``: v1.0
-            * 2025-05-16 ``@ddalle``: v1.1; typo: ma{bp->pb}c
+            * 2026-09-26 ``@ddalle``: v1.0; VULCAN-based
         """
-        # Get option for grid format
-        grid_format = self.get_grid_format()
-        # Filter extension
-        if grid_format == "felisa":
-            return "bco"
-        else:
-            return "mapbc"
+        return "mapbc"
 
    # --- Status ---
+    # Get iterations run since last completed phase run
+    @casecntl.run_rootdir
+    def get_iter_active(self) -> int:
+        r"""Detect the latest iteration in the active screen output file
+
+        VULCAN writes its iteration history table to the screen output
+        file, and the iteration counter continues across restarts.
+
+        :Call:
+            >>> n = runner.get_iter_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Latest iteration number in ``vulcan.out``
+        :Versions:
+            * 2026-09-26 ``@ddalle``: v1.0
+        """
+        # Name of the active STDOUT file
+        fdir = self.get_working_folder()
+        fout = os.path.join(fdir, self.get_stdout_filename())
+        # Check for the file
+        if not os.path.isfile(fout):
+            return 0
+        # Scan for the last iteration-history line
+        n = 0
+        with open(fout, 'rb') as f:
+            for line in f:
+                mtch = REGEX_VULOUT.match(line)
+                if mtch:
+                    n = int(mtch.group('iter'))
+        # Output
+        return n
+
+    # Calculate most recent iteration
+    def getx_iter(self, f: bool = False) -> int:
+        r"""Calculate most recent iteration
+
+        The VULCAN iteration counter in the screen output is absolute
+        (it continues through restarts), so it is compared with the
+        count recorded in the last completed ``run.{j}.{n}`` file.
+
+        :Call:
+            >>> n = runner.getx_iter(f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: ``True`` | {``False``}
+                Force reread; ignore cache
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2026-09-26 ``@ddalle``: v1.0
+        """
+        # Latest from the active output file
+        n = self.get_iter_active()
+        # Latest from completed ``run.{j}.{n}`` files
+        nc = self.get_iter_completed()
+        # Cache and output
+        self.n = max(n, nc)
+        return self.n
 
    # --- Conditions ---
 
