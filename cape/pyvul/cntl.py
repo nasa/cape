@@ -49,6 +49,8 @@ from . import options
 from . import casecntl
 from .inpfile import VulcanInpFile
 from ..cfdx import cntl
+from ..gruvoc.umesh import Umesh
+from ..gruvoc.ugridfile import get_ugrid_mode, get_ugrid_mode_fname
 
 # Regular expression to parse a slice
 REGEX_SLICE = re.compile(r"(?P<a>[0-9]+)([-:](?P<b>[0-9]+))?")
@@ -72,7 +74,7 @@ BC_NUM_TYPE_MAP = {
     4100: 'AWALL',   # No-slip (adiabatic) wall
     4110: 'AWALL',   # No-slip (adiabatic) wall
     5000: 'SYMM',    # Symmetry plane
-    5050: 'CHAR REF',  # Farfield (external state = reference state)
+    5050: 'CHAR_REF',  # Farfield (external state = reference state)
     5051: 'SYMM',    # Symmetry plane (weak)
     5052: 'SYMM',    # Symmetry plane (strong)
 }
@@ -525,6 +527,11 @@ class Cntl(cntl.Cntl):
                 else:
                     shutil.copyfile(f0, f1)
        # ------------------
+       # BC tag prep
+       # ------------------
+        # Renumber grid boundary tags to match ``.mapbc`` row order
+        self.PrepareGridBCTags()
+       # ------------------
        # Triangulation prep
        # ------------------
         # Prepare surface triangulation for AFLR3 if appropriate
@@ -602,6 +609,160 @@ class Cntl(cntl.Cntl):
         # Write the PBS script.
         self.WritePBS(i)
 
+   # --- Grid BC tags ---
+    # Source mesh file name -> case mesh file name (``.lb8.ugrid``)
+    def process_mesh_filename(
+            self,
+            fname: str,
+            fproj: Optional[str] = None) -> str:
+        r"""Write ASCII ``.ugrid`` sources as little-endian binary
+
+        VULCAN-CFD reads AFLR3 grid files whose format is specified by
+        the file name, and the little-endian ``.lb8.ugrid`` format is
+        much faster to read and write than ASCII ``.ugrid`` on current
+        computers. This method converts the processed file name of a
+        plain ``.ugrid`` mesh to the corresponding ``.lb8.ugrid`` name.
+        The file is (re)written in the appropriate format by
+        :func:`PrepareGridBCTags`.
+
+        :Call:
+            >>> fname2 = cntl.process_mesh_filename(fname)
+            >>> fname2 = cntl.process_mesh_filename(fname, fproj)
+        :Inputs:
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of VULCAN-CFD control class
+            *fname*: :class:`str`
+                Name of source mesh file
+            *fproj*: ``None`` | :class:`str`
+                Project root name override
+        :Outputs:
+            *fname2*: :class:`str`
+                Case mesh file name
+        """
+        # Defer to generic CFD method
+        fname = super().process_mesh_filename(fname, fproj)
+        # Only ASCII .ugrid files are converted
+        if fname.endswith('.ugrid') and not fname.endswith((
+                ".b4.ugrid", ".b8.ugrid", ".r4.ugrid", ".r8.ugrid",
+                ".lb4.ugrid", ".lb8.ugrid", ".lr4.ugrid", ".lr8.ugrid")):
+            fname = fname[:-len('.ugrid')] + '.lb8.ugrid'
+        return fname
+
+    # Renumber grid boundary tags to match the ``.mapbc`` file order
+    def PrepareGridBCTags(self):
+        r"""Renumber grid boundary tags to ``.mapbc`` row order 1...N
+
+        VULCAN-CFD assigns the *k*\ th ``BC GROUPS`` entry in the input
+        file to grid boundary tag *k*, so grid tags must be the
+        sequential integers 1...N. FUN3D-style ``.ugrid`` files often
+        have non-sequential boundary tags, so each boundary tag is
+        renumbered to the (1-based) row number of its surface in the
+        ``.mapbc`` file. The grid file(s) in the current folder are
+        rewritten in the format implied by their name (e.g. binary
+        ``.lb8.ugrid``).
+
+        Grids whose tags are already the sequential integers 1...N and
+        whose file format already matches their name are left
+        untouched, which makes this operation idempotent. Symbolic
+        links are replaced by actual files so that the source mesh
+        files are never modified.
+
+        :Call:
+            >>> cntl.PrepareGridBCTags()
+        :Inputs:
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of VULCAN-CFD control class
+        """
+        # Reread the source mapbc file so raw tag numbering is used
+        # even if *self.MapBC* was already prepared
+        self.ReadMapBC()
+        # Check for mapbc interface
+        mapbc = getattr(self, "MapBC", None)
+        if mapbc is None:
+            return
+        # Map of raw tag value -> mapbc row number (1-based)
+        remap = {int(tag): k + 1 for k, tag in enumerate(mapbc.CompID)}
+        # Process each mesh file in the present folder
+        for fname in self.GetProcessedMeshFileNames():
+            # Only ugrid files have AFLR3-style boundary tags
+            if not fname.endswith('.ugrid'):
+                continue
+            # Check for the file
+            if not os.path.isfile(fname):
+                continue
+            # Detected format of contents vs format implied by name
+            cmode = get_ugrid_mode(fname)
+            tmode = get_ugrid_mode_fname(fname)
+            # Read the mesh (through links, if any)
+            mesh = Umesh(fname)
+            # Whether any tags were renumbered
+            renum = False
+            # Loop through boundary tag slots
+            for attr in ("tri_ids", "quad_ids"):
+                # Get tags
+                tags = getattr(mesh, attr, None)
+                if tags is None:
+                    continue
+                tags = np.asarray(tags)
+                if tags.size == 0:
+                    continue
+                # Check if already sequential
+                utags = np.unique(tags)
+                if utags.size == len(mapbc.Names) and np.array_equal(
+                        utags, np.arange(1, utags.size + 1)):
+                    continue
+                # Renumber the tags
+                try:
+                    newtags = np.array(
+                        [remap[int(tag)] for tag in tags],
+                        dtype=tags.dtype)
+                except KeyError as err:
+                    raise ValueError(
+                        "Grid '%s' has boundary tag %s not found in"
+                        " mapbc file" % (fname, err))
+                setattr(mesh, attr, newtags)
+                renum = True
+                # Status update
+                print(
+                    "  Renumbered %i boundary tags of '%s' to"
+                    " mapbc row order" % (utags.size, fname))
+            # Skip if format already matches name and tags unchanged
+            if (cmode.fmt == tmode.fmt) and not renum:
+                continue
+            # Replace symbolic links with actual files
+            if os.path.islink(fname):
+                os.remove(fname)
+            # Rewrite the grid in the format implied by its name
+            mesh.write(fname, fmt=tmode.fmt)
+
+    # Renumber the mapbc component IDs to the (sequential) row numbers
+    def PrepareMapBCTags(self):
+        r"""Renumber ``mapbc`` tag numbers to row order 1...N
+
+        This makes the ``.mapbc`` file written to each case folder
+        consistent with the renumbered grid boundary tags; see
+        :func:`PrepareGridBCTags`. The numbering is only applied if a
+        ``.mapbc`` file and at least one grid file are available. It
+        should be called *after* :func:`PrepareMapBC`, which looks up
+        ``.mapbc`` rows by their original tag values.
+
+        :Call:
+            >>> cntl.PrepareMapBCTags()
+        :Inputs:
+            *cntl*: :class:`cape.pyvul.cntl.Cntl`
+                Instance of VULCAN-CFD control class
+        """
+        # Check for mapbc interface
+        mapbc = getattr(self, "MapBC", None)
+        if mapbc is None:
+            return
+        # Check for a grid file to renumber along with
+        fmsh = self.GetProcessedMeshFileNames()
+        if not any(fname.endswith('ugrid') for fname in fmsh):
+            return
+        # Renumber to the row numbers
+        mapbc.CompID = np.arange(1, len(mapbc.CompID) + 1)
+
    # --- Input File ---
     # Function to prepare "vulcan.inp" files
     @cntl.run_rootdir
@@ -630,6 +791,8 @@ class Cntl(cntl.Cntl):
         fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
         # Customize mapbc file
         self.PrepareMapBC()
+        # Renumber mapbc tags to match the (renumbered) case grid
+        self.PrepareMapBCTags()
         # Reset "BC GROUPS" based on the actual mapbc contents
         self.PrepareVulcanBoundaryConditions()
         # Point to the actual case grid file
@@ -648,10 +811,15 @@ class Cntl(cntl.Cntl):
         phb = self.GetPhaseBreaks()
         # Loop through input sequence
         for k, j in enumerate(self.opts.get_PhaseSequence()):
+            # Iterations to run during this phase; VULCAN runs NITSF
+            # additional iterations (added to the restart counter) so
+            # later phases use the difference of consecutive break
+            # points rather than the cumulative total
+            nitsf = None if k >= len(phb) else \
+                phb[k] - (phb[k-1] if k else 0)
             # Phase-specific settings: iteration count & restart read
             self.PrepareVulcanInpPhase(
-                j=j, nitsf=(phb[k] if k < len(phb) else None),
-                restart=(k > 0))
+                j=j, nitsf=nitsf, restart=(k > 0))
             # Name of output file
             fout = os.path.join(frun, 'vulcan.%02i.inp' % j)
             # Write the input file
@@ -697,10 +865,11 @@ class Cntl(cntl.Cntl):
         r"""Set phase-specific iteration and restart controls
 
         For each elliptic region, the ``NITSF`` iteration count is set
-        to the cumulative checkpoint iteration for the end of phase
-        *j*, and the ``REG-RES`` column of the linear-solver row is
-        used to control whether restart files are read (``N`` for the
-        first phase, ``Y`` for later phases).
+        to the number of iterations to perform during phase *j* (VULCAN
+        adds it to the iteration counter read from the restart file),
+        and the ``REG-RES`` column of the linear-solver row is used to
+        control whether restart files are read (``N`` for the first
+        phase, ``Y`` for later phases).
 
         :Call:
             >>> cntl.PrepareVulcanInpPhase(j=0, nitsf=None, restart=False)
@@ -710,11 +879,9 @@ class Cntl(cntl.Cntl):
             *j*: ``None`` | :class:`int`
                 Phase number
             *nitsf*: ``None`` | :class:`int`
-                Iteration count for the end of phase *j*
+                Iteration count for phase *j*
             *restart*: {``False``} | ``True``
                 Whether this phase reads restart files
-        :Versions:
-            * 2026-09-26 ``@ddalle``: v1.0
         """
         # Check for input file
         inp = getattr(self, "inp", None)

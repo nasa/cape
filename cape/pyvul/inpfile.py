@@ -521,10 +521,12 @@ def fmt_number(v: Any) -> str:
     if isinstance(v, int):
         return str(v)
     if isinstance(v, float):
-        txt = "%g" % v
-        if '.' not in txt and 'e' not in txt and 'n' not in txt:
-            txt += '.0'
-        return txt
+        # Integral floats are written as integers; VULCAN's parser
+        # requires integer tokens for integer-valued inputs, and real
+        # inputs read integer tokens as the equivalent real value
+        if v.is_integer() and abs(v) < 1e15:
+            return str(int(v))
+        return "%g" % v
     return str(v)
 
 
