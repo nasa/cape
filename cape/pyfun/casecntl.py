@@ -206,6 +206,9 @@ class CaseRunner(casecntl.CaseRunner):
         ni = rc.get_nIter(j)
         # Check for mesh-only phase
         if nj is None or ni is None or ni <= 0 or nj < 0:
+            # Nothing to print or link in dry-run mode
+            if self.dry_run:
+                return
             # Name of next phase
             fproj_adapt = self.get_project_rootname(j+1)
             # AFLR3 output format
@@ -223,12 +226,16 @@ class CaseRunner(casecntl.CaseRunner):
             # Create an output file to make phase number programs work
             self.finalize_stdoutfile(j)
             return
-        # Prepare for restart if that's appropriate
-        self.set_restart_read()
-        # Prepare for adapt
-        self.prep_adapt(j)
+        # Prepare for restart if that's appropriate (mutates namelist)
+        if not self.dry_run:
+            self.set_restart_read()
+            # Prepare for adapt
+            self.prep_adapt(j)
         # Run primal solver
         self.run_nodet_primal(j)
+        # Exit in dry-run mode (no output files to post-process)
+        if self.dry_run:
+            return
         # Get new iteration number
         n1 = self.get_iter()
         n1 = 0 if (n1 is None) else n1
@@ -313,6 +320,9 @@ class CaseRunner(casecntl.CaseRunner):
         stderr = self.get_stderr_filename()
         # Call the command
         self.callf(cmdi, f=stdout, e=stderr)
+        # Exit in dry-run mode (no progress to check)
+        if self.dry_run:
+            return
         # Get new iteration number
         n1 = self.get_iter()
         n1 = 0 if (n1 is None) else n1

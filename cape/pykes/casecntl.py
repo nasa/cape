@@ -172,12 +172,16 @@ class CaseRunner(casecntl.CaseRunner):
             # Reset number of iterations to current + nIter
             # This doesn't work until we can figure out restart iter
             # xml.set_kcfd_iters(n0 + mj)
-            # Rewrite XML file
-            xml.write()
+            # Rewrite XML file (not in dry-run mode)
+            if not self.dry_run:
+                xml.write()
             # Get the ``csi`` command
             cmdi = cmdgen.csi(rc, j)
             # Run the command
             self.callf(cmdi, f="kestrel.out", e="kestrel.err")
+            # Exit in dry-run mode (no progress to check)
+            if self.dry_run:
+                return
             # Check new iteration number
             n1 = self.get_iter()
             # Check for lack of progress

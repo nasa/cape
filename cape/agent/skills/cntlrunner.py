@@ -68,10 +68,30 @@ SKILL_PARAMS = {
 
 # Whitelist of Cntl methods this skill may call, with summaries
 METHOD_WHITELIST = {
+    "GetCaseIndex": (
+        "Case index for an exact full case-folder name frun, or null if it "
+        "does not match. Args: frun (str)."),
     "GetIndices": (
         "Indices of cases matching subset constraints, returned as a "
         "list. Kwargs: cons, re, filter, glob, I, etc. Status filtering is "
         "not allowed here; use the check-cases skill."),
+    "GetInputMeshFileNames": (
+        "List of source mesh file names from the effective options. No "
+        "arguments."),
+    "GetPhaseBreaks": (
+        "Expected cumulative iteration break for each configured run phase. "
+        "No arguments."),
+    "GetProcessedMeshFileNames": (
+        "List of mesh file names after solver-specific case-name processing. "
+        "No arguments."),
+    "GetSurfCT_ExitArea": (
+        "Effective SurfCT nozzle exit area. Args: key (str), i (int). "
+        "Optional: comp (component name)."),
+    "GetSurfCT_ExitMach": (
+        "Effective SurfCT nozzle exit Mach number. Args: key (str), i "
+        "(int). Optional: comp (component name)."),
+    "GetSurfCT_RefArea": (
+        "Effective SurfCT reference area. Args: key (str), i (int)."),
     "get_report_comps": (
         "List of (component, coefficient) pairs tracked in report "
         "rep (optional)."),
@@ -85,6 +105,13 @@ METHOD_WHITELIST = {
     "get_subfigs": (
         "List of all subfigures, or subfigures of one report if "
         "report is given."),
+    "get_subfig_comps": (
+        "List of (component, coefficient) pairs tracked by report "
+        "subfigure sfig. Args: sfig (str)."),
+    "get_phase_niter": (
+        "Effective required iteration count for case i and phase j. "
+        "Args: i (int), j (int). This inspects configuration, not current "
+        "case progress."),
     "getval": (
         "Value of run matrix key opt for case index i. Args: opt (str), "
         "i (int). Use the check-cases skill for status or progress."),
@@ -283,6 +310,10 @@ results.
   use the `check-cases` skill for it. Prefer the
   fixed `cape_find` tool when it suffices; use this to chain the
   indices into further `Cntl` calls in one round.
+* `GetCaseIndex(frun)`: find the case index matching an exact full folder
+  name.
+* `GetPhaseBreaks()`, `get_phase_niter(i, j)`: inspect configured run-phase
+  iteration requirements. These describe configuration, not current status.
 * `get_runmatrix_keys(keyname=None)`: get basic type information for keys
   when it must be batched with other expert API calls. Prefer the dedicated
   `describe_run_matrix_keys` tool for ordinary key-description questions.
@@ -291,6 +322,13 @@ results.
 * `get_subfigs(report=None)`, `get_report_comps(rep=None)`,
   `get_report_subfigs(rep=None)`, `get_report_figs(rep=None)`: report
   layout queries.
+* `get_subfig_comps(sfig)`: list the component/coefficient pairs tracked by
+  one report subfigure.
+* `GetSurfCT_ExitArea(key, i, comp=None)`,
+  `GetSurfCT_ExitMach(key, i, comp=None)`, `GetSurfCT_RefArea(key, i)`:
+  calculate effective SurfCT nozzle properties for one case.
+* `GetInputMeshFileNames()`, `GetProcessedMeshFileNames()`: inspect source
+  and solver-processed mesh file names.
 * `inspect_json(jq=".", maxdepth=None)`: read a subset of the JSON
   options, e.g. `jq=".RunControl"` shows the *RunControl* section.
 

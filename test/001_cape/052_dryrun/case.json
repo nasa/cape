@@ -1,0 +1,11 @@
+{
+    "PhaseSequence": [0],
+    "PhaseIters": [10],
+    "PreShellCmds": [
+        "echo pre-command",
+        ["echo", "pre-list"]
+    ],
+    "PostShellCmds": [
+        "echo post-command"
+    ]
+}

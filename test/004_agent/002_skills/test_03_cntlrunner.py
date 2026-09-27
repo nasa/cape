@@ -1,5 +1,6 @@
 
 # Standard library
+import json
 
 # Third-party
 import testutils
@@ -31,6 +32,18 @@ def test_02_tool_registered():
     # Schema present
     names = {s["function"]["name"] for s in cntlrunner.TOOL_SCHEMAS}
     assert "run_cntl_methods" in names
+    added_methods = {
+        "GetCaseIndex",
+        "GetInputMeshFileNames",
+        "GetPhaseBreaks",
+        "GetProcessedMeshFileNames",
+        "GetSurfCT_ExitArea",
+        "GetSurfCT_ExitMach",
+        "GetSurfCT_RefArea",
+        "get_phase_niter",
+        "get_subfig_comps",
+    }
+    assert added_methods.issubset(cntlrunner.METHOD_WHITELIST)
 
 
 # Test validation of *calls* input
@@ -161,3 +174,64 @@ def test_09_indices_rejects_status():
         }])
     assert result["success"] is False
     assert "check-cases" in result["results"][0]["error"]
+
+
+# Test the expert configuration, report, SurfCT, and mesh queries
+def test_10_expert_methods(tmp_path, monkeypatch):
+    opts = {
+        "RunControl": {
+            "PhaseSequence": [0, 1],
+            "PhaseIters": [100, 200],
+            "nIter": [100, 100],
+        },
+        "Mesh": {"MeshFile": "grid.ugrid"},
+        "Config": {"RefArea": 4.0},
+        "Report": {
+            "Reports": ["main"],
+            "main": {"Figures": ["f"]},
+            "Figures": {"f": {"Subfigures": ["coeff"]}},
+            "Subfigures": {
+                "coeff": {
+                    "Type": "PlotCoeff",
+                    "Component": "body",
+                    "Coefficient": "CA",
+                },
+            },
+        },
+        "RunMatrix": {
+            "Keys": ["Mach", "CT"],
+            "Values": {"Mach": [0.5], "CT": [0.2]},
+            "Definitions": {
+                "CT": {
+                    "Type": "SurfCT",
+                    "ExitArea": 3.0,
+                    "ExitMach": 2.5,
+                    "RefArea": 1.5,
+                },
+            },
+        },
+    }
+    (tmp_path / "cape.json").write_text(json.dumps(opts))
+    monkeypatch.chdir(tmp_path)
+    calls = [
+        {"method": "GetCaseIndex", "args": ["/m0.5CT0.2"]},
+        {"method": "GetPhaseBreaks"},
+        {"method": "get_phase_niter", "args": [0, 0]},
+        {"method": "get_subfig_comps", "args": ["coeff"]},
+        {"method": "GetSurfCT_ExitArea", "args": ["CT", 0]},
+        {"method": "GetSurfCT_ExitMach", "args": ["CT", 0]},
+        {"method": "GetSurfCT_RefArea", "args": ["CT", 0]},
+        {"method": "GetInputMeshFileNames"},
+        {"method": "GetProcessedMeshFileNames"},
+    ]
+    result = cntlrunner.run_cntl_methods(
+        f="cape.json", solver="cfdx", calls=calls)
+    assert result["success"] is True
+    values = [entry["result"] for entry in result["results"]]
+    assert values[0] == 0
+    assert values[1] == [100, 200]
+    assert values[2] == 100
+    assert values[3] == [["body", "CA"]]
+    assert values[4:7] == [3.0, 2.5, 1.5]
+    assert values[7] == ["grid.ugrid"]
+    assert isinstance(values[8], list)

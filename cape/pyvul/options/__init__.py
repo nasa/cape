@@ -12,6 +12,7 @@ some additional options specific to FUN3D for pyfun.
 """
 
 # Local imports
+from .configopts import ConfigOpts
 from .runctlopts import RunControlOpts
 from .vulcaninpopts import VulcanInpOpts
 from ...cfdx import options
@@ -38,7 +39,7 @@ class Options(options.Options):
 
     # Additional options
     _optlist = {
-        "VulcanInputFile",
+        "VulcanInpFile",
         "Vulcan",
         "MapBC",
     }
@@ -47,29 +48,29 @@ class Options(options.Options):
     _optmap = {
         "BCs": "MapBC",
         "mapbc": "MapBC",
-        "InpFile": "VulcanInputFile",
-        "InputFile": "VulcanInputFile",
+        "VulcanInputFile": "VulcanInpFile",
     }
 
     # Known option types
     _opttypes = {
-        "VulcanInputFile": str,
+        "VulcanInpFile": str,
     }
 
     # Option default list depth
 
     # Defaults
     _rc = {
-        "VulcanInputFile": "vulcan.inp",
+        "VulcanInpFile": "vulcan.inp",
     }
 
     # Descriptions for methods
     _rst_descriptions = {
-        "VulcanInputFile": "template VULCAN-CFD input file, usually ``.inp``",
+        "VulcanInpFile": "template VULCAN-CFD input file, usually ``.inp``",
     }
 
     # New or replaced sections
     _sec_cls = {
+        "Config": ConfigOpts,
         "Fun3D": VulcanInpOpts,
         "RunControl": RunControlOpts,
     }

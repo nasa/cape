@@ -39,6 +39,7 @@ DEFAULT_JSON_FILES = (
     "pyLCH.json",
     "pyLava.json",
     "pyOver.json",
+    "pyVul.json",
     "cape.json",
 )
 
@@ -218,6 +219,10 @@ def identify_solver(fjson: str) -> Optional[str]:
         solver = "pykes"
     elif "VarsFile" in opts:
         solver = "pylch"
+    elif "VulcanInputFile" in opts:
+        solver = "pyvul"
+    elif "VulcanInpFile" in opts:
+        solver = "pyvul"
     elif "Overflow" in opts and isinstance(opts["Overflow"], dict):
         solver = "pyover"
     elif "RunInputs" in opts and isinstance(opts["RunInputs"], dict):
@@ -230,6 +235,8 @@ def identify_solver(fjson: str) -> Optional[str]:
         solver = "pycart"
     elif "Vars" in opts and isinstance(opts["Vars"], dict):
         solver = "pylch"
+    elif "Vulcan" in opts and isinstance(opts["Vulcan"], dict):
+        solver = "pyvul"
     else:
         solver = "cfdx"
     # Output

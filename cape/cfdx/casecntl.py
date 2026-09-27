@@ -226,6 +226,7 @@ class CaseRunner(CaseRunnerBase):
         "logger",
         "archivist",
         "child",
+        "dry_run",
         "forks",
         "fork_pids",
         "fork_id",
@@ -357,6 +358,9 @@ class CaseRunner(CaseRunnerBase):
         #: :class:`bool`
         #: Whether or not this process is a worker
         self.is_worker = False
+        #: :class:`bool`
+        #: Whether to print commands instead of running them
+        self.dry_run = False
         #: :class:`list`\ [:class:`int`]
         #: List of subprocess IDs other than "workers"
         self.forks = []
@@ -496,6 +500,9 @@ class CaseRunner(CaseRunnerBase):
             * 2025-06-24 ``@ddalle``: v2.2; add rerunable-phase check
             * 2026-06-12 ``@ddalle``: v2.3; log state
         """
+        # Check for dry-run mode
+        if self.dry_run:
+            return self.run_dry()
         # Log startup
         self.log_verbose(f"start {self._cls()}.run()")
         # Check if case is already running
@@ -590,6 +597,45 @@ class CaseRunner(CaseRunnerBase):
             self.log_both("case completed")
             # Submit additional jobs if appropriate
             self.run_more_cases()
+        # Return code
+        return IERR_OK
+
+    # Print commands without running them
+    @run_rootdir
+    def run_dry(self) -> int:
+        r"""Print the commands that would run, without running them
+
+        This prints the *PreShellCmds*, phase commands, and
+        *PostShellCmds* for the next phase and exits without writing
+        case state files, submitting jobs, or running any commands.
+
+        :Call:
+            >>> ierr = runner.run_dry()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code; ``0`` for success
+        """
+        # Determine which phase would run
+        j = self.get_phase_next()
+        # Print header
+        print(f"# Dry-run: printing commands for phase {j} (not running)")
+        # Turn on global print-only command mode
+        cmdrun.DRY_RUN = True
+        try:
+            # Run *PreShellCmds* hook (prints commands only)
+            self.run_pre_shell_cmds(j)
+            self.run_pre_pyfuncs(j)
+            # Run phase commands (prints only)
+            self.run_phase(j)
+            # Run *PostShellCmds* hook (prints commands only)
+            self.run_post_shell_cmds(j)
+            self.run_post_pyfuncs(j)
+        finally:
+            # Reset print-only mode
+            cmdrun.DRY_RUN = False
         # Return code
         return IERR_OK
 
@@ -856,11 +902,17 @@ class CaseRunner(CaseRunnerBase):
         # Get *PostPythonFuncs*
         funclist = rc.get_opt("PostPythonFuncs", j=j, vdef=[])
         # Log
-        self.log_verbose(f"running {len(funclist)} PostPythonFuncs")
+        if not self.dry_run:
+            self.log_verbose(f"running {len(funclist)} PostPythonFuncs")
         # Loop through functions
         for funcspec in funclist:
-            # Run function
-            self.exec_modfunc(funcspec)
+            # Check for dry-run mode
+            if self.dry_run:
+                # Print function spec instead of running it
+                print(f" # pyfunc: {funcspec}")
+            else:
+                # Run function
+                self.exec_modfunc(funcspec)
 
     # Run "PostShellCmds" hook
     def run_post_shell_cmds(self, j: int):
@@ -883,7 +935,8 @@ class CaseRunner(CaseRunnerBase):
         cmdlist = rc.get_opt("PostShellCmds", j=j, vdef=[])
         cmdlist = [] if cmdlist is None else cmdlist
         # Log counter
-        self.log_verbose(f"running {len(cmdlist)} PostShellCmds")
+        if not self.dry_run:
+            self.log_verbose(f"running {len(cmdlist)} PostShellCmds")
         # Get new status
         j1 = self.get_phase_next()
         n1 = self.get_iter()
@@ -920,11 +973,17 @@ class CaseRunner(CaseRunnerBase):
         # Get *PrePythonFuncs*
         funclist = rc.get_opt("PrePythonFuncs", j=j, vdef=[])
         # Log
-        self.log_verbose(f"running {len(funclist)} PrePythonFuncs")
+        if not self.dry_run:
+            self.log_verbose(f"running {len(funclist)} PrePythonFuncs")
         # Loop through functions
         for funcspec in funclist:
-            # Run function
-            self.exec_modfunc(funcspec)
+            # Check for dry-run mode
+            if self.dry_run:
+                # Print function spec instead of running it
+                print(f" # pyfunc: {funcspec}")
+            else:
+                # Run function
+                self.exec_modfunc(funcspec)
 
     # Run "PreShellCmds" hook
     def run_pre_shell_cmds(self, j: int):
@@ -946,7 +1005,8 @@ class CaseRunner(CaseRunnerBase):
         cmdlist = rc.get_opt("PreShellCmds", j=j, vdef=[])
         cmdlist = [] if cmdlist is None else cmdlist
         # Log counter
-        self.log_verbose(f"running {len(cmdlist)} PreShellCmds")
+        if not self.dry_run:
+            self.log_verbose(f"running {len(cmdlist)} PreShellCmds")
         # Get new status
         j1 = self.get_phase_next()
         n1 = self.get_iter()
@@ -1052,7 +1112,8 @@ class CaseRunner(CaseRunnerBase):
             # Don't run AFLR3 if >0 iterations already complete
             return
         # Log message
-        self.log_verbose("checking for ``aflr3`` settings")
+        if not self.dry_run:
+            self.log_verbose("checking for ``aflr3`` settings")
         # Read settings
         rc = self.read_case_json()
         # Check for option to run AFLR3
@@ -1067,7 +1128,8 @@ class CaseRunner(CaseRunnerBase):
         # Default project
         proj = proj if (proj is not None) else self.get_project_rootname(0)
         # Log message
-        self.log_verbose(f"preparing to run ``aflr3`` at phase {j}")
+        if not self.dry_run:
+            self.log_verbose(f"preparing to run ``aflr3`` at phase {j}")
         # File names
         ftri = '%s.i.tri' % proj
         fsurf = '%s.surf' % proj
@@ -1077,6 +1139,15 @@ class CaseRunner(CaseRunnerBase):
         ffail = "%s.FAIL.surf" % proj
         # Exit if volume exists
         if os.path.isfile(fvol):
+            return
+        # Print command only in dry-run mode
+        if self.dry_run:
+            # Set input and output file names
+            rc.set_aflr3_i(fsurf)
+            rc.set_aflr3_o(fvol)
+            # Generate and print AFLR3 command
+            cmdi = cmdgen.aflr3(opts=rc)
+            self.callf(cmdi, f="aflr3.out", e="aflr3.out")
             return
         # Check for file availability
         if not os.path.isfile(fsurf):
@@ -1199,7 +1270,8 @@ class CaseRunner(CaseRunnerBase):
         if j > 0:
             return
         # Log message
-        self.log_verbose("checking for ``intersect`` settings")
+        if not self.dry_run:
+            self.log_verbose("checking for ``intersect`` settings")
         # Read settings
         rc = self.read_case_json()
         # Check for intersect status.
@@ -1213,7 +1285,8 @@ class CaseRunner(CaseRunnerBase):
         # Default project
         proj = proj if (proj is not None) else self.get_project_rootname(0)
         # Log message
-        self.log_verbose(f"preparing to run ``intersect`` at phase {j}")
+        if not self.dry_run:
+            self.log_verbose(f"preparing to run ``intersect`` at phase {j}")
         # Triangulation file names
         ftri  = f"{proj}.tri"
         fftri = f"{proj}.f.tri"
@@ -1224,7 +1297,8 @@ class CaseRunner(CaseRunnerBase):
         # Check for triangulation file.
         if os.path.isfile(fitri):
             # Note this.
-            self.log_verbose(f"'{fitri}' exists; aborting intersect")
+            if not self.dry_run:
+                self.log_verbose(f"'{fitri}' exists; aborting intersect")
             return
         # Set file names
         rc.set_intersect_i(ftri)
@@ -1232,12 +1306,16 @@ class CaseRunner(CaseRunnerBase):
         # Run intersect
         if os.path.isfile(fotri):
             # Status update
-            self.log_verbose(f"'{fotri}' exists; skipping to post-processing")
+            if not self.dry_run:
+                self.log_verbose(f"'{fotri}' exists; skip to post-processing")
         else:
             # Get command
             cmdi = cmdgen.intersect(rc)
             # Runn it
             self.callf(cmdi, f="intersect.out")
+        # Abort in dry-run mode (post-processing needs real output)
+        if self.dry_run:
+            return
         # Read the original triangulation
         tric = Tri(fctri)
         # Read the intersected triangulation
@@ -1325,7 +1403,8 @@ class CaseRunner(CaseRunnerBase):
         if j > 0:
             return
         # Log message
-        self.log_verbose("checking for ``verify`` settings")
+        if not self.dry_run:
+            self.log_verbose("checking for ``verify`` settings")
         # Read settings
         rc = self.read_case_json()
         # Check for verify
@@ -1337,7 +1416,8 @@ class CaseRunner(CaseRunnerBase):
         if n:
             return
         # Log message
-        self.log_verbose(f"preparing to run ``verify`` at phase {j}")
+        if not self.dry_run:
+            self.log_verbose(f"preparing to run ``verify`` at phase {j}")
         # Set file name
         rc.set_verify_i('%s.i.tri' % proj)
         # Create command
@@ -1501,20 +1581,32 @@ class CaseRunner(CaseRunnerBase):
             * 2024-08-03 ``@ddalle``: v1.1; add log messages
             * 2025-01-22 ``@ddalle``: v1.2; add *i* option
         """
-        # Log command
-        self.log_main("> " + _shjoin(cmdi), parent=1)
-        self.log_data(
-            {
-                "cmd": _shjoin(cmdi),
-                "stdin": i,
-                "stdout": f,
-                "stderr": e,
-                "cwd": os.getcwd()
-            }, parent=1)
-        # Run command
-        ierr = cmdrun.callf(cmdi, f=f, e=e, i=i, shell=shell, check=False)
+        # Log command (unless printing it in dry-run mode)
+        if not self.dry_run:
+            self.log_main("> " + _shjoin(cmdi), parent=1)
+            self.log_data(
+                {
+                    "cmd": _shjoin(cmdi),
+                    "stdin": i,
+                    "stdout": f,
+                    "stderr": e,
+                    "cwd": os.getcwd()
+                }, parent=1)
+        # Check for dry-run mode
+        if self.dry_run:
+            # Ensure print-only mode (already set by :func:`run_dry`)
+            prev_dry = cmdrun.DRY_RUN
+            cmdrun.DRY_RUN = True
+            try:
+                ierr = cmdrun.calli(cmdi, f=f, e=e, i=i, shell=shell)
+            finally:
+                cmdrun.DRY_RUN = prev_dry
+        else:
+            # Run command
+            ierr = cmdrun.callf(cmdi, f=f, e=e, i=i, shell=shell, check=False)
         # Save return code
-        self.log_both(f"returncode={ierr}", parent=1)
+        if not self.dry_run:
+            self.log_both(f"returncode={ierr}", parent=1)
         # Save return code
         self.returncode = ierr
         # Output
@@ -1567,6 +1659,9 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-04-07 ``@ddalle``: v1.0
         """
+        # Nothing to finalize in dry-run mode
+        if self.dry_run:
+            return
         # STDOUT file
         fout = self.get_stdout_filename()
         # Iteration number

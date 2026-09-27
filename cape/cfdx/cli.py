@@ -128,6 +128,8 @@ class CfdxArgReader(ArgReader):
         "checkTriqFM": "check-triqfm",
         "const": "constant",
         "constraints": "cons",
+        "dry": "dry-run",
+        "dry_run": "dry-run",
         "early-exit": "early",
         "edit-json": "edit",
         "exec": "e",
@@ -190,6 +192,7 @@ class CfdxArgReader(ArgReader):
         "defail": bool,
         "dezombie": bool,
         "dpi": int,
+        "dry-run": bool,
         "e": str,
         "early": bool,
         "edit": str,
@@ -299,6 +302,7 @@ class CfdxArgReader(ArgReader):
         "defail",
         "delete",
         "dezombie",
+        "dry-run",
         "force",
         "incremental",
         "j",
@@ -352,6 +356,7 @@ class CfdxArgReader(ArgReader):
             "pylava",
             "pylch",
             "pyover",
+            "pyvul",
         ),
         "status": (
             "---",
@@ -406,6 +411,7 @@ class CfdxArgReader(ArgReader):
         "defail": "Clean up FAIL cases, deletes ``FAIL`` and others",
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
         "dpi": "Resolution, in DPI, for converting PDF to image",
+        "dry-run": "Print command(s) that a case would run, but don't run",
         "e": "Execute the command *EXEC*",
         "early": "Reduce *PhaseIters* to current iter; makes case ``DONE``",
         "edit": "Text of JSON settings to edit and rewrite",
@@ -1921,6 +1927,7 @@ class CfdxRunArgs(CfdxArgReader):
     # Options
     _optlist = (
         "h",
+        "dry-run",
     )
 
 
@@ -2181,6 +2188,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "dezombie",
         "dex",
         "dpi",
+        "dry-run",
         "e",
         "edit",
         "extend",
@@ -3842,6 +3850,8 @@ def cape_run(*a, **kw) -> Tuple[int, Any]:
     """
     # Read instance
     runner, kw = read_runner(**kw)
+    # Check for dry-run mode
+    runner.dry_run = kw.pop("dry-run", False)
     # Run the case
     v = runner.run()
     # Return code
