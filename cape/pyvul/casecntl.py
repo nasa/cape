@@ -38,6 +38,7 @@ from typing import Optional
 # Local imports
 from .. import fileutils
 from . import cmdgen
+from .databook import CaseFM, CaseResid
 from .inpfile import VulcanInpFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
@@ -109,12 +110,11 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
-    # _resid_cls = CaseResid
-    # _dex_cls = {
-    #     "fm": CaseFM,
-    #     "iterfm": CaseFM,
-    #     "surfcp": CaseSurfCp,
-    # }
+    _resid_cls = CaseResid
+    _dex_cls = {
+        "fm": CaseFM,
+        "iterfm": CaseFM,
+    }
 
    # --- Config ---
     def init_post(self):
@@ -433,6 +433,53 @@ class CaseRunner(casecntl.CaseRunner):
         return inp
 
    # --- DataBook ---
+    # Create tuple of args after *comp*
+    def get_dex_args_post_fm(self) -> tuple:
+        r"""Get list of args after component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_fm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Tuple of one arg, *runner*
+        """
+        return (self,)
+
+    # Create tuple of args after *comp*
+    def get_dex_args_post_iterfm(self) -> tuple:
+        r"""Get list of args after component name in :class:`CaseFM`
+
+        :Call:
+            >>> args = runner.get_dex_args_post_iterfm()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Tuple of one arg, *runner*
+        """
+        return (self,)
+
+    # Create tuple of args to CaseResid
+    def genr8_resid_args(self) -> tuple:
+        r"""Get list of args to :class:`CaseResid`
+
+        :Call:
+            >>> args = runner.genr8_resid_args()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *args*: :class:`tuple`
+                Project root name and *runner*
+        """
+        # Get project root name
+        proj = self.get_project_baserootname()
+        # Use it
+        return (proj, self)
 
    # --- File search ---
     # Function to get restart file
