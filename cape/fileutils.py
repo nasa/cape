@@ -223,6 +223,9 @@ def tail(fname: str, n=1, encoding=DEFAULT_ENCODING):
 def readline_reverse(fb: IOBase) -> bytes:
     r"""Read line ending at current position
 
+    Leave the cursor at the start of the returned line. At the beginning
+    of the file, return an empty byte string.
+
     :Call:
         >>> txt = readline_reverse(fb)
     :Inputs:
@@ -234,9 +237,13 @@ def readline_reverse(fb: IOBase) -> bytes:
     :Versions:
         * 2024-07-26 ``@ddalle``: v1.0
     """
-    # Check for start of file
-    if fb.tell() == 0:
-        return b''
+    # Handle the first byte without seeking before the start of the file
+    pos = fb.tell()
+    if pos < 2:
+        fb.seek(0)
+        line = fb.read(pos)
+        fb.seek(0)
+        return line
     # Loop backwards
     while True:
         # Go back two chars so we can read previous one
