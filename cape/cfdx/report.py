@@ -3063,7 +3063,7 @@ class Report(object):
                     # Go to next component
                     continue
                 # ReadCaseFM has already applied the DataBook transformations.
-                # Get the statistics.
+                # Get the statistics
                 S[comp] = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
         # Go back to original folder.
         os.chdir(fpwd)
@@ -3176,12 +3176,13 @@ class Report(object):
                         # Use non-dictionary value
                         ffc = ff
                     # Check for iterations.
-                    if nCur <= 0 or comp not in S:
+                    if nCur <= 0 or comp not in S or c not in S[comp]:
                         # No iterations
                         word = '& $-$ '
                     elif fs == 'mu':
                         # Process value.
-                        word = (('& $%s$ ' % ffc) % S[comp][c])
+                        v = S.get(comp, {}).get(c)
+                        word = ('& $%s$ ' % ffc) % v
                     elif (fs in ['min', 'max']) or (S[comp]['nStats'] > 1):
                         # Present?
                         if (c+'_'+fs) in S[comp]:

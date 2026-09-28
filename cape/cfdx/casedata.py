@@ -1501,10 +1501,14 @@ class CaseData(DataKit):
                 "autocorrelation": ranks.autocorrelation[j],
                 "sinusoid_amplitude": ranks.sinusoid_amplitude[j],
             }
+        # Check for empty history
+        if len(windows) == 0:
+            state["n_stats"] = 0
+            return state
         # Select the statistics window
         if state["class"] == "flat" or nw == 1:
             # Just pick the biggest window
-            n1 = windows[-1]
+            n1 = 1 if len(windows) == 0 else windows[-1]
         else:
             # Scale to favor longer windows
             m2s = np.abs(ranks.trend_fit_a1 * np.sqrt(jmax / windows))
@@ -1532,7 +1536,10 @@ class CaseData(DataKit):
         # Count sign changes
         nchj = np.count_nonzero(dvj[1:] * dvj[:-1] < 0)
         # Perform autocorrelation
-        phj, rj = autocorr(vj)
+        if vj.size > 3:
+            phj, rj = autocorr(vj)
+        else:
+            phj, rj = np.zeros(1), np.zeros(1)
         # Find peaks
         if rj.size > 10:
             jlo, ulo, jhi, uhi = find_autocorr_peaks(rj)
