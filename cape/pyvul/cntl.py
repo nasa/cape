@@ -615,9 +615,9 @@ class Cntl(cntl.Cntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
-        # Write the case-local ``vulcan.tcshrc`` file with the VULCAN
-        # aliases (it is rewritten when the case runs, when the VULCAN
-        # environment is guaranteed to be loaded)
+        # Write the case-local ``vulcan.tcshrc`` file with the
+        # hard-coded VULCAN aliases (it is rewritten when the case
+        # runs to keep the file current)
         tcshrc.write_vulcan_tcshrc(os.getcwd())
         # Ensure ``~/.tcshrc`` sources ``$CAPE_TCSHRC``
         tcshrc.update_user_tcshrc()

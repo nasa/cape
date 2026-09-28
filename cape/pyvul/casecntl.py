@@ -207,8 +207,8 @@ class CaseRunner(casecntl.CaseRunner):
         # STDOUT/STDERR file names
         stdout = self.get_stdout_filename()
         stderr = self.get_stderr_filename()
-        # (Re)write the tcsh startup file with the VULCAN aliases now
-        # that the VULCAN environment is loaded
+        # Rewrite the tcsh startup file with the VULCAN aliases so
+        # that cases prepared by older versions of CAPE stay current
         if not self.dry_run:
             tcshrc.write_vulcan_tcshrc(fdir)
         # Environment so tcsh subprocesses find the aliases
