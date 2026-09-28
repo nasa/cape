@@ -170,8 +170,7 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2024-08-23 ``@ddalle``: v1.0
             * 2026-09-26 ``@ddalle``: v2.0; native VULCAN case loop
-            * 2026-09-28 ``@ddalle``: v2.1; write ``vulcan.tcshrc`` &
-              export ``CAPE_TCSHRC`` for tcsh subprocesses
+            * 2026-09-28 ``@ddalle``: v2.1; write ``vulcan.tcshrc``
         """
         # Working folder
         fdir = self.get_working_folder()
@@ -207,10 +206,8 @@ class CaseRunner(casecntl.CaseRunner):
         # STDOUT/STDERR file names
         stdout = self.get_stdout_filename()
         stderr = self.get_stderr_filename()
-        # Rewrite the tcsh startup file with the VULCAN aliases so
-        # that cases prepared by older versions of CAPE stay current
-        if not self.dry_run:
-            tcshrc.write_vulcan_tcshrc(fdir)
+        # Rewrite the tcsh startup file with the VULCAN aliases
+        tcshrc.write_vulcan_tcshrc()
         # Environment so tcsh subprocesses find the aliases
         env = tcshrc.get_vulcan_env(dirname=fdir, nproc=int(nproc))
         # Call the command (only prints in dry-run mode)

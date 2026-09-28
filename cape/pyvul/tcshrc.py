@@ -33,13 +33,8 @@ CAPE accomplishes this portably:
    and ``VULCAN_ROOT``) in the environment of the ``vulcan`` call, so
    that every ``tcsh`` subprocess picks up the case's aliases.
 
-The aliases in :data:`VULCAN_ALIASES` are hard coded from the
-``vulcan/2026-09-21`` modulefile on NAS Aitken so that this module has
-no dependence on environment modules being installed or loaded.  When
+The aliases in :data:`VULCAN_ALIASES` are hard coded.  When
 the supported VULCAN version changes, update this table.
-
-:Versions:
-    * 2026-09-28 ``@ddalle``: v1.0
 """
 
 # Standard library
@@ -54,6 +49,9 @@ TCSHRC_NAME = "vulcan.tcshrc"
 # Environment variable that points ``~/.tcshrc`` at the case file
 CAPE_TCSHRC_VAR = "CAPE_TCSHRC"
 
+# Root path
+VULCAN_PATH = os.environ.get("vulcanpath", "")
+
 # Snippet added to the user's ``~/.tcshrc``
 TCSHRC_SNIPPET = (
     'if ( $?%s ) then\n' % CAPE_TCSHRC_VAR +
@@ -65,204 +63,117 @@ REGEX_TCSHRC_SNIPPET = re.compile(r"if\s*\(\s*\$\?CAPE")
 
 #: :class:`tuple`\\ [\\ :class:`tuple`\\ (:class:`str`, :class:`str`)\\ ]
 #: VULCAN tcsh aliases, hard coded from the ``vulcan/2026-09-21``
-#: modulefile on NAS Aitken.  Values are fully resolved except for the
-#: variables that ``Scripts/vulcan.tcsh`` defines when an alias is
-#: used (``$num_cpus``, ``$vulcan_cmnd``, ``$ofn``).
+#: modulefile on NAS Aitken.  Paths are built from
+#: :data:`VULCAN_PATH`; the remaining variables are those that
+#: ``Scripts/vulcan.tcsh`` defines when an alias is used
+#: (``$num_cpus``, ``$vulcan_cmnd``, ``$ofn``).
 VULCAN_ALIASES = (
     ('run_vulcan_int', 'mpirun -n $num_cpus $vulcan_cmnd'),
     ('run_vulcan_btc', 'mpirun -n $num_cpus $vulcan_cmnd >> $ofn'),
-    ('cvulcan',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/'
-     'vulcan-2026-09-21/Vulcan'),
-    ('cvulcancom',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Common_blocks'),
-    ('cvulcandat',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Data_base'),
-    ('cvulcandoc',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Doc_manual'),
-    ('cvulcanexe',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Executable'),
-    ('cvulcanmak',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Make_file'),
-    ('cvulcansam',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Sample_cases'),
-    ('cvulcanscr',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts'),
-    ('cvulcansrc',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Source_code'),
-    ('cvulcantst',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Test'),
-    ('cvulcanutl',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities'),
-    ('cvulcanval',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Validate'),
-    ('grid_split',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/grid_split'),
-    ('grid_split_tinf',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/grid_split_tinf'),
-    ('install_vulcan',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/install_vulcan'),
-    ('vulcan',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/vulcan'),
-    ('apart_vulcan',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/apart_vulcan.tcsh'),
-    ('compile_vulcan',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/vulcan.compile.tcsh'),
-    ('pprep_vulcan',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/pprep_vulcan.tcsh'),
-    ('tar_vulcan',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/vulcan.tar.tcsh'),
-    ('test_vulcan',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/vulcan.test.tcsh'),
-    ('validate_vulcan',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/vulcan.validate.tcsh'),
-    ('vulvi',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/vulsrcvi.tcsh'),
-    ('vulcanled',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Scripts/vulcan.led.tcsh'),
-    ('profile_split',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Load_Balance_codes/SGLD/scripts/profile_split.py'),
-    ('restart_split',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Load_Balance_codes/SGLD/src/restart_split'),
-    ('restart_merge',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Load_Balance_codes/SGLD/src/restart_merge'),
-    ('plot3d_merge',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Load_Balance_codes/SGLD/src/plot3d_merge'),
-    ('atmos76',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Dbase_codes/atmos76'),
-    ('conv_chem',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Dbase_codes/conv_chem'),
-    ('ls_fit',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Dbase_codes/ls_fit'),
-    ('mix_fit',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Dbase_codes/mix_fit'),
-    ('mw_coef',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Dbase_codes/mw_coef'),
-    ('grid_plot3d',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Grid_codes/Plot3d/grid_plot3d'),
-    ('gridgent',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Grid_codes/Gridgen/gridgent'),
-    ('gridprot',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Grid_codes/Gridpro/gridprot'),
-    ('v2knmapt',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Grid_codes/V2K/v2knmapt'),
-    ('gpro2nmf',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Grid_codes/Gridpro/gpro2nmf'),
-    ('time_merge',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Post_Process_codes/Time_files/time_merge'),
-    ('perf_ext',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Post_Process_codes/Perform/perf_ext'),
-    ('fv_flux',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Post_Process_codes/Perform/FV_files/fv_flux'),
-    ('gci_ext',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Post_Process_codes/GCI/gci_ext'),
-    ('propatch',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Profile_codes/propatch'),
-    ('vulcan_prof',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Profile_codes/vulcan_prof'),
-    ('vulcan_prof_mrg',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Profile_codes/vulcan_prof_mrg'),
-    ('vulcan_rest',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Restart_codes/vulcan_rest'),
-    ('fluct_ext',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/LES_tools/fluct_ext'),
-    ('patcher',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Executable/VULCAN_pchutl'),
-    ('VULCAN-CFD',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tcltk/GUI/VULCAN-CFD'),
-    ('vulcanig',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tcltk/GUI/vulcan_input_gui'),
-    ('blprops',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/blprops/blprops'),
-    ('lam_sub-blks',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/blprops/lam_sub-blks'),
-    ('composite',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/composite/composite'),
-    ('makecompinp',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/composite/makecompositeinput.csh'),
-    ('massflow3d',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/massflow3d/massflow3d.csh'),
-    ('merge1dzones',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/merge1dzones.csh'),
-    ('nozinflow2d',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/nozinflow2d/nozinflow2d'),
-    ('nozinflow3d',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/nozinflow3d/nozinflow3d'),
-    ('surf1d',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/surf1d/surf1d.csh'),
-    ('tecinfo',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/tecinfo.csh'),
-    ('tectopprf',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/tectopprf/tectopprf'),
-    ('vpp',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/vpp/vpp.csh'),
-    ('vtls',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/vtls.csh'),
-    ('vuln',
-     '/swbuild/inf/vulcan-classic/preinstalled/devel/vulcan-2026-09-21'
-     '/Vulcan/Utilities/Tecplot_tools/vuln.csh'),
+    ('cvulcan', f'{VULCAN_PATH}'),
+    ('cvulcancom', f'{VULCAN_PATH}/Common_blocks'),
+    ('cvulcandat', f'{VULCAN_PATH}/Data_base'),
+    ('cvulcandoc', f'{VULCAN_PATH}/Doc_manual'),
+    ('cvulcanexe', f'{VULCAN_PATH}/Executable'),
+    ('cvulcanmak', f'{VULCAN_PATH}/Make_file'),
+    ('cvulcansam', f'{VULCAN_PATH}/Sample_cases'),
+    ('cvulcanscr', f'{VULCAN_PATH}/Scripts'),
+    ('cvulcansrc', f'{VULCAN_PATH}/Source_code'),
+    ('cvulcantst', f'{VULCAN_PATH}/Test'),
+    ('cvulcanutl', f'{VULCAN_PATH}/Utilities'),
+    ('cvulcanval', f'{VULCAN_PATH}/Validate'),
+    ('grid_split', f'{VULCAN_PATH}/Scripts/grid_split'),
+    ('grid_split_tinf', f'{VULCAN_PATH}/Scripts/grid_split_tinf'),
+    ('install_vulcan', f'{VULCAN_PATH}/Scripts/install_vulcan'),
+    ('vulcan', f'{VULCAN_PATH}/Scripts/vulcan'),
+    ('apart_vulcan', f'{VULCAN_PATH}/Scripts/apart_vulcan.tcsh'),
+    ('compile_vulcan', f'{VULCAN_PATH}/Scripts/vulcan.compile.tcsh'),
+    ('pprep_vulcan', f'{VULCAN_PATH}/Scripts/pprep_vulcan.tcsh'),
+    ('tar_vulcan', f'{VULCAN_PATH}/Scripts/vulcan.tar.tcsh'),
+    ('test_vulcan', f'{VULCAN_PATH}/Scripts/vulcan.test.tcsh'),
+    ('validate_vulcan', f'{VULCAN_PATH}/Scripts/vulcan.validate.tcsh'),
+    ('vulvi', f'{VULCAN_PATH}/Scripts/vulsrcvi.tcsh'),
+    ('vulcanled', f'{VULCAN_PATH}/Scripts/vulcan.led.tcsh'),
+    (
+        'profile_split',
+        f'{VULCAN_PATH}/Utilities/Load_Balance_codes/SGLD/scripts'
+        '/profile_split.py'),
+    (
+        'restart_split',
+        f'{VULCAN_PATH}/Utilities/Load_Balance_codes/SGLD/src'
+        '/restart_split'),
+    (
+        'restart_merge',
+        f'{VULCAN_PATH}/Utilities/Load_Balance_codes/SGLD/src'
+        '/restart_merge'),
+    (
+        'plot3d_merge',
+        f'{VULCAN_PATH}/Utilities/Load_Balance_codes/SGLD/src'
+        '/plot3d_merge'),
+    ('atmos76', f'{VULCAN_PATH}/Utilities/Dbase_codes/atmos76'),
+    ('conv_chem', f'{VULCAN_PATH}/Utilities/Dbase_codes/conv_chem'),
+    ('ls_fit', f'{VULCAN_PATH}/Utilities/Dbase_codes/ls_fit'),
+    ('mix_fit', f'{VULCAN_PATH}/Utilities/Dbase_codes/mix_fit'),
+    ('mw_coef', f'{VULCAN_PATH}/Utilities/Dbase_codes/mw_coef'),
+    (
+        'grid_plot3d',
+        f'{VULCAN_PATH}/Utilities/Grid_codes/Plot3d/grid_plot3d'),
+    ('gridgent', f'{VULCAN_PATH}/Utilities/Grid_codes/Gridgen/gridgent'),
+    ('gridprot', f'{VULCAN_PATH}/Utilities/Grid_codes/Gridpro/gridprot'),
+    ('v2knmapt', f'{VULCAN_PATH}/Utilities/Grid_codes/V2K/v2knmapt'),
+    ('gpro2nmf', f'{VULCAN_PATH}/Utilities/Grid_codes/Gridpro/gpro2nmf'),
+    (
+        'time_merge',
+        f'{VULCAN_PATH}/Utilities/Post_Process_codes/Time_files/time_merge'),
+    (
+        'perf_ext',
+        f'{VULCAN_PATH}/Utilities/Post_Process_codes/Perform/perf_ext'),
+    (
+        'fv_flux',
+        f'{VULCAN_PATH}/Utilities/Post_Process_codes/Perform/FV_files'
+        '/fv_flux'),
+    ('gci_ext', f'{VULCAN_PATH}/Utilities/Post_Process_codes/GCI/gci_ext'),
+    ('propatch', f'{VULCAN_PATH}/Utilities/Profile_codes/propatch'),
+    ('vulcan_prof', f'{VULCAN_PATH}/Utilities/Profile_codes/vulcan_prof'),
+    (
+        'vulcan_prof_mrg',
+        f'{VULCAN_PATH}/Utilities/Profile_codes/vulcan_prof_mrg'),
+    ('vulcan_rest', f'{VULCAN_PATH}/Utilities/Restart_codes/vulcan_rest'),
+    ('fluct_ext', f'{VULCAN_PATH}/Utilities/LES_tools/fluct_ext'),
+    ('patcher', f'{VULCAN_PATH}/Executable/VULCAN_pchutl'),
+    ('VULCAN-CFD', f'{VULCAN_PATH}/Utilities/Tcltk/GUI/VULCAN-CFD'),
+    ('vulcanig', f'{VULCAN_PATH}/Utilities/Tcltk/GUI/vulcan_input_gui'),
+    ('blprops', f'{VULCAN_PATH}/Utilities/Tecplot_tools/blprops/blprops'),
+    (
+        'lam_sub-blks',
+        f'{VULCAN_PATH}/Utilities/Tecplot_tools/blprops/lam_sub-blks'),
+    (
+        'composite',
+        f'{VULCAN_PATH}/Utilities/Tecplot_tools/composite/composite'),
+    (
+        'makecompinp',
+        f'{VULCAN_PATH}/Utilities/Tecplot_tools/composite'
+        '/makecompositeinput.csh'),
+    (
+        'massflow3d',
+        f'{VULCAN_PATH}/Utilities/Tecplot_tools/massflow3d/massflow3d.csh'),
+    (
+        'merge1dzones',
+        f'{VULCAN_PATH}/Utilities/Tecplot_tools/merge1dzones.csh'),
+    (
+        'nozinflow2d',
+        f'{VULCAN_PATH}/Utilities/Tecplot_tools/nozinflow2d/nozinflow2d'),
+    (
+        'nozinflow3d',
+        f'{VULCAN_PATH}/Utilities/Tecplot_tools/nozinflow3d/nozinflow3d'),
+    ('surf1d', f'{VULCAN_PATH}/Utilities/Tecplot_tools/surf1d/surf1d.csh'),
+    ('tecinfo', f'{VULCAN_PATH}/Utilities/Tecplot_tools/tecinfo.csh'),
+    (
+        'tectopprf',
+        f'{VULCAN_PATH}/Utilities/Tecplot_tools/tectopprf/tectopprf'),
+    ('vpp', f'{VULCAN_PATH}/Utilities/Tecplot_tools/vpp/vpp.csh'),
+    ('vtls', f'{VULCAN_PATH}/Utilities/Tecplot_tools/vtls.csh'),
+    ('vuln', f'{VULCAN_PATH}/Utilities/Tecplot_tools/vuln.csh'),
 )
 
 
@@ -298,20 +209,20 @@ def vulcan_tcshrc_text() -> str:
 
 
 # Write the case-local ``vulcan.tcshrc`` file
-def write_vulcan_tcshrc(dirname: str = ".") -> str:
+def write_vulcan_tcshrc(fname: str | None = TCSHRC_NAME) -> str:
     r"""Write ``vulcan.tcshrc`` into a case folder
 
     :Call:
-        >>> fname = write_vulcan_tcshrc(dirname=".")
+        >>> fname = write_vulcan_tcshrc(fname=None)
     :Inputs:
-        *dirname*: :class:`str`
-            Folder in which to write ``vulcan.tcshrc``
+        *fname*: ``None`` | :class:`str`
+            Name of file to write
     :Outputs:
         *fname*: :class:`str`
             Full name of the file written
     """
-    # File name
-    fname = os.path.join(os.path.abspath(dirname), TCSHRC_NAME)
+    # Apply defaults
+    fname = TCSHRC_NAME if (fname is None) else fname
     # Generate and write
     with open(fname, "w") as f:
         f.write(vulcan_tcshrc_text())
