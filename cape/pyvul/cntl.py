@@ -47,6 +47,7 @@ import numpy as np
 # Local imports
 from . import options
 from . import casecntl
+from . import tcshrc
 from .inpfile import VulcanInpFile
 from ..cfdx import cntl
 from ..gruvoc.umesh import Umesh
@@ -551,7 +552,13 @@ class Cntl(cntl.Cntl):
                 Index of case to prepare/analyze
         :Versions:
             * 2015-10-19 ``@ddalle``: v1.0
+            * 2026-09-28 ``@ddalle``: v1.1; ``vulcan.tcshrc`` &
+              ``~/.tcshrc`` hook for tcsh subprocesses
         """
+        # Ensure ``~/.tcshrc`` sources ``$CAPE_TCSHRC`` so that the
+        # tcsh subprocesses launched by ``vulcan`` get their aliases,
+        # even for cases that are already prepared
+        tcshrc.update_user_tcshrc()
         # Ensure case index is set
         self.opts.setx_i(i)
         # Read MapBC file fresh
@@ -608,6 +615,12 @@ class Cntl(cntl.Cntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
+        # Write the case-local ``vulcan.tcshrc`` file with the VULCAN
+        # aliases (it is rewritten when the case runs, when the VULCAN
+        # environment is guaranteed to be loaded)
+        tcshrc.write_vulcan_tcshrc(os.getcwd())
+        # Ensure ``~/.tcshrc`` sources ``$CAPE_TCSHRC``
+        tcshrc.update_user_tcshrc()
 
    # --- Grid BC tags ---
     # Source mesh file name -> case mesh file name (``.lb8.ugrid``)

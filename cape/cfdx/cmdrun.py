@@ -94,7 +94,8 @@ def calli(
         e: Optional[str] = None,
         i: Optional[str] = None,
         shell: bool = False,
-        v: bool = True) -> int:
+        v: bool = True,
+        env: Optional[dict] = None) -> int:
     r"""Call a command with alternate STDOUT by filename
 
     :Call:
@@ -112,6 +113,9 @@ def calli(
             Whether or not a shell is needed
         *v*: {``True``} | :class:`False`
             Verbose option; display *PWD* and *STDOUT* values
+        *env*: {``None``} | :class:`dict`
+            Alternate environment for the subprocess, passed to
+            :func:`subprocess.call`
     :Outputs:
         *ierr*: :class:`int`
             Return code, ``0`` for successful execution
@@ -181,7 +185,7 @@ def calli(
     # Call the command
     try:
         ierr = sp.call(
-            cmdi, stdin=fpi, stdout=fpo, stderr=fpe, shell=shell)
+            cmdi, stdin=fpi, stdout=fpo, stderr=fpe, shell=shell, env=env)
     except FileNotFoundError:
         # Process not found; give an error code but don't raise
         ierr = 2
@@ -201,7 +205,8 @@ def callf(
         i: Optional[str] = None,
         shell: bool = False,
         v: bool = True,
-        check: bool = True) -> int:
+        check: bool = True,
+        env: Optional[dict] = None) -> int:
     r"""Call a command with alternate STDOUT by filename
 
     :Call:
@@ -221,6 +226,8 @@ def callf(
             Verbose option; display *PWD* and *STDOUT* values
         *check*: {``True``} | ``False``
             Option to raise an exception with nonzero return code
+        *env*: {``None``} | :class:`dict`
+            Alternate environment for the subprocess
     :Outputs:
         *ierr*: :class:`int`
             Return code of command executed
@@ -233,7 +240,7 @@ def callf(
         * 2025--1022 ``@ddalle``: v2.4; add *i* option
     """
     # Call the command with output status
-    ierr = calli(cmdi, f, e, i, shell, v=v)
+    ierr = calli(cmdi, f, e, i, shell, v=v, env=env)
     # Check the status.
     if ierr and check:
         # Exit with error notifier

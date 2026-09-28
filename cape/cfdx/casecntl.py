@@ -1557,7 +1557,8 @@ class CaseRunner(CaseRunnerBase):
             f: Optional[str] = None,
             e: Optional[str] = None,
             i: Optional[str] = None,
-            shell: bool = False) -> int:
+            shell: bool = False,
+            env: Optional[dict] = None) -> int:
         r"""Execute a function and save returncode
 
         :Call:
@@ -1573,6 +1574,8 @@ class CaseRunner(CaseRunnerBase):
                 Name of file from which to read STDIN
             *shell*: ``True`` | {``False``}
                 Option to run subprocess in shell
+            *env*: {``None``} | :class:`dict`
+                Alternate environment for the subprocess
         :Outputs:
             *ierr*: :class:`int`
                 Return code
@@ -1580,6 +1583,7 @@ class CaseRunner(CaseRunnerBase):
             * 2024-07-16 ``@ddalle``: v1.0
             * 2024-08-03 ``@ddalle``: v1.1; add log messages
             * 2025-01-22 ``@ddalle``: v1.2; add *i* option
+            * 2026-09-28 ``@ddalle``: v1.3; add *env* option
         """
         # Log command (unless printing it in dry-run mode)
         if not self.dry_run:
@@ -1598,12 +1602,14 @@ class CaseRunner(CaseRunnerBase):
             prev_dry = cmdrun.DRY_RUN
             cmdrun.DRY_RUN = True
             try:
-                ierr = cmdrun.calli(cmdi, f=f, e=e, i=i, shell=shell)
+                ierr = cmdrun.calli(
+                    cmdi, f=f, e=e, i=i, shell=shell, env=env)
             finally:
                 cmdrun.DRY_RUN = prev_dry
         else:
             # Run command
-            ierr = cmdrun.callf(cmdi, f=f, e=e, i=i, shell=shell, check=False)
+            ierr = cmdrun.callf(
+                cmdi, f=f, e=e, i=i, shell=shell, check=False, env=env)
         # Save return code
         if not self.dry_run:
             self.log_both(f"returncode={ierr}", parent=1)

@@ -38,6 +38,7 @@ from typing import Optional
 # Local imports
 from .. import fileutils
 from . import cmdgen
+from . import tcshrc
 from .databook import CaseFM, CaseResid
 from .inpfile import VulcanInpFile
 from .options.runctlopts import RunControlOpts
@@ -169,6 +170,8 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2024-08-23 ``@ddalle``: v1.0
             * 2026-09-26 ``@ddalle``: v2.0; native VULCAN case loop
+            * 2026-09-28 ``@ddalle``: v2.1; write ``vulcan.tcshrc`` &
+              export ``CAPE_TCSHRC`` for tcsh subprocesses
         """
         # Working folder
         fdir = self.get_working_folder()
@@ -194,11 +197,24 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Get the ``vulcan`` command
         cmdi = cmdgen.vulcan(rc, j=j)
+        # Number of CPUs, consistent with :func:`cape.pyvul.cmdgen.vulcan`
+        if rc.get_MPI(j):
+            nproc = rc["vulcan"].get_opt("nproc", j=j)
+            if nproc is None:
+                nproc = cmdgen.get_nproc(rc, j=j)
+        else:
+            nproc = 1
         # STDOUT/STDERR file names
         stdout = self.get_stdout_filename()
         stderr = self.get_stderr_filename()
+        # (Re)write the tcsh startup file with the VULCAN aliases now
+        # that the VULCAN environment is loaded
+        if not self.dry_run:
+            tcshrc.write_vulcan_tcshrc(fdir)
+        # Environment so tcsh subprocesses find the aliases
+        env = tcshrc.get_vulcan_env(dirname=fdir, nproc=int(nproc))
         # Call the command (only prints in dry-run mode)
-        self.callf(cmdi, f=stdout, e=stderr)
+        self.callf(cmdi, f=stdout, e=stderr, env=env)
         # Exit in dry-run mode (no output files to post-process)
         if self.dry_run:
             return
