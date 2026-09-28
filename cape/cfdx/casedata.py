@@ -3215,6 +3215,10 @@ class CaseFM(CaseData):
         # Get iterations
         selfi = self.get_values(CASE_COL_ITERS)
         fmi = fm.get_values(CASE_COL_ITERS)
+        # Check for valid component
+        if fmi.size == 0:
+            raise CapeValueError(
+                f"No iterations found for DataBook component '{fm.comp}'")
         # Check for matching histories
         if (selfi.size != fmi.size) or np.any(selfi != fmi):
             # Find matches

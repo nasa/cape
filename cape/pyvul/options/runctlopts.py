@@ -69,6 +69,7 @@ class VulcanOpts(ExecOpts):
         "inpfile": "vulcan.inp",
         "pre": True,
         "solve": True,
+        "post": True,
     }
 
     # Descriptions
