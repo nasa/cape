@@ -299,3 +299,131 @@ class CaseFM(casedata.CaseFM):
         for mcol, ccol in MCOL_PAIRS:
             if (mcol in self) and (self[mcol].size > 0):
                 self.save_coeff(ccol, self[mcol]/qAL)
+
+
+# Class to keep track of residuals and integrated loads
+class CaseResid(databook.CaseResid):
+    r"""VULCAN-CFD iterative history class
+
+    This class provides an interface to residuals, CFL numbers, and
+    total forces & moments for a given case.  It reads the integrated
+    force and moment history file :file:`{proj}.ifam_his_{N}.tec`,
+    where *proj* is the project root name and *N* is the region number
+    (usually 1).  This ASCII Tecplot file already includes the
+    :math:`\log_{10}` of the *L2* residual, so no residual norms are
+    computed.
+
+    :Call:
+        >>> hist = CaseResid(proj, runner=None, **kw)
+    :Inputs:
+        *proj*: :class:`str`
+            Project root name
+        *runner*: ``None`` | :class:`CaseRunner`
+            Case runner interface for current case
+    :Outputs:
+        *hist*: :class:`cape.pyvul.databook.CaseResid`
+            Instance of the run history class
+    """
+    # Default residual
+    _default_resid = "L2Resid"
+    # Attribute used as name for *repr*
+    _name_attr = "proj"
+    # Base columns
+    _base_cols = (
+        "i",
+        "solver_iter",
+        "CFL",
+        "L2Resid",
+        "mdot_err",
+        "Fx",
+        "Fy",
+        "Fz",
+        "Fxv",
+        "Fyv",
+        "Fzv",
+        "Mx",
+        "My",
+        "Mz",
+        "Qdot",
+    )
+    # Columns other than *i*
+    _base_coeffs = (
+        "CFL",
+        "L2Resid",
+        "mdot_err",
+        "Fx",
+        "Fy",
+        "Fz",
+        "Fxv",
+        "Fyv",
+        "Fzv",
+        "Mx",
+        "My",
+        "Mz",
+        "Qdot",
+    )
+
+    # Initialization method
+    def __init__(
+            self, proj: str = "vulcan",
+            runner: Optional[CaseRunner] = None, **kw):
+        r"""Initialization method"""
+        # Save the project root name
+        self.proj = proj
+        # Save the runner
+        self.runner = runner
+        # Use parent initializer
+        databook.CaseResid.__init__(self, runner=runner, **kw)
+
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        This returns the name of the integrated force and moment
+        history file for the project, which VULCAN-CFD writes as
+        :file:`{proj}.ifam_his_{N}.tec` where *N* is the region number
+        (usually 1).
+
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *h*: :class:`cape.pyvul.databook.CaseResid`
+                Iterative residual history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        """
+        # Expected name of the history file (region 1)
+        fname = f"{self.proj}.ifam_his_1.tec"
+        # Check for the file
+        if os.path.isfile(fname):
+            return [fname]
+        # Fall back to VULCAN's default project root name
+        fname = "vulcan.ifam_his_1.tec"
+        # Use it if present, otherwise keep *proj* file name
+        if os.path.isfile(fname):
+            return [fname]
+        return [f"{self.proj}.ifam_his_1.tec"]
+
+    # Read a data file
+    def readfile(self, fname: str) -> tsvfile.TSVTecDatFile:
+        r"""Read a Tecplot iterative history file
+
+        :Call:
+            >>> db = h.readfile(fname)
+        :Inputs:
+            *h*: :class:`cape.pyvul.databook.CaseResid`
+                Iterative residual history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`cape.dkit.tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        """
+        # Read the Tecplot file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
+        # The VULCAN cycle number continues across restarts, so use it
+        # directly as the CAPE iteration number
+        db.save_col(databook.CASE_COL_ITERS, db[databook.CASE_COL_ITRAW])
+        # Output
+        return db
