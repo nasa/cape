@@ -216,13 +216,17 @@ def write_vulcan_tcshrc(fname: str | None = TCSHRC_NAME) -> str:
         >>> fname = write_vulcan_tcshrc(fname=None)
     :Inputs:
         *fname*: ``None`` | :class:`str`
-            Name of file to write
+            Name of file to write, or folder to write
+            ``vulcan.tcshrc`` in
     :Outputs:
         *fname*: :class:`str`
             Full name of the file written
     """
     # Apply defaults
     fname = TCSHRC_NAME if (fname is None) else fname
+    # If input is a folder, write the standard file name inside it
+    if os.path.isdir(fname):
+        fname = os.path.join(fname, TCSHRC_NAME)
     # Generate and write
     with open(fname, "w") as f:
         f.write(vulcan_tcshrc_text())
