@@ -31,7 +31,6 @@ inflow and outflow boundaries report total forces and flow rates.
 """
 
 # Standard library modules
-import glob
 import os
 from typing import Optional
 
@@ -74,6 +73,26 @@ FPV_TRIPLES = (
     ("Fxp", "Fxv", "Fx"),
     ("Fyp", "Fyv", "Fy"),
     ("Fzp", "Fzv", "Fz"),
+)
+
+# Force columns and corresponding coefficients
+FCOL_PAIRS = (
+    ("Fx", "CA"),
+    ("Fy", "CY"),
+    ("Fz", "CN"),
+    ("Fxp", "CAp"),
+    ("Fyp", "CYp"),
+    ("Fzp", "CNp"),
+    ("Fxv", "CAv"),
+    ("Fyv", "CYv"),
+    ("Fzv", "CNv"),
+)
+
+# Moment columns and corresponding coefficients
+MCOL_PAIRS = (
+    ("Mx", "CLL"),
+    ("My", "CLM"),
+    ("Mz", "CLN"),
 )
 
 
@@ -146,10 +165,18 @@ class CaseFM(casedata.CaseFM):
         databook.CaseFM.__init__(self, comp, **kw)
         # Save the case runner
         self.runner = runner
+        # Normalize forces & moments using freestream dynamic pressure
+        self.normalize_fm()
 
     # Get list of files to read
     def get_filelist(self) -> list:
         r"""Get list of files to read
+
+        This returns the name of the single force & moment history file
+        for *fm.comp*; VULCAN-CFD limits BC group names to 12
+        characters and writes the history of each BC group to
+        :file:`BC_files/{bc}.ifam_his_{N}.tec` where *N* is the region
+        number (usually 1).
 
         :Call:
             >>> filelist = fm.get_filelist()
@@ -160,11 +187,15 @@ class CaseFM(casedata.CaseFM):
             *filelist*: :class:`list`\ [:class:`str`]
                 List of files to read to construct iterative history
         """
-        # Pattern for this component's history file(s), any region
-        fglob = os.path.join(
-            "BC_files", f"{self.comp}.ifam_his_*.tec")
-        # Find and sort matching files
-        return sorted(glob.glob(fglob))
+        # VULCAN limits BC group names to 12 characters
+        comp = self.comp[:12]
+        # Expected name of this component's history file (region 1)
+        fname = os.path.join("BC_files", f"{comp}.ifam_his_1.tec")
+        # Check for the file
+        if os.path.isfile(fname):
+            return [fname]
+        # Fall back to lower-case file name
+        return [os.path.join("BC_files", f"{comp.lower()}.ifam_his_1.tec")]
 
     # Read a data file
     def readfile(self, fname: str) -> tsvfile.TSVTecDatFile:
@@ -196,3 +227,75 @@ class CaseFM(casedata.CaseFM):
                 db.save_col(col, vp + vv)
         # Output
         return db
+
+    # Normalize a force & moment history using run matrix
+    def normalize_fm(self):
+        r"""Normalize a force & moment history using run matrix
+
+        This reads the run matrix control instance using the case
+        runner and computes force and moment coefficients such as
+        ``"CA"`` and ``"CLM"`` from the dimensional histories using
+        the freestream dynamic pressure and reference scales.
+
+        :Call:
+            >>> fm.normalize_fm()
+        :Inputs:
+            *fm*: :class:`cape.pyvul.databook.CaseFM`
+                Component iterative history instance
+        """
+        # Check if normalized through the latest iteration
+        if ("CA" in self.cols) and (self["CA"].size == self["i"].size):
+            return
+        # Case controller
+        runner = self.runner
+        # Exit if not present
+        if runner is None:
+            return
+        # Read run matrix control
+        cntl = runner.read_cntl()
+        # Cannot normalize without it
+        if cntl is None:
+            return
+        # Get case index
+        i = runner.get_case_index()
+        # Check for valid case index
+        if i is None:
+            return
+        # Get dynamic pressure (forces are in Newtons)
+        q = cntl.x.GetDynamicPressure(i, units="Pa")
+        # Get reference scales
+        aref = cntl.opts.get_RefArea(self.comp)
+        lref = cntl.opts.get_RefLength(self.comp)
+        # Check for usable values
+        if (q is None) or (aref is None) or (lref is None):
+            return
+        # Normalize
+        self.normalize_by_value(q, aref, lref)
+
+    # Normalize a force & moment history using reference values
+    def normalize_by_value(self, q: float, aref: float, lref: float):
+        r"""Normalize a force & moment history using reference values
+
+        :Call:
+            >>> fm.normalize_by_value(q, aref, lref)
+        :Inputs:
+            *fm*: :class:`cape.pyvul.databook.CaseFM`
+                Component iterative history instance
+            *q*: :class:`float`
+                Freestream dynamic pressure [Pa]
+            *aref*: :class:`float`
+                Reference area [m^2]
+            *lref*: :class:`float`
+                Reference length [m]
+        """
+        # Denominators
+        qA = q*aref
+        qAL = qA*lref
+        # Loop through force components
+        for fcol, ccol in FCOL_PAIRS:
+            if (fcol in self) and (self[fcol].size > 0):
+                self.save_coeff(ccol, self[fcol]/qA)
+        # Loop through moment components
+        for mcol, ccol in MCOL_PAIRS:
+            if (mcol in self) and (self[mcol].size > 0):
+                self.save_coeff(ccol, self[mcol]/qAL)
