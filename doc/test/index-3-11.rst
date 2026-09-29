@@ -9,9 +9,9 @@ Test report for ``cape`` (Python 3.11)
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 607
-    :time: 604.918
-    :timestamp: 2026-09-28T01:33:54.452405
-    :hostname: r201c2t2n1
+    :tests: 643
+    :time: 595.838
+    :timestamp: 2026-09-29T01:33:00.080675
+    :hostname: r207c2t3n3
     :python-fullversion: 3.11.5 (main, Oct 26 2023, 15:30:22) [GCC 8.5.0 20210514 (Red Hat 8.5.0-18)]
     :python-executable: /nasa/pkgsrc/toss4/2023Q3/views/python/3.11.5/bin/python3
