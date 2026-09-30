@@ -80,6 +80,7 @@ class WaitOpts(OptionsDict):
         "Interval",
         "NCase",
         "StatusList",
+        "Timeout",
     )
 
     # Aliases
@@ -90,6 +91,7 @@ class WaitOpts(OptionsDict):
         "args": "Args",
         "n": "NCase",
         "status": "StatusList",
+        "timeout": "Timeout",
     }
 
     # Types
@@ -97,19 +99,7 @@ class WaitOpts(OptionsDict):
         "Interval": FLOAT_TYPES + INT_TYPES,
         "NCase": INT_TYPES,
         "StatusList": str,
-    }
-
-    # Permissible values
-    _optvals = {
-        "StatusList": (
-            "---",
-            "INCOMP",
-            "DONE",
-            "ZOMBIE",
-            "ERROR",
-            "PASS*",
-            "PASS",
-        ),
+        "Timeout": FLOAT_TYPES + INT_TYPES,
     }
 
     # List-like options
@@ -121,7 +111,7 @@ class WaitOpts(OptionsDict):
     _rc = {
         "Interval": 60,
         "NCase": 5,
-        "StatusList": ("---", "INCOMP", "DONE", "ZOMBIE", "FAIL"),
+        "Timeout": 86400,
     }
 
     # Subsections

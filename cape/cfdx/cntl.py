@@ -3728,6 +3728,58 @@ class Cntl(CntlBase):
             # Open file and execute it
             exec(open(fx).read())
 
+   # --- Wait ---
+    def wait(self, **kw) -> int:
+        # Get options specific to `wait` command
+        wait_args = self.opts.get_WaitArgs()
+        wait_time = self.opts.get_WaitInterval()
+        wait_sts = self.opts.get_WaitStatusList()
+        wait_to = self.opts.get_WaitTimeout()
+        wait_n = self.opts.get_WaitNCase()
+        # Check for CLI flags
+        n = kw.pop("n", wait_n) or wait_n
+        dt = kw.pop("interval", wait_time) or wait_time
+        timeout = kw.pop("timeout", wait_to) or wait_to
+        # Defaults
+        wait_sts = wait_sts or ("---", "INCOMP", "DONE", "ZOMBIE", "FAIL")
+        # Get initial list of cases to consider
+        wait_mask = self.GetIndices(**wait_args)
+        # Identified cases
+        casedict = {}
+        caselist = []
+        # Start a timer
+        tic_global = time.time()
+        # Global timeout loop
+        while True:
+            # Get current time
+            tic = time.time()
+            # Check for timeout
+            if tic - tic_global > timeout:
+                break
+            # Loop through cases
+            for i in wait_mask:
+                # Check if already identified
+                if i in casedict:
+                    continue
+                # Get status for that case
+                sts = self.check_case_status(i)
+                # Check if it's in the list of actionable statuses
+                if sts in wait_sts:
+                    # Save it
+                    casedict[i] = sts
+                    caselist.append(i)
+                    # Print it
+                    print(f"  {i}: {sts}")
+            # Check if we've hit *n*
+            if len(caselist) >= n:
+                break
+            # Get current time
+            toc = time.time()
+            # Wait apprpopraite interval
+            time.sleep(max(0, dt - toc + tic))
+        # Show the extra options
+        return self.DisplayStatus(I=caselist)
+
    # --- Check ---
     # Function to display current status
     def DisplayStatus(self, **kw):
