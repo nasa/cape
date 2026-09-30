@@ -3770,14 +3770,23 @@ class Cntl(CntlBase):
                     caselist.append(i)
                     # Print it
                     print(f"  {i}: {sts}")
-            # Check if we've hit *n*
-            if len(caselist) >= n:
+                # Current counter
+                ni = len(caselist)
+                # Check counter
+                if ni >= n:
+                    break
+            # Check if we've hit *n* or used up all cases
+            if ni >= min(n, len(wait_mask)):
                 break
             # Get current time
             toc = time.time()
             # Wait apprpopraite interval
             time.sleep(max(0, dt - toc + tic))
+        # Exit if nothing found
+        if ni == 0:
+            print("No cases found in time limits")
         # Show the extra options
+        print("")
         return self.DisplayStatus(I=caselist)
 
    # --- Check ---

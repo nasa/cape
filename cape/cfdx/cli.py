@@ -130,6 +130,7 @@ class CfdxArgReader(ArgReader):
         "constraints": "cons",
         "dry": "dry-run",
         "dry_run": "dry-run",
+        "dt": "interval",
         "early-exit": "early",
         "edit-json": "edit",
         "exec": "e",
@@ -213,6 +214,7 @@ class CfdxArgReader(ArgReader):
         "imax": int,
         "img": str,
         "incremental": bool,
+        "interval": (float, int, str),
         "iter-fm": (bool, str),
         "j": bool,
         "jq": str,
@@ -252,6 +254,7 @@ class CfdxArgReader(ArgReader):
         "subfig": str,
         "surfcp": (bool, str),
         "terminal": bool,
+        "timeout": (float, int, str),
         "triqfm": (bool, str),
         "ts": (bool, str),
         "tui": bool,
@@ -431,6 +434,7 @@ class CfdxArgReader(ArgReader):
         "imax": "Do not extend a case beyond iteration *M*",
         "img": "Name of image file to open",
         "incremental": "Run case for one phase [or stop after *STOP_PHASE*]",
+        "interval": "Time to wait between polls",
         "iter-fm": "Extract iterative force & moment histories",
         "j": "List PBS/Slurm job ID in ``-c`` output",
         "jq": "Show item or subset of JSON options at path *JQ*",
@@ -470,6 +474,7 @@ class CfdxArgReader(ArgReader):
         "raw": "Collect raw flow data w/o triangulating or interpolating",
         "rm": "Remove indicated cases",
         "start": "Set up but do not start (or submit) cases",
+        "timeout": "Global max time to run process",
         "triqfm": "Extract triq F&M data [comps matching *PAT*] for case(s)",
         "terminal": "Show PNG image in terminal if supported",
         "ts": "Extract time-series data [comps matching *PAT*]",
@@ -515,6 +520,7 @@ class CfdxArgReader(ArgReader):
         "imax": "M",
         "img": "IMGFILE",
         "incremental": "[STOP_PHASE]",
+        "interval": "T",
         "iter-fm": "[PAT]",
         "jq": "JQ",
         "ll": "[PAT]",
@@ -539,6 +545,7 @@ class CfdxArgReader(ArgReader):
         "surf": "SURF",
         "status": "STATUS",
         "subfig": "SFIG",
+        "timeout": "TMAX",
         "triqfm": "[PAT]",
         "ts": "[PAT]",
         "u": "UID",
@@ -2136,6 +2143,26 @@ class CfdxUnmarkArgs(_CfdxSubsetArgs):
     )
 
 
+# Settins for --wait
+class CfdxWaitArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape wait"
+
+    # Description
+    _help_title = "Wait until there are *n* cases that need action"
+
+    # Options
+    _optlist = (
+        "h",
+        "n",
+        "interval",
+        "timeout",
+    )
+
+
 # Argument settings for main run interface
 class CfdxFrontDesk(CfdxArgReader):
     # No attributes
@@ -2325,6 +2352,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "ui",
         "unarchive",
         "unmark",
+        "wait",
     )
 
     # Alternate command names
@@ -2426,6 +2454,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "ui": CfdxUIArgs,
         "unarchive": CfdxUnarchiveArgs,
         "unmark": CfdxUnmarkArgs,
+        "wait": CfdxWaitArgs,
     }
 
     # Description of sub-commands
@@ -4131,6 +4160,30 @@ def cape_ui(**kw) -> Tuple[int, Any]:
     return ui.main(CfdxFrontDesk)
 
 
+@CfdxWaitArgs.rst
+def cape_wait(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(CfdxUnmarkArgs, *a, **kw)
+    # Run the command
+    v = cntl.wait(**kw)
+    # Return code
+    return IERR_OK, v
+
+
 @CfdxAgentArgs.rst
 def cape_agent(agent: str, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
@@ -4185,6 +4238,7 @@ def cape_tui(**kw) -> Tuple[int, Any]:
         raise
 
 
+@CfdxAgenticArgs.rst
 def cape_agentic(**kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
 
@@ -4414,6 +4468,7 @@ def read_runner(**kw) -> tuple:
 CMD_DICT = {
     "1to2": cape_1to2,
     "agent": cape_agent,
+    "agentic": cape_agentic,
     "apply": cape_apply,
     "approve": cape_approve,
     "archive": cape_archive,
@@ -4476,7 +4531,7 @@ CMD_DICT = {
     "ui": cape_ui,
     "unarchive": cape_unarchive,
     "unmark": cape_unmark,
-    "agentic": cape_agentic,
+    "wait": cape_wait,
 }
 # Invert *CMD_DICT*, Function Name -> Command Name
 CMD_FUNCS = {v.__name__: k for k, v in CMD_DICT.items()}
