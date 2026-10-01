@@ -78,7 +78,11 @@ SETUP_SETTINGS = dict(
             "templates/paraview/*",
             "templates/tecplot/*"
         ],
-        "cape.agent": ["AGENTS.md"],
+        "cape.agent": [
+            "AGENTS.md",
+            "ANALYSIS.md",
+            "project-agents.md",
+        ],
         "cape.cfdx": ["templates/*"],
         "cape.cfdx.options": ["*.json"],
         "cape.pycart": ["templates/*"],

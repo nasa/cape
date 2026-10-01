@@ -11,13 +11,14 @@ import testutils
 import cape
 
 
-def test_data_path_agents():
-    """Test lookup of the packaged agent instructions."""
-    cmd = [sys.executable, "-m", "cape", "data-path", "AGENTS.md"]
-    stdout, _, ierr = testutils.call_o(cmd)
-    expected = Path(cape.__file__).parent / "agent" / "AGENTS.md"
-    assert ierr == 0
-    assert stdout.strip() == str(expected.resolve())
+def test_data_paths():
+    """Test lookup of the packaged agent data files."""
+    for name in ("AGENTS.md", "ANALYSIS.md", "project-agents.md"):
+        cmd = [sys.executable, "-m", "cape", "data-path", name]
+        stdout, _, ierr = testutils.call_o(cmd)
+        expected = Path(cape.__file__).parent / "agent" / name
+        assert ierr == 0
+        assert stdout.strip() == str(expected.resolve())
 
 
 def test_data_path_unknown_name():

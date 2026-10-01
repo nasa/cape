@@ -87,6 +87,8 @@ CNTL_CACHE = OrderedDict()
 # Paths to package data exposed by ``cape data-path``
 DATA_PATHS = {
     "AGENTS.md": ("agent", "AGENTS.md"),
+    "ANALYSIS.md": ("agent", "ANALYSIS.md"),
+    "project-agents.md": ("agent", "project-agents.md"),
 }
 
 
