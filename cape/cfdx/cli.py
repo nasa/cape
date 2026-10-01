@@ -11,6 +11,8 @@ executable called ``cape``.
 from collections import OrderedDict
 import importlib
 import os
+import re
+import shutil
 import sys
 from typing import Any, Optional, Union, Tuple
 
@@ -1356,6 +1358,23 @@ class CfdxDataPathArgs(CfdxArgReader):
     }
 
 
+# Settings for init-agent
+class CfdxInitAgentArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape init-agent"
+
+    # Description
+    _help_title = "Initialize CAPE agent instructions in current folder"
+
+    # Options
+    _optlist = (
+        "h",
+    )
+
+
 # Settings for --FAIL
 class CfdxFailArgs(_CfdxSubsetArgs):
     # No attributes
@@ -2436,6 +2455,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "get-keys",
         "get-subfig",
         "help-opt",
+        "init-agent",
         "inspect-json",
         "list-keys",
         "list-report-subfigs",
@@ -2577,6 +2597,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "get-keys": CfdxGetKeysArgs,
         "get-subfig": CfdxGetSubfigArgs,
         "help-opt": CfdxHelpOptArgs,
+        "init-agent": CfdxInitAgentArgs,
         "inspect-json": CfdxInspectJsonArgs,
         "list-keys": CfdxListKeysArgs,
         "list-report-subfigs": CfdxListReportSubfigsArgs,
@@ -3543,6 +3564,63 @@ def cape_data_path(name: str, **kw) -> Tuple[int, str]:
         os.path.join(os.path.dirname(cape.__file__), *parts))
     print(path)
     return IERR_OK, path
+
+
+@CfdxInitAgentArgs.rst
+def cape_init_agent(**kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, files = %(name)s()
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *files*: :class:`list`\ [:class:`str`]
+            Files created or updated
+    """
+    # Locate packaged templates
+    import cape
+    cape_dir = os.path.dirname(cape.__file__)
+    agents_src = os.path.join(cape_dir, *DATA_PATHS["project-agents.md"])
+    analysis_src = os.path.join(cape_dir, *DATA_PATHS["ANALYSIS.md"])
+    files = []
+    # Create or update local agent instructions
+    agents_dst = "AGENTS.md"
+    if not os.path.isfile(agents_dst):
+        shutil.copyfile(agents_src, agents_dst)
+        files.append(agents_dst)
+        print(f"Created {agents_dst}")
+    else:
+        with open(agents_dst, encoding="utf-8") as fp:
+            text = fp.read()
+        if re.search(r"^#{1,6}\s+CAPE\s*$", text, re.MULTILINE) is None:
+            with open(agents_src, encoding="utf-8") as fp:
+                section = fp.read()
+            if not text:
+                separator = ""
+            elif text.endswith("\n"):
+                separator = "\n"
+            else:
+                separator = "\n\n"
+            with open(agents_dst, "a", encoding="utf-8") as fp:
+                fp.write(separator + section)
+            files.append(agents_dst)
+            print(f"Updated {agents_dst}")
+        else:
+            print(f"Unchanged {agents_dst}")
+    # Create the analysis instructions only when absent
+    analysis_dst = "ANALYSIS.md"
+    if not os.path.exists(analysis_dst):
+        shutil.copyfile(analysis_src, analysis_dst)
+        files.append(analysis_dst)
+        print(f"Created {analysis_dst}")
+    else:
+        print(f"Unchanged {analysis_dst}")
+    return IERR_OK, files
 
 
 @CfdxGetKeysArgs.rst
@@ -4751,6 +4829,7 @@ CMD_DICT = {
     "get-keys": cape_get_keys,
     "get-subfig": cape_get_subfig,
     "help-opt": cape_help_opt,
+    "init-agent": cape_init_agent,
     "inspect-json": cape_inspect_json,
     "list-keys": cape_list_keys,
     "list-report-subfigs": cape_list_report_subfigs,
