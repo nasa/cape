@@ -210,6 +210,7 @@ file that are not part of any section.
         "ShellCmds",
         "Slurm",
         "UserTools",
+        "Wait",
         "NSubmit",
         "umask",
     }

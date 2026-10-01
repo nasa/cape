@@ -2234,6 +2234,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "imax",
         "img",
         "incremental",
+        "interval",
         "iter-fm",
         "j",
         "jq",
@@ -2271,6 +2272,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "status",
         "subfig",
         "terminal",
+        "timeout",
         "triqfm",
         "u",
         "unarchive",
@@ -4177,7 +4179,7 @@ def cape_wait(*a, **kw) -> Tuple[int, Any]:
             Output from API function
     """
     # Read *cntl*
-    cntl, kw = read_cntl(CfdxUnmarkArgs, *a, **kw)
+    cntl, kw = read_cntl(CfdxWaitArgs, *a, **kw)
     # Run the command
     v = cntl.wait(**kw)
     # Return code

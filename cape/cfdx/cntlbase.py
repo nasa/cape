@@ -2257,6 +2257,56 @@ class CntlBase(ABC):
         """
         pass
 
+   # --- Wait ---
+    # Wait for a set number of actionable cases
+    @abstractmethod
+    def wait(self, **kw) -> int:
+        r"""Wait until *n* cases have a status that requires action
+
+        This polls the status of a subset of cases (selected by the
+        *Args* subsection of the ``"Wait"`` section of the JSON file)
+        every *interval* seconds until at least *n* cases have a status
+        in *StatusList*, printing each case as it is identified. Once
+        *n* such cases are found, a status display of those cases is
+        shown.
+
+        Default status list:
+
+            * ``"---"``: case not submitted
+            * ``"INCOMP"``: case partially run
+            * ``"DONE"``: case complete, unprocessed
+            * ``"ZOMBIE"``: case reported running but not updating
+            * ``"FAIL"``: case exited with failure
+
+        Polling continues for at most *timeout* seconds. The *interval*
+        and *timeout* may be given as a number of seconds or as a string
+        with a suffix of ``"s"``, ``"m"``, ``"h"``, or ``"d"``, e.g.
+        ``"30m"`` or ``"1d"``. The entire polling loop, including the
+        pause between polls, can be interrupted with Ctrl-C.
+
+        Defaults for each of the options are read from the ``"Wait"``
+        section of the JSON file; see :mod:`cape.cfdx.options.waitopts`.
+
+        :Call:
+            >>> ierr = cntl.wait(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *n*: {``None``} | :class:`int`
+                Number of actionable cases to wait for; overrides the
+                ``"NCase"`` option of the ``"Wait"`` section
+            *interval*: {``None``} | :class:`float` | :class:`str`
+                Time in seconds between polls, or a string like
+                ``"30s"`` or ``"2m"``; overrides ``"Interval"``
+            *timeout*: {``None``} | :class:`float` | :class:`str`
+                Maximum total wait time in seconds, or a string like
+                ``"12h"`` or ``"1d"``; overrides ``"Timeout"``
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        """
+        pass
+
    # --- Check ---
     # Function to display current status
     @abstractmethod
