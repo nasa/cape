@@ -1915,7 +1915,7 @@ class RunMatrix(dict):
         # Get any 'user' trajectory keys
         userkeys = self.GetKeysByType('user')
         # Exit if no user key to filter
-        if userkeys is None:
+        if userkeys is None or len(userkeys) == 0:
             return i
         # Use first variable from matching "user" keys
         ku = userkeys[0]

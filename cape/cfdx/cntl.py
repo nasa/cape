@@ -70,6 +70,7 @@ from .options import Options
 from .options.actionopts import ActionOpts, DEFAULT_ACTIONS
 from .options.funcopts import UserFuncOpts
 from .options.runctlopts import RunControlOpts
+from .options.waitopts import convert_time
 from .report import Report
 from .runmatrix import RunMatrix
 from ..argread import ArgReader
@@ -231,6 +232,34 @@ def _split(v: Union[str, list]) -> list:
         return [vj.strip() for vj in v.split(',')]
     else:
         return v
+
+
+# Sleep in small increments, checking for interrupts
+def _sleep(dt: float):
+    r"""Sleep for *dt* seconds in short increments
+
+    Breaking a long pause into short increments lets the process respond
+    promptly to signals such as Ctrl-C (:class:`KeyboardInterrupt`),
+    which is not guaranteed while a single long :func:`time.sleep` call
+    is in progress.
+
+    :Call:
+        >>> _sleep(dt)
+    :Inputs:
+        *dt*: :class:`float`
+            Time to sleep, in seconds
+    """
+    # Set end time
+    tend = time.time() + max(0.0, dt)
+    # Sleep in short increments
+    while True:
+        # Remaining time
+        dt = tend - time.time()
+        # Check if time is up
+        if dt <= 0:
+            break
+        # Sleep at most 1 s at a time
+        time.sleep(min(dt, 1.0))
 
 
 # Define shlex.join() for Python 3.[67]
@@ -3727,6 +3756,70 @@ class Cntl(CntlBase):
         for fx in kwx:
             # Open file and execute it
             exec(open(fx).read())
+
+   # --- Wait ---
+    def wait(self, **kw) -> int:
+        # Get options specific to `wait` command
+        wait_args = self.opts.get_WaitArgs()
+        wait_time = self.opts.get_WaitInterval()
+        wait_sts = self.opts.get_WaitStatusList()
+        wait_to = self.opts.get_WaitTimeout()
+        wait_n = self.opts.get_WaitNCase()
+        # Check for CLI flags
+        n = kw.pop("n", wait_n) or wait_n
+        dt = kw.pop("interval", wait_time) or wait_time
+        timeout = kw.pop("timeout", wait_to) or wait_to
+        # Convert time specs ("60s", "30m", "2h", "1d") to seconds
+        dt = convert_time(dt)
+        timeout = convert_time(timeout)
+        # Defaults
+        wait_sts = wait_sts or ("---", "INCOMP", "DONE", "ZOMBIE", "FAIL")
+        # Get initial list of cases to consider
+        wait_mask = self.GetIndices(**wait_args)
+        # Identified cases
+        casedict = {}
+        caselist = []
+        # Start a timer
+        tic_global = time.time()
+        # Global timeout loop
+        while True:
+            # Get current time
+            tic = time.time()
+            # Check for timeout
+            if tic - tic_global > timeout:
+                break
+            # Loop through cases
+            for i in wait_mask:
+                # Check if already identified
+                if i in casedict:
+                    continue
+                # Get status for that case
+                sts = self.check_case_status(i)
+                # Check if it's in the list of actionable statuses
+                if sts in wait_sts:
+                    # Save it
+                    casedict[i] = sts
+                    caselist.append(i)
+                    # Print it
+                    print(f"  {i}: {sts}")
+                # Current counter
+                ni = len(caselist)
+                # Check counter
+                if ni >= n:
+                    break
+            # Check if we've hit *n* or used up all cases
+            if ni >= min(n, len(wait_mask)):
+                break
+            # Get current time
+            toc = time.time()
+            # Wait appropriate interval (interruptible by Ctrl-C)
+            _sleep(dt - toc + tic)
+        # Exit if nothing found
+        if ni == 0:
+            print("No cases found in time limits")
+        # Show the extra options
+        print("")
+        return self.DisplayStatus(I=caselist)
 
    # --- Check ---
     # Function to display current status

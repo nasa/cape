@@ -28,4 +28,5 @@
     slurmopts
     ulimitopts
     util
+    waitopts
 

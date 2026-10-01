@@ -41,6 +41,7 @@ from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .runctlopts import RunControlOpts
 from .runmatrixopts import RunMatrixOpts
+from .waitopts import WaitOpts
 from ...optdict import OptionsDict, BOOL_TYPES, INT_TYPES
 
 
@@ -209,6 +210,7 @@ file that are not part of any section.
         "ShellCmds",
         "Slurm",
         "UserTools",
+        "Wait",
         "NSubmit",
         "umask",
     }
@@ -303,6 +305,7 @@ file that are not part of any section.
         "RunControl": RunControlOpts,
         "RunMatrix": RunMatrixOpts,
         "Slurm": SlurmOpts,
+        "Wait": WaitOpts,
     }
 
     # Parents
