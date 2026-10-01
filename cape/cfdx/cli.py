@@ -84,6 +84,11 @@ IMPLIED_CMDNAMES = {
 # Cached *cntl* instances, oldest to most recently used
 CNTL_CACHE = OrderedDict()
 
+# Paths to package data exposed by ``cape data-path``
+DATA_PATHS = {
+    "AGENTS.md": ("agent", "AGENTS.md"),
+}
+
 
 # Convert True -> 1 else txt -> int(txt)
 def _true_int(txt: Union[bool, str]) -> int:
@@ -1323,6 +1328,32 @@ class CfdxFindJSONArgs(CfdxArgReader):
     )
 
 
+# Settings for data-path
+class CfdxDataPathArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape data-path"
+
+    # Description
+    _help_title = "Show absolute path to a CAPE data file"
+
+    # Positional parameters
+    _arglist = (
+        "name",
+    )
+
+    # Require exactly one name
+    _nargmin = 1
+    _nargmax = 1
+
+    # Argument help
+    _help_opt = {
+        "name": "Name of packaged data file",
+    }
+
+
 # Settings for --FAIL
 class CfdxFailArgs(_CfdxSubsetArgs):
     # No attributes
@@ -2305,6 +2336,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "clean",
         "collect-cutplane",
         "collect-surf",
+        "data-path",
         "defail",
         "dezombie",
         "dispatch",
@@ -2406,6 +2438,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "clean": CfdxCleanArgs,
         "collect-cutplane": CfdxCollectCutPlaneArgs,
         "collect-surf": CfdxCollectSurfArgs,
+        "data-path": CfdxDataPathArgs,
         "defail": CfdxDefailArgs,
         "dezombie": CfdxDezombieArgs,
         "dispatch": CfdxDispatchArgs,
@@ -3353,6 +3386,36 @@ def cape_get_config(*a, **kw) -> Tuple[int, list]:
     print(v)
     # Return code
     return IERR_OK, v
+
+
+@CfdxDataPathArgs.rst
+def cape_data_path(name: str, **kw) -> Tuple[int, str]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, path = %(name)s(name)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *path*: :class:`str`
+            Absolute path to the requested package data file
+    """
+    # Validate the public name before constructing a path
+    parts = DATA_PATHS.get(name)
+    if parts is None:
+        names = ", ".join(sorted(DATA_PATHS))
+        raise CapeValueError(
+            f"Unknown CAPE data file '{name}'; choose from: {names}")
+    # Locate relative to the installed ``cape`` package
+    import cape
+    path = os.path.abspath(
+        os.path.join(os.path.dirname(cape.__file__), *parts))
+    print(path)
+    return IERR_OK, path
 
 
 @CfdxGetKeysArgs.rst
@@ -4483,6 +4546,7 @@ CMD_DICT = {
     "check-ll": cape_check_ll,
     "check-triqfm": cape_check_triqfm,
     "clean": cape_clean,
+    "data-path": cape_data_path,
     "defail": cape_defail,
     "dezombie": cape_dezombie,
     "dispatch": cape_dispatch,
