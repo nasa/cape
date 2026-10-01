@@ -66,6 +66,21 @@
         // The moment point can be specified as a dictionary of components.
         "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]}
     },
+
+    "Report": {
+        "Reports": ["case", "sweep"],
+        "case": {"Figures": ["summary"]},
+        "sweep": {"Figures": ["summary", "sweep"]},
+        "Figures": {
+            "summary": {"Subfigures": ["conditions", "history"]},
+            "sweep": {"Subfigures": ["sweep-table", "history"]}
+        },
+        "Subfigures": {
+            "conditions": {"Type": "ConditionsTable"},
+            "history": {"Type": "PlotCoeff"},
+            "sweep-table": {"Type": "SweepConditions"}
+        }
+    },
     
     // RunMatrix description
     "RunMatrix": {

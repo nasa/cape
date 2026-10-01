@@ -672,7 +672,13 @@ class Cntl(CntlBase):
             elif v is None:
                 break
             else:
-                v = v[key]
+                try:
+                    v = v[key]
+                except Exception as e:
+                    raise CapeValueError(
+                        f"Unable to parse '{jq}' with\n"
+                        f"    key={key}\n    type(v): {type(v)}\n    "
+                        f"{e.args[0]}")
         # Truncate and output
         return truncate_jq(v, maxdepth)
 

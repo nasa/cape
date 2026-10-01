@@ -11,6 +11,8 @@ executable called ``cape``.
 from collections import OrderedDict
 import importlib
 import os
+import re
+import shutil
 import sys
 from typing import Any, Optional, Union, Tuple
 
@@ -83,6 +85,13 @@ IMPLIED_CMDNAMES = {
 
 # Cached *cntl* instances, oldest to most recently used
 CNTL_CACHE = OrderedDict()
+
+# Paths to package data exposed by ``cape data-path``
+DATA_PATHS = {
+    "AGENTS.md": ("agent", "AGENTS.md"),
+    "ANALYSIS.md": ("agent", "ANALYSIS.md"),
+    "project-agents.md": ("agent", "project-agents.md"),
+}
 
 
 # Convert True -> 1 else txt -> int(txt)
@@ -1323,6 +1332,49 @@ class CfdxFindJSONArgs(CfdxArgReader):
     )
 
 
+# Settings for data-path
+class CfdxDataPathArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape data-path"
+
+    # Description
+    _help_title = "Show absolute path to a CAPE data file"
+
+    # Positional parameters
+    _arglist = (
+        "name",
+    )
+
+    # Require exactly one name
+    _nargmin = 1
+    _nargmax = 1
+
+    # Argument help
+    _help_opt = {
+        "name": "Name of packaged data file",
+    }
+
+
+# Settings for init-agent
+class CfdxInitAgentArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape init-agent"
+
+    # Description
+    _help_title = "Initialize CAPE agent instructions in current folder"
+
+    # Options
+    _optlist = (
+        "h",
+    )
+
+
 # Settings for --FAIL
 class CfdxFailArgs(_CfdxSubsetArgs):
     # No attributes
@@ -1582,6 +1634,60 @@ class CfdxListKeysArgs(CfdxArgReader):
         "f",
         "solver",
     )
+
+
+# Settings for list-reports
+class CfdxListReportsArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape list-reports"
+
+    # Description
+    _help_title = "List configured reports"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "solver",
+    )
+
+
+# Settings for list-report-subfigs
+class CfdxListReportSubfigsArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape list-report-subfigs"
+
+    # Description
+    _help_title = "List subfigures used by a report"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "report",
+        "solver",
+    )
+
+    # Require a name when --report is present
+    _opttypes = {
+        "report": str,
+    }
+
+    # Help for report selection
+    _help_opt = {
+        "report": "Report name; defaults to the first configured report",
+    }
+
+    # Option argument names
+    _help_optarg = {
+        "report": "REPORT",
+    }
 
 
 # Settings for list-subfigs
@@ -2173,6 +2279,22 @@ class CfdxFrontDesk(CfdxArgReader):
 
     # Description of executable
     _help_title = "Control run matrix or case for any solver"
+    _help_description = r"""
+    Use CAPE to configure, run, archive, and extract data from one or more
+    CFD run matrices. Run
+
+    .. code-block:: console
+
+        $ cape CMD -h
+
+    to see usage details for each invidual sub-command. Additioanl CAPE
+    commands are not listed here. Run
+
+    .. code-block:: console
+
+        $ cape -h -v
+
+    to see the entire list of available commands."""
 
     # Special classes
     _cntl_mod = "cape.cfdx.cntl"
@@ -2305,6 +2427,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "clean",
         "collect-cutplane",
         "collect-surf",
+        "data-path",
         "defail",
         "dezombie",
         "dispatch",
@@ -2326,13 +2449,17 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-cases",
         "find-json",
         "find-large",
+        "get-case-state",
         "get-col-state",
         "get-config",
         "get-keys",
         "get-subfig",
         "help-opt",
+        "init-agent",
         "inspect-json",
         "list-keys",
+        "list-report-subfigs",
+        "list-reports",
         "list-subfigs",
         "open-pdf",
         "open-img",
@@ -2347,7 +2474,6 @@ class CfdxFrontDesk(CfdxArgReader):
         "rm",
         "search-large",
         "set-config",
-        "get-case-state",
         "skeleton",
         "triangulate-cutplane",
         "tui",
@@ -2355,6 +2481,45 @@ class CfdxFrontDesk(CfdxArgReader):
         "unarchive",
         "unmark",
         "wait",
+    )
+
+    # Hidden commands in the default `cape -h`
+    _cmdlist_hidden = (
+        "1to2",
+        "batch",
+        "check-db",
+        "check-fm",
+        "check-ll",
+        "check-triqfm",
+        "data-path",
+        "edit-json",
+        "extract-fm",
+        "extract-iter-fm",
+        "extract-ll",
+        "extract-pyfunc",
+        "extract-prop",
+        "extract-surfcp",
+        "extract-timeseries",
+        "extract-triqfm",
+        "extract-triqpt",
+        "find-cases",
+        "find-large",
+        "get-config",
+        "get-keys",
+        "get-subfig",
+        "list-keys",
+        "list-report-subfigs",
+        "list-reports",
+        "list-subfigs",
+        "open-pdf",
+        "open-img",
+        "open-png",
+        "post-file",
+        "receive-file",
+        "review",
+        "search-large",
+        "set-config",
+        "triangulate-cutplane",
     )
 
     # Alternate command names
@@ -2406,6 +2571,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "clean": CfdxCleanArgs,
         "collect-cutplane": CfdxCollectCutPlaneArgs,
         "collect-surf": CfdxCollectSurfArgs,
+        "data-path": CfdxDataPathArgs,
         "defail": CfdxDefailArgs,
         "dezombie": CfdxDezombieArgs,
         "dispatch": CfdxDispatchArgs,
@@ -2431,8 +2597,11 @@ class CfdxFrontDesk(CfdxArgReader):
         "get-keys": CfdxGetKeysArgs,
         "get-subfig": CfdxGetSubfigArgs,
         "help-opt": CfdxHelpOptArgs,
+        "init-agent": CfdxInitAgentArgs,
         "inspect-json": CfdxInspectJsonArgs,
         "list-keys": CfdxListKeysArgs,
+        "list-report-subfigs": CfdxListReportSubfigsArgs,
+        "list-reports": CfdxListReportsArgs,
         "list-subfigs": CfdxListSubfigsArgs,
         "open-pdf": CfdxOpenPDFArgs,
         "open-img": CfdxOpenImgArgs,
@@ -2470,19 +2639,31 @@ class CfdxFrontDesk(CfdxArgReader):
     _help_optlist = (
         "h",
         "f",
-        "n",
         "I",
         "cons",
         "re",
         "me",
-        "marked",
         "unmarked",
-        "batch",
-        "e",
-        "restart",
-        "start",
+        "user",
         "x",
     )
+
+    # Use a compact command index unless verbose help was requested
+    def _genr8_help_cmdlist(self) -> str:
+        if self.get("v", False):
+            return super()._genr8_help_cmdlist()
+        # Match standard front-desk help, excluding advanced commands
+        msg = "\n\n:Sub-commands:"
+        for cmdname in self._cmdlist:
+            if cmdname in self._cmdlist_hidden:
+                continue
+            cmdhelp0 = f"Run ``{cmdname}`` command"
+            clsdef = self._cmdparsers.get("_default_", self.__class__)
+            cls = self._cmdparsers.get(cmdname, clsdef)
+            cmdhelp1 = getattr(cls, "_help_title", cmdhelp0)
+            cmdhelp = self._help_cmd.get(cmdname, cmdhelp1)
+            msg += f"\n    ``{cmdname}``\n        {cmdhelp}\n"
+        return msg.rstrip("\n")
 
     # Decide on sub-command if none specified
     def infer_cmdname(self) -> str:
@@ -3355,6 +3536,93 @@ def cape_get_config(*a, **kw) -> Tuple[int, list]:
     return IERR_OK, v
 
 
+@CfdxDataPathArgs.rst
+def cape_data_path(name: str, **kw) -> Tuple[int, str]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, path = %(name)s(name)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *path*: :class:`str`
+            Absolute path to the requested package data file
+    """
+    # Validate the public name before constructing a path
+    parts = DATA_PATHS.get(name)
+    if parts is None:
+        names = ", ".join(sorted(DATA_PATHS))
+        raise CapeValueError(
+            f"Unknown CAPE data file '{name}'; choose from: {names}")
+    # Locate relative to the installed ``cape`` package
+    import cape
+    path = os.path.abspath(
+        os.path.join(os.path.dirname(cape.__file__), *parts))
+    print(path)
+    return IERR_OK, path
+
+
+@CfdxInitAgentArgs.rst
+def cape_init_agent(**kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, files = %(name)s()
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *files*: :class:`list`\ [:class:`str`]
+            Files created or updated
+    """
+    # Locate packaged templates
+    import cape
+    cape_dir = os.path.dirname(cape.__file__)
+    agents_src = os.path.join(cape_dir, *DATA_PATHS["project-agents.md"])
+    analysis_src = os.path.join(cape_dir, *DATA_PATHS["ANALYSIS.md"])
+    files = []
+    # Create or update local agent instructions
+    agents_dst = "AGENTS.md"
+    if not os.path.isfile(agents_dst):
+        shutil.copyfile(agents_src, agents_dst)
+        files.append(agents_dst)
+        print(f"Created {agents_dst}")
+    else:
+        with open(agents_dst, encoding="utf-8") as fp:
+            text = fp.read()
+        if re.search(r"^#{1,6}\s+CAPE\s*$", text, re.MULTILINE) is None:
+            with open(agents_src, encoding="utf-8") as fp:
+                section = fp.read()
+            if not text:
+                separator = ""
+            elif text.endswith("\n"):
+                separator = "\n"
+            else:
+                separator = "\n\n"
+            with open(agents_dst, "a", encoding="utf-8") as fp:
+                fp.write(separator + section)
+            files.append(agents_dst)
+            print(f"Updated {agents_dst}")
+        else:
+            print(f"Unchanged {agents_dst}")
+    # Create the analysis instructions only when absent
+    analysis_dst = "ANALYSIS.md"
+    if not os.path.exists(analysis_dst):
+        shutil.copyfile(analysis_src, analysis_dst)
+        files.append(analysis_dst)
+        print(f"Created {analysis_dst}")
+    else:
+        print(f"Unchanged {analysis_dst}")
+    return IERR_OK, files
+
+
 @CfdxGetKeysArgs.rst
 def cape_get_keys(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
@@ -3525,6 +3793,57 @@ def cape_list_keys(*a, **kw) -> Tuple[int, Any]:
         print(key)
     # Return code
     return IERR_OK, keys
+
+
+@CfdxListReportsArgs.rst
+def cape_list_reports(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, reports = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *reports*: :class:`list`
+            Configured report names
+    """
+    # Read *cntl* w/o status updates
+    cntl, kw = read_cntl_quiet(CfdxListReportsArgs, *a, **kw)
+    # Get and show report names
+    reports = cntl.opts.get_ReportList()
+    for report in reports:
+        print(report)
+    return IERR_OK, reports
+
+
+@CfdxListReportSubfigsArgs.rst
+def cape_list_report_subfigs(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, subfigs = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *subfigs*: :class:`list`
+            Names of subfigures used by the selected report
+    """
+    # Read *cntl* w/o status updates
+    cntl, kw = read_cntl_quiet(CfdxListReportSubfigsArgs, *a, **kw)
+    # Use the first report when --report is omitted
+    report = kw.pop("report", None)
+    subfigs = cntl.get_report_subfigs(report)
+    for subfig in subfigs:
+        print(subfig)
+    return IERR_OK, subfigs
 
 
 @CfdxListSubfigsArgs.rst
@@ -4483,6 +4802,7 @@ CMD_DICT = {
     "check-ll": cape_check_ll,
     "check-triqfm": cape_check_triqfm,
     "clean": cape_clean,
+    "data-path": cape_data_path,
     "defail": cape_defail,
     "dezombie": cape_dezombie,
     "dispatch": cape_dispatch,
@@ -4509,8 +4829,11 @@ CMD_DICT = {
     "get-keys": cape_get_keys,
     "get-subfig": cape_get_subfig,
     "help-opt": cape_help_opt,
+    "init-agent": cape_init_agent,
     "inspect-json": cape_inspect_json,
     "list-keys": cape_list_keys,
+    "list-report-subfigs": cape_list_report_subfigs,
+    "list-reports": cape_list_reports,
     "list-subfigs": cape_list_subfigs,
     "open-pdf": cape_open_pdf,
     "open-img": cape_open_img,
