@@ -35,14 +35,16 @@ def test_list_report_subfigs():
 
 
 def test_frontdesk_help_verbosity():
-    """Test concise default help and verbose command descriptions."""
+    """Test default help hides advanced commands unless verbose."""
     cmd = [sys.executable, "-m", "cape", "-h"]
     stdout, _, ierr = testutils.call_o(cmd)
     assert ierr == 0
-    assert "Use cape CMD -h for command help" in stdout
+    assert "Run one CAPE agent prompt and exit" in stdout
+    assert "list-reports" not in stdout
     assert "List configured reports" not in stdout
 
     cmd.append("-v")
     stdout, _, ierr = testutils.call_o(cmd)
     assert ierr == 0
+    assert "list-reports" in stdout
     assert "List configured reports" in stdout

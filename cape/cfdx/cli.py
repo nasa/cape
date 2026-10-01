@@ -2260,6 +2260,22 @@ class CfdxFrontDesk(CfdxArgReader):
 
     # Description of executable
     _help_title = "Control run matrix or case for any solver"
+    _help_description = r"""
+    Use CAPE to configure, run, archive, and extract data from one or more
+    CFD run matrices. Run
+
+    .. code-block:: console
+
+        $ cape CMD -h
+
+    to see usage details for each invidual sub-command. Additioanl CAPE
+    commands are not listed here. Run
+
+    .. code-block:: console
+
+        $ cape -h -v
+
+    to see the entire list of available commands."""
 
     # Special classes
     _cntl_mod = "cape.cfdx.cntl"
@@ -2414,6 +2430,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "find-cases",
         "find-json",
         "find-large",
+        "get-case-state",
         "get-col-state",
         "get-config",
         "get-keys",
@@ -2437,7 +2454,6 @@ class CfdxFrontDesk(CfdxArgReader):
         "rm",
         "search-large",
         "set-config",
-        "get-case-state",
         "skeleton",
         "triangulate-cutplane",
         "tui",
@@ -2615,13 +2631,18 @@ class CfdxFrontDesk(CfdxArgReader):
     def _genr8_help_cmdlist(self) -> str:
         if self.get("v", False):
             return super()._genr8_help_cmdlist()
-        cmds = " | ".join(f"``{cmd}``" for cmd in self._cmdlist)
-        return (
-            "\n\n:Sub-commands:\n"
-            f"    {cmds}\n\n"
-            f"Use ``{self._name} CMD -h`` for command help or "
-            f"``{self._name} -h -v`` for descriptions."
-        )
+        # Match standard front-desk help, excluding advanced commands
+        msg = "\n\n:Sub-commands:"
+        for cmdname in self._cmdlist:
+            if cmdname in self._cmdlist_hidden:
+                continue
+            cmdhelp0 = f"Run ``{cmdname}`` command"
+            clsdef = self._cmdparsers.get("_default_", self.__class__)
+            cls = self._cmdparsers.get(cmdname, clsdef)
+            cmdhelp1 = getattr(cls, "_help_title", cmdhelp0)
+            cmdhelp = self._help_cmd.get(cmdname, cmdhelp1)
+            msg += f"\n    ``{cmdname}``\n        {cmdhelp}\n"
+        return msg.rstrip("\n")
 
     # Decide on sub-command if none specified
     def infer_cmdname(self) -> str:
