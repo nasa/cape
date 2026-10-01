@@ -1617,6 +1617,60 @@ class CfdxListKeysArgs(CfdxArgReader):
     )
 
 
+# Settings for list-reports
+class CfdxListReportsArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape list-reports"
+
+    # Description
+    _help_title = "List configured reports"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "solver",
+    )
+
+
+# Settings for list-report-subfigs
+class CfdxListReportSubfigsArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape list-report-subfigs"
+
+    # Description
+    _help_title = "List subfigures used by a report"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "report",
+        "solver",
+    )
+
+    # Require a name when --report is present
+    _opttypes = {
+        "report": str,
+    }
+
+    # Help for report selection
+    _help_opt = {
+        "report": "Report name; defaults to the first configured report",
+    }
+
+    # Option argument names
+    _help_optarg = {
+        "report": "REPORT",
+    }
+
+
 # Settings for list-subfigs
 class CfdxListSubfigsArgs(CfdxArgReader):
     # No attributes
@@ -2367,6 +2421,8 @@ class CfdxFrontDesk(CfdxArgReader):
         "help-opt",
         "inspect-json",
         "list-keys",
+        "list-report-subfigs",
+        "list-reports",
         "list-subfigs",
         "open-pdf",
         "open-img",
@@ -2389,6 +2445,45 @@ class CfdxFrontDesk(CfdxArgReader):
         "unarchive",
         "unmark",
         "wait",
+    )
+
+    # Hidden commands in the default `cape -h`
+    _cmdlist_hidden = (
+        "1to2",
+        "batch",
+        "check-db",
+        "check-fm",
+        "check-ll",
+        "check-triqfm",
+        "data-path",
+        "edit-json",
+        "extract-fm",
+        "extract-iter-fm",
+        "extract-ll",
+        "extract-pyfunc",
+        "extract-prop",
+        "extract-surfcp",
+        "extract-timeseries",
+        "extract-triqfm",
+        "extract-triqpt",
+        "find-cases",
+        "find-large",
+        "get-config",
+        "get-keys",
+        "get-subfig",
+        "list-keys",
+        "list-report-subfigs",
+        "list-reports",
+        "list-subfigs",
+        "open-pdf",
+        "open-img",
+        "open-png",
+        "post-file",
+        "receive-file",
+        "review",
+        "search-large",
+        "set-config",
+        "triangulate-cutplane",
     )
 
     # Alternate command names
@@ -2468,6 +2563,8 @@ class CfdxFrontDesk(CfdxArgReader):
         "help-opt": CfdxHelpOptArgs,
         "inspect-json": CfdxInspectJsonArgs,
         "list-keys": CfdxListKeysArgs,
+        "list-report-subfigs": CfdxListReportSubfigsArgs,
+        "list-reports": CfdxListReportsArgs,
         "list-subfigs": CfdxListSubfigsArgs,
         "open-pdf": CfdxOpenPDFArgs,
         "open-img": CfdxOpenImgArgs,
@@ -2505,19 +2602,26 @@ class CfdxFrontDesk(CfdxArgReader):
     _help_optlist = (
         "h",
         "f",
-        "n",
         "I",
         "cons",
         "re",
         "me",
-        "marked",
         "unmarked",
-        "batch",
-        "e",
-        "restart",
-        "start",
+        "user",
         "x",
     )
+
+    # Use a compact command index unless verbose help was requested
+    def _genr8_help_cmdlist(self) -> str:
+        if self.get("v", False):
+            return super()._genr8_help_cmdlist()
+        cmds = " | ".join(f"``{cmd}``" for cmd in self._cmdlist)
+        return (
+            "\n\n:Sub-commands:\n"
+            f"    {cmds}\n\n"
+            f"Use ``{self._name} CMD -h`` for command help or "
+            f"``{self._name} -h -v`` for descriptions."
+        )
 
     # Decide on sub-command if none specified
     def infer_cmdname(self) -> str:
@@ -3592,6 +3696,57 @@ def cape_list_keys(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, keys
 
 
+@CfdxListReportsArgs.rst
+def cape_list_reports(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, reports = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *reports*: :class:`list`
+            Configured report names
+    """
+    # Read *cntl* w/o status updates
+    cntl, kw = read_cntl_quiet(CfdxListReportsArgs, *a, **kw)
+    # Get and show report names
+    reports = cntl.opts.get_ReportList()
+    for report in reports:
+        print(report)
+    return IERR_OK, reports
+
+
+@CfdxListReportSubfigsArgs.rst
+def cape_list_report_subfigs(*a, **kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, subfigs = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *subfigs*: :class:`list`
+            Names of subfigures used by the selected report
+    """
+    # Read *cntl* w/o status updates
+    cntl, kw = read_cntl_quiet(CfdxListReportSubfigsArgs, *a, **kw)
+    # Use the first report when --report is omitted
+    report = kw.pop("report", None)
+    subfigs = cntl.get_report_subfigs(report)
+    for subfig in subfigs:
+        print(subfig)
+    return IERR_OK, subfigs
+
+
 @CfdxListSubfigsArgs.rst
 def cape_list_subfigs(*a, **kw) -> Tuple[int, Any]:
     r"""Run ``%(title)s`` command
@@ -4577,6 +4732,8 @@ CMD_DICT = {
     "help-opt": cape_help_opt,
     "inspect-json": cape_inspect_json,
     "list-keys": cape_list_keys,
+    "list-report-subfigs": cape_list_report_subfigs,
+    "list-reports": cape_list_reports,
     "list-subfigs": cape_list_subfigs,
     "open-pdf": cape_open_pdf,
     "open-img": cape_open_img,
