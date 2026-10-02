@@ -35,6 +35,7 @@ from .flowfile import read_fun3d_flow, read_fun3d_tavg
 from .frofile import read_fro, write_fro
 from .meshbfile import read_meshb, write_meshb
 from .pltfile import write_plt
+from .snapfile import read_vulcan_snap
 from .surfconfig import SurfConfig
 from .surf3dfile import read_surf3d, write_surf3d
 from .trifile import read_tri, read_triq, write_tri, write_triq
@@ -337,6 +338,14 @@ class Umesh(umeshbase.UmeshBase):
         # Read config info
         with openfile(fname_or_fp) as fp:
             self.config = SurfConfig(uh3d=fp.name)
+
+    def read_vulcan_snap(
+            self,
+            fname_or_fp: Union[str, IOBase],
+            meta: bool = False,
+            vlist: Optional[list] = None):
+        # Read VULCAN snap state
+        read_vulcan_snap(self, fname_or_fp, meta, vlist=vlist)
 
    # --- Config ---
     def read_config(self, fcfg: str):

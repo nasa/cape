@@ -3944,6 +3944,64 @@ class Cntl(CntlBase):
         # Rerun logger
         self.log_cntl(f=True)
 
+   # --- Add case ---
+    @run_rootdir
+    def add_case(self, txt: Optional[str] = None) -> int:
+        r"""Add a case to the run matrix with settings from JSON text *txt*
+
+        The new case copies the values of the last case in the run
+        matrix, then overwrites the keys given in *txt*.  This requires
+        a file-based run matrix (see *RunMatrix* > *File*).
+
+        :Call:
+            >>> i = cntl.add_case(txt)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Object to manage run matrix execution
+            *txt*: :class:`str`
+                JSON text with run matrix keys for the new case
+        :Outputs:
+            *i*: :class:`int`
+                Index of the new case
+        """
+        # Check for text
+        if txt is None:
+            raise CapeValueError("No JSON settings given for new case")
+        # Check type
+        assert_isinstance(txt, str, "JSON text for new case")
+        # Decode text into key/value pairs
+        try:
+            updates = json.loads(txt)
+        except json.JSONDecodeError as e:
+            raise CapeValueError(f"Cannot parse JSON text: {e}")
+        # Check that settings are a JSON object
+        if not isinstance(updates, dict):
+            raise CapeValueError("New case settings must be a JSON object")
+        # Reference run matrix
+        x = self.x
+        # Check that keys exist in the run matrix
+        for k in updates:
+            if k not in x.cols:
+                raise CapeValueError(f"Unknown run matrix key '{k}'")
+        # Check for cases to copy
+        if x.nCase < 1:
+            raise CapeValueError(
+                "Cannot copy last case of an empty run matrix")
+        # Start with the values of the last case
+        iold = x.nCase - 1
+        v = [x[k][iold] for k in x.cols]
+        # Apply the new values
+        for k, vk in updates.items():
+            v[x.cols.index(k)] = vk
+        # Add the case
+        x.add_case(v)
+        # Index of new case
+        i = x.nCase - 1
+        # Log the change
+        self.log_main(f"Added case {i} with settings {txt}")
+        # Output
+        return i
+
    # --- Execute script ---
     # Execute script
     @run_rootdir
