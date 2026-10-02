@@ -4749,6 +4749,12 @@ class Cntl(CntlBase):
             subfigsj = self.opts.get_FigOpt(figj, "Subfigures")
             # Combine w/o repeats
             for sfig in subfigsj:
+                # Get type
+                typ = self.opts.get_SubfigOpt(sfig, "Type")
+                # Skip text-only
+                if typ in ("Conditions", "Summary"):
+                    continue
+                # Check for duplication
                 if sfig not in subfigs:
                     subfigs.append(sfig)
         # Output
