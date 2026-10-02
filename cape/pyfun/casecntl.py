@@ -39,7 +39,7 @@ from .databook import CaseFM, CaseResid, CaseSurfCp
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 from ..cfdx import casecntl
-from ..errors import CapeFileError
+from ..errors import CapeFileError, CapeRuntimeError
 from ..gruvoc import umesh
 from ..filecntl.tecfile import convert_szplt
 
@@ -2294,8 +2294,9 @@ class CaseRunner(casecntl.CaseRunner):
             # Convert it to .plt
             try:
                 convert_szplt(ftec)
-            except Exception:
-                print(f"  Failed to convert '{ftec}' to PLT format")
+            except Exception as e:
+                raise CapeRuntimeError(
+                    f"Failed to convert '{ftec}' to PLT format") from e
             # Change file name
             ftec = f"{basename}.plt"
         # Mach number
