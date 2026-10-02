@@ -66,6 +66,45 @@ _TEC_PLT_OPTS = """
 """
 
 
+# Run a Tecplot macro, verifying that it produced the expected output
+def _tecmcr_for(fout: str, fmcr: str, v: bool = True, ntries: int = 2):
+    r"""Run a Tecplot macro and check for its expected output file
+
+    Tecplot occasionally exits without writing its output, especially
+    on compute nodes using software rendering.  Retry before giving up.
+
+    :Call:
+        >>> _tecmcr_for(fout, fmcr, v=True, ntries=2)
+    :Inputs:
+        *fout*: :class:`str`
+            Name of the file Tecplot should write
+        *fmcr*: :class:`str`
+            Name of the macro file to run
+        *v*, *verbose*: {``True``} | ``False``
+            Option to display information about shell command
+        *ntries*: {``2``} | :class:`int`
+            Number of times to run the macro
+    :Versions:
+        * 2026-10-02 ``@ddalle``: v1.0
+    """
+    # Loop over attempts
+    for i in range(ntries):
+        # Run the macro, tolerating nonzero exit status on first attempts
+        try:
+            tecmcr(mcr=fmcr, v=v)
+        except Exception:
+            if i >= ntries - 1:
+                raise
+        # Check for output
+        if os.path.isfile(fout):
+            return
+        # Announce the retry
+        if i < ntries - 1:
+            print(f"  Tecplot did not write '{fout}'; retrying")
+    # Give up
+    raise RuntimeError(f"Tecplot failed to write '{fout}'")
+
+
 # Stand-alone function to run a Tecplot layout file
 def ExportLayout(
         lay: str = "layout.lay",
@@ -137,7 +176,7 @@ def ExportLayout(
     # Write the customized macro
     tec.Write(fmcr)
     # Run the macro
-    tecmcr(mcr=fmcr, v=v)
+    _tecmcr_for(fname, fmcr, v=v)
     # Clean up if requested
     if kw.get("clean", True):
         os.remove(fmcr)
@@ -188,7 +227,7 @@ def convert_szplt(fszplt: str, fplt: Optional[str] = None, **kw) -> str:
         # Options
         fp.write(_TEC_PLT_OPTS)
     # Run the macro
-    tecmcr(mcr=fmcr, v=v)
+    _tecmcr_for(fplt, fmcr, v=v)
     # Clean up if requested
     if kw.get("clean", True):
         os.remove(fmcr)

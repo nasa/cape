@@ -86,6 +86,7 @@ from ..trifile import ReadTriFile
 from ..util import pyrangestr
 from ..errors import (
     CapeError,
+    CapeIndexError,
     CapeNotImplementedError,
     CapeNotSupportedError,
     CapeRuntimeError,
@@ -674,6 +675,11 @@ class Cntl(CntlBase):
             else:
                 try:
                     v = v[key]
+                except IndexError as e:
+                    raise CapeIndexError(
+                        f"Unable to parse '{jq}' with\n"
+                        f"    key={key}\n    type(v): {type(v)}\n    "
+                        f"{e.args[0]}")
                 except Exception as e:
                     raise CapeValueError(
                         f"Unable to parse '{jq}' with\n"
