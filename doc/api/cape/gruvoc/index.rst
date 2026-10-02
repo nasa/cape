@@ -16,6 +16,7 @@
     meshbfile
     solbfile
     pltfile
+    snapfile
     surf3dfile
     trifile
     ufuncfile
