@@ -3774,6 +3774,7 @@ class Cntl(CntlBase):
         # Get options specific to `wait` command
         wait_args = self.opts.get_WaitArgs()
         wait_time = self.opts.get_WaitInterval()
+        wait_nmax = self.opts.get_WaitNMax()
         wait_sts = self.opts.get_WaitStatusList()
         wait_to = self.opts.get_WaitTimeout()
         wait_n = self.opts.get_WaitNCase()
@@ -3789,6 +3790,10 @@ class Cntl(CntlBase):
         # Get initial list of cases to consider
         kw_wait = {**wait_args, **kw}
         wait_mask = self.GetIndices(**kw_wait)
+        # Restrict mask to *nmax* cases; avoids starting all the --- cases
+        nmax = kw.pop("nmax", wait_nmax)
+        if nmax is not None and nmax > 0:
+            wait_mask = wait_mask[:nmax]
         # Identified cases
         casedict = {}
         caselist = []

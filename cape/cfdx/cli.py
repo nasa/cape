@@ -2297,6 +2297,7 @@ class CfdxWaitArgs(_CfdxSubsetArgs):
     # Options
     _optlist = (
         "n",
+        "nmax",
         "interval",
         "timeout",
     )
@@ -2304,6 +2305,7 @@ class CfdxWaitArgs(_CfdxSubsetArgs):
     # Descriptions
     _help_opt = {
         "n": "Wait until *N* cases need action",
+        "nmax": "Max cases to consider; restricts active run matrix",
     }
 
 

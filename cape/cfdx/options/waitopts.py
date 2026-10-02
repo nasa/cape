@@ -136,6 +136,7 @@ class WaitOpts(OptionsDict):
         "Args",
         "Interval",
         "NCase",
+        "NMax",
         "StatusList",
         "Timeout",
     )
@@ -147,6 +148,7 @@ class WaitOpts(OptionsDict):
         "Time": "Interval",
         "args": "Args",
         "n": "NCase",
+        "nmax": "NMax",
         "status": "StatusList",
         "timeout": "Timeout",
     }
@@ -155,6 +157,7 @@ class WaitOpts(OptionsDict):
     _opttypes = {
         "Interval": FLOAT_TYPES + INT_TYPES + (str,),
         "NCase": INT_TYPES,
+        "NMax": INT_TYPES,
         "StatusList": str,
         "Timeout": FLOAT_TYPES + INT_TYPES + (str,),
     }
@@ -166,7 +169,7 @@ class WaitOpts(OptionsDict):
 
     # Defaults
     _rc = {
-        "Interval": 60,
+        "Interval": 15,
         "NCase": 5,
         "Timeout": 86400,
     }
@@ -174,6 +177,15 @@ class WaitOpts(OptionsDict):
     # Subsections
     _sec_cls = {
         "Args": WaitArgOpts,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Interval": "Time to wait since start of last poll before re-polling",
+        "NCase": "Wait for this number of cases to require action",
+        "NMax": "Consider at most this many cases",
+        "StatusList": "List of CAPE statuses that require 'action'",
+        "Timeout": "Global timeout for the wait command",
     }
 
 

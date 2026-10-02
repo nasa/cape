@@ -19,6 +19,10 @@ The standard procedure for CAPE commands is roughly:
     - Submit more cases
     - Fix errors
     - Evaluate cases marked `DONE`
+        * Default method is to run `cape report`
+        * Looking at each subfigure (`cape list-report-subfigs`) can be more
+          efficient. Ignore text-only subfigures
+        * `cape get-case-state` can also provide a recommendation
     - Extend cases if not converged
     - Approve and extract data
 
