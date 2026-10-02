@@ -2284,7 +2284,7 @@ class CfdxUnmarkArgs(_CfdxSubsetArgs):
 
 
 # Settins for --wait
-class CfdxWaitArgs(CfdxArgReader):
+class CfdxWaitArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
@@ -2296,11 +2296,15 @@ class CfdxWaitArgs(CfdxArgReader):
 
     # Options
     _optlist = (
-        "h",
         "n",
         "interval",
         "timeout",
     )
+
+    # Descriptions
+    _help_opt = {
+        "n": "Wait until *N* cases need action",
+    }
 
 
 # Argument settings for main run interface

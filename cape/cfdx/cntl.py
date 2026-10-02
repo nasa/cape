@@ -3787,7 +3787,8 @@ class Cntl(CntlBase):
         # Defaults
         wait_sts = wait_sts or ("---", "INCOMP", "DONE", "ZOMBIE", "FAIL")
         # Get initial list of cases to consider
-        wait_mask = self.GetIndices(**wait_args)
+        kw_wait = {**wait_args, **kw}
+        wait_mask = self.GetIndices(**kw_wait)
         # Identified cases
         casedict = {}
         caselist = []
@@ -3814,20 +3815,18 @@ class Cntl(CntlBase):
                     caselist.append(i)
                     # Print it
                     print(f"  {i}: {sts}")
-                # Current counter
-                ni = len(caselist)
                 # Check counter
-                if ni >= n:
+                if len(caselist) >= n:
                     break
             # Check if we've hit *n* or used up all cases
-            if ni >= min(n, len(wait_mask)):
+            if len(caselist) >= min(n, len(wait_mask)):
                 break
             # Get current time
             toc = time.time()
             # Wait appropriate interval (interruptible by Ctrl-C)
             _sleep(dt - toc + tic)
         # Exit if nothing found
-        if ni == 0:
+        if len(caselist) == 0:
             print("No cases found in time limits")
         # Show the extra options
         print("")
