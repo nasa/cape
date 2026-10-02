@@ -168,6 +168,7 @@ class CfdxArgReader(ArgReader):
         "I": str,
         "FAIL": bool,
         "PASS": bool,
+        "X": str,
         "action": str,
         "adaptive": bool,
         "add-cols": (str, list),
@@ -389,6 +390,9 @@ class CfdxArgReader(ArgReader):
         "FAIL": "Mark case(s) as ERRORs",
         "I": "Specific case indices, e.g. ``-I 4:8,12``",
         "PASS": "Mark case(s) as PASS",
+        "X": (
+            "JSON text with run matrix keys to set for the new case,"
+            " e.g. ``'{\"alpha\": 2.5}'``"),
         "action": "Name of *Actions* action to perform on case(s)",
         "adaptive": "Save the adapted-mesh version of flow data (more data)",
         "add-cols": "Additional columns to show in run matrix status table",
@@ -503,6 +507,7 @@ class CfdxArgReader(ArgReader):
     # Name for value of select options in option descriptions
     _help_optarg = {
         "I": "INDS",
+        "X": "JSON",
         "add-cols": "COLS",
         "add-counters": "COLS",
         "batchsize": "N",
@@ -658,6 +663,35 @@ class Cfdx1to2Args(CfdxArgReader):
     _rc = {
         "1to2": True,
     }
+
+
+# Settings for ``add-case``
+class CfdxAddCaseArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape add-case"
+
+    # Description
+    _help_title = "Add a case to the run matrix based on the current last case"
+
+    # Options
+    _optlist = (
+        "h",
+        "f",
+        "X",
+    )
+
+    # Positional args
+    _arglist = (
+        "X",
+    )
+
+    # Required options
+    _optlistreq = (
+        "X",
+    )
 
 
 # Settings for -c
@@ -2306,6 +2340,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "FAIL",
         "I",
         "PASS",
+        "X",
         "adaptive",
         "add-cols",
         "add-counters",
@@ -2416,6 +2451,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "agent",
         "agentic",
         "1to2",
+        "add-case",
         "apply",
         "approve",
         "archive",
@@ -2486,6 +2522,7 @@ class CfdxFrontDesk(CfdxArgReader):
     # Hidden commands in the default `cape -h`
     _cmdlist_hidden = (
         "1to2",
+        "add-case",
         "batch",
         "check-db",
         "check-fm",
@@ -2557,6 +2594,7 @@ class CfdxFrontDesk(CfdxArgReader):
     # Subparsers
     _cmdparsers = {
         "1to2": Cfdx1to2Args,
+        "add-case": CfdxAddCaseArgs,
         "agent": CfdxAgentArgs,
         "agentic": CfdxAgenticArgs,
         "apply": CfdxApplyArgs,
@@ -2704,6 +2742,32 @@ def cape_1to2(*a, **kw) -> Tuple[int, Any]:
     from cape import convert1to2
     convert1to2.upgrade1to2()
     return IERR_OK, None
+
+
+@CfdxAddCaseArgs.rst
+def cape_add_case(*a, **kw) -> Tuple[int, Any]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, v = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *v*: **any**
+            Output from API function
+    """
+    # Read *cntl*
+    cntl, kw = read_cntl(CfdxAddCaseArgs, *a, **kw)
+    # Get JSON text for new case
+    txt = kw.get("X")
+    # Run the command
+    v = cntl.add_case(txt)
+    # Return code
+    return IERR_OK, v
 
 
 @CfdxApplyArgs.rst
@@ -4788,6 +4852,7 @@ def read_runner(**kw) -> tuple:
 # Name -> Function
 CMD_DICT = {
     "1to2": cape_1to2,
+    "add-case": cape_add_case,
     "agent": cape_agent,
     "agentic": cape_agentic,
     "apply": cape_apply,
