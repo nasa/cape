@@ -89,6 +89,7 @@ import numpy as np
 
 # Local imports
 from .. import convert
+from ..errors import CapeNotSupportedError
 from .options import runmatrixopts
 from ..units import mks
 
@@ -514,6 +515,22 @@ class RunMatrix(dict):
    # --- Alteration ---
     # Add a case
     def add_case(self, v: list):
+        r"""Add a new case with values *v* to the run matrix and write the file
+
+        :Call:
+            >>> x.add_case(v)
+        :Inputs:
+            *x*: :class:`cape.cfdx.runmatrix.RunMatrix`
+                Instance of the trajectory class
+            *v*: :class:`list`
+                Values for each column of the new case
+        """
+        # Check for file-based run matrix
+        if not self.fname or not os.path.isfile(self.fname):
+            raise CapeNotSupportedError(
+                "Cannot add a case to a run matrix defined within the"
+                " JSON file; move the run matrix to a file by setting"
+                " *RunMatrix* > *File*.")
         # Add values to data structure
         for j, k in enumerate(self.cols):
             # Get format flag
