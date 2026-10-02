@@ -499,6 +499,7 @@ class CaseRunner(CaseRunnerBase):
             * 2024-05-26 ``@ddalle``: v2.1; more exit causes
             * 2025-06-24 ``@ddalle``: v2.2; add rerunable-phase check
             * 2026-06-12 ``@ddalle``: v2.3; log state
+            * 2026-10-02 ``@ddalle``: v2.4; restart timer every phase
         """
         # Check for dry-run mode
         if self.dry_run:
@@ -509,8 +510,6 @@ class CaseRunner(CaseRunnerBase):
         self.assert_not_running()
         # Mark case running
         self.mark_running()
-        # Start a timer
-        self.init_timer()
         # Log beginning
         self.log_main(f"{self._cls()}.run()")
         self.log_verbose(f"{self._cls()}.run() phase loop")
@@ -522,6 +521,8 @@ class CaseRunner(CaseRunnerBase):
         while nstart < self._nstart_max:
             # Determine the phase
             j = self.get_phase_next()
+            # Start a timer for this phase
+            self.init_timer()
             # Write start time
             self.write_start_time(j)
             # Prepare files as needed
