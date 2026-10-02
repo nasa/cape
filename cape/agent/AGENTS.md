@@ -19,10 +19,17 @@ The standard procedure for CAPE commands is roughly:
     - Submit more cases
     - Fix errors
     - Evaluate cases marked `DONE`
-        * Default method is to run `cape report`
-        * Looking at each subfigure (`cape list-report-subfigs`) can be more
-          efficient. Ignore text-only subfigures
-        * `cape get-case-state` can also provide a recommendation
+        * A human method is to run `cape report`, which generates a PDF
+        * An agent can look at each subfigure:
+
+            cape list-report-subfigs
+            cape open subfig {SUBFIG_NAME} -I {CASE}
+
+          Ignore text-only subfigures
+
+        * `cape get-case-state` provides a detailed recommendation if other
+          methods fail or the decision is ambiguous.
+
     - Extend cases if not converged
     - Approve and extract data
 
@@ -43,7 +50,7 @@ in the run matrix, which will be one of these values.
 * `PASS`: The case is `DONE` and marked as final by the user.
 * `PASS*`: The case is marked `PASS` by the user but does not meet the
   requirements for `DONE`.
-
+  
 ## Rules
 
 * **Strongly** prefer CAPE's CLI and Python APIs or manually modifying
@@ -59,3 +66,12 @@ in the run matrix, which will be one of these values.
   (if large). For example `run/poweron01.json`, `run/poweron02.json`,
   `run/poweron03.json` is a perfectly acceptable development trace. Delete or
   suggest deletion of outright failure CFD runs.
+
+An excellent way to learn what an arbitrary JSON option does is to run
+
+cape inspect-json .RunControl.PhaseIters [-f JSONFILE]
+
+It uses jq-like syntax and follows a max-depth option.
+
+
+
