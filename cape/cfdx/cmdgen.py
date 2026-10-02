@@ -241,7 +241,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     rawargs = mpi_opts.get_mpi_args()
     args = [] if rawargs is None else [str(arg) for arg in rawargs]
     # Check if MPI is called for this command
-    q_mpi = rc.get_MPI(j)
+    q_mpi = rc.get_MPI(j) or mpi_opts.get_opt("run", j=j)
     # Name of MPI executable
     mpipre = rc.get_mpi_prefix(j=j)
     mpicmd = rc.get_mpicmd(j)
@@ -320,7 +320,7 @@ def mpiexec_nogpu(
     rawargs = mpi_opts.get_mpi_args()
     args = [] if rawargs is None else [str(arg) for arg in rawargs]
     # Check if MPI is called for this command
-    q_mpi = rc.get_MPI(j)
+    q_mpi = rc.get_MPI(j) or mpi_opts.get_opt("run", j=j)
     # Name of MPI executable
     mpipre = rc.get_mpi_prefix(j=j)
     mpicmd = rc.get_mpicmd(j)

@@ -145,6 +145,11 @@ class Cntl(cntl.Cntl):
             varsfilename = f"{project}.{j:02d}.vars"
             # Get number of iterations to run
             niter = self.opts.get_nIter(j)
+            # Chem resets its iteration counter on restart, so run to
+            # the absolute phase target when one is specified
+            phaseiter = self.opts.get_PhaseIters(j)
+            if phaseiter:
+                niter = max(niter, phaseiter)
             # Other settings from JSON
             vopts = self.opts.select_vars_phase(j)
             # Set number of iterations
