@@ -3746,6 +3746,8 @@ def cape_get_subfig(*a, **kw) -> Tuple[int, Any]:
     kw.pop("subfig", None)
     # Run command
     v = cntl.get_subfigure(subfig, **kw)
+    # Show the name of the file
+    print('\n'.join(v.get("cachefiles", [])))
     # Return code
     return IERR_OK, v
 
