@@ -72,12 +72,8 @@ def main(cls: Optional[type] = None) -> Tuple[int, dict]:
         *result*: :class:`dict`
             Information about results of commands run
     """
-    # Get history file
-    histfile = capeconfig.get_cape_opt("HistoryFile")
-    # If relative path, join with CacheDir
-    if not os.path.isabs(histfile):
-        cachedir = capeconfig.get_cape_opt("CacheDir")
-        histfile = os.path.join(cachedir, histfile)
+    # Get history file; relative paths resolve under CAPE's state folder
+    histfile = capeconfig.get_cape_histfile("HistoryFile")
     # Read CAPE history from previous sessions
     try:
         readline.read_history_file(histfile)

@@ -46,7 +46,7 @@ in the run matrix, which will be one of these values.
   generated cases. Frequent commits to template files or the CAPE JSON file are
   traceable whereas manual edits to individual cases' input files are not.
 * The project-local `AGENTS.md` and `ANALYSIS.md` are authoritative
-* Use `cape -h` and command-specific help like `cape check -h` to discover
+* Use `cape -h -v` and command-specific help like `cape check -h` to discover
   current interfaces.
 * You can edit the JSON file to modify the `wait` behavior, improve reporting,
   fix bugs/errors, and extract missing data, but do not change the CFD approach

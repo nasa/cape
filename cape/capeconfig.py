@@ -2,10 +2,11 @@ r"""
 :mod:`cape.capeconfig`: Interface to user-specific CAPE configuration
 ======================================================================
 
-This file reads the settings file in either ``~/.capeconfig.json``
-or ``$CAPE_CONFIGFILE``, as controlled by :mod:`cape.sysutils`. It
-provides the class :class:`CapeConfig`. The purpose of this
-configuration file is to set user-specific preferences and SSH paths.
+This file reads the settings file in either ``~/.capeconfig.json``,
+``$XDG_CONFIG_HOME/cape/config.json``, or ``$CAPE_CONFIG_FILE``, as
+controlled by :mod:`cape.sysutils`. It provides the class
+:class:`CapeConfig`. The purpose of this configuration file is to set
+user-specific preferences and SSH paths.
 
 For example, on Linux, the user may specify a preferred PDF reader
 application. Users may also inform the user of their local workstation
@@ -87,6 +88,7 @@ class CapeConfig(OptionsDict):
         "RemoteHost",
         "RemoteHostPatterns",
         "RemoteLoginCommands",
+        "StateDir",
         "TUIHistoryFile",
     )
 
@@ -108,6 +110,7 @@ class CapeConfig(OptionsDict):
         "RemoteHost": str,
         "RemoteHostPatterns": str,
         "RemoteLoginCommands": str,
+        "StateDir": str,
         "TUIHistoryFile": str,
     }
 
@@ -121,7 +124,6 @@ class CapeConfig(OptionsDict):
     # Defaults
     _rc = {
         "AgentHistoryFile": ".cape_agent_history",
-        "CacheDir": os.path.join("~", ".cache", "cape"),
         "HistoryFile": ".cape_history",
         "TUIHistoryFile": ".cape_tui_history",
     }
@@ -135,6 +137,7 @@ class CapeConfig(OptionsDict):
         "PDFReader": "CAPE_PDF_READER",
         "PNGReader": "CAPE_PNG_READER",
         "RemoteHost": "CAPE_REMOTE_HOST",
+        "StateDir": "CAPE_STATE_DIR",
         "TUIHistoryFile": "CAPE_TUI_HISTORY_FILE",
     }
 
@@ -145,10 +148,24 @@ class CapeConfig(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
-        "AgentHistoryFile": "Location for history of CAPE-agentic commands",
-        "CacheDir": "Location for CAPE to cache files",
-        "HistoryFile": "Location for history of CAPE commands",
-        "TUIHistoryFile": "Location for history of CAPE TUI commands",
+        "AgentHistoryFile": (
+            "Location for history of CAPE-agentic commands; relative "
+            "paths resolve under *StateDir*"),
+        "CacheDir": (
+            "Location for CAPE to cache files. Override with "
+            "``$CAPE_CACHE_DIR``. Defaults to ``$XDG_CACHE_HOME/cape`` "
+            "if that's set to an absolute path, else ``~/.cache/cape``"),
+        "HistoryFile": (
+            "Location for history of CAPE commands; relative paths "
+            "resolve under *StateDir*"),
+        "TUIHistoryFile": (
+            "Location for history of CAPE TUI commands; relative paths "
+            "resolve under *StateDir*"),
+        "StateDir": (
+            "Location for CAPE state files such as command histories. "
+            "Override with ``$CAPE_STATE_DIR``. Defaults to "
+            "``$XDG_STATE_HOME/cape`` if that's set to an absolute "
+            "path, else ``~/.local/state/cape``"),
         "LocalHost": (
             "Name of 'local' machine; CAPE on remote systems will transfer "
             "files to this location for easier viewing. Override with "
@@ -324,6 +341,7 @@ _properties = (
     "LocalHostPatterns",
     "RemoteHost",
     "RemoteHostPatterns",
+    "StateDir",
 )
 CapeConfig.add_properties(_properties)
 CapeConfig.add_setters(("PDFReader", "PNGReader"))
@@ -372,6 +390,8 @@ def get_cape_opt(opt: str):
     # Check for special cases
     if fullopt == "CacheDir":
         return get_cape_cachedir()
+    elif fullopt == "StateDir":
+        return get_cape_statedir()
     elif fullopt == "PDFReader":
         return get_pdf_viewer()
     # Get value
@@ -435,6 +455,29 @@ def set_cape_opt(opt: str, v: Any, blend: bool = False):
     opts.write_jsonfile(get_cape_configfile())
 
 
+# Get default cache dir
+def get_default_cachedir() -> str:
+    r"""Get the default location for CAPE's cache folder
+
+    This follows the XDG Base Directory Specification: if
+    ``$XDG_CACHE_HOME`` is set to an absolute path, the default is
+    ``$XDG_CACHE_HOME/cape``; otherwise it is ``~/.cache/cape``.
+
+    :Call:
+        >>> cachedir = get_default_cachedir()
+    :Outputs:
+        *cachedir*: :class:`str`
+            Default location for CAPE to cache files
+    """
+    # Get XDG base cache folder
+    xdg_cachedir = os.environ.get("XDG_CACHE_HOME", "")
+    # Only absolute paths are valid according to the XDG spec
+    if not os.path.isabs(xdg_cachedir):
+        xdg_cachedir = os.path.join("~", ".cache")
+    # Append CAPE-specific subfolder
+    return os.path.join(xdg_cachedir, "cape")
+
+
 # Get cache dir
 def get_cape_cachedir() -> str:
     r"""Get (and create) cache folder
@@ -443,7 +486,9 @@ def get_cape_cachedir() -> str:
 
     1.  The environment variable ``$CAPE_CACHE_DIR``
     2.  The *CacheDir* setting in ``~/.capeconfig.json``
-    3.  The global default ``~/.cache/cape/``
+    3.  The folder ``$XDG_CACHE_HOME/cape`` if ``$XDG_CACHE_HOME`` is
+        set to an absolute path
+    4.  The global default ``~/.cache/cape/``
 
     :Call:
         >>> cachedir = get_cape_cachedir()
@@ -455,6 +500,9 @@ def get_cape_cachedir() -> str:
     opts = read_cape_config()
     # Get CacheDir setting
     cachedir = opts.get_opt("CacheDir")
+    # Use XDG-based default if none of those are set
+    if cachedir is None:
+        cachedir = get_default_cachedir()
     # Expand '~'
     cachedir = os.path.expanduser(cachedir)
     # Create it if necessary
@@ -464,6 +512,92 @@ def get_cape_cachedir() -> str:
         pass
     # Output
     return cachedir
+
+
+# Get default state dir
+def get_default_statedir() -> str:
+    r"""Get the default location for CAPE's state folder
+
+    This follows the XDG Base Directory Specification: if
+    ``$XDG_STATE_HOME`` is set to an absolute path, the default is
+    ``$XDG_STATE_HOME/cape``; otherwise it is ``~/.local/state/cape``.
+
+    :Call:
+        >>> statedir = get_default_statedir()
+    :Outputs:
+        *statedir*: :class:`str`
+            Default location for CAPE state files
+    """
+    # Get XDG base state folder
+    xdg_statedir = os.environ.get("XDG_STATE_HOME", "")
+    # Only absolute paths are valid according to the XDG spec
+    if not os.path.isabs(xdg_statedir):
+        xdg_statedir = os.path.join("~", ".local", "state")
+    # Append CAPE-specific subfolder
+    return os.path.join(xdg_statedir, "cape")
+
+
+# Get state dir
+def get_cape_statedir() -> str:
+    r"""Get (and create) folder for CAPE state files
+
+    The order of precedence is
+
+    1.  The environment variable ``$CAPE_STATE_DIR``
+    2.  The *StateDir* setting in ``~/.capeconfig.json``
+    3.  The folder ``$XDG_STATE_HOME/cape`` if ``$XDG_STATE_HOME`` is
+        set to an absolute path
+    4.  The global default ``~/.local/state/cape/``
+
+    :Call:
+        >>> statedir = get_cape_statedir()
+    :Outputs:
+        *statedir*: :class:`str`
+            Location of folder for CAPE state files such as histories
+    """
+    # Read config
+    opts = read_cape_config()
+    # Get StateDir setting
+    statedir = opts.get_opt("StateDir")
+    # Use XDG-based default if none of those are set
+    if statedir is None:
+        statedir = get_default_statedir()
+    # Expand '~'
+    statedir = os.path.expanduser(statedir)
+    # Create it if necessary
+    try:
+        os.makedirs(statedir, exist_ok=True)
+    except PermissionError:
+        pass
+    # Output
+    return statedir
+
+
+# Get a CAPE history file
+def get_cape_histfile(opt: str = "HistoryFile") -> str:
+    r"""Get full path to a CAPE history file
+
+    Values that are relative paths (including the defaults) are
+    resolved under the CAPE *StateDir*; see :func:`get_cape_statedir`.
+
+    :Call:
+        >>> histfile = get_cape_histfile(opt="HistoryFile")
+    :Inputs:
+        *opt*: {``"HistoryFile"``} | :class:`str`
+            Name of history-file option, e.g. ``"AgentHistoryFile"``
+    :Outputs:
+        *histfile*: :class:`str`
+            Full path to history file
+    """
+    # Read config
+    opts = read_cape_config()
+    # Get option value, expanding '~' if present
+    histfile = os.path.expanduser(opts.get_opt(opt))
+    # Join relative paths with *StateDir*
+    if not os.path.isabs(histfile):
+        histfile = os.path.join(get_cape_statedir(), histfile)
+    # Output
+    return histfile
 
 
 # Get *JumpHost*
@@ -552,7 +686,11 @@ def check_cape_remote() -> bool:
 
 # Read config file
 def read_cape_config() -> CapeConfig:
-    r"""Read config from ``~/.capeconfig.json`` or ``$CAPE_CONFIG_FILE``
+    r"""Read config from location given by :func:`get_cape_configfile`
+
+    If no config file exists, an empty one is created at that
+    location (``~/.capeconfig.json`` or the XDG location
+    ``$XDG_CONFIG_HOME/cape/config.json``).
 
     :Call:
         >>> opts = read_cape_config()
@@ -573,6 +711,10 @@ def read_cape_config() -> CapeConfig:
         opts = CapeConfig()
         # Write one
         try:
+            # Create parent folder if necessary
+            configdir = os.path.dirname(configfile)
+            if configdir:
+                os.makedirs(configdir, exist_ok=True)
             opts.write_jsonfile(configfile)
         except PermissionError:
             pass
@@ -582,13 +724,58 @@ def read_cape_config() -> CapeConfig:
     return opts
 
 
-# Get current configuration folder
+# Get default config file
+def get_default_configfile() -> str:
+    r"""Get the default location for CAPE's config file
+
+    This follows the XDG Base Directory Specification: if
+    ``$XDG_CONFIG_HOME`` is set to an absolute path, the default is
+    ``$XDG_CONFIG_HOME/cape/config.json``; otherwise it is
+    ``~/.config/cape/config.json``.
+
+    :Call:
+        >>> configfile = get_default_configfile()
+    :Outputs:
+        *configfile*: :class:`str`
+            Default location of CAPE config file
+    """
+    # Get XDG base config folder
+    xdg_configdir = os.environ.get("XDG_CONFIG_HOME", "")
+    # Only absolute paths are valid according to the XDG spec
+    if not os.path.isabs(xdg_configdir):
+        xdg_configdir = os.path.join("~", ".config")
+    # Append CAPE-specific subfolder and file name
+    return os.path.join(xdg_configdir, "cape", "config.json")
+
+
+# Get current configuration file
 def get_cape_configfile() -> str:
+    r"""Get the location of CAPE's config file
+
+    The order of precedence is
+
+    1.  The environment variable ``$CAPE_CONFIG_FILE``
+    2.  The legacy location ``~/.capeconfig.json``, if it exists
+    3.  The file ``$XDG_CONFIG_HOME/cape/config.json`` if
+        ``$XDG_CONFIG_HOME`` is set to an absolute path
+    4.  The default ``~/.config/cape/config.json``
+
+    :Call:
+        >>> configfile = get_cape_configfile()
+    :Outputs:
+        *configfile*: :class:`str`
+            Location of CAPE config file
+    """
     # Check for environment variable
     configfile = os.environ.get(CONFIG_ENVVAR)
-    # Default value
-    if not configfile:
-        configfile = os.path.join("~", ".capeconfig.json")
-    # Expand '~'
-    return os.path.expanduser(configfile)
+    # Environment variable wins if present
+    if configfile:
+        return os.path.expanduser(configfile)
+    # Check for legacy config file
+    legacy_configfile = os.path.expanduser(
+        os.path.join("~", ".capeconfig.json"))
+    if os.path.isfile(legacy_configfile):
+        return legacy_configfile
+    # Use XDG location; file gets created there if necessary
+    return os.path.expanduser(get_default_configfile())
 

@@ -136,7 +136,7 @@ def get_tui_histfile() -> str:
     The file is controlled by the *TUIHistoryFile* option from the
     user's ``~/.capeconfig.json`` (or the ``$CAPE_TUI_HISTORY_FILE``
     environment variable). Relative paths are joined with the CAPE
-    *CacheDir*.
+    *StateDir*.
 
     :Call:
         >>> histfile = get_tui_histfile()
@@ -145,13 +145,7 @@ def get_tui_histfile() -> str:
             Name of TUI command history file
     """
     # Get history file
-    histfile = capeconfig.get_cape_opt("TUIHistoryFile")
-    # If relative path, join with CacheDir
-    if not os.path.isabs(histfile):
-        cachedir = capeconfig.get_cape_opt("CacheDir")
-        histfile = os.path.join(cachedir, histfile)
-    # Output
-    return os.path.expanduser(histfile)
+    return capeconfig.get_cape_histfile("TUIHistoryFile")
 
 
 # Render the full command help table

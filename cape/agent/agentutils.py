@@ -9,7 +9,6 @@ source code.
 
 # Standard library
 import json
-import os
 import shutil
 import sys
 import threading
@@ -24,17 +23,15 @@ from ..ui.promptutils import sprintf_color
 
 # Get the CAPE-agent history file
 def get_agent_histfile() -> str:
-    r"""Get the configured history file for CAPE-agent conversations"""
+    r"""Get the configured history file for CAPE-agent conversations
+
+    Relative paths from the *AgentHistoryFile* option resolve under
+    the CAPE *StateDir*.
+    """
     # Local import avoids loading configuration for formatting helpers
     from .. import capeconfig
     # Get history file
-    histfile = capeconfig.get_cape_opt("AgentHistoryFile")
-    # Resolve relative paths beneath CAPE's cache folder
-    if not os.path.isabs(histfile):
-        cachedir = capeconfig.get_cape_opt("CacheDir")
-        histfile = os.path.join(cachedir, histfile)
-    # Output
-    return os.path.expanduser(histfile)
+    return capeconfig.get_cape_histfile("AgentHistoryFile")
 
 
 # Spinner class
