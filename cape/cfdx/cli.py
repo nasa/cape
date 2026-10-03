@@ -1579,8 +1579,14 @@ class CfdxGetSubfigArgs(_CfdxSubsetArgs):
 
     # Additional options
     _optlist = (
+        "dpi",
         "subfig",
     )
+
+    # Defaults
+    _rc = {
+        "dpi": 120,
+    }
 
     # Required options
     _optlistreq = (
@@ -3744,12 +3750,65 @@ def cape_get_subfig(*a, **kw) -> Tuple[int, Any]:
     subfig = a[0] if len(a) else kw.get("subfig")
     # Remove from keywords to avoid conflicting with positional arg
     kw.pop("subfig", None)
+    # Resolution for converting PDFs
+    dpi = kw.pop("dpi", 120)
     # Run command
     v = cntl.get_subfigure(subfig, **kw)
-    # Show the name of the file
-    print('\n'.join(v.get("cachefiles", [])))
+    # Ensure raster image(s) for consumers that can't read PDFs
+    imgfiles = _get_raster_imgs(v.get("cachefiles", []), dpi=dpi)
+    v["imgfiles"] = imgfiles
+    # Show the name of the image file(s)
+    print('\n'.join(imgfiles))
     # Return code
     return IERR_OK, v
+
+
+# Convert cached subfigure files to raster images
+def _get_raster_imgs(cachefiles: list, dpi: int = 120) -> list:
+    r"""Get list of PNG/JPG images, converting PDFs as needed
+
+    :Call:
+        >>> imgfiles = _get_raster_imgs(cachefiles, dpi=120)
+    :Inputs:
+        *cachefiles*: :class:`list`\[:class:`str`]
+            Names of cached subfigure files (any format)
+        *dpi*: {``120``} | :class:`int`
+            Resolution for converting PDFs to PNGs
+    :Outputs:
+        *imgfiles*: :class:`list`\[:class:`str`]
+            Names of raster image files; files in other formats that
+            cannot be converted are passed through unchanged
+    """
+    # Raster formats to use directly
+    rasterexts = (".png", ".jpg", ".jpeg")
+    # Base names that already have a raster image
+    rasterbases = {
+        os.path.splitext(fname)[0] for fname in cachefiles
+        if os.path.splitext(fname)[1].lower() in rasterexts
+    }
+    # Initialize output
+    imgfiles = []
+    # Loop through cached files
+    for fname in cachefiles:
+        # Split extension
+        fbase, ext = os.path.splitext(fname)
+        ext = ext.lower()
+        # Check format
+        if ext in rasterexts:
+            # Use as-is
+            imgfiles.append(fname)
+        elif fbase in rasterbases:
+            # Already have a raster version of this subfigure
+            continue
+        elif ext == ".pdf":
+            # Convert first page to PNG next to the PDF
+            imgfiles.append(sysutils.pdftopng(fname, dpi=dpi))
+            rasterbases.add(fbase)
+        else:
+            # Unknown format; pass through
+            imgfiles.append(fname)
+    # Output
+    return imgfiles
 
 
 @CfdxHelpOptArgs.rst
