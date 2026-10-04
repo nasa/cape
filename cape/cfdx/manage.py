@@ -92,20 +92,18 @@ def find_json(pat: Optional[str] = None) -> list:
 
 # Find JSON files and identify solver
 def find_json_solver(pat: Optional[str] = None) -> list:
-    r"""Find tracked CAPE JSON files in repo and report which solver
+    r"""Find CAPE JSON files and report which solver
 
     The results will be returned in order from most recently modified to
     least recently modified.
 
-    The test is not perfect and consists of the following three fairly
-    reliable criteria:
-
-    1.  The JSON file is tracked by ``git``
-    2.  The file name ends with ``.json``
-    3.  The file contains ``"RunControl"``
-
-    Obviously from criterion #1, this function only works in git
-    repositories.
+    Candidate files are those matching *pat* that are either tracked by
+    ``git`` (if in a git repo) or found in the current folder or one of
+    its immediate subfolders, plus the standard ``py{X}.json`` names.
+    The search is deliberately not recursive beyond one level because
+    run folders can contain huge numbers of untracked files. Candidates
+    are kept only if :func:`identify_solver` recognizes them, which
+    requires a ``"RunControl"`` section.
 
     :Call:
         >>> json_files = find_json_solver()
@@ -119,6 +117,7 @@ def find_json_solver(pat: Optional[str] = None) -> list:
         * 2026-07-18 ``@ddalle``: v1.0
         * 2026-07-20 ``@ddalle``: v1.1; special rules for `py{X}.json``
         * 2026-07-29 ``@ddalle``: v1.2; work outside of git repo
+        * 2026-10-03 ``@ddalle``: v1.3; add shallow glob search
     """
     # Default pattern
     pat = "*.json" if pat is None else pat
@@ -128,16 +127,25 @@ def find_json_solver(pat: Optional[str] = None) -> list:
         # Get list of tracked files
         fnames = repo.ls_tree()
         # Filter them to JSON files
-        raw_json_files = fnmatch.filter(fnames, pat)
+        git_json_files = fnmatch.filter(fnames, pat)
     except SystemError:
         # No git repo to search for candidate files
-        raw_json_files = (
-            glob.glob(pat) +
-            glob.glob(os.path.join("run", pat)))
-    # Append pyCart.json, etc., if found (usually not tracked)
-    for fname in DEFAULT_JSON_FILES:
-        if isfile(fname) and fname not in raw_json_files:
-            raw_json_files.append(fname)
+        git_json_files = []
+    # Shallow search of current folder and immediate subfolders; avoid
+    # recursive glob b/c this may be run from a huge run folder
+    glob_json_files = sorted(glob.glob(pat))
+    glob_json_files += sorted(glob.glob(os.path.join("*", pat)))
+    # Combine candidates, including pyCart.json, etc. (usually untracked)
+    raw_json_files = []
+    found = set()
+    for fname in git_json_files + glob_json_files + list(DEFAULT_JSON_FILES):
+        # Normalize so git and glob results can be compared
+        fname = os.path.normpath(fname)
+        # Skip duplicates and missing files (e.g. deleted but tracked)
+        if fname in found or not isfile(fname):
+            continue
+        found.add(fname)
+        raw_json_files.append(fname)
     # Initialize list
     cape_json_files = []
     # Loop through candidates
@@ -161,6 +169,9 @@ def find_json_solver(pat: Optional[str] = None) -> list:
             continue
         # Find the entry
         fname_list = [v[1] for v in json_files]
+        # Skip links to files not recognized as CAPE JSON files
+        if fname not in fname_list:
+            continue
         i = fname_list.index(fname)
         # Remove that entry and move it to the top
         entry = json_files.pop(i)

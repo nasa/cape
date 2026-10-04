@@ -2,6 +2,7 @@
 # Standard Library
 import os
 import shutil
+import sys
 
 # Third-party
 import testutils
@@ -208,3 +209,29 @@ def test_get_subfig_bullet_ca():
         # Clean up environment variable
         if "CAPE_CACHE_DIR" in os.environ:
             del os.environ["CAPE_CACHE_DIR"]
+
+
+@testutils.run_sandbox(__file__, TEST_FILES3)
+def test_get_subfig_cli_png():
+    # Put cache folder in work/ folder (absolute path for subprocess)
+    cache_dir = os.path.abspath("cache")
+    os.environ["CAPE_CACHE_DIR"] = cache_dir
+    try:
+        # Create cache directory
+        os.mkdir(cache_dir)
+        # Run 'cape get-subfig' using current Python
+        cmdlist = [
+            sys.executable, "-m", "cape",
+            "get-subfig", "bullet_CA", "-I", "0"]
+        stdout, _, ierr = testutils.call_o(cmdlist)
+        # Check return code
+        assert ierr == 0
+        # Last line of STDOUT should be the image name
+        fimg = stdout.strip().split("\n")[-1].strip()
+        # Should always be a raster image, even if subfig is a PDF
+        assert fimg.endswith(".png")
+        assert os.path.isfile(fimg)
+        assert os.path.dirname(fimg) == cache_dir
+    finally:
+        # Clean up environment variable
+        os.environ.pop("CAPE_CACHE_DIR", None)
