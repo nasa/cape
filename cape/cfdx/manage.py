@@ -19,16 +19,11 @@ from os.path import isfile
 from typing import Optional, Union
 
 # Local imports
-from .cntl import Cntl
 from ..argread import clitext
 from ..errors import CapeFileNotFoundError
 from ..fileutils import grep
 from ..gitutils import GitRepo
 from ..optdict import OptionsDict
-
-
-# Default warning mode
-_WARNMODE = Cntl._warnmode_default
 
 
 # List of default JSON file names
@@ -314,10 +309,15 @@ def identify_case_solver() -> Optional[str]:
 def search_repo_large(
         pat: Optional[str] = None,
         cutoff: Union[str, float, int] = "100MB", **kw) -> dict:
+    # Import Cntl here to avoid excessive overhead for calls such as
+    # ``cape -h`` that import :mod:`cape.cfdx.cli` and thus this module
+    from .cntl import Cntl
     # Initialize results
     configs = {}
     # Find JSON files
     json_files = find_json(pat)
+    # Get current warning mode
+    warnmode = Cntl._warnmode_default
     # Turn off warnings
     Cntl._warnmode_default = 0
     # Loop through
@@ -334,6 +334,6 @@ def search_repo_large(
         # Append to list
         configs[json_file] = large_cases
     # Reset warning mode
-    Cntl._warnmode_default = _WARNMODE
+    Cntl._warnmode_default = warnmode
     # Output
     return configs
