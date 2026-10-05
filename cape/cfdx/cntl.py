@@ -67,7 +67,7 @@ from .cntlbase import CntlBase
 from .dex import DataExchanger
 from .logger import CntlLogger
 from .options import Options
-from .options.actionopts import ActionOpts, DEFAULT_ACTIONS
+from .options.actionopts import ActionOpts
 from .options.funcopts import UserFuncOpts
 from .options.runctlopts import RunControlOpts
 from .options.waitopts import convert_time
@@ -5200,12 +5200,7 @@ class Cntl(CntlBase):
         # Check that the action is defined
         if actlist is None:
             # List known action names
-            known = sorted(set(
-                list(DEFAULT_ACTIONS) +
-                [
-                    k for k in self.opts.get("Actions", {})
-                    if k != "UserTools"
-                ]))
+            known = self.opts.get_ActionNames()
             raise CapeValueError(
                 f"No action '{action}' defined in 'Actions' section; " +
                 "known actions: " + " | ".join(known))
@@ -5227,6 +5222,60 @@ class Cntl(CntlBase):
                 self._perform_simul_actions(group, inds, index, ngrp)
         # Output
         return inds
+
+    # List available actions
+    def list_actions(self) -> list:
+        r"""List names and steps of all available *Actions*
+
+        Each action name is shown along with its steps; names using a
+        built-in default definition are marked ``(default)``, and steps
+        sharing an ``"index"`` (i.e. run simultaneously) are marked
+        with that index.
+
+        :Call:
+            >>> names = cntl.list_actions()
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+        :Outputs:
+            *names*: :class:`list`\ [:class:`str`]
+                Names of all available actions
+        """
+        # Get actions section
+        opts = self.opts.get("Actions", {})
+        # Get names
+        names = self.opts.get_ActionNames()
+        # Loop through them
+        for name in names:
+            # Mark defaults that aren't redefined in JSON
+            tag = "" if name in opts else " (default)"
+            print(compile_rst(f"**{name}**{tag}"))
+            # Get steps
+            actlist = self.opts.get_Action(name)
+            # Count steps per index to identify simultaneous groups
+            counts = Counter(
+                act.get("index", j) for j, act in enumerate(actlist))
+            # Show each step
+            for j, act in enumerate(actlist):
+                # Get type and function
+                typ = act.get("type", "shell")
+                fname = act.get("function")
+                # Format step
+                if typ == "shell":
+                    step = f"$ {fname}"
+                elif typ == "cntl":
+                    step = _format_action_call("Cntl", fname, act)
+                else:
+                    step = _format_action_call(typ, fname, act)
+                # Mark file name and simultaneous steps
+                if act.get("AddFileName", False) and typ != "cntl":
+                    step += " [+f]"
+                index = act.get("index", j)
+                if counts[index] > 1:
+                    step += f" [index={index}]"
+                print(f"    {step}")
+        # Output
+        return names
 
     # Perform a single action
     def _perform_action(

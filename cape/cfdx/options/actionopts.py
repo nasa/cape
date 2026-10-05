@@ -321,6 +321,23 @@ class ActionsOpts(OptionsDict):
         # Normalize fresh *ActionOpts* for each action
         return [ActionOpts(vj) for vj in v]
 
+    # Get names of all defined actions
+    def get_ActionNames(self) -> list:
+        r"""Get names of all actions, including built-in defaults
+
+        :Call:
+            >>> names = opts.get_ActionNames()
+        :Inputs:
+            *opts*: :class:`ActionsOpts`
+                Actions options interface
+        :Outputs:
+            *names*: :class:`list`\ [:class:`str`]
+                Sorted names of built-in and user-defined actions
+        """
+        return sorted(set(
+            list(DEFAULT_ACTIONS) +
+            [k for k in self if k != "UserTools"]))
+
     # Get names of user-defined tools
     def get_UserToolsNames(self) -> list:
         r"""Get names of user-defined tools

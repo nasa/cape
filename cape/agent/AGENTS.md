@@ -91,11 +91,13 @@ In particular, use `cape perform approve` rather than `cape approve`: the
 latter only marks cases `PASS` and leaves data unextracted, while the
 project's `approve` action may also run project-specific post-processing.
 Always pass `-I` (or other subset options); with no subset `cape perform`
-acts on the whole run matrix. Check what an action will do first with
+acts on the whole run matrix. Check which actions exist and what each will
+do first with
 
-    cape inspect-json .Actions [-f JSONFILE]
+    cape perform --list [-f JSONFILE]
 
-(an empty/missing entry means the built-in default above is used).
+which shows every action's steps, marks built-in defaults `(default)`,
+simultaneous steps `[index=N]`, and `AddFileName` steps `[+f]`.
 
 ### Action syntax
 

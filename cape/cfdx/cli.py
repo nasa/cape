@@ -152,6 +152,7 @@ class CfdxArgReader(ArgReader):
         "iterfm": "iter-fm",
         "json": "f",
         "kill": "qdel",
+        "ls": "list",
         "minsize": "cutoff",
         "nbatch": "batchsize",
         "output-json": "o",
@@ -228,6 +229,7 @@ class CfdxArgReader(ArgReader):
         "iter-fm": (bool, str),
         "j": bool,
         "jq": str,
+        "list": bool,
         "local": bool,
         "ll": (bool, str),
         "marked": bool,
@@ -319,6 +321,7 @@ class CfdxArgReader(ArgReader):
         "force",
         "incremental",
         "j",
+        "list",
         "local",
         "marked",
         "prompt",
@@ -452,6 +455,7 @@ class CfdxArgReader(ArgReader):
         "j": "List PBS/Slurm job ID in ``-c`` output",
         "jq": "Show item or subset of JSON options at path *JQ*",
         "kill": "Remove jobs from the queue and stop them",
+        "list": "List available actions and their steps",
         "local": "Force an action to be done locally, without SSH transfer",
         "ll": "Extract line load data [comps matching *PAT*] for case(s)",
         "marked": "Show only cases marked either PASS or ERROR",
@@ -1919,11 +1923,7 @@ class CfdxPerformArgs(_CfdxSubsetArgs):
     # Additional options
     _optlist = (
         "action",
-    )
-
-    # Required options
-    _optlistreq = (
-        "action",
+        "list",
     )
 
     # Arguments
@@ -2408,6 +2408,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "j",
         "jq",
         "kill",
+        "list",
         "ll",
         "local",
         "marked",
@@ -4165,6 +4166,13 @@ def cape_perform(*a, **kw) -> Tuple[int, Any]:
     # Get action name, either from arg or option (it's in both)
     action = a[0] if len(a) else kw.get("action")
     kw.pop("action", None)
+    # List actions
+    if kw.pop("list", False):
+        return IERR_OK, cntl.list_actions()
+    # Check for an action
+    if action is None:
+        print("cape perform: missing required ACTION; see --list")
+        return IERR_OPT, None
     # Run command
     v = cntl.perform_action(action, **kw)
     # Return code
