@@ -191,5 +191,27 @@ Guidelines:
 * Test on one or two cases before using a new `approve` on a large batch, and
   commit the JSON change.
 
+## Solver user manuals
+
+The CAPE package includes markdown conversions of CFD solver user manuals
+under each solver module's folder:
+
+    cape/py*/manuals/*/{manual,chapter_[0-9]*,appendix_[a-z],table_of_contents}.md
+
+Each `manuals/{VERSION}/` folder holds one manual, either as a single
+`manual.md` or split into `chapter_{N}.md` / `appendix_{L}.md` files. To
+locate the package folder, run
+
+    python3 -c "import cape, os; print(os.path.dirname(cape.__file__))"
+
+Consult the manual matching the solver and version folder closest to the
+version in use for authoritative details on solver input options before
+changing them. These are text-only conversions: figures are not included and
+tables may be imperfect.
+
+If the `CAPE_MANUAL_PATH` environment variable is set, treat it as a
+colon-separated list of directories containing additional user-supplied
+manuals (markdown), searched in addition to the package copies.
+
 
 
