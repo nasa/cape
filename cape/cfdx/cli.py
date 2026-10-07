@@ -83,6 +83,9 @@ IMPLIED_CMDNAMES = {
     "unmark": "unmark",
 }
 
+# Regex for "%05.1f_" -> "%05.1f"
+REGEX_PRINTF = re.compile(r"(%-?[0-9]*(\.[1-9]?)?[fis])")
+
 # Cached *cntl* instances, oldest to most recently used
 CNTL_CACHE = OrderedDict()
 
@@ -235,6 +238,7 @@ class CfdxArgReader(ArgReader):
         "marked": bool,
         "maxdepth": int,
         "me": bool,
+        "msg": str,
         "n": int,
         "nlast": int,
         "nmax": int,
@@ -460,6 +464,7 @@ class CfdxArgReader(ArgReader):
         "ll": "Extract line load data [comps matching *PAT*] for case(s)",
         "marked": "Show only cases marked either PASS or ERROR",
         "maxdepth": "Max depth of dicts to show in ``inspect-json`` output",
+        "msg": "Use *MSG* as first line of commit message instead of default",
         "me": "Limit to cases owned by current user (equiv. ``--user $USER``)",
         "n": "Submit at most *N* cases",
         "nlast": "Last iteration to include in iterative statistics",
@@ -543,6 +548,7 @@ class CfdxArgReader(ArgReader):
         "jq": "JQ",
         "ll": "[PAT]",
         "maxdepth": "N",
+        "msg": "MSG",
         "n": "N",
         "nlast": "N",
         "nmax": "NMAX",
@@ -719,6 +725,37 @@ class CfdxCheckArgs(_CfdxCaseLoopArgs):
     # Default values
     _rc = {
         "nproc": 8,
+    }
+
+
+# Settings for auto-commit
+class CfdxAutoCommitArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape auto-commit"
+
+    # Description
+    _help_title = "Commit run matrix file with auto-generated status message"
+
+    # Options
+    _optlist = (
+        "h",
+        "dry-run",
+        "f",
+        "msg",
+        "solver",
+    )
+
+    # Aliases
+    _optmap = {
+        "m": "msg",
+    }
+
+    # Help for options with command-specific meaning
+    _help_opt = {
+        "dry-run": "Show commit message but do not commit",
     }
 
 
@@ -2468,6 +2505,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "apply",
         "approve",
         "archive",
+        "auto-commit",
         "batch",
         "check-db",
         "check-fm",
@@ -2613,6 +2651,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "apply": CfdxApplyArgs,
         "approve": CfdxApproveArgs,
         "archive": CfdxArchiveArgs,
+        "auto-commit": CfdxAutoCommitArgs,
         "batch": CfdxBatchArgs,
         "check": CfdxCheckArgs,
         "check-db": CfdxCheckDBArgs,
@@ -3698,6 +3737,348 @@ def cape_init_agent(**kw) -> Tuple[int, list]:
     else:
         print(f"Unchanged {analysis_dst}")
     return IERR_OK, files
+
+
+@CfdxAutoCommitArgs.rst
+def cape_auto_commit(*a, **kw) -> Tuple[int, str]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, msg = %(name)s(*a, **kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *msg*: :class:`str`
+            Commit message (whether or not a commit was made)
+    """
+    from subprocess import call, check_output
+    # Read *cntl*
+    cntl, kw = read_cntl(CfdxAutoCommitArgs, *a, **kw)
+    # Get run matrix file
+    fmat = cntl.opts["RunMatrix"]["File"]
+    # Check for unchanged file
+    changed = check_output(["git", "status", "-s", fmat]) != b""
+    # Get commit message (also a useful status table w/o changes)
+    msg = _genr8_commit_msg(cntl, fmat, kw.get("msg"))
+    # Check for changes
+    if not changed:
+        print(f"No changes to '{fmat}'")
+        print(msg)
+        return IERR_OK, msg
+    # Show message and stop if requested
+    if kw.get("dry-run"):
+        print(msg)
+        return IERR_OK, msg
+    # Do commit
+    call(["git", "add", fmat])
+    ierr = call(["git", "commit", "-m", msg])
+    return (IERR_OK if ierr == 0 else IERR_RUNTIME), msg
+
+
+def _genr8_commit_msg(cntl, fname: str, headline: Optional[str] = None) -> str:
+    r"""Generate a commit message from run matrix file status
+
+    :Call:
+        >>> txt = _genr8_commit_msg(cntl, fname, headline=None)
+    :Inputs:
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            CAPE run matrix control instance
+        *fname*: :class:`str`
+            Name of run matrix file
+        *headline*: {``None``} | :class:`str`
+            Optional text for first line of commit message
+    :Outputs:
+        *txt*: :class:`str`
+            Text for commit message
+    """
+    from collections import defaultdict
+    from subprocess import check_output
+    import numpy as np
+
+    def _dd():
+        return defaultdict(int)
+
+    # "Scheduling" key
+    xcol = cntl.x.cols[0]
+    # Get format used in run matix definition
+    fmtx = cntl.x.defns[xcol].get("Format", "%.2f")
+    # Extract only the string portion
+    fmt = REGEX_PRINTF.search(fmtx).group(0)
+    # Get diff output
+    cmd = ["git", "diff", "--", fname]
+    txt = check_output(cmd).decode("utf-8")
+    # Split to lines, ignoring header
+    lines = txt.split("\n")[5:-1]
+    # Differentiate into old/new
+    oldlines = []
+    newlines = []
+    for line in lines:
+        if line.startswith("-"):
+            oldlines.append(line[1:])
+        elif line.startswith("+"):
+            newlines.append(line[1:])
+    # Check for problems
+    if len(oldlines) != len(newlines):
+        raise CapeValueError(
+            "Cannot process! Number of lines changed\n"
+            f"Found {len(oldlines)} deletions and {len(newlines)} additions")
+    # Initiate counters
+    n = {
+        "PASS": 0,
+        "FAIL": 0,
+        "UNPASS": 0,
+        "UNFAIL": 0,
+        "tag": 0,
+        "arch": 0,
+        "label": 0,
+        "archmod": 0,
+        "usermod": 0,
+    }
+    m = {
+        "PASS": defaultdict(int),
+        "FAIL": defaultdict(int),
+        "UNPASS": defaultdict(int),
+        "UNFAIL": defaultdict(int),
+        "tag": defaultdict(_dd),
+        "arch": defaultdict(_dd),
+        "label": defaultdict(_dd),
+        "archmod": defaultdict(_dd),
+        "usermod": defaultdict(_dd),
+    }
+    # Loop through changed lines
+    for oldline, newline in zip(oldlines, newlines):
+        # Get properties
+        xold = _get_matrix_linedict(oldline, cntl)
+        xnew = _get_matrix_linedict(newline, cntl)
+        # Statuses
+        oldmark = xold["MARK"]
+        newmark = xnew["MARK"]
+        # Architectures
+        oldarch = xold.get("arch", '')
+        newarch = xnew.get("arch", '')
+        # Tags
+        oldtag = xold.get("tag", '')
+        newtag = xnew.get("tag", '')
+        # User before and after
+        olduser = xold.get("user", '')
+        newuser = xnew.get("user", '')
+        # Labels
+        oldlbl = xold.get("Label", '')
+        newlbl = xnew.get("Label", '')
+        # Get Mach number or value of scheduling key
+        xj = xnew[xcol]
+        # Check for a MARK changes
+        if oldmark in ("p", "P"):
+            # Line *was* marked pass
+            if newmark in ("", " "):
+                # PASS flag removed
+                n["UNPASS"] += 1
+                m["UNPASS"][xj] += 1
+            elif newmark in ("e", "E"):
+                # PASS flag removed, FAIL instead
+                n["UNPASS"] += 1
+                n["FAIL"] += 1
+                m["UNPASS"][xj] += 1
+                m["FAIL"][xj] += 1
+        elif oldmark in ("e", "E"):
+            # Line *was* marked fail
+            if newmark in ("", " "):
+                # FAIL flag removed
+                n["UNFAIL"] += 1
+                m["UNFAIL"][xj] += 1
+            elif newmark in ("p", "P"):
+                # FAIL -> PASS
+                n["UNFAIL"] += 1
+                n["PASS"] += 1
+                m["UNFAIL"][xj] += 1
+                m["PASS"][xj] += 1
+        else:
+            # Line was not marked before
+            if newmark in ("p", "P"):
+                # New pass
+                n["PASS"] += 1
+                m["PASS"][xj] += 1
+            elif newmark in ("e", "E"):
+                # New fail
+                n["FAIL"] += 1
+                m["FAIL"][xj] += 1
+        # Check for tags
+        if newtag != oldtag:
+            n["tag"] += 1
+            m["tag"][newtag][xj] += 1
+        # Check for new *arch*
+        if newarch and oldarch != newarch:
+            if oldarch == "":
+                # New arch
+                n["arch"] += 1
+                m["arch"][newarch][xj] += 1
+            else:
+                # Arch modification
+                n["archmod"] += 1
+                m["archmod"][f"{oldarch}->{newarch}"][xj] += 1
+        # Check for *user* change
+        if newuser != olduser:
+            n["usermod"] += 1
+            m["usermod"][f"{olduser} -> {newuser}"][xj] += 1
+        # Check for *Label* change
+        if newlbl != oldlbl:
+            n["label"] += 1
+            m["label"][f"X => {newlbl}"][xj] += 1
+    # Start default headline and text
+    default_headline = f"Auto-commit {os.path.basename(fname)}:"
+    lines = []
+    # Check for new passes
+    if n["PASS"]:
+        default_headline += f" PASS {n['PASS']},"
+        lines.append(f"PASS +{n['PASS']}")
+        _disp_by_xcol(xcol, fmt, lines, m["PASS"])
+    # Check for unmarked PASSes
+    if n["UNPASS"]:
+        lines.append(f"PASS -{n['UNPASS']}")
+        _disp_by_xcol(xcol, fmt, lines, m["UNPASS"])
+    # Check for new failures
+    if n["FAIL"]:
+        default_headline += f" FAIL {n['FAIL']},"
+        lines.append(f"FAIL +{n['FAIL']}")
+        _disp_by_xcol(xcol, fmt, lines, m["FAIL"])
+    # Check for failures removed
+    if n["UNFAIL"]:
+        lines.append(f"FAIL -{n['UNFAIL']}")
+        _disp_by_xcol(xcol, fmt, lines, m["UNFAIL"])
+    # Check for label bumps
+    if n["label"]:
+        default_headline += f" label +{n['label']},"
+        lines.append(f"Changes to 'Label' settings: {n['label']}")
+        _disp_by_v_xcol(xcol, fmt, lines, m["label"])
+    # Check for new arch settings
+    na = n["arch"]
+    nam = n["archmod"]
+    if na + nam:
+        default_headline += " arch"
+        if na and nam:
+            default_headline += f" +{na} ={nam},"
+        elif na:
+            default_headline += f" +{na},"
+        else:
+            default_headline += f" ={nam},"
+    if na:
+        lines.append(f"New 'arch' settings: {na}")
+        _disp_by_v_xcol(xcol, fmt, lines, m["arch"])
+    if nam:
+        lines.append(f"Modified 'arch' settings: {nam}")
+        _disp_by_v_xcol(xcol, fmt, lines, m["archmod"])
+    # New tags
+    ntag = n["tag"]
+    if ntag:
+        default_headline += f" tag {ntag}"
+        lines.append(f"New/modified 'tag' settings: {ntag}")
+        _disp_by_v_xcol(xcol, fmt, lines, m["tag"])
+    # Check for user modifications
+    num = n["usermod"]
+    if num:
+        default_headline += f" user ={num},"
+        lines.append(f"Modified 'user' settings: {num}")
+        _disp_by_v_xcol(xcol, fmt, lines, m["usermod"])
+    # Mach numbers completed
+    xcol_complete = []
+    xcol_nopass = []
+    xcol_partial = {}
+    # Loop through status of each Mach
+    for xj in np.unique(cntl.x[xcol]):
+        # Count cases at this value
+        mask = np.where(cntl.x[xcol] == xj)[0]
+        nj = mask.size
+        # Passes and FAILS
+        npass = np.count_nonzero(cntl.x.PASS[mask])
+        nerr = np.count_nonzero(cntl.x.ERROR[mask])
+        ntotalj = npass + nerr
+        # Check status
+        if ntotalj == nj:
+            xcol_complete.append(fmt % xj)
+        elif ntotalj > 0:
+            xcol_partial[xj] = (npass, nerr, nj)
+        else:
+            xcol_nopass.append(fmt % xj)
+    # Overall status
+    if xcol_complete:
+        lines.append("")
+        lines.append(f"Completed {xcol} values:")
+        _disp_rows(lines, xcol_complete)
+    # Partial status
+    if xcol_partial:
+        lines.append("")
+        lines.append(f"Partially complete {xcol} values:")
+    # Summary format line
+    fmtline1 = f"  * {xcol}={fmt}: %i/%i"
+    fmtline2 = f"  * {xcol}={fmt}: %i/%i (%iP,%iE)"
+    # Loop through partially complete Mach numbers
+    for xj, (npass, nerr, nj) in xcol_partial.items():
+        if nerr:
+            lines.append(fmtline2 % (xj, npass + nerr, nj, npass, nerr))
+        else:
+            lines.append(fmtline1 % (xj, npass, nj))
+    # Not-started status
+    if xcol_nopass:
+        lines.append("")
+        lines.append(f"{xcol} values w/ no PASS cases:")
+        _disp_rows(lines, xcol_nopass)
+    # Remove trailing comma added to header line
+    default_headline = default_headline.rstrip(",")
+    # Special headline if nothing changed in the file
+    if not (oldlines or newlines):
+        default_headline += " no changes"
+    # Check for user-provided headline
+    headline = default_headline if headline is None else headline
+    # Combine message
+    return headline + "\n\n" + "\n".join(lines)
+
+
+def _disp_rows(lines: list, vals: list, ncol: int = 5):
+    # Split into rows of *ncol* values
+    for j in range(0, len(vals), ncol):
+        lines.append("  " + " ".join(vals[j:j + ncol]))
+
+
+def _disp_by_xcol(xcol: str, fmt: str, lines: list, m: dict):
+    # Create format
+    fmtline = f"  * {xcol}={fmt}: %i"
+    # Loop through slices
+    for xj, nj in m.items():
+        lines.append(fmtline % (xj, nj))
+
+
+def _disp_by_v_xcol(xcol: str, fmt: str, lines: list, m: dict):
+    # Create main line format
+    fmtline = f"    - {xcol}={fmt}: %i"
+    # Loop through labels
+    for lblj, mj in m.items():
+        lines.append(f"  * {lblj}")
+        for xj, nj in mj.items():
+            lines.append(fmtline % (xj, nj))
+
+
+def _get_matrix_linedict(line: str, cntl) -> dict:
+    # First col is status
+    x = {"MARK": line[0]}
+    # Loop through other cols
+    for col, v in zip(cntl.x.cols, line[1:].split(",")):
+        # Get type
+        coltype = cntl.x.defns[col].get("Value", "str")
+        # Remove white space
+        v = v.strip()
+        # Convert if appropriate
+        if coltype == "float":
+            x[col] = float(v)
+        elif coltype == "int":
+            x[col] = int(v)
+        else:
+            x[col] = v
+    # Output
+    return x
 
 
 @CfdxGetKeysArgs.rst
@@ -4933,6 +5314,7 @@ CMD_DICT = {
     "apply": cape_apply,
     "approve": cape_approve,
     "archive": cape_archive,
+    "auto-commit": cape_auto_commit,
     "batch": cape_batch,
     "collect-cutplane": cape_collect_cutplane,
     "collect-surf": cape_collect_surfdata,
