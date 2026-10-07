@@ -32,6 +32,10 @@ TEST_FILES = (
 def test_c():
     # Loop through commands
     for j, cmdj in enumerate(CMD_LIST):
+        # Make this file most-recently modified so auto-search in command
+        # 1 deterministically finds it among the two JSON files
+        if j == 0:
+            os.utime("cape-json.json", None)
         # Split command and add `-m` prefix
         cmdlistj = [sys.executable, "-m"] + shlex.split(cmdj)
         # Run the command
