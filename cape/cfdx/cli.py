@@ -21,6 +21,7 @@ from . import manage
 from .. import capeconfig
 from .. import sysutils
 from .cntlbase import CntlBase
+from .quickstart import quickstart
 from ..argread import ArgReader, ArgReadError, BOOL_TYPES, INT_TYPES
 from ..argread.clitext import compile_rst
 from ..errors import (
@@ -1979,6 +1980,36 @@ class CfdxQdelArgs(_CfdxCaseLoopArgs):
     }
 
 
+# Settings for quickstart
+class CfdxQuickstartArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cape quickstart"
+
+    # Description
+    _help_title = "Create a new CAPE project"
+
+    # Additional options
+    _optlist = (
+        "f",
+        "force",
+    )
+
+    # Require a solver
+    _optlistreq = (
+        "solver",
+    )
+
+    # Alternate descriptions
+    _help_opt = {
+        "f": "Name of JSON (or YAML) settings file to create",
+        "force": "Overwrite existing settings and template files",
+        "solver": "Name of CAPE solver module, e.g. ``pycart``",
+    }
+
+
 # Settings for receive-file
 class CfdxReceiveFileArgs(CfdxArgReader):
     # No attributes
@@ -2517,6 +2548,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "perform",
         "post-file",
         "qdel",
+        "quickstart",
         "receive-file",
         "report",
         "review",
@@ -2661,6 +2693,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "perform": CfdxPerformArgs,
         "post-file": CfdxPostFileArgs,
         "qdel": CfdxQdelArgs,
+        "quickstart": CfdxQuickstartArgs,
         "receive-file": CfdxReceiveFileArgs,
         "report": CfdxReportArgs,
         "review": CfdxReviewArgs,
@@ -4227,6 +4260,32 @@ def cape_qdel(*a, **kw) -> Tuple[int, Any]:
     return IERR_OK, v
 
 
+@CfdxQuickstartArgs.rst
+def cape_quickstart(**kw) -> Tuple[int, list]:
+    r"""Run ``%(title)s`` command
+
+    %(description)s
+
+    :Call:
+        >>> ierr, files = %(name)s(**kw)
+    :Inputs:
+        %(options)s
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+        *files*: :class:`list`\ [:class:`str`]
+            Files created
+    """
+    # Read settings
+    solver = kw.pop("solver", None)
+    fjson = kw.pop("f", None)
+    force = kw.pop("force", False)
+    # Create settings and template files
+    files = quickstart(solver, fjson, force=force)
+    # Return code
+    return IERR_OK, files
+
+
 @CfdxReceiveFileArgs.rst
 def cape_receive_file(*a, **kw) -> Tuple[int, list]:
     r"""Run ``%(title)s`` command
@@ -4982,6 +5041,7 @@ CMD_DICT = {
     "perform": cape_perform,
     "post-file": cape_post_file,
     "qdel": cape_qdel,
+    "quickstart": cape_quickstart,
     "receive-file": cape_receive_file,
     "report": cape_report,
     "review": cape_review,
