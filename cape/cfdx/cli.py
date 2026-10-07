@@ -156,6 +156,7 @@ class CfdxArgReader(ArgReader):
         "json": "f",
         "kill": "qdel",
         "ls": "list",
+        "m": "msg",
         "minsize": "cutoff",
         "nbatch": "batchsize",
         "output-json": "o",
@@ -747,11 +748,6 @@ class CfdxAutoCommitArgs(CfdxArgReader):
         "msg",
         "solver",
     )
-
-    # Aliases
-    _optmap = {
-        "m": "msg",
-    }
 
     # Help for options with command-specific meaning
     _help_opt = {
@@ -2451,6 +2447,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "marked",
         "maxdepth",
         "me",
+        "msg",
         "n",
         "nlast",
         "nmax",
