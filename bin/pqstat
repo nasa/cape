@@ -47,12 +47,14 @@ r"""
     * 2015-07-23 ``@ddalle``: Version 1.0
     * 2017-03-02 ``@ddalle``: Version 1.1; add ``-t``
     * 2021-09-01 ``@ddalle``: Version 1.2; add ``-g``
+    * 2026-10-08 ``@ddalle``: Version 1.3; PBS Pro compatibility
 """
 
 # Standard library modules
 import getpass
 import grp
 import os
+import re
 import shutil
 import subprocess as sp
 
@@ -94,6 +96,8 @@ def main(**kw):
         * 2015-07-23 ``@ddalle``: Version 1.0
         * 2017-03-02 ``@ddalle``: Version 1.1; add ``-t``
         * 2021-09-01 ``@ddalle``: Version 1.2; add ``-g``
+        * 2026-10-08 ``@ddalle``: v1.3; get group from ``group_list``,
+          drop ``-e`` for recent ``nas_qstat``
     """
     # Check for help
     if kw.get("help", kw.get("h")):
@@ -134,11 +138,16 @@ def main(**kw):
     # Get list of users for group if needed
     if g and (u is None):
         # Get interface to group
-        group = grp.getgrnam(g)
+        try:
+            group = grp.getgrnam(g)
+        except KeyError:
+            print("ERROR: group '%s' not found; no stats to show" % g)
+            return
         # Convert to user
         u = ",".join(group.gr_mem)
     # Select a command
-    if shutil.which("nas_qstat"):
+    use_nas_qstat = bool(shutil.which("nas_qstat"))
+    if use_nas_qstat:
         # Newer version
         cmd = ["nas_qstat", "-W", "o=+model", "-W", "o=+group"]
     else:
@@ -148,7 +157,9 @@ def main(**kw):
     if u:
         cmd.extend(["-u", u])
     # Check for queue option
-    if q:
+    if q and (not use_nas_qstat):
+        # Current ``nas_qstat`` does not recognize ``-e``; for that
+        # case the queue is screened out after reading the output
         cmd.extend(["-e", q])
     # List of users
     if u:
@@ -174,6 +185,15 @@ def main(**kw):
     if len(lines) < 4:
         print("No jobs found.")
         return
+    # Get the group name for each job
+    if use_nas_qstat and (show_group or g):
+        # The ``Group`` column of ``nas_qstat`` comes from the job
+        # attribute ``egroup``, which recent PBS servers do not set.
+        # The accounting group is in the ``group_list`` attribute,
+        # which is only available in the full-format output.
+        groups = get_groups([x.split()[0] for x in lines[3:-1] if x.split()])
+    else:
+        groups = {}
     # Loop through lines.
     for line in lines[3:-1]:
         # Separate out the properties for this script
@@ -191,9 +211,13 @@ def main(**kw):
         except Exception:
             nj, mj = 0, "unknown"
         # Group name
-        try:
-            gj = vals[11]
-        except Exception:
+        gj = groups.get(job_key(vals[0]), None)
+        if gj is None:
+            try:
+                gj = vals[11]
+            except Exception:
+                gj = "unknown"
+        if gj in ("--", ""):
             gj = "unknown"
         # Check for a requested queue or group
         if q and (qj != q[:8]):
@@ -308,6 +332,76 @@ def show_qstats(d, q_total=False):
         % (QT['jobs'], QT['nodes'], QT['cores']))
     # Totals.
     print("  T: %3i jobs" % (RT['jobs']+QT['jobs']))
+
+
+# Function to extract a job key from a job ID
+def job_key(job_id):
+    r"""Extract the serial number (and array index) from a job ID
+
+    :Call:
+        >>> key = job_key(job_id)
+    :Inputs:
+        *job_id*: :class:`str`
+            Job ID as reported by ``qstat`` or ``nas_qstat``
+    :Outputs:
+        *key*: :class:`str`
+            Job serial number, including the array index if present
+    """
+    mo = re.match(r'-?\d+(?:\[\d+\])?', job_id)
+    if mo:
+        return mo.group(0)
+    return job_id
+
+
+# Function to get the accounting group of each job
+def get_groups(job_ids, chunk=100):
+    r"""Look up the accounting group of each job
+
+    The ``Group`` column of ``nas_qstat`` reports the job attribute
+    ``egroup``, which recent PBS servers no longer set. The accounting
+    group is stored in the ``group_list`` resource, which is only
+    visible in the full-format output.
+
+    :Call:
+        >>> groups = get_groups(job_ids)
+    :Inputs:
+        *job_ids*: :class:`list`\ [:class:`str`]
+            Job IDs as reported by ``nas_qstat``
+        *chunk*: :class:`int`
+            Number of job IDs per ``nas_qstat`` call
+    :Outputs:
+        *groups*: :class:`dict`
+            Accounting group of each job, ``groups[job_key]``
+    """
+    # Initialize the output
+    groups = {}
+    # Loop through chunks of job IDs
+    for k0 in range(0, len(job_ids), chunk):
+        # Form the command
+        cmd = ["nas_qstat", "-f"] + job_ids[k0:k0+chunk]
+        # Call the command (jobs can vanish, so do not require success)
+        proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.DEVNULL)
+        txt = proc.stdout.decode("utf-8", errors="replace")
+        # Parse the full-format output
+        key = None
+        for line in txt.split("\n"):
+            word = line.strip()
+            # Check for the start of a new job
+            mo = re.fullmatch(r'Job(?: Id)?:\s*(\S+)', word)
+            if mo:
+                key = job_key(mo.group(1))
+                continue
+            if key is None:
+                continue
+            # Check for a group attribute
+            mo = re.fullmatch(r'(group_list|egroup)\s*=\s*(\S+)', word)
+            if mo:
+                if mo.group(1) == "group_list":
+                    groups[key] = mo.group(2)
+                elif key not in groups:
+                    groups[key] = mo.group(2)
+    # Output
+    return groups
 
 
 # Get lines from system call
