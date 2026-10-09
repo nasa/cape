@@ -24,6 +24,7 @@ The :mod:`cape` module
     config
     convert
     convert1to2
+    docclaw/index
     errors
     geom
     gruvoc/index

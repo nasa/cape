@@ -35,6 +35,7 @@ SETUP_SETTINGS = dict(
         "cape.cfdx",
         "cape.cfdx.options",
         "cape.dkit",
+        "cape.docclaw",
         "cape.filecntl",
         "cape.gitutils",
         "cape.gitutils._vendor",

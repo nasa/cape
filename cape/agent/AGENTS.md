@@ -193,25 +193,24 @@ Guidelines:
 
 ## Solver user manuals
 
-The CAPE package includes markdown conversions of CFD solver user manuals
-under each solver module's folder:
+The CAPE package includes a retrieval tool to search CFD manuals using
+`cape.docclaw`. The manuals are stored as SQLite corpora under the package's
+`docs/` folder (one corpus per solver, named e.g. `fun3d`) and searches them
+with hybrid lexical/semantic search:
 
-    cape/py*/manuals/*/{manual,chapter_[0-9]*,appendix_[a-z],table_of_contents}.md
+    CAPE_DIR=$(python3 -c "import cape, os; print(os.path.dirname(cape.__file__))")
+    python3 -m cape.docclaw --root "$CAPE_DIR/docs" corpora
+    python3 -m cape.docclaw --root "$CAPE_DIR/docs" search \
+        'turbulence models' --corpus fun3d -n 5
 
-Each `manuals/{VERSION}/` folder holds one manual, either as a single
-`manual.md` or split into `chapter_{N}.md` / `appendix_{L}.md` files. To
-locate the package folder, run
+Every response is JSON with excerpt, metadata, and a `chunk_id` handle.
+Read a full chunk or its neighbors with the `read` and `context`
+subcommands, e.g.
 
-    python3 -c "import cape, os; print(os.path.dirname(cape.__file__))"
+    python3 -m cape.docclaw --root "$CAPE_DIR/docs" context \
+        fun3d {CHUNK_ID} --before 1 --after 3
 
-Consult the manual matching the solver and version folder closest to the
-version in use for authoritative details on solver input options before
-changing them. These are text-only conversions: figures are not included and
-tables may be imperfect.
-
-If the `CAPE_MANUAL_PATH` environment variable is set, treat it as a
-colon-separated list of directories containing additional user-supplied
-manuals (markdown), searched in addition to the package copies.
-
-
+Options: `--mode lexical|semantic|hybrid` (default hybrid), repeat
+`--corpus` to search several solvers, `-n` sets the hit count, and the
+`DOCCLAW_ROOT` environment variable can replace `--root`.
 
