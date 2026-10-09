@@ -1,0 +1,18 @@
+{
+  "name": "overflow",
+  "title": "OVERFLOW Documentation",
+  "description": "",
+  "embedding_model": "docclaw-hashing-v1/384",
+  "embedding_dimensions": 384,
+  "schema_version": 1,
+  "index_version": 1,
+  "chunking": {
+    "strategy": "structure-v1",
+    "target_tokens": 600,
+    "max_tokens": 800
+  },
+  "documents": 11,
+  "pages": 0,
+  "created": "2026-10-09T09:48:27+00:00",
+  "updated": "2026-10-09T09:52:27+00:00"
+}

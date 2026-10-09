@@ -1,0 +1,5 @@
+outs:
+- sha256: 3e99bc3c2e6c10728c7015cd088e95c7f0af6ec208757aa88ef8f9512c6ad90a
+  size: 2342912
+  path: index.sqlite
+  mode: 1

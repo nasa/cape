@@ -1,0 +1,18 @@
+{
+  "name": "fun3d",
+  "title": "FUN3D Documentation",
+  "description": "",
+  "embedding_model": "docclaw-hashing-v1/384",
+  "embedding_dimensions": 384,
+  "schema_version": 1,
+  "index_version": 1,
+  "chunking": {
+    "strategy": "structure-v1",
+    "target_tokens": 600,
+    "max_tokens": 800
+  },
+  "documents": 1,
+  "pages": 0,
+  "created": "2026-10-09T09:44:28+00:00",
+  "updated": "2026-10-09T09:46:25+00:00"
+}
