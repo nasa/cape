@@ -46,5 +46,13 @@
             "vcs": "git"
         },
         "version": " 1.2.2"
+    },
+    "docclaw": {
+        "url": "ssh://athfe04/nobackupnfs1/ddalle/cape/hub/src/docclaw.git",
+        "vcs_info": {
+            "commit_id": "7e2bac913c54fff9299e9c7390015dcd56e1dcd8",
+            "vcs": "git"
+        },
+        "version": " 0.1.0"
     }
 }
